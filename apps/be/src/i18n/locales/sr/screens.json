@@ -1,0 +1,20 @@
+{
+  "notFound": "Ekran nije pronađen.",
+  "emptyUpdate": "Mora biti prosleđeno bar jedno polje za ažuriranje ekrana.",
+  "mediaNotFound": "Jedna ili više medijskih stavki nije pronađeno.",
+  "mediaNotReady": "Medij mora završiti obradu pre dodavanja na ekran.",
+  "invalidMediaType": "Na ekran se mogu dodati samo slike i video zapisi.",
+  "playlistNotFound": "Jedna ili više plejlista nije pronađeno.",
+  "itemNotFound": "Stavka ekrana nije pronađena.",
+  "invalidItem": "Svaka stavka ekrana mora referencirati medij ili plejlistu.",
+  "duplicateItemIds": "Prosleđeni su duplirani identifikatori stavki ekrana.",
+  "conflict": "Ovaj ekran je izmenjen na drugom mestu. Osvežite i pokušajte ponovo.",
+  "maxItemsExceeded": "Ekran može sadržati najviše 500 stavki.",
+  "availability": {
+    "invalidTimezone": "Prosleđena vremenska zona nije važeća.",
+    "invalidTimeRange": "Vreme početka mora biti pre vremena završetka.",
+    "invalidDate": "Prosleđeni datum nije važeći kalendarski datum.",
+    "invalidDateRange": "Datum završetka mora biti isti ili posle datuma početka.",
+    "incompleteWeekly": "Radno vreme mora obuhvatiti svih sedam dana u nedelji."
+  }
+}

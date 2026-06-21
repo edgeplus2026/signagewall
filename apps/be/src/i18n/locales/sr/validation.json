@@ -1,0 +1,9 @@
+{
+  "failed": "Validacija nije uspela. Proverite unete podatke.",
+  "email": "Unesite ispravnu email adresu.",
+  "passwordMin": "Lozinka mora imati najmanje {{min}} karaktera.",
+  "nameMin": "Ime mora imati najmanje {{min}} karaktera.",
+  "passwordMismatch": "Lozinke se ne poklapaju.",
+  "phoneRequired": "Broj telefona je obavezan.",
+  "phoneInvalid": "Unesite ispravan broj telefona."
+}

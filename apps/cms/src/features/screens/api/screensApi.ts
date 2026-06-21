@@ -1,0 +1,96 @@
+import type {
+  AddMediaToScreensRequest,
+  AddPlaylistsToScreensRequest,
+  CreateScreenRequest,
+  ReplaceScreenItemsRequest,
+  Screen,
+  ScreenAvailability,
+  ScreenAvailabilityStatus,
+  ScreenDetail,
+  ScreenItem,
+  ScreenSummary,
+  UpdateScreenAvailabilityRequest,
+  UpdateScreenRequest,
+} from '@/features/screens/types/screen.types'
+import { ApiError } from '@/lib/api-error'
+import { api } from '@/lib/axios'
+
+const SCREENS_BASE = '/screens'
+
+export const screensApi = {
+  list: async (): Promise<ScreenSummary[]> => {
+    const { data } = await api.get<ScreenSummary[]>(SCREENS_BASE)
+    return data
+  },
+
+  get: async (id: string): Promise<ScreenDetail | null> => {
+    try {
+      const { data } = await api.get<ScreenDetail>(`${SCREENS_BASE}/${id}`)
+      return data
+    } catch (error) {
+      // The axios interceptor normalizes errors to ApiError before they reach
+      // here, so match on the error code rather than the raw HTTP response.
+      if (error instanceof ApiError && error.code === 'NOT_FOUND') {
+        return null
+      }
+      throw error
+    }
+  },
+
+  getItems: async (id: string): Promise<ScreenItem[]> => {
+    const { data } = await api.get<ScreenItem[]>(`${SCREENS_BASE}/${id}/items`)
+    return data
+  },
+
+  create: async (payload: CreateScreenRequest): Promise<ScreenDetail> => {
+    const { data } = await api.post<ScreenDetail>(SCREENS_BASE, payload)
+    return data
+  },
+
+  update: async (id: string, payload: UpdateScreenRequest): Promise<ScreenDetail> => {
+    const { data } = await api.patch<ScreenDetail>(`${SCREENS_BASE}/${id}`, payload)
+    return data
+  },
+
+  getAvailability: async (id: string): Promise<ScreenAvailability | null> => {
+    const { data } = await api.get<ScreenAvailability | null>(
+      `${SCREENS_BASE}/${id}/availability`,
+    )
+    return data
+  },
+
+  updateAvailability: async (
+    id: string,
+    payload: UpdateScreenAvailabilityRequest,
+  ): Promise<ScreenAvailability> => {
+    const { data } = await api.patch<ScreenAvailability>(
+      `${SCREENS_BASE}/${id}/availability`,
+      payload,
+    )
+    return data
+  },
+
+  getStatus: async (id: string): Promise<ScreenAvailabilityStatus> => {
+    const { data } = await api.get<ScreenAvailabilityStatus>(`${SCREENS_BASE}/${id}/status`)
+    return data
+  },
+
+  delete: async (ids: string[]): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/delete`, { ids })
+  },
+
+  replaceItems: async (id: string, payload: ReplaceScreenItemsRequest): Promise<Screen> => {
+    const { data } = await api.put<Screen>(`${SCREENS_BASE}/${id}/items`, payload)
+    return data
+  },
+
+  addMedia: async (payload: AddMediaToScreensRequest): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/add-media`, payload)
+  },
+
+  addPlaylists: async (payload: AddPlaylistsToScreensRequest): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/add-playlists`, payload)
+  },
+}
+
+export { SCREENS_BASE }

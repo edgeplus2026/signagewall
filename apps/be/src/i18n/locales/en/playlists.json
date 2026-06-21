@@ -1,0 +1,12 @@
+{
+  "notFound": "Playlist not found.",
+  "mediaNotFound": "One or more media items could not be found.",
+  "mediaNotReady": "Media must finish processing before it can be added to a playlist.",
+  "invalidMediaType": "Only images and videos can be added to a playlist.",
+  "itemNotFound": "Playlist item not found.",
+  "invalidDuration": "Duration must be between 1 and 3600 seconds.",
+  "emptyUpdate": "At least one field must be provided to update a playlist.",
+  "duplicateItemIds": "Duplicate playlist item identifiers were provided.",
+  "conflict": "This playlist was modified elsewhere. Please reload and try again.",
+  "maxItemsExceeded": "A playlist can contain at most 500 items."
+}

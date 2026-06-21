@@ -1,0 +1,21 @@
+{
+  "itemNotFound": "Stavka medija nije pronađena.",
+  "folderNotFound": "Folder nije pronađen.",
+  "folderNameExists": "Folder sa ovim imenom već postoji na ovoj lokaciji.",
+  "fileRequired": "Datoteka je obavezna.",
+  "fileTooLarge": "Datoteka premašuje maksimalnu dozvoljenu veličinu od 10 MB.",
+  "invalidFileType": "Ovaj tip datoteke nije podržan. Dozvoljeni tipovi su JPEG, PNG, WebP, GIF, MP4, WebM i MOV.",
+  "invalidFileContent": "Sadržaj datoteke ne odgovara prijavljenom tipu.",
+  "durationNotAllowed": "Podrazumevano trajanje se ne može postaviti na folder.",
+  "videoDurationNotEditable": "Trajanje videa određuje sam fajl i ne može se menjati.",
+  "invalidVideoDuration": "Trajanje videa mora biti između 1 i 3600 sekundi.",
+  "uploadFailed": "Otpremanje datoteke nije uspelo. Pokušajte ponovo.",
+  "storageNotConfigured": "Skladište medija nije konfigurisano na serveru.",
+  "invalidMoveTarget": "Ne možete premestiti stavku u samu sebe ili u neki od njenih podfoldera.",
+  "downloadNotAllowed": "Ova stavka se ne može preuzeti.",
+  "stock": {
+    "blockedQuery": "Ovaj pojam za pretragu nije dozvoljen. Pokušajte sa drugim.",
+    "notConfigured": "Stok mediji nisu konfigurisani na serveru.",
+    "providerError": "Nije moguće pristupiti dobavljaču stok medija. Pokušajte ponovo."
+  }
+}

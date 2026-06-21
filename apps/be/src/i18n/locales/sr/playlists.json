@@ -1,0 +1,12 @@
+{
+  "notFound": "Plejlista nije pronađena.",
+  "mediaNotFound": "Jedna ili više medijskih stavki nije pronađeno.",
+  "mediaNotReady": "Medij mora završiti obradu pre dodavanja u plejlistu.",
+  "invalidMediaType": "U plejlistu se mogu dodati samo slike i video zapisi.",
+  "itemNotFound": "Stavka plejliste nije pronađena.",
+  "invalidDuration": "Trajanje mora biti između 1 i 3600 sekundi.",
+  "emptyUpdate": "Mora biti prosleđeno bar jedno polje za ažuriranje plejliste.",
+  "duplicateItemIds": "Prosleđeni su duplirani identifikatori stavki plejliste.",
+  "conflict": "Ova plejlista je izmenjena na drugom mestu. Osvežite i pokušajte ponovo.",
+  "maxItemsExceeded": "Plejlista može sadržati najviše 500 stavki."
+}

@@ -1,0 +1,1382 @@
+{
+  "validation": {
+    "emailInvalid": "Enter a valid email address",
+    "passwordMin": "Password must be at least {{min}} characters",
+    "nameMin": "Name must be at least {{min}} characters",
+    "passwordMismatch": "Passwords do not match",
+    "phoneRequired": "Phone number is required",
+    "phoneInvalid": "Enter a valid phone number"
+  },
+  "common": {
+    "appName": "Edge",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "phone": "Phone number",
+    "company": "Company",
+    "optional": "optional",
+    "confirmPassword": "Confirm password",
+    "newPassword": "New password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "phonePlaceholder": "Enter phone number",
+    "orContinueWith": "Or continue with",
+    "loginWithGoogle": "Continue with Google",
+    "loading": "Loading...",
+    "actions": "Actions",
+    "cancel": "Cancel",
+    "decrease": "Decrease",
+    "increase": "Increase"
+  },
+  "dataTable": {
+    "search": "Search...",
+    "noResults": "No results found.",
+    "pagination": {
+      "showing": "Showing {{from}}–{{to}} of {{total}}",
+      "page": "Page {{page}} of {{totalPages}}",
+      "previous": "Previous",
+      "next": "Next"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Login to your account",
+      "description": "Enter your email below to login to your account",
+      "inviteDescription": "Sign in to review your invitation to {{name}}.",
+      "inviteBadgeTitle": "You're invited",
+      "inviteBadgeDescription": "Sign in to accept or decline joining {{name}}.",
+      "submit": "Login",
+      "forgotPassword": "Forgot your password?",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "success": "Logged in successfully",
+      "error": "Login failed. Please check your credentials."
+    },
+    "register": {
+      "title": "Create your account",
+      "description": "Enter your details below to create your account",
+      "submit": "Create account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "success": "Account created successfully",
+      "error": "Registration failed. Please try again.",
+      "inviteBadgeTitle": "You're invited",
+      "inviteBadgeDescription": "Create your account to join {{name}}.",
+      "inviteInvalidTitle": "Invitation expired",
+      "inviteInvalidDescription": "This invitation link is invalid or has expired. Ask your organization admin to send a new invite.",
+      "inviteInvalidAction": "Register without an invitation"
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "description": "Enter your email and we'll send you a reset link",
+      "submit": "Send reset link",
+      "backToLogin": "Back to sign in",
+      "success": "Password reset link sent to {{email}}",
+      "successTitle": "Check your email",
+      "successDescription": "We sent a password reset link to {{email}}. The link expires in 1 hour.",
+      "resend": "Resend email",
+      "resendSuccess": "Reset link sent again.",
+      "resendError": "Could not resend the email. Please try again.",
+      "useDifferentEmail": "Use a different email",
+      "error": "Could not send reset link. Please try again."
+    },
+    "resetPassword": {
+      "title": "Reset your password",
+      "description": "Enter your new password below",
+      "submit": "Reset password",
+      "backToLogin": "Back to sign in",
+      "success": "Password reset successfully",
+      "error": "Could not reset password. Please try again.",
+      "missingToken": "Invalid or missing reset token."
+    },
+    "verifyEmail": {
+      "checkEmailTitle": "Check your email",
+      "checkEmailDescription": "We sent a verification link to {{email}}. Click it to activate your account. The link expires in 24 hours.",
+      "checkEmailDescriptionNoEmail": "We sent you a verification link. Click it to activate your account. The link expires in 24 hours.",
+      "resend": "Resend email",
+      "resendCooldown": "Resend in {{seconds}}s",
+      "resent": "Verification email sent again.",
+      "resendError": "Could not resend the email. Please try again.",
+      "verifying": "Verifying your email…",
+      "successTitle": "Email verified",
+      "successDescription": "Your email address has been confirmed. You can now sign in.",
+      "goToLogin": "Go to sign in",
+      "errorTitle": "Verification failed",
+      "error": "This verification link is invalid or has expired.",
+      "missingToken": "This verification link is missing its token.",
+      "requestNewLink": "Request a new link",
+      "backToLogin": "Back to sign in"
+    },
+    "google": {
+      "success": "Signed in with Google",
+      "error": "Google sign-in failed. Please try again."
+    },
+    "acceptInvite": {
+      "title": "Organization invitation",
+      "description": "You have been invited to join {{organization}} as {{role}}.",
+      "accept": "Accept invitation",
+      "decline": "Decline",
+      "success": "You joined {{name}}",
+      "acceptError": "Could not accept the invitation. Please try again.",
+      "declineSuccess": "Invitation declined",
+      "declineError": "Could not decline the invitation. Please try again.",
+      "invalidTitle": "Invitation expired",
+      "invalidDescription": "This invitation link is invalid or has expired.",
+      "wrongAccountTitle": "Wrong account",
+      "wrongAccountDescription": "Sign in as {{email}} to respond to this invitation.",
+      "backToDashboard": "Go to dashboard"
+    }
+  },
+  "layout": {
+    "navigation": "Navigation",
+    "breadcrumb": {
+      "label": "Breadcrumb"
+    },
+    "dashboard": "Dashboard",
+    "screens": "Screens",
+    "playlists": "Playlists",
+    "media": "Media",
+    "apps": "Apps",
+    "settings": "Settings",
+    "superAdmin": "Super Admin",
+    "faq": "FAQ",
+    "users": "Users",
+    "guestUser": "Guest",
+    "guestEmail": "guest@example.com",
+    "blankPlaceholder": "Content coming soon.",
+    "logout": "Log out",
+    "logoutConfirm": {
+      "title": "Log out?",
+      "description": "Are you sure you want to log out of your account?",
+      "cancel": "Cancel",
+      "confirm": "Log out"
+    },
+    "welcome": "Welcome to Edge.",
+    "dashboardPlaceholder": "Your dashboard content goes here."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "greeting": "Welcome back, {{name}}",
+    "description": "Overview of your screens, playlists, and media library.",
+    "stats": {
+      "screens": "Screens",
+      "screensOnline": "{{count}} online",
+      "playlists": "Playlists",
+      "media": "Media files",
+      "online": "Online screens",
+      "onlineHint": "Currently playing content"
+    },
+    "quickActions": {
+      "title": "Quick actions",
+      "media": {
+        "title": "Manage media",
+        "description": "Upload and organize your library"
+      },
+      "playlists": {
+        "title": "Edit playlists",
+        "description": "Build content for your screens"
+      },
+      "screens": {
+        "title": "View screens",
+        "description": "Monitor connected displays"
+      }
+    },
+    "recentPlaylists": {
+      "title": "Recent playlists",
+      "viewAll": "View all",
+      "empty": "No playlists yet. Create one to get started.",
+      "create": "Create playlist",
+      "meta": "{{count}} items · {{duration}}"
+    },
+    "screens": {
+      "title": "Screen status",
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      }
+    }
+  },
+  "organizations": {
+    "title": "Organizations",
+    "active": "Active organization",
+    "name": "Organization name",
+    "add": "Add organization",
+    "loadError": "Could not load organizations. Please try again.",
+    "actions": {
+      "edit": "Update {{name}}",
+      "delete": "Delete {{name}}"
+    },
+    "form": {
+      "cancel": "Cancel"
+    },
+    "onboarding": {
+      "title": "Create your organization",
+      "description": "Before you continue, create an organization to manage screens, playlists, and media.",
+      "submit": "Continue"
+    },
+    "create": {
+      "title": "Create organization",
+      "description": "Add a new organization to manage your screens and media.",
+      "submit": "Create",
+      "cancel": "Cancel",
+      "success": "Organization created",
+      "error": "Could not create organization. Please try again."
+    },
+    "update": {
+      "title": "Edit organization",
+      "description": "Update your organization name.",
+      "submit": "Save changes",
+      "success": "Organization updated",
+      "error": "Could not update organization. Please try again."
+    },
+    "delete": {
+      "title": "Delete organization",
+      "description": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "success": "Organization deleted",
+      "error": "Could not delete organization. Please try again."
+    }
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "unknown": "Unknown error",
+    "retry": "Try again"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your profile, preferences, security, and account settings.",
+    "sections": {
+      "profile": "Profile",
+      "preferences": "Preferences",
+      "security": "Security",
+      "help": "Help",
+      "account": "Account"
+    },
+    "profile": {
+      "email": "Email",
+      "googleSignup": "You have signed up with Google",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone number",
+      "company": "Company",
+      "organization": "Organization",
+      "save": "Save changes",
+      "success": "Profile updated successfully",
+      "error": "Could not update profile. Please try again."
+    },
+    "appearance": {
+      "theme": "Theme"
+    },
+    "language": {
+      "label": "Language",
+      "success": "Language updated",
+      "error": "Could not update language. Please try again.",
+      "options": {
+        "en": "English",
+        "sr": "Serbian"
+      }
+    },
+    "security": {
+      "password": "Password",
+      "changePassword": "Change password",
+      "setPassword": "Set password",
+      "noPasswordHint": "You signed in with Google and have not set an app password yet.",
+      "dialogTitle": "Change password",
+      "dialogDescription": "Enter your current password and choose a new one.",
+      "setPasswordDialogTitle": "Set password",
+      "setPasswordDialogDescription": "Create a password to sign in with email and password.",
+      "currentPassword": "Current password",
+      "currentPasswordRequired": "Current password is required",
+      "submit": "Update password",
+      "setPasswordSubmit": "Set password",
+      "cancel": "Cancel",
+      "passwordSuccess": "Password updated successfully",
+      "passwordError": "Could not update password. Please try again.",
+      "setPasswordSuccess": "Password set successfully",
+      "setPasswordError": "Could not set password. Please try again."
+    },
+    "feedback": {
+      "leaveFeedback": "Leave feedback",
+      "open": "Leave feedback",
+      "title": "Leave feedback",
+      "description": "Tell us how we're doing. Your feedback helps us improve Edge.",
+      "rating": "Rating",
+      "ratingRequired": "Please select a rating",
+      "message": "Feedback",
+      "messagePlaceholder": "Share your thoughts...",
+      "messageMin": "Feedback must be at least {{min}} characters",
+      "submit": "Send feedback",
+      "cancel": "Cancel",
+      "success": "Thank you for your feedback",
+      "error": "Could not send feedback. Please try again."
+    },
+    "support": {
+      "reportProblem": {
+        "label": "Report a problem",
+        "open": "Report problem",
+        "title": "Report a problem",
+        "description": "Describe the issue you're experiencing and we'll look into it.",
+        "message": "Problem description",
+        "messagePlaceholder": "What went wrong?",
+        "messageMin": "Description must be at least {{min}} characters",
+        "submit": "Submit report",
+        "cancel": "Cancel",
+        "success": "Problem report submitted",
+        "error": "Could not submit report. Please try again."
+      }
+    },
+    "account": {
+      "logout": "Log out",
+      "deleteAccount": "Delete account",
+      "deleteSuccess": "Account deleted successfully",
+      "deleteError": "Could not delete account. Please try again.",
+      "deleteConfirm": {
+        "title": "Delete account?",
+        "description": "This action is permanent and cannot be undone. All your data will be removed.",
+        "cancel": "Cancel",
+        "confirm": "Delete account"
+      }
+    }
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage who has access to your organization.",
+    "userCount": "{{count}} users",
+    "meLabel": "me",
+    "search": "Search users...",
+    "empty": "No users found.",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "createdAt": "Created at",
+      "actions": "Actions"
+    },
+    "status": {
+      "approved": "Approved",
+      "pending": "Pending"
+    },
+    "roles": {
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "roleDescriptions": {
+      "admin": "Can invite and manage users, organization settings, and all content.",
+      "member": "Can use screens, playlists, and media but cannot manage users or settings."
+    },
+    "actions": {
+      "edit": "Update user",
+      "delete": "Delete user"
+    },
+    "form": {
+      "cancel": "Cancel"
+    },
+    "invite": {
+      "button": "Invite user",
+      "title": "Invite user",
+      "description": "Send an invitation to join your organization.",
+      "submit": "Send invite",
+      "success": "Invitation sent successfully",
+      "error": "Could not send invitation. Please try again."
+    },
+    "update": {
+      "title": "Edit user",
+      "description": "Update user details and role.",
+      "submit": "Save changes",
+      "success": "User updated successfully",
+      "error": "Could not update user. Please try again."
+    },
+    "delete": {
+      "title": "Remove user?",
+      "description": "Are you sure you want to remove {{name}} from your organization? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Remove user",
+      "success": "User removed successfully",
+      "error": "Could not remove user. Please try again."
+    }
+  },
+  "playlists": {
+    "title": "Playlists",
+    "playlistCount": "{{count}} playlists",
+    "description": "Create ordered collections of media to assign to your screens.",
+    "search": "Search playlists...",
+    "empty": "No playlists yet",
+    "emptyDescription": "Create a playlist to organize media for your screens.",
+    "emptySearch": "No matching playlists",
+    "emptySearchDescription": "Try a different search term.",
+    "emptyClearSearch": "Clear search",
+    "emptyPlaylist": "Empty playlist",
+    "updatePlaylist": "Update playlist",
+    "breadcrumb": {
+      "label": "Playlist navigation",
+      "root": "Playlists"
+    },
+    "selectAll": "Select all",
+    "selectItem": "Select {{name}}",
+    "bulk": {
+      "selected": "{{count}} selected",
+      "delete": "Delete",
+      "addToScreen": "Add to screen",
+      "clear": "Clear selection"
+    },
+    "columns": {
+      "name": "Name",
+      "items": "Items",
+      "duration": "Duration",
+      "updatedAt": "Updated"
+    },
+    "actions": {
+      "preview": "Preview",
+      "duplicate": "Duplicate",
+      "duplicatePlaylist": "Duplicate playlist",
+      "update": "Update",
+      "addToScreen": "Add to screen",
+      "delete": "Delete"
+    },
+    "view": {
+      "grid": "Grid view",
+      "list": "List view"
+    },
+    "sort": {
+      "label": "Sort",
+      "name": "Name",
+      "createdAt": "Date",
+      "asc": "Ascending",
+      "desc": "Descending"
+    },
+    "addToPlaylist": {
+      "title": "Add to playlist",
+      "description": "Add {{count}} item(s) to the selected playlists.",
+      "search": "Search playlists...",
+      "empty": "No playlists yet",
+      "emptySearch": "No matching playlists",
+      "submit": "Add to {{count}} playlist(s)",
+      "success": "Added to {{count}} playlist(s)",
+      "error": "Could not add to playlists. Please try again."
+    },
+    "duplicate": {
+      "copySuffix": " (copy)",
+      "success": "Playlist duplicated successfully",
+      "redirected": "You're now viewing the duplicated playlist.",
+      "error": "Could not duplicate playlist. Please try again."
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "e.g. Store Loop",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional description for this playlist",
+      "cancel": "Close"
+    },
+    "create": {
+      "button": "Create playlist",
+      "title": "Create playlist",
+      "description": "Add a new playlist to organize your screen content.",
+      "submit": "Create playlist",
+      "success": "Playlist created successfully",
+      "error": "Could not create playlist. Please try again."
+    },
+    "update": {
+      "title": "Edit playlist",
+      "description": "Update playlist name and description.",
+      "submit": "Save changes",
+      "success": "Playlist updated successfully",
+      "error": "Could not update playlist. Please try again."
+    },
+    "delete": {
+      "title": "Delete playlist?",
+      "description": "Are you sure you want to delete {{count}} playlist(s)? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete playlist",
+      "success": "Playlist deleted successfully",
+      "error": "Could not delete playlist. Please try again."
+    },
+    "manage": {
+      "back": "Back to playlists",
+      "notFound": "This playlist could not be found.",
+      "tabs": {
+        "content": "Content",
+        "settings": "Settings"
+      },
+      "sidebar": {
+        "addMedia": "Add media",
+        "addToContent": "Add to playlist",
+        "edit": "Update"
+      },
+      "actions": {
+        "playlistPreview": "Playlist preview",
+        "addToScreen": "Add to screen",
+        "clearAllContent": "Clear all content",
+        "moveToTrash": "Delete playlist",
+        "previewComingSoon": "Preview is not available yet.",
+        "addComingSoon": "Adding media is not available yet.",
+        "editComingSoon": "Edit is not available yet."
+      }
+    },
+    "content": {
+      "totalDuration": "Total duration",
+      "itemsLabel": "Total items",
+      "itemCount_one": "{{count}} item",
+      "itemCount_other": "{{count}} items",
+      "libraryTitle": "Media library",
+      "libraryBack": "Back",
+      "libraryDescription": "Drag media into the playlist or drop it on a specific position.",
+      "librarySearch": "Search library...",
+      "libraryEmpty": "No media in this folder.",
+      "libraryEmptySearch": "No media matches your search.",
+      "emptyTitle": "Empty playlist",
+      "emptyDescription": "Drag items from the media library on the right to build your playlist.",
+      "dragToReorder": "Drag to reorder",
+      "dragToAdd": "Drag to add",
+      "hintTitle": "Add more media",
+      "hintDescription": "Drag from the library and drop on any slot.",
+      "durationLabel": "Display duration (seconds)",
+      "removeItem": "Remove",
+      "disableItem": "Disable item",
+      "enableItem": "Enable item",
+      "disabledBadge": "Disabled",
+      "removeDropZone": "Drop here to remove",
+      "saveChanges": "Save changes",
+      "saveSuccess": "Playlist saved successfully",
+      "saveError": "Could not save playlist. Please try again.",
+      "conflict": "This playlist was changed elsewhere. Your unsaved changes were discarded and the latest version was loaded.",
+      "mediaUnavailable": "Media unavailable",
+      "unknownMedia": "Unknown media"
+    },
+    "validation": {
+      "nameRequired": "Playlist name is required",
+      "nameMax": "Name must be at most {{max}} characters",
+      "descriptionMax": "Description must be at most {{max}} characters",
+      "durationMin": "Duration must be at least {{min}} second",
+      "durationMax": "Duration must be at most {{max}} seconds"
+    },
+    "usedByScreens": {
+      "title": "Screens using this playlist",
+      "empty": "This playlist isn't used on any screen yet."
+    }
+  },
+  "screens": {
+    "title": "Screens",
+    "screenCount": "{{count}} screens",
+    "description": "Monitor and manage your connected displays.",
+    "search": "Search screens...",
+    "empty": "No screens yet. Add a screen to get started.",
+    "emptySearch": "No matching screens",
+    "emptySearchDescription": "Try a different search term.",
+    "emptyDescription": "Create a screen to start assigning content.",
+    "emptyClearSearch": "Clear search",
+    "emptyScreen": "Empty screen",
+    "selectAll": "Select all",
+    "selectItem": "Select {{name}}",
+    "bulk": {
+      "selected": "{{count}} selected",
+      "delete": "Delete",
+      "addToScreen": "Add to screen",
+      "clear": "Clear selection"
+    },
+    "sort": {
+      "label": "Sort",
+      "name": "Name",
+      "createdAt": "Date created",
+      "asc": "Ascending",
+      "desc": "Descending"
+    },
+    "view": {
+      "grid": "Grid view",
+      "list": "List view"
+    },
+    "columns": {
+      "name": "Name",
+      "items": "Items",
+      "updatedAt": "Updated"
+    },
+    "actions": {
+      "preview": "Preview",
+      "update": "Update",
+      "delete": "Delete"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "e.g. Lobby Display",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional description for this screen",
+      "cancel": "Close"
+    },
+    "create": {
+      "button": "Add screen",
+      "title": "Add screen",
+      "description": "Register a new display to manage content and monitor status.",
+      "submit": "Add screen",
+      "success": "Screen added successfully",
+      "error": "Could not add screen. Please try again."
+    },
+    "delete": {
+      "title": "Delete screen?",
+      "description": "Are you sure you want to delete {{count}} screen(s)? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete screen",
+      "success": "Screen deleted successfully",
+      "error": "Could not delete screen. Please try again."
+    },
+    "addToScreen": {
+      "title": "Add to screen",
+      "description": "Select one or more screens to add {{count}} item(s) to.",
+      "search": "Search screens...",
+      "empty": "No screens yet. Create a screen first.",
+      "emptySearch": "No screens match your search.",
+      "submit": "Add to {{count}} screen(s)",
+      "success": "Added to {{count}} screen(s) successfully",
+      "error": "Could not add to screen. Please try again."
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMax": "Name must be at most {{max}} characters",
+      "descriptionMax": "Description must be at most {{max}} characters"
+    },
+    "breadcrumb": {
+      "label": "Screen navigation",
+      "root": "Screens"
+    },
+    "manage": {
+      "notFound": "Screen not found",
+      "tabs": {
+        "content": "Content",
+        "settings": "Settings",
+        "availability": "Working hours"
+      },
+      "actions": {
+        "clearAllContent": "Clear all content",
+        "moveToTrash": "Delete screen"
+      }
+    },
+    "update": {
+      "submit": "Save changes",
+      "success": "Screen updated successfully",
+      "error": "Could not update screen. Please try again."
+    },
+    "content": {
+      "libraryTitle": "Library",
+      "libraryDescription": "Drag media or playlists into the content area.",
+      "librarySearch": "Search media...",
+      "libraryBack": "Back",
+      "libraryEmpty": "No media in this folder.",
+      "libraryEmptySearch": "No media matches your search.",
+      "playlistsTab": "Playlists",
+      "playlistsSearch": "Search playlists...",
+      "playlistsEmpty": "No playlists yet.",
+      "playlistsEmptySearch": "No playlists match your search.",
+      "playlistMeta": "{{count}} items · {{duration}}",
+      "emptyTitle": "No content yet",
+      "emptyDescription": "Drag media or playlists from the library to build what this screen displays.",
+      "hintTitle": "Add more content",
+      "hintDescription": "Drag items here to append to the end.",
+      "totalDuration": "Total duration",
+      "itemsLabel": "Number of items",
+      "itemCount_one": "{{count}} item",
+      "itemCount_other": "{{count}} items",
+      "saveChanges": "Save changes",
+      "saveSuccess": "Content saved successfully",
+      "saveError": "Could not save content. Please try again.",
+      "removeItem": "Remove item",
+      "disableItem": "Disable item",
+      "enableItem": "Enable item",
+      "disabledBadge": "Disabled",
+      "removeDropZone": "Drop here to remove",
+      "durationLabel": "Duration in seconds",
+      "mediaUnavailable": "Media unavailable",
+      "unknownMedia": "Unknown media",
+      "unknownPlaylist": "Unknown playlist",
+      "playlistType": "Playlist",
+      "addPlaylistToContent": "Add playlist to content",
+      "conflict": "This screen was changed elsewhere. Your unsaved changes were discarded and the latest version was loaded."
+    },
+    "availability": {
+      "title": "Working hours",
+      "warning": "Screens will be turned off outside of working hours.",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "modes": {
+        "always": {
+          "label": "Always on",
+          "description": "The screen stays on 24/7 and never turns off."
+        },
+        "weekly": {
+          "label": "Weekly working hours",
+          "description": "Set the hours the screen is on for each day of the week.",
+          "activeHint": "The screen turns on at the start time and off at the end time on each enabled day. Disabled days stay off the whole day."
+        },
+        "special": {
+          "label": "Special working hours",
+          "description": "Set specific date ranges and times for the screen to be on.",
+          "activeHint": "The screen turns on only between the chosen dates, during the set hours each day. Outside this period it stays off."
+        }
+      },
+      "weekly": {
+        "title": "Weekly schedule",
+        "off": "Turned off all day"
+      },
+      "special": {
+        "title": "Special working hours",
+        "dateRange": "Active dates",
+        "dateRangeHint": "The screen is only on between these two dates.",
+        "startDate": "Start date",
+        "endDate": "End date",
+        "hours": "Active hours",
+        "hoursHint": "Each day in the range, the screen turns on and off at these times."
+      },
+      "weekday": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      },
+      "save": "Save changes",
+      "saveSuccess": "Working hours saved",
+      "saveError": "Could not save working hours. Please try again.",
+      "timezone": {
+        "label": "Timezone",
+        "hint": "Working hours follow this timezone.",
+        "search": "Search timezone...",
+        "empty": "No timezone found."
+      },
+      "errors": {
+        "timeRange": "Start time must be earlier than end time.",
+        "dateRange": "End date must be on or after the start date."
+      }
+    }
+  },
+  "media": {
+    "title": "Media",
+    "description": "Browse, upload, and organize media for your screens and playlists.",
+    "search": "Search media...",
+    "empty": "No media yet",
+    "emptyDescription": "Upload images and videos to this folder to use them in playlists and on screens.",
+    "emptySearch": "No matching media",
+    "emptySearchDescription": "Try a different search term or adjust your filters.",
+    "emptyClearFilters": "Clear filters",
+    "selectAll": "Select all",
+    "selectItem": "Select {{name}}",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "types": {
+      "folder": "Folder",
+      "image": "Image",
+      "video": "Video"
+    },
+    "dropzone": {
+      "upload": {
+        "title": "Upload media",
+        "activeTitle": "Drop files to upload",
+        "hint": "Drag & drop images or videos, or click to browse"
+      },
+      "folder": {
+        "title": "Create folder",
+        "hint": "Organize your media into folders"
+      }
+    },
+    "breadcrumb": {
+      "label": "Folder navigation",
+      "root": "All media"
+    },
+    "folders": {
+      "title": "Folders",
+      "back": "Back",
+      "collapse": "Collapse folders",
+      "expand": "Expand folders"
+    },
+    "itemCount": "{{count}} items",
+    "filter": {
+      "label": "Type",
+      "all": "All types",
+      "image": "Image",
+      "video": "Video"
+    },
+    "sort": {
+      "label": "Sort by",
+      "name": "Name",
+      "createdAt": "Date",
+      "type": "Type",
+      "size": "Size",
+      "asc": "Ascending",
+      "desc": "Descending"
+    },
+    "view": {
+      "grid": "Grid view",
+      "list": "List view"
+    },
+    "table": {
+      "name": "Name",
+      "type": "Type",
+      "size": "Size",
+      "dimensions": "Dimensions",
+      "uploadedAt": "Uploaded at"
+    },
+    "bulk": {
+      "selected": "{{count}} selected",
+      "move": "Move to",
+      "addToPlaylist": "Add to playlist",
+      "addToScreen": "Add to screen",
+      "delete": "Delete",
+      "clear": "Clear selection"
+    },
+    "actions": {
+      "open": "Open folder",
+      "view": "View details",
+      "rename": "Rename",
+      "move": "Move to",
+      "addToPlaylist": "Add to playlist",
+      "addToScreen": "Add to screen",
+      "delete": "Delete",
+      "moveToTrash": "Delete"
+    },
+    "detail": {
+      "title": "Media details",
+      "description": "Preview and manage this media item.",
+      "name": "Name",
+      "defaultDuration": "Default duration (seconds)",
+      "duration": "Duration (seconds)",
+      "durationUnknown": "Unknown",
+      "videoDurationHint": "Video duration is set automatically from the file.",
+      "type": "Type",
+      "size": "Size",
+      "dimensions": "Dimensions",
+      "uploadedAt": "Uploaded",
+      "download": "Download",
+      "addToScreen": "Add to screen",
+      "addToPlaylist": "Add to playlist",
+      "save": "Save changes",
+      "saveSuccess": "Media updated successfully",
+      "saveError": "Could not update media. Please try again.",
+      "downloadError": "Download is not available for this file."
+    },
+    "upload": {
+      "success": "{{count}} file(s) uploaded successfully",
+      "queued": "{{count}} file(s) added to upload queue",
+      "error": "Upload failed. Please try again.",
+      "validation": {
+        "maxFiles": "You can upload up to {{count}} files at a time.",
+        "invalidType": "{{name}} is not a supported file type.",
+        "tooLarge": "{{name}} exceeds the 10 MB file size limit."
+      },
+      "manager": {
+        "title": "Uploads",
+        "active": "{{count}} in progress",
+        "done": "{{count}} completed",
+        "collapse": "Collapse upload manager",
+        "expand": "Expand upload manager",
+        "cancel": "Cancel upload",
+        "retry": "Retry upload",
+        "clearCompleted": "Close completed",
+        "leaveWarning": "Uploads in progress will be interrupted if you leave this page.",
+        "status": {
+          "queued": "Waiting in queue",
+          "uploading": "Uploading",
+          "processing": "Processing thumbnails",
+          "completed": "Upload complete",
+          "failed": "Upload failed",
+          "cancelled": "Upload cancelled"
+        }
+      },
+      "sheet": {
+        "title": "Add media",
+        "description": "Upload from your device or browse stock.",
+        "deviceTab": "My device",
+        "stockTab": "Browse media"
+      }
+    },
+    "rename": {
+      "title": "Rename media",
+      "description": "Enter a new name for this file.",
+      "submit": "Save",
+      "success": "Media renamed successfully",
+      "error": "Could not rename media. Please try again."
+    },
+    "folder": {
+      "name": "Folder name",
+      "namePlaceholder": "e.g. Campaign assets",
+      "create": {
+        "title": "Create folder",
+        "description": "Add a new folder to organize your media.",
+        "submit": "Create folder",
+        "success": "Folder created successfully",
+        "error": "Could not create folder. Please try again."
+      },
+      "rename": {
+        "title": "Rename folder",
+        "description": "Enter a new name for this folder.",
+        "submit": "Save",
+        "success": "Folder renamed successfully",
+        "error": "Could not rename folder. Please try again."
+      }
+    },
+    "googleDrive": {
+      "title": "Import from Google Drive",
+      "hint": "Click to browse and import files",
+      "success": "Files imported from Google Drive",
+      "error": "Could not import files. Please try again."
+    },
+    "move": {
+      "title": "Move items",
+      "description": "Choose a destination folder for {{count}} item(s).",
+      "library": "Library",
+      "noFolders": "No other folders available.",
+      "cancel": "Cancel",
+      "submit": "Move here",
+      "success": "Items moved successfully",
+      "error": "Could not move items. Please try again."
+    },
+    "delete": {
+      "title": "Delete items?",
+      "description": "Are you sure you want to delete {{count}} item(s)? Folders and their contents will also be removed. This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "success": "Items deleted successfully",
+      "error": "Could not delete items. Please try again."
+    },
+    "form": {
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMax": "Name must be at most {{max}} characters",
+      "durationMin": "Duration must be at least {{min}} second",
+      "durationMax": "Duration must be at most {{max}} seconds"
+    },
+    "stock": {
+      "title": "Browse media",
+      "searchPlaceholder": "Search photos & videos...",
+      "filters": {
+        "mediaType": "Type",
+        "orientation": "Orientation",
+        "color": "Color",
+        "searchToRefine": "Enter a search to filter by orientation or color"
+      },
+      "mediaType": {
+        "all": "All",
+        "image": "Images",
+        "video": "Videos"
+      },
+      "orientation": {
+        "all": "All orientations",
+        "landscape": "Landscape",
+        "portrait": "Portrait",
+        "square": "Square"
+      },
+      "color": {
+        "all": "All colors",
+        "red": "Red",
+        "orange": "Orange",
+        "yellow": "Yellow",
+        "green": "Green",
+        "blue": "Blue",
+        "purple": "Purple",
+        "black": "Black",
+        "white": "White",
+        "gray": "Gray"
+      },
+      "collections": {
+        "business": "Business",
+        "technology": "Technology",
+        "office": "Office",
+        "food": "Food",
+        "travel": "Travel",
+        "nature": "Nature"
+      },
+      "empty": {
+        "title": "Discover stock media",
+        "description": "Search or pick a collection to browse free photos and videos.",
+        "searchTitle": "No results",
+        "searchDescription": "Try a different search term or adjust your filters."
+      },
+      "error": {
+        "title": "Couldn't load stock media",
+        "description": "Please check your connection and try again."
+      },
+      "preview": {
+        "attribution": "Photo by {{author}} on Pexels",
+        "viewOnPexels": "View on Pexels",
+        "author": "Author",
+        "dimensions": "Dimensions",
+        "orientation": "Orientation",
+        "mediaType": "Type",
+        "duration": "Duration",
+        "import": "Import",
+        "addToPlaylist": "Add to playlist",
+        "addToScreen": "Add to screen",
+        "importing": "Importing asset...",
+        "imported": "Added to your media library",
+        "importError": "Couldn't import this asset. Please try again."
+      }
+    }
+  },
+  "superAdmin": {
+    "title": "Super Admin",
+    "tabs": {
+      "users": "All Users",
+      "apps": "Apps"
+    },
+    "users": {
+      "search": "Search users...",
+      "empty": "No users found.",
+      "superAdminBadge": "Super Admin",
+      "meBadge": "Me",
+      "columns": {
+        "name": "User",
+        "organizations": "Organizations",
+        "status": "Status",
+        "createdAt": "Created at"
+      },
+      "actions": {
+        "menu": "User actions",
+        "promote": "Promote to super-admin",
+        "demote": "Remove super-admin",
+        "switch": "Switch to user"
+      }
+    },
+    "promote": {
+      "title": "Promote to super-admin?",
+      "description": "Grant super-admin access to {{name}} ({{email}})? They will be able to manage all users and impersonate accounts.",
+      "confirm": "Promote user",
+      "success": "{{name}} is now a super-admin",
+      "error": "Could not promote user. Please try again."
+    },
+    "demote": {
+      "title": "Remove super-admin role?",
+      "description": "Remove super-admin access from {{name}} ({{email}})? They will become a regular user and lose global admin privileges.",
+      "confirm": "Remove super-admin",
+      "success": "{{name}} is no longer a super-admin",
+      "error": "Could not update user role. Please try again."
+    },
+    "switch": {
+      "title": "Switch to this user?",
+      "description": "You will view the app as {{name}} ({{email}}). You can return to your account at any time from the impersonation banner.",
+      "confirm": "Switch to user"
+    },
+    "userSheet": {
+      "title": "User details",
+      "description": "Review account information before impersonating.",
+      "loadError": "Could not load user details.",
+      "notSet": "Not set",
+      "noOrganizations": "No organizations",
+      "copy": "Copy value",
+      "copySuccess": "Copied to clipboard",
+      "copyError": "Could not copy to clipboard",
+      "fields": {
+        "id": "User ID",
+        "provider": "Sign-in method",
+        "status": "Account status",
+        "role": "Global role",
+        "createdAt": "Created at",
+        "organizations": "Organizations"
+      },
+      "role": {
+        "superAdmin": "Super-admin",
+        "user": "User"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    },
+    "impersonation": {
+      "banner": "Viewing as {{name}} ({{email}})",
+      "exit": "Exit impersonation",
+      "exitTitle": "Exit impersonation?",
+      "exitDescription": "Return to your super-admin account and stop viewing the app as this user.",
+      "exitConfirm": "Exit impersonation",
+      "exitSuccess": "Returned to your account",
+      "exitError": "Could not restore your session.",
+      "restoring": "Restoring your super-admin session…",
+      "startSuccess": "Now viewing as {{name}}",
+      "startError": "Could not switch to this user."
+    }
+  },
+  "faq": {
+    "title": "FAQ",
+    "description": "Answers to common questions about using Edge.",
+    "categories": {
+      "general": {
+        "title": "General",
+        "items": [
+          {
+            "question": "What is Edge?",
+            "answer": "Edge is a digital signage platform for managing screens, playlists, and media within an organization. Everything you do in the app is scoped to the organization selected in the sidebar."
+          },
+          {
+            "question": "How do I get started after signing up?",
+            "answer": "If you registered without an invitation, you are asked to create your first organization before accessing the dashboard. If you joined through an invite, you are added to that organization automatically and can start using the app right away."
+          },
+          {
+            "question": "What does the dashboard show?",
+            "answer": "The dashboard gives you a quick overview of your active organization: how many screens you have (and how many are online), how many playlists exist, and how many media files are uploaded. Each card links to the relevant section."
+          },
+          {
+            "question": "Can I change the app language or theme?",
+            "answer": "Yes. Open Settings → Preferences to switch between English and Serbian, and to choose light, dark, or system theme. Language preference is saved to your account when the API is available."
+          }
+        ]
+      },
+      "content": {
+        "title": "Screens & content",
+        "items": [
+          {
+            "question": "How do I add and connect a screen?",
+            "answer": "Go to Screens and register a new display. Open the screen’s Connect tab to see a pairing code and step-by-step instructions. Enter that code on the physical display to link it to your organization. Once online, you can assign playlists from the screen’s Content tab."
+          },
+          {
+            "question": "How do playlists work?",
+            "answer": "Playlists are ordered collections of media. Create one under Playlists, add items from your media library, adjust order and duration, then assign the playlist to one or more screens."
+          },
+          {
+            "question": "Where do I upload media?",
+            "answer": "Open Media in the sidebar to upload images and videos. Uploaded files belong to your active organization and can be added to playlists from the playlist editor."
+          },
+          {
+            "question": "How do I know if a screen is online?",
+            "answer": "Screens show an online or offline status on the Screens list and on the dashboard stats. The Connect tab also reflects whether the display is currently reachable."
+          }
+        ]
+      },
+      "organizations": {
+        "title": "Organizations",
+        "items": [
+          {
+            "question": "What is an organization?",
+            "answer": "An organization is the workspace that owns your screens, playlists, media, and team members. All content and users are managed per organization. You can belong to multiple organizations with a separate role in each."
+          },
+          {
+            "question": "How do I switch between organizations?",
+            "answer": "Use the organization switcher at the top of the sidebar. Click an organization name to make it active. The rest of the app — including Users, screens, and media — updates to show data for that organization."
+          },
+          {
+            "question": "Who can create, edit, or delete organizations?",
+            "answer": "Only admins can create a new organization from the switcher, rename an organization, or delete one. Members can switch between organizations they belong to but cannot manage them."
+          },
+          {
+            "question": "Why can’t I delete an organization?",
+            "answer": "You cannot delete your only remaining organization — at least one must stay on your account. You also cannot delete the organization that is currently active; switch to another one first. Deleting an organization removes it for all members."
+          }
+        ]
+      },
+      "users": {
+        "title": "Users & invitations",
+        "items": [
+          {
+            "question": "What roles are available?",
+            "answer": "Each organization has admins and members. Admins can invite and manage users and manage the organization itself. Members can use the app (screens, playlists, media) but cannot invite users or change organization settings."
+          },
+          {
+            "question": "How do I invite someone?",
+            "answer": "Admins can open Users from the account menu at the bottom of the sidebar, click Invite user, and enter the person’s name, email, and role. They appear in the list with a Pending status until they complete the invitation flow."
+          },
+          {
+            "question": "What happens when I invite someone who does not have an account?",
+            "answer": "They receive an email with a link to the registration page. Their email is pre-filled and locked to the invited address. After they create an account, they join your organization automatically and skip the create-organization step."
+          },
+          {
+            "question": "What happens when I invite someone who already has an account?",
+            "answer": "They receive an email with a link to review the invitation. If they are not signed in, they are taken to the login page first, then shown a dialog to accept or decline. If they are already signed in with the invited email, the dialog appears immediately."
+          },
+          {
+            "question": "What do Approved and Pending mean in the users table?",
+            "answer": "Approved means the person is an active member of the organization. Pending means the invitation was sent but not yet accepted — either they have not finished registration (new user) or have not accepted the invite (existing user)."
+          },
+          {
+            "question": "Can one person belong to multiple organizations?",
+            "answer": "Yes. A single account can be a member of many organizations, potentially with different roles in each. Use the organization switcher to move between them."
+          }
+        ]
+      },
+      "account": {
+        "title": "Account & security",
+        "items": [
+          {
+            "question": "How do I update my profile?",
+            "answer": "Go to Settings → Profile to change your name, phone number, and company. Your email address is tied to your login and cannot be changed from the profile form."
+          },
+          {
+            "question": "I signed in with Google. Can I also use a password?",
+            "answer": "Yes. If you registered with Google and have no app password yet, open Settings → Security and use Set password. After that you can sign in with either Google or your email and password."
+          },
+          {
+            "question": "How do I reset a forgotten password?",
+            "answer": "On the login page, click Forgot your password?, enter your email, and follow the link sent to your inbox. The reset link expires after a limited time. This only works for accounts that were created with an email and password."
+          },
+          {
+            "question": "What happens when I delete my account?",
+            "answer": "Deleting your account is permanent. Your user record is removed. For each organization you belonged to: if you were the only member, the organization is deleted; otherwise only your membership is removed. You can delete your account from Settings → Account."
+          }
+        ]
+      },
+      "support": {
+        "title": "Support",
+        "items": [
+          {
+            "question": "How do I send feedback or report a problem?",
+            "answer": "Open Settings → Help. Use Leave feedback to rate your experience and share comments, or Report a problem to describe something that is not working. Messages are sent to the Edge support team with your account and active organization details."
+          },
+          {
+            "question": "Where can I find these answers again?",
+            "answer": "This FAQ page is always available from the account menu at the bottom of the sidebar, next to Settings and Users."
+          }
+        ]
+      }
+    }
+  },
+  "apps": {
+    "title": "Apps",
+    "count": "{{count}} apps",
+    "description": "Extend your screens with custom apps from the Edge app store.",
+    "getApp": "Get app",
+    "installed": "Installed",
+    "aboutTitle": "About this app",
+    "search": "Search apps...",
+    "tabs": {
+      "store": "App Store",
+      "myApps": "My Apps"
+    },
+    "carousel": {
+      "goTo": "Go to image {{index}}"
+    },
+    "meta": {
+      "status": "Status",
+      "statusInstalled": "Installed",
+      "statusNotInstalled": "Not installed",
+      "updated": "Updated",
+      "recently": "Recently"
+    },
+    "empty": {
+      "store": {
+        "title": "No apps found",
+        "description": "Try a different search term or category."
+      },
+      "myApps": {
+        "title": "No installed apps",
+        "description": "Browse the App Store to add apps to your screens."
+      },
+      "clearFilters": "Clear filters"
+    },
+    "openApp": "Open app",
+    "breadcrumb": {
+      "root": "Apps"
+    },
+    "actions": {
+      "appDetails": "App details",
+      "install": "Install",
+      "uninstall": "Uninstall"
+    },
+    "uninstall": {
+      "title": "Uninstall app?",
+      "description": "This will remove \"{{name}}\" and delete all of its instances. This cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Uninstall",
+      "success": "{{name}} uninstalled",
+      "error": "Could not uninstall the app."
+    },
+    "instances": {
+      "description": "Manage the instances of this app running on your screens.",
+      "count": "{{count}} instances",
+      "create": {
+        "title": "New instance",
+        "description": "Create a new instance to configure and publish."
+      },
+      "actions": {
+        "rename": "Rename",
+        "update": "Update",
+        "delete": "Delete"
+      },
+      "rename": {
+        "title": "Rename instance",
+        "label": "Instance name",
+        "placeholder": "Enter a name",
+        "confirm": "Save",
+        "error": "Could not rename the instance."
+      },
+      "delete": {
+        "title": "Delete instance?",
+        "description": "This will permanently delete \"{{name}}\". This cannot be undone.",
+        "confirm": "Delete",
+        "success": "Instance deleted",
+        "error": "Could not delete the instance."
+      },
+      "preview": {
+        "placeholder": "Your headline appears here"
+      },
+      "config": {
+        "save": "Save changes",
+        "saved": "Changes saved",
+        "duplicated": "Instance duplicated",
+        "headline": {
+          "label": "Headline",
+          "placeholder": "Enter a headline",
+          "description": "Shown prominently on the screen preview."
+        },
+        "actions": {
+          "addToScreen": "Add to screen",
+          "addToPlaylist": "Add to playlist",
+          "duplicate": "Duplicate",
+          "delete": "Delete",
+          "addToScreenSoon": "Adding to screens is coming soon.",
+          "addToPlaylistSoon": "Adding to playlists is coming soon."
+        },
+        "saveError": "Could not save changes."
+      }
+    },
+    "admin": {
+      "description": "Manage the apps available to organizations.",
+      "newApp": "New app",
+      "public": "Public",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleted": "App deleted",
+      "deleteError": "Could not delete the app.",
+      "visibilityError": "Could not update visibility.",
+      "empty": {
+        "title": "No apps yet",
+        "description": "Create your first catalog app."
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published"
+      },
+      "deleteDialog": {
+        "title": "Delete app?",
+        "description": "This permanently deletes \"{{name}}\" from the catalog. This cannot be undone."
+      },
+      "editor": {
+        "createTitle": "New app",
+        "editTitle": "Edit app",
+        "description": "Description",
+        "icon": "Icon",
+        "iconCta": "Upload icon",
+        "name": "Name",
+        "slug": "Slug",
+        "tagline": "Tagline",
+        "about": "About",
+        "status": "Status",
+        "isPublic": "Public — offered to organizations",
+        "save": "Save changes",
+        "create": "Create app",
+        "created": "App created",
+        "updated": "App updated",
+        "error": "Could not save the app.",
+        "app": "Application",
+        "appPlaceholder": "Select an app to add…",
+        "noAvailable": "All available apps are already in the catalog."
+      }
+    },
+    "youtube": {
+      "previewEmpty": "Paste a YouTube link to preview the video here."
+    }
+  }
+}

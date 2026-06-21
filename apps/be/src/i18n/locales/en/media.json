@@ -1,0 +1,21 @@
+{
+  "itemNotFound": "Media item not found.",
+  "folderNotFound": "Folder not found.",
+  "folderNameExists": "A folder with this name already exists in this location.",
+  "fileRequired": "A file is required.",
+  "fileTooLarge": "File exceeds the maximum allowed size of 10 MB.",
+  "invalidFileType": "This file type is not supported. Allowed types are JPEG, PNG, WebP, GIF, MP4, WebM, and MOV.",
+  "invalidFileContent": "The file content does not match its declared type.",
+  "durationNotAllowed": "A default duration cannot be set on a folder.",
+  "videoDurationNotEditable": "Video duration is determined by the file and cannot be changed.",
+  "invalidVideoDuration": "Video duration must be between 1 and 3600 seconds.",
+  "uploadFailed": "Failed to upload the file. Please try again.",
+  "storageNotConfigured": "Media storage is not configured on the server.",
+  "invalidMoveTarget": "Cannot move an item into itself or one of its subfolders.",
+  "downloadNotAllowed": "This item cannot be downloaded.",
+  "stock": {
+    "blockedQuery": "This search term isn't allowed. Please try a different one.",
+    "notConfigured": "Stock media is not configured on the server.",
+    "providerError": "Couldn't reach the stock media provider. Please try again."
+  }
+}

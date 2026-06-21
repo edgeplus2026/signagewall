@@ -1,0 +1,1362 @@
+{
+  "validation": {
+    "emailInvalid": "Unesite validan email",
+    "passwordMin": "Lozinka mora imati najmanje {{min}} karaktera",
+    "nameMin": "Ime mora imati najmanje {{min}} karaktera",
+    "passwordMismatch": "Lozinke se ne poklapaju",
+    "phoneRequired": "Broj telefona je obavezan",
+    "phoneInvalid": "Unesite validan broj telefona"
+  },
+  "common": {
+    "appName": "Edge",
+    "email": "Email",
+    "password": "Lozinka",
+    "name": "Ime",
+    "phone": "Broj telefona",
+    "company": "Kompanija",
+    "optional": "opciono",
+    "confirmPassword": "Potvrdite lozinku",
+    "newPassword": "Nova lozinka",
+    "showPassword": "Prikaži lozinku",
+    "hidePassword": "Sakrij lozinku",
+    "phonePlaceholder": "Unesite broj telefona",
+    "orContinueWith": "Ili nastavite sa",
+    "loginWithGoogle": "Nastavite sa Google",
+    "loading": "Učitavanje...",
+    "actions": "Akcije",
+    "cancel": "Otkaži",
+    "decrease": "Smanji",
+    "increase": "Povećaj"
+  },
+  "dataTable": {
+    "search": "Pretraga...",
+    "noResults": "Nema rezultata.",
+    "pagination": {
+      "showing": "Prikazano {{from}}–{{to}} od {{total}}",
+      "page": "Strana {{page}} od {{totalPages}}",
+      "previous": "Prethodna",
+      "next": "Sledeća"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Prijavite se na nalog",
+      "description": "Unesite email ispod da biste se prijavili",
+      "submit": "Prijava",
+      "forgotPassword": "Zaboravili ste lozinku?",
+      "noAccount": "Nemate nalog?",
+      "signUp": "Registracija",
+      "success": "Uspešno ste se prijavili",
+      "error": "Prijava nije uspela. Proverite podatke."
+    },
+    "register": {
+      "title": "Kreirajte nalog",
+      "description": "Unesite podatke ispod da biste kreirali nalog",
+      "submit": "Kreiraj nalog",
+      "hasAccount": "Već imate nalog?",
+      "signIn": "Prijava",
+      "success": "Nalog je uspešno kreiran",
+      "error": "Registracija nije uspela. Pokušajte ponovo."
+    },
+    "forgotPassword": {
+      "title": "Zaboravili ste lozinku?",
+      "description": "Unesite email i poslaćemo vam link za resetovanje",
+      "submit": "Pošalji link",
+      "backToLogin": "Nazad na prijavu",
+      "success": "Link za resetovanje poslat na {{email}}",
+      "successTitle": "Proverite email",
+      "successDescription": "Poslali smo link za resetovanje lozinke na {{email}}. Link ističe za 1 sat.",
+      "resend": "Pošalji ponovo",
+      "resendSuccess": "Link je ponovo poslat.",
+      "resendError": "Ponovno slanje nije uspelo. Pokušajte ponovo.",
+      "useDifferentEmail": "Koristite drugi email",
+      "error": "Slanje linka nije uspelo. Pokušajte ponovo."
+    },
+    "resetPassword": {
+      "title": "Resetujte lozinku",
+      "description": "Unesite novu lozinku ispod",
+      "submit": "Resetuj lozinku",
+      "backToLogin": "Nazad na prijavu",
+      "success": "Lozinka je uspešno resetovana",
+      "error": "Resetovanje lozinke nije uspelo. Pokušajte ponovo.",
+      "missingToken": "Nevažeći ili nedostajući token za reset."
+    },
+    "verifyEmail": {
+      "checkEmailTitle": "Proverite svoj email",
+      "checkEmailDescription": "Poslali smo link za potvrdu na {{email}}. Kliknite na njega da aktivirate nalog. Link ističe za 24 sata.",
+      "checkEmailDescriptionNoEmail": "Poslali smo vam link za potvrdu. Kliknite na njega da aktivirate nalog. Link ističe za 24 sata.",
+      "resend": "Pošalji ponovo",
+      "resendCooldown": "Pošalji ponovo za {{seconds}}s",
+      "resent": "Email za potvrdu je ponovo poslat.",
+      "resendError": "Slanje email-a nije uspelo. Pokušajte ponovo.",
+      "verifying": "Potvrđujemo vaš email…",
+      "successTitle": "Email je potvrđen",
+      "successDescription": "Vaša email adresa je potvrđena. Sada se možete prijaviti.",
+      "goToLogin": "Idi na prijavu",
+      "errorTitle": "Potvrda nije uspela",
+      "error": "Ovaj link za potvrdu je nevažeći ili je istekao.",
+      "missingToken": "Ovom linku za potvrdu nedostaje token.",
+      "requestNewLink": "Zatraži novi link",
+      "backToLogin": "Nazad na prijavu"
+    },
+    "google": {
+      "success": "Uspešna prijava preko Google-a",
+      "error": "Google prijava nije uspela. Pokušajte ponovo."
+    }
+  },
+  "layout": {
+    "navigation": "Navigacija",
+    "breadcrumb": {
+      "label": "Putanja"
+    },
+    "dashboard": "Kontrolna tabla",
+    "screens": "Ekrani",
+    "playlists": "Plejliste",
+    "media": "Mediji",
+    "apps": "Aplikacije",
+    "settings": "Podešavanja",
+    "superAdmin": "Super Admin",
+    "faq": "Česta pitanja",
+    "users": "Korisnici",
+    "guestUser": "Gost",
+    "guestEmail": "gost@primer.com",
+    "blankPlaceholder": "Sadržaj uskoro.",
+    "logout": "Odjava",
+    "logoutConfirm": {
+      "title": "Odjava?",
+      "description": "Da li ste sigurni da želite da se odjavite?",
+      "cancel": "Otkaži",
+      "confirm": "Odjavi se"
+    },
+    "welcome": "Dobrodošli u Edge.",
+    "dashboardPlaceholder": "Sadržaj kontrolne table ide ovde."
+  },
+  "dashboard": {
+    "title": "Kontrolna tabla",
+    "greeting": "Dobrodošli nazad, {{name}}",
+    "description": "Pregled ekrana, plejlisti i biblioteke medija.",
+    "stats": {
+      "screens": "Ekrani",
+      "screensOnline": "{{count}} na mreži",
+      "playlists": "Plejliste",
+      "media": "Medijski fajlovi",
+      "online": "Ekrani na mreži",
+      "onlineHint": "Trenutno reprodukuju sadržaj"
+    },
+    "quickActions": {
+      "title": "Brze akcije",
+      "media": {
+        "title": "Upravljaj medijima",
+        "description": "Otpremi i organizuj biblioteku"
+      },
+      "playlists": {
+        "title": "Izmeni plejliste",
+        "description": "Pripremi sadržaj za ekrane"
+      },
+      "screens": {
+        "title": "Pregled ekrana",
+        "description": "Prati povezane displeje"
+      }
+    },
+    "recentPlaylists": {
+      "title": "Skorašnje plejliste",
+      "viewAll": "Vidi sve",
+      "empty": "Još nema plejlisti. Kreirajte novu da biste počeli.",
+      "create": "Kreiraj plejlistu",
+      "meta": "{{count}} stavki · {{duration}}"
+    },
+    "screens": {
+      "title": "Status ekrana",
+      "status": {
+        "online": "Na mreži",
+        "offline": "Van mreže"
+      }
+    }
+  },
+  "organizations": {
+    "title": "Organizacije",
+    "active": "Aktivna organizacija",
+    "name": "Naziv organizacije",
+    "add": "Dodaj organizaciju",
+    "loadError": "Učitavanje organizacija nije uspelo. Pokušajte ponovo.",
+    "actions": {
+      "edit": "Izmeni {{name}}",
+      "delete": "Obriši {{name}}"
+    },
+    "form": {
+      "cancel": "Otkaži"
+    },
+    "onboarding": {
+      "title": "Kreirajte organizaciju",
+      "description": "Pre nego što nastavite, kreirajte organizaciju za upravljanje ekranima, plejlistama i medijima.",
+      "submit": "Nastavi"
+    },
+    "create": {
+      "title": "Kreiraj organizaciju",
+      "description": "Dodajte novu organizaciju za upravljanje ekranima i medijima.",
+      "submit": "Kreiraj",
+      "cancel": "Otkaži",
+      "success": "Organizacija je kreirana",
+      "error": "Kreiranje organizacije nije uspelo. Pokušajte ponovo."
+    },
+    "update": {
+      "title": "Izmeni organizaciju",
+      "description": "Ažurirajte naziv organizacije.",
+      "submit": "Sačuvaj izmene",
+      "success": "Organizacija je ažurirana",
+      "error": "Ažuriranje organizacije nije uspelo. Pokušajte ponovo."
+    },
+    "delete": {
+      "title": "Obriši organizaciju",
+      "description": "Da li ste sigurni da želite da obrišete {{name}}? Ova radnja se ne može poništiti.",
+      "confirm": "Obriši",
+      "cancel": "Otkaži",
+      "success": "Organizacija je obrisana",
+      "error": "Brisanje organizacije nije uspelo. Pokušajte ponovo."
+    }
+  },
+  "errors": {
+    "title": "Nešto je pošlo naopako",
+    "unknown": "Nepoznata greška",
+    "retry": "Pokušaj ponovo"
+  },
+  "theme": {
+    "toggle": "Promeni temu",
+    "light": "Svetla",
+    "dark": "Tamna",
+    "system": "Sistemska"
+  },
+  "settings": {
+    "title": "Podešavanja",
+    "description": "Upravljajte profilom, preferencama, bezbednošću i podešavanjima naloga.",
+    "sections": {
+      "profile": "Profil",
+      "preferences": "Podešavanja",
+      "security": "Bezbednost",
+      "help": "Pomoć",
+      "account": "Nalog"
+    },
+    "profile": {
+      "email": "Email",
+      "googleSignup": "Registrovali ste se putem Google naloga",
+      "firstName": "Ime",
+      "lastName": "Prezime",
+      "phone": "Broj telefona",
+      "company": "Kompanija",
+      "organization": "Organizacija",
+      "save": "Sačuvaj izmene",
+      "success": "Profil je uspešno ažuriran",
+      "error": "Ažuriranje profila nije uspelo. Pokušajte ponovo."
+    },
+    "appearance": {
+      "theme": "Tema"
+    },
+    "language": {
+      "label": "Jezik",
+      "success": "Jezik je ažuriran",
+      "error": "Ažuriranje jezika nije uspelo. Pokušajte ponovo.",
+      "options": {
+        "en": "Engleski",
+        "sr": "Srpski"
+      }
+    },
+    "security": {
+      "password": "Lozinka",
+      "changePassword": "Promeni lozinku",
+      "setPassword": "Postavi lozinku",
+      "noPasswordHint": "Prijavili ste se putem Google naloga i još niste postavili lozinku u aplikaciji.",
+      "dialogTitle": "Promena lozinke",
+      "dialogDescription": "Unesite trenutnu lozinku i izaberite novu.",
+      "setPasswordDialogTitle": "Postavljanje lozinke",
+      "setPasswordDialogDescription": "Kreirajte lozinku za prijavu putem emaila i lozinke.",
+      "currentPassword": "Trenutna lozinka",
+      "currentPasswordRequired": "Trenutna lozinka je obavezna",
+      "submit": "Ažuriraj lozinku",
+      "setPasswordSubmit": "Postavi lozinku",
+      "cancel": "Otkaži",
+      "passwordSuccess": "Lozinka je uspešno ažurirana",
+      "passwordError": "Ažuriranje lozinke nije uspelo. Pokušajte ponovo.",
+      "setPasswordSuccess": "Lozinka je uspešno postavljena",
+      "setPasswordError": "Postavljanje lozinke nije uspelo. Pokušajte ponovo."
+    },
+    "feedback": {
+      "leaveFeedback": "Ostavite povratnu informaciju",
+      "open": "Ostavite povratnu informaciju",
+      "title": "Ostavite povratnu informaciju",
+      "description": "Recite nam kako vam se dopada aplikacija. Vaše mišljenje nam pomaže da poboljšamo Edge.",
+      "rating": "Ocena",
+      "ratingRequired": "Izaberite ocenu",
+      "message": "Povratna informacija",
+      "messagePlaceholder": "Podelite svoje utiske...",
+      "messageMin": "Povratna informacija mora imati najmanje {{min}} karaktera",
+      "submit": "Pošalji povratnu informaciju",
+      "cancel": "Otkaži",
+      "success": "Hvala na povratnoj informaciji",
+      "error": "Slanje povratne informacije nije uspelo. Pokušajte ponovo."
+    },
+    "support": {
+      "reportProblem": {
+        "label": "Prijavite problem",
+        "open": "Prijavi problem",
+        "title": "Prijavite problem",
+        "description": "Opišite problem sa kojim se suočavate i istražićemo ga.",
+        "message": "Opis problema",
+        "messagePlaceholder": "Šta nije u redu?",
+        "messageMin": "Opis mora imati najmanje {{min}} karaktera",
+        "submit": "Pošalji prijavu",
+        "cancel": "Otkaži",
+        "success": "Prijava problema je poslata",
+        "error": "Slanje prijave nije uspelo. Pokušajte ponovo."
+      }
+    },
+    "account": {
+      "logout": "Odjava",
+      "deleteAccount": "Obriši nalog",
+      "deleteSuccess": "Nalog je uspešno obrisan",
+      "deleteError": "Brisanje naloga nije uspelo. Pokušajte ponovo.",
+      "deleteConfirm": {
+        "title": "Obrisati nalog?",
+        "description": "Ova radnja je trajna i ne može se poništiti. Svi vaši podaci će biti uklonjeni.",
+        "cancel": "Otkaži",
+        "confirm": "Obriši nalog"
+      }
+    }
+  },
+  "users": {
+    "title": "Korisnici",
+    "description": "Upravljajte ko ima pristup vašoj organizaciji.",
+    "userCount": "{{count}} korisnika",
+    "meLabel": "ja",
+    "search": "Pretraži korisnike...",
+    "empty": "Nema pronađenih korisnika.",
+    "columns": {
+      "name": "Ime",
+      "email": "Email",
+      "role": "Uloga",
+      "status": "Status",
+      "createdAt": "Kreirano",
+      "actions": "Akcije"
+    },
+    "status": {
+      "approved": "Odobren",
+      "pending": "Na čekanju"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "member": "Član"
+    },
+    "roleDescriptions": {
+      "admin": "Može da poziva i upravlja korisnicima, podešavanjima organizacije i svim sadržajem.",
+      "member": "Može da koristi ekrane, plejliste i medije, ali ne može da upravlja korisnicima ili podešavanjima."
+    },
+    "actions": {
+      "edit": "Izmeni korisnika",
+      "delete": "Obriši korisnika"
+    },
+    "form": {
+      "cancel": "Otkaži"
+    },
+    "invite": {
+      "button": "Pozovi korisnika",
+      "title": "Pozovi korisnika",
+      "description": "Pošaljite pozivnicu za pridruživanje organizaciji.",
+      "submit": "Pošalji pozivnicu",
+      "success": "Pozivnica je uspešno poslata",
+      "error": "Slanje pozivnice nije uspelo. Pokušajte ponovo."
+    },
+    "update": {
+      "title": "Izmeni korisnika",
+      "description": "Ažurirajte podatke i ulogu korisnika.",
+      "submit": "Sačuvaj izmene",
+      "success": "Korisnik je uspešno ažuriran",
+      "error": "Ažuriranje korisnika nije uspelo. Pokušajte ponovo."
+    },
+    "delete": {
+      "title": "Ukloniti korisnika?",
+      "description": "Da li ste sigurni da želite da uklonite {{name}} iz organizacije? Ova radnja se ne može poništiti.",
+      "cancel": "Otkaži",
+      "confirm": "Ukloni korisnika",
+      "success": "Korisnik je uspešno uklonjen",
+      "error": "Uklanjanje korisnika nije uspelo. Pokušajte ponovo."
+    }
+  },
+  "playlists": {
+    "title": "Plejliste",
+    "playlistCount": "{{count}} plejlista",
+    "description": "Kreirajte uređene kolekcije medija za dodelu ekranima.",
+    "search": "Pretraži plejliste...",
+    "empty": "Još nema plejlisti",
+    "emptyDescription": "Kreirajte plejlistu da biste organizovali medije za ekrane.",
+    "emptySearch": "Nema odgovarajućih plejlisti",
+    "emptySearchDescription": "Pokušajte sa drugim pojmom pretrage.",
+    "emptyClearSearch": "Obriši pretragu",
+    "emptyPlaylist": "Prazna plejlista",
+    "updatePlaylist": "Ažuriraj plejlistu",
+    "breadcrumb": {
+      "label": "Navigacija plejlistama",
+      "root": "Plejliste"
+    },
+    "selectAll": "Izaberi sve",
+    "selectItem": "Izaberi {{name}}",
+    "bulk": {
+      "selected": "{{count}} izabrano",
+      "delete": "Obriši",
+      "addToScreen": "Dodaj na ekran",
+      "clear": "Poništi izbor"
+    },
+    "columns": {
+      "name": "Naziv",
+      "items": "Stavke",
+      "duration": "Trajanje",
+      "updatedAt": "Ažurirano"
+    },
+    "actions": {
+      "preview": "Pregled",
+      "duplicate": "Dupliraj",
+      "duplicatePlaylist": "Dupliraj plejlistu",
+      "update": "Ažuriraj",
+      "addToScreen": "Dodaj na ekran",
+      "delete": "Obriši"
+    },
+    "view": {
+      "grid": "Mrežni prikaz",
+      "list": "Lista"
+    },
+    "sort": {
+      "label": "Sortiraj",
+      "name": "Naziv",
+      "createdAt": "Datum kreiranja",
+      "asc": "Rastuće",
+      "desc": "Opadajuće"
+    },
+    "addToPlaylist": {
+      "title": "Dodaj u plejlistu",
+      "description": "Dodaj {{count}} stavki u izabrane plejliste.",
+      "search": "Pretraži plejliste...",
+      "empty": "Još nema plejlista",
+      "emptySearch": "Nema plejlista koje odgovaraju",
+      "submit": "Dodaj u {{count}} plejlista",
+      "success": "Dodato u {{count}} plejlista",
+      "error": "Dodavanje u plejliste nije uspelo. Pokušajte ponovo."
+    },
+    "duplicate": {
+      "copySuffix": " (kopija)",
+      "success": "Plejlista je uspešno duplirana",
+      "redirected": "Sada pregledate dupliranu plejlistu.",
+      "error": "Dupliranje plejliste nije uspelo. Pokušajte ponovo."
+    },
+    "form": {
+      "name": "Naziv",
+      "namePlaceholder": "npr. Prodavnica",
+      "description": "Opis",
+      "descriptionPlaceholder": "Opcioni opis plejliste",
+      "cancel": "Zatvori"
+    },
+    "create": {
+      "button": "Kreiraj plejlistu",
+      "title": "Kreiraj plejlistu",
+      "description": "Dodajte novu plejlistu za organizaciju sadržaja na ekranima.",
+      "submit": "Kreiraj plejlistu",
+      "success": "Plejlista je uspešno kreirana",
+      "error": "Kreiranje plejliste nije uspelo. Pokušajte ponovo."
+    },
+    "update": {
+      "title": "Izmeni plejlistu",
+      "description": "Ažurirajte naziv i opis plejliste.",
+      "submit": "Sačuvaj izmene",
+      "success": "Plejlista je uspešno ažurirana",
+      "error": "Ažuriranje plejliste nije uspelo. Pokušajte ponovo."
+    },
+    "delete": {
+      "title": "Obrisati plejlistu?",
+      "description": "Da li ste sigurni da želite da obrišete {{count}} plejlisti? Ova radnja se ne može poništiti.",
+      "cancel": "Otkaži",
+      "confirm": "Obriši plejlistu",
+      "success": "Plejlista je uspešno obrisana",
+      "error": "Brisanje plejliste nije uspelo. Pokušajte ponovo."
+    },
+    "manage": {
+      "back": "Nazad na plejliste",
+      "notFound": "Ova plejlista nije pronađena.",
+      "tabs": {
+        "content": "Sadržaj",
+        "settings": "Podešavanja"
+      },
+      "sidebar": {
+        "addMedia": "Dodaj medij",
+        "addToContent": "Dodaj u plejlistu",
+        "edit": "Izmeni"
+      },
+      "actions": {
+        "playlistPreview": "Pregled plejliste",
+        "addToScreen": "Dodaj na ekran",
+        "clearAllContent": "Obriši sav sadržaj",
+        "moveToTrash": "Premesti u otpad",
+        "previewComingSoon": "Pregled još nije dostupan.",
+        "addComingSoon": "Dodavanje medija još nije dostupno.",
+        "editComingSoon": "Izmena još nije dostupna."
+      }
+    },
+    "content": {
+      "totalDuration": "Ukupno trajanje",
+      "itemsLabel": "Broj stavki",
+      "itemCount_one": "{{count}} stavka",
+      "itemCount_few": "{{count}} stavke",
+      "itemCount_other": "{{count}} stavki",
+      "libraryTitle": "Biblioteka medija",
+      "libraryBack": "Nazad",
+      "libraryDescription": "Prevucite medije u plejlistu ili ih spustite na željenu poziciju.",
+      "librarySearch": "Pretraži biblioteku...",
+      "libraryEmpty": "Nema medija u ovom folderu.",
+      "libraryEmptySearch": "Nema medija koji odgovaraju pretrazi.",
+      "emptyTitle": "Prazna plejlista",
+      "emptyDescription": "Prevucite stavke iz biblioteke medija desno da napravite plejlistu.",
+      "dragToReorder": "Prevuci za promenu redosleda",
+      "dragToAdd": "Prevuci za dodavanje",
+      "hintTitle": "Dodaj još medija",
+      "hintDescription": "Prevuci iz biblioteke i spusti na željeno mesto.",
+      "durationLabel": "Trajanje prikaza (sekunde)",
+      "removeItem": "Ukloni iz plejliste",
+      "disableItem": "Onemogući stavku",
+      "enableItem": "Omogući stavku",
+      "disabledBadge": "Onemogućeno",
+      "removeDropZone": "Otpustite ovde za uklanjanje",
+      "saveChanges": "Sačuvaj izmene",
+      "saveSuccess": "Plejlista je uspešno sačuvana",
+      "saveError": "Čuvanje plejliste nije uspelo. Pokušajte ponovo.",
+      "conflict": "Ova plejlista je izmenjena na drugom mestu. Vaše nesačuvane izmene su odbačene i učitana je najnovija verzija.",
+      "mediaUnavailable": "Medij nije dostupan",
+      "unknownMedia": "Nepoznat medij"
+    },
+    "validation": {
+      "nameRequired": "Naziv plejliste je obavezan",
+      "nameMax": "Naziv može imati najviše {{max}} karaktera",
+      "descriptionMax": "Opis može imati najviše {{max}} karaktera",
+      "durationMin": "Trajanje mora biti najmanje {{min}} sekunda",
+      "durationMax": "Trajanje može biti najviše {{max}} sekundi"
+    },
+    "usedByScreens": {
+      "title": "Ekrani koji koriste ovu plejlistu",
+      "empty": "Ova plejlista se još uvek ne koristi ni na jednom ekranu."
+    }
+  },
+  "screens": {
+    "title": "Ekrani",
+    "screenCount": "{{count}} ekrana",
+    "description": "Pratite i upravljajte povezanim ekranima.",
+    "search": "Pretraži ekrane...",
+    "empty": "Još nema ekrana. Dodajte ekran da biste počeli.",
+    "emptySearch": "Nema ekrana koji odgovaraju",
+    "emptySearchDescription": "Pokušajte sa drugim pojmom pretrage.",
+    "emptyDescription": "Kreirajte ekran da biste počeli da dodeljujete sadržaj.",
+    "emptyClearSearch": "Obriši pretragu",
+    "emptyScreen": "Prazan ekran",
+    "selectAll": "Izaberi sve",
+    "selectItem": "Izaberi {{name}}",
+    "bulk": {
+      "selected": "{{count}} izabrano",
+      "delete": "Obriši",
+      "addToScreen": "Dodaj na ekran",
+      "clear": "Poništi izbor"
+    },
+    "sort": {
+      "label": "Sortiraj",
+      "name": "Naziv",
+      "createdAt": "Datum kreiranja",
+      "asc": "Rastuće",
+      "desc": "Opadajuće"
+    },
+    "view": {
+      "grid": "Mrežni prikaz",
+      "list": "Lista"
+    },
+    "columns": {
+      "name": "Naziv",
+      "items": "Stavke",
+      "updatedAt": "Ažurirano"
+    },
+    "actions": {
+      "preview": "Pregled",
+      "update": "Izmeni",
+      "delete": "Obriši"
+    },
+    "form": {
+      "name": "Naziv",
+      "namePlaceholder": "npr. Ekran u holu",
+      "description": "Opis",
+      "descriptionPlaceholder": "Opcioni opis za ovaj ekran",
+      "cancel": "Zatvori"
+    },
+    "create": {
+      "button": "Dodaj ekran",
+      "title": "Dodaj ekran",
+      "description": "Registrujte novi ekran za upravljanje sadržajem i praćenje statusa.",
+      "submit": "Dodaj ekran",
+      "success": "Ekran je uspešno dodat",
+      "error": "Dodavanje ekrana nije uspelo. Pokušajte ponovo."
+    },
+    "delete": {
+      "title": "Obrisati ekran?",
+      "description": "Da li ste sigurni da želite da obrišete {{count}} ekran(a)? Ova radnja se ne može poništiti.",
+      "cancel": "Otkaži",
+      "confirm": "Obriši ekran",
+      "success": "Ekran je uspešno obrisan",
+      "error": "Brisanje ekrana nije uspelo. Pokušajte ponovo."
+    },
+    "addToScreen": {
+      "title": "Dodaj na ekran",
+      "description": "Izaberite jedan ili više ekrana za dodavanje {{count}} stavki.",
+      "search": "Pretraži ekrane...",
+      "empty": "Još nema ekrana. Prvo kreirajte ekran.",
+      "emptySearch": "Nema ekrana koji odgovaraju pretrazi",
+      "submit": "Dodaj na {{count}} ekran(a)",
+      "success": "Uspešno dodato na {{count}} ekran(a)",
+      "error": "Dodavanje na ekran nije uspelo. Pokušajte ponovo."
+    },
+    "validation": {
+      "nameRequired": "Naziv je obavezan",
+      "nameMax": "Naziv može imati najviše {{max}} karaktera",
+      "descriptionMax": "Opis može imati najviše {{max}} karaktera"
+    },
+    "breadcrumb": {
+      "label": "Navigacija ekrana",
+      "root": "Ekrani"
+    },
+    "manage": {
+      "notFound": "Ekran nije pronađen",
+      "tabs": {
+        "content": "Sadržaj",
+        "settings": "Podešavanja",
+        "availability": "Radno vreme"
+      },
+      "actions": {
+        "clearAllContent": "Obriši sav sadržaj",
+        "moveToTrash": "Obriši ekran"
+      }
+    },
+    "update": {
+      "submit": "Sačuvaj izmene",
+      "success": "Ekran je uspešno ažuriran",
+      "error": "Ažuriranje ekrana nije uspelo. Pokušajte ponovo."
+    },
+    "content": {
+      "libraryTitle": "Biblioteka",
+      "libraryDescription": "Prevucite medije ili plejliste u oblast sadržaja.",
+      "librarySearch": "Pretraži medije...",
+      "libraryBack": "Nazad",
+      "libraryEmpty": "Nema medija u ovom folderu.",
+      "libraryEmptySearch": "Nijedan medij ne odgovara pretrazi.",
+      "playlistsTab": "Plejliste",
+      "playlistsSearch": "Pretraži plejliste...",
+      "playlistsEmpty": "Još nema plejlisti.",
+      "playlistsEmptySearch": "Nijedna plejlista ne odgovara pretrazi.",
+      "playlistMeta": "{{count}} stavki · {{duration}}",
+      "emptyTitle": "Još nema sadržaja",
+      "emptyDescription": "Prevucite medije ili plejliste iz biblioteke da biste kreirali sadržaj za ovaj ekran.",
+      "hintTitle": "Dodajte još sadržaja",
+      "hintDescription": "Prevucite stavke ovde da biste ih dodali na kraj.",
+      "totalDuration": "Ukupno trajanje",
+      "itemsLabel": "Broj stavki",
+      "itemCount_one": "{{count}} stavka",
+      "itemCount_few": "{{count}} stavke",
+      "itemCount_other": "{{count}} stavki",
+      "saveChanges": "Sačuvaj izmene",
+      "saveSuccess": "Sadržaj je uspešno sačuvan",
+      "saveError": "Čuvanje sadržaja nije uspelo. Pokušajte ponovo.",
+      "removeItem": "Ukloni stavku",
+      "disableItem": "Onemogući stavku",
+      "enableItem": "Omogući stavku",
+      "disabledBadge": "Onemogućeno",
+      "removeDropZone": "Otpustite ovde za uklanjanje",
+      "durationLabel": "Trajanje u sekundama",
+      "mediaUnavailable": "Medij nije dostupan",
+      "unknownMedia": "Nepoznat medij",
+      "unknownPlaylist": "Nepoznata plejlista",
+      "playlistType": "Plejlista",
+      "addPlaylistToContent": "Dodaj plejlistu u sadržaj",
+      "conflict": "Ovaj ekran je izmenjen na drugom mestu. Vaše nesačuvane izmene su odbačene i učitana je najnovija verzija."
+    },
+    "availability": {
+      "title": "Radno vreme",
+      "warning": "Ekrani će biti isključeni van radnog vremena.",
+      "startTime": "Vreme početka",
+      "endTime": "Vreme završetka",
+      "modes": {
+        "always": {
+          "label": "Uvek uključeno",
+          "description": "Ekran je uključen 24/7 i nikada se ne isključuje."
+        },
+        "weekly": {
+          "label": "Nedeljno radno vreme",
+          "description": "Podesite radno vreme ekrana za svaki dan u nedelji.",
+          "activeHint": "Ekran se uključuje u vreme početka i isključuje u vreme završetka svakog aktivnog dana. Isključeni dani ostaju ugašeni ceo dan."
+        },
+        "special": {
+          "label": "Specijalno radno vreme",
+          "description": "Ekran je uključen samo u određenom periodu i vremenu.",
+          "activeHint": "Ekran se uključuje samo između izabranih datuma, u zadatom vremenu svakog dana. Van tog perioda ostaje ugašen."
+        }
+      },
+      "weekly": {
+        "title": "Nedeljni raspored",
+        "off": "Ugašeno ceo dan"
+      },
+      "special": {
+        "title": "Specijalno radno vreme",
+        "dateRange": "Aktivni datumi",
+        "dateRangeHint": "Ekran je uključen samo između ova dva datuma.",
+        "startDate": "Datum početka",
+        "endDate": "Datum završetka",
+        "hours": "Aktivno vreme",
+        "hoursHint": "Svakog dana u periodu, ekran se uključuje i isključuje u ovo vreme."
+      },
+      "weekday": {
+        "monday": "Ponedeljak",
+        "tuesday": "Utorak",
+        "wednesday": "Sreda",
+        "thursday": "Četvrtak",
+        "friday": "Petak",
+        "saturday": "Subota",
+        "sunday": "Nedelja"
+      },
+      "save": "Sačuvaj izmene",
+      "saveSuccess": "Radno vreme je sačuvano",
+      "saveError": "Čuvanje radnog vremena nije uspelo. Pokušajte ponovo.",
+      "timezone": {
+        "label": "Vremenska zona",
+        "hint": "Radno vreme prati ovu vremensku zonu.",
+        "search": "Pretraži vremensku zonu...",
+        "empty": "Nije pronađena vremenska zona."
+      },
+      "errors": {
+        "timeRange": "Vreme početka mora biti pre vremena završetka.",
+        "dateRange": "Datum završetka mora biti isti ili posle datuma početka."
+      }
+    }
+  },
+  "media": {
+    "title": "Mediji",
+    "description": "Pregledajte, otpremajte i organizujte medije za ekrane i plejliste.",
+    "search": "Pretraži medije...",
+    "empty": "Još nema medija",
+    "emptyDescription": "Otpremite slike i video zapise u ovaj folder da biste ih koristili u plejlistama i na ekranima.",
+    "emptySearch": "Nema odgovarajućih medija",
+    "emptySearchDescription": "Probajte drugi pojam pretrage ili prilagodite filtere.",
+    "emptyClearFilters": "Obriši filtere",
+    "selectAll": "Izaberi sve",
+    "selectItem": "Izaberi {{name}}",
+    "itemCount_one": "{{count}} stavka",
+    "itemCount_few": "{{count}} stavke",
+    "itemCount_other": "{{count}} stavki",
+    "types": {
+      "folder": "Folder",
+      "image": "Slika",
+      "video": "Video"
+    },
+    "dropzone": {
+      "upload": {
+        "title": "Otpremi medije",
+        "activeTitle": "Spustite datoteke za otpremanje",
+        "hint": "Prevucite slike ili video zapise, ili kliknite za izbor"
+      },
+      "folder": {
+        "title": "Kreiraj folder",
+        "hint": "Organizujte medije u foldere"
+      }
+    },
+    "breadcrumb": {
+      "label": "Navigacija folderima",
+      "root": "Svi mediji"
+    },
+    "folders": {
+      "title": "Folderi",
+      "back": "Nazad",
+      "collapse": "Sakrij foldere",
+      "expand": "Prikaži foldere"
+    },
+    "itemCount": "{{count}} stavki",
+    "filter": {
+      "label": "Tip",
+      "all": "Svi tipovi",
+      "image": "Slika",
+      "video": "Video"
+    },
+    "sort": {
+      "label": "Sortiraj po",
+      "name": "Ime",
+      "createdAt": "Datum",
+      "type": "Tip",
+      "size": "Veličina",
+      "asc": "Rastuće",
+      "desc": "Opadajuće"
+    },
+    "view": {
+      "grid": "Prikaz mreže",
+      "list": "Prikaz liste"
+    },
+    "table": {
+      "name": "Naziv",
+      "type": "Tip",
+      "size": "Veličina",
+      "dimensions": "Dimenzije",
+      "uploadedAt": "Otpremljeno"
+    },
+    "bulk": {
+      "selected": "{{count}} izabrano",
+      "move": "Premesti",
+      "addToPlaylist": "Dodaj u plejlistu",
+      "addToScreen": "Dodaj na ekran",
+      "delete": "Obriši",
+      "clear": "Poništi izbor"
+    },
+    "actions": {
+      "open": "Otvori folder",
+      "view": "Prikaži detalje",
+      "rename": "Preimenuj",
+      "move": "Premesti",
+      "addToPlaylist": "Dodaj u plejlistu",
+      "addToScreen": "Dodaj na ekran",
+      "delete": "Obriši",
+      "moveToTrash": "Premesti u otpad"
+    },
+    "detail": {
+      "title": "Detalji medija",
+      "description": "Pregledajte i upravljajte ovom stavkom.",
+      "name": "Naziv",
+      "defaultDuration": "Podrazumevano trajanje (sekunde)",
+      "duration": "Trajanje (sekunde)",
+      "durationUnknown": "Nepoznato",
+      "videoDurationHint": "Trajanje videa se automatski određuje iz datoteke.",
+      "type": "Tip",
+      "size": "Veličina",
+      "dimensions": "Dimenzije",
+      "uploadedAt": "Otpremljeno",
+      "download": "Preuzmi",
+      "addToScreen": "Dodaj na ekran",
+      "addToPlaylist": "Dodaj u plejlistu",
+      "save": "Sačuvaj izmene",
+      "saveSuccess": "Medij je uspešno ažuriran",
+      "saveError": "Ažuriranje medija nije uspelo. Pokušajte ponovo.",
+      "downloadError": "Preuzimanje nije dostupno za ovu datoteku."
+    },
+    "upload": {
+      "success": "{{count}} datoteka uspešno otpremljeno",
+      "queued": "{{count}} datoteka dodato u red za otpremanje",
+      "error": "Otpremanje nije uspelo. Pokušajte ponovo.",
+      "validation": {
+        "maxFiles": "Možete otpremiti najviše {{count}} datoteka odjednom.",
+        "invalidType": "{{name}} nije podržan tip datoteke.",
+        "tooLarge": "{{name}} premašuje limit veličine od 10 MB."
+      },
+      "manager": {
+        "title": "Otpremanja",
+        "active": "{{count}} u toku",
+        "done": "{{count}} završeno",
+        "collapse": "Skupi menadžer otpremanja",
+        "expand": "Proširi menadžer otpremanja",
+        "cancel": "Otkaži otpremanje",
+        "retry": "Pokušaj ponovo",
+        "clearCompleted": "Zatvori",
+        "leaveWarning": "Otpremanja u toku će biti prekinuta ako napustite stranicu.",
+        "status": {
+          "queued": "Čeka u redu",
+          "uploading": "Otpremanje",
+          "processing": "Obrada sličica",
+          "completed": "Otpremanje završeno",
+          "failed": "Otpremanje nije uspelo",
+          "cancelled": "Otpremanje otkazano"
+        }
+      },
+      "sheet": {
+        "title": "Dodaj medije",
+        "description": "Otpremite sa uređaja ili uvezite iz stoka.",
+        "deviceTab": "Moj uređaj",
+        "stockTab": "Stok mediji"
+      }
+    },
+    "rename": {
+      "title": "Preimenuj medij",
+      "description": "Unesite novi naziv za ovu datoteku.",
+      "submit": "Sačuvaj",
+      "success": "Medij je uspešno preimenovan",
+      "error": "Preimenovanje medija nije uspelo. Pokušajte ponovo."
+    },
+    "folder": {
+      "name": "Naziv foldera",
+      "namePlaceholder": "npr. Kampanja",
+      "create": {
+        "title": "Kreiraj folder",
+        "description": "Dodajte novi folder za organizaciju medija.",
+        "submit": "Kreiraj folder",
+        "success": "Folder je uspešno kreiran",
+        "error": "Kreiranje foldera nije uspelo. Pokušajte ponovo."
+      },
+      "rename": {
+        "title": "Preimenuj folder",
+        "description": "Unesite novi naziv za ovaj folder.",
+        "submit": "Sačuvaj",
+        "success": "Folder je uspešno preimenovan",
+        "error": "Preimenovanje foldera nije uspelo. Pokušajte ponovo."
+      }
+    },
+    "googleDrive": {
+      "title": "Uvezi iz Google Drive-a",
+      "hint": "Kliknite za pregled i uvoz datoteka",
+      "success": "Datoteke su uvezene iz Google Drive-a",
+      "error": "Uvoz datoteka nije uspeo. Pokušajte ponovo."
+    },
+    "move": {
+      "title": "Premesti stavke",
+      "description": "Izaberite odredišni folder za {{count}} stavki.",
+      "library": "Biblioteka",
+      "noFolders": "Nema drugih dostupnih foldera.",
+      "cancel": "Otkaži",
+      "submit": "Premesti ovde",
+      "success": "Stavke su uspešno premestene",
+      "error": "Premestanje nije uspelo. Pokušajte ponovo."
+    },
+    "delete": {
+      "title": "Obrisati stavke?",
+      "description": "Da li ste sigurni da želite da obrišete {{count}} stavki? Folderi i njihov sadržaj će takođe biti uklonjeni. Ova radnja se ne može poništiti.",
+      "cancel": "Otkaži",
+      "confirm": "Obriši",
+      "success": "Stavke su uspešno obrisane",
+      "error": "Brisanje nije uspelo. Pokušajte ponovo."
+    },
+    "form": {
+      "cancel": "Otkaži"
+    },
+    "validation": {
+      "nameRequired": "Naziv je obavezan",
+      "nameMax": "Naziv može imati najviše {{max}} karaktera",
+      "durationMin": "Trajanje mora biti najmanje {{min}} sekunda",
+      "durationMax": "Trajanje može biti najviše {{max}} sekundi"
+    },
+    "stock": {
+      "title": "Stok mediji",
+      "searchPlaceholder": "Pretraži stok fotografije i video zapise...",
+      "filters": {
+        "mediaType": "Tip",
+        "orientation": "Orijentacija",
+        "color": "Boja",
+        "searchToRefine": "Pretražite da biste filtrirali po orijentaciji ili boji"
+      },
+      "mediaType": {
+        "all": "Sve",
+        "image": "Slike",
+        "video": "Video"
+      },
+      "orientation": {
+        "all": "Sve orijentacije",
+        "landscape": "Pejzaž",
+        "portrait": "Portret",
+        "square": "Kvadrat"
+      },
+      "color": {
+        "all": "Sve boje",
+        "red": "Crvena",
+        "orange": "Narandžasta",
+        "yellow": "Žuta",
+        "green": "Zelena",
+        "blue": "Plava",
+        "purple": "Ljubičasta",
+        "black": "Crna",
+        "white": "Bela",
+        "gray": "Siva"
+      },
+      "collections": {
+        "business": "Biznis",
+        "technology": "Tehnologija",
+        "office": "Kancelarija",
+        "food": "Hrana",
+        "travel": "Putovanja",
+        "nature": "Priroda"
+      },
+      "empty": {
+        "title": "Otkrijte stok medije",
+        "description": "Pretražite ili izaberite kolekciju da pregledate besplatne fotografije i video zapise.",
+        "searchTitle": "Nema rezultata",
+        "searchDescription": "Pokušajte sa drugim pojmom ili podesite filtere."
+      },
+      "error": {
+        "title": "Učitavanje stok medija nije uspelo",
+        "description": "Proverite vezu i pokušajte ponovo."
+      },
+      "preview": {
+        "attribution": "Fotografija: {{author}} na Pexels-u",
+        "viewOnPexels": "Pogledaj na Pexels-u",
+        "author": "Autor",
+        "dimensions": "Dimenzije",
+        "orientation": "Orijentacija",
+        "mediaType": "Tip",
+        "duration": "Trajanje",
+        "import": "Uvezi",
+        "addToPlaylist": "Dodaj u plejlistu",
+        "addToScreen": "Dodaj na ekran",
+        "importing": "Uvoženje sadržaja...",
+        "imported": "Dodato u vašu biblioteku medija",
+        "importError": "Uvoz nije uspeo. Pokušajte ponovo."
+      }
+    }
+  },
+  "superAdmin": {
+    "title": "Super Admin",
+    "tabs": {
+      "users": "Svi korisnici",
+      "apps": "Aplikacije"
+    },
+    "users": {
+      "search": "Pretraži korisnike...",
+      "empty": "Nema korisnika.",
+      "superAdminBadge": "Super Admin",
+      "meBadge": "Ja",
+      "columns": {
+        "name": "Korisnik",
+        "organizations": "Organizacije",
+        "status": "Status",
+        "createdAt": "Kreiran"
+      },
+      "actions": {
+        "menu": "Akcije korisnika",
+        "promote": "Unapredi u super-admina",
+        "demote": "Ukloni super-admina",
+        "switch": "Prebaci na korisnika"
+      }
+    },
+    "promote": {
+      "title": "Unaprediti u super-admina?",
+      "description": "Dodeliti super-admin pristup korisniku {{name}} ({{email}})? Moći će da upravlja svim korisnicima i impersonira naloge.",
+      "confirm": "Unapredi korisnika",
+      "success": "{{name}} je sada super-admin",
+      "error": "Nije moguće unaprediti korisnika. Pokušajte ponovo."
+    },
+    "demote": {
+      "title": "Ukloniti super-admin ulogu?",
+      "description": "Ukloniti super-admin pristup korisniku {{name}} ({{email}})? Postaće običan korisnik bez globalnih admin privilegija.",
+      "confirm": "Ukloni super-admina",
+      "success": "{{name}} više nije super-admin",
+      "error": "Nije moguće ažurirati ulogu korisnika. Pokušajte ponovo."
+    },
+    "switch": {
+      "title": "Prebaciti na ovog korisnika?",
+      "description": "Pregledaćete aplikaciju kao {{name}} ({{email}}). U svakom trenutku možete se vratiti na svoj nalog preko impersonation banera.",
+      "confirm": "Prebaci na korisnika"
+    },
+    "userSheet": {
+      "title": "Detalji korisnika",
+      "description": "Pregledajte informacije o nalogu.",
+      "loadError": "Nije moguće učitati detalje korisnika.",
+      "notSet": "Nije uneto",
+      "noOrganizations": "Nema organizacija",
+      "copy": "Kopiraj vrednost",
+      "copySuccess": "Kopirano u clipboard",
+      "copyError": "Nije moguće kopirati",
+      "fields": {
+        "id": "ID korisnika",
+        "provider": "Način prijave",
+        "status": "Status naloga",
+        "role": "Globalna uloga",
+        "createdAt": "Kreiran",
+        "organizations": "Organizacije"
+      },
+      "role": {
+        "superAdmin": "Super-admin",
+        "user": "Korisnik"
+      },
+      "status": {
+        "active": "Aktivan",
+        "inactive": "Neaktivan"
+      }
+    },
+    "impersonation": {
+      "banner": "Pregled kao {{name}} ({{email}})",
+      "exit": "Izađi iz impersonacije",
+      "exitTitle": "Izaći iz impersonacije?",
+      "exitDescription": "Vratite se na svoj super-admin nalog i prestanite da pregledate aplikaciju kao ovaj korisnik.",
+      "exitConfirm": "Izađi iz impersonacije",
+      "exitSuccess": "Vraćeni ste na svoj nalog",
+      "exitError": "Nije moguće vratiti sesiju.",
+      "restoring": "Vraćanje super-admin sesije…",
+      "startSuccess": "Sada pregledate kao {{name}}",
+      "startError": "Nije moguće prebaciti na ovog korisnika."
+    }
+  },
+  "faq": {
+    "title": "Česta pitanja",
+    "description": "Odgovori na najčešća pitanja o korišćenju Edge platforme.",
+    "categories": {
+      "general": {
+        "title": "Opšte",
+        "items": [
+          {
+            "question": "Šta je Edge?",
+            "answer": "Edge je platforma za digitalno oglašavanje za upravljanje ekranima, plejlistama i medijima unutar organizacije. Sve u aplikaciji je vezano za organizaciju izabranu u bočnoj traci."
+          },
+          {
+            "question": "Kako da počnem nakon registracije?",
+            "answer": "Ako ste se registrovali bez pozivnice, bićete upitani da kreirate prvu organizaciju pre pristupa kontrolnoj tabli. Ako ste se pridružili putem pozivnice, automatski ulazite u tu organizaciju i možete odmah da koristite aplikaciju."
+          },
+          {
+            "question": "Šta prikazuje kontrolna tabla?",
+            "answer": "Kontrolna tabla daje brz pregled aktivne organizacije: koliko imate ekrana (i koliko je online), koliko plejlista postoji i koliko medijskih datoteka je otpremljeno. Svaka kartica vodi u odgovarajući odeljak."
+          },
+          {
+            "question": "Mogu li da promenim jezik ili temu aplikacije?",
+            "answer": "Da. Otvorite Podešavanja → Preferencije da prebacite između engleskog i srpskog i da izaberete svetlu, tamnu ili sistemsku temu. Jezička preferenca se čuva na nalogu kada je API dostupan."
+          }
+        ]
+      },
+      "content": {
+        "title": "Ekrani i sadržaj",
+        "items": [
+          {
+            "question": "Kako da dodam i povežem ekran?",
+            "answer": "Idite na Ekrani i registrujte novi displej. Otvorite karticu Povezivanje na ekranu da vidite kod za uparivanje i korake. Unesite taj kod na fizičkom displeju da ga povežete sa organizacijom. Kada je online, plejliste dodeljujete sa kartice Sadržaj."
+          },
+          {
+            "question": "Kako funkcionišu plejliste?",
+            "answer": "Plejliste su uređene kolekcije medija. Kreirajte je u odeljku Plejliste, dodajte stavke iz biblioteke medija, podesite redosled i trajanje, zatim je dodelite jednom ili više ekrana."
+          },
+          {
+            "question": "Gde da otpremim medije?",
+            "answer": "Otvorite Mediji u bočnoj traci da otpremite slike i video zapise. Otpremljene datoteke pripadaju aktivnoj organizaciji i mogu se dodati u plejliste iz uređivača plejliste."
+          },
+          {
+            "question": "Kako da znam da li je ekran online?",
+            "answer": "Ekrani prikazuju online ili offline status na listi ekrana i u statistici na kontrolnoj tabli. Kartica Povezivanje takođe pokazuje da li je displej trenutno dostupan."
+          }
+        ]
+      },
+      "organizations": {
+        "title": "Organizacije",
+        "items": [
+          {
+            "question": "Šta je organizacija?",
+            "answer": "Organizacija je radni prostor koji poseduje vaše ekrane, plejliste, medije i članove tima. Sav sadržaj i korisnici se upravljaju po organizaciji. Možete pripadati više organizacija sa različitom ulogom u svakoj."
+          },
+          {
+            "question": "Kako da prebacim između organizacija?",
+            "answer": "Koristite prekidač organizacija na vrhu bočne trake. Kliknite na naziv organizacije da je učinite aktivnom. Ostatak aplikacije — uključujući Korisnike, ekrane i medije — prikazuje podatke te organizacije."
+          },
+          {
+            "question": "Ko može da kreira, menja ili briše organizacije?",
+            "answer": "Samo administratori mogu da kreiraju novu organizaciju iz prekidača, da preimenuju organizaciju ili da je obrišu. Članovi mogu da prebacuju između organizacija kojima pripadaju, ali ne mogu da ih upravljaju."
+          },
+          {
+            "question": "Zašto ne mogu da obrišem organizaciju?",
+            "answer": "Ne možete obrisati jedinu preostalu organizaciju — bar jedna mora ostati na nalogu. Takođe ne možete obrisati organizaciju koja je trenutno aktivna; prvo prebacite na drugu. Brisanje organizacije uklanja je za sve članove."
+          }
+        ]
+      },
+      "users": {
+        "title": "Korisnici i pozivnice",
+        "items": [
+          {
+            "question": "Koje uloge postoje?",
+            "answer": "Svaka organizacija ima administratore i članove. Administratori mogu da pozivaju i upravljaju korisnicima i samom organizacijom. Članovi mogu da koriste aplikaciju (ekrane, plejliste, medije), ali ne mogu da pozivaju korisnike niti menjaju podešavanja organizacije."
+          },
+          {
+            "question": "Kako da pozovem nekoga?",
+            "answer": "Administratori mogu da otvore Korisnici iz menija naloga na dnu bočne trake, kliknu Pozovi korisnika i unesu ime, email i ulogu. Pojavljuju se na listi sa statusom Na čekanju dok ne završe proces pozivnice."
+          },
+          {
+            "question": "Šta se dešava kada pozovem nekoga ko nema nalog?",
+            "answer": "Dobija email sa linkom ka stranici za registraciju. Email je unapred popunjen i zaključan na pozvanu adresu. Nakon kreiranja naloga automatski ulazi u vašu organizaciju i preskače korak kreiranja organizacije."
+          },
+          {
+            "question": "Šta se dešava kada pozovem nekoga ko već ima nalog?",
+            "answer": "Dobija email sa linkom za pregled pozivnice. Ako nije prijavljen, prvo ide na prijavu, zatim vidi dijalog za prihvatanje ili odbijanje. Ako je već prijavljen sa pozvanim emailom, dijalog se odmah prikazuje."
+          },
+          {
+            "question": "Šta znače Odobreno i Na čekanju u tabeli korisnika?",
+            "answer": "Odobreno znači da je osoba aktivni član organizacije. Na čekanju znači da je pozivnica poslata ali još nije prihvaćena — bilo da nije završena registracija (novi korisnik) ili da poziv nije prihvaćen (postojeći korisnik)."
+          },
+          {
+            "question": "Može li jedna osoba pripadati više organizacija?",
+            "answer": "Da. Jedan nalog može biti član više organizacija, eventualno sa različitim ulogama. Koristite prekidač organizacija za prelazak između njih."
+          }
+        ]
+      },
+      "account": {
+        "title": "Nalog i bezbednost",
+        "items": [
+          {
+            "question": "Kako da ažuriram profil?",
+            "answer": "Idite na Podešavanja → Profil da promenite ime, broj telefona i kompaniju. Email adresa je vezana za prijavu i ne može se menjati iz forme profila."
+          },
+          {
+            "question": "Prijavio sam se preko Google-a. Mogu li i lozinku?",
+            "answer": "Da. Ako ste se registrovali preko Google-a i nemate lozinku u aplikaciji, otvorite Podešavanja → Bezbednost i koristite Postavi lozinku. Posle toga možete da se prijavite i preko Google-a i preko emaila i lozinke."
+          },
+          {
+            "question": "Kako da resetujem zaboravljenu lozinku?",
+            "answer": "Na stranici za prijavu kliknite Zaboravili ste lozinku?, unesite email i pratite link iz poruke. Link za reset ističe posle određenog vremena. Ovo važi samo za naloge kreirane sa emailom i lozinkom."
+          },
+          {
+            "question": "Šta se dešava kada obrišem nalog?",
+            "answer": "Brisanje naloga je trajno. Vaš korisnički zapis se uklanja. Za svaku organizaciju kojoj ste pripadali: ako ste bili jedini član, organizacija se briše; inače se uklanja samo vaše članstvo. Nalog možete obrisati u Podešavanja → Nalog."
+          }
+        ]
+      },
+      "support": {
+        "title": "Podrška",
+        "items": [
+          {
+            "question": "Kako da pošaljem povratnu informaciju ili prijavim problem?",
+            "answer": "Otvorite Podešavanja → Pomoć. Koristite Ostavi povratnu informaciju za ocenu i komentar, ili Prijavi problem da opišete nešto što ne radi. Poruke se šalju Edge timu podrške sa detaljima vašeg naloga i aktivne organizacije."
+          },
+          {
+            "question": "Gde mogu ponovo da nađem ove odgovore?",
+            "answer": "Ova FAQ stranica je uvek dostupna iz menija naloga na dnu bočne trake, pored Podešavanja i Korisnika."
+          }
+        ]
+      }
+    }
+  },
+  "apps": {
+    "title": "Aplikacije",
+    "count": "{{count}} aplikacija",
+    "description": "Proširite svoje ekrane prilagođenim aplikacijama iz Edge prodavnice.",
+    "getApp": "Preuzmi aplikaciju",
+    "installed": "Instalirano",
+    "aboutTitle": "O ovoj aplikaciji",
+    "search": "Pretraži aplikacije...",
+    "tabs": {
+      "store": "Prodavnica",
+      "myApps": "Moje aplikacije"
+    },
+    "carousel": {
+      "goTo": "Idi na sliku {{index}}"
+    },
+    "meta": {
+      "status": "Status",
+      "statusInstalled": "Instalirano",
+      "statusNotInstalled": "Nije instalirano",
+      "updated": "Ažurirano",
+      "recently": "Nedavno"
+    },
+    "empty": {
+      "store": {
+        "title": "Nema pronađenih aplikacija",
+        "description": "Pokušajte sa drugim pojmom ili kategorijom."
+      },
+      "myApps": {
+        "title": "Nema instaliranih aplikacija",
+        "description": "Pregledajte prodavnicu da dodate aplikacije."
+      },
+      "clearFilters": "Obriši filtere"
+    },
+    "openApp": "Otvori aplikaciju",
+    "breadcrumb": {
+      "root": "Aplikacije"
+    },
+    "actions": {
+      "appDetails": "Detalji aplikacije",
+      "install": "Instaliraj",
+      "uninstall": "Deinstaliraj"
+    },
+    "uninstall": {
+      "title": "Deinstalirati aplikaciju?",
+      "description": "Ovo će ukloniti „{{name}}\" i obrisati sve njene instance. Ova radnja se ne može poništiti.",
+      "cancel": "Otkaži",
+      "confirm": "Deinstaliraj",
+      "success": "{{name}} deinstalirana",
+      "error": "Deinstalacija aplikacije nije uspela."
+    },
+    "instances": {
+      "description": "Upravljajte instancama ove aplikacije na vašim ekranima.",
+      "count": "{{count}} instanci",
+      "create": {
+        "title": "Nova instanca",
+        "description": "Kreirajte novu instancu za konfiguraciju i objavu."
+      },
+      "actions": {
+        "rename": "Preimenuj",
+        "update": "Ažuriraj",
+        "delete": "Obriši"
+      },
+      "rename": {
+        "title": "Preimenuj instancu",
+        "label": "Naziv instance",
+        "placeholder": "Unesite naziv",
+        "confirm": "Sačuvaj",
+        "error": "Preimenovanje instance nije uspelo."
+      },
+      "delete": {
+        "title": "Obrisati instancu?",
+        "description": "Ovo će trajno obrisati „{{name}}\". Ova radnja se ne može poništiti.",
+        "confirm": "Obriši",
+        "success": "Instanca obrisana",
+        "error": "Brisanje instance nije uspelo."
+      },
+      "preview": {
+        "placeholder": "Vaš naslov se prikazuje ovde"
+      },
+      "config": {
+        "save": "Sačuvaj izmene",
+        "saved": "Izmene sačuvane",
+        "duplicated": "Instanca duplirana",
+        "headline": {
+          "label": "Naslov",
+          "placeholder": "Unesite naslov",
+          "description": "Prikazuje se istaknuto na pregledu ekrana."
+        },
+        "actions": {
+          "addToScreen": "Dodaj na ekran",
+          "addToPlaylist": "Dodaj u plejlistu",
+          "duplicate": "Dupliraj",
+          "delete": "Obriši",
+          "addToScreenSoon": "Dodavanje na ekrane uskoro stiže.",
+          "addToPlaylistSoon": "Dodavanje u plejliste uskoro stiže."
+        },
+        "saveError": "Čuvanje izmena nije uspelo."
+      }
+    },
+    "admin": {
+      "description": "Upravljajte aplikacijama dostupnim organizacijama.",
+      "newApp": "Nova aplikacija",
+      "public": "Javno",
+      "edit": "Izmeni",
+      "delete": "Obriši",
+      "deleted": "Aplikacija obrisana",
+      "deleteError": "Brisanje aplikacije nije uspelo.",
+      "visibilityError": "Promena vidljivosti nije uspela.",
+      "empty": {
+        "title": "Još nema aplikacija",
+        "description": "Kreirajte prvu aplikaciju u katalogu."
+      },
+      "status": {
+        "draft": "Nacrt",
+        "published": "Objavljeno"
+      },
+      "deleteDialog": {
+        "title": "Obrisati aplikaciju?",
+        "description": "Ovo trajno briše „{{name}}\" iz kataloga. Ova radnja se ne može poništiti."
+      },
+      "editor": {
+        "createTitle": "Nova aplikacija",
+        "editTitle": "Izmena aplikacije",
+        "description": "Opis",
+        "icon": "Ikona",
+        "iconCta": "Otpremi ikonu",
+        "name": "Naziv",
+        "slug": "Slug",
+        "tagline": "Slogan",
+        "about": "O aplikaciji",
+        "status": "Status",
+        "isPublic": "Javno — dostupno organizacijama",
+        "save": "Sačuvaj izmene",
+        "create": "Kreiraj aplikaciju",
+        "created": "Aplikacija kreirana",
+        "updated": "Aplikacija ažurirana",
+        "error": "Čuvanje aplikacije nije uspelo.",
+        "app": "Aplikacija",
+        "appPlaceholder": "Izaberi aplikaciju za dodavanje…",
+        "noAvailable": "Sve dostupne aplikacije su već u katalogu."
+      }
+    },
+    "youtube": {
+      "previewEmpty": "Nalepi YouTube link da vidiš pregled videa ovde."
+    }
+  }
+}

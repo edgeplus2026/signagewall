@@ -1,0 +1,8 @@
+{
+  "internalError": "Something went wrong. Please try again later.",
+  "notFound": "Resource not found.",
+  "unauthorized": "You are not authorized to perform this action.",
+  "forbidden": "You do not have permission to access this resource.",
+  "tooManyRequests": "Too many requests. Please slow down and try again later.",
+  "payloadTooLarge": "The uploaded file is too large."
+}

@@ -1,0 +1,9 @@
+{
+  "forbidden": "Super-admin access is required.",
+  "impersonationBlocked": "Admin actions are not available while impersonating a user.",
+  "cannotImpersonateSelf": "You cannot impersonate your own account.",
+  "cannotPromoteSelf": "You cannot change your own super-admin role.",
+  "cannotDemoteSelf": "You cannot remove your own super-admin role.",
+  "alreadySuperAdmin": "This user is already a super-admin.",
+  "notSuperAdmin": "This user is not a super-admin."
+}

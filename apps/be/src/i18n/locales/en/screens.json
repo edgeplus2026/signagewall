@@ -1,0 +1,20 @@
+{
+  "notFound": "Screen not found.",
+  "emptyUpdate": "At least one field must be provided to update a screen.",
+  "mediaNotFound": "One or more media items could not be found.",
+  "mediaNotReady": "Media must finish processing before it can be added to a screen.",
+  "invalidMediaType": "Only images and videos can be added to a screen.",
+  "playlistNotFound": "One or more playlists could not be found.",
+  "itemNotFound": "Screen item not found.",
+  "invalidItem": "Each screen item must reference a media item or a playlist.",
+  "duplicateItemIds": "Duplicate screen item identifiers were provided.",
+  "conflict": "This screen was modified elsewhere. Please reload and try again.",
+  "maxItemsExceeded": "A screen can contain at most 500 items.",
+  "availability": {
+    "invalidTimezone": "The provided timezone is not valid.",
+    "invalidTimeRange": "Start time must be earlier than end time.",
+    "invalidDate": "The provided date is not a valid calendar date.",
+    "invalidDateRange": "The end date must be on or after the start date.",
+    "incompleteWeekly": "Working hours must include all seven days of the week."
+  }
+}

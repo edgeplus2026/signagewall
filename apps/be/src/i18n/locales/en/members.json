@@ -1,0 +1,9 @@
+{
+  "notFound": "Member not found.",
+  "alreadyMember": "This user is already a member of the organization.",
+  "invitePending": "An invitation is already pending for this email.",
+  "invalidInvite": "This invitation is invalid or has expired.",
+  "inviteEmailMismatch": "Registration email must match the invitation email.",
+  "cannotRemoveLastAdmin": "The organization must have at least one admin.",
+  "inviteDeclined": "Invitation declined."
+}

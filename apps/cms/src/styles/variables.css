@@ -1,0 +1,48 @@
+:root {
+  /* Text */
+  --text-primary: rgb(20 20 20 / 94%);
+  --text-secondary: rgb(20 20 20 / 70%);
+
+  /* Borders */
+  --border-primary: rgb(20 20 20 / 20%);
+  --border-secondary: rgb(20 20 20 / 12%);
+  --border-tertiary: rgb(20 20 20 / 8%);
+  --border-quaternary: rgb(20 20 20 / 4%);
+
+  /* Surfaces */
+  --page: #f7f7f7;
+  --panel: #fcfcfc;
+  --sidebar: #f3f3f3;
+
+  /* Interactive */
+  --highlight: rgb(20 20 20 / 6%);
+
+  /* Brand */
+  --brand: #141414;
+  --brand-contrast: #fcfcfc;
+
+  /* Semantic */
+  --danger: #cf2d56;
+  --success: #1f8a65;
+  --warning: #c08532;
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  --text-primary: rgb(228 228 228 / 94%);
+  --text-secondary: rgb(228 228 228 / 70%);
+  --border-primary: rgb(228 228 228 / 20%);
+  --border-secondary: rgb(228 228 228 / 12%);
+  --border-tertiary: rgb(228 228 228 / 8%);
+  --border-quaternary: rgb(228 228 228 / 4%);
+  --highlight: rgb(228 228 228 / 6%);
+  --page: #141414;
+  --panel: #181818;
+  --sidebar: #141414;
+  --brand: #e4e4e4;
+  --brand-contrast: #181818;
+  --danger: #cf2d56;
+  --success: #1f8a65;
+  --warning: #c08532;
+}

@@ -1,0 +1,7 @@
+{
+  "notFound": "Organization not found.",
+  "notMember": "You do not have access to this organization.",
+  "cannotDeleteLast": "You must keep at least one organization.",
+  "adminOnly": "Only organization admins can perform this action.",
+  "organizationRequired": "Organization context is required."
+}

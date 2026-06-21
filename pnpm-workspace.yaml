@@ -1,0 +1,15 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "packages/apps/*"
+
+# Per-dependency install-script approval (pnpm 11). The backend needs bcrypt
+# (auth) and ffmpeg/ffprobe (video processing); the resolver is used by eslint.
+# @scarf/scarf is telemetry — explicitly denied.
+allowBuilds:
+  bcrypt: true
+  ffmpeg-static: true
+  "@ffprobe-installer/darwin-arm64": true
+  unrs-resolver: true
+  esbuild: true
+  "@scarf/scarf": false

@@ -1,0 +1,41 @@
+.phone-input.PhoneInput {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.phone-input .PhoneInputCountry {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+.phone-input .PhoneInputCountryIcon {
+  width: 1.5rem;
+  height: 1rem;
+  overflow: hidden;
+  border-radius: 0.125rem;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.phone-input .PhoneInputCountrySelect {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.phone-input .PhoneInputCountrySelectArrow {
+  display: none;
+}
+
+.phone-input .PhoneInputInput {
+  flex: 1;
+}
+
+.phone-input .PhoneInputCountryIcon--border {
+  background-color: var(--sidebar);
+}

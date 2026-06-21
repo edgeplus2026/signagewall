@@ -1,0 +1,9 @@
+{
+  "failed": "Validation failed. Please check your input.",
+  "email": "Enter a valid email address.",
+  "passwordMin": "Password must be at least {{min}} characters.",
+  "nameMin": "Name must be at least {{min}} characters.",
+  "passwordMismatch": "Passwords do not match.",
+  "phoneRequired": "Phone number is required.",
+  "phoneInvalid": "Enter a valid phone number."
+}

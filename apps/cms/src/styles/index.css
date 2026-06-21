@@ -1,0 +1,130 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import './variables.css';
+@import './phone-input.css';
+
+@theme inline {
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-heading: var(--font-sans);
+
+  /* Text */
+  --text-color-primary: var(--text-primary);
+  --text-color-secondary: var(--text-secondary);
+  --text-color-brand: var(--brand);
+  --text-color-brand-contrast: var(--brand-contrast);
+
+  /* Borders */
+  --border-color-primary: var(--border-primary);
+  --border-color-secondary: var(--border-secondary);
+  --border-color-tertiary: var(--border-tertiary);
+  --border-color-quaternary: var(--border-quaternary);
+  --border-color-brand: var(--brand);
+  --border-color-danger: var(--danger);
+
+  /* Surfaces */
+  --background-color-page: var(--page);
+  --background-color-panel: var(--panel);
+  --background-color-sidebar: var(--sidebar);
+  --background-color-highlight: var(--highlight);
+  --background-color-quaternary: var(--border-quaternary);
+  --background-color-input: var(--border-secondary);
+  --background-color-brand: var(--brand);
+  --background-color-danger: var(--danger);
+
+  /* Rings & dividers */
+  --ring-color-tertiary: var(--border-tertiary);
+  --ring-color-quaternary: var(--border-quaternary);
+  --ring-color-danger: var(--danger);
+  --divide-color-quaternary: var(--border-quaternary);
+  --outline-color-tertiary: var(--border-tertiary);
+
+  /* Semantic */
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans:
+      system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+      sans-serif;
+  }
+  * {
+    @apply border-secondary outline-tertiary/50;
+  }
+  body {
+    @apply bg-page text-primary;
+  }
+  html {
+    @apply font-sans;
+  }
+
+  /* Make native date/time picker UI (calendar/clock icon, dropdown) follow the theme. */
+  .dark [data-slot='input'] {
+    color-scheme: dark;
+  }
+
+  .dark [data-slot='input'],
+  .dark [data-slot='select-trigger'] {
+    border-color: var(--border-secondary);
+    background-color: transparent;
+  }
+
+  .dark [data-slot='input']:hover:not(:disabled),
+  .dark [data-slot='select-trigger']:hover:not(:disabled) {
+    border-color: var(--border-tertiary);
+    background-color: var(--border-tertiary);
+  }
+
+  .dark [data-slot='input']:focus-visible,
+  .dark [data-slot='select-trigger']:focus-visible {
+    border-color: var(--border-tertiary);
+    box-shadow: 0 0 0 3px var(--border-tertiary);
+  }
+}
+
+@utility visible-scrollbar {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-primary) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-color: var(--border-primary);
+    background-clip: content-box;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-secondary);
+  }
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

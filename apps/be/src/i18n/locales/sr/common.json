@@ -1,0 +1,8 @@
+{
+  "internalError": "Došlo je do greške. Pokušajte ponovo kasnije.",
+  "notFound": "Resurs nije pronađen.",
+  "unauthorized": "Niste ovlašćeni da izvršite ovu radnju.",
+  "forbidden": "Nemate dozvolu za pristup ovom resursu.",
+  "tooManyRequests": "Previše zahteva. Usporite i pokušajte ponovo kasnije.",
+  "payloadTooLarge": "Otpremljena datoteka je prevelika."
+}
