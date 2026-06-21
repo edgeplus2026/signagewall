@@ -1,11 +1,10 @@
-import type { ConfigSchema, DataSource, RuntimeKind } from '@edge/apps-contract';
+import type {
+  ConfigSchema,
+  DataSource,
+  RuntimeKind,
+} from '@edge/apps-contract';
 
-import { AppDocument, AppStatus } from '../schemas/app.schema';
-
-export interface AppAccentDto {
-  logo: string;
-  glow: string;
-}
+import { AppDocument } from '../schemas/app.schema';
 
 /** Shape an organization needs to browse the catalog and configure instances. */
 export interface AppCatalogResponseDto {
@@ -19,9 +18,8 @@ export interface AppCatalogResponseDto {
   dataSource: DataSource;
   configSchema: ConfigSchema;
   version: number;
-  iconUrl?: string;
-  screenshots: string[];
-  accent?: AppAccentDto;
+  iconSvg: string;
+  color: string;
   /** Whether the requesting organization has installed this app. */
   isInstalled: boolean;
 }
@@ -29,7 +27,6 @@ export interface AppCatalogResponseDto {
 /** Full catalog shape for super-admin management (adds governance fields). */
 export interface AppAdminResponseDto extends AppCatalogResponseDto {
   isPublic: boolean;
-  status: AppStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,17 +46,13 @@ export const toAppCatalogResponse = (
   dataSource: app.dataSource,
   configSchema: app.configSchema ?? [],
   version: app.version,
-  ...(app.iconUrl ? { iconUrl: app.iconUrl } : {}),
-  screenshots: app.screenshots ?? [],
-  ...(app.accent
-    ? { accent: { logo: app.accent.logo, glow: app.accent.glow } }
-    : {}),
+  iconSvg: app.iconSvg ?? '',
+  color: app.color ?? '',
 });
 
 export const toAppAdminResponse = (app: AppDocument): AppAdminResponseDto => ({
   ...toAppCatalogResponse(app),
   isPublic: app.isPublic,
-  status: app.status,
   createdAt: app.createdAt.toISOString(),
   updatedAt: app.updatedAt.toISOString(),
 });

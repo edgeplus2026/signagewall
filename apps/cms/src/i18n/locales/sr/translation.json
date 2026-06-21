@@ -1228,13 +1228,6 @@
     "carousel": {
       "goTo": "Idi na sliku {{index}}"
     },
-    "meta": {
-      "status": "Status",
-      "statusInstalled": "Instalirano",
-      "statusNotInstalled": "Nije instalirano",
-      "updated": "Ažurirano",
-      "recently": "Nedavno"
-    },
     "empty": {
       "store": {
         "title": "Nema pronađenih aplikacija",
@@ -1289,9 +1282,6 @@
         "success": "Instanca obrisana",
         "error": "Brisanje instance nije uspelo."
       },
-      "preview": {
-        "placeholder": "Vaš naslov se prikazuje ovde"
-      },
       "config": {
         "save": "Sačuvaj izmene",
         "saved": "Izmene sačuvane",
@@ -1325,10 +1315,6 @@
         "title": "Još nema aplikacija",
         "description": "Kreirajte prvu aplikaciju u katalogu."
       },
-      "status": {
-        "draft": "Nacrt",
-        "published": "Objavljeno"
-      },
       "deleteDialog": {
         "title": "Obrisati aplikaciju?",
         "description": "Ovo trajno briše „{{name}}\" iz kataloga. Ova radnja se ne može poništiti."
@@ -1338,12 +1324,9 @@
         "editTitle": "Izmena aplikacije",
         "description": "Opis",
         "icon": "Ikona",
-        "iconCta": "Otpremi ikonu",
         "name": "Naziv",
-        "slug": "Slug",
         "tagline": "Slogan",
         "about": "O aplikaciji",
-        "status": "Status",
         "isPublic": "Javno — dostupno organizacijama",
         "save": "Sačuvaj izmene",
         "create": "Kreiraj aplikaciju",
@@ -1352,11 +1335,10 @@
         "error": "Čuvanje aplikacije nije uspelo.",
         "app": "Aplikacija",
         "appPlaceholder": "Izaberi aplikaciju za dodavanje…",
-        "noAvailable": "Sve dostupne aplikacije su već u katalogu."
+        "noAvailable": "Sve dostupne aplikacije su već u katalogu.",
+        "iconPlaceholder": "Nalepi SVG kod…",
+        "color": "Boja brenda"
       }
-    },
-    "youtube": {
-      "previewEmpty": "Nalepi YouTube link da vidiš pregled videa ovde."
     }
   }
 }

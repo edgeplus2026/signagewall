@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
-import { App, AppDocument, AppStatus } from './schemas/app.schema';
+import { App, AppDocument } from './schemas/app.schema';
 
 export type CreateAppData = Partial<App> & {
   slug: string;
@@ -30,10 +30,10 @@ export class AppsRepository {
     return this.appModel.find().sort({ updatedAt: -1 }).exec();
   }
 
-  /** Apps offered to organizations: public + published. */
+  /** Apps offered to organizations: public ones. */
   async findVisible(): Promise<AppDocument[]> {
     return this.appModel
-      .find({ isPublic: true, status: AppStatus.PUBLISHED })
+      .find({ isPublic: true })
       .sort({ updatedAt: -1 })
       .exec();
   }
@@ -45,19 +45,6 @@ export class AppsRepository {
 
   async findBySlug(slug: string): Promise<AppDocument | null> {
     return this.appModel.findOne({ slug }).exec();
-  }
-
-  async findVisibleByIds(ids: string[]): Promise<AppDocument[]> {
-    const objectIds = ids
-      .filter((id) => Types.ObjectId.isValid(id))
-      .map((id) => new Types.ObjectId(id));
-    return this.appModel
-      .find({
-        _id: { $in: objectIds },
-        isPublic: true,
-        status: AppStatus.PUBLISHED,
-      })
-      .exec();
   }
 
   async create(data: CreateAppData): Promise<AppDocument> {

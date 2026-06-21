@@ -1,0 +1,50 @@
+---
+description: State management and API layer patterns
+globs: edge-fe/**/*
+alwaysApply: false
+---
+
+# State & API
+
+## Data flow
+
+```
+Page → hook (useQuery/useMutation) → api/*.ts → axios (real) or Zustand store (mock)
+```
+
+## React Query defaults
+
+- `staleTime`: 5 min, `retry`: 1, `refetchOnWindowFocus`: false
+- Mutations: `retry: 0`; invalidate domain keys on success
+- Paginated lists: use `placeholderData: keepPreviousData` to avoid unmounting UI during refetch
+
+## Zustand
+
+| Store | Persist | Purpose |
+|-------|---------|---------|
+| `authStore` | Yes | JWT + user + refresh token; `impersonationActive` flag |
+| `organizationStore` | Yes | Active org switcher |
+| Domain stores | No | Mock CRUD until backend wired |
+
+- Auth store key: `auth-storage`; rehydrate sets `isAuthenticated` when token exists
+- Impersonation backup: `sessionStorage` key `impersonation-backup` (super-admin session before switch)
+- Domain stores hold `DEFAULT_*` seed data; mutated by mock API modules
+
+## API status
+
+**Real (axios):** `authApi`, `settingsApi`, `organizationApi`, `usersApi` (`/members`), `adminApi`, `invitationsApi`
+
+**Mock (store + delay):** `screensApi`, `playlistsApi`, `mediaApi`
+
+## Axios (`lib/axios.ts`)
+
+- Base URL: `VITE_API_URL` or `/api/v1` (backend is versioned — see `project-overview`)
+- Attaches `Bearer` token from `authStore`
+- Unwraps `{ success, data }` envelope from backend responses
+- On 401: attempts token refresh, then logout + redirect to `/login`
+- Sends `Accept-Language` and `X-Organization-Id` (when active org set) on every request
+- `resetAuthRefreshState()` — call before impersonate start/exit to avoid refresh races
+
+## Mock → real migration
+
+Replace store calls in `api/*.ts` with axios calls; keep the same function signatures and return types so hooks stay unchanged.

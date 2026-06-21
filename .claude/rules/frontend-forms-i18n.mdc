@@ -1,0 +1,46 @@
+---
+description: Forms, Zod validation, and i18n conventions
+globs: edge-fe/**/*
+alwaysApply: false
+---
+
+# Forms & i18n
+
+## Validation
+
+- Zod v4 schemas as **factory functions**: `createLoginSchema(t: TFunction)`
+- Export inferred types: `type LoginSchema = z.infer<ReturnType<typeof createLoginSchema>>`
+- Wire with `zodResolver(schema)` in `useForm`
+- Rebuild schema when language changes: `useMemo(() => createXSchema(t), [t])`
+- Shared validation keys live under `validation.*` in translation files
+
+## Form pattern
+
+```tsx
+const schema = useMemo(() => createLoginSchema(t), [t])
+const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  resolver: zodResolver(schema),
+})
+```
+
+- Complex inputs (phone) use `Controller` + custom components
+- Cross-field rules use `.refine()` (e.g. password confirmation)
+- Display errors via `<Field data-invalid={!!errors.field}>` + `<FieldError />`
+
+## i18n
+
+- Init in `src/i18n/index.ts`; imported as side-effect in `main.tsx`
+- Languages: `en` (fallback), `sr` — keep both files in sync
+- Usage: `const { t } = useTranslation()` → `t('auth.login.title')`
+- Language switch: `i18n.changeLanguage()` in settings; persist via API when available
+- `Accept-Language` is sent on every API request via `lib/axios.ts`
+
+## Translation key structure
+
+```
+common.*       — shared labels (email, password, actions)
+validation.*   — form validation messages
+auth.*         — login, register, forgot/reset password
+layout.*       — sidebar, navigation
+<feature>.*    — per-domain copy (screens, media, playlists, etc.)
+```

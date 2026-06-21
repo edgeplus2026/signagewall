@@ -1,0 +1,79 @@
+---
+description: NestJS backend architecture and module conventions
+globs: edge-be/**/*
+alwaysApply: false
+---
+
+# Backend Architecture
+
+## Directory layout
+
+```
+edge-be/src/
+  common/          # Cross-cutting: filters, interceptors, decorators, guards, services, DTOs
+    decorators/    # @CurrentUser, @CurrentMembership, @RequireOrgRole, @Public, @NormalizeEmail, @AuthThrottle
+    guards/        # OrgMembershipGuard
+    services/      # TransactionService
+    dto/           # PaginationQueryDto, PaginatedResult<T>
+    common.module.ts  # @Global module exporting cross-cutting providers (TransactionService)
+  config/          # Env config + Joi validation
+  database/        # Mongoose connection
+  i18n/locales/    # API translation files (en, sr)
+  modules/<name>/  # Feature modules
+```
+
+## Module structure
+
+Each feature module should contain:
+- `*.module.ts` — wiring only
+- `*.controller.ts` — HTTP layer, DTO validation, status codes, route-level guards
+- `*.service.ts` — business rules
+- `*.repository.ts` — Mongoose queries (no business logic)
+- `schemas/` — Mongoose schemas
+- `dto/` — request/response DTOs with class-validator
+- `mappers/` — entity → response DTO transforms
+- `guards/` — module-specific guards (e.g. `SuperAdminGuard` in `admin/`)
+
+## Global providers (registered in `app.module.ts`)
+
+Order matters for guards:
+1. `APP_FILTER` → `AllExceptionsFilter`
+2. `APP_INTERCEPTOR` → `LoggingInterceptor`, then `ResponseTransformInterceptor`
+3. `APP_GUARD` → `ThrottlerGuard` (first, so unauthenticated traffic is limited)
+4. `APP_GUARD` → `JwtAuthGuard`
+
+`CommonModule` (`@Global`) provides `TransactionService`. `ThrottlerModule` is
+configured via `forRootAsync` from `throttle.*` config.
+
+## Authorization
+
+- Org access is enforced declaratively: `@UseGuards(OrgMembershipGuard)` +
+  `@RequireOrgRole({ roles, idParam })`, with the membership injected via
+  `@CurrentMembership()`. Avoid adding new `assertMembership`/`assertAdmin`
+  calls — let the guard be the gate. (`assertMembership` survives only for the
+  settings feedback context, which is user-scoped.)
+
+## Transactions
+
+Multi-document writes use `TransactionService.run(session => …)` (Mongoose
+`withTransaction`). Repository write/read methods accept an optional
+`session?: ClientSession`. Already transactional: org create, org/account
+delete cascades, invitation accept, and register-with-invite. **Requires a
+replica-set / Atlas connection** (project uses Atlas).
+
+## Naming
+
+- Files: `kebab-case.type.ts` (e.g. `user.schema.ts`, `auth.service.ts`)
+- Classes: PascalCase
+- MongoDB collections: plural snake-free (`users`, `organizations`)
+
+## Adding a new module
+
+1. Create schema + repository (thread `session?` through writes that may join a tx)
+2. Add service with business logic
+3. Add controller with validated DTOs; apply `OrgMembershipGuard` +
+   `@RequireOrgRole(...)` for org-scoped routes
+4. Register in `app.module.ts`
+5. Add i18n keys under `src/i18n/locales/{en,sr}/`
+6. Document endpoints in `.claude/docs/API_CONTRACT.md`
+7. Regenerate OpenAPI: `npm run openapi:export` (backend) → `npm run generate:api-types` (frontend)

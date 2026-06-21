@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useMemo } from 'react'
 
 import { appsApi } from '@/features/apps/api/appsApi'
 import {
   appCatalogQueryKey,
+  appDetailQueryKey,
   appInstanceDetailQueryKey,
   appInstancesQueryKey,
   appsQueryKey,
@@ -26,14 +26,17 @@ export function useApps() {
   })
 }
 
-/** Resolve a single app from the cached catalog list (no extra request). */
+/**
+ * Resolve a single app by id. Fetched directly (not from the catalog list) so an
+ * installed app stays resolvable even if it's later made non-public.
+ */
 export function useApp(appId: string | undefined) {
-  const { data: apps, ...rest } = useApps()
-  const app = useMemo(
-    () => apps?.find((entry) => entry.id === appId),
-    [apps, appId],
-  )
-  return { ...rest, data: app }
+  const organizationId = useActiveOrganizationId()
+  return useQuery({
+    queryKey: appDetailQueryKey(organizationId, appId ?? ''),
+    queryFn: () => appsApi.getApp(appId ?? ''),
+    enabled: Boolean(organizationId) && Boolean(appId),
+  })
 }
 
 export function useInstallApp() {

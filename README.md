@@ -27,5 +27,6 @@ pnpm install          # install all workspaces
 pnpm build            # turbo: build everything
 pnpm type-check       # turbo: type-check everything
 pnpm lint             # turbo: lint everything
-pnpm --filter @edge/cms dev   # run a single workspace
+pnpm --filter @edge/cms dev   # run a cms
+pnpm --filter @edge/be start:dev #run a be
 ```

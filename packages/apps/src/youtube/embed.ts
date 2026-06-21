@@ -26,8 +26,20 @@ export function parseYouTubeId(url: string): string | null {
   }
 }
 
-/** Build a privacy-friendly embed URL, or null if the input isn't a YouTube link. */
+/**
+ * Build an autoplaying embed URL, or null if the input isn't a YouTube link.
+ * Autoplay requires `mute=1` — browsers block unmuted autoplay; the player can
+ * unmute on a kiosk later.
+ */
 export function toYouTubeEmbedUrl(url: string): string | null {
   const id = parseYouTubeId(url)
-  return id ? `https://www.youtube-nocookie.com/embed/${id}` : null
+  if (!id) return null
+  const params = new URLSearchParams({
+    autoplay: '1',
+    mute: '1',
+    playsinline: '1',
+    rel: '0',
+    modestbranding: '1',
+  })
+  return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`
 }

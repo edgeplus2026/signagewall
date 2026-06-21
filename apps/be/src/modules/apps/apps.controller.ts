@@ -13,6 +13,7 @@ import { RequiredOrganizationId } from '../../common/decorators/current-organiza
 import { RequireOrgRole } from '../../common/decorators/org-roles.decorator';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import type { RequestUser } from '../../common/interfaces/request-user.interface';
+import { OrganizationRole } from '../organizations/schemas/organization-membership.schema';
 import {
   ApiCommonErrorResponses,
   ApiOrgScoped,
@@ -48,7 +49,7 @@ export class AppsController {
   }
 
   @Post(':id/install')
-  @RequireOrgRole()
+  @RequireOrgRole({ roles: [OrganizationRole.ADMIN] })
   @ApiSuccessResponse(Object)
   install(
     @RequiredOrganizationId() organizationId: string,
@@ -59,7 +60,7 @@ export class AppsController {
   }
 
   @Delete(':id/install')
-  @RequireOrgRole()
+  @RequireOrgRole({ roles: [OrganizationRole.ADMIN] })
   @ApiSuccessNullResponse()
   async uninstall(
     @RequiredOrganizationId() organizationId: string,

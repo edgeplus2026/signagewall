@@ -1,0 +1,33 @@
+---
+description: Tailwind CSS and shadcn UI styling conventions
+globs: edge-fe/**/*
+alwaysApply: false
+---
+
+# Styling
+
+## Stack
+
+- Tailwind CSS v4 via `@tailwindcss/vite`
+- shadcn/ui (`radix-nova` style) — config in `components.json`
+- Design tokens in `src/styles/variables.css`
+- Entry: `src/styles/index.css`
+
+## Rules
+
+- Use semantic tokens (`bg-page`, `text-secondary`, `border-quaternary`, `bg-brand`, `text-danger`) — not raw hex in components
+- Compose classes with `cn()` from `@/lib/utils`
+- Icons from `lucide-react` only
+- Theme: `ThemeProvider` toggles `.light`/`.dark` on `<html>`
+- Prefer utility classes inline; extract repeated patterns to components, not arbitrary CSS
+
+## shadcn
+
+- Do not edit generated UI primitives unless fixing a bug or adding a variant
+- New UI primitives: add via shadcn CLI, keep in `components/ui/`
+- Use `data-slot` attributes already present on primitives for targeted styling
+
+## Responsive
+
+- Mobile breakpoint hook: `useIsMobile()` at 768px
+- Sidebar collapses via shadcn `SidebarProvider` in `AppLayout`

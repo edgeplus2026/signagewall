@@ -1,3 +1,4 @@
+import { buildConfigZod } from '@edge/apps-contract'
 import {
   CopyIcon,
   ListVideoIcon,
@@ -9,6 +10,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
+
 
 import { FullPageLoader } from '@/components/common/FullPageLoader'
 import { Button } from '@/components/ui/button'
@@ -33,8 +35,19 @@ import {
 import type { AppInstanceConfig } from '@/features/apps/types/app.types'
 import { getApiErrorMessage } from '@/lib/api-error'
 
+/** Order-independent shallow compare of config values (primitives + arrays). */
 function configEquals(a: AppInstanceConfig, b: AppInstanceConfig) {
-  return JSON.stringify(a) === JSON.stringify(b)
+  const aKeys = Object.keys(a)
+  const bKeys = Object.keys(b)
+  if (aKeys.length !== bKeys.length) return false
+  return aKeys.every((key) => {
+    const av = a[key]
+    const bv = b[key]
+    if (Array.isArray(av) && Array.isArray(bv)) {
+      return av.length === bv.length && av.every((item, i) => item === bv[i])
+    }
+    return av === bv
+  })
 }
 
 export default function AppInstanceConfigPage() {
@@ -70,6 +83,7 @@ export default function AppInstanceConfigPage() {
 
   const activeDraft = draft ?? instance.config
   const isDirty = !configEquals(activeDraft, instance.config)
+  const isValid = buildConfigZod(app.configSchema).safeParse(activeDraft).success
 
   const handleSave = () => {
     updateInstanceConfig.mutate(
@@ -108,7 +122,7 @@ export default function AppInstanceConfigPage() {
           />
 
           <div className="flex min-w-0 flex-1 items-center justify-center">
-            <AppLivePreview glow={app.accent.glow}>
+            <AppLivePreview color={app.color}>
               <AppInstanceScreen app={app} config={activeDraft} />
             </AppLivePreview>
           </div>
@@ -118,7 +132,7 @@ export default function AppInstanceConfigPage() {
         <div className="border-secondary flex shrink-0 items-center justify-end gap-2 border-t pt-3">
           <Button
             type="button"
-            disabled={!isDirty || updateInstanceConfig.isPending}
+            disabled={!isDirty || !isValid || updateInstanceConfig.isPending}
             onClick={handleSave}
           >
             {t('apps.instances.config.save')}

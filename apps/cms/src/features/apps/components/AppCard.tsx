@@ -3,7 +3,6 @@ import {
   DownloadIcon,
   InfoIcon,
   MoreHorizontalIcon,
-  RocketIcon,
   Trash2Icon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { AppTvFrame } from '@/features/apps/components/AppTvFrame'
+import { AppIcon } from '@/features/apps/components/AppIcon'
 import { useInstallApp } from '@/features/apps/hooks/useApps'
 import type { EdgeApp } from '@/features/apps/types/app.types'
 import { cn } from '@/lib/utils'
@@ -61,14 +60,11 @@ export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div
-          className={cn(
-            'flex size-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br text-white shadow-md',
-            app.accent.logo,
-          )}
-        >
-          <RocketIcon className="size-6" />
-        </div>
+        <AppIcon
+          iconSvg={app.iconSvg}
+          color={app.color}
+          className="size-14 rounded-2xl shadow-md"
+        />
 
         <div className="flex items-center gap-2">
           {app.isInstalled ? (
@@ -138,15 +134,6 @@ export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps
         <h3 className="text-base font-semibold text-primary">{app.name}</h3>
         <p className="line-clamp-2 text-sm text-secondary">{app.tagline}</p>
       </div>
-
-      {app.screenshots[0] ? (
-        <AppTvFrame
-          src={app.screenshots[0]}
-          alt={app.name}
-          glow={app.accent.glow}
-          className="mt-auto"
-        />
-      ) : null}
     </div>
   )
 }

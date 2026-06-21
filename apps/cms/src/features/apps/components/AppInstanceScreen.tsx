@@ -1,5 +1,4 @@
 import { toYouTubeEmbedUrl } from '@edge/apps'
-import { useTranslation } from 'react-i18next'
 
 import type { AppInstanceConfig, EdgeApp } from '@/features/apps/types/app.types'
 
@@ -18,15 +17,13 @@ function readString(config: AppInstanceConfig, key: string): string {
  * the same logic the player will render later. For now only YouTube exists.
  */
 export function AppInstanceScreen({ app, config }: AppInstanceScreenProps) {
-  const { t } = useTranslation()
-
   if (app.slug === 'youtube') {
     const embedUrl = toYouTubeEmbedUrl(readString(config, 'url'))
     if (!embedUrl) {
       return (
         <div className="@container flex size-full items-center justify-center bg-neutral-950 text-center">
           <p className="px-[8%] text-[3cqw] text-white/55">
-            {t('apps.youtube.previewEmpty')}
+            Empty
           </p>
         </div>
       )

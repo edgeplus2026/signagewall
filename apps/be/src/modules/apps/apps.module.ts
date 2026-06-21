@@ -2,10 +2,8 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
-import { R2StorageService } from '../media/storage/r2-storage.service';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { UsersModule } from '../users/users.module';
-import { AppAssetsService } from './app-assets.service';
 import { AppInstancesController } from './app-instances.controller';
 import { AppInstancesRepository } from './app-instances.repository';
 import { AppInstancesService } from './app-instances.service';
@@ -36,8 +34,6 @@ import { OrgApp, OrgAppSchema } from './schemas/org-app.schema';
     AppInstancesService,
     AppInstancesRepository,
     OrgAppsRepository,
-    AppAssetsService,
-    R2StorageService,
     SuperAdminGuard,
     OrgMembershipGuard,
   ],

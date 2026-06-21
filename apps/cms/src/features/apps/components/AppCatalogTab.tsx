@@ -29,6 +29,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { AppEditorSheet } from '@/features/apps/components/AppEditorSheet'
+import { AppIcon } from '@/features/apps/components/AppIcon'
 import {
   useAdminApps,
   useDeleteApp,
@@ -36,7 +37,6 @@ import {
 } from '@/features/apps/hooks/useAdminApps'
 import type { AdminApp } from '@/features/apps/types/app.types'
 import { getApiErrorMessage } from '@/lib/api-error'
-import { cn } from '@/lib/utils'
 
 export function AppCatalogTab() {
   const { t } = useTranslation()
@@ -115,33 +115,10 @@ export function AppCatalogTab() {
               key={app.id}
               className="flex items-center gap-4 rounded-xl bg-panel p-3 ring-1 ring-quaternary"
             >
-              <div
-                className={cn(
-                  'flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br text-white',
-                  app.accent.logo,
-                )}
-              >
-                {app.iconUrl ? (
-                  <img src={app.iconUrl} alt="" className="size-full object-cover" />
-                ) : (
-                  <RocketIcon className="size-5" />
-                )}
-              </div>
+              <AppIcon iconSvg={app.iconSvg} color={app.color} className="size-11 rounded-xl" />
 
               <div className="flex min-w-0 flex-1 flex-col">
-                <div className="flex items-center gap-2">
-                  <p className="truncate text-sm font-medium text-primary">{app.name}</p>
-                  <span
-                    className={cn(
-                      'rounded px-1.5 py-0.5 text-[10px] font-medium',
-                      app.status === 'published'
-                        ? 'bg-success/10 text-success'
-                        : 'bg-secondary/15 text-secondary',
-                    )}
-                  >
-                    {t(`apps.admin.status.${app.status}`)}
-                  </span>
-                </div>
+                <p className="truncate text-sm font-medium text-primary">{app.name}</p>
                 <p className="truncate text-xs text-secondary">{app.slug}</p>
               </div>
 

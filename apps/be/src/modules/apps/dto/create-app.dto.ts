@@ -1,21 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsArray,
   IsBoolean,
-  IsIn,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
 
-import { AppStatus } from '../schemas/app.schema';
-
 /**
  * Creates a catalog entry for an app that exists in code. The technical
  * definition (runtimeKind/dataSource/configSchema/version) is taken from the
- * matching manifest by `slug`; this DTO carries only the presentation and
- * governance the super-admin controls.
+ * matching manifest by `slug`; this DTO carries only the presentation and the
+ * public toggle the super-admin controls.
  */
 export class CreateAppDto {
   @ApiProperty({ description: 'Slug of an available code manifest.' })
@@ -48,25 +44,20 @@ export class CreateAppDto {
   @MaxLength(8000)
   about?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Inline SVG markup for the app icon.' })
   @IsOptional()
   @IsString()
-  @MaxLength(2000)
-  iconUrl?: string;
+  @MaxLength(20000)
+  iconSvg?: string;
 
-  @ApiPropertyOptional({ type: [String] })
+  @ApiPropertyOptional({ description: 'Brand colour (hex).' })
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  screenshots?: string[];
+  @IsString()
+  @MaxLength(32)
+  color?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()
   isPublic?: boolean;
-
-  @ApiPropertyOptional({ enum: AppStatus })
-  @IsOptional()
-  @IsIn([AppStatus.DRAFT, AppStatus.PUBLISHED])
-  status?: AppStatus;
 }

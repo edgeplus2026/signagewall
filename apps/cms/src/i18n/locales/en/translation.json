@@ -1023,7 +1023,7 @@
     "title": "Super Admin",
     "tabs": {
       "users": "All Users",
-      "apps": "Apps"
+      "apps": "All Apps"
     },
     "users": {
       "search": "Search users...",
@@ -1248,13 +1248,6 @@
     "carousel": {
       "goTo": "Go to image {{index}}"
     },
-    "meta": {
-      "status": "Status",
-      "statusInstalled": "Installed",
-      "statusNotInstalled": "Not installed",
-      "updated": "Updated",
-      "recently": "Recently"
-    },
     "empty": {
       "store": {
         "title": "No apps found",
@@ -1309,9 +1302,6 @@
         "success": "Instance deleted",
         "error": "Could not delete the instance."
       },
-      "preview": {
-        "placeholder": "Your headline appears here"
-      },
       "config": {
         "save": "Save changes",
         "saved": "Changes saved",
@@ -1345,10 +1335,6 @@
         "title": "No apps yet",
         "description": "Create your first catalog app."
       },
-      "status": {
-        "draft": "Draft",
-        "published": "Published"
-      },
       "deleteDialog": {
         "title": "Delete app?",
         "description": "This permanently deletes \"{{name}}\" from the catalog. This cannot be undone."
@@ -1358,12 +1344,9 @@
         "editTitle": "Edit app",
         "description": "Description",
         "icon": "Icon",
-        "iconCta": "Upload icon",
         "name": "Name",
-        "slug": "Slug",
         "tagline": "Tagline",
         "about": "About",
-        "status": "Status",
         "isPublic": "Public — offered to organizations",
         "save": "Save changes",
         "create": "Create app",
@@ -1372,11 +1355,10 @@
         "error": "Could not save the app.",
         "app": "Application",
         "appPlaceholder": "Select an app to add…",
-        "noAvailable": "All available apps are already in the catalog."
+        "noAvailable": "All available apps are already in the catalog.",
+        "iconPlaceholder": "Paste SVG markup…",
+        "color": "Brand colour"
       }
-    },
-    "youtube": {
-      "previewEmpty": "Paste a YouTube link to preview the video here."
     }
   }
 }

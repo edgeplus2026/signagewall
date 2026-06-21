@@ -62,9 +62,3 @@ export function useDeleteApp() {
     onSuccess: invalidate,
   })
 }
-
-export function useUploadAppAsset() {
-  return useMutation({
-    mutationFn: (file: File) => appsApi.uploadAsset(file),
-  })
-}

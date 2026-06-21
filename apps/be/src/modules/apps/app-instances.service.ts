@@ -8,7 +8,7 @@ import {
   AppInstanceResponseDto,
   toAppInstanceResponse,
 } from './mappers/app-instance.mapper';
-import { AppDocument, AppStatus } from './schemas/app.schema';
+import { AppDocument } from './schemas/app.schema';
 import { AppInstanceDocument } from './schemas/app-instance.schema';
 
 @Injectable()
@@ -43,7 +43,7 @@ export class AppInstancesService {
     appId: string,
     name?: string,
   ): Promise<AppInstanceResponseDto> {
-    const app = await this.requirePublishedApp(appId);
+    const app = await this.requirePublicApp(appId);
     const schema = app.configSchema ?? [];
     const count = await this.instancesRepository.countForApp(
       organizationId,
@@ -146,9 +146,9 @@ export class AppInstancesService {
     return instance;
   }
 
-  private async requirePublishedApp(appId: string): Promise<AppDocument> {
+  private async requirePublicApp(appId: string): Promise<AppDocument> {
     const app = await this.appsRepository.findById(appId);
-    if (!app || !app.isPublic || app.status !== AppStatus.PUBLISHED) {
+    if (!app || !app.isPublic) {
       throw BusinessException.notFound('App not found');
     }
     return app;

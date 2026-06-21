@@ -13,7 +13,7 @@ import {
   toAppAdminResponse,
   toAppCatalogResponse,
 } from './mappers/app.mapper';
-import { AppDocument, AppStatus } from './schemas/app.schema';
+import { AppDocument } from './schemas/app.schema';
 
 export interface AvailableManifestDto {
   slug: string;
@@ -32,7 +32,7 @@ export class AppsService {
     private readonly instancesRepository: AppInstancesRepository,
   ) {}
 
-  // ----- Organization-facing catalog (public + published) -----
+  // ----- Organization-facing catalog (public apps) -----
 
   async listCatalog(organizationId: string): Promise<AppCatalogResponseDto[]> {
     const [apps, installedIds] = await Promise.all([
@@ -45,15 +45,26 @@ export class AppsService {
     );
   }
 
+  /**
+   * Resolves an app for an organization. Public apps are always resolvable;
+   * a non-public app is still resolvable if the org has it installed — so
+   * unpublishing never locks an org out of its existing instances.
+   */
   async getCatalogApp(
     organizationId: string,
     id: string,
   ): Promise<AppCatalogResponseDto> {
-    const app = await this.requireVisibleApp(id);
+    const app = await this.appsRepository.findById(id);
+    if (!app) {
+      throw BusinessException.notFound('App not found');
+    }
     const isInstalled = await this.orgAppsRepository.isInstalled(
       organizationId,
       id,
     );
+    if (!app.isPublic && !isInstalled) {
+      throw BusinessException.notFound('App not found');
+    }
     return toAppCatalogResponse(app, isInstalled);
   }
 
@@ -62,7 +73,7 @@ export class AppsService {
     id: string,
     userId?: string,
   ): Promise<AppCatalogResponseDto> {
-    const app = await this.requireVisibleApp(id);
+    const app = await this.requirePublicApp(id);
     await this.orgAppsRepository.install(organizationId, id, userId);
     return toAppCatalogResponse(app, true);
   }
@@ -73,9 +84,9 @@ export class AppsService {
     await this.instancesRepository.deleteByApp(organizationId, id);
   }
 
-  private async requireVisibleApp(id: string): Promise<AppDocument> {
+  private async requirePublicApp(id: string): Promise<AppDocument> {
     const app = await this.appsRepository.findById(id);
-    if (!app || !app.isPublic || app.status !== AppStatus.PUBLISHED) {
+    if (!app || !app.isPublic) {
       throw BusinessException.notFound('App not found');
     }
     return app;
@@ -129,10 +140,10 @@ export class AppsService {
       dataSource: manifest.dataSource,
       configSchema: manifest.configSchema,
       version: manifest.version,
-      ...(dto.iconUrl ? { iconUrl: dto.iconUrl } : {}),
-      screenshots: dto.screenshots ?? [],
+      // Presentation defaults come from the manifest; super-admin can override.
+      iconSvg: dto.iconSvg ?? manifest.icon ?? '',
+      color: dto.color ?? manifest.color ?? '',
       isPublic: dto.isPublic ?? false,
-      status: dto.status ?? AppStatus.DRAFT,
     };
     const created = await this.appsRepository.create(data);
     return toAppAdminResponse(created);

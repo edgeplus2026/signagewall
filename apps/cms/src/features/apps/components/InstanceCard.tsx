@@ -1,4 +1,4 @@
-import { MoreHorizontalIcon, PencilIcon, RocketIcon, Trash2Icon, UploadIcon } from 'lucide-react'
+import { MoreHorizontalIcon, PencilIcon, Trash2Icon, UploadIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { AppTvFrame } from '@/features/apps/components/AppTvFrame'
+import { AppIcon } from '@/features/apps/components/AppIcon'
 import type { AppInstance, EdgeApp } from '@/features/apps/types/app.types'
 import { cn } from '@/lib/utils'
 
@@ -46,20 +46,9 @@ export function InstanceCard({ app, instance, onRename, onDelete }: InstanceCard
         'focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none',
       )}
     >
-      {app.screenshots[0] ? (
-        <AppTvFrame src={app.screenshots[0]} alt={instance.name} glow={app.accent.glow} />
-      ) : null}
-
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
-          <div
-            className={cn(
-              'flex size-9 shrink-0 items-center justify-center rounded-lg bg-linear-to-br text-white',
-              app.accent.logo,
-            )}
-          >
-            <RocketIcon className="size-4" />
-          </div>
+          <AppIcon iconSvg={app.iconSvg} color={app.color} className="size-9 rounded-lg" />
           <div className="flex min-w-0 flex-col">
             <p className="truncate text-sm font-medium text-primary">{instance.name}</p>
             <p className="truncate text-xs text-secondary">{app.name}</p>

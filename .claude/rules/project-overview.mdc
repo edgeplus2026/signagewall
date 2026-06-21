@@ -1,0 +1,48 @@
+---
+description: Edge monorepo overview and engineering principles
+alwaysApply: true
+---
+
+# Edge Project Overview
+
+Edge is a digital signage CMS with:
+- `edge-fe/` — React 19 + Vite frontend (feature-sliced)
+- `edge-be/` — NestJS 11 + MongoDB backend
+
+## Documentation
+
+| Area | Rules (`.claude/rules/`) | Docs (`.claude/docs/`) |
+|------|--------------------------|------------------------|
+| Backend | `backend-architecture`, `api-conventions`, `mongodb-patterns`, `error-handling-i18n` | `BACKEND_SETUP`, `API_CONTRACT`, `DEVELOPMENT_GUIDE`, `AUTH_ROADMAP` |
+| Frontend | `frontend-architecture`, `react-patterns`, `frontend-forms-i18n`, `frontend-styling`, `state-and-api` | `FRONTEND_SETUP`, `FRONTEND_DEVELOPMENT_GUIDE`, `FRONTEND_FEATURES`, `FRONTEND_AUTH`, `FRONTEND_BACKEND_INTEGRATION` |
+
+Key implemented domains: **auth**, **settings**, **organizations**, **members/invitations**, **super-admin**. Remaining mocks: **screens**, **playlists**, **media**, **dashboard stats**.
+
+## Principles
+
+1. **Foundation first** — API contracts, error handling, and i18n before feature velocity.
+2. **Frontend-aligned contracts** — Match `edge-fe/src/features/*/api` request/response shapes.
+3. **Thin controllers** — Business logic in services; persistence in repositories.
+4. **Explicit modules** — One NestJS module per domain (`auth`, `users`, `media`, etc.).
+5. **Feature slices** — Frontend domains live in `edge-fe/src/features/<name>/` with consistent folder layout.
+6. **No secrets in code** — Use `.env` and `.env.example` only.
+
+## API base & versioning
+
+Routes are served under `/api/v1/...` (URI versioning, `defaultVersion: '1'`).
+`GET /api/health` is the only unversioned route (`VERSION_NEUTRAL`). The
+frontend `VITE_API_URL` points at `.../api/v1`.
+
+## Response envelope
+
+All API success responses use `{ success: true, data }`. Errors use `{ success: false, error: { code, message, details? } }`. The frontend axios layer must unwrap `data` when integrating.
+
+## Cross-cutting backend capabilities
+
+- **Declarative org authz** — `OrgMembershipGuard` + `@RequireOrgRole()` + `@CurrentMembership()`
+- **Rate limiting** — global `ThrottlerGuard` + `@AuthThrottle()` on sensitive routes (`429` → `TOO_MANY_REQUESTS`)
+- **Transactions** — `TransactionService.run()` for multi-document writes (requires the Atlas replica set)
+
+## Languages
+
+API messages support `en` and `sr` via `Accept-Language` or `x-lang` headers (aligned with frontend i18n).

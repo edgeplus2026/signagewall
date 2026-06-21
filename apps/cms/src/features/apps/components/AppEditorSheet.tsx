@@ -1,12 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { ImageUploader } from '@/components/ui/image-uploader'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -25,12 +24,13 @@ import {
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { AppIcon } from '@/features/apps/components/AppIcon'
 import {
   useAvailableManifests,
   useCreateApp,
   useUpdateApp,
-  useUploadAppAsset,
 } from '@/features/apps/hooks/useAdminApps'
+import { resolveAppColor } from '@/features/apps/lib/appColor'
 import type { AdminApp } from '@/features/apps/types/app.types'
 import { getApiErrorMessage } from '@/lib/api-error'
 
@@ -42,9 +42,9 @@ const editorSchema = z.object({
   tagline: z.string().min(1).max(280),
   description: z.string().min(1).max(2000),
   about: z.string().max(8000).optional(),
-  iconUrl: z.string().optional(),
+  iconSvg: z.string().max(20000).optional(),
+  color: z.string().max(32).optional(),
   isPublic: z.boolean(),
-  status: z.enum(['draft', 'published']),
 })
 
 type EditorValues = z.infer<typeof editorSchema>
@@ -60,7 +60,6 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
   const { t } = useTranslation()
   const createApp = useCreateApp()
   const updateApp = useUpdateApp()
-  const uploadAsset = useUploadAppAsset()
   const isEdit = Boolean(app)
 
   // Code apps that can still be added (only relevant when creating).
@@ -73,9 +72,9 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
     tagline: app?.tagline ?? '',
     description: app?.description ?? '',
     about: app?.about ?? '',
-    iconUrl: app?.iconUrl ?? '',
+    iconSvg: app?.iconSvg ?? '',
+    color: app?.color ?? '',
     isPublic: app?.isPublic ?? false,
-    status: app?.status ?? 'draft',
   }
 
   const {
@@ -89,6 +88,10 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
     // Re-seed when a different app opens (Sheet content stays mounted otherwise).
     values: defaults,
   })
+
+  // Live preview of the icon tile as the SVG / colour change.
+  const iconSvg = useWatch({ control, name: 'iconSvg' })
+  const color = useWatch({ control, name: 'color' })
 
   // Picking an app fills the slug + prefills the editable presentation fields.
   const handleSelectManifest = (slug: string) => {
@@ -108,9 +111,9 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
       tagline: data.tagline,
       description: data.description,
       about: data.about,
-      iconUrl: data.iconUrl,
+      iconSvg: data.iconSvg,
+      color: data.color,
       isPublic: data.isPublic,
-      status: data.status,
     }
 
     const onError = (error: unknown) => {
@@ -191,18 +194,48 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
               </Field>
             ) : null}
 
-            <Field data-invalid={Boolean(errors.iconUrl)}>
-              <FieldLabel>{t('apps.admin.editor.icon')}</FieldLabel>
+            {/* Icon + colour with a live preview tile. */}
+            <Field data-invalid={Boolean(errors.iconSvg)}>
+              <FieldLabel htmlFor="app-icon">{t('apps.admin.editor.icon')}</FieldLabel>
+              <div className="flex items-start gap-3">
+                <AppIcon iconSvg={iconSvg} color={color} className="size-14 rounded-xl shadow-sm" />
+                <Textarea
+                  id="app-icon"
+                  rows={3}
+                  className="flex-1 font-mono text-xs"
+                  placeholder={t('apps.admin.editor.iconPlaceholder')}
+                  {...register('iconSvg')}
+                />
+              </div>
+              <FieldError errors={[errors.iconSvg]} />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="app-color">{t('apps.admin.editor.color')}</FieldLabel>
               <Controller
-                name="iconUrl"
+                name="color"
                 control={control}
                 render={({ field }) => (
-                  <ImageUploader
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    onUpload={(file) => uploadAsset.mutateAsync(file).then((r) => r.url)}
-                    labels={{ cta: t('apps.admin.editor.iconCta') }}
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      aria-label={t('apps.admin.editor.color')}
+                      value={resolveAppColor(field.value)}
+                      onChange={(event) => {
+                        field.onChange(event.target.value)
+                      }}
+                      className="size-9 shrink-0 cursor-pointer rounded-md border border-quaternary bg-panel p-1"
+                    />
+                    <Input
+                      id="app-color"
+                      value={field.value ?? ''}
+                      placeholder="#FF0000"
+                      onChange={(event) => {
+                        field.onChange(event.target.value)
+                      }}
+                      className="font-mono"
+                    />
+                  </div>
                 )}
               />
             </Field>
@@ -231,27 +264,6 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
               <FieldLabel htmlFor="app-about">{t('apps.admin.editor.about')}</FieldLabel>
               <Textarea id="app-about" rows={4} {...register('about')} />
               <FieldError errors={[errors.about]} />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="app-status">{t('apps.admin.editor.status')}</FieldLabel>
-              <Controller
-                name="status"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="app-status" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">{t('apps.admin.status.draft')}</SelectItem>
-                      <SelectItem value="published">
-                        {t('apps.admin.status.published')}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
             </Field>
 
             <Controller

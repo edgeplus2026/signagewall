@@ -1,0 +1,48 @@
+---
+description: React frontend architecture and feature-sliced conventions
+globs: edge-fe/**/*
+alwaysApply: false
+---
+
+# Frontend Architecture
+
+## Layout
+
+```
+edge-fe/src/
+  components/     # App shell (layout/) + shadcn UI (ui/) + shared (common/)
+  features/<name>/  # Domain slices
+  lib/            # axios, cn(), shared utilities
+  providers/      # Theme, Query, AppProviders
+  router/         # Lazy routes
+  i18n/           # en + sr translations
+```
+
+## Feature slice structure
+
+Each feature under `features/<name>/` should contain only what it needs:
+
+| Folder | Purpose |
+|--------|---------|
+| `pages/` | Route-level components |
+| `components/` | Feature UI |
+| `api/` | Data access (axios or mock store) |
+| `hooks/` | React Query wrappers |
+| `store/` | Zustand mock/client state |
+| `schemas/` | Zod factories with i18n |
+| `types/` | Entities + request DTOs |
+| `lib/` | Pure helpers (DnD, drafts) |
+
+Cross-cutting UI without its own routes lives in `features/content/` (consumed by screens + playlists).
+
+## Import alias
+
+Use `@/` for all imports from `src/` (e.g. `@/features/auth/api/authApi`).
+
+## Adding a feature
+
+1. Create slice folders under `features/<name>/`
+2. Add lazy page import in `router/index.tsx`
+3. Add nav item in `AppSidebarNav.tsx` if needed
+4. Add i18n keys in both `en` and `sr` translation files
+5. Wire `api/*.ts` to axios when backend exists; use mock store pattern until then (see `state-and-api.mdc`)

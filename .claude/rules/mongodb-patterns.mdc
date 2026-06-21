@@ -1,0 +1,48 @@
+---
+description: MongoDB and Mongoose patterns for Edge backend
+globs: edge-be/**/*
+alwaysApply: false
+---
+
+# MongoDB Patterns
+
+## Repository layer
+
+- All queries live in `*.repository.ts`, not in services or controllers
+- Return `null` for not-found; let services throw `BusinessException.notFound()`
+- For `select: false` fields (passwords, tokens), pass an options object rather
+  than dedicated methods, e.g.
+  `usersRepository.findById(id, { select: ['password'] })`
+- Write/read methods that participate in transactions take an optional trailing
+  `session?: ClientSession` and apply it (`.session(session)` on queries,
+  `Model.create([data], { session })` for inserts)
+
+## Schema conventions
+
+- `@Schema({ timestamps: true })` on all collections
+- Store emails lowercase; normalize at the DTO boundary with `@NormalizeEmail()`
+  (schema `lowercase: true` + repo `.toLowerCase()` remain as defense-in-depth)
+- Use `sparse: true` for optional unique fields (`googleId`)
+- Index frequently queried fields in schema files (e.g. unique
+  `(organizationId, email)` on invitations, `(userId, organizationId)` on memberships)
+
+## IDs
+
+- MongoDB `_id` → API `id` (string) via mappers
+- Never expose internal fields (`password`, `refreshTokenHash`, reset tokens)
+
+## Transactions
+
+Use `TransactionService.run(session => …)` for multi-document writes — already
+applied to org create, org/account delete cascades, invitation accept, and
+register-with-invite. Thread the `session` into every repo call inside the unit
+of work. Not required for single-document CRUD. **Requires a replica set**
+(Atlas `mongodb+srv://` satisfies this; a plain standalone local Mongo will
+throw on `withTransaction`).
+
+## Deletes
+
+User-facing deletes are currently **hard deletes** (account/org removal cascade
+memberships + invitations within a transaction). `isActive: false` exists on
+users for deactivation, but cascades are physical. Soft-delete-everywhere is a
+possible future direction, not the current pattern.

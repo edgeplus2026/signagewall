@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 
+import { resolveAppColor } from '@/features/apps/lib/appColor'
 import { cn } from '@/lib/utils'
 
 interface AppLivePreviewProps {
-  /** Soft coloured glow behind the device. */
-  glow: string
+  /** Brand colour (hex) for the soft glow behind the device. */
+  color?: string
   children: ReactNode
   className?: string
 }
@@ -14,16 +15,14 @@ interface AppLivePreviewProps {
  * live preview of an app instance. Designing the whole device — rather than
  * just a border — gives the premium showroom look.
  */
-export function AppLivePreview({ glow, children, className }: AppLivePreviewProps) {
+export function AppLivePreview({ color, children, className }: AppLivePreviewProps) {
   return (
     <div className={cn('flex w-full flex-col items-center', className)}>
       <div className="relative isolate w-full max-w-3xl">
         <div
           aria-hidden
-          className={cn(
-            'absolute inset-x-10 -bottom-4 top-8 -z-10 rounded-[3rem] bg-linear-to-br opacity-70 blur-3xl',
-            glow,
-          )}
+          className="absolute inset-x-10 -bottom-4 top-8 -z-10 rounded-[3rem] opacity-40 blur-3xl"
+          style={{ backgroundColor: resolveAppColor(color) }}
         />
 
         {/* Screen + bezel */}

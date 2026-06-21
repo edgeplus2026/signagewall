@@ -6,12 +6,9 @@ import {
   Param,
   Patch,
   Post,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 
 import {
   ApiBearerAuthRequired,
@@ -20,13 +17,10 @@ import {
   ApiSuccessResponse,
 } from '../../common/swagger';
 import { SuperAdminGuard } from '../admin/guards/super-admin.guard';
-import { AppAssetsService } from './app-assets.service';
 import { AppsService } from './apps.service';
 import { CreateAppDto } from './dto/create-app.dto';
 import { SetAppVisibilityDto } from './dto/set-app-visibility.dto';
 import { UpdateAppDto } from './dto/update-app.dto';
-
-const ASSET_MAX_BYTES = 5 * 1024 * 1024;
 
 /** Super-admin catalog management. */
 @ApiTags('admin-apps')
@@ -35,20 +29,7 @@ const ASSET_MAX_BYTES = 5 * 1024 * 1024;
 @Controller('admin/apps')
 @UseGuards(SuperAdminGuard)
 export class AppsAdminController {
-  constructor(
-    private readonly appsService: AppsService,
-    private readonly appAssetsService: AppAssetsService,
-  ) {}
-
-  @Post('assets')
-  @ApiConsumes('multipart/form-data')
-  @ApiSuccessResponse(Object)
-  @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: ASSET_MAX_BYTES } }),
-  )
-  uploadAsset(@UploadedFile() file: Express.Multer.File) {
-    return this.appAssetsService.uploadImage(file);
-  }
+  constructor(private readonly appsService: AppsService) {}
 
   @Get()
   @ApiSuccessResponse(Object, { isArray: true })
