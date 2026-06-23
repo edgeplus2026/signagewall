@@ -1,6 +1,15 @@
+import type { CloudProvider } from "@/features/media/cloud/types/cloudPick.types"
+
 export type MediaType = "folder" | "image" | "video"
 
-export type MediaSource = "local" | "google_drive" | "pexels"
+export type MediaSource =
+  | "local"
+  | "google_drive"
+  | "google_photos"
+  | "onedrive"
+  | "sharepoint"
+  | "dropbox"
+  | "pexels"
 
 export type MediaStatus = "processing" | "ready" | "failed"
 
@@ -58,15 +67,49 @@ export interface MoveMediaRequest {
   targetFolderId: string | null
 }
 
-export interface ImportFromDriveRequest {
+/** How the backend obtains the bytes for one cloud-imported item. */
+export type CloudImportStrategy = "url" | "google-drive" | "msgraph"
+
+/** Flat per-item payload sent to `POST /media/import` (keyed by strategy). */
+export interface CloudImportItem {
+  provider: CloudProvider
+  strategy: CloudImportStrategy
+  externalId: string
+  name: string
+  mimeType: string
+  sizeBytes?: number
+  width?: number
+  height?: number
+  // strategy === "url"
+  downloadUrl?: string
+  authToken?: string
+  // strategy === "google-drive"
+  fileId?: string
+  // strategy === "msgraph"
+  endpoint?: string
+  driveId?: string
+  itemId?: string
+  // shared by "google-drive" + "msgraph"
+  accessToken?: string
+}
+
+export interface ImportCloudMediaRequest {
   parentId: string | null
-  files: {
-    name: string
-    type: "image" | "video"
-    size: number
-    width?: number
-    height?: number
-  }[]
+  items: CloudImportItem[]
+}
+
+export interface CloudImportResultItem {
+  externalId: string
+  status: "imported" | "failed"
+  mediaId?: string
+  error?: string
+  media?: MediaItem
+}
+
+export interface CloudImportResponse {
+  results: CloudImportResultItem[]
+  importedCount: number
+  failedCount: number
 }
 
 export interface MediaListParams {

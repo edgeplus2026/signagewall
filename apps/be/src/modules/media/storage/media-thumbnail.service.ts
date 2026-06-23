@@ -31,6 +31,11 @@ export class MediaThumbnailService {
    * is stored on R2, to keep storage within the free tier. Animated GIFs are
    * preserved as animated WebP. EXIF orientation is baked in via `rotate()` so
    * the stored pixels are upright once the orientation metadata is stripped.
+   *
+   * PNG sources are encoded **losslessly** — they're typically logos,
+   * screenshots, or text-heavy graphics where lossy artifacts are visible (and
+   * lossless WebP is usually still smaller than the source PNG). Photos
+   * (JPEG) and GIFs stay lossy at the standard quality.
    */
   async compressOriginalImage(
     buffer: Buffer,
@@ -45,6 +50,7 @@ export class MediaThumbnailService {
     }
 
     const isAnimated = mimeType === 'image/gif';
+    const isPng = mimeType === 'image/png';
 
     const output = await sharp(buffer, {
       failOn: 'none',
@@ -56,7 +62,11 @@ export class MediaThumbnailService {
         fit: 'inside',
         withoutEnlargement: true,
       })
-      .webp({ quality: ORIGINAL_IMAGE_WEBP_QUALITY })
+      .webp(
+        isPng
+          ? { lossless: true }
+          : { quality: ORIGINAL_IMAGE_WEBP_QUALITY },
+      )
       .toBuffer({ resolveWithObject: true });
 
     return {

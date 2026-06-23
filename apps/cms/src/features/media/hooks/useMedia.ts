@@ -1,16 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
-import { useOrganizationStore } from "@/features/organizations/store/organizationStore"
-import { playlistsQueryKey } from "@/features/playlists/lib/playlistQueryKeys"
-import { screensQueryKey } from "@/features/screens/lib/screenQueryKeys"
 import { mediaApi } from "@/features/media/api/mediaApi"
 import type {
   CreateFolderRequest,
-  ImportFromDriveRequest,
   MediaListParams,
   MoveMediaRequest,
   UpdateMediaRequest,
 } from "@/features/media/types/media.types"
+import { useOrganizationStore } from "@/features/organizations/store/organizationStore"
+import { playlistsQueryKey } from "@/features/playlists/lib/playlistQueryKeys"
+import { screensQueryKey } from "@/features/screens/lib/screenQueryKeys"
 
 const MEDIA_QUERY_KEY = ["media"] as const
 
@@ -90,18 +89,6 @@ export function useUpdateMedia() {
       id: string
       payload: UpdateMediaRequest
     }) => mediaApi.update(id, payload),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: MEDIA_QUERY_KEY })
-    },
-  })
-}
-
-export function useImportFromDrive() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (payload: ImportFromDriveRequest) =>
-      mediaApi.importFromDrive(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: MEDIA_QUERY_KEY })
     },

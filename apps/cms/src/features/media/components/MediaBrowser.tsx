@@ -9,8 +9,6 @@ import {
   UploadCloudIcon,
 } from 'lucide-react'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-
-import { useViewMode } from '@/hooks/useViewMode'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -69,6 +67,7 @@ import type {
 } from '@/features/media/types/media.types'
 import { AddToPlaylistSheet } from '@/features/playlists/components/AddToPlaylistSheet'
 import { AddToScreenSheet } from '@/features/screens/components/AddToScreenSheet'
+import { useViewMode } from '@/hooks/useViewMode'
 
 function MediaGridSkeleton() {
   return (
@@ -542,7 +541,6 @@ export const MediaBrowser = forwardRef<MediaBrowserHandle, MediaBrowserProps>(fu
           open={uploadSheetOpen}
           onOpenChange={setUploadSheetOpen}
           parentId={currentFolderId}
-          onUploadFiles={handleUpload}
           onAddToPlaylist={(mediaId) => {
             setUploadSheetOpen(false)
             setAddToPlaylistIds([mediaId])

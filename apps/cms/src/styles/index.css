@@ -128,3 +128,31 @@ input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+/*
+ * The Google Picker renders into <body>. When launched from inside a modal
+ * drawer (which sets body `pointer-events: none`), it would be visible but
+ * un-clickable, and it self-positions before layout settles so the first open
+ * lands too high. Force its layers interactive, centered, and above everything.
+ */
+.picker-dialog-bg {
+  position: fixed !important;
+  inset: 0 !important;
+  pointer-events: auto !important;
+  z-index: 2147483646 !important;
+}
+
+.picker-dialog {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  pointer-events: auto !important;
+  z-index: 2147483647 !important;
+}
+
+.picker-dialog-frame {
+  pointer-events: auto !important;
+}
+

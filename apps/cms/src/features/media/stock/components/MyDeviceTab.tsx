@@ -2,29 +2,34 @@ import { UploadCloudIcon } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
+import { CloudProviderCards } from "@/features/media/cloud/components/CloudProviderCards"
+import { StagingGrid } from "@/features/media/components/StagingGrid"
 import { MEDIA_ACCEPT_ATTRIBUTE } from "@/features/media/lib/media.constants"
+import { useStagingStore } from "@/features/media/store/stagingStore"
 import { cn } from "@/lib/utils"
 
 interface MyDeviceTabProps {
-  /** Hands raw files to the existing upload pipeline (validation + queueing). */
-  onFilesSelected: (files: File[]) => void
+  /** Per-item validation errors, keyed by staged item id. */
+  errorById: Record<string, string>
 }
 
-export function MyDeviceTab({ onFilesSelected }: MyDeviceTabProps) {
+export function MyDeviceTab({ errorById }: MyDeviceTabProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const addLocalFiles = useStagingStore((state) => state.addLocalFiles)
+  const hasItems = useStagingStore((state) => state.items.length > 0)
 
   const handleFiles = useCallback(
     (fileList: FileList | null) => {
       if (!fileList || fileList.length === 0) return
-      onFilesSelected(Array.from(fileList))
+      addLocalFiles(Array.from(fileList))
     },
-    [onFilesSelected],
+    [addLocalFiles],
   )
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="visible-scrollbar flex h-full flex-col gap-4 overflow-y-auto pr-1">
       <button
         type="button"
         onClick={() => {
@@ -43,7 +48,8 @@ export function MyDeviceTab({ onFilesSelected }: MyDeviceTabProps) {
           handleFiles(event.dataTransfer.files)
         }}
         className={cn(
-          "flex min-h-64 flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-8 text-center transition-colors",
+          "flex shrink-0 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-8 text-center transition-colors",
+          hasItems ? "min-h-32" : "min-h-48",
           isDragging
             ? "border-brand bg-brand/5"
             : "border-secondary bg-panel/50 hover:border-brand/50 hover:bg-highlight/30",
@@ -73,6 +79,10 @@ export function MyDeviceTab({ onFilesSelected }: MyDeviceTabProps) {
           event.target.value = ""
         }}
       />
+
+      <CloudProviderCards />
+
+      {hasItems ? <StagingGrid errorById={errorById} /> : null}
     </div>
   )
 }

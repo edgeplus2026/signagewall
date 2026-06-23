@@ -14,6 +14,7 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -28,8 +29,11 @@ import {
   ApiSuccessResponse,
 } from '../../common/swagger';
 import { MEDIA_MAX_FILE_SIZE_BYTES } from './media.constants';
+import { CloudImportService } from './cloud-import.service';
+import { CloudImportResponseDto } from './dto/cloud-import-result.dto';
 import { CreateFolderDto } from './dto/create-folder.dto';
 import { DeleteMediaDto } from './dto/delete-media.dto';
+import { ImportCloudMediaDto } from './dto/import-cloud-media.dto';
 import { MediaListQueryDto } from './dto/media-list-query.dto';
 import { MoveMediaDto } from './dto/move-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
@@ -45,6 +49,7 @@ import { MediaService } from './media.service';
 export class MediaController {
   constructor(
     private readonly mediaService: MediaService,
+    private readonly cloudImportService: CloudImportService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -194,6 +199,20 @@ export class MediaController {
       files.poster?.[0],
       body.duration,
     );
+  }
+
+  @Post('import')
+  @RequireOrgRole()
+  // Stricter than the global limit: each call fans out to outbound provider
+  // downloads, so cap how often a single org/user can trigger it.
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiSuccessResponse(CloudImportResponseDto)
+  import(
+    @CurrentUser() user: RequestUser,
+    @RequiredOrganizationId() organizationId: string,
+    @Body() dto: ImportCloudMediaDto,
+  ): Promise<CloudImportResponseDto> {
+    return this.cloudImportService.import(organizationId, user.id, dto);
   }
 
   @Patch(':id')
