@@ -1,0 +1,105 @@
+/* Schedule calendar styling — themed with the app's CSS variables so it stays
+   clean in light and dark mode, with taller time-grid rows. */
+.fc {
+  --fc-border-color: var(--border-secondary);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--highlight);
+  --fc-today-bg-color: var(--highlight);
+  --fc-now-indicator-color: var(--brand);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+/* FullCalendar has no prop for slot height; each row is one slotDuration
+   (30 min). The grid scrolls within its container. */
+.fc .fc-timegrid-slot {
+  height: 3.25rem;
+}
+
+/* Day headers: muted, with the current day emphasized. */
+.fc .fc-col-header-cell {
+  padding-block: 0.5rem;
+}
+.fc .fc-col-header-cell-cushion {
+  padding: 0.25rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.fc .fc-day-today .fc-col-header-cell-cushion {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Time axis labels (e.g. 08:00). */
+.fc .fc-timegrid-slot-label-cushion,
+.fc .fc-timegrid-axis-cushion {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+/* Event cards: rounded, no heavy shadow, title + time stacked. */
+.fc .fc-timegrid-event {
+  border-radius: 0.5rem;
+  box-shadow: none;
+}
+.fc .fc-timegrid-event .fc-event-main {
+  padding: 4px 6px;
+}
+
+/* Month-view "+N more" day popover — themed as a solid floating card so it
+   isn't transparent over the dark grid. */
+.fc .fc-popover {
+  overflow: hidden;
+  border: 1px solid var(--border-secondary);
+  border-radius: 0.75rem;
+  background: var(--panel);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 28%);
+}
+.fc .fc-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--sidebar);
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.fc .fc-popover-close {
+  cursor: pointer;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+.fc .fc-popover-close:hover {
+  color: var(--text-primary);
+  opacity: 1;
+}
+.fc .fc-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+
+/* Month-view event chips. */
+.fc .fc-daygrid-event-harness {
+  margin-top: 3px;
+}
+.fc .fc-daygrid-event {
+  border-radius: 0.5rem;
+  padding: 4px 7px;
+  font-size: 0.8rem;
+}
+.fc .fc-daygrid-day-number {
+  padding: 6px 8px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+.fc .fc-day-today .fc-daygrid-day-number {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.fc .fc-daygrid-day-bottom {
+  padding: 2px 4px;
+}

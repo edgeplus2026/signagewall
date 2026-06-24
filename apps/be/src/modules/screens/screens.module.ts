@@ -6,6 +6,7 @@ import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { MediaModule } from '../media/media.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { PlaylistsModule } from '../playlists/playlists.module';
+import { SchedulesModule } from '../schedules/schedules.module';
 import { AvailabilityEvaluator } from './availability/availability.evaluator';
 import { ScreensController } from './screens.controller';
 import { ScreensRepository } from './screens.repository';
@@ -19,6 +20,7 @@ import { Screen, ScreenSchema } from './schemas/screen.schema';
     OrganizationsModule,
     forwardRef(() => MediaModule),
     forwardRef(() => PlaylistsModule),
+    forwardRef(() => SchedulesModule),
   ],
   controllers: [ScreensController],
   providers: [

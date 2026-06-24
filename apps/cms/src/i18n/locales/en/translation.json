@@ -25,6 +25,9 @@
     "loading": "Loading...",
     "actions": "Actions",
     "cancel": "Cancel",
+    "ok": "Ok",
+    "save": "Save",
+    "delete": "Delete",
     "decrease": "Decrease",
     "increase": "Increase"
   },
@@ -135,6 +138,7 @@
     "dashboard": "Dashboard",
     "screens": "Screens",
     "playlists": "Playlists",
+    "schedules": "Schedules",
     "media": "Media",
     "apps": "Apps",
     "settings": "Settings",
@@ -153,6 +157,140 @@
     },
     "welcome": "Welcome to Edge.",
     "dashboardPlaceholder": "Your dashboard content goes here."
+  },
+  "schedules": {
+    "title": "Schedules",
+    "scheduleCount": "{{count}} schedule",
+    "scheduleCount_other": "{{count}} schedules",
+    "add": "Add Schedule",
+    "breadcrumb": {
+      "root": "Schedules"
+    },
+    "empty": {
+      "title": "You don't have any Schedules.",
+      "description": "Create Schedules to determine exactly when your content goes live with events, just like managing a calendar."
+    },
+    "card": {
+      "eventCount": "{{count}} event",
+      "eventCount_other": "{{count}} events",
+      "screenCount": "{{count}} screen",
+      "screenCount_other": "{{count}} screens"
+    },
+    "editor": {
+      "nameLabel": "Schedule name",
+      "namePlaceholder": "Schedule name",
+      "changesPushed": "Changes pushed",
+      "unsaved": "Unsaved changes",
+      "created": "Schedule created",
+      "changesPushedToast": "Changes pushed",
+      "saveError": "Could not save the schedule",
+      "notFound": "This schedule could not be found."
+    },
+    "events": {
+      "listTitle": "Events List",
+      "listHint": "View all past and future events in this schedule. The order shows priority for display during overlaps.",
+      "scheduledTitle": "Scheduled Events",
+      "empty": "No events scheduled — filler content will play.",
+      "reorder": "Reorder event",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "event": {
+      "newTitle": "New Event",
+      "editTitle": "Edit Event",
+      "tzNote": "The schedule runs on the screens' local time zone.",
+      "typeLabel": "Event Type",
+      "type": {
+        "content": "Schedule Content",
+        "screenOff": "Turn screen Off"
+      },
+      "contentType": "Content",
+      "content": "Content",
+      "selectContent": "Select content",
+      "playlist": "Playlist",
+      "media": "Media",
+      "starts": "Event Starts",
+      "ends": "Event Ends",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "repeat": "Repeat",
+      "fitting": "Fitting Options",
+      "fit": {
+        "fit": "Fit",
+        "crop": "Crop",
+        "stretch": "Stretch"
+      },
+      "untitled": "Untitled event",
+      "add": "Add event",
+      "invalid": "Please complete the highlighted fields before saving."
+    },
+    "repeat": {
+      "none": "Does not repeat",
+      "daily": "Daily",
+      "weekdays": "Every weekday (Mon-Fri)",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Annually"
+    },
+    "picker": {
+      "search": "Search...",
+      "empty": "Nothing found.",
+      "selectPlaylist": "Select a Playlist",
+      "selectMedia": "Select Media"
+    },
+    "filler": {
+      "title": "Filler Content",
+      "subtitle": "Shown on the screens when no events are scheduled.",
+      "set": "Set",
+      "change": "Change",
+      "remove": "Remove filler content"
+    },
+    "assignScreens": {
+      "title": "Assigned screens",
+      "description": "Choose which screens this schedule controls.",
+      "placeholder": "Select screens",
+      "search": "Search screens...",
+      "empty": "No screens found.",
+      "view": "View assigned screens ({{count}})"
+    },
+    "eventsStyle": {
+      "content": "Content",
+      "screenOff": "Screen off"
+    },
+    "recurringEdit": {
+      "title": "Edit recurring event",
+      "description": "This event repeats. Which occurrences do you want to change?",
+      "this": "This event",
+      "following": "This and following events",
+      "all": "All events"
+    },
+    "delete": {
+      "action": "Delete",
+      "title": "Delete schedule?",
+      "description": "Are you sure you want to delete \"{{name}}\"? This cannot be undone.",
+      "confirm": "Delete",
+      "success": "Schedule deleted",
+      "error": "Could not delete the schedule"
+    },
+    "calendar": {
+      "today": "Today",
+      "previous": "Previous",
+      "next": "Next",
+      "view": {
+        "timeGridDay": "Day",
+        "timeGridWeek": "Week",
+        "dayGridMonth": "Month"
+      }
+    },
+    "validation": {
+      "nameRequired": "Schedule name is required",
+      "nameMax": "Name must be {{max}} characters or less",
+      "descriptionMax": "Description must be {{max}} characters or less",
+      "invalidDate": "Enter a valid date",
+      "invalidTime": "Enter a valid time",
+      "endAfterStart": "The event must end after it starts",
+      "contentRequired": "Select content to schedule"
+    }
   },
   "dashboard": {
     "title": "Dashboard",

@@ -27,6 +27,7 @@ import { MembersModule } from './modules/members/members.module';
 import { MediaModule } from './modules/media/media.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { PlaylistsModule } from './modules/playlists/playlists.module';
+import { SchedulesModule } from './modules/schedules/schedules.module';
 import { ScreensModule } from './modules/screens/screens.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { StockMediaModule } from './modules/stock-media/stock-media.module';
@@ -74,6 +75,7 @@ import { UsersModule } from './modules/users/users.module';
     StockMediaModule,
     PlaylistsModule,
     ScreensModule,
+    SchedulesModule,
     AdminModule,
     AppsModule,
     HealthModule,

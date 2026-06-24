@@ -6,6 +6,7 @@ import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { PlaylistsModule } from '../playlists/playlists.module';
 import { ScreensModule } from '../screens/screens.module';
+import { SchedulesModule } from '../schedules/schedules.module';
 import { CloudImportService } from './cloud-import.service';
 import { CloudMediaFetcher } from './cloud-media.fetcher';
 import { MediaProcessingScheduler } from './media-processing.scheduler';
@@ -26,6 +27,7 @@ import { R2StorageService } from './storage/r2-storage.service';
     OrganizationsModule,
     forwardRef(() => PlaylistsModule),
     forwardRef(() => ScreensModule),
+    forwardRef(() => SchedulesModule),
   ],
   controllers: [MediaController],
   providers: [

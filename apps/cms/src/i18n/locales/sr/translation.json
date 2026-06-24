@@ -25,6 +25,9 @@
     "loading": "Učitavanje...",
     "actions": "Akcije",
     "cancel": "Otkaži",
+    "ok": "U redu",
+    "save": "Sačuvaj",
+    "delete": "Obriši",
     "decrease": "Smanji",
     "increase": "Povećaj"
   },
@@ -112,6 +115,7 @@
     "dashboard": "Kontrolna tabla",
     "screens": "Ekrani",
     "playlists": "Plejliste",
+    "schedules": "Rasporedi",
     "media": "Mediji",
     "apps": "Aplikacije",
     "settings": "Podešavanja",
@@ -130,6 +134,140 @@
     },
     "welcome": "Dobrodošli u Edge.",
     "dashboardPlaceholder": "Sadržaj kontrolne table ide ovde."
+  },
+  "schedules": {
+    "title": "Rasporedi",
+    "scheduleCount": "{{count}} raspored",
+    "scheduleCount_other": "{{count}} rasporeda",
+    "add": "Dodaj raspored",
+    "breadcrumb": {
+      "root": "Rasporedi"
+    },
+    "empty": {
+      "title": "Nemate nijedan raspored.",
+      "description": "Kreirajte rasporede da odredite tačno kada se vaš sadržaj prikazuje, baš kao u kalendaru."
+    },
+    "card": {
+      "eventCount": "{{count}} događaj",
+      "eventCount_other": "{{count}} događaja",
+      "screenCount": "{{count}} ekran",
+      "screenCount_other": "{{count}} ekrana"
+    },
+    "editor": {
+      "nameLabel": "Naziv rasporeda",
+      "namePlaceholder": "Naziv rasporeda",
+      "changesPushed": "Promene objavljene",
+      "unsaved": "Nesačuvane promene",
+      "created": "Raspored kreiran",
+      "changesPushedToast": "Promene objavljene",
+      "saveError": "Čuvanje rasporeda nije uspelo",
+      "notFound": "Ovaj raspored nije pronađen."
+    },
+    "events": {
+      "listTitle": "Lista događaja",
+      "listHint": "Pregledajte sve prošle i buduće događaje u ovom rasporedu. Redosled određuje prioritet prikaza pri preklapanju.",
+      "scheduledTitle": "Zakazani događaji",
+      "empty": "Nema zakazanih događaja — prikazaće se rezervni sadržaj.",
+      "reorder": "Promeni redosled",
+      "edit": "Izmeni",
+      "delete": "Obriši"
+    },
+    "event": {
+      "newTitle": "Novi događaj",
+      "editTitle": "Izmena događaja",
+      "tzNote": "Raspored se izvršava po lokalnoj vremenskoj zoni ekrana.",
+      "typeLabel": "Tip događaja",
+      "type": {
+        "content": "Zakaži sadržaj",
+        "screenOff": "Ugasi ekran"
+      },
+      "contentType": "Sadržaj",
+      "content": "Sadržaj",
+      "selectContent": "Izaberite sadržaj",
+      "playlist": "Plejlista",
+      "media": "Medij",
+      "starts": "Početak događaja",
+      "ends": "Kraj događaja",
+      "startTime": "Vreme početka",
+      "endTime": "Vreme završetka",
+      "repeat": "Ponavljanje",
+      "fitting": "Opcije uklapanja",
+      "fit": {
+        "fit": "Uklopi",
+        "crop": "Iseci",
+        "stretch": "Razvuci"
+      },
+      "untitled": "Neimenovani događaj",
+      "add": "Dodaj događaj",
+      "invalid": "Popunite označena polja pre čuvanja."
+    },
+    "repeat": {
+      "none": "Ne ponavlja se",
+      "daily": "Dnevno",
+      "weekdays": "Svaki radni dan (pon-pet)",
+      "weekly": "Nedeljno",
+      "monthly": "Mesečno",
+      "yearly": "Godišnje"
+    },
+    "picker": {
+      "search": "Pretraga...",
+      "empty": "Ništa nije pronađeno.",
+      "selectPlaylist": "Izaberite plejlistu",
+      "selectMedia": "Izaberite medij"
+    },
+    "filler": {
+      "title": "Rezervni sadržaj",
+      "subtitle": "Prikazuje se na ekranima kada nema zakazanih događaja.",
+      "set": "Postavi",
+      "change": "Promeni",
+      "remove": "Ukloni rezervni sadržaj"
+    },
+    "assignScreens": {
+      "title": "Dodeljeni ekrani",
+      "description": "Izaberite koje ekrane ovaj raspored kontroliše.",
+      "placeholder": "Izaberite ekrane",
+      "search": "Pretraga ekrana...",
+      "empty": "Nema pronađenih ekrana.",
+      "view": "Prikaži dodeljene ekrane ({{count}})"
+    },
+    "eventsStyle": {
+      "content": "Sadržaj",
+      "screenOff": "Ekran ugašen"
+    },
+    "recurringEdit": {
+      "title": "Izmena ponavljajućeg događaja",
+      "description": "Ovaj događaj se ponavlja. Koje pojave želite da izmenite?",
+      "this": "Ovaj događaj",
+      "following": "Ovaj i naredne događaje",
+      "all": "Sve događaje"
+    },
+    "delete": {
+      "action": "Obriši",
+      "title": "Obrisati raspored?",
+      "description": "Da li ste sigurni da želite da obrišete \"{{name}}\"? Ovo se ne može poništiti.",
+      "confirm": "Obriši",
+      "success": "Raspored obrisan",
+      "error": "Brisanje rasporeda nije uspelo"
+    },
+    "calendar": {
+      "today": "Danas",
+      "previous": "Prethodno",
+      "next": "Sledeće",
+      "view": {
+        "timeGridDay": "Dan",
+        "timeGridWeek": "Nedelja",
+        "dayGridMonth": "Mesec"
+      }
+    },
+    "validation": {
+      "nameRequired": "Naziv rasporeda je obavezan",
+      "nameMax": "Naziv mora imati najviše {{max}} znakova",
+      "descriptionMax": "Opis mora imati najviše {{max}} znakova",
+      "invalidDate": "Unesite ispravan datum",
+      "invalidTime": "Unesite ispravno vreme",
+      "endAfterStart": "Događaj se mora završiti nakon početka",
+      "contentRequired": "Izaberite sadržaj za zakazivanje"
+    }
   },
   "dashboard": {
     "title": "Kontrolna tabla",

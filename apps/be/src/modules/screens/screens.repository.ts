@@ -286,13 +286,21 @@ export class ScreensRepository {
     await query.exec();
   }
 
-  async deleteMany(organizationId: string, ids: string[]): Promise<number> {
-    const result = await this.screenModel
-      .deleteMany({
-        _id: { $in: ids.map((itemId) => new Types.ObjectId(itemId)) },
-        organizationId: new Types.ObjectId(organizationId),
-      })
-      .exec();
+  async deleteMany(
+    organizationId: string,
+    ids: string[],
+    session?: ClientSession,
+  ): Promise<number> {
+    const query = this.screenModel.deleteMany({
+      _id: { $in: ids.map((itemId) => new Types.ObjectId(itemId)) },
+      organizationId: new Types.ObjectId(organizationId),
+    });
+
+    if (session) {
+      query.session(session);
+    }
+
+    const result = await query.exec();
 
     return result.deletedCount;
   }
@@ -310,5 +318,118 @@ export class ScreensRepository {
       .exec();
 
     return docs.map((doc) => doc._id.toString());
+  }
+
+  /** Current `scheduleId` of each given screen, for schedule (re)assignment. */
+  async findScheduleLinksForScreens(
+    organizationId: string,
+    ids: string[],
+    session?: ClientSession,
+  ): Promise<Array<{ id: string; scheduleId?: Types.ObjectId }>> {
+    if (ids.length === 0) {
+      return [];
+    }
+    const query = this.screenModel
+      .find({
+        _id: { $in: ids.map((id) => new Types.ObjectId(id)) },
+        organizationId: new Types.ObjectId(organizationId),
+      })
+      .select({ _id: 1, scheduleId: 1 });
+    if (session) {
+      query.session(session);
+    }
+    const docs = await query.exec();
+    return docs.map((doc) => ({
+      id: doc._id.toString(),
+      ...(doc.scheduleId ? { scheduleId: doc.scheduleId } : {}),
+    }));
+  }
+
+  /** Ids of screens currently owned by the given schedule. */
+  async findScreenIdsBySchedule(
+    organizationId: string,
+    scheduleId: string,
+    session?: ClientSession,
+  ): Promise<string[]> {
+    const query = this.screenModel
+      .find({
+        organizationId: new Types.ObjectId(organizationId),
+        scheduleId: new Types.ObjectId(scheduleId),
+      })
+      .select({ _id: 1 });
+    if (session) {
+      query.session(session);
+    }
+    const docs = await query.exec();
+    return docs.map((doc) => doc._id.toString());
+  }
+
+  /** Points the given screens at a schedule (authoritative owner link). */
+  async setScreensSchedule(
+    organizationId: string,
+    ids: string[],
+    scheduleId: Types.ObjectId,
+    session?: ClientSession,
+  ): Promise<void> {
+    if (ids.length === 0) {
+      return;
+    }
+    const query = this.screenModel.updateMany(
+      {
+        _id: { $in: ids.map((id) => new Types.ObjectId(id)) },
+        organizationId: new Types.ObjectId(organizationId),
+      },
+      { $set: { scheduleId } },
+    );
+    if (session) {
+      query.session(session);
+    }
+    await query.exec();
+  }
+
+  /** Clears the schedule link on screens that currently point at `scheduleId`. */
+  async clearScreensSchedule(
+    organizationId: string,
+    ids: string[],
+    scheduleId: Types.ObjectId,
+    session?: ClientSession,
+  ): Promise<void> {
+    if (ids.length === 0) {
+      return;
+    }
+    const query = this.screenModel.updateMany(
+      {
+        _id: { $in: ids.map((id) => new Types.ObjectId(id)) },
+        organizationId: new Types.ObjectId(organizationId),
+        scheduleId,
+      },
+      { $unset: { scheduleId: '' } },
+    );
+    if (session) {
+      query.session(session);
+    }
+    await query.exec();
+  }
+
+  /** Clears the schedule link on every screen owned by any of the given schedules. */
+  async clearScheduleAssignments(
+    organizationId: string,
+    scheduleIds: string[],
+    session?: ClientSession,
+  ): Promise<void> {
+    if (scheduleIds.length === 0) {
+      return;
+    }
+    const query = this.screenModel.updateMany(
+      {
+        organizationId: new Types.ObjectId(organizationId),
+        scheduleId: { $in: scheduleIds.map((id) => new Types.ObjectId(id)) },
+      },
+      { $unset: { scheduleId: '' } },
+    );
+    if (session) {
+      query.session(session);
+    }
+    await query.exec();
   }
 }

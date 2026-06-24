@@ -1,4 +1,11 @@
-import { Film, LayoutDashboard, ListVideo, Monitor, Rocket } from 'lucide-react'
+import {
+  CalendarClock,
+  Film,
+  LayoutDashboard,
+  ListVideo,
+  Monitor,
+  Rocket,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -14,6 +21,7 @@ const NAV_ITEMS = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
   { key: 'screens', href: '/screens', icon: Monitor },
   { key: 'playlists', href: '/playlists', icon: ListVideo },
+  { key: 'schedules', href: '/schedules', icon: CalendarClock },
   { key: 'media', href: '/media', icon: Film },
   { key: 'apps', href: '/apps', icon: Rocket },
 ] as const

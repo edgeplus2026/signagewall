@@ -1,0 +1,23 @@
+{
+  "notFound": "Schedule not found.",
+  "emptyUpdate": "At least one field must be provided to update a schedule.",
+  "conflict": "This schedule was modified elsewhere. Please reload and try again.",
+  "eventNotFound": "Schedule event not found.",
+  "duplicateEventIds": "Duplicate schedule event identifiers were provided.",
+  "screenNotFound": "One or more screens could not be found.",
+  "mediaNotFound": "One or more media items could not be found.",
+  "mediaNotReady": "Media must finish processing before it can be scheduled.",
+  "invalidMediaType": "Only images and videos can be scheduled.",
+  "playlistNotFound": "One or more playlists could not be found.",
+  "rangeTooLarge": "The requested time range is too large.",
+  "event": {
+    "invalidDate": "The provided date is not a valid calendar date.",
+    "invalidDateRange": "The end date must be on or after the start date.",
+    "invalidTime": "The provided time is not valid.",
+    "invalidTimeRange": "The event must end after it starts.",
+    "missingContent": "A content event must reference a playlist or media item.",
+    "contentOnOffEvent": "A turn-screen-off event must not reference content.",
+    "invalidRepeat": "The selected repeat option is not valid.",
+    "tooManyEvents": "A schedule can contain at most 200 events."
+  }
+}

@@ -20,6 +20,10 @@ import { SuperAdminGate } from '@/features/super-admin/components/SuperAdminGate
 import SuperAdminPage from '@/features/super-admin/pages/SuperAdminPage'
 import UsersPage from '@/features/users/pages/UsersPage'
 
+const SchedulesPage = lazy(() => import('@/features/schedules/pages/SchedulesPage'))
+const ScheduleEditorPage = lazy(
+  () => import('@/features/schedules/pages/ScheduleEditorPage'),
+)
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'))
 const GoogleCallbackPage = lazy(() => import('@/features/auth/pages/GoogleCallbackPage'))
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'))
@@ -128,6 +132,31 @@ export const router = createBrowserRouter([
                 handle: { breadcrumb: { labelKey: 'layout.playlists' } },
               },
               { path: '/playlists/:playlistId', element: <PlaylistPage /> },
+              {
+                path: '/schedules',
+                element: (
+                  <PublicPage>
+                    <SchedulesPage />
+                  </PublicPage>
+                ),
+                handle: { breadcrumb: { labelKey: 'layout.schedules' } },
+              },
+              {
+                path: '/schedules/new',
+                element: (
+                  <PublicPage>
+                    <ScheduleEditorPage />
+                  </PublicPage>
+                ),
+              },
+              {
+                path: '/schedules/:scheduleId',
+                element: (
+                  <PublicPage>
+                    <ScheduleEditorPage />
+                  </PublicPage>
+                ),
+              },
               {
                 path: '/media',
                 element: <MediaPage />,

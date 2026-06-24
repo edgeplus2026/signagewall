@@ -1,0 +1,23 @@
+{
+  "notFound": "Raspored nije pronađen.",
+  "emptyUpdate": "Mora biti prosleđeno bar jedno polje za ažuriranje rasporeda.",
+  "conflict": "Ovaj raspored je izmenjen na drugom mestu. Osvežite i pokušajte ponovo.",
+  "eventNotFound": "Događaj rasporeda nije pronađen.",
+  "duplicateEventIds": "Prosleđeni su duplirani identifikatori događaja rasporeda.",
+  "screenNotFound": "Jedan ili više ekrana nije pronađeno.",
+  "mediaNotFound": "Jedna ili više medijskih stavki nije pronađeno.",
+  "mediaNotReady": "Medij mora završiti obradu pre zakazivanja.",
+  "invalidMediaType": "Mogu se zakazati samo slike i video zapisi.",
+  "playlistNotFound": "Jedna ili više plejlista nije pronađeno.",
+  "rangeTooLarge": "Traženi vremenski opseg je prevelik.",
+  "event": {
+    "invalidDate": "Prosleđeni datum nije važeći kalendarski datum.",
+    "invalidDateRange": "Datum završetka mora biti isti ili posle datuma početka.",
+    "invalidTime": "Prosleđeno vreme nije važeće.",
+    "invalidTimeRange": "Događaj se mora završiti nakon što počne.",
+    "missingContent": "Događaj sa sadržajem mora referencirati plejlistu ili medij.",
+    "contentOnOffEvent": "Događaj gašenja ekrana ne sme referencirati sadržaj.",
+    "invalidRepeat": "Izabrana opcija ponavljanja nije važeća.",
+    "tooManyEvents": "Raspored može sadržati najviše 200 događaja."
+  }
+}

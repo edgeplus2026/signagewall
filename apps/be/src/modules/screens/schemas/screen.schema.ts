@@ -157,6 +157,13 @@ export class Screen {
   @Prop({ type: ScreenAvailabilitySchema })
   availability?: ScreenAvailability;
 
+  /**
+   * The schedule that owns this screen, if any. Authoritative for the
+   * one-schedule-per-screen invariant; `schedule.screenIds[]` mirrors it.
+   */
+  @Prop({ type: Types.ObjectId, ref: 'Schedule', index: true })
+  scheduleId?: Types.ObjectId;
+
   createdAt!: Date;
   updatedAt!: Date;
 }

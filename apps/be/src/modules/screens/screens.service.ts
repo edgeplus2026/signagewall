@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { I18nService } from 'nestjs-i18n';
 import { ClientSession, Types } from 'mongoose';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { TransactionService } from '../../common/services/transaction.service';
+import { SchedulesRepository } from '../schedules/schedules.repository';
 import { MediaRepository } from '../media/media.repository';
 import {
   getMediaThumbnailUrl,
@@ -64,6 +66,9 @@ export class ScreensService {
     private readonly configService: ConfigService,
     private readonly i18n: I18nService,
     private readonly availabilityEvaluator: AvailabilityEvaluator,
+    private readonly transactionService: TransactionService,
+    @Inject(forwardRef(() => SchedulesRepository))
+    private readonly schedulesRepository: SchedulesRepository,
   ) {}
 
   async list(organizationId: string): Promise<ScreenSummaryResponseDto[]> {
@@ -257,7 +262,16 @@ export class ScreensService {
       throw BusinessException.notFound(this.i18n.t('screens.notFound'));
     }
 
-    await this.screensRepository.deleteMany(organizationId, uniqueIds);
+    // Drop the screens and detach them from any schedule's assigned-screen cache
+    // atomically, so a deleted screen never lingers in a schedule.
+    await this.transactionService.run(async (session) => {
+      await this.schedulesRepository.removeScreenAssignments(
+        organizationId,
+        uniqueIds,
+        session,
+      );
+      await this.screensRepository.deleteMany(organizationId, uniqueIds, session);
+    });
   }
 
   async addMedia(

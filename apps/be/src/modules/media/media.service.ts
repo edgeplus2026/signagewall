@@ -39,6 +39,7 @@ import { MediaVideoService } from './storage/media-video.service';
 import { R2StorageService } from './storage/r2-storage.service';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensService } from '../screens/screens.service';
+import { SchedulesService } from '../schedules/schedules.service';
 
 @Injectable()
 export class MediaService {
@@ -56,6 +57,8 @@ export class MediaService {
     private readonly playlistsRepository: PlaylistsRepository,
     @Inject(forwardRef(() => ScreensService))
     private readonly screensService: ScreensService,
+    @Inject(forwardRef(() => SchedulesService))
+    private readonly schedulesService: SchedulesService,
   ) {
     this.maxFileSizeBytes = this.configService.getOrThrow<number>(
       'media.maxFileSizeBytes',
@@ -561,6 +564,11 @@ export class MediaService {
           session,
         );
       await this.screensService.purgeMediaReferences(
+        organizationId,
+        mediaIdsToPurge,
+        session,
+      );
+      await this.schedulesService.purgeMediaReferences(
         organizationId,
         mediaIdsToPurge,
         session,

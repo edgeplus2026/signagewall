@@ -33,6 +33,7 @@ import {
 import { PlaylistsRepository } from './playlists.repository';
 import { PlaylistDocument, PlaylistItemValue } from './schemas/playlist.schema';
 import { ScreensService } from '../screens/screens.service';
+import { SchedulesService } from '../schedules/schedules.service';
 
 const MAX_PLAYLIST_ITEMS = 500;
 const DEFAULT_ITEM_DURATION = 15;
@@ -49,6 +50,8 @@ export class PlaylistsService {
     private readonly transactionService: TransactionService,
     @Inject(forwardRef(() => ScreensService))
     private readonly screensService: ScreensService,
+    @Inject(forwardRef(() => SchedulesService))
+    private readonly schedulesService: SchedulesService,
   ) {}
 
   async list(organizationId: string): Promise<PlaylistSummaryResponseDto[]> {
@@ -158,6 +161,11 @@ export class PlaylistsService {
 
     await this.transactionService.run(async (session) => {
       await this.screensService.purgePlaylistReferences(
+        organizationId,
+        uniqueIds,
+        session,
+      );
+      await this.schedulesService.purgePlaylistReferences(
         organizationId,
         uniqueIds,
         session,
