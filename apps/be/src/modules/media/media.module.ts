@@ -6,6 +6,8 @@ import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { PlaylistsModule } from '../playlists/playlists.module';
 import { ScreensModule } from '../screens/screens.module';
+import { CloudImportService } from './cloud-import.service';
+import { CloudMediaFetcher } from './cloud-media.fetcher';
 import { MediaProcessingScheduler } from './media-processing.scheduler';
 import { MediaController } from './media.controller';
 import { MediaRepository } from './media.repository';
@@ -33,6 +35,8 @@ import { R2StorageService } from './storage/r2-storage.service';
     MediaThumbnailService,
     MediaVideoService,
     MediaProcessingScheduler,
+    CloudImportService,
+    CloudMediaFetcher,
     OrgMembershipGuard,
   ],
   exports: [MediaService, MediaRepository],

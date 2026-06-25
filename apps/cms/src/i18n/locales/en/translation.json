@@ -919,11 +919,42 @@
         "error": "Could not rename folder. Please try again."
       }
     },
-    "googleDrive": {
-      "title": "Import from Google Drive",
-      "hint": "Click to browse and import files",
-      "success": "Files imported from Google Drive",
-      "error": "Could not import files. Please try again."
+    "providers": {
+      "title": "Import from a cloud provider",
+      "onedrive": { "title": "OneDrive", "hint": "Import files from OneDrive" },
+      "sharepoint": {
+        "title": "SharePoint",
+        "hint": "Import files from SharePoint"
+      },
+      "dropbox": { "title": "Dropbox", "hint": "Import files from Dropbox" },
+      "googleDrive": {
+        "title": "Google Drive",
+        "hint": "Import files from Google Drive"
+      },
+      "googlePhotos": {
+        "title": "Google Photos",
+        "hint": "Import files from Google Photos"
+      },
+      "notConfigured": "This provider isn't configured yet. Add its API credentials to enable it.",
+      "connectedRetry": "Connected. Click the provider again to browse your files.",
+      "pickError": "Could not open the picker. Please try again.",
+      "browseTitle": "Select files",
+      "browseHint": "Choose images and videos to import.",
+      "browseError": "Couldn't load your files. Please try again.",
+      "browseEmpty": "This folder has no images or videos.",
+      "addSelected_one": "Add {{count}} item",
+      "addSelected_other": "Add {{count}} items"
+    },
+    "staging": {
+      "upload_one": "Upload {{count}} item",
+      "upload_other": "Upload {{count}} items",
+      "clear": "Clear",
+      "remove": "Remove {{name}}"
+    },
+    "cloudImport": {
+      "success": "{{count}} item(s) imported",
+      "partial": "{{imported}} imported, {{failed}} failed",
+      "error": "Could not import items. Please try again."
     },
     "move": {
       "title": "Move items",

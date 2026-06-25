@@ -899,11 +899,44 @@
         "error": "Preimenovanje foldera nije uspelo. Pokušajte ponovo."
       }
     },
-    "googleDrive": {
-      "title": "Uvezi iz Google Drive-a",
-      "hint": "Kliknite za pregled i uvoz datoteka",
-      "success": "Datoteke su uvezene iz Google Drive-a",
-      "error": "Uvoz datoteka nije uspeo. Pokušajte ponovo."
+    "providers": {
+      "title": "Uvezi iz oblak servisa",
+      "onedrive": { "title": "OneDrive", "hint": "Uvezite datoteke sa OneDrive-a" },
+      "sharepoint": {
+        "title": "SharePoint",
+        "hint": "Uvezite datoteke sa SharePoint-a"
+      },
+      "dropbox": { "title": "Dropbox", "hint": "Uvezite datoteke sa Dropbox-a" },
+      "googleDrive": {
+        "title": "Google Drive",
+        "hint": "Uvezite datoteke sa Google Drive-a"
+      },
+      "googlePhotos": {
+        "title": "Google Photos",
+        "hint": "Uvezite datoteke sa Google Photos-a"
+      },
+      "notConfigured": "Ovaj servis još nije podešen. Dodajte API kredencijale da biste ga omogućili.",
+      "connectedRetry": "Povezano. Kliknite ponovo na servis da biste pregledali datoteke.",
+      "pickError": "Otvaranje birača nije uspelo. Pokušajte ponovo.",
+      "browseTitle": "Izaberite datoteke",
+      "browseHint": "Izaberite slike i video zapise za uvoz.",
+      "browseError": "Učitavanje datoteka nije uspelo. Pokušajte ponovo.",
+      "browseEmpty": "Ovaj folder nema slika ni video zapisa.",
+      "addSelected_one": "Dodaj {{count}} stavku",
+      "addSelected_few": "Dodaj {{count}} stavke",
+      "addSelected_other": "Dodaj {{count}} stavki"
+    },
+    "staging": {
+      "upload_one": "Otpremi {{count}} stavku",
+      "upload_few": "Otpremi {{count}} stavke",
+      "upload_other": "Otpremi {{count}} stavki",
+      "clear": "Očisti",
+      "remove": "Ukloni {{name}}"
+    },
+    "cloudImport": {
+      "success": "Uvezeno {{count}} stavki",
+      "partial": "{{imported}} uvezeno, {{failed}} neuspešno",
+      "error": "Uvoz stavki nije uspeo. Pokušajte ponovo."
     },
     "move": {
       "title": "Premesti stavke",

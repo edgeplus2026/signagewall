@@ -10,6 +10,10 @@ export enum MediaItemType {
 export enum MediaItemSource {
   LOCAL = 'local',
   GOOGLE_DRIVE = 'google_drive',
+  GOOGLE_PHOTOS = 'google_photos',
+  ONEDRIVE = 'onedrive',
+  SHAREPOINT = 'sharepoint',
+  DROPBOX = 'dropbox',
   PEXELS = 'pexels',
 }
 

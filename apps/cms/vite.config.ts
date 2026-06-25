@@ -10,4 +10,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        // Main SPA + the dedicated MSAL popup redirect page (runs the redirect
+        // bridge so OneDrive/SharePoint sign-in popups complete).
+        main: path.resolve(__dirname, 'index.html'),
+        msal: path.resolve(__dirname, 'msal.html'),
+      },
+    },
+  },
 })

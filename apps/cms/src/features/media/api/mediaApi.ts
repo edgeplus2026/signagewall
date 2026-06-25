@@ -1,15 +1,20 @@
-import { api } from '@/lib/axios'
 import { buildMediaListQuery } from '@/features/media/lib/mediaQuery'
 import type {
+  CloudImportResponse,
   CreateFolderRequest,
-  ImportFromDriveRequest,
+  ImportCloudMediaRequest,
   MediaItem,
   MediaListParams,
   MoveMediaRequest,
   UpdateMediaRequest,
 } from '@/features/media/types/media.types'
+import { api } from '@/lib/axios'
 
 const MEDIA_BASE = '/media'
+
+// Cloud import downloads each asset from the provider server-side, so it can
+// run well past the default request timeout.
+const CLOUD_IMPORT_TIMEOUT_MS = 120_000
 
 export const mediaApi = {
   list: async (params: MediaListParams): Promise<MediaItem[]> => {
@@ -68,8 +73,15 @@ export const mediaApi = {
     return data
   },
 
-  importFromDrive: async (_payload: ImportFromDriveRequest): Promise<MediaItem[]> => {
-    throw new Error('Google Drive import is not implemented yet')
+  importCloud: async (
+    payload: ImportCloudMediaRequest,
+  ): Promise<CloudImportResponse> => {
+    const { data } = await api.post<CloudImportResponse>(
+      `${MEDIA_BASE}/import`,
+      payload,
+      { timeout: CLOUD_IMPORT_TIMEOUT_MS },
+    )
+    return data
   },
 
   update: async (id: string, payload: UpdateMediaRequest): Promise<MediaItem> => {
