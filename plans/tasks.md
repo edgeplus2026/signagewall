@@ -2,21 +2,21 @@
 
 Make a player: Web + PWA + Android + Desktop (win, linux, mac)
 Add screen settings features
-Media page - import media from: OneDrive, SharePoint, Dropbox, Google Drive, Google Photos
-Activity log
-Action logs
 Screen orientation - portait + landscape
 Player content aspect ratio - full + cover + fit
 Email + slack notifications (Registration, Report a problem, Errors)
+Two-Factor Authentication
 Tags per applications
 Tags per screen
 Proof of Play
-CMS Notifications
-Two-Factor Authentication
 Custom Canva
-Schedule
 Hardware information
 
+Media page - import media from: OneDrive, SharePoint, Dropbox, Google Drive, Google Photos
+Activity log
+Action logs
+CMS Notifications
+Schedule
 
 # Configuration
 
