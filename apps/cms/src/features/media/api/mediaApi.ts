@@ -75,11 +75,15 @@ export const mediaApi = {
 
   importCloud: async (
     payload: ImportCloudMediaRequest,
+    signal?: AbortSignal,
   ): Promise<CloudImportResponse> => {
     const { data } = await api.post<CloudImportResponse>(
       `${MEDIA_BASE}/import`,
       payload,
-      { timeout: CLOUD_IMPORT_TIMEOUT_MS },
+      {
+        timeout: CLOUD_IMPORT_TIMEOUT_MS,
+        ...(signal ? { signal } : {}),
+      },
     )
     return data
   },

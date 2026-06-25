@@ -156,3 +156,13 @@ input[type='number']::-webkit-inner-spin-button {
   pointer-events: auto !important;
 }
 
+/* Indeterminate progress sweep for cloud imports (server-controlled, unmeasurable). */
+@keyframes upload-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+

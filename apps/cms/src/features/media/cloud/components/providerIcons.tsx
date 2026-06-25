@@ -37,16 +37,6 @@ export function OneDriveIcon({ className }: IconProps) {
   )
 }
 
-export function SharePointIcon({ className }: IconProps) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={className}>
-      <circle cx="9.5" cy="8" r="5" fill="#038387" />
-      <circle cx="15.5" cy="13" r="4.5" fill="#1A9BA1" />
-      <circle cx="11" cy="17.5" r="3.5" fill="#37C6D0" />
-    </svg>
-  )
-}
-
 export function DropboxIcon({ className }: IconProps) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={className} fill="#0061FF">

@@ -3,14 +3,12 @@ import type { CloudPickResult } from "@/features/media/cloud/types/cloudPick.typ
 
 const GRAPH = "https://graph.microsoft.com/v1.0"
 
-export type MicrosoftKind = "onedrive" | "sharepoint"
-
-/** Graph delegated scopes per source. OneDrive (personal + business) only
- * needs Files.Read; SharePoint additionally needs Sites.Read.All. */
-export const GRAPH_SCOPES: Record<MicrosoftKind, string[]> = {
-  onedrive: ["Files.Read"],
-  sharepoint: ["Files.Read", "Sites.Read.All"],
-}
+/**
+ * Delegated Graph scope. `Files.Read` works the same for personal Microsoft
+ * accounts and work/school (business) accounts — both browse via `/me/drive`,
+ * so a single flow covers both with no tenant-specific configuration.
+ */
+export const GRAPH_SCOPES = ["Files.Read"]
 
 export interface GraphDriveItem {
   id: string
@@ -41,9 +39,8 @@ async function graphGet<T>(url: string, token: string): Promise<T> {
   return (await response.json()) as T
 }
 
-function childrenUrl(kind: MicrosoftKind, folderId: string | null): string {
-  const base =
-    kind === "sharepoint" ? `${GRAPH}/sites/root/drive` : `${GRAPH}/me/drive`
+function childrenUrl(folderId: string | null): string {
+  const base = `${GRAPH}/me/drive`
   const path = folderId
     ? `/items/${encodeURIComponent(folderId)}/children`
     : "/root/children"
@@ -56,11 +53,10 @@ function childrenUrl(kind: MicrosoftKind, folderId: string | null): string {
 /** Lists a folder's children (paging through all results). */
 export async function listChildren(
   token: string,
-  kind: MicrosoftKind,
   folderId: string | null,
 ): Promise<GraphDriveItem[]> {
   const items: GraphDriveItem[] = []
-  let nextUrl: string | undefined = childrenUrl(kind, folderId)
+  let nextUrl: string | undefined = childrenUrl(folderId)
   while (nextUrl) {
     const page: GraphChildrenResponse = await graphGet<GraphChildrenResponse>(
       nextUrl,
@@ -86,13 +82,12 @@ export function isMediaItem(item: GraphDriveItem): boolean {
  */
 export function toCloudPick(
   item: GraphDriveItem,
-  kind: MicrosoftKind,
   token: string,
 ): CloudPickResult {
   const dimensions = item.image ?? item.video
   const thumbnailUrl = item.thumbnails?.[0]?.medium?.url
   return {
-    provider: kind,
+    provider: "onedrive",
     externalId: item.id,
     name: item.name,
     mimeType: item.file?.mimeType ?? inferMimeType(item.name),

@@ -19,10 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import type {
-  GraphDriveItem,
-  MicrosoftKind,
-} from "@/features/media/cloud/lib/microsoftGraph"
+import type { GraphDriveItem } from "@/features/media/cloud/lib/microsoftGraph"
 import {
   isMediaItem,
   listChildren,
@@ -33,7 +30,6 @@ import { formatFileSize } from "@/features/media/lib/mediaUtils"
 import { cn } from "@/lib/utils"
 
 interface MicrosoftBrowserDialogProps {
-  kind: MicrosoftKind
   token: string
   onClose: () => void
   onConfirm: (picks: CloudPickResult[]) => void
@@ -44,18 +40,19 @@ interface Crumb {
   name: string
 }
 
+/**
+ * Browses the signed-in user's OneDrive via Microsoft Graph (`/me/drive`),
+ * which works identically for personal and work/school (business) accounts.
+ * Sign-in happens once (MSAL popup); browsing here is plain Graph REST so there
+ * is no second popup and no personal-vs-business host juggling.
+ */
 export function MicrosoftBrowserDialog({
-  kind,
   token,
   onClose,
   onConfirm,
 }: MicrosoftBrowserDialogProps) {
   const { t } = useTranslation()
-  const rootName = t(
-    kind === "sharepoint"
-      ? "media.providers.sharepoint.title"
-      : "media.providers.onedrive.title",
-  )
+  const rootName = t("media.providers.onedrive.title")
   const [path, setPath] = useState<Crumb[]>([{ id: null, name: rootName }])
   const [selected, setSelected] = useState<Map<string, GraphDriveItem>>(
     new Map(),
@@ -69,8 +66,11 @@ export function MicrosoftBrowserDialog({
     isError,
     error,
   } = useQuery({
-    queryKey: ["ms-browse", kind, folderId],
-    queryFn: () => listChildren(token, kind, folderId),
+    // Key on the token so signing in with a different account never serves the
+    // previous account's cached listing (queries default to a 5-minute
+    // staleTime). The folderId scopes the listing within an account.
+    queryKey: ["ms-browse", token, folderId],
+    queryFn: () => listChildren(token, folderId),
   })
 
   const folders = useMemo(() => items.filter((item) => item.folder), [items])
@@ -234,7 +234,7 @@ export function MicrosoftBrowserDialog({
             onClick={() => {
               onConfirm(
                 Array.from(selected.values()).map((item) =>
-                  toCloudPick(item, kind, token),
+                  toCloudPick(item, token),
                 ),
               )
             }}

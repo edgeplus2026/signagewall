@@ -3,7 +3,6 @@ export type CloudProvider =
   | "google_drive"
   | "google_photos"
   | "onedrive"
-  | "sharepoint"
   | "dropbox"
 
 /**
@@ -17,7 +16,7 @@ export type CloudDownload =
   | { kind: "url"; url: string; authToken?: string }
   // Google Drive — backend builds the googleapis URL and GETs it with the token.
   | { kind: "google_drive"; fileId: string; accessToken: string }
-  // OneDrive / SharePoint — backend resolves @microsoft.graph.downloadUrl, GETs.
+  // OneDrive — backend resolves @microsoft.graph.downloadUrl, GETs.
   | {
       kind: "msgraph"
       endpoint: string

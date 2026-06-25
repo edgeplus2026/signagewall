@@ -1,5 +1,4 @@
-import { Loader2Icon } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
@@ -14,7 +13,6 @@ import {
 } from "@/components/ui/drawer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toCloudImportItem } from "@/features/media/cloud/lib/toCloudImportItem"
-import { useImportCloudMedia } from "@/features/media/hooks/useImportCloudMedia"
 import { validateStagedItems } from "@/features/media/lib/validateStagedItems"
 import { MyDeviceTab } from "@/features/media/stock/components/MyDeviceTab"
 import { StockMediaTab } from "@/features/media/stock/components/StockMediaTab"
@@ -42,60 +40,57 @@ export function UploadMediaSheet({
 
   const items = useStagingStore((state) => state.items)
   const clearStaging = useStagingStore((state) => state.clearStaging)
+  const removeItem = useStagingStore((state) => state.removeItem)
   const enqueueFiles = useUploadStore((state) => state.enqueueFiles)
-  const importCloud = useImportCloudMedia()
+  const enqueueCloudItems = useUploadStore((state) => state.enqueueCloudItems)
 
   const validation = useMemo(() => validateStagedItems(items, t), [items, t])
+
+  // Unsupported items (wrong type / too large) never make it into the preview
+  // grid: toast the exact reason, then drop them from staging so the grid only
+  // ever shows what will actually be imported.
+  const reportedRef = useRef(new Set<string>())
+  useEffect(() => {
+    for (const item of items) {
+      const error = validation.errorById[item.id]
+      if (!error || reportedRef.current.has(item.id)) continue
+      reportedRef.current.add(item.id)
+      toast.warning(error)
+      removeItem(item.id)
+    }
+  }, [items, validation.errorById, removeItem])
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
       clearStaging()
+      reportedRef.current.clear()
     }
     onOpenChange(next)
   }
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     const valid = validation.validItems
     if (valid.length === 0) return
-
-    const cloudItems = valid
-      .filter((item) => item.kind === "cloud")
-      .map((item) => toCloudImportItem(item.pick))
-
-    // Cloud import first (it can fail): only commit local files and close once
-    // the network step succeeds, so a failure leaves the batch intact for retry.
-    if (cloudItems.length > 0) {
-      try {
-        const response = await importCloud.mutateAsync({
-          parentId,
-          items: cloudItems,
-        })
-        if (response.failedCount > 0) {
-          toast.warning(
-            t("media.cloudImport.partial", {
-              imported: response.importedCount,
-              failed: response.failedCount,
-            }),
-          )
-        } else {
-          toast.success(
-            t("media.cloudImport.success", { count: response.importedCount }),
-          )
-        }
-      } catch {
-        toast.error(t("media.cloudImport.error"))
-        return
-      }
-    }
 
     const localFiles = valid
       .filter((item) => item.kind === "local")
       .map((item) => item.file)
 
+    const cloudItems = valid
+      .filter((item) => item.kind === "cloud")
+      .map((item) => toCloudImportItem(item.pick))
+
+    // Both kinds flow through the shared async upload queue, so the drawer can
+    // close immediately and progress shows in the upload manager — local files
+    // stream up, cloud items are pulled server-side from the provider.
     if (localFiles.length > 0) {
       enqueueFiles(localFiles, parentId)
-      toast.success(t("media.upload.queued", { count: localFiles.length }))
     }
+    if (cloudItems.length > 0) {
+      enqueueCloudItems(cloudItems, parentId)
+    }
+
+    toast.success(t("media.upload.queued", { count: valid.length }))
 
     clearStaging()
     onOpenChange(false)
@@ -130,7 +125,7 @@ export function UploadMediaSheet({
           </TabsList>
 
           <TabsContent value="device" className="min-h-0 flex-1">
-            <MyDeviceTab errorById={validation.errorById} />
+            <MyDeviceTab />
           </TabsContent>
 
           <TabsContent value="stock" className="min-h-0 flex-1">
@@ -159,14 +154,9 @@ export function UploadMediaSheet({
               <Button
                 type="button"
                 size="sm"
-                disabled={
-                  validation.validItems.length === 0 || importCloud.isPending
-                }
-                onClick={() => void handleUpload()}
+                disabled={validation.validItems.length === 0}
+                onClick={handleUpload}
               >
-                {importCloud.isPending ? (
-                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
-                ) : null}
                 {t("media.staging.upload", {
                   count: validation.validItems.length,
                 })}

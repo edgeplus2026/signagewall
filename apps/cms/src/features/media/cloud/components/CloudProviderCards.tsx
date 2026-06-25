@@ -11,10 +11,7 @@ import {
   getGraphToken,
   isUserCancellation,
 } from "@/features/media/cloud/lib/microsoftAuth"
-import {
-  GRAPH_SCOPES,
-  type MicrosoftKind,
-} from "@/features/media/cloud/lib/microsoftGraph"
+import { GRAPH_SCOPES } from "@/features/media/cloud/lib/microsoftGraph"
 import { PROVIDER_ICONS } from "@/features/media/cloud/lib/providerIconMap"
 import { openDropboxPicker } from "@/features/media/cloud/pickers/dropbox"
 import { openGoogleDrivePicker } from "@/features/media/cloud/pickers/googleDrive"
@@ -26,7 +23,6 @@ import type {
 import {
   mediaActionCardClassName,
   mediaActionCardIconClassName,
-  mediaActionCardsGridClassName,
 } from "@/features/media/lib/mediaActionCardStyles"
 import { useStagingStore } from "@/features/media/store/stagingStore"
 import { cn } from "@/lib/utils"
@@ -35,28 +31,28 @@ interface ProviderConfig {
   key: CloudProvider
   /** Sub-key under `media.providers.*` for title/hint. */
   i18nKey: string
-  /** Promise-based picker (Dropbox/Google). Microsoft uses the dialog instead. */
+  /** Promise-based picker (Dropbox/Google): opens its own popup/window. */
   open?: () => Promise<CloudPickResult[]>
-  /** Microsoft browses via Graph in MicrosoftBrowserDialog after sign-in. */
-  microsoft?: MicrosoftKind
+  /** OneDrive signs in via MSAL, then browses Graph in MicrosoftBrowserDialog. */
+  microsoft?: boolean
 }
 
 const PROVIDERS: ProviderConfig[] = [
-  { key: "onedrive", i18nKey: "onedrive", microsoft: "onedrive" },
-  { key: "sharepoint", i18nKey: "sharepoint", microsoft: "sharepoint" },
+  { key: "onedrive", i18nKey: "onedrive", microsoft: true },
   { key: "dropbox", i18nKey: "dropbox", open: openDropboxPicker },
   { key: "google_drive", i18nKey: "googleDrive", open: openGoogleDrivePicker },
-  { key: "google_photos", i18nKey: "googlePhotos", open: openGooglePhotosPicker },
+  {
+    key: "google_photos",
+    i18nKey: "googlePhotos",
+    open: openGooglePhotosPicker,
+  },
 ]
 
 export function CloudProviderCards() {
   const { t } = useTranslation()
   const addCloudItems = useStagingStore((state) => state.addCloudItems)
   const [pending, setPending] = useState<CloudProvider | null>(null)
-  const [msDialog, setMsDialog] = useState<{
-    kind: MicrosoftKind
-    token: string
-  } | null>(null)
+  const [msToken, setMsToken] = useState<string | null>(null)
 
   useEffect(() => {
     // Preload the Dropbox Chooser so its popup opens straight from the click.
@@ -70,11 +66,6 @@ export function CloudProviderCards() {
   const reportError = (key: CloudProvider, error: unknown) => {
     if (error instanceof CloudPickerError && error.code === "cancelled") return
     if (isUserCancellation(error)) return
-    if (error instanceof CloudPickerError && error.code === "signed_in_retry") {
-      // Consent granted on this click; browsing needs a fresh gesture.
-      toast.info(t("media.providers.connectedRetry"))
-      return
-    }
     console.error(`[cloud import: ${key}]`, error)
     if (error instanceof CloudPickerError && error.code === "not_configured") {
       toast.error(t("media.providers.notConfigured"))
@@ -101,15 +92,15 @@ export function CloudProviderCards() {
     }
   }
 
-  // Microsoft: sign in (this click's one popup), then browse via Graph in a
-  // dialog — no second popup, works for personal and work accounts.
-  const handleMicrosoft = async (kind: MicrosoftKind): Promise<void> => {
-    setPending(kind)
+  // OneDrive: sign in (this click's one popup), then browse via Graph in a
+  // dialog — no second popup; works for personal and work/school accounts.
+  const handleMicrosoft = async (): Promise<void> => {
+    setPending("onedrive")
     try {
-      const token = await getGraphToken(GRAPH_SCOPES[kind])
-      setMsDialog({ kind, token })
+      const token = await getGraphToken(GRAPH_SCOPES)
+      setMsToken(token)
     } catch (error) {
-      reportError(kind, error)
+      reportError("onedrive", error)
     } finally {
       setPending(null)
     }
@@ -120,7 +111,7 @@ export function CloudProviderCards() {
       <p className="text-secondary text-xs font-medium">
         {t("media.providers.title")}
       </p>
-      <div className={mediaActionCardsGridClassName}>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {PROVIDERS.map((config) => {
           const Icon = PROVIDER_ICONS[config.key]
           const isPending = pending === config.key
@@ -131,7 +122,7 @@ export function CloudProviderCards() {
               disabled={pending !== null}
               onClick={() => {
                 if (config.microsoft) {
-                  void handleMicrosoft(config.microsoft)
+                  void handleMicrosoft()
                 } else {
                   void handlePicker(config)
                 }
@@ -161,18 +152,17 @@ export function CloudProviderCards() {
         })}
       </div>
 
-      {msDialog ? (
+      {msToken ? (
         <MicrosoftBrowserDialog
-          kind={msDialog.kind}
-          token={msDialog.token}
+          token={msToken}
           onClose={() => {
-            setMsDialog(null)
+            setMsToken(null)
           }}
           onConfirm={(picks) => {
             if (picks.length > 0) {
               addCloudItems(picks)
             }
-            setMsDialog(null)
+            setMsToken(null)
           }}
         />
       ) : null}

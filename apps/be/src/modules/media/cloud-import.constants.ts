@@ -35,11 +35,11 @@ export const HOST_ALLOWLIST: Record<CloudImportProvider, readonly string[]> = {
     '.sharepoint.com',
     '.svc.ms',
     '.1drv.com',
-  ],
-  [CloudImportProvider.SHAREPOINT]: [
-    'graph.microsoft.com',
-    '.sharepoint.com',
-    '.svc.ms',
+    // Personal-account image/video downloads resolve to this content CDN, which
+    // the older allowlist missed — causing every OneDrive image to fail with
+    // `forbidden_host`. Kept narrow (not `.live.com`/`.onedrive.com`) so the
+    // SSRF surface only covers genuine OneDrive content hosts.
+    '.microsoftpersonalcontent.com',
   ],
 };
 
@@ -49,7 +49,6 @@ export const PROVIDER_TO_SOURCE: Record<CloudImportProvider, MediaItemSource> =
     [CloudImportProvider.GOOGLE_DRIVE]: MediaItemSource.GOOGLE_DRIVE,
     [CloudImportProvider.GOOGLE_PHOTOS]: MediaItemSource.GOOGLE_PHOTOS,
     [CloudImportProvider.ONEDRIVE]: MediaItemSource.ONEDRIVE,
-    [CloudImportProvider.SHAREPOINT]: MediaItemSource.SHAREPOINT,
     [CloudImportProvider.DROPBOX]: MediaItemSource.DROPBOX,
   };
 

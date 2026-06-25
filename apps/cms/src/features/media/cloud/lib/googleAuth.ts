@@ -22,16 +22,40 @@ export function getCachedGoogleToken(scope: string): string | null {
   return null
 }
 
+interface GoogleTokenOptions {
+  /**
+   * GIS `prompt`. Default `""` reuses the signed-in account silently.
+   * `"consent"` forces the grant dialog so a sensitive scope (Google Photos)
+   * is actually shown and granted — without it the user can end up with a token
+   * that lacks the scope, and the picker bounces with "connect again".
+   */
+  prompt?: "" | "consent" | "select_account"
+  /** Skip the cache so a fresh consent/selection always takes effect. */
+  skipCache?: boolean
+  /** Pre-select this account email so token and picker tab share an identity. */
+  loginHint?: string
+  /**
+   * Scope that MUST appear in the granted set, else reject. Catches the case
+   * where the user proceeds without granting a sensitive scope.
+   */
+  requireGrantedScope?: string
+}
+
 /**
  * Obtains a short-lived Google OAuth access token for the requested scope via
  * Google Identity Services (implicit token client). Opens a consent popup, so
  * call it from a user gesture. The token is cached and handed to the backend to
  * download the picked bytes, so it must not be revoked client-side.
  */
-export async function getGoogleAccessToken(scope: string): Promise<string> {
-  const cached = getCachedGoogleToken(scope)
-  if (cached) {
-    return cached
+export async function getGoogleAccessToken(
+  scope: string,
+  options: GoogleTokenOptions = {},
+): Promise<string> {
+  if (!options.skipCache) {
+    const cached = getCachedGoogleToken(scope)
+    if (cached) {
+      return cached
+    }
   }
 
   const clientId = requireEnv(cloudEnv.googleClientId)
@@ -46,8 +70,24 @@ export async function getGoogleAccessToken(scope: string): Promise<string> {
     const client = oauth2.initTokenClient({
       client_id: clientId,
       scope,
+      ...(options.loginHint ? { login_hint: options.loginHint } : {}),
+      enable_serial_consent: true,
       callback: (response) => {
         if (response.access_token) {
+          // A token can come back without a sensitive scope being granted —
+          // surface that clearly instead of letting the picker fail cryptically.
+          if (
+            options.requireGrantedScope &&
+            !hasScope(response.scope, options.requireGrantedScope)
+          ) {
+            reject(
+              new CloudPickerError(
+                "failed",
+                `Required permission not granted: ${options.requireGrantedScope}`,
+              ),
+            )
+            return
+          }
           const ttlMs = (response.expires_in ?? 3600) * 1000
           tokenCache.set(scope, {
             token: response.access_token,
@@ -71,6 +111,15 @@ export async function getGoogleAccessToken(scope: string): Promise<string> {
         )
       },
     })
-    client.requestAccessToken({ prompt: "" })
+    client.requestAccessToken({
+      prompt: options.prompt ?? "",
+      ...(options.loginHint ? { hint: options.loginHint } : {}),
+    })
   })
+}
+
+/** Whether `granted` (GIS space-delimited scope string) includes `scope`. */
+function hasScope(granted: string | undefined, scope: string): boolean {
+  if (!granted) return false
+  return granted.split(" ").includes(scope)
 }

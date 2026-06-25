@@ -900,43 +900,41 @@
       }
     },
     "providers": {
-      "title": "Uvezi iz oblak servisa",
-      "onedrive": { "title": "OneDrive", "hint": "Uvezite datoteke sa OneDrive-a" },
-      "sharepoint": {
-        "title": "SharePoint",
-        "hint": "Uvezite datoteke sa SharePoint-a"
+      "title": "Uvezi iz cloud servisa",
+      "onedrive": {
+        "title": "OneDrive",
+        "hint": "Pregledajte svoj OneDrive i uvezite slike i video klipove."
       },
-      "dropbox": { "title": "Dropbox", "hint": "Uvezite datoteke sa Dropbox-a" },
+      "dropbox": {
+        "title": "Dropbox",
+        "hint": "Izaberite slike i video klipove direktno iz Dropbox-a."
+      },
       "googleDrive": {
         "title": "Google Drive",
-        "hint": "Uvezite datoteke sa Google Drive-a"
+        "hint": "Uvezite slike i video zapise iz svog Google Drive-a."
       },
       "googlePhotos": {
         "title": "Google Photos",
-        "hint": "Uvezite datoteke sa Google Photos-a"
+        "hint": "Izaberite slike i video zapise iz Google Photos biblioteke."
       },
-      "notConfigured": "Ovaj servis još nije podešen. Dodajte API kredencijale da biste ga omogućili.",
-      "connectedRetry": "Povezano. Kliknite ponovo na servis da biste pregledali datoteke.",
+      "notConfigured": "Ovaj servis još nije podešen. Dodajte njegove API kredencijale da biste ga omogućili.",
       "pickError": "Otvaranje birača nije uspelo. Pokušajte ponovo.",
       "browseTitle": "Izaberite datoteke",
       "browseHint": "Izaberite slike i video zapise za uvoz.",
       "browseError": "Učitavanje datoteka nije uspelo. Pokušajte ponovo.",
-      "browseEmpty": "Ovaj folder nema slika ni video zapisa.",
+      "browseEmpty": "Ova fascikla nema slike ni video zapise.",
       "addSelected_one": "Dodaj {{count}} stavku",
       "addSelected_few": "Dodaj {{count}} stavke",
       "addSelected_other": "Dodaj {{count}} stavki"
     },
     "staging": {
+      "title": "Izabrani mediji",
+      "description": "Ove stavke će biti uvezene. Sve što nije podržano biće preskočeno.",
       "upload_one": "Otpremi {{count}} stavku",
       "upload_few": "Otpremi {{count}} stavke",
       "upload_other": "Otpremi {{count}} stavki",
       "clear": "Očisti",
       "remove": "Ukloni {{name}}"
-    },
-    "cloudImport": {
-      "success": "Uvezeno {{count}} stavki",
-      "partial": "{{imported}} uvezeno, {{failed}} neuspešno",
-      "error": "Uvoz stavki nije uspeo. Pokušajte ponovo."
     },
     "move": {
       "title": "Premesti stavke",

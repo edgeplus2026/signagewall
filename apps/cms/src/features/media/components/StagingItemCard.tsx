@@ -6,15 +6,13 @@ import { Button } from "@/components/ui/button"
 import { PROVIDER_ICONS } from "@/features/media/cloud/lib/providerIconMap"
 import { formatFileSize } from "@/features/media/lib/mediaUtils"
 import type { StagedItem } from "@/features/media/store/stagingStore"
-import { cn } from "@/lib/utils"
 
 interface StagingItemCardProps {
   item: StagedItem
-  error?: string | undefined
   onRemove: (id: string) => void
 }
 
-export function StagingItemCard({ item, error, onRemove }: StagingItemCardProps) {
+export function StagingItemCard({ item, onRemove }: StagingItemCardProps) {
   const { t } = useTranslation()
   const [failed, setFailed] = useState(false)
   const isVideo = item.mimeType.startsWith("video/")
@@ -23,12 +21,7 @@ export function StagingItemCard({ item, error, onRemove }: StagingItemCardProps)
   const sizeLabel = item.sizeBytes > 0 ? formatFileSize(item.sizeBytes) : null
 
   return (
-    <div
-      className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border bg-panel",
-        error ? "border-danger/60" : "border-secondary",
-      )}
-    >
+    <div className="group border-secondary bg-panel relative flex flex-col overflow-hidden rounded-xl border">
       <div className="bg-sidebar/50 relative flex aspect-4/3 w-full items-center justify-center overflow-hidden">
         {item.previewUrl && !failed ? (
           <img
@@ -70,14 +63,10 @@ export function StagingItemCard({ item, error, onRemove }: StagingItemCardProps)
         <p className="truncate text-sm font-medium text-primary" title={item.name}>
           {item.name}
         </p>
-        {error ? (
-          <p className="text-danger line-clamp-2 text-[11px] leading-4">{error}</p>
-        ) : (
-          <p className="text-secondary text-xs">
-            {t(isVideo ? "media.types.video" : "media.types.image")}
-            {sizeLabel ? ` · ${sizeLabel}` : ""}
-          </p>
-        )}
+        <p className="text-secondary text-xs">
+          {t(isVideo ? "media.types.video" : "media.types.image")}
+          {sizeLabel ? ` · ${sizeLabel}` : ""}
+        </p>
       </div>
     </div>
   )

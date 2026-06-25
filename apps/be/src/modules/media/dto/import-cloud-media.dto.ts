@@ -26,7 +26,6 @@ export enum CloudImportProvider {
   GOOGLE_DRIVE = 'google_drive',
   GOOGLE_PHOTOS = 'google_photos',
   ONEDRIVE = 'onedrive',
-  SHAREPOINT = 'sharepoint',
   DROPBOX = 'dropbox',
 }
 

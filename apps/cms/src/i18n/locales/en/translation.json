@@ -921,22 +921,23 @@
     },
     "providers": {
       "title": "Import from a cloud provider",
-      "onedrive": { "title": "OneDrive", "hint": "Import files from OneDrive" },
-      "sharepoint": {
-        "title": "SharePoint",
-        "hint": "Import files from SharePoint"
+      "onedrive": {
+        "title": "OneDrive",
+        "hint": "Browse your personal OneDrive and import photos & videos."
       },
-      "dropbox": { "title": "Dropbox", "hint": "Import files from Dropbox" },
+      "dropbox": {
+        "title": "Dropbox",
+        "hint": "Pick images & video clips straight from your Dropbox."
+      },
       "googleDrive": {
         "title": "Google Drive",
-        "hint": "Import files from Google Drive"
+        "hint": "Import images & videos stored in your Google Drive."
       },
       "googlePhotos": {
         "title": "Google Photos",
-        "hint": "Import files from Google Photos"
+        "hint": "Choose photos & videos from your Google Photos library."
       },
       "notConfigured": "This provider isn't configured yet. Add its API credentials to enable it.",
-      "connectedRetry": "Connected. Click the provider again to browse your files.",
       "pickError": "Could not open the picker. Please try again.",
       "browseTitle": "Select files",
       "browseHint": "Choose images and videos to import.",
@@ -946,15 +947,12 @@
       "addSelected_other": "Add {{count}} items"
     },
     "staging": {
+      "title": "Selected media",
+      "description": "These items will be imported. Anything unsupported is skipped.",
       "upload_one": "Upload {{count}} item",
       "upload_other": "Upload {{count}} items",
       "clear": "Clear",
       "remove": "Remove {{name}}"
-    },
-    "cloudImport": {
-      "success": "{{count}} item(s) imported",
-      "partial": "{{imported}} imported, {{failed}} failed",
-      "error": "Could not import items. Please try again."
     },
     "move": {
       "title": "Move items",

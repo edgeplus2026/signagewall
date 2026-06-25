@@ -9,8 +9,5 @@ export const mediaActionCardClassName = cn(
 export const mediaActionCardIconClassName =
   "flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar text-secondary group-hover:text-brand"
 
-export const mediaActionCardsGridClassName =
-  "grid lg:grid-cols-3 gap-4"
-
 export const mediaGridClassName =
   "grid grid-cols-[repeat(auto-fill,minmax(11rem,1fr))] gap-3"

@@ -4,18 +4,27 @@
 interface GoogleTokenResponse {
   access_token?: string
   expires_in?: number
+  /** Space-delimited list of scopes the user actually granted. */
+  scope?: string
   error?: string
   error_description?: string
 }
 
 interface GoogleTokenClient {
-  requestAccessToken: (overrides?: { prompt?: string }) => void
+  requestAccessToken: (overrides?: {
+    prompt?: string
+    hint?: string
+  }) => void
 }
 
 interface GoogleOAuth2 {
   initTokenClient: (config: {
     client_id: string
     scope: string
+    /** Pre-selects the account so the picker tab uses the same identity. */
+    login_hint?: string
+    /** Allow incremental consent prompts for sensitive scopes. */
+    enable_serial_consent?: boolean
     callback: (response: GoogleTokenResponse) => void
     error_callback?: (error: { type?: string }) => void
   }) => GoogleTokenClient

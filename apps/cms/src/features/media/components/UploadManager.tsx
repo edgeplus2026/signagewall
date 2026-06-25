@@ -22,10 +22,21 @@ import { cn } from '@/lib/utils'
 function UploadProgressBar({
   value,
   completed,
+  indeterminate,
 }: {
   value: number
   completed?: boolean
+  /** Server-controlled progress we can't measure (cloud import) — animate. */
+  indeterminate?: boolean
 }) {
+  if (indeterminate) {
+    return (
+      <div className="bg-input h-1.5 w-full overflow-hidden rounded-full">
+        <div className="bg-brand h-full w-1/3 animate-[upload-indeterminate_1.2s_ease-in-out_infinite] rounded-full" />
+      </div>
+    )
+  }
+
   return (
     <div className="bg-input h-1.5 w-full overflow-hidden rounded-full">
       <div
@@ -105,6 +116,7 @@ function UploadJobRow({ job }: { job: UploadJob }) {
         <UploadProgressBar
           value={job.status === 'completed' ? 100 : job.progress}
           completed={job.status === 'completed'}
+          indeterminate={job.kind === 'cloud' && job.status === 'uploading'}
         />
       ) : null}
     </div>

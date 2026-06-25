@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 
+import { mediaApi } from '@/features/media/api/mediaApi'
 import { prepareVideoUpload } from '@/features/media/lib/captureVideoPoster'
 import {
   MEDIA_MAX_CONCURRENT_UPLOADS,
@@ -10,6 +11,7 @@ import {
   pollMediaUntilReady,
   uploadMediaFile,
 } from '@/features/media/lib/uploadMediaFile'
+import type { CloudImportItem } from '@/features/media/types/media.types'
 
 export type UploadJobStatus =
   | 'queued'
@@ -19,9 +21,8 @@ export type UploadJobStatus =
   | 'failed'
   | 'cancelled'
 
-export interface UploadJob {
+interface UploadJobBase {
   id: string
-  file: File
   fileName: string
   parentId: string | null
   progress: number
@@ -31,10 +32,29 @@ export interface UploadJob {
   abortController: AbortController
 }
 
+/** A device upload: the bytes are a local `File` streamed to the server. */
+export interface LocalUploadJob extends UploadJobBase {
+  kind: 'local'
+  file: File
+}
+
+/** A cloud import: the server downloads the bytes from the provider for us. */
+export interface CloudUploadJob extends UploadJobBase {
+  kind: 'cloud'
+  item: CloudImportItem
+}
+
+export type UploadJob = LocalUploadJob | CloudUploadJob
+
 interface UploadStoreState {
   jobs: UploadJob[]
   collapsed: boolean
   enqueueFiles: (files: File[], parentId: string | null) => void
+  /** Queues cloud-picked items; each runs as its own job in the shared queue. */
+  enqueueCloudItems: (
+    items: CloudImportItem[],
+    parentId: string | null,
+  ) => void
   cancelJob: (jobId: string) => void
   retryJob: (jobId: string) => void
   clearCompleted: () => void
@@ -47,9 +67,13 @@ let activeUploads = 0
 // status to 'uploading'.
 const startedJobIds = new Set<string>()
 
-function updateJob(jobId: string, patch: Partial<UploadJob>) {
+// Only the mutable runtime fields change after a job is created — never the
+// `kind`/`file`/`item` discriminant — so the patch is typed against the base.
+function updateJob(jobId: string, patch: Partial<UploadJobBase>) {
   useUploadStore.setState((state) => ({
-    jobs: state.jobs.map((job) => (job.id === jobId ? { ...job, ...patch } : job)),
+    jobs: state.jobs.map((job) =>
+      job.id === jobId ? { ...job, ...patch } : job,
+    ),
   }))
 }
 
@@ -57,6 +81,11 @@ async function runUploadJob(jobId: string) {
   const job = useUploadStore.getState().jobs.find((entry) => entry.id === jobId)
 
   if (!job || job.status === 'cancelled') {
+    return
+  }
+
+  if (job.kind === 'cloud') {
+    await runCloudJob(job)
     return
   }
 
@@ -80,7 +109,7 @@ async function runUploadJob(jobId: string) {
       parentId: job.parentId,
       poster,
       ...(videoUpload?.durationSeconds !== undefined &&
-      videoUpload?.durationSeconds !== null
+      videoUpload.durationSeconds !== null
         ? { durationSeconds: videoUpload.durationSeconds }
         : {}),
       signal: job.abortController.signal,
@@ -123,6 +152,57 @@ async function runUploadJob(jobId: string) {
   }
 }
 
+/**
+ * Runs one cloud-import job: the backend downloads the provider bytes and
+ * persists them through the same pipeline as device uploads. We submit a
+ * single-item batch so each picked file gets its own queue row (progress is
+ * coarse — the server controls the download — so it jumps queued → completed).
+ */
+async function runCloudJob(job: CloudUploadJob) {
+  const { id } = job
+  const { signal } = job.abortController
+  try {
+    // Progress is server-controlled and opaque to us, so the row renders an
+    // indeterminate bar while 'uploading' (see UploadManager) — keep it at 0.
+    updateJob(id, { status: 'uploading', progress: 0 })
+
+    const response = await mediaApi.importCloud(
+      { parentId: job.parentId, items: [job.item] },
+      signal,
+    )
+
+    // The user cancelled while the import was in flight — leave the row
+    // 'cancelled' (set by cancelJob) instead of resurrecting it as completed.
+    if (signal.aborted) {
+      updateJob(id, { status: 'cancelled' })
+      return
+    }
+
+    const result = response.results[0]
+    if (result?.status === 'imported') {
+      updateJob(id, {
+        status: 'completed',
+        progress: 100,
+        mediaId: result.mediaId,
+      })
+    } else {
+      updateJob(id, {
+        status: 'failed',
+        error: result?.error ?? 'import_failed',
+      })
+    }
+  } catch (error) {
+    if (signal.aborted) {
+      updateJob(id, { status: 'cancelled' })
+      return
+    }
+    updateJob(id, {
+      status: 'failed',
+      error: error instanceof Error ? error.message : 'import_failed',
+    })
+  }
+}
+
 function processUploadQueue() {
   const { jobs } = useUploadStore.getState()
   const queuedJobs = jobs.filter(
@@ -153,9 +233,30 @@ export const useUploadStore = create<UploadStoreState>((set, get) => ({
 
   enqueueFiles: (files, parentId) => {
     const newJobs: UploadJob[] = files.map((file) => ({
+      kind: 'local',
       id: crypto.randomUUID(),
       file,
       fileName: file.name,
+      parentId,
+      progress: 0,
+      status: 'queued',
+      abortController: new AbortController(),
+    }))
+
+    set((state) => ({
+      jobs: [...newJobs, ...state.jobs],
+      collapsed: false,
+    }))
+
+    processUploadQueue()
+  },
+
+  enqueueCloudItems: (items, parentId) => {
+    const newJobs: UploadJob[] = items.map((item) => ({
+      kind: 'cloud',
+      id: crypto.randomUUID(),
+      item,
+      fileName: item.name,
       parentId,
       progress: 0,
       status: 'queued',
