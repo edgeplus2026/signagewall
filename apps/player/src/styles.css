@@ -125,6 +125,42 @@ body {
   color: #fff;
 }
 
+/* Click-to-copy: strip the native button chrome and inherit the code styling,
+   adding only a subtle affordance + press feedback. Sized to its text and
+   left-aligned so it sits exactly where the static code did in the flex column. */
+.player-pairing__code--button {
+  align-self: flex-start;
+  display: block;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  /* Inherit font-family only — never the `font` shorthand, which would reset
+     font-size and clobber the large clamp() set by .player-pairing__code. */
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transform-origin: left center;
+}
+
+.player-pairing__code--button:hover {
+  opacity: 0.85;
+}
+
+.player-pairing__code--button:active {
+  transform: scale(0.98);
+}
+
+.player-pairing__code--button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 0.1em;
+  border-radius: 0.08em;
+}
+
 /* Placeholder occupies the exact box of the rendered code (same font metrics),
    so swapping in the real code causes zero layout shift. */
 .player-pairing__code--loading {

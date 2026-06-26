@@ -99,6 +99,14 @@ export const screensApi = {
     return data
   },
 
+  /** Presence for every paired device in the org, keyed by screen id. */
+  listDevicePresence: async (): Promise<Record<string, ScreenDevice>> => {
+    const { data } = await api.get<Record<string, ScreenDevice>>(
+      `${SCREENS_BASE}/devices/presence`,
+    )
+    return data
+  },
+
   pairDevice: async (id: string, payload: PairDeviceRequest): Promise<ScreenDevice> => {
     const { data } = await api.post<ScreenDevice>(`${SCREENS_BASE}/${id}/pair`, payload)
     return data
@@ -106,6 +114,14 @@ export const screensApi = {
 
   unpairDevice: async (id: string): Promise<void> => {
     await api.delete(`${SCREENS_BASE}/${id}/device`)
+  },
+
+  setDeviceVolume: async (id: string, volume: number): Promise<ScreenDevice> => {
+    const { data } = await api.patch<ScreenDevice>(
+      `${SCREENS_BASE}/${id}/device/volume`,
+      { volume },
+    )
+    return data
   },
 }
 

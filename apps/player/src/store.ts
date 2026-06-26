@@ -1,6 +1,6 @@
 import { signal, computed } from '@preact/signals'
 
-import { getCachedPairingCode } from './device'
+import { getCachedPairingCode, getStoredVolume } from './device'
 import type {
   ConnectionState,
   PairingCodePayload,
@@ -24,8 +24,8 @@ export const paired = signal<boolean>(false)
 
 export const connection = signal<ConnectionState>('connecting')
 
-/** Whether the user gesture that unlocks audio autoplay has occurred. */
-export const audioUnlocked = signal<boolean>(false)
+/** Playback volume 0–100, set from the CMS; persisted across reboots. */
+export const volume = signal<number>(getStoredVolume())
 
 /** Diagnostics: id of the renderable currently on screen. */
 export const playingItemId = signal<string | null>(null)

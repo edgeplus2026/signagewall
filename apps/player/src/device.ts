@@ -4,6 +4,7 @@ import type { PairingCodePayload } from './types'
 const DEVICE_ID_KEY = 'edge.player.deviceId'
 const TOKEN_KEY = 'edge.player.token'
 const PAIRING_CODE_KEY = 'edge.player.pairingCode'
+const VOLUME_KEY = 'edge.player.volume'
 
 /**
  * In-memory copy of the device id, held for the lifetime of the page. It lets a
@@ -83,6 +84,27 @@ export function getCachedPairingCode(): PairingCodePayload | undefined {
 
 export function clearCachedPairingCode(): void {
   safeRemove(PAIRING_CODE_KEY)
+}
+
+/**
+ * Persisted playback volume (0–100). Cached locally so a reboot keeps the last
+ * set level instantly, before the socket re-delivers the authoritative value.
+ * Defaults to full volume.
+ */
+export function getStoredVolume(): number {
+  const raw = safeGet(VOLUME_KEY)
+  if (raw === null) {
+    return 100
+  }
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed)) {
+    return 100
+  }
+  return Math.min(100, Math.max(0, parsed))
+}
+
+export function setStoredVolume(volume: number): void {
+  safeSet(VOLUME_KEY, String(Math.round(Math.min(100, Math.max(0, volume)))))
 }
 
 export interface DeviceProfile {

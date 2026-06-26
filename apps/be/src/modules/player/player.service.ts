@@ -7,7 +7,9 @@ import { ScreensRepository } from '../screens/screens.repository';
 import { DevicesRepository } from './devices.repository';
 import { PlayerContentService, PlayerSnapshot } from './player-content.service';
 import {
+  DeviceCommandEvent,
   DevicePairedEvent,
+  DevicePresenceChangedEvent,
   DeviceRevokedEvent,
   PlayerEvents,
 } from './player.events';
@@ -39,6 +41,8 @@ export type ConnectResult =
       screenId: string;
       organizationId: string;
       snapshot: PlayerSnapshot;
+      /** Current playback volume 0–100 to apply on connect. */
+      volume: number;
       /** Present only when a token was (re)issued and must be persisted client-side. */
       token?: string;
     };
@@ -49,6 +53,8 @@ export interface DeviceStatusDto {
   deviceId?: string;
   lastSeenAt?: string;
   profile?: ReportedProfile;
+  /** Playback volume 0–100. */
+  volume?: number;
 }
 
 const MAX_CODE_ATTEMPTS = 5;
@@ -126,13 +132,19 @@ export class PlayerService {
       issuedToken = generated.token;
     }
 
-    await this.devicesRepository.setPresence(device.deviceId, true, profile);
+    const updated = await this.devicesRepository.setPresence(
+      device.deviceId,
+      true,
+      profile,
+    );
+    this.emitPresence(updated, true);
 
     return {
       kind: 'paired',
       screenId,
       organizationId,
       snapshot,
+      volume: device.volume ?? 100,
       ...(issuedToken ? { token: issuedToken } : {}),
     };
   }
@@ -254,6 +266,7 @@ export class PlayerService {
       organizationId,
       screenId,
       token: generated.token,
+      volume: paired.volume ?? 100,
     } satisfies DevicePairedEvent);
 
     return this.toDeviceStatus(paired);
@@ -281,6 +294,56 @@ export class PlayerService {
     return this.toDeviceStatus(device);
   }
 
+  /**
+   * Presence for every paired device in the org, keyed by screen id. Lets the
+   * CMS seed its live presence map in one request before the socket takes over.
+   */
+  async listScreenDevices(
+    organizationId: string,
+  ): Promise<Record<string, DeviceStatusDto>> {
+    const devices =
+      await this.devicesRepository.findPairedByOrganization(organizationId);
+
+    const byScreen: Record<string, DeviceStatusDto> = {};
+    for (const device of devices) {
+      const screenId = device.screenId?.toString();
+      if (screenId) {
+        byScreen[screenId] = this.toDeviceStatus(device);
+      }
+    }
+
+    return byScreen;
+  }
+
+  /**
+   * CMS action: set the bound device's playback volume (0–100). Persists it so
+   * it survives reconnects, and pushes a live command to the player if online.
+   */
+  async setScreenDeviceVolume(
+    organizationId: string,
+    screenId: string,
+    volume: number,
+  ): Promise<DeviceStatusDto> {
+    const device = await this.devicesRepository.findByScreenId(screenId);
+
+    if (!device || device.organizationId?.toString() !== organizationId) {
+      throw BusinessException.notFound(this.i18n.t('player.deviceNotFound'));
+    }
+
+    const clamped = Math.round(Math.min(100, Math.max(0, volume)));
+    const updated = await this.devicesRepository.setVolume(
+      device.deviceId,
+      clamped,
+    );
+
+    this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
+      deviceId: device.deviceId,
+      command: { type: 'volume', value: clamped },
+    } satisfies DeviceCommandEvent);
+
+    return this.toDeviceStatus(updated ?? device);
+  }
+
   async unpairScreenDevice(
     organizationId: string,
     screenId: string,
@@ -291,6 +354,11 @@ export class PlayerService {
       return;
     }
 
+    // Tell the CMS the device is gone (not merely offline) while the screen
+    // binding is still readable; `unpair` clears `screenId`, so the presence
+    // event can't be derived afterwards.
+    this.emitPresence(device, false, false);
+
     await this.devicesRepository.unpair(device.deviceId);
     this.emitRevoked(device.deviceId);
   }
@@ -299,15 +367,51 @@ export class PlayerService {
     deviceId: string,
     profile?: ReportedProfile,
   ): Promise<void> {
-    await this.devicesRepository.setPresence(
+    const updated = await this.devicesRepository.setPresence(
       deviceId,
       true,
       this.toDeviceProfile(profile),
     );
+    this.emitPresence(updated, true);
   }
 
   async markOffline(deviceId: string): Promise<void> {
-    await this.devicesRepository.setPresence(deviceId, false);
+    const updated = await this.devicesRepository.setPresence(deviceId, false);
+    this.emitPresence(updated, false);
+  }
+
+  /**
+   * Relays a paired device's online/offline flip (or unpair) to the realtime
+   * CMS channel. Reads the screen binding off `device`, so the caller must pass
+   * the still-bound document — on unpair, call this *before* clearing it.
+   */
+  private emitPresence(
+    device: DeviceDocument | null,
+    online: boolean,
+    paired = true,
+  ): void {
+    if (!device) {
+      return;
+    }
+
+    const organizationId = device.organizationId?.toString();
+    const screenId = device.screenId?.toString();
+
+    if (!organizationId || !screenId) {
+      return;
+    }
+
+    this.eventEmitter.emit(PlayerEvents.DevicePresenceChanged, {
+      organizationId,
+      screenId,
+      deviceId: device.deviceId,
+      online,
+      paired,
+      lastSeenAt: (device.lastSeenAt ?? new Date()).toISOString(),
+      ...(device.profile?.appVersion
+        ? { appVersion: device.profile.appVersion }
+        : {}),
+    } satisfies DevicePresenceChangedEvent);
   }
 
   /** Authenticates a REST player-token request; returns the bound device. */
@@ -341,6 +445,7 @@ export class PlayerService {
       paired: device.status === DeviceStatus.PAIRED,
       online: device.online,
       deviceId: device.deviceId,
+      volume: device.volume ?? 100,
       ...(device.lastSeenAt
         ? { lastSeenAt: device.lastSeenAt.toISOString() }
         : {}),

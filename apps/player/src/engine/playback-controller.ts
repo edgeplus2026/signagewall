@@ -8,11 +8,12 @@ import { Slot, type Surface } from './slot'
  */
 export interface PlaybackSlot {
   readonly el: HTMLElement
-  prepare(item: Renderable, surface: Surface, muted: boolean): Promise<void>
+  prepare(item: Renderable, surface: Surface, volume: number): Promise<void>
   activate(onEnded: () => void): void
   deactivate(): void
   release(): void
-  setMuted(muted: boolean): void
+  setVolume(volume: number): void
+  tryUnmute(): void
 }
 
 const VIDEO_CAP_GRACE_MS = 2_000
@@ -50,7 +51,7 @@ export class PlaybackController {
   private items: Renderable[] = []
   private cursor = 0
   private revision: string | null = null
-  private muted = true
+  private volume = 1
 
   private epoch = 0
   private targetIndex = 0
@@ -80,18 +81,46 @@ export class PlaybackController {
     this.root.append(this.slots[0].el, this.slots[1].el)
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.handleVisibility)
+      // Recover sound on the first video, which the browser's autoplay policy
+      // may have forced to muted in a non-kiosk browser. The first user gesture
+      // grants audio permission; replay it onto the slots once, then detach. On
+      // a kiosk (autoplay-with-sound allowed) the first play() already kept its
+      // sound, so the slots have nothing to unmute and this is harmless.
+      document.addEventListener('pointerdown', this.handleUserGesture)
+      document.addEventListener('keydown', this.handleUserGesture)
     }
   }
 
-  /** Whether videos should play with sound (after the audio-unlock gesture). */
-  setMuted(muted: boolean): void {
-    if (this.muted === muted) {
+  private readonly handleUserGesture = (): void => {
+    // Only attempt the unmute when the browser actually reports an active user
+    // activation; otherwise the unmute would just be rejected (and the picture
+    // would briefly re-enter playback for nothing). Where the API is absent we
+    // optimistically try — the handler fires inside a real gesture anyway.
+    const activation = navigator.userActivation as
+      | { isActive: boolean }
+      | undefined
+    if (activation && !activation.isActive) {
       return
     }
-    this.muted = muted
-    // Apply to the on-screen video too, so unlocking audio takes effect on the
-    // current clip instead of waiting for the next transition.
-    this.slots[this.activeIndex].setMuted(muted)
+    this.slots[0].tryUnmute()
+    this.slots[1].tryUnmute()
+  }
+
+  /**
+   * Sets playback volume (0–1) on both slots so a live change is immediate.
+   * Audio is governed entirely by volume (muted iff 0); there is no separate
+   * gesture-driven unmute, so a 24/7 signage screen never tries to un-mute an
+   * already-playing video — which the browser's autoplay policy would punish by
+   * pausing it.
+   */
+  setVolume(volume: number): void {
+    const clamped = Math.min(1, Math.max(0, volume))
+    if (this.volume === clamped) {
+      return
+    }
+    this.volume = clamped
+    this.slots[0].setVolume(clamped)
+    this.slots[1].setVolume(clamped)
   }
 
   /** Loads a snapshot. Ignored if the revision is unchanged (dedupe). */
@@ -214,6 +243,8 @@ export class PlaybackController {
     this.epoch += 1
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.handleVisibility)
+      document.removeEventListener('pointerdown', this.handleUserGesture)
+      document.removeEventListener('keydown', this.handleUserGesture)
     }
     this.prefetchAbort?.abort()
     this.clearAdvanceTimer()
@@ -308,7 +339,7 @@ export class PlaybackController {
     if (this.preload && this.preload.index === index) {
       prep = this.preload.promise
     } else {
-      prep = back.prepare(item, this.surface(), this.muted)
+      prep = back.prepare(item, this.surface(), this.volume)
     }
     this.preload = null
 
@@ -376,7 +407,7 @@ export class PlaybackController {
     }
 
     const back = this.slots[this.activeIndex ^ 1]
-    const promise = back.prepare(item, this.surface(), this.muted)
+    const promise = back.prepare(item, this.surface(), this.volume)
     this.preload = { index: next, promise }
     promise.catch((error: unknown) => {
       // Only report if this preload is still pending. If showAt already consumed

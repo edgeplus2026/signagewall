@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -23,6 +24,7 @@ import {
   ApiSuccessResponse,
 } from '../../common/swagger';
 import { PairDeviceDto } from './dto/pair-device.dto';
+import { SetDeviceVolumeDto } from './dto/set-device-volume.dto';
 import { PlayerService } from './player.service';
 
 /**
@@ -54,6 +56,13 @@ export class DevicePairingController {
     );
   }
 
+  @Get('devices/presence')
+  @RequireOrgRole()
+  @ApiSuccessResponse(Object)
+  listDevicePresence(@RequiredOrganizationId() organizationId: string) {
+    return this.playerService.listScreenDevices(organizationId);
+  }
+
   @Get(':screenId/device')
   @RequireOrgRole()
   @ApiSuccessResponse(Object)
@@ -62,6 +71,21 @@ export class DevicePairingController {
     @Param('screenId', ParseObjectIdPipe) screenId: string,
   ) {
     return this.playerService.getScreenDevice(organizationId, screenId);
+  }
+
+  @Patch(':screenId/device/volume')
+  @RequireOrgRole()
+  @ApiSuccessResponse(Object)
+  setVolume(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+    @Body() dto: SetDeviceVolumeDto,
+  ) {
+    return this.playerService.setScreenDeviceVolume(
+      organizationId,
+      screenId,
+      dto.volume,
+    );
   }
 
   @Delete(':screenId/device')

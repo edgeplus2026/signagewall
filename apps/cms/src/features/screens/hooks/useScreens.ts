@@ -81,8 +81,8 @@ export function useScreenDevice(id: string | null) {
     queryFn: (): Promise<ScreenDevice | null> =>
       id ? screensApi.getDevice(id) : Promise.resolve(null),
     enabled: Boolean(organizationId && id),
-    // Keep the online/last-seen indicator reasonably fresh while the tab is open.
-    refetchInterval: 15_000,
+    // Online/last-seen is now driven live by the realtime presence socket
+    // (see PresenceProvider); this query only seeds the initial snapshot.
   })
 }
 
@@ -109,9 +109,31 @@ export function useUnpairScreenDevice() {
     mutationFn: (id: string) => screensApi.unpairDevice(id),
     onSuccess: (_data, id) => {
       const organizationId = useOrganizationStore.getState().activeOrganizationId
+      // Flip the tab to "unpaired" instantly, then reconcile with the server.
+      const unpaired: ScreenDevice = { paired: false, online: false }
+      queryClient.setQueryData<ScreenDevice | null>(
+        screenDeviceQueryKey(organizationId, id),
+        unpaired,
+      )
       void queryClient.invalidateQueries({
         queryKey: screenDeviceQueryKey(organizationId, id),
       })
+    },
+  })
+}
+
+export function useSetDeviceVolume() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, volume }: { id: string; volume: number }) =>
+      screensApi.setDeviceVolume(id, volume),
+    onSuccess: (data, variables) => {
+      const organizationId = useOrganizationStore.getState().activeOrganizationId
+      queryClient.setQueryData<ScreenDevice | null>(
+        screenDeviceQueryKey(organizationId, variables.id),
+        data,
+      )
     },
   })
 }

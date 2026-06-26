@@ -564,7 +564,8 @@
       "name": "Naziv",
       "createdAt": "Datum kreiranja",
       "asc": "Rastuće",
-      "desc": "Opadajuće"
+      "desc": "Opadajuće",
+      "status": "Status"
     },
     "view": {
       "grid": "Mrežni prikaz",
@@ -652,7 +653,36 @@
       "unpair": {
         "submit": "Razupari",
         "success": "Uređaj je razuparen.",
-        "error": "Razuparivanje nije uspelo. Pokušajte ponovo."
+        "error": "Razuparivanje nije uspelo. Pokušajte ponovo.",
+        "rowTitle": "Razupari uređaj",
+        "rowDescription": "Otkači ovaj ekran kako se sadržaj više ne bi prikazivao na njemu.",
+        "title": "Razupariti uređaj?",
+        "description": "Ovaj ekran će prestati da prikazuje sadržaj i prikazaće novi kod za uparivanje. Možete ga ponovo upariti u bilo kom trenutku.",
+        "cancel": "Otkaži"
+      },
+      "statusDescription": "Da li je upareni ekran trenutno povezan i prikazuje sadržaj.",
+      "lastSeenDescription": "Poslednji put kada se ekran javio.",
+      "versionDescription": "Verzija plejer aplikacije koja radi na ekranu.",
+      "deviceIdLabel": "ID uređaja",
+      "deviceIdDescription": "Stabilni identifikator uparenog ekrana.",
+      "neverSeen": "Nikada",
+      "unknown": "Nepoznato",
+      "settings": {
+        "title": "Podešavanja",
+        "save": "Sačuvaj izmene"
+      },
+      "details": {
+        "title": "Detalji uređaja"
+      },
+      "volume": {
+        "title": "Jačina zvuka",
+        "description": "Jačina zvuka za reprodukciju videa na ovom ekranu.",
+        "label": "Jačina zvuka",
+        "error": "Promena jačine zvuka nije uspela. Pokušajte ponovo.",
+        "success": "Jačina zvuka je ažurirana."
+      },
+      "dangerZone": {
+        "title": "Opasna zona"
       }
     },
     "update": {
@@ -762,6 +792,12 @@
         "timeRange": "Vreme početka mora biti pre vremena završetka.",
         "dateRange": "Datum završetka mora biti isti ili posle datuma početka."
       }
+    },
+    "filter": {
+      "label": "Status",
+      "all": "Svi",
+      "online": "Na vezi",
+      "offline": "Van veze"
     }
   },
   "media": {

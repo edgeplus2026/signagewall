@@ -30,7 +30,7 @@ class FakeMedia {
 class FakeSlot implements PlaybackSlot {
   readonly el: HTMLElement
   current: Renderable | null = null
-  muted = true
+  volume = 1
 
   constructor(private readonly media: FakeMedia) {
     this.el = { remove: () => undefined } as unknown as HTMLElement
@@ -59,8 +59,12 @@ class FakeSlot implements PlaybackSlot {
     // Buffer reclaim is irrelevant to the fake.
   }
 
-  setMuted(muted: boolean): void {
-    this.muted = muted
+  setVolume(volume: number): void {
+    this.volume = volume
+  }
+
+  tryUnmute(): void {
+    // Audio recovery is exercised at the Slot level, not the loop logic.
   }
 }
 
@@ -222,14 +226,13 @@ describe('PlaybackController', () => {
     }
   })
 
-  it('re-applies mute state to the on-screen video immediately', async () => {
+  it('applies volume changes to both slots immediately', async () => {
     const { controller, slots } = build()
     controller.load(snapshot([video('V')]))
     await flush()
-    const active = slots.find((slot) => slot.current?.id === 'V')
-    expect(active?.muted).toBe(true)
-    controller.setMuted(false)
-    expect(active?.muted).toBe(false)
+    controller.setVolume(0.5)
+    expect(slots[0]?.volume).toBe(0.5)
+    expect(slots[1]?.volume).toBe(0.5)
     controller.destroy()
   })
 

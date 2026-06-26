@@ -48,7 +48,12 @@ export interface PairingCodePayload {
 export interface PairedPayload {
   screenId: string
   token?: string
+  /** Current playback volume 0–100 to apply on connect. */
+  volume?: number
 }
+
+/** Live control command pushed to this device. */
+export type PlayerCommand = { type: 'volume'; value: number }
 
 export type ConnectionState =
   | 'connecting'

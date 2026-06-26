@@ -15,6 +15,7 @@ import PlaylistPage from '@/features/playlists/pages/PlaylistPage'
 import PlaylistsPage from '@/features/playlists/pages/PlaylistsPage'
 import ScreenPage from '@/features/screens/pages/ScreenPage'
 import ScreensPage from '@/features/screens/pages/ScreensPage'
+import { PresenceProvider } from '@/features/screens/providers/PresenceProvider'
 import SettingsPage from '@/features/settings/pages/SettingsPage'
 import { SuperAdminGate } from '@/features/super-admin/components/SuperAdminGate'
 import SuperAdminPage from '@/features/super-admin/pages/SuperAdminPage'
@@ -117,11 +118,20 @@ export const router = createBrowserRouter([
                 handle: { breadcrumb: { labelKey: 'layout.dashboard' } },
               },
               {
-                path: '/screens',
-                element: <ScreensPage />,
-                handle: { breadcrumb: { labelKey: 'layout.screens' } },
+                element: (
+                  <PresenceProvider>
+                    <Outlet />
+                  </PresenceProvider>
+                ),
+                children: [
+                  {
+                    path: '/screens',
+                    element: <ScreensPage />,
+                    handle: { breadcrumb: { labelKey: 'layout.screens' } },
+                  },
+                  { path: '/screens/:screenId', element: <ScreenPage /> },
+                ],
               },
-              { path: '/screens/:screenId', element: <ScreenPage /> },
               {
                 path: '/playlists',
                 element: <PlaylistsPage />,

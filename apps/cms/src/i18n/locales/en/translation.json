@@ -586,7 +586,8 @@
       "name": "Name",
       "createdAt": "Date created",
       "asc": "Ascending",
-      "desc": "Descending"
+      "desc": "Descending",
+      "status": "Status"
     },
     "view": {
       "grid": "Grid view",
@@ -674,7 +675,36 @@
       "unpair": {
         "submit": "Unpair",
         "success": "Device unpaired.",
-        "error": "Could not unpair the device. Please try again."
+        "error": "Could not unpair the device. Please try again.",
+        "rowTitle": "Unpair device",
+        "rowDescription": "Disconnect this display so this screen no longer plays on it.",
+        "title": "Unpair device?",
+        "description": "This display will stop playing this screen's content and will show a new pairing code. You can pair it again at any time.",
+        "cancel": "Cancel"
+      },
+      "statusDescription": "Whether the paired display is currently connected and playing.",
+      "lastSeenDescription": "The last time the display reported in.",
+      "versionDescription": "The player app version running on the display.",
+      "deviceIdLabel": "Device ID",
+      "deviceIdDescription": "Stable identifier of the paired display.",
+      "neverSeen": "Never",
+      "unknown": "Unknown",
+      "settings": {
+        "title": "Settings",
+        "save": "Save changes"
+      },
+      "details": {
+        "title": "Device details"
+      },
+      "volume": {
+        "title": "Volume",
+        "description": "Audio volume for video playback on this display.",
+        "label": "Volume",
+        "error": "Could not change the volume. Please try again.",
+        "success": "Volume updated."
+      },
+      "dangerZone": {
+        "title": "Danger zone"
       }
     },
     "update": {
@@ -783,6 +813,12 @@
         "timeRange": "Start time must be earlier than end time.",
         "dateRange": "End date must be on or after the start date."
       }
+    },
+    "filter": {
+      "label": "Status",
+      "all": "All",
+      "online": "Online",
+      "offline": "Offline"
     }
   },
   "media": {

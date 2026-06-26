@@ -15,7 +15,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { formatDurationSeconds } from "@/features/playlists/lib/playlistUtils"
+import { ScreenPresenceBadge } from "@/features/screens/components/ScreenPresenceBadge"
+import { useScreenPresence } from "@/features/screens/providers/presenceContext"
 import type {
   ScreenManageTab,
   ScreenSummary,
@@ -38,7 +39,7 @@ export function ScreenCard({
   onDelete,
 }: ScreenCardProps) {
   const { t } = useTranslation()
-  const duration = formatDurationSeconds(screen.totalDuration)
+  const presence = useScreenPresence(screen.id)
 
   return (
     <article
@@ -142,11 +143,7 @@ export function ScreenCard({
                 ? t("screens.emptyScreen")
                 : t("screens.content.itemCount", { count: screen.itemCount })}
             </span>
-            {screen.totalDuration > 0 ? (
-              <span className="inline-flex w-fit shrink-0 items-center rounded-md bg-sidebar px-2 py-0.5 text-[11px] font-medium text-primary">
-                {duration}
-              </span>
-            ) : null}
+            <ScreenPresenceBadge device={presence} />
           </div>
         </div>
       </button>

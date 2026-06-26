@@ -54,3 +54,22 @@ export async function clearSnapshot(): Promise<void> {
     // ignore
   }
 }
+
+/** Workbox runtime caches that hold downloaded media bytes. */
+const MEDIA_CACHE_NAMES = ['edge-media', 'edge-video']
+
+/**
+ * Purges every cached media byte (images + video). Called on revoke so an
+ * unpaired display can never resurface a previous screen's content from the SW
+ * cache, even offline.
+ */
+export async function clearMediaCaches(): Promise<void> {
+  if (typeof caches === 'undefined') {
+    return
+  }
+  try {
+    await Promise.all(MEDIA_CACHE_NAMES.map((name) => caches.delete(name)))
+  } catch {
+    // ignore
+  }
+}

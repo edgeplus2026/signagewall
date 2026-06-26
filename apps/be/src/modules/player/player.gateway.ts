@@ -15,6 +15,7 @@ import { PlayerService } from './player.service';
 import type { ReportedProfile } from './player.service';
 import { PlayerEvents, PlayerSocketEvents } from './player.events';
 import type {
+  DeviceCommandEvent,
   DevicePairedEvent,
   DeviceRevokedEvent,
   MediaReadyEvent,
@@ -97,6 +98,7 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await client.join(screenRoom(result.screenId));
       client.emit(PlayerSocketEvents.Paired, {
         screenId: result.screenId,
+        volume: result.volume,
         ...(result.token ? { token: result.token } : {}),
       });
 
@@ -148,6 +150,7 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(deviceRoom(event.deviceId)).emit(PlayerSocketEvents.Paired, {
       screenId: event.screenId,
       token: event.token,
+      volume: event.volume,
     });
 
     await this.pushScreenContent(event.organizationId, event.screenId);
@@ -161,6 +164,13 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // event packet is missed. Disconnecting also removes it from every room.
     this.server.to(deviceRoom(event.deviceId)).emit(PlayerSocketEvents.Revoked);
     this.server.in(deviceRoom(event.deviceId)).disconnectSockets(true);
+  }
+
+  @OnEvent(PlayerEvents.DeviceCommand)
+  onDeviceCommand(event: DeviceCommandEvent): void {
+    this.server
+      .to(deviceRoom(event.deviceId))
+      .emit(PlayerSocketEvents.Command, event.command);
   }
 
   @OnEvent(PlayerEvents.ScreenContentChanged)

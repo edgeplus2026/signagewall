@@ -36,6 +36,16 @@ export class DevicesRepository {
       .exec();
   }
 
+  /** All paired devices in an organization — used to seed CMS presence. */
+  findPairedByOrganization(organizationId: string): Promise<DeviceDocument[]> {
+    return this.deviceModel
+      .find({
+        organizationId: new Types.ObjectId(organizationId),
+        status: DeviceStatus.PAIRED,
+      })
+      .exec();
+  }
+
   findByTokenHash(tokenHash: string): Promise<DeviceDocument | null> {
     return this.deviceModel.findOne({ tokenHash }).exec();
   }
@@ -106,6 +116,15 @@ export class DevicesRepository {
       .exec();
   }
 
+  async setVolume(
+    deviceId: string,
+    volume: number,
+  ): Promise<DeviceDocument | null> {
+    return this.deviceModel
+      .findOneAndUpdate({ deviceId }, { $set: { volume } }, { new: true })
+      .exec();
+  }
+
   async setTokenHash(
     deviceId: string,
     tokenHash: string,
@@ -115,13 +134,14 @@ export class DevicesRepository {
       .exec();
   }
 
+  /** Marks presence and returns the updated device (for downstream events). */
   async setPresence(
     deviceId: string,
     online: boolean,
     profile?: DeviceProfile,
-  ): Promise<void> {
-    await this.deviceModel
-      .updateOne(
+  ): Promise<DeviceDocument | null> {
+    return this.deviceModel
+      .findOneAndUpdate(
         { deviceId },
         {
           $set: {
@@ -130,6 +150,7 @@ export class DevicesRepository {
             ...(profile ? { profile } : {}),
           },
         },
+        { new: true },
       )
       .exec();
   }

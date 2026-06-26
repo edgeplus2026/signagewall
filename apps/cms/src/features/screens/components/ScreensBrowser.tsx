@@ -5,8 +5,9 @@ import {
   LayoutGridIcon,
   ListIcon,
   MonitorIcon,
+  WifiIcon,
 } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useContext, useMemo, useState } from 'react'
 
 import { useViewMode } from '@/hooks/useViewMode'
 import { useTranslation } from 'react-i18next'
@@ -36,10 +37,12 @@ import { DeleteScreenDialog } from '@/features/screens/components/DeleteScreenDi
 import { ScreensBulkActionsBar } from '@/features/screens/components/ScreensBulkActionsBar'
 import { ScreensGrid } from '@/features/screens/components/ScreensGrid'
 import { ScreensTable } from '@/features/screens/components/ScreensTable'
+import { PresenceContext } from '@/features/screens/providers/presenceContext'
 import type {
   ScreenManageTab,
   ScreenSortDirection,
   ScreenSortField,
+  ScreenStatusFilter,
   ScreenSummary,
 } from '@/features/screens/types/screen.types'
 
@@ -69,23 +72,43 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<ScreenSortField>('name')
   const [sortDirection, setSortDirection] = useState<ScreenSortDirection>('asc')
+  const [statusFilter, setStatusFilter] = useState<ScreenStatusFilter>('all')
   const [viewMode, setViewMode] = useViewMode('screens')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteIds, setDeleteIds] = useState<string[]>([])
 
+  const presence = useContext(PresenceContext)
+  const isOnline = useCallback(
+    (screenId: string) => presence[screenId]?.online === true,
+    [presence],
+  )
+
   const filteredScreens = useMemo(() => {
     const query = search.trim().toLowerCase()
-    const matched = query
+    let matched = query
       ? screens.filter((screen) => screen.name.toLowerCase().includes(query))
       : screens
 
+    if (statusFilter !== 'all') {
+      matched = matched.filter((screen) =>
+        statusFilter === 'online' ? isOnline(screen.id) : !isOnline(screen.id),
+      )
+    }
+
     const direction = sortDirection === 'asc' ? 1 : -1
     return [...matched].sort((a, b) => {
-      const comparison =
-        sortBy === 'name' ? a.name.localeCompare(b.name) : a.createdAt.localeCompare(b.createdAt)
+      let comparison: number
+      if (sortBy === 'name') {
+        comparison = a.name.localeCompare(b.name)
+      } else if (sortBy === 'createdAt') {
+        comparison = a.createdAt.localeCompare(b.createdAt)
+      } else {
+        // status: online screens first when ascending.
+        comparison = Number(isOnline(b.id)) - Number(isOnline(a.id))
+      }
       return comparison * direction
     })
-  }, [screens, search, sortBy, sortDirection])
+  }, [screens, search, statusFilter, sortBy, sortDirection, isOnline])
 
   const clearSelection = useCallback(() => {
     setSelectedIds(new Set())
@@ -141,6 +164,23 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
           <TooltipProvider delayDuration={300}>
             <div className="flex min-w-0 flex-wrap items-center gap-2 self-end sm:shrink-0 sm:justify-end sm:self-auto">
               <Select
+                value={statusFilter}
+                onValueChange={(value) => {
+                  setStatusFilter(value as ScreenStatusFilter)
+                }}
+              >
+                <SelectTrigger size="default" className="h-8 w-28">
+                  <WifiIcon className="text-secondary size-3.5" />
+                  <SelectValue placeholder={t('screens.filter.label')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('screens.filter.all')}</SelectItem>
+                  <SelectItem value="online">{t('screens.filter.online')}</SelectItem>
+                  <SelectItem value="offline">{t('screens.filter.offline')}</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
                 value={sortBy}
                 onValueChange={(value) => {
                   setSortBy(value as ScreenSortField)
@@ -153,6 +193,7 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
                 <SelectContent>
                   <SelectItem value="name">{t('screens.sort.name')}</SelectItem>
                   <SelectItem value="createdAt">{t('screens.sort.createdAt')}</SelectItem>
+                  <SelectItem value="status">{t('screens.sort.status')}</SelectItem>
                 </SelectContent>
               </Select>
 

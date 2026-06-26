@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import { PlaybackController } from '../engine/playback-controller'
 import { reportError } from '../sentry'
-import { audioUnlocked, lastError, playingItemId, snapshot } from '../store'
+import { lastError, playingItemId, snapshot, volume } from '../store'
 
 /** Hide the back/next controls after this long without user activity. */
 const CONTROLS_HIDE_MS = 3_000
@@ -73,7 +73,7 @@ export function Stage() {
     window.addEventListener('online', onOnline)
 
     const stop = effect(() => {
-      controller.setMuted(!audioUnlocked.value)
+      controller.setVolume(volume.value / 100)
       const snap = snapshot.value
       if (snap) {
         controller.load(snap)

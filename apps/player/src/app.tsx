@@ -2,7 +2,7 @@ import { useEffect } from 'preact/hooks'
 
 import { getToken } from './device'
 import { loadSnapshot } from './persistence/idb'
-import { audioUnlocked, paired, snapshot, view } from './store'
+import { paired, snapshot, view } from './store'
 import { connectPlayer } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
 import { ErrorBoundary } from './ui/ErrorBoundary'
@@ -17,24 +17,14 @@ export function App() {
       paired.value = true
     }
     void loadSnapshot().then((persisted) => {
-      if (persisted && !snapshot.value) {
+      // Re-hydrate only while still paired: a revoke that lands before this
+      // resolves clears the token, and we must not resurface old content.
+      if (persisted && !snapshot.value && getToken()) {
         snapshot.value = persisted
       }
     })
 
     connectPlayer()
-
-    // The first user gesture unlocks audio so subsequent videos can play unmuted.
-    const unlock = (): void => {
-      audioUnlocked.value = true
-    }
-    window.addEventListener('pointerdown', unlock, { once: true })
-    window.addEventListener('keydown', unlock, { once: true })
-
-    return () => {
-      window.removeEventListener('pointerdown', unlock)
-      window.removeEventListener('keydown', unlock)
-    }
   }, [])
 
   const current = view.value

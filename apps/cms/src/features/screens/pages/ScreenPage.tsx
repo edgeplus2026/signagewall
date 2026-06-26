@@ -7,8 +7,10 @@ import { ScreenAvailabilityTab } from '@/features/screens/components/ScreenAvail
 import { ScreenBreadcrumb } from '@/features/screens/components/ScreenBreadcrumb'
 import { ScreenContentTab } from '@/features/screens/components/ScreenContentTab'
 import { ScreenDeviceTab } from '@/features/screens/components/ScreenDeviceTab'
+import { ScreenPresenceBadge } from '@/features/screens/components/ScreenPresenceBadge'
 import { ScreenSettingsTab } from '@/features/screens/components/ScreenSettingsTab'
-import { useScreen, useScreenAvailability } from '@/features/screens/hooks/useScreens'
+import { useScreen, useScreenAvailability, useScreenDevice } from '@/features/screens/hooks/useScreens'
+import { useScreenPresence } from '@/features/screens/providers/presenceContext'
 import type { ScreenManageTab } from '@/features/screens/types/screen.types'
 import { cn } from '@/lib/utils'
 
@@ -28,6 +30,11 @@ export default function ScreenPage() {
   const { data: availability, isLoading: isAvailabilityLoading } = useScreenAvailability(
     screenId ?? null,
   )
+  // Prefer the live socket presence; fall back to the REST snapshot so a
+  // freshly-paired device shows status before the next socket push.
+  const livePresence = useScreenPresence(screenId ?? undefined)
+  const { data: deviceSnapshot } = useScreenDevice(screenId ?? null)
+  const presence = livePresence ?? deviceSnapshot ?? undefined
   const isContentTab = activeTab === 'content'
 
   if (!screenId) {
@@ -84,12 +91,16 @@ export default function ScreenPage() {
           }}
           className={cn('flex min-h-0 flex-1 flex-col gap-4', isContentTab && 'overflow-hidden')}
         >
-          <TabsList variant="line" className="w-fit shrink-0">
-            <TabsTrigger value="content">{t('screens.manage.tabs.content')}</TabsTrigger>
-            <TabsTrigger value="device">{t('screens.manage.tabs.device')}</TabsTrigger>
-            <TabsTrigger value="settings">{t('screens.manage.tabs.settings')}</TabsTrigger>
-            <TabsTrigger value="availability">{t('screens.manage.tabs.availability')}</TabsTrigger>
-          </TabsList>
+          <div className="flex shrink-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <TabsList variant="line" className="w-fit shrink-0">
+              <TabsTrigger value="content">{t('screens.manage.tabs.content')}</TabsTrigger>
+              <TabsTrigger value="device">{t('screens.manage.tabs.device')}</TabsTrigger>
+              <TabsTrigger value="settings">{t('screens.manage.tabs.settings')}</TabsTrigger>
+              <TabsTrigger value="availability">{t('screens.manage.tabs.availability')}</TabsTrigger>
+            </TabsList>
+
+            <ScreenPresenceBadge device={presence} className="sm:ml-auto" />
+          </div>
 
           <div
             className={cn(

@@ -5,5 +5,6 @@
   "pairingCodeUnavailable": "Nije moguće generisati jedinstven kod. Pokušajte ponovo.",
   "pairingFailed": "Uparivanje nije uspelo. Pokušajte ponovo.",
   "tokenRequired": "Token uređaja je obavezan.",
-  "invalidToken": "Token uređaja nije ispravan ili je opozvan."
+  "invalidToken": "Token uređaja nije ispravan ili je opozvan.",
+  "deviceNotFound": "Nema uparenog uređaja za ovaj ekran."
 }

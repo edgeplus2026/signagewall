@@ -78,6 +78,10 @@ export class Device {
   @Prop({ default: false })
   online!: boolean;
 
+  /** Playback volume 0–100, applied by the player to its video audio. */
+  @Prop({ default: 100, min: 0, max: 100 })
+  volume!: number;
+
   @Prop({ type: DeviceProfileSchema })
   profile?: DeviceProfile;
 

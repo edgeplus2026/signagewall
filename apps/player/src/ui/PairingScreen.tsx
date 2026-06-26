@@ -1,5 +1,33 @@
+import { useState } from "preact/hooks";
+
 import splashImage from "../assets/images/splashscreen.jpg";
 import { connection, pairingCode, paired } from "../store";
+
+/** Copies text to the clipboard, falling back to a hidden textarea on older TVs. */
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fall through to the legacy path (e.g. insecure origin / kiosk browser).
+  }
+
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return ok;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Branded full-screen splash shown whenever there is nothing to play: while the
@@ -9,6 +37,19 @@ import { connection, pairingCode, paired } from "../store";
 export function PairingScreen() {
   const code = pairingCode.value?.code;
   const isOnline = connection.value === "online";
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (): void => {
+    if (!code) return;
+    void copyToClipboard(code).then((ok) => {
+      if (ok) {
+        setCopied(true);
+        window.setTimeout(() => {
+          setCopied(false);
+        }, 1500);
+      }
+    });
+  };
 
   return (
     <div class="player-pairing">
@@ -27,7 +68,15 @@ export function PairingScreen() {
           <>
             <p class="player-pairing__label">Registration code</p>
             {code ? (
-              <div class="player-pairing__code">{code}</div>
+              <button
+                type="button"
+                class="player-pairing__code player-pairing__code--button"
+                onClick={handleCopy}
+                title="Click to copy"
+                aria-label={`Registration code ${code}. Click to copy.`}
+              >
+                {code}
+              </button>
             ) : (
               <div
                 class="player-pairing__code player-pairing__code--loading"
@@ -37,8 +86,10 @@ export function PairingScreen() {
                 <span class="player-pairing__skeleton" />
               </div>
             )}
-            <p class="player-pairing__hint">
-              Enter this code in your Edge dashboard to connect this screen.
+            <p class="player-pairing__hint" aria-live="polite">
+              {copied
+                ? "Code copied to clipboard."
+                : "Enter this code in your Edge dashboard to connect this screen."}
             </p>
           </>
         )}

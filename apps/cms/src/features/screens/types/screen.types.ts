@@ -1,8 +1,10 @@
 export type ScreenViewMode = 'grid' | 'list'
 
-export type ScreenSortField = 'name' | 'createdAt'
+export type ScreenSortField = 'name' | 'createdAt' | 'status'
 
 export type ScreenSortDirection = 'asc' | 'desc'
+
+export type ScreenStatusFilter = 'all' | 'online' | 'offline'
 
 export type ScreenItemType = 'media' | 'playlist' | 'app'
 
@@ -23,6 +25,8 @@ export interface ScreenDevice {
   deviceId?: string
   lastSeenAt?: string
   profile?: ScreenDeviceProfile
+  /** Playback volume 0–100. */
+  volume?: number
 }
 
 export interface PairDeviceRequest {

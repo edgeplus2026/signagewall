@@ -24,6 +24,16 @@ export class Slot {
   private readonly appHost: HTMLDivElement
   private current: Renderable | null = null
   private endedHandler: (() => void) | null = null
+  /** Playback volume 0–1, applied to the `<video>` element. */
+  private volume = 1
+  /**
+   * Set when {@link activate} wanted sound (volume > 0) but the browser's
+   * autoplay policy forced us to fall back to muted playback to keep the
+   * picture. The very first video on a page without sticky user activation hits
+   * this; {@link tryUnmute} clears it once we're allowed to enable sound (a user
+   * gesture in a normal browser; immediately on a kiosk where it never trips).
+   */
+  private wantsAudioButMuted = false
   /**
    * Bumped on every {@link prepare}/{@link release}. Async prepare work (image
    * decode + retry, video readiness) captures the seq at start and bails if it
@@ -64,30 +74,46 @@ export class Slot {
    * decoded/buffered enough to show without a flash. Rejects on load error or
    * timeout so the controller can skip the item instead of blocking the loop.
    */
-  async prepare(item: Renderable, surface: Surface, muted: boolean): Promise<void> {
+  async prepare(item: Renderable, surface: Surface, volume: number): Promise<void> {
     this.release()
     const seq = this.prepareSeq
     this.current = item
+    this.volume = Math.min(1, Math.max(0, volume))
 
     if (item.kind === 'image') {
       await this.prepareImage(item.url, seq)
       return
     }
     if (item.kind === 'video') {
-      await this.prepareVideo(item.url, muted, seq)
+      await this.prepareVideo(item.url, seq)
       return
     }
     this.prepareApp(item, surface)
   }
 
   /**
-   * Applies the audio-unlock state to a video that is already playing, so the
-   * unlock gesture un-mutes the current clip immediately rather than only from
-   * the next item. No-op for non-video content.
+   * Live volume change applied to the on-screen video. `volume` is always safe;
+   * the mute state tracks `volume === 0`. Unmuting a playing element without
+   * prior user activation makes the browser pause it — so when that happens we
+   * recover by resuming muted, keeping the picture alive. On a real signage
+   * device (autoplay-with-sound allowed) the unmute simply sticks and sound
+   * returns immediately.
    */
-  setMuted(muted: boolean): void {
-    if (this.current?.kind === 'video') {
-      this.video.muted = muted
+  setVolume(volume: number): void {
+    this.volume = Math.min(1, Math.max(0, volume))
+    if (this.current?.kind !== 'video') {
+      return
+    }
+    this.video.volume = this.volume
+    const shouldMute = this.volume === 0
+    if (this.video.muted === shouldMute) {
+      return
+    }
+    const wasPlaying = !this.video.paused
+    this.video.muted = shouldMute
+    if (wasPlaying && this.video.paused) {
+      this.video.muted = true
+      void this.video.play().catch(() => undefined)
     }
   }
 
@@ -98,16 +124,70 @@ export class Slot {
     if (this.current?.kind === 'video') {
       this.endedHandler = onEnded
       this.video.onended = () => this.endedHandler?.()
+      this.wantsAudioButMuted = false
       try {
         this.video.currentTime = 0
       } catch {
         // Some sources disallow seeking before play; safe to ignore.
       }
+      // Set the audio state *before* play() — never unmute a playing element.
+      this.video.volume = this.volume
+      this.video.muted = this.volume === 0
       void this.video.play().catch(() => {
-        // Autoplay can be blocked until the audio-unlock gesture; the
-        // controller's duration timer still advances the loop.
+        // Autoplay with sound needs a user gesture / kiosk flag; without it the
+        // play() rejects (cleanly, no "unmuting paused" warning). Guarantee the
+        // picture by falling back to muted playback — but remember we owe sound,
+        // so the next user gesture (or kiosk unmute) can restore it. Without this
+        // the *first* video on the page would stay silent forever even though
+        // its volume is 100%.
+        if (!this.video.muted) {
+          this.wantsAudioButMuted = true
+          this.video.muted = true
+          void this.video.play().catch(() => undefined)
+        }
       })
     }
+  }
+
+  /**
+   * Restores sound on a video that {@link activate} had to fall back to muted
+   * (the first-video autoplay case). Called on the first user gesture in a
+   * normal browser; a no-op once sound is already on.
+   *
+   * We must not flip `muted = false` on the *playing* element: if the gesture
+   * didn't actually grant audio permission, the browser pauses the element and
+   * logs "Unmuting failed and the element was paused…". Instead we re-enter
+   * playback cleanly — pause, unmute while paused, then `play()`. That play()
+   * runs in the gesture's call stack, so it either resumes *with* sound (the
+   * common case) or rejects, in which case we restore muted playback. Either
+   * way the browser never emits the unmute-paused warning.
+   */
+  tryUnmute(): void {
+    if (
+      !this.wantsAudioButMuted ||
+      this.current?.kind !== 'video' ||
+      this.volume === 0
+    ) {
+      return
+    }
+    // Clear up front so a play() rejection below doesn't re-arm an unmute loop
+    // on every subsequent gesture.
+    this.wantsAudioButMuted = false
+    const resumeAt = this.video.currentTime
+    this.video.pause()
+    this.video.volume = this.volume
+    this.video.muted = false
+    void this.video.play().catch(() => {
+      // Still no audio permission — keep the picture by resuming muted.
+      this.video.muted = true
+      try {
+        this.video.currentTime = resumeAt
+      } catch {
+        // Seeking may be disallowed mid-stream; resuming from the current
+        // position is an acceptable fallback.
+      }
+      void this.video.play().catch(() => undefined)
+    })
   }
 
   /**
@@ -125,6 +205,7 @@ export class Slot {
     this.el.classList.remove('is-active')
     this.endedHandler = null
     this.video.onended = null
+    this.wantsAudioButMuted = false
 
     if (!this.video.paused) {
       this.video.pause()
@@ -188,7 +269,7 @@ export class Slot {
     })
   }
 
-  private prepareVideo(url: string, muted: boolean, seq: number): Promise<void> {
+  private prepareVideo(url: string, seq: number): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const timeout = window.setTimeout(() => {
         cleanup()
@@ -220,7 +301,10 @@ export class Slot {
         this.video.removeEventListener('error', onError)
       }
 
-      this.video.muted = muted
+      // Load muted as an autoplay-safe baseline; activate() sets the real
+      // muted/volume just before play().
+      this.video.muted = true
+      this.video.volume = this.volume
       this.video.addEventListener('canplaythrough', onReady, { once: true })
       this.video.addEventListener('error', onError, { once: true })
       this.video.src = url

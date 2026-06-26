@@ -8,9 +8,10 @@ import {
   getProfile,
   getToken,
   setCachedPairingCode,
+  setStoredVolume,
   setToken,
 } from '../device'
-import { saveSnapshot } from '../persistence/idb'
+import { clearMediaCaches, clearSnapshot, saveSnapshot } from '../persistence/idb'
 import {
   connection,
   lastError,
@@ -18,12 +19,24 @@ import {
   pairingCode,
   playingItemId,
   snapshot,
+  volume,
 } from '../store'
 import type {
   PairedPayload,
   PairingCodePayload,
+  PlayerCommand,
   PlayerSnapshot,
 } from '../types'
+
+/** Applies + persists a new volume (0–100), ignoring out-of-range values. */
+function applyVolume(next: number): void {
+  if (!Number.isFinite(next)) {
+    return
+  }
+  const clamped = Math.min(100, Math.max(0, Math.round(next)))
+  volume.value = clamped
+  setStoredVolume(clamped)
+}
 
 const HEARTBEAT_MS = 30_000
 
@@ -62,8 +75,16 @@ export function connectPlayer(): void {
   socket.io.on('reconnect_attempt', () => {
     connection.value = 'reconnecting'
   })
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
     connection.value = 'offline'
+    // A server-initiated disconnect (e.g. on unpair/revoke) sets the reason to
+    // 'io server disconnect', and socket.io does NOT auto-reconnect in that
+    // case. Reconnect manually so the player immediately re-handshakes
+    // token-less and gets a fresh pairing code — no page refresh required.
+    if (reason === 'io server disconnect') {
+      connection.value = 'reconnecting'
+      socket?.connect()
+    }
   })
 
   socket.on('pairing:code', (payload: PairingCodePayload) => {
@@ -76,6 +97,9 @@ export function connectPlayer(): void {
     if (payload.token) {
       setToken(payload.token)
     }
+    if (payload.volume !== undefined) {
+      applyVolume(payload.volume)
+    }
     paired.value = true
     pairingCode.value = null
     clearCachedPairingCode()
@@ -86,11 +110,24 @@ export function connectPlayer(): void {
     void saveSnapshot(next)
   })
 
+  socket.on('command', (command: PlayerCommand) => {
+    if (command?.type === 'volume') {
+      applyVolume(command.value)
+    }
+  })
+
   socket.on('paired:revoked', () => {
+    // Fully reset to an unpaired slate: drop the token, stop playback, and wipe
+    // every persisted trace of the old screen (cached snapshot + media bytes)
+    // so the display can never resurface revoked content — even after a reload
+    // or while offline.
     clearToken()
     clearCachedPairingCode()
     paired.value = false
     snapshot.value = null
+    playingItemId.value = null
+    void clearSnapshot()
+    void clearMediaCaches()
   })
 
   startHeartbeat()
