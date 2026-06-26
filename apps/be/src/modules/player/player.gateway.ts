@@ -99,6 +99,7 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit(PlayerSocketEvents.Paired, {
         screenId: result.screenId,
         volume: result.volume,
+        settings: result.settings,
         ...(result.token ? { token: result.token } : {}),
       });
 
@@ -151,6 +152,7 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       screenId: event.screenId,
       token: event.token,
       volume: event.volume,
+      settings: event.settings,
     });
 
     await this.pushScreenContent(event.organizationId, event.screenId);

@@ -1,8 +1,17 @@
 import { signal, computed } from '@preact/signals'
 
-import { getCachedPairingCode, getStoredVolume } from './device'
+import {
+  getCachedPairingCode,
+  getStoredDailyReload,
+  getStoredOrientation,
+  getStoredScale,
+  getStoredVolume,
+} from './device'
 import type {
   ConnectionState,
+  DailyReloadSetting,
+  DeviceOrientation,
+  DeviceScale,
   PairingCodePayload,
   PlayerSnapshot,
 } from './types'
@@ -26,6 +35,15 @@ export const connection = signal<ConnectionState>('connecting')
 
 /** Playback volume 0–100, set from the CMS; persisted across reboots. */
 export const volume = signal<number>(getStoredVolume())
+
+/** Screen orientation, set from the CMS; persisted across reboots. */
+export const orientation = signal<DeviceOrientation>(getStoredOrientation())
+
+/** Content scale (object-fit mode), set from the CMS; persisted. */
+export const scale = signal<DeviceScale>(getStoredScale())
+
+/** Automatic daily-reload setting, set from the CMS; persisted + offline-safe. */
+export const dailyReload = signal<DailyReloadSetting>(getStoredDailyReload())
 
 /** Diagnostics: id of the renderable currently on screen. */
 export const playingItemId = signal<string | null>(null)

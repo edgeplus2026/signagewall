@@ -24,6 +24,9 @@ import {
   ApiSuccessResponse,
 } from '../../common/swagger';
 import { PairDeviceDto } from './dto/pair-device.dto';
+import { SetDeviceDailyReloadDto } from './dto/set-device-daily-reload.dto';
+import { SetDeviceOrientationDto } from './dto/set-device-orientation.dto';
+import { SetDeviceScaleDto } from './dto/set-device-scale.dto';
 import { SetDeviceVolumeDto } from './dto/set-device-volume.dto';
 import { PlayerService } from './player.service';
 
@@ -86,6 +89,63 @@ export class DevicePairingController {
       screenId,
       dto.volume,
     );
+  }
+
+  @Patch(':screenId/device/orientation')
+  @RequireOrgRole()
+  @ApiSuccessResponse(Object)
+  setOrientation(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+    @Body() dto: SetDeviceOrientationDto,
+  ) {
+    return this.playerService.setScreenDeviceOrientation(
+      organizationId,
+      screenId,
+      dto.orientation,
+    );
+  }
+
+  @Patch(':screenId/device/scale')
+  @RequireOrgRole()
+  @ApiSuccessResponse(Object)
+  setScale(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+    @Body() dto: SetDeviceScaleDto,
+  ) {
+    return this.playerService.setScreenDeviceScale(
+      organizationId,
+      screenId,
+      dto.scale,
+    );
+  }
+
+  @Patch(':screenId/device/daily-reload')
+  @RequireOrgRole()
+  @ApiSuccessResponse(Object)
+  setDailyReload(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+    @Body() dto: SetDeviceDailyReloadDto,
+  ) {
+    return this.playerService.setScreenDeviceDailyReload(
+      organizationId,
+      screenId,
+      { enabled: dto.enabled, time: dto.time },
+    );
+  }
+
+  @Post(':screenId/device/restart')
+  @RequireOrgRole()
+  @HttpCode(HttpStatus.OK)
+  @ApiSuccessNullResponse()
+  async restart(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+  ): Promise<null> {
+    await this.playerService.restartScreenDevice(organizationId, screenId);
+    return null;
   }
 
   @Delete(':screenId/device')

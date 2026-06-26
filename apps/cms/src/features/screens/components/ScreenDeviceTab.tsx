@@ -3,18 +3,20 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { DeviceVolumeControl } from '@/features/screens/components/DeviceVolumeControl'
+import { DeviceSettingsForm } from '@/features/screens/components/DeviceSettingsForm'
 import { PairingCodeFrame } from '@/features/screens/components/PairingCodeFrame'
 import { ScreenPresenceBadge } from '@/features/screens/components/ScreenPresenceBadge'
 import { UnpairDeviceDialog } from '@/features/screens/components/UnpairDeviceDialog'
 import {
   usePairScreenDevice,
   useScreenDevice,
-  useSetDeviceVolume,
   useUnpairScreenDevice,
 } from '@/features/screens/hooks/useScreens'
 import { useScreenPresence } from '@/features/screens/providers/presenceContext'
-import type { ScreenDevice } from '@/features/screens/types/screen.types'
+import {
+  DEFAULT_DEVICE_SETTINGS,
+  type ScreenDevice,
+} from '@/features/screens/types/screen.types'
 import {
   SettingsRow,
   SettingsSection,
@@ -51,6 +53,7 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
     : undefined
 
   const savedVolume = device?.volume ?? 100
+  const savedSettings = device?.settings ?? DEFAULT_DEVICE_SETTINGS
 
   // Accept the code explicitly so auto-submit (on paste/complete) uses the
   // just-entered value rather than the not-yet-flushed `code` state.
@@ -87,10 +90,10 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
 
       {paired ? (
         <div className="flex flex-col gap-7">
-          <DeviceVolumeSettings
-            key={savedVolume}
+          <DeviceSettingsForm
             screenId={screenId}
             savedVolume={savedVolume}
+            savedSettings={savedSettings}
           />
 
           <SettingsSection title={t('screens.device.details.title')}>
@@ -168,59 +171,5 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
         isPending={unpair.isPending}
       />
     </div>
-  )
-}
-
-interface DeviceVolumeSettingsProps {
-  screenId: string
-  savedVolume: number
-}
-
-/**
- * The "Settings" section: a volume slider committed via Save changes (no live
- * push). Keyed on `savedVolume` by the parent, so it remounts — and the draft
- * resets — whenever the persisted value changes.
- */
-function DeviceVolumeSettings({
-  screenId,
-  savedVolume,
-}: DeviceVolumeSettingsProps) {
-  const { t } = useTranslation()
-  const setVolume = useSetDeviceVolume()
-  const [draft, setDraft] = useState(savedVolume)
-  const dirty = draft !== savedVolume
-
-  const onSave = async () => {
-    try {
-      await setVolume.mutateAsync({ id: screenId, volume: draft })
-      toast.success(t('screens.device.volume.success'))
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, t('screens.device.volume.error')))
-    }
-  }
-
-  return (
-    <SettingsSection title={t('screens.device.settings.title')}>
-      <SettingsRow
-        label={t('screens.device.volume.title')}
-        description={t('screens.device.volume.description')}
-      >
-        <DeviceVolumeControl
-          value={draft}
-          onChange={setDraft}
-          disabled={setVolume.isPending}
-        />
-      </SettingsRow>
-
-      <div className="flex justify-end px-4 py-3">
-        <Button
-          size="sm"
-          onClick={() => void onSave()}
-          disabled={!dirty || setVolume.isPending}
-        >
-          {t('screens.device.settings.save')}
-        </Button>
-      </div>
-    </SettingsSection>
   )
 }

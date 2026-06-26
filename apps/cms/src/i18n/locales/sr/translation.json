@@ -651,14 +651,14 @@
         "error": "Uparivanje nije uspelo. Proverite kod i pokušajte ponovo."
       },
       "unpair": {
-        "submit": "Razupari",
+        "submit": "Odbaci",
         "success": "Uređaj je razuparen.",
-        "error": "Razuparivanje nije uspelo. Pokušajte ponovo.",
-        "rowTitle": "Razupari uređaj",
+        "error": "Odbacivanje nije uspelo. Pokušajte ponovo.",
+        "rowTitle": "Odbaci uređaj",
         "rowDescription": "Otkači ovaj ekran kako se sadržaj više ne bi prikazivao na njemu.",
-        "title": "Razupariti uređaj?",
+        "title": "Odbaciti uređaj?",
         "description": "Ovaj ekran će prestati da prikazuje sadržaj i prikazaće novi kod za uparivanje. Možete ga ponovo upariti u bilo kom trenutku.",
-        "cancel": "Otkaži"
+        "cancel": "Odbaci"
       },
       "statusDescription": "Da li je upareni ekran trenutno povezan i prikazuje sadržaj.",
       "lastSeenDescription": "Poslednji put kada se ekran javio.",
@@ -668,8 +668,13 @@
       "neverSeen": "Nikada",
       "unknown": "Nepoznato",
       "settings": {
-        "title": "Podešavanja",
-        "save": "Sačuvaj izmene"
+        "title": "Prikaz",
+        "save": "Sačuvaj izmene",
+        "success": "Podešavanja prikaza su ažurirana.",
+        "error": "Ažuriranje podešavanja prikaza nije uspelo. Pokušajte ponovo."
+      },
+      "maintenance": {
+        "title": "Održavanje"
       },
       "details": {
         "title": "Detalji uređaja"
@@ -680,6 +685,41 @@
         "label": "Jačina zvuka",
         "error": "Promena jačine zvuka nije uspela. Pokušajte ponovo.",
         "success": "Jačina zvuka je ažurirana."
+      },
+      "orientation": {
+        "title": "Orijentacija",
+        "description": "Kako je slika rotirana na ovom ekranu.",
+        "options": {
+          "landscape": "Pejzaž",
+          "landscape-flipped": "Pejzaž (naopako)",
+          "portrait": "Portret",
+          "portrait-flipped": "Portret (naopako)"
+        }
+      },
+      "scale": {
+        "title": "Skaliranje",
+        "description": "Kako se sadržaj uklapa u ekran.",
+        "options": {
+          "none": "Bez (stvarna veličina)",
+          "fit": "Uklopi (zadrži proporcije)",
+          "stretch": "Rastegni (popuni, izobliči)",
+          "zoom": "Zumiraj (popuni, iseci)"
+        }
+      },
+      "dailyReload": {
+        "title": "Dnevni restart",
+        "description": "Automatski restartuj plejer jednom dnevno, po lokalnom vremenu ekrana.",
+        "enabledLabel": "Omogući dnevni restart",
+        "timeLabel": "Vreme restarta",
+        "success": "Dnevni restart je ažuriran.",
+        "error": "Ažuriranje dnevnog restarta nije uspelo. Pokušajte ponovo."
+      },
+      "restart": {
+        "title": "Restartuj plejer",
+        "description": "Odmah restartuj plejer na ovom ekranu.",
+        "button": "Restartuj",
+        "success": "Komanda za restart je poslata.",
+        "error": "Restartovanje plejera nije uspelo. Pokušajte ponovo."
       },
       "dangerZone": {
         "title": "Opasna zona"

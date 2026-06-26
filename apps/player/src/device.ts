@@ -1,10 +1,26 @@
 import { config } from './config'
-import type { PairingCodePayload } from './types'
+import {
+  DEFAULT_DAILY_RELOAD,
+  DEFAULT_ORIENTATION,
+  DEFAULT_SCALE,
+  isOrientation,
+  isScale,
+  normalizeDailyReload,
+} from './device-settings'
+import type {
+  DailyReloadSetting,
+  DeviceOrientation,
+  DeviceScale,
+  PairingCodePayload,
+} from './types'
 
 const DEVICE_ID_KEY = 'edge.player.deviceId'
 const TOKEN_KEY = 'edge.player.token'
 const PAIRING_CODE_KEY = 'edge.player.pairingCode'
 const VOLUME_KEY = 'edge.player.volume'
+const ORIENTATION_KEY = 'edge.player.orientation'
+const SCALE_KEY = 'edge.player.scale'
+const DAILY_RELOAD_KEY = 'edge.player.dailyReload'
 
 /**
  * In-memory copy of the device id, held for the lifetime of the page. It lets a
@@ -105,6 +121,76 @@ export function getStoredVolume(): number {
 
 export function setStoredVolume(volume: number): void {
   safeSet(VOLUME_KEY, String(Math.round(Math.min(100, Math.max(0, volume)))))
+}
+
+/** Persisted screen orientation; defaults to landscape. */
+export function getStoredOrientation(): DeviceOrientation {
+  const raw = safeGet(ORIENTATION_KEY)
+  return isOrientation(raw) ? raw : DEFAULT_ORIENTATION
+}
+
+export function setStoredOrientation(orientation: DeviceOrientation): void {
+  safeSet(ORIENTATION_KEY, orientation)
+}
+
+/** Persisted content scale (object-fit mode); defaults to fit. */
+export function getStoredScale(): DeviceScale {
+  const raw = safeGet(SCALE_KEY)
+  return isScale(raw) ? raw : DEFAULT_SCALE
+}
+
+export function setStoredScale(scale: DeviceScale): void {
+  safeSet(SCALE_KEY, scale)
+}
+
+/**
+ * Persisted daily-reload setting. Cached locally so the scheduler keeps working
+ * across reboots and while offline, before the socket re-delivers it.
+ */
+export function getStoredDailyReload(): DailyReloadSetting {
+  const raw = safeGet(DAILY_RELOAD_KEY)
+  if (!raw) {
+    return { ...DEFAULT_DAILY_RELOAD }
+  }
+  try {
+    return normalizeDailyReload(JSON.parse(raw))
+  } catch {
+    return { ...DEFAULT_DAILY_RELOAD }
+  }
+}
+
+export function setStoredDailyReload(setting: DailyReloadSetting): void {
+  safeSet(DAILY_RELOAD_KEY, JSON.stringify(setting))
+}
+
+/**
+ * Host platform the player runs on, derived from the userAgent. Used to pick
+ * the right restart mechanism — `window.location.reload()` is not always enough
+ * (a native shell may need to relaunch the process to fully restart).
+ */
+export type PlayerPlatform =
+  | 'android-webview'
+  | 'electron'
+  | 'tauri'
+  | 'browser'
+
+export function getPlatform(): PlayerPlatform {
+  const ua = navigator.userAgent.toLowerCase()
+  // Electron/Tauri expose themselves on the window; check those first since
+  // their userAgents otherwise look like a normal Chrome browser.
+  if (typeof window !== 'undefined') {
+    if ('__TAURI__' in window || '__TAURI_INTERNALS__' in window) {
+      return 'tauri'
+    }
+    if ('electronAPI' in window || ua.includes('electron')) {
+      return 'electron'
+    }
+  }
+  // Android WebView reports "; wv)" in its userAgent (vs Chrome for Android).
+  if (ua.includes('android') && ua.includes('wv')) {
+    return 'android-webview'
+  }
+  return 'browser'
 }
 
 export interface DeviceProfile {

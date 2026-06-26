@@ -7,6 +7,8 @@
  * us a clean seam to later replace the in-memory emitter with Redis pub/sub for
  * horizontal scaling.
  */
+import type { DeviceOrientation, DeviceScale } from './schemas/device.schema';
+
 export const PlayerEvents = {
   /** A screen's own items changed (added/removed/reordered/replaced). */
   ScreenContentChanged: 'player.screen.content-changed',
@@ -46,6 +48,13 @@ export interface ScreensDeletedEvent {
   screenIds: string[];
 }
 
+/** Display + power settings delivered to the player (mirrors DeviceSettings). */
+export interface DeviceSettingsPayload {
+  orientation: DeviceOrientation;
+  scale: DeviceScale;
+  dailyReload: { enabled: boolean; time: string };
+}
+
 export interface DevicePairedEvent {
   deviceId: string;
   organizationId: string;
@@ -54,6 +63,8 @@ export interface DevicePairedEvent {
   token: string;
   /** Persisted playback volume 0–100 the player should adopt on pair. */
   volume: number;
+  /** Persisted display + power settings to adopt on pair. */
+  settings: DeviceSettingsPayload;
 }
 
 export interface DeviceRevokedEvent {
@@ -78,7 +89,12 @@ export interface DevicePresenceChangedEvent {
 }
 
 /** Player control commands fanned out to a specific device's socket. */
-export type PlayerCommand = { type: 'volume'; value: number };
+export type PlayerCommand =
+  | { type: 'volume'; value: number }
+  | { type: 'orientation'; value: DeviceOrientation }
+  | { type: 'scale'; value: DeviceScale }
+  | { type: 'restart' }
+  | { type: 'dailyReload'; value: { enabled: boolean; time: string } };
 
 /** A live control command targeted at one device (e.g. set volume). */
 export interface DeviceCommandEvent {

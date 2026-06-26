@@ -6,6 +6,62 @@ export enum DeviceStatus {
   PAIRED = 'paired',
 }
 
+/** How the player rotates its output relative to the physical display. */
+export enum DeviceOrientation {
+  LANDSCAPE = 'landscape',
+  LANDSCAPE_FLIPPED = 'landscape-flipped',
+  PORTRAIT = 'portrait',
+  PORTRAIT_FLIPPED = 'portrait-flipped',
+}
+
+/** How content fits the screen (maps to CSS object-fit on the player). */
+export enum DeviceScale {
+  NONE = 'none',
+  FIT = 'fit',
+  STRETCH = 'stretch',
+  ZOOM = 'zoom',
+}
+
+export const DEFAULT_DAILY_RELOAD_TIME = '03:00';
+
+/** Automatic once-a-day player reload, in the device's local time. */
+@Schema({ _id: false })
+export class DailyReloadSetting {
+  @Prop({ default: true })
+  enabled!: boolean;
+
+  /** 24h 'HH:mm' in the device's local timezone. */
+  @Prop({ default: DEFAULT_DAILY_RELOAD_TIME, trim: true })
+  time!: string;
+}
+
+export const DailyReloadSettingSchema =
+  SchemaFactory.createForClass(DailyReloadSetting);
+
+/**
+ * Operator-controlled display + power settings pushed to the player. Grouped
+ * under one subdocument so new device controls don't sprawl across top-level
+ * scalars. (`volume` predates this and stays top-level for compatibility.)
+ */
+@Schema({ _id: false })
+export class DeviceSettings {
+  @Prop({
+    type: String,
+    enum: DeviceOrientation,
+    default: DeviceOrientation.LANDSCAPE,
+  })
+  orientation!: DeviceOrientation;
+
+  @Prop({ type: String, enum: DeviceScale, default: DeviceScale.FIT })
+  scale!: DeviceScale;
+
+  @Prop({ type: DailyReloadSettingSchema, default: () => ({}) })
+  dailyReload!: DailyReloadSetting;
+}
+
+export const DeviceSettingsSchema =
+  SchemaFactory.createForClass(DeviceSettings);
+
 /** Hardware/runtime profile reported by the player at connect time. */
 @Schema({ _id: false })
 export class DeviceProfile {
@@ -81,6 +137,10 @@ export class Device {
   /** Playback volume 0–100, applied by the player to its video audio. */
   @Prop({ default: 100, min: 0, max: 100 })
   volume!: number;
+
+  /** Display + power settings (orientation, scale, daily reload). */
+  @Prop({ type: DeviceSettingsSchema, default: () => ({}) })
+  settings!: DeviceSettings;
 
   @Prop({ type: DeviceProfileSchema })
   profile?: DeviceProfile;

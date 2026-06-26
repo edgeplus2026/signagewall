@@ -11,12 +11,18 @@ import {
   DevicePairedEvent,
   DevicePresenceChangedEvent,
   DeviceRevokedEvent,
+  DeviceSettingsPayload,
+  PlayerCommand,
   PlayerEvents,
 } from './player.events';
 import { PlayerTokensService } from './player-tokens.service';
 import {
+  DEFAULT_DAILY_RELOAD_TIME,
   DeviceDocument,
+  DeviceOrientation,
   DeviceProfile,
+  DeviceScale,
+  DeviceSettings,
   DeviceStatus,
 } from './schemas/device.schema';
 
@@ -43,6 +49,8 @@ export type ConnectResult =
       snapshot: PlayerSnapshot;
       /** Current playback volume 0–100 to apply on connect. */
       volume: number;
+      /** Display + power settings to apply on connect. */
+      settings: DeviceSettingsPayload;
       /** Present only when a token was (re)issued and must be persisted client-side. */
       token?: string;
     };
@@ -55,6 +63,8 @@ export interface DeviceStatusDto {
   profile?: ReportedProfile;
   /** Playback volume 0–100. */
   volume?: number;
+  /** Display + power settings. */
+  settings?: DeviceSettingsPayload;
 }
 
 const MAX_CODE_ATTEMPTS = 5;
@@ -145,6 +155,7 @@ export class PlayerService {
       organizationId,
       snapshot,
       volume: device.volume ?? 100,
+      settings: this.toSettingsPayload(device.settings),
       ...(issuedToken ? { token: issuedToken } : {}),
     };
   }
@@ -267,6 +278,7 @@ export class PlayerService {
       screenId,
       token: generated.token,
       volume: paired.volume ?? 100,
+      settings: this.toSettingsPayload(paired.settings),
     } satisfies DevicePairedEvent);
 
     return this.toDeviceStatus(paired);
@@ -324,11 +336,7 @@ export class PlayerService {
     screenId: string,
     volume: number,
   ): Promise<DeviceStatusDto> {
-    const device = await this.devicesRepository.findByScreenId(screenId);
-
-    if (!device || device.organizationId?.toString() !== organizationId) {
-      throw BusinessException.notFound(this.i18n.t('player.deviceNotFound'));
-    }
+    const device = await this.resolveOwnedDevice(organizationId, screenId);
 
     const clamped = Math.round(Math.min(100, Math.max(0, volume)));
     const updated = await this.devicesRepository.setVolume(
@@ -342,6 +350,119 @@ export class PlayerService {
     } satisfies DeviceCommandEvent);
 
     return this.toDeviceStatus(updated ?? device);
+  }
+
+  /** CMS action: set the bound device's screen orientation; pushes live. */
+  setScreenDeviceOrientation(
+    organizationId: string,
+    screenId: string,
+    orientation: DeviceOrientation,
+  ): Promise<DeviceStatusDto> {
+    return this.applyDeviceSetting(
+      organizationId,
+      screenId,
+      { orientation },
+      {
+        type: 'orientation',
+        value: orientation,
+      },
+    );
+  }
+
+  /** CMS action: set how the bound device fits content to its screen. */
+  setScreenDeviceScale(
+    organizationId: string,
+    screenId: string,
+    scale: DeviceScale,
+  ): Promise<DeviceStatusDto> {
+    return this.applyDeviceSetting(
+      organizationId,
+      screenId,
+      { scale },
+      {
+        type: 'scale',
+        value: scale,
+      },
+    );
+  }
+
+  /** CMS action: configure the bound device's automatic daily reload. */
+  setScreenDeviceDailyReload(
+    organizationId: string,
+    screenId: string,
+    dailyReload: { enabled: boolean; time: string },
+  ): Promise<DeviceStatusDto> {
+    return this.applyDeviceSetting(
+      organizationId,
+      screenId,
+      { dailyReload },
+      {
+        type: 'dailyReload',
+        value: dailyReload,
+      },
+    );
+  }
+
+  /**
+   * Shared flow for the persisted device settings: resolve+own the device,
+   * persist the patch, and push a live command. The patch is merged over the
+   * device's *current* normalized settings and the full subdocument is written,
+   * so a device created before the `settings` field existed never ends up with
+   * undefined sibling fields in the DB.
+   */
+  private async applyDeviceSetting(
+    organizationId: string,
+    screenId: string,
+    patch: Partial<DeviceSettingsPayload>,
+    command: PlayerCommand,
+  ): Promise<DeviceStatusDto> {
+    const device = await this.resolveOwnedDevice(organizationId, screenId);
+    const merged: DeviceSettingsPayload = {
+      ...this.toSettingsPayload(device.settings),
+      ...patch,
+    };
+    const updated = await this.devicesRepository.setSettings(
+      device.deviceId,
+      merged,
+    );
+
+    this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
+      deviceId: device.deviceId,
+      command,
+    } satisfies DeviceCommandEvent);
+
+    return this.toDeviceStatus(updated ?? device);
+  }
+
+  /**
+   * CMS action: restart the bound player now. Transient — nothing is persisted;
+   * if the device is offline the command is simply dropped (a restart of an
+   * offline player is meaningless and it will start fresh on next boot anyway).
+   */
+  async restartScreenDevice(
+    organizationId: string,
+    screenId: string,
+  ): Promise<void> {
+    const device = await this.resolveOwnedDevice(organizationId, screenId);
+
+    this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
+      deviceId: device.deviceId,
+      command: { type: 'restart' },
+    } satisfies DeviceCommandEvent);
+  }
+
+  /** Resolves the device bound to `screenId`, asserting org ownership. */
+  private async resolveOwnedDevice(
+    organizationId: string,
+    screenId: string,
+  ): Promise<DeviceDocument> {
+    const device = await this.devicesRepository.findByScreenId(screenId);
+
+    if (!device || device.organizationId?.toString() !== organizationId) {
+      throw BusinessException.notFound(this.i18n.t('player.deviceNotFound'));
+    }
+
+    return device;
   }
 
   async unpairScreenDevice(
@@ -446,12 +567,27 @@ export class PlayerService {
       online: device.online,
       deviceId: device.deviceId,
       volume: device.volume ?? 100,
+      settings: this.toSettingsPayload(device.settings),
       ...(device.lastSeenAt
         ? { lastSeenAt: device.lastSeenAt.toISOString() }
         : {}),
       ...(device.profile
         ? { profile: this.toReportedProfile(device.profile) }
         : {}),
+    };
+  }
+
+  /** Normalizes the (possibly undefined) stored settings, applying defaults. */
+  private toSettingsPayload(
+    settings: DeviceSettings | undefined,
+  ): DeviceSettingsPayload {
+    return {
+      orientation: settings?.orientation ?? DeviceOrientation.LANDSCAPE,
+      scale: settings?.scale ?? DeviceScale.FIT,
+      dailyReload: {
+        enabled: settings?.dailyReload?.enabled ?? true,
+        time: settings?.dailyReload?.time ?? DEFAULT_DAILY_RELOAD_TIME,
+      },
     };
   }
 

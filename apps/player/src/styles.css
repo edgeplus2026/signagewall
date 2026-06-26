@@ -67,6 +67,48 @@ body {
   border: 0;
 }
 
+/* Orientation: rotate the whole stage. For 90°/270° the rotated box must still
+   fill the viewport, so we swap its dimensions to (100vh × 100vw) and rotate
+   about the center. `landscape` is the identity. Driven by data-orientation set
+   on the stage root by Stage.tsx. */
+.player-stage[data-orientation='landscape-flipped'] {
+  transform: rotate(180deg);
+}
+
+.player-stage[data-orientation='portrait'],
+.player-stage[data-orientation='portrait-flipped'] {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform-origin: center center;
+}
+
+.player-stage[data-orientation='portrait'] {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.player-stage[data-orientation='portrait-flipped'] {
+  transform: translate(-50%, -50%) rotate(270deg);
+}
+
+/* Scale: how media fills the slot. `fit` (default) = contain; `stretch` = fill;
+   `zoom` = cover (crop to fill); `none` = native pixels, centered. Driven by
+   data-scale on the stage root. */
+.player-stage[data-scale='stretch'] .player-media {
+  object-fit: fill;
+}
+
+.player-stage[data-scale='zoom'] .player-media {
+  object-fit: cover;
+}
+
+.player-stage[data-scale='none'] .player-media {
+  object-fit: none;
+  object-position: center;
+}
+
 .player-app {
   position: absolute;
   inset: 0;

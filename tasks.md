@@ -1,26 +1,20 @@
 # Backlog
 
 Make a player: Web + PWA + Android + Desktop (win, linux, mac)
-Add screen settings features
-Screen orientation - portait + landscape
-Player content aspect ratio - full + cover + fit
-Email + slack notifications (Registration, Report a problem, Errors)
-Two-Factor Authentication
-Tags per applications
-Tags per screen
 Proof of Play
+Apps categories
+Screen tags
 Custom Canva
 Hardware information
 
-Media page - import media from: OneDrive, SharePoint, Dropbox, Google Drive, Google Photos
-Activity log
 Action logs
-CMS Notifications
-Schedule
+Activity log
+CMS Notifications + settings enable/disable
+Email after registration on our email edgeplus2026@gmail.com
+Two-Factor Authentication
 
 # Configuration
 
-Github: CMS + backend + player + website
 Rebranding
 Building Website
 Sanity blogs: Website + CMS page
@@ -31,4 +25,3 @@ Setup All callback urls and branding 'cause of oAuth services
 Posthog - REQUIRED: setup price limit to 0
 Update FAQ
 Dashboard instructions & update content (Google map for screens)
-SendGrid or Twilio

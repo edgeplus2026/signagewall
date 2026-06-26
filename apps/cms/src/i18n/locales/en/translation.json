@@ -690,8 +690,13 @@
       "neverSeen": "Never",
       "unknown": "Unknown",
       "settings": {
-        "title": "Settings",
-        "save": "Save changes"
+        "title": "Display",
+        "save": "Save changes",
+        "success": "Display settings updated.",
+        "error": "Could not update the display settings. Please try again."
+      },
+      "maintenance": {
+        "title": "Maintenance"
       },
       "details": {
         "title": "Device details"
@@ -702,6 +707,41 @@
         "label": "Volume",
         "error": "Could not change the volume. Please try again.",
         "success": "Volume updated."
+      },
+      "orientation": {
+        "title": "Orientation",
+        "description": "How the picture is rotated on this display.",
+        "options": {
+          "landscape": "Landscape",
+          "landscape-flipped": "Landscape (upside down)",
+          "portrait": "Portrait",
+          "portrait-flipped": "Portrait (upside down)"
+        }
+      },
+      "scale": {
+        "title": "Scale",
+        "description": "How content is fitted to the screen.",
+        "options": {
+          "none": "None (actual size)",
+          "fit": "Fit (keep aspect ratio)",
+          "stretch": "Stretch (fill, distort)",
+          "zoom": "Zoom (fill, crop)"
+        }
+      },
+      "dailyReload": {
+        "title": "Daily reload",
+        "description": "Automatically reload the player once a day, in the display's local time.",
+        "enabledLabel": "Enable daily reload",
+        "timeLabel": "Reload time",
+        "success": "Daily reload updated.",
+        "error": "Could not update the daily reload. Please try again."
+      },
+      "restart": {
+        "title": "Restart player",
+        "description": "Restart the player on this display now.",
+        "button": "Restart",
+        "success": "Restart command sent.",
+        "error": "Could not restart the player. Please try again."
       },
       "dangerZone": {
         "title": "Danger zone"

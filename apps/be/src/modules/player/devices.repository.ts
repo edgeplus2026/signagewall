@@ -6,6 +6,7 @@ import {
   Device,
   DeviceDocument,
   DeviceProfile,
+  DeviceSettings,
   DeviceStatus,
 } from './schemas/device.schema';
 
@@ -122,6 +123,24 @@ export class DevicesRepository {
   ): Promise<DeviceDocument | null> {
     return this.deviceModel
       .findOneAndUpdate({ deviceId }, { $set: { volume } }, { new: true })
+      .exec();
+  }
+
+  /**
+   * Patches one or more `settings.*` fields. Uses dot-paths so a partial update
+   * (e.g. only orientation) never clobbers the sibling settings.
+   */
+  async setSettings(
+    deviceId: string,
+    partial: Partial<DeviceSettings>,
+  ): Promise<DeviceDocument | null> {
+    const update: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(partial)) {
+      update[`settings.${key}`] = value;
+    }
+
+    return this.deviceModel
+      .findOneAndUpdate({ deviceId }, { $set: update }, { new: true })
       .exec();
   }
 

@@ -3,7 +3,14 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import { PlaybackController } from '../engine/playback-controller'
 import { reportError } from '../sentry'
-import { lastError, playingItemId, snapshot, volume } from '../store'
+import {
+  lastError,
+  orientation,
+  playingItemId,
+  scale,
+  snapshot,
+  volume,
+} from '../store'
 
 /** Hide the back/next controls after this long without user activity. */
 const CONTROLS_HIDE_MS = 3_000
@@ -74,6 +81,11 @@ export function Stage() {
 
     const stop = effect(() => {
       controller.setVolume(volume.value / 100)
+      // Orientation + scale are reflected as data-attributes on the stage root
+      // (driven by CSS), so they never touch the imperatively-managed media
+      // slots inside it — no VDOM churn on the hot path.
+      root.dataset.orientation = orientation.value
+      root.dataset.scale = scale.value
       const snap = snapshot.value
       if (snap) {
         controller.load(snap)

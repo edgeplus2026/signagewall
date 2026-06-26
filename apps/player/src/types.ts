@@ -45,15 +45,46 @@ export interface PairingCodePayload {
   expiresAt: string
 }
 
+/** Mirror of the backend `DeviceOrientation` enum. */
+export type DeviceOrientation =
+  | 'landscape'
+  | 'landscape-flipped'
+  | 'portrait'
+  | 'portrait-flipped'
+
+/** Mirror of the backend `DeviceScale` enum (maps to CSS object-fit). */
+export type DeviceScale = 'none' | 'fit' | 'stretch' | 'zoom'
+
+/** Automatic once-a-day reload, in the device's local time. */
+export interface DailyReloadSetting {
+  enabled: boolean
+  /** 24h 'HH:mm' in the device's local timezone. */
+  time: string
+}
+
+/** Display + power settings pushed from the CMS (mirrors `DeviceSettings`). */
+export interface DeviceSettings {
+  orientation: DeviceOrientation
+  scale: DeviceScale
+  dailyReload: DailyReloadSetting
+}
+
 export interface PairedPayload {
   screenId: string
   token?: string
   /** Current playback volume 0–100 to apply on connect. */
   volume?: number
+  /** Display + power settings to apply on connect. */
+  settings?: DeviceSettings
 }
 
-/** Live control command pushed to this device. */
-export type PlayerCommand = { type: 'volume'; value: number }
+/** Live control command pushed to this device. Lockstep with the backend. */
+export type PlayerCommand =
+  | { type: 'volume'; value: number }
+  | { type: 'orientation'; value: DeviceOrientation }
+  | { type: 'scale'; value: DeviceScale }
+  | { type: 'restart' }
+  | { type: 'dailyReload'; value: DailyReloadSetting }
 
 export type ConnectionState =
   | 'connecting'

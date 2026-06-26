@@ -8,16 +8,21 @@ import {
   screenDeviceQueryKey,
   screensQueryKey,
 } from '@/features/screens/lib/screenQueryKeys'
-import type {
-  AddMediaToScreensRequest,
-  AddPlaylistsToScreensRequest,
-  CreateScreenRequest,
-  ReplaceScreenItemsRequest,
-  Screen,
-  ScreenAvailability,
-  ScreenDevice,
-  UpdateScreenAvailabilityRequest,
-  UpdateScreenRequest,
+import {
+  DEFAULT_DEVICE_SETTINGS,
+  type AddMediaToScreensRequest,
+  type AddPlaylistsToScreensRequest,
+  type CreateScreenRequest,
+  type ReplaceScreenItemsRequest,
+  type Screen,
+  type ScreenAvailability,
+  type ScreenDevice,
+  type ScreenDeviceOrientation,
+  type ScreenDeviceScale,
+  type ScreenDeviceSettings,
+  type SetDeviceDailyReloadRequest,
+  type UpdateScreenAvailabilityRequest,
+  type UpdateScreenRequest,
 } from '@/features/screens/types/screen.types'
 import { ApiError } from '@/lib/api-error'
 
@@ -122,19 +127,111 @@ export function useUnpairScreenDevice() {
   })
 }
 
+/**
+ * Patches the device-detail cache with ONLY the field(s) a single settings PATCH
+ * changed — never the whole response.
+ *
+ * This is what makes concurrent display saves (volume + orientation + scale via
+ * Promise.all) order-independent: each PATCH returns a full snapshot that is
+ * authoritative only for its own field (its siblings reflect a read taken before
+ * the other writes committed). If we wrote the whole response, the last-resolving
+ * mutation could clobber a just-applied sibling with that stale value. Applying
+ * only the owned field means every save sticks regardless of completion order.
+ */
+function patchDevice(
+  queryClient: ReturnType<typeof useQueryClient>,
+  id: string,
+  patch: { volume?: number; settings?: Partial<ScreenDeviceSettings> },
+) {
+  const organizationId = useOrganizationStore.getState().activeOrganizationId
+  queryClient.setQueryData<ScreenDevice | null>(
+    screenDeviceQueryKey(organizationId, id),
+    (current) => {
+      if (!current) return current
+      return {
+        ...current,
+        ...(patch.volume !== undefined ? { volume: patch.volume } : {}),
+        ...(patch.settings
+          ? {
+              settings: {
+                ...(current.settings ?? DEFAULT_DEVICE_SETTINGS),
+                ...patch.settings,
+              },
+            }
+          : {}),
+      }
+    },
+  )
+}
+
 export function useSetDeviceVolume() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: ({ id, volume }: { id: string; volume: number }) =>
       screensApi.setDeviceVolume(id, volume),
-    onSuccess: (data, variables) => {
-      const organizationId = useOrganizationStore.getState().activeOrganizationId
-      queryClient.setQueryData<ScreenDevice | null>(
-        screenDeviceQueryKey(organizationId, variables.id),
-        data,
-      )
+    onSuccess: (_data, variables) => {
+      patchDevice(queryClient, variables.id, { volume: variables.volume })
     },
+  })
+}
+
+export function useSetDeviceOrientation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      orientation,
+    }: {
+      id: string
+      orientation: ScreenDeviceOrientation
+    }) => screensApi.setDeviceOrientation(id, orientation),
+    onSuccess: (_data, variables) => {
+      patchDevice(queryClient, variables.id, {
+        settings: { orientation: variables.orientation },
+      })
+    },
+  })
+}
+
+export function useSetDeviceScale() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, scale }: { id: string; scale: ScreenDeviceScale }) =>
+      screensApi.setDeviceScale(id, scale),
+    onSuccess: (_data, variables) => {
+      patchDevice(queryClient, variables.id, {
+        settings: { scale: variables.scale },
+      })
+    },
+  })
+}
+
+export function useSetDeviceDailyReload() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string
+      payload: SetDeviceDailyReloadRequest
+    }) => screensApi.setDeviceDailyReload(id, payload),
+    onSuccess: (_data, variables) => {
+      patchDevice(queryClient, variables.id, {
+        settings: { dailyReload: variables.payload },
+      })
+    },
+  })
+}
+
+/** Restart is a fire-and-forget command — no cache to update. */
+export function useRestartDevice() {
+  return useMutation({
+    mutationFn: (id: string) => screensApi.restartDevice(id),
   })
 }
 

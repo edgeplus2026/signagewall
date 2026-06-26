@@ -9,8 +9,11 @@ import type {
   ScreenAvailabilityStatus,
   ScreenDetail,
   ScreenDevice,
+  ScreenDeviceOrientation,
+  ScreenDeviceScale,
   ScreenItem,
   ScreenSummary,
+  SetDeviceDailyReloadRequest,
   UpdateScreenAvailabilityRequest,
   UpdateScreenRequest,
 } from '@/features/screens/types/screen.types'
@@ -122,6 +125,43 @@ export const screensApi = {
       { volume },
     )
     return data
+  },
+
+  setDeviceOrientation: async (
+    id: string,
+    orientation: ScreenDeviceOrientation,
+  ): Promise<ScreenDevice> => {
+    const { data } = await api.patch<ScreenDevice>(
+      `${SCREENS_BASE}/${id}/device/orientation`,
+      { orientation },
+    )
+    return data
+  },
+
+  setDeviceScale: async (
+    id: string,
+    scale: ScreenDeviceScale,
+  ): Promise<ScreenDevice> => {
+    const { data } = await api.patch<ScreenDevice>(
+      `${SCREENS_BASE}/${id}/device/scale`,
+      { scale },
+    )
+    return data
+  },
+
+  setDeviceDailyReload: async (
+    id: string,
+    payload: SetDeviceDailyReloadRequest,
+  ): Promise<ScreenDevice> => {
+    const { data } = await api.patch<ScreenDevice>(
+      `${SCREENS_BASE}/${id}/device/daily-reload`,
+      payload,
+    )
+    return data
+  },
+
+  restartDevice: async (id: string): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/restart`)
   },
 }
 

@@ -3,6 +3,7 @@ import { useEffect } from 'preact/hooks'
 import { getToken } from './device'
 import { loadSnapshot } from './persistence/idb'
 import { paired, snapshot, view } from './store'
+import { startDailyReload } from './sync/daily-reload'
 import { connectPlayer } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
 import { ErrorBoundary } from './ui/ErrorBoundary'
@@ -25,6 +26,14 @@ export function App() {
     })
 
     connectPlayer()
+
+    // Drive the automatic daily reload from the persisted/pushed setting. Runs
+    // independently of the socket so it works offline.
+    const stopDailyReload = startDailyReload()
+
+    return () => {
+      stopDailyReload()
+    }
   }, [])
 
   const current = view.value
