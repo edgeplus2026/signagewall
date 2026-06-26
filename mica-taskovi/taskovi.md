@@ -1,0 +1,17 @@
+Mico nemoj samo da pustas promtovi istestiraj ga dok ne vidis da radi sve 100%. Ovo nista nije vezano usko za signage i sve sam objasnio detaljno tako da nece imas problemi nikakvi.
+
+1. Kada se neko registruje treba nam stigne email na edgeplus2026@gmail.com da se registrovao i prikazi u mejl te informacije njegove koje je uneo na register.
+
+2. Treba da se napravi u super-admin deo CRUD za notifikacije ali za svaki jezik za sada en + sr: Title, Content (rich text editor). I mi cemo odatle da im saljemo CMS notifikacije. Korisnicima treba da se doda u app header desno bell ikonica i meni se otvara gde ce se izlistaju notifikacije i na dnu flat button Mark all as read. klikom na njih otvori sheet gde ces da prikazes full info i dole neka bude Mark as read button
+
+3. Treba da se doda Action logs da imamo u Mongo da se snimaju svi erori koji se desavaju na back-endu mora znamo to.
+
+4. Activity log - imas screenshot ali nemoj da lici ni priblizno na ovo molim te neka ga smisli drugacije da ne bi provalili.
+Na nivou organizacije treba da se vidi ko je sta menjao. U header dodaj button koji otvara activity log menu i tu prikazi samo danasnje i dole float button vidi sve. To otvara novi page gde ce lepo da se prikazu po danu grupisani collapsive sections koje su sve aktivnosti bile CREATE, UPDATE, DELETE. koja akcija title sta je promenjeno ko je promenio i to moze da vide svi iz te organizacije. Filteri: po useru, po datumu. Nemoj samo nikako da to radi u kontrolere sve pa da mora prodje kroz svaku funckiju u controler najbolje nekako na nivou modula da se to uradi i da to vazi za sve. Nekako reusable neki wrapper neke stvari treba se i ugase kao sto je ako menja password to nece stoji tamo koj je pasword promenjen samo da je promenio. Gledaj da title akcije budu redable tipa "Playlist "NAME" is updated" i kao sta je promenjeno sve. Gledaj da uradi lep cist dizajn i da prati nas dizajn sistem. Takodje, obavezno paginacija po 20 neka vraca i dodaj React Virtuoso library za infinity scroll da ih na scrol ucitava.
+
+5. Proof of play - Proof of play novi tab nad screnom da vidimo koliko se puta koj item pustio. To ne mora preko socketa vec kad smo na tom tabu mozemo da radimo refetch na 30 sekunde. Znaci treba nam novi endpointi preko kojih cemo da upisujemo to i citamo u cms i nova tabla.
+Stats Kartice: Total count, Total time
+Tabela: Media name, Play count, Avg. time, Type (Image, Video) badge
+Dodaj paginaciju za tabelu na 20 itema per view i da moze da se sortira po kolonama default je per play count. I neka ostavi prostor da zna da ce i aplikacije isto da se snimaju. neki todo neka doda. Mora optmiziuje to ne sme cim se zavrsi neki item da upisuje ce preotereti bazu s upiti moze tipa da cuva 10 u storage pa dok stigne na 10 da ih tad okine na endpoint al istestiraj to dobro dal radi.
+
+6. Treba da se poveze avaiability u player. Znaci treba ako je van avaiability-a da se prikaze jedan CRN DIV preko svega i da se stopira sadrzaj. Nemoj pokusavas da pravis ono da ga ubacis u scren sever ili da ga stvarno gasis mislim na device posle nece moz ga probudimo. Istesitraj ovaj feature dobro sva tri casea i always play i za odredjeni dan i za ono po dane u nedelji. CMS je gotov tu nista ne treba se doradjuje. Proveri isto caseve ako je ostao bez neta da ne pusta content mora i tad bude crn isto na paljenje playera jel je odmah crn ekran.

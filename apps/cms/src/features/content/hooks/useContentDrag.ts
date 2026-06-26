@@ -31,35 +31,18 @@ export const PLACEHOLDER_ITEM: ContentDraftItem = {
   duration: 0,
 }
 
-/** Final pointer position of a drag: activation point + total movement. */
-function getDropPoint(event: DragEndEvent): { x: number; y: number } | null {
-  const activator = event.activatorEvent
-  let clientX: number | undefined
-  let clientY: number | undefined
-
-  if (activator instanceof MouseEvent) {
-    clientX = activator.clientX
-    clientY = activator.clientY
-  } else if (typeof TouchEvent !== "undefined" && activator instanceof TouchEvent) {
-    const touch = activator.changedTouches[0] ?? activator.touches[0]
-    clientX = touch?.clientX
-    clientY = touch?.clientY
-  }
-
-  if (clientX === undefined || clientY === undefined) return null
-  return { x: clientX + event.delta.x, y: clientY + event.delta.y }
-}
-
-/** Whether the drag was released within the editor section's DOM rect. */
-function isPointerInsideSection(event: DragEndEvent): boolean {
+/** Whether the given pointer point falls within the editor section's DOM rect. */
+function isPointInsideSection(
+  point: { x: number; y: number } | null,
+  fallbackHasDroppable: boolean,
+): boolean {
   const section =
     typeof document !== "undefined"
       ? document.getElementById(CONTENT_SECTION_ID)
       : null
-  const point = getDropPoint(event)
 
   // If we can't resolve either, fall back to whether a droppable was hit.
-  if (!section || !point) return event.over !== null
+  if (!section || !point) return fallbackHasDroppable
 
   const rect = section.getBoundingClientRect()
   return (
@@ -107,6 +90,32 @@ export function useContentDrag({
 
   const activeDragRef = useRef<ActiveDrag | null>(null)
   const previewItemsRef = useRef<ContentDraftItem[]>([])
+
+  // Live pointer position, tracked from native events. dnd-kit's drag end only
+  // exposes the activation point plus pointer delta, which drifts whenever the
+  // source list auto-scrolls during a drag (the scroll offset isn't part of the
+  // delta), so reconstructing the drop point from it rejects valid drops of
+  // items that had to be scrolled into view. The real cursor position does not
+  // have that problem.
+  const pointerRef = useRef<{ x: number; y: number } | null>(null)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const trackMouse = (event: MouseEvent) => {
+      pointerRef.current = { x: event.clientX, y: event.clientY }
+    }
+    const trackTouch = (event: TouchEvent) => {
+      const touch = event.touches[0] ?? event.changedTouches[0]
+      if (touch) pointerRef.current = { x: touch.clientX, y: touch.clientY }
+    }
+
+    window.addEventListener("mousemove", trackMouse, { passive: true })
+    window.addEventListener("touchmove", trackTouch, { passive: true })
+    return () => {
+      window.removeEventListener("mousemove", trackMouse)
+      window.removeEventListener("touchmove", trackTouch)
+    }
+  }, [])
 
   const setPreview = useCallback((next: ContentDraftItem[]) => {
     previewItemsRef.current = next
@@ -225,7 +234,7 @@ export function useContentDrag({
       // Reject only when the pointer is released outside the editor section
       // (e.g. over the sidebar). Checked against the real DOM rect so drops in
       // empty grid space and the footer — anywhere inside the section — are kept.
-      if (!isPointerInsideSection(event)) return
+      if (!isPointInsideSection(pointerRef.current, event.over !== null)) return
 
       // The placeholder is the source of truth: a library item lands where the
       // placeholder is shown, defaulting to the end for empty-space drops.
