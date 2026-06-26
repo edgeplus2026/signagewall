@@ -2,11 +2,13 @@ import type {
   AddMediaToScreensRequest,
   AddPlaylistsToScreensRequest,
   CreateScreenRequest,
+  PairDeviceRequest,
   ReplaceScreenItemsRequest,
   Screen,
   ScreenAvailability,
   ScreenAvailabilityStatus,
   ScreenDetail,
+  ScreenDevice,
   ScreenItem,
   ScreenSummary,
   UpdateScreenAvailabilityRequest,
@@ -90,6 +92,20 @@ export const screensApi = {
 
   addPlaylists: async (payload: AddPlaylistsToScreensRequest): Promise<void> => {
     await api.post(`${SCREENS_BASE}/add-playlists`, payload)
+  },
+
+  getDevice: async (id: string): Promise<ScreenDevice> => {
+    const { data } = await api.get<ScreenDevice>(`${SCREENS_BASE}/${id}/device`)
+    return data
+  },
+
+  pairDevice: async (id: string, payload: PairDeviceRequest): Promise<ScreenDevice> => {
+    const { data } = await api.post<ScreenDevice>(`${SCREENS_BASE}/${id}/pair`, payload)
+    return data
+  },
+
+  unpairDevice: async (id: string): Promise<void> => {
+    await api.delete(`${SCREENS_BASE}/${id}/device`)
   },
 }
 

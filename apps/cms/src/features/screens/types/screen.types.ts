@@ -4,9 +4,30 @@ export type ScreenSortField = 'name' | 'createdAt'
 
 export type ScreenSortDirection = 'asc' | 'desc'
 
-export type ScreenItemType = 'media' | 'playlist'
+export type ScreenItemType = 'media' | 'playlist' | 'app'
 
-export type ScreenManageTab = 'content' | 'settings' | 'availability'
+export type ScreenManageTab = 'content' | 'device' | 'settings' | 'availability'
+
+export interface ScreenDeviceProfile {
+  platform?: string
+  userAgent?: string
+  appVersion?: string
+  screenWidth?: number
+  screenHeight?: number
+}
+
+/** Pairing/online status of the physical display bound 1:1 to this screen. */
+export interface ScreenDevice {
+  paired: boolean
+  online: boolean
+  deviceId?: string
+  lastSeenAt?: string
+  profile?: ScreenDeviceProfile
+}
+
+export interface PairDeviceRequest {
+  code: string
+}
 
 export type ScreenAvailabilityMode = 'always' | 'weekly' | 'special'
 
@@ -56,6 +77,7 @@ export interface ScreenItem {
   type: ScreenItemType
   mediaId?: string
   playlistId?: string
+  appInstanceId?: string
   order: number
   duration?: number
   disabled?: boolean
@@ -94,6 +116,7 @@ export interface ReplaceScreenItemInput {
   type: ScreenItemType
   mediaId?: string
   playlistId?: string
+  appInstanceId?: string
   duration?: number
   disabled?: boolean
 }

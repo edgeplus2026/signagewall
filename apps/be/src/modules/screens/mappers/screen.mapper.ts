@@ -55,6 +55,7 @@ export interface ScreenItemResponseDto {
   type: ScreenItemType;
   mediaId?: string;
   playlistId?: string;
+  appInstanceId?: string;
   order: number;
   duration?: number;
   disabled?: boolean;
@@ -139,6 +140,9 @@ export const toScreenItemResponse = (
   type: item.type,
   ...(item.mediaId ? { mediaId: item.mediaId.toString() } : {}),
   ...(item.playlistId ? { playlistId: item.playlistId.toString() } : {}),
+  ...(item.appInstanceId
+    ? { appInstanceId: item.appInstanceId.toString() }
+    : {}),
   order: item.order,
   ...(item.duration !== undefined ? { duration: item.duration } : {}),
   ...(item.disabled ? { disabled: true } : {}),

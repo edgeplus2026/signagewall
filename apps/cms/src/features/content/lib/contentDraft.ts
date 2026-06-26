@@ -1,6 +1,9 @@
 import { getContentTypeDefinition } from "@/features/content/registry/contentTypeRegistry"
 import type { ContentDraftItem } from "@/features/content/types/contentDraft.types"
-import { getMediaPlaybackDuration } from "@/features/media/lib/mediaUtils"
+import {
+  DEFAULT_MEDIA_DURATION,
+  getMediaPlaybackDuration,
+} from "@/features/media/lib/mediaUtils"
 import type { MediaItem } from "@/features/media/types/media.types"
 import { useOrganizationStore } from "@/features/organizations/store/organizationStore"
 import { playlistsQueryKey } from "@/features/playlists/lib/playlistQueryKeys"
@@ -18,7 +21,8 @@ export function draftSignature(items: ContentDraftItem[]) {
       const idField = getContentTypeDefinition(item.type).signatureFields(item)
       const mediaField = item.type === "media" ? idField : ""
       const playlistField = item.type === "playlist" ? idField : ""
-      return `${String(index)}:${item.clientId}|${item.type}|${mediaField}|${playlistField}|${String(item.duration)}|${item.disabled ? "1" : "0"}`
+      const appField = item.type === "app" ? idField : ""
+      return `${String(index)}:${item.clientId}|${item.type}|${mediaField}|${playlistField}|${appField}|${String(item.duration)}|${item.disabled ? "1" : "0"}`
     })
     .join(":")
 }
@@ -46,6 +50,15 @@ export function createMediaDraftItem(
     type: "media",
     mediaId,
     duration: getMediaPlaybackDuration(media),
+  }
+}
+
+export function createAppDraftItem(appInstanceId: string): ContentDraftItem {
+  return {
+    clientId: `draft-${crypto.randomUUID()}`,
+    type: "app",
+    appInstanceId,
+    duration: DEFAULT_MEDIA_DURATION,
   }
 }
 

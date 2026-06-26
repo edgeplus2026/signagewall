@@ -72,6 +72,16 @@ export function useAppInstances(appId: string | undefined) {
   })
 }
 
+/** Every app instance in the org, regardless of app — used by content editors. */
+export function useAllAppInstances() {
+  const organizationId = useActiveOrganizationId()
+  return useQuery({
+    queryKey: appInstancesQueryKey(organizationId),
+    queryFn: () => appsApi.listInstances(),
+    enabled: Boolean(organizationId),
+  })
+}
+
 export function useAppInstance(instanceId: string | undefined) {
   const organizationId = useActiveOrganizationId()
   return useQuery({

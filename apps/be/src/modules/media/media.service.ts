@@ -1,10 +1,12 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { I18nService } from 'nestjs-i18n';
 import { Readable } from 'stream';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
+import { MediaReadyEvent, PlayerEvents } from '../player/player.events';
 import {
   AllowedMediaMimeType,
   ALLOWED_IMAGE_MIME_TYPES,
@@ -56,6 +58,7 @@ export class MediaService {
     private readonly playlistsRepository: PlaylistsRepository,
     @Inject(forwardRef(() => ScreensService))
     private readonly screensService: ScreensService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.maxFileSizeBytes = this.configService.getOrThrow<number>(
       'media.maxFileSizeBytes',
@@ -713,6 +716,13 @@ export class MediaService {
         status: MediaItemStatus.READY,
         processingError: undefined,
       });
+
+      // A freshly processed item (e.g. a transcoded video) may already be placed
+      // on a screen/playlist — tell the realtime layer so it enters rotation.
+      this.eventEmitter.emit(PlayerEvents.MediaReady, {
+        organizationId,
+        mediaId,
+      } satisfies MediaReadyEvent);
     } catch (error) {
       // Remove any thumbnail uploaded during this failed pass so it can't
       // become an unreferenced orphan in R2.

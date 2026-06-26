@@ -1,10 +1,16 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { I18nService } from 'nestjs-i18n';
 import { Types } from 'mongoose';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
+import {
+  PlayerEvents,
+  PlaylistChangedEvent,
+  ScreenContentChangedEvent,
+} from '../player/player.events';
 import { MediaRepository } from '../media/media.repository';
 import {
   getMediaThumbnailUrl,
@@ -49,7 +55,19 @@ export class PlaylistsService {
     private readonly transactionService: TransactionService,
     @Inject(forwardRef(() => ScreensService))
     private readonly screensService: ScreensService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  /** Notifies the realtime player layer that a playlist's content changed. */
+  private emitPlaylistChanged(
+    organizationId: string,
+    playlistId: string,
+  ): void {
+    this.eventEmitter.emit(PlayerEvents.PlaylistChanged, {
+      organizationId,
+      playlistId,
+    } satisfies PlaylistChangedEvent);
+  }
 
   async list(organizationId: string): Promise<PlaylistSummaryResponseDto[]> {
     const playlists =
@@ -156,8 +174,9 @@ export class PlaylistsService {
       throw BusinessException.notFound(this.i18n.t('playlists.notFound'));
     }
 
+    let affectedScreenIds: string[] = [];
     await this.transactionService.run(async (session) => {
-      await this.screensService.purgePlaylistReferences(
+      affectedScreenIds = await this.screensService.purgePlaylistReferences(
         organizationId,
         uniqueIds,
         session,
@@ -168,6 +187,15 @@ export class PlaylistsService {
         session,
       );
     });
+
+    // Emit after commit so the realtime resolver reads post-delete state. The
+    // playlists are gone, so we notify the screens whose items just changed.
+    for (const screenId of affectedScreenIds) {
+      this.eventEmitter.emit(PlayerEvents.ScreenContentChanged, {
+        organizationId,
+        screenId,
+      } satisfies ScreenContentChangedEvent);
+    }
   }
 
   async addMedia(
@@ -228,6 +256,10 @@ export class PlaylistsService {
         );
       }),
     );
+
+    for (const playlist of playlists) {
+      this.emitPlaylistChanged(organizationId, playlist._id.toString());
+    }
   }
 
   async duplicate(
@@ -320,6 +352,8 @@ export class PlaylistsService {
     if (!saved) {
       throw BusinessException.conflict(this.i18n.t('playlists.conflict'));
     }
+
+    this.emitPlaylistChanged(organizationId, id);
 
     const thumbnailUrl = await this.resolveThumbnailUrl(
       organizationId,

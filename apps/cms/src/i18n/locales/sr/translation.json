@@ -626,12 +626,33 @@
       "notFound": "Ekran nije pronađen",
       "tabs": {
         "content": "Sadržaj",
+        "device": "Uređaj",
         "settings": "Podešavanja",
         "availability": "Radno vreme"
       },
       "actions": {
         "clearAllContent": "Obriši sav sadržaj",
         "moveToTrash": "Obriši ekran"
+      }
+    },
+    "device": {
+      "description": "Upari fizički ekran koji prikazuje sadržaj ovog ekrana.",
+      "status": "Status",
+      "online": "Na vezi",
+      "offline": "Van veze",
+      "lastSeen": "Poslednji put viđen",
+      "version": "Verzija plejera",
+      "code": "Kod za uparivanje",
+      "codeHint": "Unesite kod prikazan na ekranu.",
+      "pair": {
+        "submit": "Upari uređaj",
+        "success": "Uređaj je uparen.",
+        "error": "Uparivanje nije uspelo. Proverite kod i pokušajte ponovo."
+      },
+      "unpair": {
+        "submit": "Razupari",
+        "success": "Uređaj je razuparen.",
+        "error": "Razuparivanje nije uspelo. Pokušajte ponovo."
       }
     },
     "update": {
@@ -672,8 +693,17 @@
       "mediaUnavailable": "Medij nije dostupan",
       "unknownMedia": "Nepoznat medij",
       "unknownPlaylist": "Nepoznata plejlista",
+      "unknownApp": "Nepoznata aplikacija",
       "playlistType": "Plejlista",
+      "appType": "Aplikacija",
       "addPlaylistToContent": "Dodaj plejlistu u sadržaj",
+      "addApp": {
+        "trigger": "Dodaj aplikaciju",
+        "title": "Dodaj aplikaciju",
+        "description": "Izaberite aplikaciju za dodavanje na ovaj ekran.",
+        "empty": "Još nema aplikacija. Prvo je kreirajte na stranici Aplikacije.",
+        "add": "Dodaj"
+      },
       "conflict": "Ovaj ekran je izmenjen na drugom mestu. Vaše nesačuvane izmene su odbačene i učitana je najnovija verzija."
     },
     "availability": {

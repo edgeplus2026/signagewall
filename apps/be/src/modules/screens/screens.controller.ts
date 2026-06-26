@@ -20,6 +20,7 @@ import {
   ApiSuccessNullResponse,
   ApiSuccessResponse,
 } from '../../common/swagger';
+import { AddScreenAppsDto } from './dto/add-screen-apps.dto';
 import { AddScreenMediaDto } from './dto/add-screen-media.dto';
 import { AddScreenPlaylistsDto } from './dto/add-screen-playlists.dto';
 import { CreateScreenDto } from './dto/create-screen.dto';
@@ -84,6 +85,17 @@ export class ScreensController {
     @Body() dto: AddScreenPlaylistsDto,
   ): Promise<null> {
     await this.screensService.addPlaylists(organizationId, dto);
+    return null;
+  }
+
+  @Post('add-apps')
+  @RequireOrgRole()
+  @ApiSuccessNullResponse()
+  async addApps(
+    @RequiredOrganizationId() organizationId: string,
+    @Body() dto: AddScreenAppsDto,
+  ): Promise<null> {
+    await this.screensService.addApps(organizationId, dto);
     return null;
   }
 

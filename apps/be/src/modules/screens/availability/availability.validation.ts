@@ -1,9 +1,6 @@
 import { DateTime, IANAZone } from 'luxon';
 
-import {
-  ScreenAvailability,
-  WeekdayKey,
-} from '../schemas/screen.schema';
+import { ScreenAvailability, WeekdayKey } from '../schemas/screen.schema';
 
 /**
  * Semantic validation beyond what the DTO enforces (format/enum/timezone). The

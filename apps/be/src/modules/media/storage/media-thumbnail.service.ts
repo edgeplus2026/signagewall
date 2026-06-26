@@ -63,9 +63,7 @@ export class MediaThumbnailService {
         withoutEnlargement: true,
       })
       .webp(
-        isPng
-          ? { lossless: true }
-          : { quality: ORIGINAL_IMAGE_WEBP_QUALITY },
+        isPng ? { lossless: true } : { quality: ORIGINAL_IMAGE_WEBP_QUALITY },
       )
       .toBuffer({ resolveWithObject: true });
 

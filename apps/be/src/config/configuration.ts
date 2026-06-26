@@ -3,6 +3,7 @@ export default () => ({
   port: parseInt(process.env.PORT ?? '3000', 10),
   apiPrefix: process.env.API_PREFIX ?? 'api',
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+  playerUrl: process.env.PLAYER_URL ?? 'http://localhost:5174',
   mongodb: {
     uri: process.env.MONGODB_URI ?? 'mongodb://localhost:27017/edge',
   },
@@ -79,6 +80,18 @@ export default () => ({
   stockMedia: {
     maxImportBytes: parseInt(
       process.env.STOCK_MEDIA_MAX_IMPORT_BYTES ?? String(50 * 1024 * 1024),
+      10,
+    ),
+  },
+  player: {
+    // How long a freshly issued pairing code remains valid (minutes).
+    pairingCodeTtlMinutes: parseInt(
+      process.env.PLAYER_PAIRING_CODE_TTL_MINUTES ?? '15',
+      10,
+    ),
+    // A device is considered offline if no heartbeat arrives within this window.
+    offlineAfterSeconds: parseInt(
+      process.env.PLAYER_OFFLINE_AFTER_SECONDS ?? '90',
       10,
     ),
   },

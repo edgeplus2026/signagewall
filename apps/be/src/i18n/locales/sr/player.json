@@ -1,0 +1,9 @@
+{
+  "screenNotFound": "Ekran nije pronađen.",
+  "invalidPairingCode": "Kod za uparivanje nije ispravan ili je već iskorišćen.",
+  "pairingCodeExpired": "Kod za uparivanje je istekao. Osvežite plejer da dobijete novi.",
+  "pairingCodeUnavailable": "Nije moguće generisati jedinstven kod. Pokušajte ponovo.",
+  "pairingFailed": "Uparivanje nije uspelo. Pokušajte ponovo.",
+  "tokenRequired": "Token uređaja je obavezan.",
+  "invalidToken": "Token uređaja nije ispravan ili je opozvan."
+}

@@ -114,10 +114,7 @@ export class AuthService {
     // the user can still request a fresh link via resend.
     const user = await this.usersRepository.create(userData);
     await this.sendVerificationLink(user).catch((error: unknown) => {
-      this.logger.error(
-        `Verification email failed for ${user.email}`,
-        error,
-      );
+      this.logger.error(`Verification email failed for ${user.email}`, error);
     });
 
     return { needsVerification: true, email: user.email };

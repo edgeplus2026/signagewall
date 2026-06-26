@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScreenAvailabilityTab } from '@/features/screens/components/ScreenAvailabilityTab'
 import { ScreenBreadcrumb } from '@/features/screens/components/ScreenBreadcrumb'
 import { ScreenContentTab } from '@/features/screens/components/ScreenContentTab'
+import { ScreenDeviceTab } from '@/features/screens/components/ScreenDeviceTab'
 import { ScreenSettingsTab } from '@/features/screens/components/ScreenSettingsTab'
 import { useScreen, useScreenAvailability } from '@/features/screens/hooks/useScreens'
 import type { ScreenManageTab } from '@/features/screens/types/screen.types'
@@ -14,6 +15,7 @@ import { cn } from '@/lib/utils'
 function getActiveTab(tab: string | null): ScreenManageTab {
   if (tab === 'settings') return 'settings'
   if (tab === 'availability') return 'availability'
+  if (tab === 'device') return 'device'
   return 'content'
 }
 
@@ -70,7 +72,11 @@ export default function ScreenPage() {
           value={activeTab}
           onValueChange={(value) => {
             const nextTab = value as ScreenManageTab
-            if (nextTab === 'settings' || nextTab === 'availability') {
+            if (
+              nextTab === 'settings' ||
+              nextTab === 'availability' ||
+              nextTab === 'device'
+            ) {
               setSearchParams({ tab: nextTab })
             } else {
               setSearchParams({})
@@ -80,6 +86,7 @@ export default function ScreenPage() {
         >
           <TabsList variant="line" className="w-fit shrink-0">
             <TabsTrigger value="content">{t('screens.manage.tabs.content')}</TabsTrigger>
+            <TabsTrigger value="device">{t('screens.manage.tabs.device')}</TabsTrigger>
             <TabsTrigger value="settings">{t('screens.manage.tabs.settings')}</TabsTrigger>
             <TabsTrigger value="availability">{t('screens.manage.tabs.availability')}</TabsTrigger>
           </TabsList>
@@ -95,6 +102,10 @@ export default function ScreenPage() {
               className="mt-0 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
             >
               <ScreenContentTab key={screen.id} screen={screen} />
+            </TabsContent>
+
+            <TabsContent value="device" className="mt-0">
+              <ScreenDeviceTab key={screen.id} screenId={screen.id} />
             </TabsContent>
 
             <TabsContent value="availability" className="mt-0">

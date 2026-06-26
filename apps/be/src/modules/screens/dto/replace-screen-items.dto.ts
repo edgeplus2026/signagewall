@@ -23,7 +23,7 @@ export class ReplaceScreenItemDto {
   id?: string;
 
   @ApiProperty({ enum: ScreenItemType })
-  @IsIn([ScreenItemType.MEDIA, ScreenItemType.PLAYLIST])
+  @IsIn([ScreenItemType.MEDIA, ScreenItemType.PLAYLIST, ScreenItemType.APP])
   type!: ScreenItemType;
 
   @ApiPropertyOptional()
@@ -35,6 +35,11 @@ export class ReplaceScreenItemDto {
   @IsOptional()
   @IsMongoId()
   playlistId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsMongoId()
+  appInstanceId?: string;
 
   @ApiPropertyOptional({ minimum: 1, maximum: 3600 })
   @IsOptional()

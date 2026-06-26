@@ -648,12 +648,33 @@
       "notFound": "Screen not found",
       "tabs": {
         "content": "Content",
+        "device": "Device",
         "settings": "Settings",
         "availability": "Working hours"
       },
       "actions": {
         "clearAllContent": "Clear all content",
         "moveToTrash": "Delete screen"
+      }
+    },
+    "device": {
+      "description": "Pair the physical display that casts this screen's content.",
+      "status": "Status",
+      "online": "Online",
+      "offline": "Offline",
+      "lastSeen": "Last seen",
+      "version": "Player version",
+      "code": "Pairing code",
+      "codeHint": "Enter the code shown on the display.",
+      "pair": {
+        "submit": "Pair device",
+        "success": "Device paired.",
+        "error": "Could not pair the device. Check the code and try again."
+      },
+      "unpair": {
+        "submit": "Unpair",
+        "success": "Device unpaired.",
+        "error": "Could not unpair the device. Please try again."
       }
     },
     "update": {
@@ -693,8 +714,17 @@
       "mediaUnavailable": "Media unavailable",
       "unknownMedia": "Unknown media",
       "unknownPlaylist": "Unknown playlist",
+      "unknownApp": "Unknown app",
       "playlistType": "Playlist",
+      "appType": "App",
       "addPlaylistToContent": "Add playlist to content",
+      "addApp": {
+        "trigger": "Add app",
+        "title": "Add app",
+        "description": "Pick an app to add to this screen.",
+        "empty": "No apps yet. Create one from the Apps page first.",
+        "add": "Add"
+      },
       "conflict": "This screen was changed elsewhere. Your unsaved changes were discarded and the latest version was loaded."
     },
     "availability": {

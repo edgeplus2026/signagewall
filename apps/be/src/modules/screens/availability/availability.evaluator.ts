@@ -82,9 +82,7 @@ export class AvailabilityEvaluator {
     const rangeStart = new Date(instant.getTime() - MINUTES_PER_DAY * 60_000);
     const windows = this.getWindows(availability!, rangeStart, horizonEnd);
 
-    const current = windows.find(
-      (w) => w.start <= instant && instant < w.end,
-    );
+    const current = windows.find((w) => w.start <= instant && instant < w.end);
     if (current) {
       return { at: current.end, to: 'off' };
     }
@@ -358,9 +356,7 @@ export class AvailabilityEvaluator {
     return Number(match[1]) * 60 + Number(match[2]);
   }
 
-  private parseDate(
-    value: string,
-  ): { y: number; m: number; d: number } | null {
+  private parseDate(value: string): { y: number; m: number; d: number } | null {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
     if (!match) {
       return null;

@@ -165,6 +165,28 @@ export class PlaylistsRepository {
     return docs.map((doc) => doc._id.toString());
   }
 
+  /** Ids of playlists referencing any of the given media (as an item). */
+  async findIdsContainingMedia(
+    organizationId: string,
+    mediaIds: string[],
+  ): Promise<string[]> {
+    if (mediaIds.length === 0) {
+      return [];
+    }
+
+    const docs = await this.playlistModel
+      .find({
+        organizationId: new Types.ObjectId(organizationId),
+        'items.mediaId': {
+          $in: mediaIds.map((id) => new Types.ObjectId(id)),
+        },
+      })
+      .select({ _id: 1 })
+      .exec();
+
+    return docs.map((doc) => doc._id.toString());
+  }
+
   /** Summaries (no embedded items) for a set of ids, scoped to the org. */
   async findSummariesByIds(
     organizationId: string,

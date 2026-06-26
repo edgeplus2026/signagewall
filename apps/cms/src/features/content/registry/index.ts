@@ -1,4 +1,5 @@
 import { registerContentType } from "./contentTypeRegistry"
+import { appContentType } from "./definitions/appContentType"
 import { mediaContentType } from "./definitions/mediaContentType"
 import { MediaLibraryPanel } from "./definitions/mediaLibraryTab"
 import { playlistContentType } from "./definitions/playlistContentType"
@@ -10,6 +11,7 @@ import { registerLibraryTab } from "./libraryTabRegistry"
 // consumers import their lookups from here so registration has run.
 registerContentType(mediaContentType)
 registerContentType(playlistContentType)
+registerContentType(appContentType)
 
 registerLibraryTab({
   id: "media",

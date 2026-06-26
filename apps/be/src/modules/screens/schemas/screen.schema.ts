@@ -4,6 +4,7 @@ import { HydratedDocument, Types } from 'mongoose';
 export enum ScreenItemType {
   MEDIA = 'media',
   PLAYLIST = 'playlist',
+  APP = 'app',
 }
 
 export enum ScreenAvailabilityMode {
@@ -90,10 +91,13 @@ export class ScreenItemSubdocument {
   @Prop({ type: Types.ObjectId, ref: 'Playlist' })
   playlistId?: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'AppInstance' })
+  appInstanceId?: Types.ObjectId;
+
   @Prop({ required: true, min: 0 })
   order!: number;
 
-  /** Media items only; playlist items play their whole playlist. */
+  /** Media and app items only; playlist items play their whole playlist. */
   @Prop({ min: 1, max: 3600 })
   duration?: number;
 
@@ -114,6 +118,7 @@ export interface ScreenItemValue {
   type: ScreenItemType;
   mediaId?: Types.ObjectId;
   playlistId?: Types.ObjectId;
+  appInstanceId?: Types.ObjectId;
   order: number;
   duration?: number;
   disabled: boolean;

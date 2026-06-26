@@ -1,4 +1,9 @@
-import { ListXIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react"
+import {
+  AppWindowIcon,
+  ListXIcon,
+  MoreHorizontalIcon,
+  Trash2Icon,
+} from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -18,6 +23,7 @@ import {
 } from "@/features/content/components/ContentEditor"
 import { useContentContainer } from "@/features/content/hooks/useContentContainer"
 import {
+  createAppDraftItem,
   createMediaDraftItem,
   createPlaylistDraftItem,
 } from "@/features/content/lib/contentDraft"
@@ -26,6 +32,7 @@ import { MediaDetailSheet } from "@/features/media/components/MediaDetailSheet"
 import type { MediaItem } from "@/features/media/types/media.types"
 import { PlaylistManageSidebar } from "@/features/playlists/components/PlaylistManageSidebar"
 import type { PlaylistSummary } from "@/features/playlists/types/playlist.types"
+import { AddAppToScreenDialog } from "@/features/screens/components/AddAppToScreenDialog"
 import { DeleteScreenDialog } from "@/features/screens/components/DeleteScreenDialog"
 import { useReplaceScreenItems } from "@/features/screens/hooks/useScreens"
 import {
@@ -53,6 +60,16 @@ function toReplaceScreenItem(item: NormalizedSavedItem): ReplaceScreenItemInput 
     }
   }
 
+  if (item.type === "app") {
+    return {
+      ...(item.id ? { id: item.id } : {}),
+      type: "app",
+      ...(item.appInstanceId ? { appInstanceId: item.appInstanceId } : {}),
+      duration: item.duration,
+      ...(item.disabled ? { disabled: true } : {}),
+    }
+  }
+
   return {
     ...(item.id ? { id: item.id } : {}),
     type: "media",
@@ -67,6 +84,7 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
   const navigate = useNavigate()
   const replaceScreenItems = useReplaceScreenItems()
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [addAppOpen, setAddAppOpen] = useState(false)
   const [mediaToEdit, setMediaToEdit] = useState<MediaItem | null>(null)
 
   const { baseline, draftItems, setDraftItems, buildSavePayload } =
@@ -152,6 +170,13 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
     [setDraftItems],
   )
 
+  const handleAddAppToContent = useCallback(
+    (appInstanceId: string) => {
+      setDraftItems((current) => [...current, createAppDraftItem(appInstanceId)])
+    },
+    [setDraftItems],
+  )
+
   const sidebarLabels = useMemo(
     () => ({
       libraryTitle: labels.libraryTitle,
@@ -182,6 +207,15 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-auto min-w-52">
+        <DropdownMenuItem
+          onClick={() => {
+            setAddAppOpen(true)
+          }}
+        >
+          <AppWindowIcon />
+          {t("screens.content.addApp.trigger")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleClearContent}>
           <ListXIcon />
           {t("screens.manage.actions.clearAllContent")}
@@ -240,6 +274,12 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
           if (!open) setMediaToEdit(null)
         }}
         item={mediaToEdit}
+      />
+
+      <AddAppToScreenDialog
+        open={addAppOpen}
+        onOpenChange={setAddAppOpen}
+        onAdd={handleAddAppToContent}
       />
     </>
   )

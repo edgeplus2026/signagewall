@@ -5,6 +5,7 @@ import { screensApi } from '@/features/screens/api/screensApi'
 import {
   screenAvailabilityQueryKey,
   screenDetailQueryKey,
+  screenDeviceQueryKey,
   screensQueryKey,
 } from '@/features/screens/lib/screenQueryKeys'
 import type {
@@ -14,6 +15,7 @@ import type {
   ReplaceScreenItemsRequest,
   Screen,
   ScreenAvailability,
+  ScreenDevice,
   UpdateScreenAvailabilityRequest,
   UpdateScreenRequest,
 } from '@/features/screens/types/screen.types'
@@ -68,6 +70,49 @@ export function useScreenAvailability(id: string | null) {
     queryFn: (): Promise<ScreenAvailability | null> =>
       id ? screensApi.getAvailability(id) : Promise.resolve(null),
     enabled: Boolean(organizationId && id),
+  })
+}
+
+export function useScreenDevice(id: string | null) {
+  const organizationId = useActiveOrganizationId()
+
+  return useQuery({
+    queryKey: screenDeviceQueryKey(organizationId, id ?? ''),
+    queryFn: (): Promise<ScreenDevice | null> =>
+      id ? screensApi.getDevice(id) : Promise.resolve(null),
+    enabled: Boolean(organizationId && id),
+    // Keep the online/last-seen indicator reasonably fresh while the tab is open.
+    refetchInterval: 15_000,
+  })
+}
+
+export function usePairScreenDevice() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, code }: { id: string; code: string }) =>
+      screensApi.pairDevice(id, { code }),
+    onSuccess: (data, variables) => {
+      const organizationId = useOrganizationStore.getState().activeOrganizationId
+      queryClient.setQueryData<ScreenDevice | null>(
+        screenDeviceQueryKey(organizationId, variables.id),
+        data,
+      )
+    },
+  })
+}
+
+export function useUnpairScreenDevice() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => screensApi.unpairDevice(id),
+    onSuccess: (_data, id) => {
+      const organizationId = useOrganizationStore.getState().activeOrganizationId
+      void queryClient.invalidateQueries({
+        queryKey: screenDeviceQueryKey(organizationId, id),
+      })
+    },
   })
 }
 

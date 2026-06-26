@@ -11,10 +11,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import {
-  ScreenAvailabilityMode,
-  WeekdayKey,
-} from '../schemas/screen.schema';
+import { ScreenAvailabilityMode, WeekdayKey } from '../schemas/screen.schema';
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/; // 'HH:mm'
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/; // 'YYYY-MM-DD'

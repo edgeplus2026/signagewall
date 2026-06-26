@@ -1,0 +1,330 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  cursor: none;
+}
+
+.player-root,
+.player-stage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+/* A/B double-buffer layers. The incoming slot cross-fades in while the outgoing
+   one fades out — a smooth swap with no black flash. Transition duration is
+   mirrored by TRANSITION_MS in the engine. */
+.player-slot {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}
+
+/* The incoming slot is always painted above the outgoing one — independent of
+   DOM order — so the cross-fade reveals new content instead of the slot that
+   happens to sit on top fading over it. */
+.player-slot.is-active {
+  z-index: 2;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-slot {
+    transition: opacity 300ms ease;
+  }
+}
+
+.player-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  border: 0;
+}
+
+.player-app {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.player-app-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #f66;
+  font-size: 1.5vw;
+}
+
+/* Branded splash / pairing — two-column: info left, image right */
+.player-pairing {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  color: #fff;
+  background: #0a0a0a;
+}
+
+.player-pairing__panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(12px, 1.6vmin, 28px);
+  padding: clamp(32px, 6vmin, 96px);
+}
+
+.player-pairing__brand {
+  font-size: clamp(31px, 4.6vmin, 70px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: clamp(8px, 1.4vmin, 24px);
+}
+
+.player-pairing__label {
+  font-size: clamp(16px, 2.2vmin, 29px);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+.player-pairing__code {
+  font-size: clamp(58px, 11.5vmin, 173px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+/* Placeholder occupies the exact box of the rendered code (same font metrics),
+   so swapping in the real code causes zero layout shift. */
+.player-pairing__code--loading {
+  position: relative;
+  display: inline-block;
+}
+
+.player-pairing__code-ghost {
+  visibility: hidden;
+}
+
+.player-pairing__skeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.1em;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+/* Shimmer is a translated overlay so the animation stays on the compositor
+   (transform only) — no per-frame paint on a screen that runs 24/7. */
+.player-pairing__skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0,
+    rgba(255, 255, 255, 0.16) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: player-skeleton-shimmer 1.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes player-skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.player-pairing__hint {
+  font-size: clamp(19px, 2.4vmin, 35px);
+  line-height: 1.5;
+  opacity: 0.7;
+  max-width: 32ch;
+}
+
+.player-pairing__status {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 0.8vmin, 12px);
+  margin-top: clamp(12px, 1.6vmin, 28px);
+  font-size: clamp(17px, 2vmin, 29px);
+  opacity: 0.7;
+}
+
+.player-pairing__dot {
+  width: 0.85em;
+  height: 0.85em;
+  border-radius: 50%;
+  background: #f0a020;
+  transition: background 300ms ease;
+}
+
+.player-pairing__dot[data-online='true'] {
+  background: #38ff8e;
+}
+
+/* Portrait / narrow screens: stack to a single column, image on top */
+@media (max-aspect-ratio: 1/1), (max-width: 720px) {
+  .player-pairing {
+    grid-template-columns: 1fr;
+    grid-template-rows: 40% 1fr;
+  }
+
+  .player-pairing__visual {
+    order: -1;
+  }
+
+  .player-pairing__panel {
+    text-align: center;
+    align-items: center;
+  }
+
+  .player-pairing__hint {
+    max-width: 40ch;
+  }
+}
+
+.player-pairing__visual {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.player-pairing__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Minimal centred fallback (e.g. error-boundary recovery) */
+.player-fallback {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  color: #fff;
+  background: #0a0a0a;
+  text-align: center;
+}
+
+.player-fallback__brand {
+  font-size: 2vw;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.player-fallback__hint {
+  font-size: 1.2vw;
+  opacity: 0.6;
+}
+
+/* Back/next overlay: fixed left/right gradient affordances with a centred
+   chevron. The whole layer fades out after a few seconds of inactivity (driven
+   by data-visible) so nothing is ever burned into a 24/7 screen. */
+.player-controls {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.player-controls[data-visible='true'] {
+  opacity: 1;
+}
+
+.player-control {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(56px, 7vw, 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  outline: none;
+  color: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0.9;
+  transition: opacity 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.player-control:focus,
+.player-control:focus-visible {
+  outline: none;
+}
+
+.player-controls[data-visible='false'] .player-control {
+  pointer-events: none;
+}
+
+.player-control:hover {
+  opacity: 1;
+}
+
+.player-control--prev {
+  left: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.6), transparent);
+}
+
+.player-control--next {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.6), transparent);
+}
+
+.player-control svg {
+  width: clamp(32px, 4vw, 64px);
+  height: clamp(32px, 4vw, 64px);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.player-diagnostics {
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #38ff8e;
+  font: 12px/1.6 ui-monospace, monospace;
+  z-index: 9999;
+  pointer-events: none;
+}

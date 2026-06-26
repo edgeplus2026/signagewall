@@ -108,6 +108,7 @@ export interface NormalizedSavedItem {
   type: ContentItemType
   mediaId?: string
   playlistId?: string
+  appInstanceId?: string
   duration: number
   disabled?: boolean
 }

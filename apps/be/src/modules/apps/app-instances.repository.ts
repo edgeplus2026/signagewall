@@ -51,6 +51,27 @@ export class AppInstancesRepository {
       .exec();
   }
 
+  /** Batch lookup scoped to the org (used when resolving screen content). */
+  async findByIds(
+    organizationId: string,
+    ids: string[],
+  ): Promise<AppInstanceDocument[]> {
+    const objectIds = ids
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
+
+    if (objectIds.length === 0) {
+      return [];
+    }
+
+    return this.model
+      .find({
+        _id: { $in: objectIds },
+        organizationId: new Types.ObjectId(organizationId),
+      })
+      .exec();
+  }
+
   async countForApp(organizationId: string, appId: string): Promise<number> {
     return this.model
       .countDocuments({

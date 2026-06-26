@@ -8,7 +8,7 @@ import type { Screen, ScreenItem } from "@/features/screens/types/screen.types"
 import { queryClient } from "@/providers/QueryProvider"
 
 function getItemDuration(item: ScreenItem) {
-  if (item.type === "media") {
+  if (item.type === "media" || item.type === "app") {
     return item.duration ?? DEFAULT_MEDIA_DURATION
   }
 
@@ -42,6 +42,10 @@ export function screenItemsToDraftItems(
 
       if (item.type === "playlist" && item.playlistId) {
         draft.playlistId = item.playlistId
+      }
+
+      if (item.type === "app" && item.appInstanceId) {
+        draft.appInstanceId = item.appInstanceId
       }
 
       if (item.disabled) {

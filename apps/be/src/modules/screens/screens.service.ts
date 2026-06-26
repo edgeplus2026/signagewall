@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { I18nService } from 'nestjs-i18n';
 import { ClientSession, Types } from 'mongoose';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
+import {
+  PlayerEvents,
+  ScreenContentChangedEvent,
+  ScreensDeletedEvent,
+} from '../player/player.events';
+import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { MediaRepository } from '../media/media.repository';
 import {
   getMediaThumbnailUrl,
@@ -17,10 +24,14 @@ import {
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { AvailabilityEvaluator } from './availability/availability.evaluator';
 import { validateAvailability } from './availability/availability.validation';
+import { AddScreenAppsDto } from './dto/add-screen-apps.dto';
 import { AddScreenMediaDto } from './dto/add-screen-media.dto';
 import { AddScreenPlaylistsDto } from './dto/add-screen-playlists.dto';
 import { CreateScreenDto } from './dto/create-screen.dto';
-import { ReplaceScreenItemsDto } from './dto/replace-screen-items.dto';
+import {
+  ReplaceScreenItemDto,
+  ReplaceScreenItemsDto,
+} from './dto/replace-screen-items.dto';
 import { UpdateScreenAvailabilityDto } from './dto/update-screen-availability.dto';
 import { UpdateScreenDto } from './dto/update-screen.dto';
 import {
@@ -61,10 +72,20 @@ export class ScreensService {
     private readonly screensRepository: ScreensRepository,
     private readonly mediaRepository: MediaRepository,
     private readonly playlistsRepository: PlaylistsRepository,
+    private readonly appInstancesRepository: AppInstancesRepository,
     private readonly configService: ConfigService,
     private readonly i18n: I18nService,
     private readonly availabilityEvaluator: AvailabilityEvaluator,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  /** Notifies the realtime player layer that a screen's content changed. */
+  private emitContentChanged(organizationId: string, screenId: string): void {
+    this.eventEmitter.emit(PlayerEvents.ScreenContentChanged, {
+      organizationId,
+      screenId,
+    } satisfies ScreenContentChangedEvent);
+  }
 
   async list(organizationId: string): Promise<ScreenSummaryResponseDto[]> {
     const screens =
@@ -258,6 +279,11 @@ export class ScreensService {
     }
 
     await this.screensRepository.deleteMany(organizationId, uniqueIds);
+
+    this.eventEmitter.emit(PlayerEvents.ScreensDeleted, {
+      organizationId,
+      screenIds: uniqueIds,
+    } satisfies ScreensDeletedEvent);
   }
 
   async addMedia(
@@ -321,6 +347,10 @@ export class ScreensService {
         );
       }),
     );
+
+    for (const screen of screens) {
+      this.emitContentChanged(organizationId, screen._id.toString());
+    }
   }
 
   async addPlaylists(
@@ -375,6 +405,81 @@ export class ScreensService {
         );
       }),
     );
+
+    for (const screen of screens) {
+      this.emitContentChanged(organizationId, screen._id.toString());
+    }
+  }
+
+  async addApps(organizationId: string, dto: AddScreenAppsDto): Promise<void> {
+    const screenIds = [...new Set(dto.screenIds)];
+    const appInstanceIds = [...new Set(dto.appInstanceIds)];
+
+    await this.validateAppItems(organizationId, appInstanceIds);
+
+    const screens = await this.screensRepository.findSummariesByIds(
+      organizationId,
+      screenIds,
+    );
+
+    if (screens.length !== screenIds.length) {
+      throw BusinessException.notFound(this.i18n.t('screens.notFound'));
+    }
+
+    for (const screen of screens) {
+      if (screen.itemCount + appInstanceIds.length > MAX_SCREEN_ITEMS) {
+        throw BusinessException.badRequest(
+          this.i18n.t('screens.maxItemsExceeded'),
+        );
+      }
+    }
+
+    await Promise.all(
+      screens.map((screen) => {
+        const baseOrder = screen.itemCount;
+        const items: ScreenItemValue[] = appInstanceIds.map(
+          (appInstanceId, index) => ({
+            _id: new Types.ObjectId(),
+            type: ScreenItemType.APP,
+            appInstanceId: new Types.ObjectId(appInstanceId),
+            order: baseOrder + index,
+            duration: DEFAULT_ITEM_DURATION,
+            disabled: false,
+          }),
+        );
+        const addedDuration = items.length * DEFAULT_ITEM_DURATION;
+
+        return this.screensRepository.appendItems(
+          organizationId,
+          screen._id.toString(),
+          items,
+          addedDuration,
+        );
+      }),
+    );
+
+    for (const screen of screens) {
+      this.emitContentChanged(organizationId, screen._id.toString());
+    }
+  }
+
+  /** Ensures every referenced app instance exists in the organization. */
+  private async validateAppItems(
+    organizationId: string,
+    appInstanceIds: string[],
+  ): Promise<void> {
+    if (appInstanceIds.length === 0) {
+      return;
+    }
+
+    const instances = await this.appInstancesRepository.findByIds(
+      organizationId,
+      appInstanceIds,
+    );
+
+    if (instances.length !== new Set(appInstanceIds).size) {
+      throw BusinessException.notFound(this.i18n.t('screens.appNotFound'));
+    }
   }
 
   async purgeMediaReferences(
@@ -456,14 +561,20 @@ export class ScreensService {
     }
   }
 
+  /**
+   * Drops references to the given playlists from every screen that contains
+   * them. Returns the ids of the screens it modified so the caller can emit
+   * content-change events after the surrounding transaction commits (emitting
+   * mid-transaction would let the realtime resolver read pre-commit state).
+   */
   async purgePlaylistReferences(
     organizationId: string,
     playlistIds: string[],
     session?: ClientSession,
-  ): Promise<void> {
+  ): Promise<string[]> {
     const uniqueIds = [...new Set(playlistIds)];
     if (uniqueIds.length === 0) {
-      return;
+      return [];
     }
 
     const playlistObjectIds = uniqueIds.map((id) => new Types.ObjectId(id));
@@ -494,6 +605,8 @@ export class ScreensService {
         session,
       );
     }
+
+    return screens.map((screen) => screen._id.toString());
   }
 
   async replaceItems(
@@ -527,6 +640,13 @@ export class ScreensService {
         .map((item) => item.playlistId as string),
     );
 
+    await this.validateAppItems(
+      organizationId,
+      dto.items
+        .filter((item) => item.type === ScreenItemType.APP)
+        .map((item) => item.appInstanceId as string),
+    );
+
     const existingIds = new Set(
       screen.items.map((item) => item._id.toString()),
     );
@@ -540,12 +660,7 @@ export class ScreensService {
     const items: ScreenItemValue[] = dto.items.map((item, index) => ({
       _id: item.id ? new Types.ObjectId(item.id) : new Types.ObjectId(),
       type: item.type,
-      ...(item.type === ScreenItemType.MEDIA
-        ? {
-            mediaId: new Types.ObjectId(item.mediaId),
-            duration: item.duration ?? DEFAULT_ITEM_DURATION,
-          }
-        : { playlistId: new Types.ObjectId(item.playlistId) }),
+      ...this.buildItemRef(item),
       order: index,
       disabled: item.disabled ?? false,
     }));
@@ -562,6 +677,8 @@ export class ScreensService {
     if (!saved) {
       throw BusinessException.conflict(this.i18n.t('screens.conflict'));
     }
+
+    this.emitContentChanged(organizationId, id);
 
     const thumbnailUrl = await this.resolveThumbnailUrl(
       organizationId,
@@ -583,10 +700,28 @@ export class ScreensService {
       type: item.type,
       ...(item.mediaId ? { mediaId: item.mediaId } : {}),
       ...(item.playlistId ? { playlistId: item.playlistId } : {}),
+      ...(item.appInstanceId ? { appInstanceId: item.appInstanceId } : {}),
       order: item.order,
       ...(item.duration !== undefined ? { duration: item.duration } : {}),
       disabled: item.disabled,
     }));
+  }
+
+  /** Type-specific reference + duration fields for a replace-items entry. */
+  private buildItemRef(item: ReplaceScreenItemDto): Partial<ScreenItemValue> {
+    if (item.type === ScreenItemType.MEDIA) {
+      return {
+        mediaId: new Types.ObjectId(item.mediaId),
+        duration: item.duration ?? DEFAULT_ITEM_DURATION,
+      };
+    }
+    if (item.type === ScreenItemType.APP) {
+      return {
+        appInstanceId: new Types.ObjectId(item.appInstanceId),
+        duration: item.duration ?? DEFAULT_ITEM_DURATION,
+      };
+    }
+    return { playlistId: new Types.ObjectId(item.playlistId) };
   }
 
   private async buildDerivedItemFields(
@@ -647,7 +782,9 @@ export class ScreensService {
       const isValid =
         item.type === ScreenItemType.MEDIA
           ? Boolean(item.mediaId)
-          : Boolean(item.playlistId);
+          : item.type === ScreenItemType.APP
+            ? Boolean(item.appInstanceId)
+            : Boolean(item.playlistId);
 
       if (!isValid) {
         throw BusinessException.badRequest(this.i18n.t('screens.invalidItem'));

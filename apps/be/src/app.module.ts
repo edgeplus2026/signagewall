@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import {
@@ -26,6 +27,7 @@ import { AppsModule } from './modules/apps/apps.module';
 import { MembersModule } from './modules/members/members.module';
 import { MediaModule } from './modules/media/media.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { PlayerModule } from './modules/player/player.module';
 import { PlaylistsModule } from './modules/playlists/playlists.module';
 import { ScreensModule } from './modules/screens/screens.module';
 import { SettingsModule } from './modules/settings/settings.module';
@@ -62,6 +64,7 @@ import { UsersModule } from './modules/users/users.module';
       }),
     }),
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     DatabaseModule,
     CommonModule,
     UsersModule,
@@ -76,6 +79,7 @@ import { UsersModule } from './modules/users/users.module';
     ScreensModule,
     AdminModule,
     AppsModule,
+    PlayerModule,
     HealthModule,
   ],
   providers: [

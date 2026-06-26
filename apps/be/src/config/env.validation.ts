@@ -7,6 +7,7 @@ export const envValidationSchema = Joi.object({
   PORT: Joi.number().default(3000),
   API_PREFIX: Joi.string().default('api'),
   FRONTEND_URL: Joi.string().uri().default('http://localhost:5173'),
+  PLAYER_URL: Joi.string().uri().default('http://localhost:5174'),
   MONGODB_URI: Joi.string().required(),
   JWT_ACCESS_SECRET: Joi.string().min(32).required(),
   JWT_REFRESH_SECRET: Joi.string().min(32).required(),
@@ -36,4 +37,6 @@ export const envValidationSchema = Joi.object({
   PEXELS_API_KEY: Joi.string().optional().allow(''),
   PEXELS_API_BASE_URL: Joi.string().uri().default('https://api.pexels.com'),
   STOCK_MEDIA_MAX_IMPORT_BYTES: Joi.number().default(50 * 1024 * 1024),
+  PLAYER_PAIRING_CODE_TTL_MINUTES: Joi.number().default(15),
+  PLAYER_OFFLINE_AFTER_SECONDS: Joi.number().default(90),
 });
