@@ -1,4 +1,4 @@
-# 00 — Apps arhitektura (rework): generic iframe host + connector runtime + kategorije
+# 01 — Apps arhitektura (rework): generic iframe host + connector runtime + kategorije
 
 ## Context
 
@@ -90,6 +90,43 @@ fan-out, a `RuntimeKind='embed'` anticipira iframe runtime. Fali **runtime**.
   proizvoljnu kategoriju). App dobija `categoryIds` (više kategorija). Katalog filter po kategoriji.
 - CMS: super-admin tab za kategorije; katalog ([AppCatalogTab.tsx](../apps/cms/src/features/apps/components/AppCatalogTab.tsx)) dobija filter.
 
+## MVP set aplikacija (šta napraviti na ovoj platformi)
+
+Cilj nije broj, nego ~9 aplikacija koje pokrivaju 80%+ realnih signage potreba — bez
+API-rate problema (server appovi su read-only feedovi sa cacheKey fan-out-om).
+
+### Tier 1 — must (svaki ozbiljan DS ovo ima)
+| App | Tip | Napomena |
+|---|---|---|
+| Clock / Date (digital+analog) | `static` | Najčešća app; ide u svaku zonu |
+| Text / Announcement (rich text) | `static` | Brze poruke/najave |
+| QR code (iz URL/teksta) | `static` | Meniji, promo, contactless |
+| Countdown / Counter | `static` | Eventi/promo |
+| YouTube | embed | Već postoji |
+| **Web page / URL embed** | embed | Bilo koji sajt/dashboard — skoro besplatno kad player postane iframe host (Faza 1) |
+| **Weather** | `server` | Flagship live app; `cacheKey = weather:<grad / zaokr. koord>` (grubo, da playeri dele fetch); free API (npr. Open-Meteo — bez ključa/limita) |
+| **RSS / News ticker** | `server` | `cacheKey = rss:<hash(url)>`; idealan kao ticker zona |
+
+### Tier 2 — jako preporučeno (čim radi connector/OAuth)
+| App | Tip | Napomena |
+|---|---|---|
+| Kursna lista / Exchange rate | `server` | Regionalno korisno; `cacheKey = fx:<base>`; free API (npr. exchangerate.host / NBS) |
+| Google Calendar / Office 365 | `connected` | Kancelarije/meeting-room; OAuth (Faza 3) |
+| Google Slides / PDF | `connected` | Sadržaj u alatima koje korisnik zna; OAuth (Faza 3) |
+
+### Preskoči u MVP-u (svesno)
+- Društvene mreže (Instagram/X/FB) — API restrikcije + OAuth muka, nizak ROI.
+- Stocks/crypto, mape, transit, letovi, IPTV/HLS — niše.
+- Google Sheets / KPI dashboard — korisno ali kasnije (data-heavy `connected`).
+
+### Redosled gradnje appova (mapira na faze gore)
+1. **Faza 1 (static + embed):** Clock, Text, QR, Countdown, Web page (+ YouTube postoji) → ~6 odmah.
+2. **Faza 2 (connector):** Weather, RSS, Exchange rate → prva tri `server` appa preko CRON dedup-a.
+3. **Faza 3 (connected):** Calendar, Slides → v1.1 (nose OAuth flow).
+
+> cacheKey strategija je ključ protiv API-limita: 100 playera sa "Weather Belgrade" →
+> **1 upstream poziv / refresh ciklus**, fan-out svima (videti Faza 2).
+
 ## Fajlovi (orijentir)
 - Player: novi `apps/player/src/apps/AppHost.tsx` (+ host bridge), izmena
   [registry.tsx](../apps/player/src/apps/registry.tsx) (ukinuti per-slug) i
@@ -101,11 +138,13 @@ fan-out, a `RuntimeKind='embed'` anticipira iframe runtime. Fali **runtime**.
   `category` u [app.schema.ts](../apps/be/src/modules/apps/schemas/app.schema.ts) + `app-category.schema.ts`.
 - CMS: super-admin kategorije; katalog filter.
 
-## Odluke / otvorena pitanja
-- **App bundle hosting**: same-origin pod `/apps/<slug>/` (MVP) vs zaseban CDN. → predlog same-origin za MVP.
-- **Native vs embed za 1st-party**: sve kao embed (jedan handler, tvoja vizija) — prihvaćeno; gubi se "compiled-in zero-overhead", ali na signage HW iframe je ok (već koristimo za YouTube).
-- **Refresh cadence po app-u**: u manifestu (`refreshSeconds`)? Predlog: da, da weather bude 15min a npr. RSS 5min.
-- **Keš storage**: Mongo kolekcija (na 500 playera dovoljno); Redis tek ako skaliramo.
+## Odluke (potvrđeno)
+- **App bundle hosting**: **same-origin** pod `/apps/<slug>/` (deploy zajedno sa playerom; bez cross-origin muke). Poseban CDN/origin tek ako se otvore 3rd-party appovi ili se ode globalno.
+- **Keš storage**: **Mongo kolekcija** (`AppDataCache`) — dovoljno za ~500 playera; Redis tek pri skaliranju.
+- **Refresh cadence**: **po app-u u manifestu** (`refreshSeconds`; npr. RSS 5min, weather 15min, fx 1h). Osvežava **interni NestJS `@nestjs/schedule` CRON**: tik ~1min bira "due" cacheKey-eve (`lastFetchedAt` + cadence), dedup `fetchData` jednom po cacheKey-u, pa `AppDataChanged` fan-out. Pri >1 BE instanci: distributed lock / dedicated scheduler rola (kasnije, uz Redis).
+- **Native vs embed (1st-party)**: **sve embed (iframe)** — jedan generički handler, bez per-app logike u playeru.
+- **Connected/OAuth appovi** (Calendar, Slides, OneDrive webhook live-sync): **v1.1, NE MVP**. MVP app set = static (clock/text/QR/countdown) + server (weather/RSS/fx) + web embed.
+- **Skaliranje connector-a (poluge)**: opterećenje = **#distinct cacheKey × cadence**, NE #playera × #appova. Zato: (1) `cacheKey` mora biti **grub/deljen** (po gradu/zaokruženim koordinatama, feed URL-u, baznoj valuti) da playeri klasterišu fetch; (2) CRON tik koristi **bounded concurrency** (npr. max ~10 paralelnih fetch-eva); (3) static appovi = **0** server poziva; (4) playeri ne pituju server — dobijaju push + keširaju lokalno. Realno (300 playera, ~50 gradova + 30 feedova) ≈ ~10 fetch/min — trivijalno.
 
 ## Verifikacija
 - 100 simuliranih instanci `weather:belgrade` → tačno **1** upstream poziv po ciklusu (log/metric).

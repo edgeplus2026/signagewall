@@ -1,4 +1,4 @@
-# 01 — Native-shell auto-update (Tauri)
+# 08 — Native-shell auto-update (Tauri)
 
 ## Context
 
@@ -64,14 +64,15 @@ sa sigurnom degradacijom (nikad da uređaj ostane "cigla").
 - CI: release workflow (`tauri build` + `latest.json` + S3 upload).
 - BE: opciono endpoint koji servira `latest.json` ako ne koristimo čist CDN.
 
-## Odluke / otvorena pitanja
-- **Web sadržaj: bundlovan u shell ili remote URL?** Ako shell učitava remote web
-  player, web update ide preko PWA/reload (bez Tauri update-a), a Tauri update treba
-  **samo** za promene shell-a (ređe). To je jednostavnije — predlog: **remote web + Tauri
-  update samo za shell**. (Tada je auto-update ređe potreban, ali i dalje neophodan.)
-- Platforme: koje target-uješ (Windows, Linux, Android)? Tauri v2 podržava i mobilno;
-  Android signage je čest — potvrditi.
-- Update endpoint: čist CDN (`latest.json`) ili kroz BE (da možeš staged rollout)?
+## Odluke (potvrđeno)
+- **Web u shell-u**: **remote web + Tauri OTA samo za shell**. Shell učitava remote player URL;
+  web update ide preko PWA/reload (instant), Tauri OTA samo za retke promene shell-a.
+- **Platforme**: **Windows, Android, Linux, macOS** (sve). Napomene: **Windows** = WebView2
+  (najbolji); **Android** (Tanix i sl.) = Android System WebView / Tauri v2 mobile ili tanak
+  WebView wrapper; **Linux/Pi** → koristi **Chromium kiosk** umesto Tauri/WebKitGTK (WebKitGTK je
+  slaba karika); **macOS** uglavnom dev/test. CI mora da builduje **na svakom OS-u** (Tauri ne
+  cross-compile-uje) → matrix runneri.
+- **Update endpoint**: **čist CDN / S3** (`latest.json`), bez BE logike. Staged rollout kroz BE → kasnije ako flota naraste.
 
 ## Verifikacija
 - Objaviš v(N+1) → uređaj na v(N) detektuje, preuzme, verifikuje potpis, primeni u

@@ -1,4 +1,4 @@
-# 04 — CMS notifikacije (super-admin → korisnici)
+# 02 — CMS notifikacije (super-admin → korisnici)
 
 ## Context
 
@@ -80,11 +80,11 @@ sheet sa punim sadržajem na klik.
   super-admin `NotificationsPage` + Tiptap editor (`components/RichTextEditor`),
   header slot u AppLayout.
 
-## Odluke / otvorena pitanja
-- Audience za MVP: samo `all`? (predlog da, ali schema spremna za targeting).
-- Tiptap JSON vs sanitizovani HTML za skladištenje? (predlog JSON).
-- Treba li i mejl kopija za "važne" notifikacije? (predlog: ne za MVP).
-- Retencija/expiry default?
+## Odluke (potvrđeno)
+- **Audience**: MVP šalje **svim korisnicima (`all`)**. Schema ipak ima `audience` polje (`type: all | orgs | users`) spremno za targeting, ali UI/logika za targeting je **v1.1**.
+- **Skladištenje Content-a**: **Tiptap JSON** (strukturisano), render kroz kontrolisani renderer → najbezbednije po XSS (bez sirovog HTML-a). Bez `dangerouslySetInnerHTML`.
+- **Email kopija**: **NE** — MVP je samo in-app (bell/inbox). Email kanal eventualno v1.1.
+- **Retencija/expiry**: **opcioni `expiresAt` po notifikaciji** (posle isteka se sakrije iz inboxa); **default = bez isteka**, bez auto-brisanja (istorija ostaje).
 
 ## Verifikacija
 - super-admin kreira sr+en notifikaciju, Publish → svim korisnicima badge +1 (live ako uključeno).

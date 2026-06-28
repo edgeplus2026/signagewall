@@ -1,4 +1,4 @@
-# 05 — Activity log (org-level audit: ko je šta menjao)
+# 04 — Activity log (org-level audit: ko je šta menjao)
 
 ## Context
 
@@ -100,12 +100,11 @@ Tri opcije, sa trade-off-ovima:
 - **Ko sme da vidi**: svi članovi org-a (tvoj zahtev) — org-scoped read, bez admin gate-a.
 - `GroupedVirtuoso` (ne obična lista) za po-danu grupisan + infinite scroll.
 
-## Odluke / otvorena pitanja
-- Koje scheme audit-ovati u MVP-u (predlog: Playlist, Screen, Media, AppInstance, Membership, Settings)?
-- Retencija audit logova (npr. 180 dana TTL)?
-- Da li loginovati i auth događaje (login/logout/pairing)? Ti su izvan Mongoose-write
-  obrasca → eventualno dodaj eksplicitnim `auditService.record(...)` za njih (mali izuzetak).
-- CLS biblioteka: `nestjs-cls` (standard).
+## Odluke (potvrđeno)
+- **Audit-ovane scheme**: **Playlist, Screen, Media, AppInstance, Membership (role/invite), Settings, Organization** (preko `auditPlugin` po schemi).
+- **Retencija**: **180 dana** (Mongo **TTL indeks** na `at` → auto-brisanje starijih).
+- **Auth/security događaji** (login/logout/pairing): **NE** u MVP — samo entity CREATE/UPDATE/DELETE preko plugin-a. (Lako se doda kasnije eksplicitnim `auditService.record(...)`.)
+- **CLS biblioteka**: **`nestjs-cls`** (AsyncLocalStorage) za actor/org/ip kontekst.
 
 ## Verifikacija
 - Update playliste → tačno jedan AuditLog sa entity=Playlist, action=UPDATE, changedFields,

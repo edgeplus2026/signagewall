@@ -1,4 +1,4 @@
-# 08 — Proof-of-play / istorija reprodukcije
+# 07 — Proof-of-play / istorija reprodukcije
 
 ## Context
 
@@ -51,12 +51,13 @@ otporan i na offline periode.
 - Player: `apps/player/src/sync/play-log-buffer.ts` (Faza 2) + emit na reconnect.
 - CMS: `features/reports/*` (proof-of-play view + export).
 
-## Odluke / otvorena pitanja
-- **Šta je "play"** za ad-compliance: svaka tranzicija, ili samo kompletna reprodukcija
-  (item odgledan do kraja)? Utiče na šemu (treba li `completed` flag).
-- **Tačnost vs jednostavnost**: Faza 1 (server-side, gubi offline) je dovoljna za MVP;
-  Faza 2 (offline buffering) tek ako kupci traže garantovan dokaz.
-- Retention period (90 dana?) + da li treba agregat za duže.
+## Odluke (potvrđeno)
+- **Šta je "play"**: **svaka tranzicija** = jedan zapis (start + trajanje). Bez `completed`
+  flag-a u MVP-u (može kasnije za striktni ad-compliance).
+- **Tačnost (scope)**: **Faza 1 + Faza 2** — server-side log **+ offline buffering** na
+  playeru (ring buffer u idb → flush batch na reconnect, idempotentno po `(deviceId, startedAt)`).
+  Znači: dokaz je tačan **i** za offline periode. (Diže napor u odnosu na samo Fazu 1.)
+- **Retencija**: **90 dana** TTL na sirove zapise (bez dnevnog agregata u MVP-u; doda se ako zatreba duži izveštaj).
 
 ## Verifikacija
 - Pusti 3 itema → 3 PlayLog zapisa sa korektnim trajanjima.

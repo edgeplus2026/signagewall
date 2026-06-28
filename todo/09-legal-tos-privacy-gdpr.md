@@ -56,13 +56,16 @@ uz audit za osetljive akcije.
   data-export dugme.
 - Mail: template-i (export-ready, account-deletion-confirm).
 
-## Odluke / otvorena pitanja
-- **Anonimizacija vs hard-delete** za korisnika koji ima istorijske zapise (npr. audit,
-  play-log): predlog anonimizacija PII + zadržavanje ne-ličnih agregata.
-- Grace period dužina (30 dana?).
-- Ko piše pravni tekst (advokat) — ovde planiramo samo tehnički deo (verzionisanje,
-  prihvatanje, eksport, brisanje, audit).
-- Hosting jurisdikcija / data residency (EU region za Mongo+S3?) — potvrditi za privacy policy.
+## Odluke (potvrđeno)
+- **Brisanje korisnika sa istorijom**: **anonimizuj PII** (ime/email → tombstone "Obrisani
+  korisnik"), **zadrži ne-lične zapise** (audit/play-log ostaju, bez ličnih podataka) → čuva
+  integritet istorije + zadovoljava GDPR/ZZPL erasure.
+- **Grace period**: **30 dana** (soft-delete pa fizičko brisanje) — zaštita od slučajnog/zlonamernog brisanja.
+- **Data residency**: **Srbija** (Mongo + S3 u Srbiji); privacy policy navodi srpski region.
+  Napomena: srpski **ZZPL** je GDPR-poravnat; ako budu **EU kupci**, GDPR svejedno važi
+  ekstrateritorijalno → tehnički deo (consent/eksport/erasure/audit) pokriva oba.
+- **Pravni tekst** (ToS/Privacy sadržaj) piše **advokat**; ovaj plan pokriva **samo tehnički
+  deo** (verzionisanje, prihvatanje, eksport, brisanje, audit).
 
 ## Verifikacija
 - Novi user mora da prihvati ToS; prihvatanje zabeleženo sa verzijom.

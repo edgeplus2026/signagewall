@@ -1,4 +1,4 @@
-# 02 — Device-offline alerting operateru
+# 03 — Device-offline alerting operateru
 
 ## Context
 
@@ -20,8 +20,9 @@ toga problem primetiš tek kad neko fizički prođe pored ekrana.
 
 ## Cilj
 
-Kad uređaj padne i ostane offline duže od praga → obavesti operatere (mejl + in-app),
-jednom po incidentu, sa "recovered" porukom kad se vrati. Bez lažnih alarma na mrežne blip-ove.
+Kad uređaj padne i ostane offline duže od praga → obavesti operatere **in-app**
+(bell/inbox), jednom po incidentu, sa "recovered" porukom kad se vrati. Bez lažnih
+alarma na mrežne blip-ove.
 
 ## Pristup
 
@@ -36,10 +37,10 @@ jednom po incidentu, sa "recovered" porukom kad se vrati. Bez lažnih alarma na 
 - Na uređaju/notifikaciji: `lastOfflineAlertAt`, `offlineAlertActive`. Jedan alert po
   epizodi (ne ponavljati svakih N min). Reset na recovery.
 
-### 3. Kanali
-- **Mejl** org članovima (reuse mail template engine) — "Ekran «Naziv» je offline od HH:MM".
-- **In-app notifikacija** (CMS) — bell/inbox; reuse CMS gateway za live push.
-- Opciono webhook (post-MVP) za eksterne integracije (Slack i sl.).
+### 3. Kanal (MVP: samo in-app)
+- **In-app notifikacija** (CMS) — bell/inbox; **reuse inbox-a iz fajla 02** (+ CMS gateway live push). Device-alert je system-generated, **org-scoped**.
+- Poruka tipa: "Ekran «Naziv» je offline od HH:MM".
+- Email i webhook (Slack i sl.) → **post-MVP / v1.1** (nisu u scope-u).
 
 ### 4. Recovery
 - Kad uređaj ponovo online (heartbeat/connect) i `offlineAlertActive` → pošalji
@@ -50,21 +51,22 @@ jednom po incidentu, sa "recovered" porukom kad se vrati. Bez lažnih alarma na 
   (svi članovi sa rolom), threshold konfigurabilan. Smesti u settings modul.
 
 ## Fajlovi (orijentir)
-- BE: `modules/player/device-alerts.service.ts` (+ scheduler ili event-debounce),
-  `notification.schema.ts` (in-app inbox), nova mail template-a (`device-offline`, `device-recovered`),
-  proširiti device schema alert state poljima.
+- BE: `modules/player/device-alerts.service.ts` (+ sweep scheduler), reuse notifikacionog
+  inboxa iz fajla 02 (system-generated, org-scoped zapis), proširiti device schema alert
+  state poljima (`offlineAlertActive`, `lastOfflineAlertAt`, per-screen `alertMuted`).
 - Event: novi `PlayerEvents.DeviceOfflineAlert` / `DeviceRecovered` → CMS gateway push.
 - CMS: notifikacioni inbox/bell + alerting podešavanja u screen/org settings.
 - Settings: alert threshold + recipients.
 
-## Odluke / otvorena pitanja
-- **Granularnost**: per-org default vs per-screen override? Predlog: per-org default + per-screen mute.
-- **Threshold default**: 10 min (signage tolerancija na blip). Potvrditi.
-- **Sweep vs scheduled-check** za detekciju: sweep (CRON 1 min) je prostiji i robustan na restart BE-a → predlog sweep.
-- Quiet hours: ne slati mejl noću ako je ekran ionako u availability-off prozoru? (reuse screen availability) — lepo imati, opciono.
+## Odluke (potvrđeno)
+- **Kanal**: **samo in-app** (bell/inbox) — reuse infrastrukture iz fajla 02 (inbox + receipt + CMS gateway live push). **Bez email-a** u MVP-u (email kanal eventualno v1.1). → 03 **zavisi od 02**. Device-alert je **system-generated, org-scoped** notifikacija (za razliku od super-admin broadcast-a iz 02, koji je global) — deli isti bell/inbox UI.
+- **Threshold**: **10 min** offline neprekidno pre alarma (anti-flap na mrežni blip).
+- **Detekcija**: **sweep CRON ~1 min** (nađe `online=false AND lastSeenAt < now-threshold AND not yet alerted`) — robusno na restart BE-a, prostije od per-event tajmera.
+- **Granularnost**: **per-org default + per-screen mute** (org-level recipients/threshold uključeno; pojedini ekran može da se utiša).
+- **Quiet hours**: **ne alarmira** kad je ekran u **availability-off** prozoru — koristi postojeći BE `AvailabilityEvaluator` (nezavisno od fajla 05; to je player-side standby).
 
 ## Verifikacija
-- Ugasi uređaj → posle praga stigne **tačno jedan** mejl + in-app alert.
+- Ugasi uređaj → posle praga (10 min) stigne **tačno jedan** in-app alert.
 - Kratak blip (disconnect+reconnect < threshold) → **bez** alarma.
 - Vraćanje online → "recovered" poruka, alert state očišćen.
 - Restart BE-a tokom incidenta → alert se i dalje detektuje (sweep) i ne duplira.
