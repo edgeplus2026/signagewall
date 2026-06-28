@@ -163,6 +163,10 @@ export const screensApi = {
   restartDevice: async (id: string): Promise<void> => {
     await api.post(`${SCREENS_BASE}/${id}/device/restart`)
   },
+
+  stepDevice: async (id: string, direction: 'next' | 'prev'): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/step`, { direction })
+  },
 }
 
 export { SCREENS_BASE }

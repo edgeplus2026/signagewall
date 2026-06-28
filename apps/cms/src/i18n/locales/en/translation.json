@@ -667,6 +667,13 @@
       "version": "Player version",
       "code": "Pairing code",
       "codeHint": "Enter the code shown on the display.",
+      "preview": {
+        "title": "Live preview",
+        "frameTitle": "Live preview of the screen's content",
+        "previous": "Previous item",
+        "next": "Next item",
+        "openWebPlayer": "Open web player"
+      },
       "pair": {
         "submit": "Pair device",
         "success": "Device paired.",

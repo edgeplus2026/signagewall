@@ -28,6 +28,7 @@ import { SetDeviceDailyReloadDto } from './dto/set-device-daily-reload.dto';
 import { SetDeviceOrientationDto } from './dto/set-device-orientation.dto';
 import { SetDeviceScaleDto } from './dto/set-device-scale.dto';
 import { SetDeviceVolumeDto } from './dto/set-device-volume.dto';
+import { StepDeviceDto } from './dto/step-device.dto';
 import { PlayerService } from './player.service';
 
 /**
@@ -145,6 +146,23 @@ export class DevicePairingController {
     @Param('screenId', ParseObjectIdPipe) screenId: string,
   ): Promise<null> {
     await this.playerService.restartScreenDevice(organizationId, screenId);
+    return null;
+  }
+
+  @Post(':screenId/device/step')
+  @RequireOrgRole()
+  @HttpCode(HttpStatus.OK)
+  @ApiSuccessNullResponse()
+  async step(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+    @Body() dto: StepDeviceDto,
+  ): Promise<null> {
+    await this.playerService.stepScreenDevice(
+      organizationId,
+      screenId,
+      dto.direction,
+    );
     return null;
   }
 

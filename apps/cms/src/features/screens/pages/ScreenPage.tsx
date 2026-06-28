@@ -3,6 +3,7 @@ import { Navigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { OpenWebPlayerButton } from '@/features/screens/components/OpenWebPlayerButton'
 import { ScreenAvailabilityTab } from '@/features/screens/components/ScreenAvailabilityTab'
 import { ScreenBreadcrumb } from '@/features/screens/components/ScreenBreadcrumb'
 import { ScreenContentTab } from '@/features/screens/components/ScreenContentTab'
@@ -99,7 +100,10 @@ export default function ScreenPage() {
               <TabsTrigger value="availability">{t('screens.manage.tabs.availability')}</TabsTrigger>
             </TabsList>
 
-            <ScreenPresenceBadge device={presence} className="sm:ml-auto" />
+            <div className="flex items-center gap-2 sm:ml-auto">
+              <OpenWebPlayerButton />
+              <ScreenPresenceBadge device={presence} />
+            </div>
           </div>
 
           <div

@@ -29,6 +29,17 @@ export interface ControllerCallbacks {
   onError?: (error: unknown, item?: Renderable) => void
 }
 
+export interface ControllerOptions {
+  /**
+   * Follow (mirror) mode: the controller never advances on its own — no dwell
+   * timer, no video-`ended` advance, no skip-on-error advance, no watchdog
+   * force-advance. It only changes item when {@link PlaybackController.showItem}
+   * is called. Used by the CMS preview so it tracks the real device 1:1 instead
+   * of running its own drifting clock.
+   */
+  follow?: boolean
+}
+
 /**
  * Drives the playback loop over two pooled {@link Slot}s (A/B double buffer).
  *
@@ -72,11 +83,16 @@ export class PlaybackController {
   private prefetchAbort: AbortController | null = null
   private prefetching = false
 
+  /** Mirror mode — never auto-advances; driven only by {@link showItem}. */
+  private readonly follow: boolean
+
   constructor(
     private readonly root: HTMLElement,
     private readonly callbacks: ControllerCallbacks = {},
     createSlot: () => PlaybackSlot = () => new Slot(),
+    options: ControllerOptions = {},
   ) {
+    this.follow = options.follow ?? false
     this.slots = [createSlot(), createSlot()]
     this.root.append(this.slots[0].el, this.slots[1].el)
     if (typeof document !== 'undefined') {
@@ -137,9 +153,32 @@ export class PlaybackController {
 
     if (this.items.length > 0) {
       this.requestTransition(0)
-      this.startWatchdog()
+      // In follow mode the device owns advancement; we never auto-advance, so
+      // there is no stall to watch for. (We still preload the head above via the
+      // initial transition, and prefetch warms the cache for offline safety.)
+      if (!this.follow) {
+        this.startWatchdog()
+      }
       this.prefetchAll(true)
     }
+  }
+
+  /**
+   * Follow mode: mirror the device by jumping to the item it reports as now
+   * playing. A no-op outside follow mode, or when the id isn't in the current
+   * snapshot (a transient cross-revision race — the matching `content:update`
+   * lands moments later and re-bases us).
+   */
+  showItem(itemId: string): void {
+    if (!this.follow || this.items.length === 0) {
+      return
+    }
+    const index = this.items.findIndex((item) => item.id === itemId)
+    if (index === -1 || index === this.cursor) {
+      return
+    }
+    this.direction = index >= this.cursor ? 1 : -1
+    this.requestTransition(index)
   }
 
   /**
@@ -350,7 +389,10 @@ export class PlaybackController {
         return
       }
       this.callbacks.onError?.(error, item)
-      this.scheduleSkip(index)
+      // Follow mode doesn't skip on its own — it waits for the device to move on.
+      if (!this.follow) {
+        this.scheduleSkip(index)
+      }
       return
     }
 
@@ -361,7 +403,11 @@ export class PlaybackController {
 
     const front = this.slots[this.activeIndex]
     back.activate(() => {
-      this.advance()
+      // In follow mode the device drives advancement; a video ending here must
+      // not move us — we wait for the device's next now-playing report.
+      if (!this.follow) {
+        this.advance()
+      }
     })
     // Cross-fade: reveal the (decoded) back slot while the front fades out. We
     // only drop `is-active` here so the front fades over CSS without tearing its
@@ -374,7 +420,11 @@ export class PlaybackController {
     this.stallReported = false
     this.currentDurationMs = item.durationMs
     this.callbacks.onItem?.(item)
-    this.scheduleAdvance(item)
+    // Follow mode never schedules its own advance — the device's next
+    // now-playing report is what moves us on.
+    if (!this.follow) {
+      this.scheduleAdvance(item)
+    }
 
     // Warm the back buffer with the following item so the next swap is instant —
     // but only after the outgoing slot has finished fading out, since preparing

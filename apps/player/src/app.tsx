@@ -2,9 +2,10 @@ import { useEffect } from 'preact/hooks'
 
 import { getToken } from './device'
 import { loadSnapshot } from './persistence/idb'
-import { paired, snapshot, view } from './store'
+import { isPreview, previewParams } from './preview'
+import { orientation, paired, scale, snapshot, view } from './store'
 import { startDailyReload } from './sync/daily-reload'
-import { connectPlayer } from './sync/socket'
+import { connectPlayer, connectPreview } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 import { PairingScreen } from './ui/PairingScreen'
@@ -12,6 +13,20 @@ import { Stage } from './ui/Stage'
 
 export function App() {
   useEffect(() => {
+    // Preview mode (CMS iframe): a read-only spectator. Skip the whole device
+    // boot — no token, no persisted snapshot, no heartbeat, no daily-reload —
+    // and just mirror the screen's live content. Orientation/scale come from
+    // the URL so the rendered output matches the real device.
+    if (isPreview && previewParams) {
+      orientation.value = previewParams.orientation
+      scale.value = previewParams.scale
+      connectPreview({
+        screenId: previewParams.screenId,
+        token: previewParams.token,
+      })
+      return undefined
+    }
+
     // Offline-first boot: if we already hold a token we are paired, and we can
     // render the last persisted snapshot instantly — before the network is up.
     if (getToken()) {
@@ -37,6 +52,18 @@ export function App() {
   }, [])
 
   const current = view.value
+
+  // In preview we always render the stage — never the pairing/code screen (the
+  // operator never pairs from here) and never diagnostics overlay.
+  if (isPreview) {
+    return (
+      <ErrorBoundary>
+        <div class="player-root">
+          <Stage />
+        </div>
+      </ErrorBoundary>
+    )
+  }
 
   return (
     <ErrorBoundary>

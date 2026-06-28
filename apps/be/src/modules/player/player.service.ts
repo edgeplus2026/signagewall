@@ -346,6 +346,7 @@ export class PlayerService {
 
     this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
       deviceId: device.deviceId,
+      screenId,
       command: { type: 'volume', value: clamped },
     } satisfies DeviceCommandEvent);
 
@@ -428,6 +429,7 @@ export class PlayerService {
 
     this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
       deviceId: device.deviceId,
+      screenId,
       command,
     } satisfies DeviceCommandEvent);
 
@@ -447,7 +449,28 @@ export class PlayerService {
 
     this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
       deviceId: device.deviceId,
+      screenId,
       command: { type: 'restart' },
+    } satisfies DeviceCommandEvent);
+  }
+
+  /**
+   * CMS action: step the bound player to the next/previous content item. Purely
+   * transient (nothing is persisted) — issued from the live preview so an
+   * operator can scrub the real display. Fanned out to the screen room too, so
+   * the preview iframe advances in lockstep with the physical device.
+   */
+  async stepScreenDevice(
+    organizationId: string,
+    screenId: string,
+    direction: 'next' | 'prev',
+  ): Promise<void> {
+    const device = await this.resolveOwnedDevice(organizationId, screenId);
+
+    this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
+      deviceId: device.deviceId,
+      screenId,
+      command: { type: direction },
     } satisfies DeviceCommandEvent);
   }
 

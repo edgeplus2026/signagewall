@@ -645,6 +645,13 @@
       "version": "Verzija plejera",
       "code": "Kod za uparivanje",
       "codeHint": "Unesite kod prikazan na ekranu.",
+      "preview": {
+        "title": "Pregled uživo",
+        "frameTitle": "Pregled sadržaja ekrana uživo",
+        "previous": "Prethodna stavka",
+        "next": "Sledeća stavka",
+        "openWebPlayer": "Otvori web plejer"
+      },
       "pair": {
         "submit": "Upari uređaj",
         "success": "Uređaj je uparen.",

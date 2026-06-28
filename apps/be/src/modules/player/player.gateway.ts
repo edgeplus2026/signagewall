@@ -1,5 +1,7 @@
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
+import { JwtService } from '@nestjs/jwt';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -9,6 +11,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensRepository } from '../screens/screens.repository';
 import { PlayerService } from './player.service';
@@ -29,15 +32,37 @@ interface HandshakeAuth {
   token?: string;
   revision?: string;
   profile?: ReportedProfile;
+  /**
+   * Present only for the CMS live-preview iframe. The operator's access token
+   * authorizes a read-only spectator on a single screen — no device is created,
+   * no presence/heartbeat is recorded.
+   */
+  preview?: PreviewAuth;
+}
+
+interface PreviewAuth {
+  screenId?: string;
+  token?: string;
+}
+
+interface CmsTokenPayload {
+  sub: string;
+  email: string;
 }
 
 interface SocketData {
   deviceId?: string;
   screenId?: string;
+  /** True for a CMS preview spectator (skips presence/heartbeat bookkeeping). */
+  preview?: boolean;
 }
 
 interface HeartbeatMessage {
   profile?: ReportedProfile;
+}
+
+interface NowPlayingMessage {
+  itemId?: string;
 }
 
 const deviceRoom = (deviceId: string): string => `device:${deviceId}`;
@@ -61,10 +86,22 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly playerService: PlayerService,
     private readonly screensRepository: ScreensRepository,
     private readonly playlistsRepository: PlaylistsRepository,
+    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
     const auth = client.handshake.auth as HandshakeAuth;
+
+    // CMS live-preview spectator: authorized by the operator's access token,
+    // bound to a single screen. Handled before the device path so it never
+    // touches device/presence bookkeeping.
+    if (auth.preview) {
+      await this.handlePreviewConnection(client, auth.preview);
+      return;
+    }
+
     const deviceId = auth.deviceId;
 
     if (!deviceId) {
@@ -115,6 +152,88 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Admits a CMS live-preview spectator. Verifies the operator's access token,
+   * confirms they belong to the screen's organization, then joins the
+   * `screen:<id>` room read-only and pushes the current snapshot. Live content
+   * updates arrive for free via the same room the device path uses. Crucially
+   * it never creates a device, records presence, or starts a heartbeat — so an
+   * open preview tab is invisible to the real device's online/offline state.
+   */
+  private async handlePreviewConnection(
+    client: Socket,
+    preview: PreviewAuth,
+  ): Promise<void> {
+    const screenId = preview.screenId;
+    const userId = this.verifyCmsToken(preview.token);
+
+    if (!screenId || !userId) {
+      client.disconnect(true);
+      return;
+    }
+
+    try {
+      const organizationId =
+        await this.screensRepository.findOrganizationIdById(screenId);
+
+      if (!organizationId) {
+        client.disconnect(true);
+        return;
+      }
+
+      const membership = await this.organizationsRepository.findMembership(
+        userId,
+        organizationId,
+      );
+
+      if (!membership) {
+        client.disconnect(true);
+        return;
+      }
+
+      const data = client.data as SocketData;
+      data.preview = true;
+      data.screenId = screenId;
+      await client.join(screenRoom(screenId));
+
+      const snapshot = await this.playerService.resolveSnapshot(
+        organizationId,
+        screenId,
+      );
+
+      if (snapshot) {
+        client.emit(PlayerSocketEvents.ContentUpdate, snapshot);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to handle preview connection for screen ${screenId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      client.disconnect(true);
+    }
+  }
+
+  /** Returns the authenticated user id, or null if the token is missing/invalid. */
+  private verifyCmsToken(token: string | undefined): string | null {
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const payload = this.jwtService.verify<CmsTokenPayload>(token, {
+        secret: this.configService.getOrThrow<string>('jwt.accessSecret'),
+      });
+      return payload.sub;
+    } catch (error) {
+      this.logger.debug(
+        `Rejected preview socket: ${
+          error instanceof Error ? error.message : 'invalid token'
+        }`,
+      );
+      return null;
+    }
+  }
+
   async handleDisconnect(client: Socket): Promise<void> {
     const { deviceId } = client.data as SocketData;
 
@@ -140,6 +259,45 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (deviceId) {
       await this.playerService.recordHeartbeat(deviceId, payload?.profile);
     }
+  }
+
+  /**
+   * The real device reports the item it just put on screen. We relay it to the
+   * screen room so CMS preview spectators jump to the same item, mirroring the
+   * device 1:1 (the preview runs no clock of its own). Only honored from a real
+   * device socket — a preview spectator must never drive this.
+   */
+  @SubscribeMessage(PlayerSocketEvents.NowPlaying)
+  handleNowPlaying(client: Socket, payload: NowPlayingMessage): void {
+    const { deviceId, screenId, preview } = client.data as SocketData;
+    const itemId = payload?.itemId;
+
+    if (preview || !deviceId || !screenId || !itemId) {
+      return;
+    }
+
+    // broadcast = everyone in the room except the sender (the device itself).
+    client.broadcast
+      .to(screenRoom(screenId))
+      .emit(PlayerSocketEvents.NowPlaying, { itemId });
+  }
+
+  /**
+   * A freshly-joined preview spectator asks for the current item. Relay the
+   * request to the screen room so the real device re-announces its now-playing,
+   * letting the preview sync immediately rather than after the next transition.
+   */
+  @SubscribeMessage(PlayerSocketEvents.NowPlayingRequest)
+  handleNowPlayingRequest(client: Socket): void {
+    const { screenId, preview } = client.data as SocketData;
+
+    if (!preview || !screenId) {
+      return;
+    }
+
+    client.broadcast
+      .to(screenRoom(screenId))
+      .emit(PlayerSocketEvents.NowPlayingRequest);
   }
 
   @OnEvent(PlayerEvents.DevicePaired)
@@ -170,8 +328,13 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @OnEvent(PlayerEvents.DeviceCommand)
   onDeviceCommand(event: DeviceCommandEvent): void {
+    // Fan out to the device AND the screen room. The device room drives the
+    // physical display; the screen room keeps any CMS preview spectators in
+    // lockstep (live orientation/scale + remote next/prev) without registering
+    // them as devices.
     this.server
       .to(deviceRoom(event.deviceId))
+      .to(screenRoom(event.screenId))
       .emit(PlayerSocketEvents.Command, event.command);
   }
 

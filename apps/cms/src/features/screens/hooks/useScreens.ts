@@ -235,6 +235,17 @@ export function useRestartDevice() {
   })
 }
 
+/**
+ * Steps the live display to the next/previous content item. Fire-and-forget —
+ * the result is observed in the preview iframe, not the React Query cache.
+ */
+export function useStepDevice() {
+  return useMutation({
+    mutationFn: ({ id, direction }: { id: string; direction: 'next' | 'prev' }) =>
+      screensApi.stepDevice(id, direction),
+  })
+}
+
 export function useCreateScreen() {
   const queryClient = useQueryClient()
 

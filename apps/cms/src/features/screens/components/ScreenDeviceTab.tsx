@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { DeviceSettingsForm } from '@/features/screens/components/DeviceSettingsForm'
 import { PairingCodeFrame } from '@/features/screens/components/PairingCodeFrame'
+import { PlayerPreviewFrame } from '@/features/screens/components/PlayerPreviewFrame'
 import { ScreenPresenceBadge } from '@/features/screens/components/ScreenPresenceBadge'
 import { UnpairDeviceDialog } from '@/features/screens/components/UnpairDeviceDialog'
 import {
@@ -90,6 +91,14 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
 
       {paired ? (
         <div className="flex flex-col gap-7">
+          {device?.online ? (
+            <PlayerPreviewFrame
+              screenId={screenId}
+              orientation={savedSettings.orientation}
+              scale={savedSettings.scale}
+            />
+          ) : null}
+
           <DeviceSettingsForm
             screenId={screenId}
             savedVolume={savedVolume}

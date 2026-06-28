@@ -85,6 +85,9 @@ export type PlayerCommand =
   | { type: 'scale'; value: DeviceScale }
   | { type: 'restart' }
   | { type: 'dailyReload'; value: DailyReloadSetting }
+  // Transient playback nudges (remote next/prev, e.g. from the CMS preview).
+  | { type: 'next' }
+  | { type: 'prev' }
 
 export type ConnectionState =
   | 'connecting'

@@ -94,11 +94,20 @@ export type PlayerCommand =
   | { type: 'orientation'; value: DeviceOrientation }
   | { type: 'scale'; value: DeviceScale }
   | { type: 'restart' }
-  | { type: 'dailyReload'; value: { enabled: boolean; time: string } };
+  | { type: 'dailyReload'; value: { enabled: boolean; time: string } }
+  // Transient playback nudges (no persisted state) — typically issued from the
+  // CMS preview so the operator can step the live display through its content.
+  | { type: 'next' }
+  | { type: 'prev' };
 
-/** A live control command targeted at one device (e.g. set volume). */
+/**
+ * A live control command targeted at one device. `screenId` lets the gateway
+ * also fan the command out to the `screen:<id>` room so any CMS preview
+ * spectators stay in lockstep with the real device (e.g. a remote next/prev).
+ */
 export interface DeviceCommandEvent {
   deviceId: string;
+  screenId: string;
   command: PlayerCommand;
 }
 
@@ -111,4 +120,15 @@ export const PlayerSocketEvents = {
   Command: 'command',
   Revoked: 'paired:revoked',
   Heartbeat: 'heartbeat',
+  /**
+   * Device → server: the item the device just put on screen. The gateway relays
+   * it to the screen room so CMS preview spectators mirror the device 1:1.
+   */
+  NowPlaying: 'now-playing',
+  /**
+   * Preview → server → device: a freshly-joined preview asks the device to
+   * re-announce its current item, so it syncs immediately instead of waiting for
+   * the device's next natural transition.
+   */
+  NowPlayingRequest: 'now-playing:request',
 } as const;

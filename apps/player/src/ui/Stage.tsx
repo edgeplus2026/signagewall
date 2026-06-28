@@ -2,7 +2,9 @@ import { effect } from '@preact/signals'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import { PlaybackController } from '../engine/playback-controller'
+import { isPreview } from '../preview'
 import { reportError } from '../sentry'
+import { registerPlaybackControls } from '../sync/playback-bus'
 import {
   lastError,
   orientation,
@@ -57,20 +59,36 @@ export function Stage() {
       return undefined
     }
 
-    const controller = new PlaybackController(root, {
-      onItem: (item) => {
-        playingItemId.value = item.id
+    const controller = new PlaybackController(
+      root,
+      {
+        onItem: (item) => {
+          playingItemId.value = item.id
+        },
+        onError: (error) => {
+          lastError.value =
+            error instanceof Error ? error.message : String(error)
+          // Offline load failures are expected (uncached item, no network) and
+          // the engine just skips them — don't spam Sentry with that noise.
+          if (navigator.onLine) {
+            reportError(error)
+          }
+        },
       },
-      onError: (error) => {
-        lastError.value = error instanceof Error ? error.message : String(error)
-        // Offline load failures are expected (uncached item, no network) and the
-        // engine just skips them — don't spam Sentry with that noise.
-        if (navigator.onLine) {
-          reportError(error)
-        }
-      },
-    })
+      undefined,
+      // The preview mirrors the device; it never runs its own playback clock.
+      { follow: isPreview },
+    )
     controllerRef.current = controller
+
+    // Expose step controls to the realtime command channel so a remote next/prev
+    // (e.g. from the CMS preview) drives this engine — both on the real device
+    // and inside the preview iframe, keeping them in lockstep.
+    const unregisterControls = registerPlaybackControls({
+      next: () => controller.next(),
+      previous: () => controller.previous(),
+      showItem: (itemId) => controller.showItem(itemId),
+    })
 
     // Coming back online, re-warm the cache so any items that couldn't be
     // prefetched while offline get pulled in before the next drop.
@@ -94,6 +112,7 @@ export function Stage() {
 
     return () => {
       stop()
+      unregisterControls()
       window.removeEventListener('online', onOnline)
       controller.destroy()
       controllerRef.current = null
@@ -101,7 +120,13 @@ export function Stage() {
   }, [])
 
   // Surface the controls on any pointer activity; drive back/next from arrows.
+  // Skipped in preview: the operator shouldn't be able to scrub content in the
+  // CMS iframe — the preview must mirror what the device is actually playing.
   useEffect(() => {
+    if (isPreview) {
+      return undefined
+    }
+
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'ArrowLeft') {
         goPrevious()
@@ -126,6 +151,11 @@ export function Stage() {
   // out of that node guarantees Preact never reconciles (and risks reordering)
   // the imperatively-managed media layers. The overlay is fixed/full-screen, so
   // it covers the stage regardless of DOM parent.
+  // No back/next overlay in preview — see the effect above.
+  if (isPreview) {
+    return <div ref={rootRef} class="player-stage" />
+  }
+
   return (
     <>
       <div ref={rootRef} class="player-stage" />

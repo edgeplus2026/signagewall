@@ -2,6 +2,8 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_URL: string
+  /** Origin of the player app, embedded as the live-preview iframe. */
+  readonly VITE_PLAYER_URL?: string
   readonly VITE_SENTRY_DSN?: string
   readonly VITE_SENTRY_ENVIRONMENT?: string
   // Cloud import picker credentials (public). See apps/cms/.env.example.

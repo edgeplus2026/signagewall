@@ -60,6 +60,22 @@ export class ScreensRepository {
       .exec();
   }
 
+  /**
+   * Resolves only the owning organization of a screen, looked up by id alone
+   * (no org scope). Used by the player gateway's preview path, which receives a
+   * bare screenId from the CMS iframe and must discover its org before checking
+   * the operator's membership. Returns null if the screen does not exist.
+   */
+  async findOrganizationIdById(id: string): Promise<string | null> {
+    const screen = await this.screenModel
+      .findOne({ _id: new Types.ObjectId(id) })
+      .select({ organizationId: 1 })
+      .lean()
+      .exec();
+
+    return screen ? screen.organizationId.toString() : null;
+  }
+
   async findSummaryById(
     organizationId: string,
     id: string,
