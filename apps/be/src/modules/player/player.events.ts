@@ -7,7 +7,16 @@
  * us a clean seam to later replace the in-memory emitter with Redis pub/sub for
  * horizontal scaling.
  */
-import type { DeviceOrientation, DeviceScale } from './schemas/device.schema';
+import {
+  PlayerSocketEvents,
+  type DeviceSettingsPayload,
+  type PlayerCommand,
+} from '@edge/player-contract';
+
+// Re-exported so the rest of the backend keeps importing these from the player
+// module while the single source of truth lives in @edge/player-contract.
+export { PlayerSocketEvents };
+export type { DeviceSettingsPayload, PlayerCommand };
 
 export const PlayerEvents = {
   /** A screen's own items changed (added/removed/reordered/replaced). */
@@ -48,13 +57,6 @@ export interface ScreensDeletedEvent {
   screenIds: string[];
 }
 
-/** Display + power settings delivered to the player (mirrors DeviceSettings). */
-export interface DeviceSettingsPayload {
-  orientation: DeviceOrientation;
-  scale: DeviceScale;
-  dailyReload: { enabled: boolean; time: string };
-}
-
 export interface DevicePairedEvent {
   deviceId: string;
   organizationId: string;
@@ -88,18 +90,6 @@ export interface DevicePresenceChangedEvent {
   paired?: boolean;
 }
 
-/** Player control commands fanned out to a specific device's socket. */
-export type PlayerCommand =
-  | { type: 'volume'; value: number }
-  | { type: 'orientation'; value: DeviceOrientation }
-  | { type: 'scale'; value: DeviceScale }
-  | { type: 'restart' }
-  | { type: 'dailyReload'; value: { enabled: boolean; time: string } }
-  // Transient playback nudges (no persisted state) — typically issued from the
-  // CMS preview so the operator can step the live display through its content.
-  | { type: 'next' }
-  | { type: 'prev' };
-
 /**
  * A live control command targeted at one device. `screenId` lets the gateway
  * also fan the command out to the `screen:<id>` room so any CMS preview
@@ -110,25 +100,3 @@ export interface DeviceCommandEvent {
   screenId: string;
   command: PlayerCommand;
 }
-
-/** Socket.IO event names. Kept here so client and server stay in lockstep. */
-export const PlayerSocketEvents = {
-  PairingCode: 'pairing:code',
-  Paired: 'paired',
-  ContentUpdate: 'content:update',
-  Sleep: 'sleep',
-  Command: 'command',
-  Revoked: 'paired:revoked',
-  Heartbeat: 'heartbeat',
-  /**
-   * Device → server: the item the device just put on screen. The gateway relays
-   * it to the screen room so CMS preview spectators mirror the device 1:1.
-   */
-  NowPlaying: 'now-playing',
-  /**
-   * Preview → server → device: a freshly-joined preview asks the device to
-   * re-announce its current item, so it syncs immediately instead of waiting for
-   * the device's next natural transition.
-   */
-  NowPlayingRequest: 'now-playing:request',
-} as const;

@@ -1,3 +1,13 @@
+import {
+  DEFAULT_DAILY_RELOAD,
+  DEFAULT_ORIENTATION,
+  DEFAULT_SCALE,
+  type DailyReloadSetting,
+  type DeviceOrientation,
+  type DeviceScale,
+  type DeviceSettings,
+} from '@edge/player-contract'
+
 export type ScreenViewMode = 'grid' | 'list'
 
 export type ScreenSortField = 'name' | 'createdAt' | 'status'
@@ -18,34 +28,19 @@ export interface ScreenDeviceProfile {
   screenHeight?: number
 }
 
-/** How the player rotates its output relative to the physical display. */
-export type ScreenDeviceOrientation =
-  | 'landscape'
-  | 'landscape-flipped'
-  | 'portrait'
-  | 'portrait-flipped'
-
-/** How content fits the screen (maps to CSS object-fit on the player). */
-export type ScreenDeviceScale = 'none' | 'fit' | 'stretch' | 'zoom'
-
-export interface DailyReloadSetting {
-  enabled: boolean
-  /** 24h 'HH:mm' in the device's local timezone. */
-  time: string
-}
-
-/** Display + power settings of the bound device. */
-export interface ScreenDeviceSettings {
-  orientation: ScreenDeviceOrientation
-  scale: ScreenDeviceScale
-  dailyReload: DailyReloadSetting
-}
+// Device display + power settings come from @edge/player-contract — the single
+// source of truth shared with the backend + player. Aliased to the historical
+// `ScreenDevice*` names so the rest of the CMS keeps importing from here.
+export type ScreenDeviceOrientation = DeviceOrientation
+export type ScreenDeviceScale = DeviceScale
+export type { DailyReloadSetting }
+export type ScreenDeviceSettings = DeviceSettings
 
 /** Fallback used when a device has no persisted settings yet. */
 export const DEFAULT_DEVICE_SETTINGS: ScreenDeviceSettings = {
-  orientation: 'landscape',
-  scale: 'fit',
-  dailyReload: { enabled: true, time: '03:00' },
+  orientation: DEFAULT_ORIENTATION,
+  scale: DEFAULT_SCALE,
+  dailyReload: { ...DEFAULT_DAILY_RELOAD },
 }
 
 /** Pairing/online status of the physical display bound 1:1 to this screen. */

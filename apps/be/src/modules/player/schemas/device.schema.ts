@@ -1,28 +1,44 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import {
+  DEFAULT_DAILY_RELOAD_TIME,
+  ORIENTATIONS,
+  SCALES,
+  type DeviceOrientation as DeviceOrientationValue,
+  type DeviceScale as DeviceScaleValue,
+} from '@edge/player-contract';
+
+export { DEFAULT_DAILY_RELOAD_TIME };
 
 export enum DeviceStatus {
   UNPAIRED = 'unpaired',
   PAIRED = 'paired',
 }
 
-/** How the player rotates its output relative to the physical display. */
-export enum DeviceOrientation {
-  LANDSCAPE = 'landscape',
-  LANDSCAPE_FLIPPED = 'landscape-flipped',
-  PORTRAIT = 'portrait',
-  PORTRAIT_FLIPPED = 'portrait-flipped',
-}
+/**
+ * How the player rotates its output relative to the physical display. A const
+ * object (not a TS `enum`) so the value type IS the shared-contract string union
+ * — keeping `.LANDSCAPE` member access and `@IsEnum`/`@Prop` validation while
+ * staying assignable to `@edge/player-contract` payloads. The allowed values
+ * (DB + Swagger validation) derive from the contract's `ORIENTATIONS`, so they
+ * can never drift.
+ */
+export const DeviceOrientation = {
+  LANDSCAPE: 'landscape',
+  LANDSCAPE_FLIPPED: 'landscape-flipped',
+  PORTRAIT: 'portrait',
+  PORTRAIT_FLIPPED: 'portrait-flipped',
+} as const satisfies Record<string, DeviceOrientationValue>;
+export type DeviceOrientation = DeviceOrientationValue;
 
 /** How content fits the screen (maps to CSS object-fit on the player). */
-export enum DeviceScale {
-  NONE = 'none',
-  FIT = 'fit',
-  STRETCH = 'stretch',
-  ZOOM = 'zoom',
-}
-
-export const DEFAULT_DAILY_RELOAD_TIME = '03:00';
+export const DeviceScale = {
+  NONE: 'none',
+  FIT: 'fit',
+  STRETCH: 'stretch',
+  ZOOM: 'zoom',
+} as const satisfies Record<string, DeviceScaleValue>;
+export type DeviceScale = DeviceScaleValue;
 
 /** Automatic once-a-day player reload, in the device's local time. */
 @Schema({ _id: false })
@@ -47,12 +63,12 @@ export const DailyReloadSettingSchema =
 export class DeviceSettings {
   @Prop({
     type: String,
-    enum: DeviceOrientation,
+    enum: ORIENTATIONS,
     default: DeviceOrientation.LANDSCAPE,
   })
   orientation!: DeviceOrientation;
 
-  @Prop({ type: String, enum: DeviceScale, default: DeviceScale.FIT })
+  @Prop({ type: String, enum: SCALES, default: DeviceScale.FIT })
   scale!: DeviceScale;
 
   @Prop({ type: DailyReloadSettingSchema, default: () => ({}) })

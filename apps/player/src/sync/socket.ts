@@ -9,89 +9,26 @@ import {
   getProfile,
   getToken,
   setCachedPairingCode,
-  setStoredDailyReload,
-  setStoredOrientation,
-  setStoredScale,
-  setStoredVolume,
   setToken,
 } from '../device'
-import { isOrientation, isScale, normalizeDailyReload } from '../device-settings'
-import { restartPlayer } from '../restart'
 import { clearMediaCaches, clearSnapshot, saveSnapshot } from '../persistence/idb'
-import {
-  playbackNext,
-  playbackPrevious,
-  playbackShowItem,
-} from './playback-bus'
+import { applyCommand, applySettings, applyVolume } from './commands'
+import { playbackShowItem } from './playback-bus'
 import {
   connection,
-  dailyReload,
   lastError,
-  orientation,
   paired,
   pairingCode,
   playingItemId,
-  scale,
   snapshot,
   volume,
 } from '../store'
 import type {
-  DailyReloadSetting,
-  DeviceOrientation,
-  DeviceScale,
-  DeviceSettings,
   PairedPayload,
   PairingCodePayload,
   PlayerCommand,
   PlayerSnapshot,
 } from '../types'
-
-/** Applies + persists a new volume (0–100), ignoring out-of-range values. */
-function applyVolume(next: number): void {
-  if (!Number.isFinite(next)) {
-    return
-  }
-  const clamped = Math.min(100, Math.max(0, Math.round(next)))
-  volume.value = clamped
-  setStoredVolume(clamped)
-}
-
-/** Applies + persists an orientation, ignoring unknown values. */
-function applyOrientation(next: DeviceOrientation): void {
-  if (!isOrientation(next)) {
-    return
-  }
-  orientation.value = next
-  setStoredOrientation(next)
-}
-
-/** Applies + persists a content scale, ignoring unknown values. */
-function applyScale(next: DeviceScale): void {
-  if (!isScale(next)) {
-    return
-  }
-  scale.value = next
-  setStoredScale(next)
-}
-
-/**
- * Applies + persists the daily-reload setting. Normalizes first so a malformed
- * time falls back to the default without dropping the `enabled` flag (a disable
- * with a bad time still disables). The scheduler reacts to the `dailyReload`
- * signal (see startDailyReload), so updating it here rebases the loop.
- */
-function applyDailyReload(next: DailyReloadSetting): void {
-  const normalized = normalizeDailyReload(next)
-  dailyReload.value = normalized
-  setStoredDailyReload(normalized)
-}
-
-/** Applies all display + power settings delivered on (re)connect / pair. */
-function applySettings(settings: DeviceSettings): void {
-  applyOrientation(settings.orientation)
-  applyScale(settings.scale)
-  applyDailyReload(settings.dailyReload)
-}
 
 const HEARTBEAT_MS = 30_000
 
@@ -171,31 +108,7 @@ export function connectPlayer(): void {
   })
 
   socket.on('command', (command: PlayerCommand) => {
-    switch (command?.type) {
-      case 'volume':
-        applyVolume(command.value)
-        break
-      case 'orientation':
-        applyOrientation(command.value)
-        break
-      case 'scale':
-        applyScale(command.value)
-        break
-      case 'dailyReload':
-        applyDailyReload(command.value)
-        break
-      case 'restart':
-        restartPlayer()
-        break
-      case 'next':
-        playbackNext()
-        break
-      case 'prev':
-        playbackPrevious()
-        break
-      default:
-        break
-    }
+    applyCommand(command)
   })
 
   socket.on('paired:revoked', () => {
@@ -310,25 +223,11 @@ export function connectPreview(params: {
     }
   })
 
-  // Mirror live display commands so the preview tracks the device. Volume is
-  // deliberately ignored (always muted); restart/dailyReload are device-only.
+  // Mirror live display commands so the preview tracks the device. The preview
+  // flag drops the device-only commands (volume — always muted — plus
+  // restart/dailyReload).
   socket.on('command', (command: PlayerCommand) => {
-    switch (command?.type) {
-      case 'orientation':
-        applyOrientation(command.value)
-        break
-      case 'scale':
-        applyScale(command.value)
-        break
-      case 'next':
-        playbackNext()
-        break
-      case 'prev':
-        playbackPrevious()
-        break
-      default:
-        break
-    }
+    applyCommand(command, { preview: true })
   })
 }
 

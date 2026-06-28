@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 
 import { renderEmailVerificationEmail } from './templates/email-verification.template';
+import { renderNewRegistrationEmail } from './templates/new-registration.template';
 import { renderPasswordResetEmail } from './templates/password-reset.template';
 import {
   renderFeedbackEmail,
@@ -18,6 +19,7 @@ export class MailService implements OnModuleInit {
   private readonly resend: Resend | null;
   private readonly from: string;
   private readonly supportTo: string | undefined;
+  private readonly registrationsNotifyTo: string | undefined;
   private readonly enabled: boolean;
 
   constructor(private readonly configService: ConfigService) {
@@ -29,6 +31,9 @@ export class MailService implements OnModuleInit {
       'Edge <onboarding@resend.dev>',
     );
     this.supportTo = this.configService.get<string>('mail.supportTo');
+    this.registrationsNotifyTo = this.configService.get<string>(
+      'mail.registrationsNotifyTo',
+    );
   }
 
   isEnabled(): boolean {
@@ -139,6 +144,26 @@ export class MailService implements OnModuleInit {
     });
 
     await this.send({ to: params.to, subject, html });
+  }
+
+  /** Notifies the Edge team that a new user registered (internal). */
+  async sendNewRegistrationEmail(params: {
+    name: string;
+    email: string;
+    phone: string;
+    company?: string;
+    viaInvite: boolean;
+  }): Promise<void> {
+    if (!this.registrationsNotifyTo) {
+      this.logger.warn(
+        `MAIL_REGISTRATIONS_NOTIFY_TO not set; skipping registration notification for ${params.email}`,
+      );
+      return;
+    }
+
+    const { subject, html } = renderNewRegistrationEmail(params);
+
+    await this.send({ to: this.registrationsNotifyTo, subject, html });
   }
 
   private async sendSupportEmail(params: {

@@ -14,11 +14,13 @@ import type { DeviceOrientation, DeviceScale } from './types'
  * everything a real device does — pairing UI, presence/heartbeat, token and
  * snapshot persistence, daily-reload, and the back/next controls. Suppressing
  * those keeps an open preview tab from masquerading as the physical device.
+ *
+ * The operator token is NOT carried in the URL (it would leak through browser
+ * history and the player server's access logs). It arrives over a postMessage
+ * handshake from the embedding CMS instead — see `sync/preview-handshake.ts`.
  */
 export interface PreviewParams {
   screenId: string
-  /** CMS access token (JWT) authorizing the spectator. */
-  token: string
   /** Orientation to rotate the rendered content to, mirroring the device. */
   orientation: DeviceOrientation
   /** Content fit mode, mirroring the device. */
@@ -27,9 +29,10 @@ export interface PreviewParams {
 
 /**
  * Parses the preview parameters from the URL once, or returns null when this is
- * a normal (device) load. We require both `preview` and a `screenId`/`token`
- * pair — a partial set is treated as a non-preview boot rather than a broken
- * preview, so a stray `?preview=1` can never strand a real device.
+ * a normal (device) load. We require `preview` and a `screenId` — a partial set
+ * is treated as a non-preview boot rather than a broken preview, so a stray
+ * `?preview=1` can never strand a real device. The token is delivered later via
+ * postMessage, so its absence here does not disqualify a preview load.
  */
 function parsePreviewParams(): PreviewParams | null {
   if (typeof window === 'undefined') {
@@ -43,8 +46,7 @@ function parsePreviewParams(): PreviewParams | null {
   }
 
   const screenId = params.get('screenId')
-  const token = params.get('token')
-  if (!screenId || !token) {
+  if (!screenId) {
     return null
   }
 
@@ -53,7 +55,6 @@ function parsePreviewParams(): PreviewParams | null {
 
   return {
     screenId,
-    token,
     orientation: isOrientation(orientationParam)
       ? orientationParam
       : DEFAULT_ORIENTATION,

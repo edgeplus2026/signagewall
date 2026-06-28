@@ -66,6 +66,11 @@ class FakeSlot implements PlaybackSlot {
   tryUnmute(): void {
     // Audio recovery is exercised at the Slot level, not the loop logic.
   }
+
+  mediaDurationMs(): number | null {
+    // No real <video>, so the loop falls back to snapshot metadata duration.
+    return null
+  }
 }
 
 function build() {
@@ -224,6 +229,23 @@ describe('PlaybackController', () => {
     } finally {
       globals.document = previous
     }
+  })
+
+  it('does not cut a video off on a wallclock cap (waits for ended/watchdog)', async () => {
+    const { controller, onItemIds } = build()
+    // Metadata says 2s, but a video must advance on its real `ended` (which the
+    // fake slot never fires), not on a metadata-derived wallclock cap.
+    controller.load(snapshot([video('V', 2000), img('B')]))
+    await flush()
+    expect(onItemIds).toEqual(['V'])
+    // Well past the old `durationMs + 2s` cap, but below the watchdog grace
+    // (duration + 15s): the video is still on screen, never truncated.
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(onItemIds).toEqual(['V'])
+    // Past the watchdog grace the backstop finally force-advances.
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(onItemIds.at(-1)).toBe('B')
+    controller.destroy()
   })
 
   it('applies volume changes to both slots immediately', async () => {

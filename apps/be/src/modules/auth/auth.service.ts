@@ -105,6 +105,7 @@ export class AuthService {
         return created;
       });
 
+      this.notifyAdminOfRegistration(dto, true);
       return this.buildAuthResponse(user);
     }
 
@@ -113,11 +114,34 @@ export class AuthService {
     // persisted before sending, so a mail failure must not fail registration —
     // the user can still request a fresh link via resend.
     const user = await this.usersRepository.create(userData);
+    this.notifyAdminOfRegistration(dto, false);
     await this.sendVerificationLink(user).catch((error: unknown) => {
       this.logger.error(`Verification email failed for ${user.email}`, error);
     });
 
     return { needsVerification: true, email: user.email };
+  }
+
+  /**
+   * Fire-and-forget internal notification to the Edge team that a new user
+   * signed up, echoing what they entered on the form (never the password). Must
+   * never block or fail registration on a mail error.
+   */
+  private notifyAdminOfRegistration(dto: RegisterDto, viaInvite: boolean): void {
+    void this.mailService
+      .sendNewRegistrationEmail({
+        name: dto.name.trim(),
+        email: dto.email,
+        phone: dto.phone,
+        ...(dto.company?.trim() ? { company: dto.company.trim() } : {}),
+        viaInvite,
+      })
+      .catch((error: unknown) => {
+        this.logger.error(
+          `Registration notification failed for ${dto.email}`,
+          error,
+        );
+      });
   }
 
   /**

@@ -10,11 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar'
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import { DeleteOrganizationDialog } from '@/features/organizations/components/DeleteOrganizationDialog'
 import { OrganizationFormSheet } from '@/features/organizations/components/OrganizationFormSheet'
 import { useIsOrgAdmin } from '@/features/organizations/hooks/useIsOrgAdmin'
@@ -25,6 +21,8 @@ import {
 import type { Organization } from '@/features/organizations/types/organization.types'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
+// Import favicon.svg from public
+import favicon from '@/assets/sidebar-logo.svg'
 
 const menuItemClassName =
   'gap-2 p-2 focus:!bg-highlight data-highlighted:!bg-highlight text-primary focus:**:text-primary data-highlighted:**:text-primary [&_[data-org-icon]_span]:!text-brand-contrast [&_[data-org-icon]]:shrink-0 [&_[data-org-action]]:pointer-events-auto'
@@ -79,7 +77,9 @@ export function OrganizationSwitcher() {
                 size="lg"
                 className="data-[state=open]:bg-highlight data-[state=open]:text-primary [&_[data-org-icon]_span]:!text-brand-contrast"
               >
-                <OrganizationIcon name={activeOrganization.name} />
+                {/* Display favicon.svg from public */}
+                <img src={favicon} alt="Favicon" className="w-7 border border-primary rounded-md" />
+
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{activeOrganization.name}</span>
                   <span className="text-secondary truncate text-xs">
@@ -96,7 +96,7 @@ export function OrganizationSwitcher() {
               sideOffset={4}
               alignOffset={4}
             >
-              <DropdownMenuLabel className="text-secondary px-1 pb-1.5 pt-0 text-xs">
+              <DropdownMenuLabel className="text-secondary px-1 pt-0 pb-1.5 text-xs">
                 {t('organizations.title')}
               </DropdownMenuLabel>
               {organizations.map((organization) => (
@@ -123,7 +123,7 @@ export function OrganizationSwitcher() {
                     <button
                       type="button"
                       data-org-action
-                      className="text-secondary hover:text-primary flex size-5 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-highlight"
+                      className="text-secondary hover:text-primary hover:bg-highlight flex size-5 shrink-0 items-center justify-center rounded-md transition-colors"
                       onClick={() => {
                         setMenuOpen(false)
                         setEditOrganization(organization)
@@ -139,7 +139,7 @@ export function OrganizationSwitcher() {
                     <button
                       type="button"
                       data-org-action
-                      className="text-secondary hover:text-danger flex size-5 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-highlight"
+                      className="text-secondary hover:text-danger hover:bg-highlight flex size-5 shrink-0 items-center justify-center rounded-md transition-colors"
                       onClick={() => {
                         openDeleteDialog(organization)
                       }}
@@ -161,7 +161,7 @@ export function OrganizationSwitcher() {
                       setCreateOpen(true)
                     }}
                   >
-                    <div className="flex size-6 items-center justify-center rounded-md border bg-page">
+                    <div className="bg-page flex size-6 items-center justify-center rounded-md border">
                       <Plus className="size-4" />
                     </div>
                     <span className="font-medium">{t('organizations.add')}</span>
@@ -173,11 +173,7 @@ export function OrganizationSwitcher() {
         </SidebarMenuItem>
       </SidebarMenu>
 
-      <OrganizationFormSheet
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        mode="create"
-      />
+      <OrganizationFormSheet open={createOpen} onOpenChange={setCreateOpen} mode="create" />
 
       <OrganizationFormSheet
         open={!!editOrganization}

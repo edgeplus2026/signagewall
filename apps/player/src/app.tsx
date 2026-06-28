@@ -5,7 +5,8 @@ import { loadSnapshot } from './persistence/idb'
 import { isPreview, previewParams } from './preview'
 import { orientation, paired, scale, snapshot, view } from './store'
 import { startDailyReload } from './sync/daily-reload'
-import { connectPlayer, connectPreview } from './sync/socket'
+import { requestPreviewToken } from './sync/preview-handshake'
+import { connectPlayer, connectPreview, disconnectPlayer } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 import { PairingScreen } from './ui/PairingScreen'
@@ -18,13 +19,17 @@ export function App() {
     // and just mirror the screen's live content. Orientation/scale come from
     // the URL so the rendered output matches the real device.
     if (isPreview && previewParams) {
-      orientation.value = previewParams.orientation
-      scale.value = previewParams.scale
-      connectPreview({
-        screenId: previewParams.screenId,
-        token: previewParams.token,
+      const params = previewParams
+      orientation.value = params.orientation
+      scale.value = params.scale
+      // The operator token is delivered over postMessage (never the URL), so we
+      // connect only once the embedding CMS hands it to us. connectPreview is
+      // idempotent (guards on an existing socket), so a repeated token message
+      // is harmless.
+      const stopHandshake = requestPreviewToken((token) => {
+        connectPreview({ screenId: params.screenId, token })
       })
-      return undefined
+      return stopHandshake
     }
 
     // Offline-first boot: if we already hold a token we are paired, and we can
@@ -46,8 +51,13 @@ export function App() {
     // independently of the socket so it works offline.
     const stopDailyReload = startDailyReload()
 
+    // Symmetric teardown: tear the socket (and its heartbeat / now-playing
+    // stream) down alongside the daily-reload loop. In production the player
+    // never unmounts, but this keeps dev StrictMode/HMR remounts clean instead
+    // of leaking a live socket + timers.
     return () => {
       stopDailyReload()
+      disconnectPlayer()
     }
   }, [])
 

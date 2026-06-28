@@ -70,6 +70,21 @@ export class Slot {
   }
 
   /**
+   * Real decoded duration (ms) of the loaded video, or null when unknown or the
+   * slot isn't showing a video. Lets the controller key its dwell/watchdog on
+   * the actual length rather than trusting (possibly stale) snapshot metadata.
+   */
+  mediaDurationMs(): number | null {
+    if (this.current?.kind !== 'video') {
+      return null
+    }
+    const seconds = this.video.duration
+    return Number.isFinite(seconds) && seconds > 0
+      ? Math.round(seconds * 1000)
+      : null
+  }
+
+  /**
    * Loads `item` into this (hidden) slot. Resolves only once the content is
    * decoded/buffered enough to show without a flash. Rejects on load error or
    * timeout so the controller can skip the item instead of blocking the loop.
@@ -111,9 +126,16 @@ export class Slot {
     }
     const wasPlaying = !this.video.paused
     this.video.muted = shouldMute
-    if (wasPlaying && this.video.paused) {
-      this.video.muted = true
-      void this.video.play().catch(() => undefined)
+    // Muting is always safe. Unmuting a *playing* element without prior user
+    // activation makes the browser pause it — and that pause can be async, so a
+    // synchronous `paused` check misses it. Re-assert playback and fall back to
+    // muted if the unmute wasn't permitted (same recovery as activate()). A
+    // prepared-but-paused back slot stays paused — never start hidden media.
+    if (!shouldMute && wasPlaying) {
+      void this.video.play().catch(() => {
+        this.video.muted = true
+        void this.video.play().catch(() => undefined)
+      })
     }
   }
 

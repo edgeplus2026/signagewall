@@ -25,6 +25,9 @@ export default () => ({
     from: process.env.MAIL_FROM ?? 'Edge <onboarding@resend.dev>',
     resendApiKey: process.env.RESEND_API_KEY,
     supportTo: process.env.MAIL_SUPPORT_TO,
+    // Inbox that receives a notification on every new user registration.
+    registrationsNotifyTo:
+      process.env.MAIL_REGISTRATIONS_NOTIFY_TO ?? 'edgeplus2026@gmail.com',
   },
   auth: {
     passwordResetExpiresInHours: parseInt(

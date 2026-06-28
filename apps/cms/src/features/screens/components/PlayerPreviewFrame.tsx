@@ -1,9 +1,13 @@
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { useStepDevice } from '@/features/screens/hooks/useScreens'
-import { buildPlayerPreviewUrl } from '@/features/screens/lib/playerPreviewUrl'
+import {
+  PLAYER_ORIGIN,
+  buildPlayerPreviewUrl,
+} from '@/features/screens/lib/playerPreviewUrl'
 import type {
   ScreenDeviceOrientation,
   ScreenDeviceScale,
@@ -33,6 +37,11 @@ interface PlayerPreviewFrameProps {
  * changes arrive over the realtime command channel, so the iframe is NOT keyed
  * on them (re-keying would remount and flash the player on every change).
  *
+ * The operator token is NOT in the iframe URL (that would leak through history
+ * and the player server's logs). Instead the embedded player announces itself
+ * with a `preview-ready` postMessage and we reply with the token addressed to
+ * the player origin only.
+ *
  * The back/next controls don't scrub the preview locally — they issue a remote
  * step command to the real device, which the preview then mirrors in lockstep.
  */
@@ -44,12 +53,38 @@ export function PlayerPreviewFrame({
   const { t } = useTranslation()
   const token = useAuthStore((state) => state.token)
   const step = useStepDevice()
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  // Hand the operator token to the embedded player when it signals readiness.
+  // We only answer the player frame, only accept its own origin, and address the
+  // token reply to the player origin so it can never be read by another frame.
+  useEffect(() => {
+    if (!token) {
+      return
+    }
+    const onMessage = (event: MessageEvent) => {
+      const target = iframeRef.current?.contentWindow
+      if (!target || event.source !== target) {
+        return
+      }
+      if (event.origin !== PLAYER_ORIGIN) {
+        return
+      }
+      if ((event.data as { type?: unknown } | null)?.type === 'preview-ready') {
+        target.postMessage({ type: 'preview-token', token }, PLAYER_ORIGIN)
+      }
+    }
+    window.addEventListener('message', onMessage)
+    return () => {
+      window.removeEventListener('message', onMessage)
+    }
+  }, [token])
 
   if (!token) {
     return null
   }
 
-  const src = buildPlayerPreviewUrl({ screenId, token, orientation, scale })
+  const src = buildPlayerPreviewUrl({ screenId, orientation, scale })
 
   const onStep = (direction: 'next' | 'prev') => {
     step.mutate({ id: screenId, direction })
@@ -69,9 +104,13 @@ export function PlayerPreviewFrame({
         {/* Glass panel: always landscape — it represents the physical display. */}
         <div className="relative aspect-video overflow-hidden rounded-lg bg-black ring-1 ring-black/60 ring-inset">
           <iframe
+            ref={iframeRef}
             src={src}
             title={t('screens.device.preview.frameTitle')}
             allow="autoplay; fullscreen"
+            // No Referer header → the player URL never lands in the player
+            // server's logs via the referrer either.
+            referrerPolicy="no-referrer"
             className="absolute inset-0 h-full w-full border-0"
           />
 

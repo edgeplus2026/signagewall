@@ -105,7 +105,7 @@ function SettingSelect<T extends string>({
       onValueChange={(next) => {
         onChange(next as T)
       }}
-      disabled={disabled}
+      disabled={disabled ?? false}
     >
       <SelectTrigger className="w-48">
         <SelectValue />

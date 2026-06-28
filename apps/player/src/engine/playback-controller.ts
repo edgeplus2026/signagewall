@@ -14,9 +14,14 @@ export interface PlaybackSlot {
   release(): void
   setVolume(volume: number): void
   tryUnmute(): void
+  /**
+   * The real decoded duration (ms) of the loaded video, or null when unknown or
+   * the slot isn't showing a video. Lets the loop key its dwell/watchdog on the
+   * actual length instead of trusting (possibly stale) snapshot metadata.
+   */
+  mediaDurationMs(): number | null
 }
 
-const VIDEO_CAP_GRACE_MS = 2_000
 const WATCHDOG_INTERVAL_MS = 5_000
 const WATCHDOG_GRACE_MS = 15_000
 const MIN_DWELL_MS = 1_000
@@ -418,11 +423,21 @@ export class PlaybackController {
     this.cursor = index
     this.lastAdvanceAt = Date.now()
     this.stallReported = false
-    this.currentDurationMs = item.durationMs
+    // For video, trust the element's real decoded duration over the (possibly
+    // stale) snapshot metadata, so neither the dwell nor the watchdog cuts a
+    // long or rebuffering clip short. Falls back to metadata when unknown.
+    const activeSlot = this.slots[this.activeIndex]
+    this.currentDurationMs =
+      item.kind === 'video'
+        ? (activeSlot.mediaDurationMs() ?? item.durationMs)
+        : item.durationMs
     this.callbacks.onItem?.(item)
-    // Follow mode never schedules its own advance — the device's next
-    // now-playing report is what moves us on.
-    if (!this.follow) {
+    // Video advances on its natural `ended` event (wired in activate); we never
+    // arm a wallclock cap, which would truncate a rebuffering or wrong-metadata
+    // clip. Images/apps have no `ended`, so they dwell on a timer. The watchdog
+    // (keyed on the real duration above) is the backstop if a video's `ended` is
+    // ever lost. Follow mode never schedules its own advance either.
+    if (!this.follow && item.kind !== 'video') {
       this.scheduleAdvance(item)
     }
 
@@ -470,17 +485,12 @@ export class PlaybackController {
     })
   }
 
+  /** Arms the dwell timer for a non-video item (images/apps have no `ended`). */
   private scheduleAdvance(item: Renderable): void {
     this.clearAdvanceTimer()
-    // Videos advance on their natural `ended` event; the timer is a safety cap
-    // in case `ended` never fires (corrupt stream, codec quirk).
-    const duration =
-      item.kind === 'video'
-        ? item.durationMs + VIDEO_CAP_GRACE_MS
-        : item.durationMs
     this.advanceTimer = window.setTimeout(() => {
       this.advance()
-    }, Math.max(MIN_DWELL_MS, duration))
+    }, Math.max(MIN_DWELL_MS, item.durationMs))
   }
 
   private scheduleSkip(index: number): void {

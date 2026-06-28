@@ -20,6 +20,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@edge/apps": "workspace:*",
     "@edge/apps-contract": "workspace:*",
+    "@edge/player-contract": "workspace:*",
     "@fontsource-variable/geist": "^5.2.9",
     "@hookform/resolvers": "^5.4.0",
     "@sentry/react": "^10.58.0",

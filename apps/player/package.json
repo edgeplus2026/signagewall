@@ -16,6 +16,7 @@
   "dependencies": {
     "@edge/apps": "workspace:*",
     "@edge/apps-contract": "workspace:*",
+    "@edge/player-contract": "workspace:*",
     "@preact/signals": "^2.2.1",
     "@sentry/browser": "^10.58.0",
     "idb": "^8.0.3",
