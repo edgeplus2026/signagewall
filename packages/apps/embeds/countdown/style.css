@@ -1,0 +1,12 @@
+.cd-label {
+  font-size: 4vw;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.cd-time {
+  font-size: 16vw;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}

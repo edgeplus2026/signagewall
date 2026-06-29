@@ -6,8 +6,7 @@ interface CreateInstanceCardProps {
 }
 
 /**
- * Placeholder card that creates a new instance on click — mirrors the
- * "add" cards used elsewhere (e.g. MediaUploadCard / ContentEditor hint).
+ * Compact "add" card matching the InstanceCard layout (icon left, text right).
  */
 export function CreateInstanceCard({ onClick }: CreateInstanceCardProps) {
   const { t } = useTranslation()
@@ -16,16 +15,16 @@ export function CreateInstanceCard({ onClick }: CreateInstanceCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className="group flex min-h-56 flex-col overflow-hidden rounded-2xl border border-dashed border-secondary bg-panel/50 text-left transition-colors hover:border-brand/60 hover:bg-brand/5"
+      className="group flex items-center gap-2.5 rounded-2xl border border-dashed border-secondary bg-panel/50 p-4 text-left transition-colors hover:border-brand/60 hover:bg-brand/5"
     >
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center">
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-brand/10 text-brand transition-transform duration-300 group-hover:scale-105">
-          <PlusIcon className="size-6" />
-        </div>
-        <p className="text-sm font-medium text-primary">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand transition-transform duration-300 group-hover:scale-105">
+        <PlusIcon className="size-5" />
+      </div>
+      <div className="flex min-w-0 flex-col">
+        <p className="truncate text-sm font-medium text-primary">
           {t('apps.instances.create.title')}
         </p>
-        <p className="max-w-[14rem] text-xs text-secondary">
+        <p className="truncate text-xs text-secondary">
           {t('apps.instances.create.description')}
         </p>
       </div>

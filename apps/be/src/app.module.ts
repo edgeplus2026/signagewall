@@ -24,6 +24,7 @@ import { HealthModule } from './modules/health/health.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AppsModule } from './modules/apps/apps.module';
+import { ConnectionsModule } from './modules/connections/connections.module';
 import { MembersModule } from './modules/members/members.module';
 import { MediaModule } from './modules/media/media.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
@@ -79,6 +80,7 @@ import { UsersModule } from './modules/users/users.module';
     ScreensModule,
     AdminModule,
     AppsModule,
+    ConnectionsModule,
     PlayerModule,
     HealthModule,
   ],

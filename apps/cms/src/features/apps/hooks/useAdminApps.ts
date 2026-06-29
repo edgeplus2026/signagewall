@@ -5,7 +5,10 @@ import {
   type CreateAppPayload,
   type UpdateAppPayload,
 } from '@/features/apps/api/appsApi'
-import { ADMIN_APPS_QUERY_KEY } from '@/features/apps/lib/appsQueryKeys'
+import {
+  ADMIN_APPS_QUERY_KEY,
+  APPS_QUERY_ROOT,
+} from '@/features/apps/lib/appsQueryKeys'
 
 export function useAdminApps() {
   return useQuery({
@@ -26,6 +29,9 @@ function useAdminAppsInvalidation() {
   const queryClient = useQueryClient()
   return () => {
     void queryClient.invalidateQueries({ queryKey: ADMIN_APPS_QUERY_KEY })
+    // Org-facing catalog lives under a different key root, so adding/editing
+    // an app in super-admin must refresh those caches too.
+    void queryClient.invalidateQueries({ queryKey: [APPS_QUERY_ROOT] })
   }
 }
 

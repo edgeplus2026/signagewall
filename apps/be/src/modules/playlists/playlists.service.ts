@@ -37,8 +37,13 @@ import {
   toPlaylistSummaryResponse,
 } from './mappers/playlist.mapper';
 import { PlaylistsRepository } from './playlists.repository';
-import { PlaylistDocument, PlaylistItemValue } from './schemas/playlist.schema';
+import {
+  PlaylistDocument,
+  PlaylistItemType,
+  PlaylistItemValue,
+} from './schemas/playlist.schema';
 import { ScreensService } from '../screens/screens.service';
+import { AppInstancesRepository } from '../apps/app-instances.repository';
 
 const MAX_PLAYLIST_ITEMS = 500;
 const DEFAULT_ITEM_DURATION = 15;
@@ -56,6 +61,7 @@ export class PlaylistsService {
     @Inject(forwardRef(() => ScreensService))
     private readonly screensService: ScreensService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly appInstancesRepository: AppInstancesRepository,
   ) {}
 
   /** Notifies the realtime player layer that a playlist's content changed. */
@@ -235,6 +241,7 @@ export class PlaylistsService {
         const baseOrder = playlist.itemCount;
         const items = mediaIds.map((mediaId, index) => ({
           _id: new Types.ObjectId(),
+          type: PlaylistItemType.MEDIA,
           mediaId: new Types.ObjectId(mediaId),
           order: baseOrder + index,
           duration: durationByMediaId.get(mediaId) ?? DEFAULT_ITEM_DURATION,
@@ -276,7 +283,9 @@ export class PlaylistsService {
     // would be surprising and inconsistent with the source remaining usable.
     const derived = this.buildDerivedItemFields(
       sortedItems.map((item) => ({
-        mediaId: item.mediaId,
+        type: item.type ?? PlaylistItemType.MEDIA,
+        ...(item.mediaId ? { mediaId: item.mediaId } : {}),
+        ...(item.appInstanceId ? { appInstanceId: item.appInstanceId } : {}),
         duration: item.duration,
         disabled: item.disabled,
       })),
@@ -315,10 +324,39 @@ export class PlaylistsService {
 
     this.assertUniqueClientItemIds(dto);
 
-    await this.validateMediaItems(
-      organizationId,
-      dto.items.map((item) => item.mediaId),
-    );
+    // Resolve each item's kind (defaulting a missing `type` to media for
+    // back-compat) and assert it carries exactly the id its kind requires.
+    const typedItems = dto.items.map((item) => ({
+      item,
+      type: item.type ?? PlaylistItemType.MEDIA,
+    }));
+
+    for (const { item, type } of typedItems) {
+      const refId =
+        type === PlaylistItemType.APP ? item.appInstanceId : item.mediaId;
+      if (!refId) {
+        throw BusinessException.badRequest(
+          this.i18n.t('playlists.invalidItem'),
+        );
+      }
+    }
+
+    await Promise.all([
+      this.validateMediaItems(
+        organizationId,
+        typedItems
+          .filter(({ type }) => type === PlaylistItemType.MEDIA)
+          .map(({ item }) => item.mediaId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+      this.validateAppItems(
+        organizationId,
+        typedItems
+          .filter(({ type }) => type === PlaylistItemType.APP)
+          .map(({ item }) => item.appInstanceId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ]);
 
     const existingIds = new Set(
       playlist.items.map((item) => item._id.toString()),
@@ -331,9 +369,17 @@ export class PlaylistsService {
     }
 
     const derived = this.buildDerivedItemFields(
-      dto.items.map((item) => ({
+      typedItems.map(({ item, type }) => ({
         ...(item.id ? { _id: new Types.ObjectId(item.id) } : {}),
-        mediaId: new Types.ObjectId(item.mediaId),
+        type,
+        // Persist only the reference matching the item's kind, so a stray
+        // mediaId on an app item (or vice versa) never lands in the document.
+        ...(type === PlaylistItemType.MEDIA && item.mediaId
+          ? { mediaId: new Types.ObjectId(item.mediaId) }
+          : {}),
+        ...(type === PlaylistItemType.APP && item.appInstanceId
+          ? { appInstanceId: new Types.ObjectId(item.appInstanceId) }
+          : {}),
         duration: item.duration,
         disabled: item.disabled ?? false,
       })),
@@ -378,7 +424,9 @@ export class PlaylistsService {
   private buildDerivedItemFields(
     items: Array<{
       _id?: Types.ObjectId;
-      mediaId: Types.ObjectId;
+      type: PlaylistItemType;
+      mediaId?: Types.ObjectId;
+      appInstanceId?: Types.ObjectId;
       duration: number;
       disabled?: boolean;
     }>,
@@ -390,7 +438,9 @@ export class PlaylistsService {
   } {
     const normalized: PlaylistItemValue[] = items.map((item, index) => ({
       _id: item._id ?? new Types.ObjectId(),
-      mediaId: item.mediaId,
+      type: item.type,
+      ...(item.mediaId ? { mediaId: item.mediaId } : {}),
+      ...(item.appInstanceId ? { appInstanceId: item.appInstanceId } : {}),
       order: index,
       duration: item.duration,
       disabled: item.disabled ?? false,
@@ -403,7 +453,9 @@ export class PlaylistsService {
         (total, item) => total + (item.disabled ? 0 : item.duration),
         0,
       ),
-      coverMediaId: normalized[0]?.mediaId,
+      // Cover is the first media item's thumbnail; app items have no cover, so
+      // a playlist that starts with an app falls back to the first media (if any).
+      coverMediaId: normalized.find((item) => item.mediaId)?.mediaId,
     };
   }
 
@@ -479,6 +531,25 @@ export class PlaylistsService {
     }
 
     return mediaItems;
+  }
+
+  private async validateAppItems(
+    organizationId: string,
+    appInstanceIds: string[],
+  ): Promise<void> {
+    if (appInstanceIds.length === 0) {
+      return;
+    }
+
+    const uniqueIds = [...new Set(appInstanceIds)];
+    const instances = await this.appInstancesRepository.findByIds(
+      organizationId,
+      uniqueIds,
+    );
+
+    if (instances.length !== uniqueIds.length) {
+      throw BusinessException.notFound(this.i18n.t('playlists.appNotFound'));
+    }
   }
 
   private resolveItemDuration(media: MediaItemDocument): number {

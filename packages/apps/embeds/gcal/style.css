@@ -1,0 +1,41 @@
+.gc {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 4%;
+  gap: 2vh;
+}
+
+.gc-head {
+  font-size: 4vw;
+  font-weight: 700;
+  color: #4285f4;
+}
+
+.gc-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vh;
+  overflow: hidden;
+}
+
+.gc-item {
+  display: flex;
+  gap: 2vw;
+  font-size: 2.8vw;
+  line-height: 1.2;
+  align-items: baseline;
+}
+
+.gc-when {
+  flex-shrink: 0;
+  min-width: 22vw;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+
+.gc-title {
+  font-weight: 600;
+}

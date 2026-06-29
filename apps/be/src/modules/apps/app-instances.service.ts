@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { buildConfigZod, buildDefaultConfig } from '@edge/apps-contract';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { ConnectionsService } from '../connections/connections.service';
+import { GraphWebhookService } from '../connections/webhooks/graph-webhook.service';
+import { cacheKeyForInstance } from './connectors/cache-key.util';
+import { getConnector } from './connectors/connector-registry';
 import { AppInstancesRepository } from './app-instances.repository';
 import { AppsRepository } from './apps.repository';
 import {
@@ -13,9 +17,15 @@ import { AppInstanceDocument } from './schemas/app-instance.schema';
 
 @Injectable()
 export class AppInstancesService {
+  private readonly logger = new Logger(AppInstancesService.name);
+
   constructor(
     private readonly instancesRepository: AppInstancesRepository,
     private readonly appsRepository: AppsRepository,
+    @Inject(forwardRef(() => GraphWebhookService))
+    private readonly graphWebhookService: GraphWebhookService,
+    @Inject(forwardRef(() => ConnectionsService))
+    private readonly connectionsService: ConnectionsService,
   ) {}
 
   async list(
@@ -54,7 +64,7 @@ export class AppInstancesService {
       organizationId,
       appId,
       appSlug: app.slug,
-      name: name?.trim() || `Instance ${count + 1}`,
+      name: name?.trim() || `${app.name} (${count + 1})`,
       config: buildDefaultConfig(schema),
       configVersion: app.version,
     });
@@ -98,12 +108,83 @@ export class AppInstancesService {
       );
     }
 
+    // For connected (OAuth) apps the config references a `connectionId`. Verify
+    // it belongs to THIS org before persisting — the connector runtime resolves
+    // connections unscoped, so an unchecked id would let one org pull another
+    // org's private data (calendar/files) onto its own screens.
+    await this.assertConnectionOwned(
+      organizationId,
+      instance.appSlug,
+      result.data,
+    );
+
     const updated = await this.instancesRepository.updateById(
       organizationId,
       id,
       { config: result.data, configVersion: app.version },
     );
+
+    void this.ensureWebhookSubscription(organizationId, updated!);
+
     return toAppInstanceResponse(updated!);
+  }
+
+  /**
+   * When the app is `connected` (has an OAuth descriptor) and the config carries
+   * a `connectionId`, assert that connection belongs to `organizationId`.
+   * Cross-org references are rejected as a bad request — closing an IDOR that
+   * would otherwise leak another tenant's data through the global connector
+   * runtime.
+   */
+  private async assertConnectionOwned(
+    organizationId: string,
+    appSlug: string,
+    config: Record<string, unknown>,
+  ): Promise<void> {
+    if (!getConnector(appSlug)?.oauth) {
+      return;
+    }
+    const connectionId = config.connectionId;
+    if (typeof connectionId !== 'string' || !connectionId) {
+      return;
+    }
+    await this.connectionsService.assertOwned(organizationId, connectionId);
+  }
+
+  /**
+   * For a webhook-capable connected app (e.g. OneDrive on Microsoft Graph),
+   * register a change subscription so updates push live. Best-effort and
+   * out-of-band: a webhook/config issue must never fail the config save, and
+   * polling remains the fallback.
+   */
+  private async ensureWebhookSubscription(
+    organizationId: string,
+    instance: AppInstanceDocument,
+  ): Promise<void> {
+    const oauth = getConnector(instance.appSlug)?.oauth;
+    if (oauth?.provider !== 'microsoft') {
+      return;
+    }
+    const cacheKey = cacheKeyForInstance(instance);
+    const connectionId = instance.config.connectionId;
+    const itemId = instance.config.itemId;
+    if (
+      !cacheKey ||
+      typeof connectionId !== 'string' ||
+      typeof itemId !== 'string'
+    ) {
+      return;
+    }
+    try {
+      await this.graphWebhookService.ensureSubscription({
+        connectionId,
+        organizationId,
+        itemId,
+        cacheKey,
+      });
+    } catch (error) {
+      this.logger.warn(`Webhook subscription setup failed: ${String(error)}`);
+    }
   }
 
   async duplicate(

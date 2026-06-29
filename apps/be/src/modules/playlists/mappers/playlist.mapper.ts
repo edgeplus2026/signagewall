@@ -1,6 +1,7 @@
 import {
   PlaylistDocument,
   PlaylistItemDocument,
+  PlaylistItemType,
 } from '../schemas/playlist.schema';
 
 export interface PlaylistSummaryResponseDto {
@@ -19,7 +20,9 @@ export interface PlaylistDetailResponseDto extends PlaylistSummaryResponseDto {
 
 export interface PlaylistItemResponseDto {
   id: string;
-  mediaId: string;
+  type: PlaylistItemType;
+  mediaId?: string;
+  appInstanceId?: string;
   order: number;
   duration: number;
   disabled?: boolean;
@@ -54,7 +57,12 @@ export const toPlaylistItemResponse = (
   item: PlaylistItemDocument,
 ): PlaylistItemResponseDto => ({
   id: item._id.toString(),
-  mediaId: item.mediaId.toString(),
+  // Default a missing `type` to media for documents written before apps existed.
+  type: item.type ?? PlaylistItemType.MEDIA,
+  ...(item.mediaId ? { mediaId: item.mediaId.toString() } : {}),
+  ...(item.appInstanceId
+    ? { appInstanceId: item.appInstanceId.toString() }
+    : {}),
   order: item.order,
   duration: item.duration,
   ...(item.disabled ? { disabled: true } : {}),

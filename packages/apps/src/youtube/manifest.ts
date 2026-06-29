@@ -11,6 +11,9 @@ const YOUTUBE_URL_PATTERN =
  * YouTube — the first real Edge app. Users paste a YouTube link; the player
  * plays the video on screen. Pure client-side (no server connector), so its
  * data source is `static` and its only config is the video URL.
+ *
+ * Runs as an `embed` bundle (`/apps/youtube/`) like every other app — the
+ * player has no per-app native code.
  */
 export const youtubeManifest: AppManifest = {
   slug: 'youtube',
@@ -18,7 +21,7 @@ export const youtubeManifest: AppManifest = {
   tagline: 'Play a YouTube video on your screens',
   description:
     'Paste a YouTube link and play the video across your displays — no downloads, no fuss.',
-  runtimeKind: 'native',
+  runtimeKind: 'embed',
   dataSource: 'static',
   version: 1,
   icon: YOUTUBE_ICON,

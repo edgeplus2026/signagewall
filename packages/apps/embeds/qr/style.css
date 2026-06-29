@@ -1,0 +1,13 @@
+.qr-img {
+  width: min(70vh, 70vw);
+  height: auto;
+  background: #fff;
+  border-radius: 2%;
+}
+
+.qr-caption {
+  font-size: 4vw;
+  font-weight: 500;
+  max-width: 80%;
+  word-break: break-word;
+}

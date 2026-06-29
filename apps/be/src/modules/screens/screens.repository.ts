@@ -239,6 +239,33 @@ export class ScreensRepository {
     return query.exec();
   }
 
+  async findContainingAppInstanceIds(
+    organizationId: string,
+    appInstanceIds: string[],
+    session?: ClientSession,
+  ): Promise<ScreenDocument[]> {
+    if (appInstanceIds.length === 0) {
+      return [];
+    }
+
+    const appObjectIds = appInstanceIds.map((id) => new Types.ObjectId(id));
+    const query = this.screenModel.find({
+      organizationId: new Types.ObjectId(organizationId),
+      items: {
+        $elemMatch: {
+          type: ScreenItemType.APP,
+          appInstanceId: { $in: appObjectIds },
+        },
+      },
+    });
+
+    if (session) {
+      query.session(session);
+    }
+
+    return query.exec();
+  }
+
   async findContainingPlaylistIds(
     organizationId: string,
     playlistIds: string[],

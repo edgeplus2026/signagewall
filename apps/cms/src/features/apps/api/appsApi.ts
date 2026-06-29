@@ -32,6 +32,7 @@ export interface CreateAppPayload {
   iconSvg?: string | undefined
   color?: string | undefined
   isPublic?: boolean | undefined
+  categoryIds?: string[] | undefined
 }
 
 export type UpdateAppPayload = Partial<Omit<CreateAppPayload, 'slug'>>

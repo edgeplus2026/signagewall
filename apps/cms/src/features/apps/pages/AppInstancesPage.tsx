@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
-import { FullPageLoader } from '@/components/common/FullPageLoader'
+import { Skeleton } from '@/components/ui/skeleton'
 import { AppsBreadcrumb } from '@/features/apps/components/AppsBreadcrumb'
 import { CreateInstanceCard } from '@/features/apps/components/CreateInstanceCard'
 import { DeleteInstanceDialog } from '@/features/apps/components/DeleteInstanceDialog'
@@ -11,12 +11,24 @@ import { RenameInstanceDialog } from '@/features/apps/components/RenameInstanceD
 import { useApp, useAppInstances, useCreateInstance } from '@/features/apps/hooks/useApps'
 import type { AppInstance } from '@/features/apps/types/app.types'
 
+function InstanceCardSkeleton() {
+  return (
+    <div className="flex items-center gap-2.5 rounded-2xl bg-panel p-4 ring-1 ring-quaternary">
+      <Skeleton className="size-9 shrink-0 rounded-lg" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <Skeleton className="h-3.5 w-2/3 rounded-md" />
+        <Skeleton className="h-3 w-1/3 rounded-md" />
+      </div>
+    </div>
+  )
+}
+
 export default function AppInstancesPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { appId } = useParams<{ appId: string }>()
   const { data: app, isLoading: appLoading } = useApp(appId)
-  const { data: instances = [] } = useAppInstances(appId)
+  const { data: instances = [], isLoading: instancesLoading } = useAppInstances(appId)
   const createInstance = useCreateInstance()
 
   const [renameTarget, setRenameTarget] = useState<AppInstance | null>(null)
@@ -24,8 +36,24 @@ export default function AppInstancesPage() {
   const [deleteTarget, setDeleteTarget] = useState<AppInstance | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  if (appLoading) {
-    return <FullPageLoader />
+  const loading = appLoading || instancesLoading
+
+  // Skeleton state — render the page shell with placeholder cards rather than a
+  // blank full-page loader, so the layout doesn't pop in once data arrives.
+  if (loading) {
+    return (
+      <div className="flex w-full min-w-0 flex-col gap-7 lg:px-10">
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-7 w-48 rounded-md" />
+          <Skeleton className="h-4 w-72 rounded-md" />
+        </div>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <InstanceCardSkeleton key={index} />
+          ))}
+        </div>
+      </div>
+    )
   }
 
   // Only installed apps have an instances page.

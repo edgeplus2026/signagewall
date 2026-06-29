@@ -45,7 +45,7 @@ const fallbackDefinition: ContentTypeDefinition = {
     LibraryDragOverlay: () => null,
   },
   capabilities: {
-    showsDurationInput: false,
+    showsDurationInput: () => false,
     canEditDuration: () => false,
   },
   createDraftItem: (source) => ({

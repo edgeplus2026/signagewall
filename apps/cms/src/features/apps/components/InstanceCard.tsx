@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { AppIcon } from '@/features/apps/components/AppIcon'
+import { resolveAppColor } from '@/features/apps/lib/appColor'
 import type { AppInstance, EdgeApp } from '@/features/apps/types/app.types'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +30,8 @@ export function InstanceCard({ app, instance, onRename, onDelete }: InstanceCard
     void navigate(`/apps/${app.id}/instances/${instance.id}`)
   }
 
+  const brandColor = resolveAppColor(app.color)
+
   return (
     <div
       role="button"
@@ -41,12 +44,21 @@ export function InstanceCard({ app, instance, onRename, onDelete }: InstanceCard
         }
       }}
       className={cn(
-        'group relative flex cursor-pointer flex-col gap-4 rounded-2xl bg-panel p-4 ring-1 ring-quaternary transition',
+        'group relative flex cursor-pointer flex-col gap-4 overflow-hidden rounded-2xl bg-panel p-4 ring-1 ring-quaternary transition',
         'hover:-translate-y-0.5 hover:shadow-lg hover:ring-tertiary',
         'focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none',
       )}
     >
-      <div className="flex items-start justify-between gap-2">
+      {/* Strong inner glow in the app's brand colour, anchored to the bottom. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-16 opacity-40 blur-2xl transition-opacity duration-300 group-hover:opacity-70"
+        style={{
+          background: `radial-gradient(120% 80% at 50% 130%, ${brandColor}, transparent 70%)`,
+        }}
+      />
+
+      <div className="relative flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <AppIcon iconSvg={app.iconSvg} color={app.color} className="size-9 rounded-lg" />
           <div className="flex min-w-0 flex-col">

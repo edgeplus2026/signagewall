@@ -10,4 +10,11 @@ export const config = {
    * origin (defense in depth on top of the `event.source === parent` check).
    */
   cmsOrigin: import.meta.env.VITE_CMS_ORIGIN ?? '',
+  /**
+   * Base path/URL the generic app host loads embed bundles from, as
+   * `${appsBase}/<slug>/index.html`. Same-origin under `/apps` by default (the
+   * bundles are built into the player's static dir); override to point at a
+   * dedicated apps origin if 3rd-party apps are ever hosted separately.
+   */
+  appsBase: import.meta.env.VITE_APPS_BASE ?? '/apps',
 } as const

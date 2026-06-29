@@ -1,9 +1,10 @@
 import { MoreHorizontalIcon, PencilIcon, PlusIcon, RocketIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { Combobox } from '@/components/ui/combobox'
 import {
   Dialog,
   DialogContent,
@@ -35,18 +36,28 @@ import {
   useDeleteApp,
   useSetAppVisibility,
 } from '@/features/apps/hooks/useAdminApps'
+import { useAdminCategories } from '@/features/apps/hooks/useAdminCategories'
 import type { AdminApp } from '@/features/apps/types/app.types'
 import { getApiErrorMessage } from '@/lib/api-error'
+
+const ALL_CATEGORIES = 'all'
 
 export function AppCatalogTab() {
   const { t } = useTranslation()
   const { data: apps = [], isLoading } = useAdminApps()
+  const { data: categories = [] } = useAdminCategories()
   const setVisibility = useSetAppVisibility()
   const deleteApp = useDeleteApp()
 
   const [editorApp, setEditorApp] = useState<AdminApp | null>(null)
   const [editorOpen, setEditorOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<AdminApp | null>(null)
+  const [categoryId, setCategoryId] = useState<string>(ALL_CATEGORIES)
+
+  const visibleApps = useMemo(() => {
+    if (categoryId === ALL_CATEGORIES) return apps
+    return apps.filter((app) => app.categoryIds.includes(categoryId))
+  }, [apps, categoryId])
 
   const openCreate = () => {
     setEditorApp(null)
@@ -86,10 +97,29 @@ export function AppCatalogTab() {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
         <p className="text-secondary text-sm">{t('apps.admin.description')}</p>
-        <Button type="button" size="sm" onClick={openCreate}>
-          <PlusIcon data-icon="inline-start" />
-          {t('apps.admin.newApp')}
-        </Button>
+        <div className="flex items-center gap-2">
+          {categories.length > 0 ? (
+            <Combobox
+              value={categoryId}
+              onChange={setCategoryId}
+              options={[
+                { label: t('apps.categories.filter.all'), value: ALL_CATEGORIES },
+                ...categories.map((category) => ({
+                  label: category.name,
+                  value: category.id,
+                })),
+              ]}
+              searchPlaceholder={t('apps.categories.filter.searchPlaceholder')}
+              emptyLabel={t('apps.categories.empty.title')}
+              aria-label={t('apps.categories.filter.all')}
+              className="w-44"
+            />
+          ) : null}
+          <Button type="button" size="sm" onClick={openCreate}>
+            <PlusIcon data-icon="inline-start" />
+            {t('apps.admin.newApp')}
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -110,10 +140,21 @@ export function AppCatalogTab() {
         </Empty>
       ) : (
         <div className="flex flex-col gap-2">
-          {apps.map((app) => (
+          {visibleApps.map((app) => (
             <div
               key={app.id}
-              className="flex items-center gap-4 rounded-xl bg-panel p-3 ring-1 ring-quaternary"
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                openEdit(app)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  openEdit(app)
+                }
+              }}
+              className="flex cursor-pointer items-center gap-4 rounded-xl bg-panel p-3 ring-1 ring-quaternary transition-colors hover:ring-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <AppIcon iconSvg={app.iconSvg} color={app.color} className="size-11 rounded-xl" />
 
@@ -122,7 +163,12 @@ export function AppCatalogTab() {
                 <p className="truncate text-xs text-secondary">{app.slug}</p>
               </div>
 
-              <label className="flex shrink-0 items-center gap-2 text-xs text-secondary">
+              <label
+                className="flex shrink-0 items-center gap-2 text-xs text-secondary"
+                onClick={(event) => {
+                  event.stopPropagation()
+                }}
+              >
                 <span className="hidden sm:inline">{t('apps.admin.public')}</span>
                 <Switch
                   checked={app.isPublic}
@@ -136,7 +182,15 @@ export function AppCatalogTab() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="ghost" size="icon-sm" className="shrink-0 text-secondary">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="shrink-0 text-secondary"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                    }}
+                  >
                     <MoreHorizontalIcon />
                     <span className="sr-only">{t('common.actions')}</span>
                   </Button>

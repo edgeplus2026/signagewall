@@ -1,10 +1,33 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 
+export enum PlaylistItemType {
+  MEDIA = 'media',
+  APP = 'app',
+}
+
 @Schema({ _id: true })
 export class PlaylistItemSubdocument {
-  @Prop({ type: Types.ObjectId, ref: 'MediaItem', required: true })
-  mediaId!: Types.ObjectId;
+  /**
+   * Item kind. Defaults to `media` so playlist documents written before apps
+   * existed (which have no `type` field) read back as media items — no data
+   * migration needed.
+   */
+  @Prop({
+    type: String,
+    enum: PlaylistItemType,
+    required: true,
+    default: PlaylistItemType.MEDIA,
+  })
+  type!: PlaylistItemType;
+
+  /** Set for `media` items. */
+  @Prop({ type: Types.ObjectId, ref: 'MediaItem' })
+  mediaId?: Types.ObjectId;
+
+  /** Set for `app` items. */
+  @Prop({ type: Types.ObjectId, ref: 'AppInstance' })
+  appInstanceId?: Types.ObjectId;
 
   @Prop({ required: true, min: 0 })
   order!: number;
@@ -26,7 +49,9 @@ export type PlaylistItemDocument = PlaylistItemSubdocument & {
  */
 export interface PlaylistItemValue {
   _id: Types.ObjectId;
-  mediaId: Types.ObjectId;
+  type: PlaylistItemType;
+  mediaId?: Types.ObjectId;
+  appInstanceId?: Types.ObjectId;
   order: number;
   duration: number;
   disabled: boolean;

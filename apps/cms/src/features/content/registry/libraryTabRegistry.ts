@@ -22,6 +22,7 @@ export interface LibraryTabPanelProps {
   onEditMedia: (item: MediaItem) => void
   onAddPlaylist?: ((playlist: PlaylistSummary) => void) | undefined
   onUpdatePlaylist?: ((playlistId: string) => void) | undefined
+  onAddApp?: ((appInstanceId: string) => void) | undefined
 }
 
 export interface LibraryTabDefinition {

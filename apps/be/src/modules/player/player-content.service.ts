@@ -11,10 +11,13 @@ import {
   MediaItemStatus,
   MediaItemType,
 } from '../media/schemas/media-item.schema';
+import { AppDataCacheRepository } from '../apps/app-data-cache.repository';
 import { AppInstancesRepository } from '../apps/app-instances.repository';
+import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
 import { AppInstanceDocument } from '../apps/schemas/app-instance.schema';
 import { MediaRepository } from '../media/media.repository';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
+import { PlaylistItemType } from '../playlists/schemas/playlist.schema';
 import { ScreensRepository } from '../screens/screens.repository';
 import {
   ScreenItemDocument,
@@ -48,6 +51,18 @@ export interface AppRenderable {
   slug: string;
   config: Record<string, unknown>;
   durationMs: number;
+  /** Connector payload for `server` apps; absent for `static` apps. */
+  data?: unknown;
+  /**
+   * Freshness metadata for `server`-app payloads, so the bundle can show an
+   * honest "as of …" age and flag stale data. Absent for `static` apps.
+   */
+  dataMeta?: {
+    /** ISO time the payload was last successfully fetched, if ever. */
+    fetchedAt?: string;
+    /** True when the latest fetch failed (the payload is last-known-good). */
+    stale?: boolean;
+  };
 }
 
 export type PlayerRenderable =
@@ -92,6 +107,7 @@ export class PlayerContentService {
     private readonly playlistsRepository: PlaylistsRepository,
     private readonly mediaRepository: MediaRepository,
     private readonly appInstancesRepository: AppInstancesRepository,
+    private readonly appDataCacheRepository: AppDataCacheRepository,
     private readonly configService: ConfigService,
   ) {}
 
@@ -133,6 +149,34 @@ export class PlayerContentService {
       ),
     ]);
 
+    // Load connector payloads for the `server` app instances on this screen.
+    // Instances sharing a coarse cacheKey share one cache entry (global cache).
+    const cacheKeyByInstanceId = new Map<string, string>();
+    for (const instance of appById.values()) {
+      const cacheKey = cacheKeyForInstance(instance);
+      if (cacheKey) {
+        cacheKeyByInstanceId.set(instance._id.toString(), cacheKey);
+      }
+    }
+    const cacheByKey = new Map<
+      string,
+      { payload: unknown; fetchedAt?: Date; stale: boolean }
+    >();
+    if (cacheKeyByInstanceId.size > 0) {
+      const entries = await this.appDataCacheRepository.findByCacheKeys([
+        ...new Set(cacheKeyByInstanceId.values()),
+      ]);
+      for (const entry of entries) {
+        cacheByKey.set(entry.cacheKey, {
+          payload: entry.payload,
+          ...(entry.fetchedAt ? { fetchedAt: entry.fetchedAt } : {}),
+          // A present `lastError` means the newest fetch failed and we're
+          // serving last-known-good data.
+          stale: Boolean(entry.lastError),
+        });
+      }
+    }
+
     const publicBaseUrl = getPublicBaseUrl(this.configService);
     const items: PlayerRenderable[] = [];
     const revisionParts: string[] = [];
@@ -159,15 +203,32 @@ export class PlayerContentService {
       }
       const durationMs =
         (entry.durationSeconds ?? DEFAULT_DURATION_SECONDS) * 1000;
+      const cacheKey = cacheKeyByInstanceId.get(entry.appInstanceId);
+      const cached = cacheKey ? cacheByKey.get(cacheKey) : undefined;
       items.push({
         id: entry.id,
         kind: 'app',
         slug: instance.appSlug,
         config: instance.config,
         durationMs,
+        // `server` apps carry their latest connector payload (null until the
+        // first fetch); `static` apps have no cacheKey and stay absent.
+        ...(cacheKey ? { data: cached?.payload ?? null } : {}),
+        ...(cacheKey
+          ? {
+              dataMeta: {
+                ...(cached?.fetchedAt
+                  ? { fetchedAt: cached.fetchedAt.toISOString() }
+                  : {}),
+                stale: cached?.stale ?? false,
+              },
+            }
+          : {}),
       });
       revisionParts.push(
-        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}`,
+        // Include the payload's fetch time AND staleness so both a refresh and a
+        // healthy↔stale transition change the revision and re-push the snapshot.
+        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
       );
     }
 
@@ -233,12 +294,24 @@ export class PlayerContentService {
           .sort((a, b) => a.order - b.order);
 
         for (const entry of playlistItems) {
-          pending.push({
-            kind: 'media',
-            id: entry._id.toString(),
-            mediaId: entry.mediaId.toString(),
-            durationSeconds: entry.duration,
-          });
+          if (entry.type === PlaylistItemType.APP && entry.appInstanceId) {
+            pending.push({
+              kind: 'app',
+              id: entry._id.toString(),
+              appInstanceId: entry.appInstanceId.toString(),
+              durationSeconds: entry.duration,
+            });
+            continue;
+          }
+          // Media item (also the default for legacy entries without a `type`).
+          if (entry.mediaId) {
+            pending.push({
+              kind: 'media',
+              id: entry._id.toString(),
+              mediaId: entry.mediaId.toString(),
+              durationSeconds: entry.duration,
+            });
+          }
         }
       }
     }

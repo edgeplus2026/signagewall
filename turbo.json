@@ -6,6 +6,10 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "@edge/apps#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "../../apps/player/public/apps/**"]
+    },
     "type-check": {
       "dependsOn": ["^build"]
     },

@@ -22,6 +22,7 @@ interface PlaylistManageSidebarProps {
   allowedTypes?: ContentItemType[]
   onAddPlaylistToContent?: (playlist: PlaylistSummary) => void
   onUpdatePlaylist?: (playlistId: string) => void
+  onAddApp?: (appInstanceId: string) => void
   labels?: Partial<PlaylistManageSidebarLabels>
 }
 
@@ -31,6 +32,7 @@ export function PlaylistManageSidebar({
   allowedTypes = ["media"],
   onAddPlaylistToContent,
   onUpdatePlaylist,
+  onAddApp,
   labels,
 }: PlaylistManageSidebarProps) {
   const { t } = useTranslation()
@@ -59,6 +61,7 @@ export function PlaylistManageSidebar({
     onEditMedia,
     onAddPlaylist: onAddPlaylistToContent,
     onUpdatePlaylist,
+    onAddApp,
   }
 
   const SingleTabPanel = tabs.length === 1 ? tabs[0]?.Panel : null

@@ -1,6 +1,5 @@
-import { render } from 'preact'
-
-import { renderApp } from '../apps/registry'
+import { type AppHostHandle, mountAppHost } from '../apps/host-bridge'
+import { config } from '../config'
 import type { Renderable } from '../types'
 
 const LOAD_TIMEOUT_MS = 12_000
@@ -22,6 +21,8 @@ export class Slot {
   private readonly img: HTMLImageElement
   private readonly video: HTMLVideoElement
   private readonly appHost: HTMLDivElement
+  /** Live generic-iframe app host, if the current item is an app. */
+  private appHostHandle: AppHostHandle | null = null
   private current: Renderable | null = null
   private endedHandler: (() => void) | null = null
   /** Playback volume 0–1, applied to the `<video>` element. */
@@ -89,7 +90,7 @@ export class Slot {
    * decoded/buffered enough to show without a flash. Rejects on load error or
    * timeout so the controller can skip the item instead of blocking the loop.
    */
-  async prepare(item: Renderable, surface: Surface, volume: number): Promise<void> {
+  async prepare(item: Renderable, _surface: Surface, volume: number): Promise<void> {
     this.release()
     const seq = this.prepareSeq
     this.current = item
@@ -103,7 +104,7 @@ export class Slot {
       await this.prepareVideo(item.url, seq)
       return
     }
-    this.prepareApp(item, surface)
+    await this.prepareApp(item, seq)
   }
 
   /**
@@ -239,7 +240,10 @@ export class Slot {
     if (this.img.getAttribute('src')) {
       this.img.removeAttribute('src')
     }
-    render(null, this.appHost)
+    if (this.appHostHandle) {
+      this.appHostHandle.dispose()
+      this.appHostHandle = null
+    }
     this.hideAll()
     this.current = null
   }
@@ -334,13 +338,42 @@ export class Slot {
     })
   }
 
-  private prepareApp(item: Renderable, surface: Surface): void {
+  /**
+   * Mounts the generic iframe app host and resolves only once the app bundle
+   * announces `app-ready` (or rejects on load timeout/error) — the same
+   * readiness gating image/video get, so the controller never reveals a blank
+   * app frame. A superseded prepare (newer `prepareSeq`) disposes its own host
+   * and returns without painting.
+   */
+  private async prepareApp(item: Renderable, seq: number): Promise<void> {
     if (item.kind !== 'app') {
       return
     }
-    const ok = renderApp(this.appHost, item, surface)
-    if (!ok) {
-      throw new Error(`unknown app: ${item.slug}`)
+    const handle = mountAppHost(this.appHost, item, {
+      appsBase: config.appsBase,
+      timeoutMs: LOAD_TIMEOUT_MS,
+    })
+    this.appHostHandle = handle
+
+    try {
+      await handle.ready
+    } catch (error) {
+      // Only tear down if we still own the slot; a newer prepare/release already
+      // disposed (and possibly replaced) this handle otherwise.
+      if (this.appHostHandle === handle) {
+        handle.dispose()
+        this.appHostHandle = null
+      }
+      throw error
+    }
+
+    // Superseded mid-handshake — drop this load without painting.
+    if (this.prepareSeq !== seq) {
+      handle.dispose()
+      if (this.appHostHandle === handle) {
+        this.appHostHandle = null
+      }
+      return
     }
     this.show(this.appHost)
   }

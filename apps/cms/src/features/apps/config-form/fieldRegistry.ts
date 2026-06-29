@@ -1,6 +1,7 @@
 import type { FieldType } from '@edge/apps-contract'
 import type { ReactNode } from 'react'
 
+import { OAuthControl } from '@/features/apps/config-form/OAuthControl'
 import {
   CheckboxControl,
   ColorControl,
@@ -26,9 +27,9 @@ export const FIELD_CONTROLS: Record<FieldType, (props: FieldControlProps) => Rea
   switch: SwitchControl,
   color: ColorControl,
   image: ImageControl,
-  // OAuth/connect flow is wired with the backend connector work; until then it
-  // renders as a plain text field (e.g. a manual token), keeping schemas valid.
-  oauth: TextControl,
+  // Connect a third-party account (Google/Microsoft) and store the chosen
+  // connection id; used by `connected` apps (Calendar, OneDrive).
+  oauth: OAuthControl,
 }
 
 /** Field types rendered with the label beside the control instead of above it. */

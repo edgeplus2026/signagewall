@@ -1,6 +1,8 @@
 {
   "notFound": "Playlist not found.",
   "mediaNotFound": "One or more media items could not be found.",
+  "appNotFound": "One or more apps could not be found.",
+  "invalidItem": "Each playlist item must reference a media item or an app.",
   "mediaNotReady": "Media must finish processing before it can be added to a playlist.",
   "invalidMediaType": "Only images and videos can be added to a playlist.",
   "itemNotFound": "Playlist item not found.",

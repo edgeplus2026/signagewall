@@ -1,0 +1,11 @@
+.text-wrap {
+  flex-direction: row;
+  padding: 6%;
+}
+
+.text-body {
+  white-space: pre-wrap;
+  font-weight: 600;
+  line-height: 1.2;
+  max-width: 100%;
+}

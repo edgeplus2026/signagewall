@@ -767,6 +767,7 @@
       "libraryEmpty": "No media in this folder.",
       "libraryEmptySearch": "No media matches your search.",
       "playlistsTab": "Playlists",
+      "appsTab": "Apps",
       "playlistsSearch": "Search playlists...",
       "playlistsEmpty": "No playlists yet.",
       "playlistsEmptySearch": "No playlists match your search.",
@@ -796,10 +797,6 @@
       "appType": "App",
       "addPlaylistToContent": "Add playlist to content",
       "addApp": {
-        "trigger": "Add app",
-        "title": "Add app",
-        "description": "Pick an app to add to this screen.",
-        "empty": "No apps yet. Create one from the Apps page first.",
         "add": "Add"
       },
       "conflict": "This screen was changed elsewhere. Your unsaved changes were discarded and the latest version was loaded."
@@ -1165,7 +1162,8 @@
     "title": "Super Admin",
     "tabs": {
       "users": "All Users",
-      "apps": "All Apps"
+      "apps": "All Apps",
+      "categories": "Apps Categories"
     },
     "users": {
       "search": "Search users...",
@@ -1383,6 +1381,15 @@
     "installed": "Installed",
     "aboutTitle": "About this app",
     "search": "Search apps...",
+    "connections": {
+      "selectAccount": "Select a connected account",
+      "connectAccount": "Connect account",
+      "callbackSuccessTitle": "Account connected",
+      "callbackSuccessBody": "Connected {{account}}. You can now select it in your app's settings.",
+      "callbackErrorTitle": "Connection failed",
+      "callbackErrorBody": "We couldn't connect the account. Please try again.",
+      "backToApps": "Back to apps"
+    },
     "tabs": {
       "store": "App Store",
       "myApps": "My Apps"
@@ -1497,9 +1504,44 @@
         "error": "Could not save the app.",
         "app": "Application",
         "appPlaceholder": "Select an app to add…",
+        "appSearchPlaceholder": "Search apps…",
         "noAvailable": "All available apps are already in the catalog.",
         "iconPlaceholder": "Paste SVG markup…",
-        "color": "Brand colour"
+        "color": "Brand colour",
+        "categories": "Categories",
+        "noCategories": "No categories yet — create some in the Categories tab."
+      }
+    },
+    "categories": {
+      "description": "Group apps into categories so organizations can browse the catalog by topic.",
+      "uncategorized": "Other",
+      "newCategory": "New category",
+      "name": "Name",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleted": "Category deleted",
+      "deleteError": "Could not delete the category.",
+      "empty": {
+        "title": "No categories yet",
+        "description": "Create your first app category."
+      },
+      "deleteDialog": {
+        "title": "Delete category?",
+        "description": "This removes \"{{name}}\" from the catalog and from every app it was assigned to."
+      },
+      "editor": {
+        "createTitle": "New category",
+        "editTitle": "Edit category",
+        "description": "Categories help organizations find apps in the catalog.",
+        "save": "Save changes",
+        "create": "Create category",
+        "created": "Category created",
+        "updated": "Category updated",
+        "error": "Could not save the category."
+      },
+      "filter": {
+        "all": "All categories",
+        "searchPlaceholder": "Search categories…"
       }
     }
   }

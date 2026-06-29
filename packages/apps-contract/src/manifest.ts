@@ -33,6 +33,12 @@ export interface AppManifest {
   configSchema: ConfigSchema
   /** Bumped when the schema or runtime contract changes; instances record the version they were saved against. */
   version: number
+  /**
+   * Refresh cadence (seconds) for the backend connector, for `server`/`connected`
+   * apps only. The scheduler re-fetches a cache-key's data once this many seconds
+   * have elapsed since its last fetch. Absent for `static` apps (no connector).
+   */
+  refreshSeconds?: number
   /** Default icon as inline SVG markup. Super-admin can override in the catalog. */
   icon?: string
   /** Default brand colour (hex). Super-admin can override in the catalog. */

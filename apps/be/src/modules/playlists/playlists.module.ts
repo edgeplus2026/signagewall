@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
+import { AppsModule } from '../apps/apps.module';
 import { MediaModule } from '../media/media.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { ScreensModule } from '../screens/screens.module';
@@ -18,6 +19,7 @@ import { Playlist, PlaylistSchema } from './schemas/playlist.schema';
       { name: Playlist.name, schema: PlaylistSchema },
     ]),
     OrganizationsModule,
+    AppsModule,
     forwardRef(() => MediaModule),
     forwardRef(() => ScreensModule),
   ],

@@ -33,6 +33,7 @@ export function AppInstanceConfigSidebar({
         schema={app.configSchema}
         value={config}
         onChange={onConfigChange}
+        appSlug={app.slug}
       />
     </aside>
   )

@@ -3,6 +3,7 @@ import { Navigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ContentEditorSkeleton } from '@/features/content/components/ContentEditorSkeleton'
 import { OpenWebPlayerButton } from '@/features/screens/components/OpenWebPlayerButton'
 import { ScreenAvailabilityTab } from '@/features/screens/components/ScreenAvailabilityTab'
 import { ScreenBreadcrumb } from '@/features/screens/components/ScreenBreadcrumb'
@@ -48,9 +49,18 @@ export default function ScreenPage() {
     return (
       <>
         <ScreenBreadcrumb />
-        <div className="flex w-full min-w-0 flex-col gap-6 lg:px-10">
-          <Skeleton className="h-8 w-56" />
-          <Skeleton className="min-h-96 w-full rounded-xl" />
+        <div
+          className={cn(
+            'flex w-full min-w-0 flex-col gap-4 lg:px-10',
+            isContentTab ? 'h-[calc(100dvh-5.5rem)]' : 'pb-6',
+          )}
+        >
+          <Skeleton className="h-8 w-44 shrink-0 rounded-md" />
+          {isContentTab ? (
+            <ContentEditorSkeleton />
+          ) : (
+            <Skeleton className="min-h-96 w-full rounded-xl" />
+          )}
         </div>
       </>
     )

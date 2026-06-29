@@ -1,5 +1,6 @@
 import { registerContentType } from "./contentTypeRegistry"
 import { appContentType } from "./definitions/appContentType"
+import { AppLibraryPanel } from "./definitions/appLibraryTab"
 import { mediaContentType } from "./definitions/mediaContentType"
 import { MediaLibraryPanel } from "./definitions/mediaLibraryTab"
 import { playlistContentType } from "./definitions/playlistContentType"
@@ -22,6 +23,11 @@ registerLibraryTab({
   id: "playlist",
   triggerLabelKey: "screens.content.playlistsTab",
   Panel: PlaylistLibraryPanel,
+})
+registerLibraryTab({
+  id: "app",
+  triggerLabelKey: "screens.content.appsTab",
+  Panel: AppLibraryPanel,
 })
 
 export {

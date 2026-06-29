@@ -4,14 +4,27 @@ import type { Playlist, PlaylistItem } from "@/features/playlists/types/playlist
 export function playlistItemsToDraftItems(
   items: PlaylistItem[],
 ): ContentDraftItem[] {
-  return items.map((item) => ({
-    clientId: item.id,
-    serverId: item.id,
-    type: "media",
-    mediaId: item.mediaId,
-    duration: item.duration,
-    ...(item.disabled ? { disabled: true } : {}),
-  }))
+  return items.map((item) => {
+    const base = {
+      clientId: item.id,
+      serverId: item.id,
+      duration: item.duration,
+      ...(item.disabled ? { disabled: true } : {}),
+    }
+    if (item.type === "app") {
+      return {
+        ...base,
+        type: "app" as const,
+        ...(item.appInstanceId ? { appInstanceId: item.appInstanceId } : {}),
+      }
+    }
+    // Media item (also the default for legacy items without a `type`).
+    return {
+      ...base,
+      type: "media" as const,
+      ...(item.mediaId ? { mediaId: item.mediaId } : {}),
+    }
+  })
 }
 
 export function playlistToDraftItems(playlist: Playlist): ContentDraftItem[] {

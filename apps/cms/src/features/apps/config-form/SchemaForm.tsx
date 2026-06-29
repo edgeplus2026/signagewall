@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 
 import { FieldGroup } from '@/components/ui/field'
 import { FieldRenderer } from '@/features/apps/config-form/FieldRenderer'
+import { AppSlugProvider } from '@/features/apps/config-form/appSlugContext'
 
 type ConfigValues = Record<string, unknown>
 
@@ -12,6 +13,8 @@ interface SchemaFormProps {
   value: ConfigValues
   /** Called with the full config on every change — drives live preview + dirty tracking. */
   onChange: (value: ConfigValues) => void
+  /** The app slug, so the `oauth` control can start the right OAuth flow. */
+  appSlug?: string
   disabled?: boolean | undefined
 }
 
@@ -22,7 +25,13 @@ interface SchemaFormProps {
  * up. Adding a new field type needs no change here — only a new control registry
  * entry.
  */
-export function SchemaForm({ schema, value, onChange, disabled }: SchemaFormProps) {
+export function SchemaForm({
+  schema,
+  value,
+  onChange,
+  appSlug,
+  disabled,
+}: SchemaFormProps) {
   const zodSchema = useMemo(() => buildConfigZod(schema), [schema])
   // Only surface a field's error once it has been interacted with.
   const [touched, setTouched] = useState<ReadonlySet<string>>(() => new Set())
@@ -44,8 +53,9 @@ export function SchemaForm({ schema, value, onChange, disabled }: SchemaFormProp
   }
 
   return (
-    <FieldGroup>
-      {schema.map((field) => {
+    <AppSlugProvider value={appSlug ?? null}>
+      <FieldGroup>
+        {schema.map((field) => {
         if (field.visibleWhen && value[field.visibleWhen.field] !== field.visibleWhen.equals) {
           return null
         }
@@ -64,8 +74,9 @@ export function SchemaForm({ schema, value, onChange, disabled }: SchemaFormProp
               markTouched(field.key)
             }}
           />
-        )
-      })}
-    </FieldGroup>
+          )
+        })}
+      </FieldGroup>
+    </AppSlugProvider>
   )
 }

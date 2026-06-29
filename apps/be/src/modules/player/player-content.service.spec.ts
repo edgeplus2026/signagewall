@@ -4,6 +4,7 @@ import {
   MediaItemStatus,
   MediaItemType,
 } from '../media/schemas/media-item.schema';
+import { PlaylistItemType } from '../playlists/schemas/playlist.schema';
 import { ScreenItemType } from '../screens/schemas/screen.schema';
 import { PlayerContentService } from './player-content.service';
 
@@ -54,6 +55,11 @@ function buildService(options: {
   playlists?: Record<string, unknown[]>;
   mediaById: Record<string, MediaDoc>;
   appsById?: Record<string, AppInstanceDoc>;
+  /** Cache entries keyed by connector cacheKey, for `server` app data. */
+  cacheByKey?: Record<
+    string,
+    { payload: unknown; fetchedAt?: Date; lastError?: string }
+  >;
 }) {
   const screensRepository = {
     findById: jest.fn().mockResolvedValue({
@@ -82,6 +88,19 @@ function buildService(options: {
       Promise.resolve(ids.map((id) => options.appsById?.[id]).filter(Boolean)),
     ),
   };
+  const appDataCacheRepository = {
+    findByCacheKeys: jest.fn((keys: string[]) =>
+      Promise.resolve(
+        keys
+          .map((cacheKey) =>
+            options.cacheByKey?.[cacheKey]
+              ? { cacheKey, ...options.cacheByKey[cacheKey] }
+              : null,
+          )
+          .filter(Boolean),
+      ),
+    ),
+  };
   const configService = { get: jest.fn().mockReturnValue('https://cdn.test') };
 
   return new PlayerContentService(
@@ -89,6 +108,7 @@ function buildService(options: {
     playlistsRepository as never,
     mediaRepository as never,
     appInstancesRepository as never,
+    appDataCacheRepository as never,
     configService as never,
   );
 }
@@ -172,10 +192,7 @@ describe('PlayerContentService', () => {
         [withThumb._id.toString()]: withThumb,
         [noThumb._id.toString()]: noThumb,
       },
-      screenItems: [
-        screenMediaItem(withThumb, 0),
-        screenMediaItem(noThumb, 1),
-      ],
+      screenItems: [screenMediaItem(withThumb, 0), screenMediaItem(noThumb, 1)],
     });
 
     const snapshot = await service.resolveByScreenId('org', 'screen');
@@ -231,6 +248,66 @@ describe('PlayerContentService', () => {
     ]);
   });
 
+  it('expands an app item inside a playlist to an app renderable', async () => {
+    const inPlaylist = media({ id: 'inPlaylist' });
+    const appInstanceId = new Types.ObjectId();
+
+    const service = buildService({
+      mediaById: { [inPlaylist._id.toString()]: inPlaylist },
+      appsById: {
+        [appInstanceId.toString()]: {
+          _id: appInstanceId,
+          appSlug: 'clock',
+          config: { format: '24h' },
+          updatedAt: new Date('2024-03-01T00:00:00Z'),
+        },
+      },
+      screenItems: [
+        {
+          _id: new Types.ObjectId(),
+          type: ScreenItemType.PLAYLIST,
+          playlistId: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+          order: 0,
+          disabled: false,
+        },
+      ],
+      playlists: {
+        aaaaaaaaaaaaaaaaaaaaaaaa: [
+          // Legacy media item (no explicit `type`) — defaults to media.
+          {
+            _id: new Types.ObjectId(),
+            mediaId: inPlaylist._id,
+            order: 0,
+            duration: 4,
+            disabled: false,
+          },
+          {
+            _id: new Types.ObjectId(),
+            type: PlaylistItemType.APP,
+            appInstanceId,
+            order: 1,
+            duration: 12,
+            disabled: false,
+          },
+        ],
+      },
+    });
+
+    const snapshot = await service.resolveByScreenId('org', 'screen');
+
+    expect(snapshot?.items).toHaveLength(2);
+    expect(snapshot?.items[0]).toMatchObject({
+      kind: 'image',
+      durationMs: 4_000,
+    });
+    expect(snapshot?.items[1]).toMatchObject({
+      kind: 'app',
+      slug: 'clock',
+      config: { format: '24h' },
+      durationMs: 12_000,
+    });
+  });
+
   it('resolves an app item to an app renderable with its config', async () => {
     const appInstanceId = new Types.ObjectId();
     const service = buildService({
@@ -264,6 +341,160 @@ describe('PlayerContentService', () => {
       config: { url: 'https://youtu.be/abc' },
       durationMs: 30_000,
     });
+    // `static` apps (no connector) carry no `data` field.
+    expect(snapshot?.items[0]).not.toHaveProperty('data');
+  });
+
+  it('populates a server app renderable with its cached connector payload', async () => {
+    const appInstanceId = new Types.ObjectId();
+    const payload = { location: 'Belgrade', temperatureC: 21 };
+    const service = buildService({
+      mediaById: {},
+      appsById: {
+        [appInstanceId.toString()]: {
+          _id: appInstanceId,
+          appSlug: 'weather',
+          config: { location: 'Belgrade', units: 'metric' },
+          updatedAt: new Date('2024-03-01T00:00:00Z'),
+        },
+      },
+      // weatherConnector.cacheKey({ location: 'Belgrade' }) === 'weather:belgrade'
+      cacheByKey: {
+        'weather:belgrade': {
+          payload,
+          fetchedAt: new Date('2024-03-01T12:00:00Z'),
+        },
+      },
+      screenItems: [
+        {
+          _id: new Types.ObjectId(),
+          type: ScreenItemType.APP,
+          appInstanceId,
+          order: 0,
+          duration: 30,
+          disabled: false,
+        },
+      ],
+    });
+
+    const snapshot = await service.resolveByScreenId('org', 'screen');
+
+    expect(snapshot?.items[0]).toMatchObject({
+      kind: 'app',
+      slug: 'weather',
+      data: payload,
+      // Freshness meta lets the bundle show an "as of …" age; fresh → not stale.
+      dataMeta: { fetchedAt: '2024-03-01T12:00:00.000Z', stale: false },
+    });
+  });
+
+  it('flags a server app payload as stale when the last fetch errored', async () => {
+    const appInstanceId = new Types.ObjectId();
+    const payload = { location: 'Belgrade', temperatureC: 21 };
+    const service = buildService({
+      mediaById: {},
+      appsById: {
+        [appInstanceId.toString()]: {
+          _id: appInstanceId,
+          appSlug: 'weather',
+          config: { location: 'Belgrade' },
+          updatedAt: new Date('2024-03-01T00:00:00Z'),
+        },
+      },
+      cacheByKey: {
+        'weather:belgrade': {
+          payload,
+          // Last good fetch stands; a later attempt failed → serve it as stale.
+          fetchedAt: new Date('2024-03-01T12:00:00Z'),
+          lastError: 'upstream 500',
+        },
+      },
+      screenItems: [
+        {
+          _id: new Types.ObjectId(),
+          type: ScreenItemType.APP,
+          appInstanceId,
+          order: 0,
+          duration: 30,
+          disabled: false,
+        },
+      ],
+    });
+
+    const snapshot = await service.resolveByScreenId('org', 'screen');
+    expect(snapshot?.items[0]).toMatchObject({
+      data: payload,
+      dataMeta: { fetchedAt: '2024-03-01T12:00:00.000Z', stale: true },
+    });
+  });
+
+  it('server app data is null before the first fetch', async () => {
+    const appInstanceId = new Types.ObjectId();
+    const service = buildService({
+      mediaById: {},
+      appsById: {
+        [appInstanceId.toString()]: {
+          _id: appInstanceId,
+          appSlug: 'weather',
+          config: { location: 'Belgrade' },
+          updatedAt: new Date('2024-03-01T00:00:00Z'),
+        },
+      },
+      // No cache entry yet.
+      screenItems: [
+        {
+          _id: new Types.ObjectId(),
+          type: ScreenItemType.APP,
+          appInstanceId,
+          order: 0,
+          duration: 30,
+          disabled: false,
+        },
+      ],
+    });
+
+    const snapshot = await service.resolveByScreenId('org', 'screen');
+    expect(snapshot?.items[0]).toMatchObject({
+      kind: 'app',
+      slug: 'weather',
+      data: null,
+    });
+  });
+
+  it('changes revision when a server app payload refreshes', async () => {
+    const appInstanceId = new Types.ObjectId();
+    const build = (fetchedAt: Date, payload: unknown) =>
+      buildService({
+        mediaById: {},
+        appsById: {
+          [appInstanceId.toString()]: {
+            _id: appInstanceId,
+            appSlug: 'weather',
+            config: { location: 'Belgrade' },
+            updatedAt: new Date('2024-03-01T00:00:00Z'),
+          },
+        },
+        cacheByKey: { 'weather:belgrade': { payload, fetchedAt } },
+        screenItems: [
+          {
+            _id: new Types.ObjectId('bbbbbbbbbbbbbbbbbbbbbbbb'),
+            type: ScreenItemType.APP,
+            appInstanceId,
+            order: 0,
+            duration: 30,
+            disabled: false,
+          },
+        ],
+      });
+
+    const first = await build(new Date('2024-03-01T12:00:00Z'), {
+      t: 21,
+    }).resolveByScreenId('org', 'screen');
+    const refreshed = await build(new Date('2024-03-01T12:15:00Z'), {
+      t: 22,
+    }).resolveByScreenId('org', 'screen');
+
+    expect(first?.revision).not.toBe(refreshed?.revision);
   });
 
   it('produces a stable revision that changes when media changes', async () => {

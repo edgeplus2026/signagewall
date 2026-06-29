@@ -20,6 +20,18 @@ export default () => ({
       process.env.GOOGLE_CALLBACK_URL ??
       'http://localhost:3000/api/v1/auth/google/callback',
   },
+  microsoft: {
+    clientId: process.env.MICROSOFT_CLIENT_ID,
+    clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+    // 'common' allows any work/school/personal account; override for single-tenant.
+    tenant: process.env.MICROSOFT_TENANT ?? 'common',
+  },
+  // AES-256-GCM key for encrypting third-party OAuth tokens at rest.
+  encryptionKey: process.env.ENCRYPTION_KEY,
+  // Publicly reachable HTTPS base URL of this API (provider webhooks).
+  publicApiUrl: process.env.PUBLIC_API_URL,
+  // Path in the CMS that connection OAuth callbacks redirect back to.
+  frontendConnectionsCallbackPath: '/apps/connections/callback',
   mail: {
     enabled: process.env.MAIL_ENABLED === 'true',
     from: process.env.MAIL_FROM ?? 'Edge <onboarding@resend.dev>',

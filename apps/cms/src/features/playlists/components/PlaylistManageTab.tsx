@@ -24,7 +24,10 @@ import {
   type ContentEditorLabels,
 } from '@/features/content/components/ContentEditor'
 import { useContentContainer } from '@/features/content/hooks/useContentContainer'
-import { createMediaDraftItem } from '@/features/content/lib/contentDraft'
+import {
+  createAppDraftItem,
+  createMediaDraftItem,
+} from '@/features/content/lib/contentDraft'
 import { MediaDetailSheet } from '@/features/media/components/MediaDetailSheet'
 import type { MediaItem } from '@/features/media/types/media.types'
 import { DeletePlaylistDialog } from '@/features/playlists/components/DeletePlaylistDialog'
@@ -102,16 +105,26 @@ export function PlaylistManageTab({ playlist }: PlaylistManageTabProps) {
     [setDraftItems],
   )
 
+  const handleAddAppToContent = useCallback(
+    (appInstanceId: string) => {
+      setDraftItems((current) => [...current, createAppDraftItem(appInstanceId)])
+    },
+    [setDraftItems],
+  )
+
   const handleSave = useCallback(async () => {
     try {
       const saved = await replacePlaylistItems.mutateAsync({
         id: playlist.id,
         payload: {
           expectedUpdatedAt: playlist.updatedAt,
-          // Playlists hold media only; the registry mapper supplies id/duration.
-          items: buildSavePayload(['media']).map((item) => ({
+          // Playlists hold media and app items; the registry mapper supplies
+          // type/id/duration per content type.
+          items: buildSavePayload(['media', 'app']).map((item) => ({
             ...(item.id ? { id: item.id } : {}),
-            mediaId: item.mediaId ?? '',
+            type: item.type === 'app' ? 'app' : 'media',
+            ...(item.mediaId ? { mediaId: item.mediaId } : {}),
+            ...(item.appInstanceId ? { appInstanceId: item.appInstanceId } : {}),
             duration: item.duration,
             ...(item.disabled ? { disabled: true } : {}),
           })),
@@ -215,7 +228,9 @@ export function PlaylistManageTab({ playlist }: PlaylistManageTabProps) {
         onContentMediaUpdate={handleEditMedia}
         sidebar={
           <PlaylistManageSidebar
+            allowedTypes={['media', 'app']}
             onAddToContent={handleAddToContent}
+            onAddApp={handleAddAppToContent}
             onEditMedia={handleEditMedia}
           />
         }

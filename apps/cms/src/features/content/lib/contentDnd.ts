@@ -20,8 +20,11 @@ export const CONTENT_SECTION_ID = "content-section"
 /** Sortable id of the live placeholder shown while dragging a library item in. */
 export const PLACEHOLDER_ID = "__content-placeholder__"
 
+// App's prefix is checked before media's: media's "library-" is itself a prefix
+// of "library-app-"/"library-playlist-", so the more specific ones must win.
 const MEDIA_DRAG_PREFIX = "library-"
 const PLAYLIST_DRAG_PREFIX = "library-playlist-"
+const APP_DRAG_PREFIX = "library-app-"
 
 export function mediaLibraryDragId(mediaId: string) {
   return `${MEDIA_DRAG_PREFIX}${mediaId}`
@@ -31,11 +34,19 @@ export function playlistLibraryDragId(playlistId: string) {
   return `${PLAYLIST_DRAG_PREFIX}${playlistId}`
 }
 
+export function appLibraryDragId(appInstanceId: string) {
+  return `${APP_DRAG_PREFIX}${appInstanceId}`
+}
+
 export type LibraryDragSource =
   | { type: "media"; mediaId: string }
   | { type: "playlist"; playlistId: string }
+  | { type: "app"; appInstanceId: string }
 
 export function parseLibraryDragId(id: string): LibraryDragSource | null {
+  if (id.startsWith(APP_DRAG_PREFIX)) {
+    return { type: "app", appInstanceId: id.slice(APP_DRAG_PREFIX.length) }
+  }
   if (id.startsWith(PLAYLIST_DRAG_PREFIX)) {
     return { type: "playlist", playlistId: id.slice(PLAYLIST_DRAG_PREFIX.length) }
   }

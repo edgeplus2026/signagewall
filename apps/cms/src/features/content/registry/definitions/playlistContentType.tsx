@@ -1,7 +1,10 @@
 import { ListVideoIcon, PencilIcon } from "lucide-react"
 
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { PlaylistLibraryDragOverlayRow } from "@/features/content/components/LibraryCards"
+import {
+  LibraryPlaylistCardOverlay,
+  PlaylistLibraryDragOverlayRow,
+} from "@/features/content/components/LibraryCards"
 import { createPlaylistDraftItem } from "@/features/content/lib/contentDraft"
 import type { ContentTypeDefinition } from "@/features/content/registry/contentType.types"
 import { usePlaylists } from "@/features/playlists/hooks/usePlaylists"
@@ -44,7 +47,8 @@ export const playlistContentType: ContentTypeDefinition<PlaylistMeta> = {
   },
 
   capabilities: {
-    showsDurationInput: false,
+    // Duration is derived from the playlist itself: shown disabled, not editable.
+    showsDurationInput: () => true,
     canEditDuration: () => false,
   },
 
@@ -52,11 +56,14 @@ export const playlistContentType: ContentTypeDefinition<PlaylistMeta> = {
     title: ({ meta, labels }) => meta?.name ?? labels.unknownPlaylist,
     typeLabel: ({ labels }) => labels.playlistType,
     badgeClassName: () => "bg-sidebar text-secondary",
-    Thumbnail: () => (
-      <div className="bg-sidebar flex size-full items-center justify-center">
-        <ListVideoIcon className="text-secondary size-10" />
-      </div>
-    ),
+    Thumbnail: ({ meta }) =>
+      meta?.thumbnailUrl ? (
+        <img src={meta.thumbnailUrl} alt="" className="size-full object-cover" />
+      ) : (
+        <div className="bg-sidebar flex size-full items-center justify-center">
+          <ListVideoIcon className="text-secondary size-10" />
+        </div>
+      ),
     MenuItems: ({ meta, labels, t, onUpdate }) =>
       meta && onUpdate ? (
         <DropdownMenuItem
@@ -68,13 +75,16 @@ export const playlistContentType: ContentTypeDefinition<PlaylistMeta> = {
           {labels.updatePlaylist ?? t("playlists.manage.sidebar.edit")}
         </DropdownMenuItem>
       ) : null,
-    LibraryDragOverlay: ({ meta, width, height }) => (
-      <PlaylistLibraryDragOverlayRow
-        playlist={meta}
-        {...(width !== undefined ? { width } : {})}
-        {...(height !== undefined ? { height } : {})}
-      />
-    ),
+    LibraryDragOverlay: ({ meta, isCustomSidebar, width, height }) =>
+      isCustomSidebar ? (
+        <LibraryPlaylistCardOverlay playlist={meta} />
+      ) : (
+        <PlaylistLibraryDragOverlayRow
+          playlist={meta}
+          {...(width !== undefined ? { width } : {})}
+          {...(height !== undefined ? { height } : {})}
+        />
+      ),
   },
 
   createDraftItem: (source) => createPlaylistDraftItem(source.id),

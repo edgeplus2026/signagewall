@@ -12,7 +12,6 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 
-import { FullPageLoader } from '@/components/common/FullPageLoader'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -21,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Skeleton } from '@/components/ui/skeleton'
 import { AppInstanceConfigSidebar } from '@/features/apps/components/AppInstanceConfigSidebar'
 import { AppInstanceScreen } from '@/features/apps/components/AppInstanceScreen'
 import { AppLivePreview } from '@/features/apps/components/AppLivePreview'
@@ -74,7 +74,45 @@ export default function AppInstanceConfigPage() {
   }
 
   if (appLoading || instanceLoading) {
-    return <FullPageLoader />
+    return (
+      <div className="flex h-[calc(100dvh-5.5rem)] w-full min-w-0 flex-col gap-4 lg:px-10">
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden pb-4 lg:flex-row lg:gap-8">
+          {/* Config sidebar */}
+          <div className="flex w-full flex-col gap-6 lg:w-80 lg:shrink-0">
+            <div className="flex items-start gap-3">
+              <Skeleton className="size-12 shrink-0 rounded-xl" />
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Skeleton className="h-4 w-2/3 rounded-md" />
+                <Skeleton className="h-3 w-4/5 rounded-md" />
+              </div>
+            </div>
+            <div className="flex flex-col gap-5">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="flex flex-col gap-2">
+                  <Skeleton className="h-3.5 w-24 rounded-md" />
+                  <Skeleton className="h-9 w-full rounded-md" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Live preview */}
+          <div className="flex min-w-0 flex-1 items-center justify-center">
+            <div className="flex w-full max-w-3xl flex-col items-center gap-3">
+              <Skeleton className="aspect-video w-full rounded-2xl" />
+              <Skeleton className="h-6 w-16 rounded-b-md" />
+              <Skeleton className="h-2.5 w-44 rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        {/* Save bar */}
+        <div className="border-secondary flex shrink-0 items-center justify-end gap-2 border-t pt-3">
+          <Skeleton className="h-9 w-28 rounded-md" />
+          <Skeleton className="size-9 rounded-md" />
+        </div>
+      </div>
+    )
   }
 
   if (!app?.isInstalled || !instance) {

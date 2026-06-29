@@ -6,6 +6,9 @@ dist/
 build/
 .turbo/
 
+# generated app embed bundles (built by @edge/apps `build:embeds`)
+apps/player/public/apps/
+
 # env / secrets
 .env
 .env.*

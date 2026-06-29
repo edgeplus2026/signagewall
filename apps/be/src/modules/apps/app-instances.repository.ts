@@ -72,6 +72,20 @@ export class AppInstancesRepository {
       .exec();
   }
 
+  /**
+   * Cross-org lookup of every instance of the given app slugs. Used by the
+   * connector scheduler and the realtime fan-out, which operate globally (the
+   * connector cache is shared across organizations); each returned instance
+   * still carries its `organizationId` so downstream pushes stay org-correct.
+   */
+  async findBySlugs(slugs: string[]): Promise<AppInstanceDocument[]> {
+    const uniqueSlugs = [...new Set(slugs)];
+    if (uniqueSlugs.length === 0) {
+      return [];
+    }
+    return this.model.find({ appSlug: { $in: uniqueSlugs } }).exec();
+  }
+
   async countForApp(organizationId: string, appId: string): Promise<number> {
     return this.model
       .countDocuments({

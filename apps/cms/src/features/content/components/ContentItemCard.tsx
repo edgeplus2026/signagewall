@@ -40,6 +40,7 @@ interface ContentItemCardViewProps extends Omit<
   onToggleDisabled?: (clientId: string) => void
   onUpdate?: (media: MediaItem) => void
   onUpdatePlaylist?: (playlistId: string) => void
+  onUpdateApp?: (appId: string, instanceId: string) => void
   isDragging?: boolean
   labels: ContentCardLabels
 }
@@ -56,6 +57,7 @@ export const ContentItemCardView = forwardRef<
     onToggleDisabled,
     onUpdate,
     onUpdatePlaylist,
+    onUpdateApp,
     className,
     style,
     isDragging = false,
@@ -71,14 +73,14 @@ export const ContentItemCardView = forwardRef<
   const title = definition.card.title(ctx)
   const typeLabel = definition.card.typeLabel(ctx)
   const badgeClassName = definition.card.badgeClassName(ctx)
-  const showDurationInput = definition.capabilities.showsDurationInput
+  const showDurationInput = definition.capabilities.showsDurationInput(item, meta)
   const durationEditable = definition.capabilities.canEditDuration(item, meta)
   const canEditDuration = durationEditable && !!onItemDurationChange
   const isDisabled = Boolean(item.disabled)
 
-  // Bridge the two container-supplied callbacks into the registry's single
+  // Bridge the container-supplied callbacks into the registry's single
   // `onUpdate(meta)` channel: media edits the resolved MediaItem, playlists
-  // open by id.
+  // open by id, apps open their instance config page (meta is { instance, app }).
   const onMetaUpdate =
     item.type === "media" && onUpdate
       ? (value: unknown) => {
@@ -88,7 +90,15 @@ export const ContentItemCardView = forwardRef<
         ? (value: unknown) => {
             onUpdatePlaylist((value as { id: string }).id)
           }
-        : undefined
+        : item.type === "app" && onUpdateApp
+          ? (value: unknown) => {
+              const meta = value as {
+                instance: { id: string }
+                app?: { id: string }
+              }
+              if (meta.app) onUpdateApp(meta.app.id, meta.instance.id)
+            }
+          : undefined
 
   const menuItems = definition.card.MenuItems
     ? definition.card.MenuItems({ ...ctx, onUpdate: onMetaUpdate })
@@ -199,19 +209,23 @@ export const ContentItemCardView = forwardRef<
                 event.stopPropagation()
               }}
             >
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="size-6 shrink-0"
-                disabled={!canEditDuration || item.duration <= 1}
-                aria-label={`${t("common.decrease")} ${labels.durationLabel}`}
-                onClick={() => {
-                  adjustDuration(-1)
-                }}
-              >
-                <MinusIcon className="size-3" />
-              </Button>
+              {/* Stepper buttons only for editable (image) durations; video and
+                  playlist show the value disabled, with no +/- controls. */}
+              {canEditDuration ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-6 shrink-0"
+                  disabled={item.duration <= 1}
+                  aria-label={`${t("common.decrease")} ${labels.durationLabel}`}
+                  onClick={() => {
+                    adjustDuration(-1)
+                  }}
+                >
+                  <MinusIcon className="size-3" />
+                </Button>
+              ) : null}
               <Input
                 type="number"
                 min={1}
@@ -227,19 +241,21 @@ export const ContentItemCardView = forwardRef<
                 className="h-7 w-14 px-1 text-center text-xs disabled:opacity-100"
                 aria-label={labels.durationLabel}
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="size-6 shrink-0"
-                disabled={!canEditDuration || item.duration >= 3600}
-                aria-label={`${t("common.increase")} ${labels.durationLabel}`}
-                onClick={() => {
-                  adjustDuration(1)
-                }}
-              >
-                <PlusIcon className="size-3" />
-              </Button>
+              {canEditDuration ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-6 shrink-0"
+                  disabled={item.duration >= 3600}
+                  aria-label={`${t("common.increase")} ${labels.durationLabel}`}
+                  onClick={() => {
+                    adjustDuration(1)
+                  }}
+                >
+                  <PlusIcon className="size-3" />
+                </Button>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -256,6 +272,7 @@ interface ContentItemCardProps {
   onToggleDisabled?: (clientId: string) => void
   onUpdate?: (media: MediaItem) => void
   onUpdatePlaylist?: (playlistId: string) => void
+  onUpdateApp?: (appId: string, instanceId: string) => void
   labels: ContentCardLabels
 }
 
@@ -267,6 +284,7 @@ export function ContentItemCard({
   onToggleDisabled,
   onUpdate,
   onUpdatePlaylist,
+  onUpdateApp,
   labels,
 }: ContentItemCardProps) {
   const {
@@ -293,6 +311,7 @@ export function ContentItemCard({
       {...(onToggleDisabled ? { onToggleDisabled } : {})}
       {...(onUpdate ? { onUpdate } : {})}
       {...(onUpdatePlaylist ? { onUpdatePlaylist } : {})}
+      {...(onUpdateApp ? { onUpdateApp } : {})}
       labels={labels}
       style={style}
       isDragging={isDragging}

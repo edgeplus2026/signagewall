@@ -6,6 +6,7 @@ import {
   appDetailQueryKey,
   appInstanceDetailQueryKey,
   appInstancesQueryKey,
+  appInstancesRootQueryKey,
   appsQueryKey,
 } from '@/features/apps/lib/appsQueryKeys'
 import type { AppInstanceConfig } from '@/features/apps/types/app.types'
@@ -95,8 +96,10 @@ function useInstanceInvalidation() {
   const organizationId = useActiveOrganizationId()
   const queryClient = useQueryClient()
   return (instanceId?: string) => {
+    // Prefix-invalidate so both the per-app list (keyed on appId) and the
+    // org-wide "all" list refresh — they diverge on their last key segment.
     void queryClient.invalidateQueries({
-      queryKey: appInstancesQueryKey(organizationId),
+      queryKey: appInstancesRootQueryKey(organizationId),
     })
     if (instanceId) {
       void queryClient.invalidateQueries({
@@ -111,8 +114,8 @@ export function useCreateInstance() {
   return useMutation({
     mutationFn: ({ appId, name }: { appId: string; name?: string }) =>
       appsApi.createInstance(appId, name),
-    onSuccess: () => {
-      invalidate()
+    onSuccess: (instance) => {
+      invalidate(instance.id)
     },
   })
 }

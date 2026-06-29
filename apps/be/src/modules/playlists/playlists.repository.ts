@@ -5,6 +5,7 @@ import { ClientSession, Model, Types } from 'mongoose';
 import {
   Playlist,
   PlaylistDocument,
+  PlaylistItemType,
   PlaylistItemValue,
 } from './schemas/playlist.schema';
 
@@ -187,6 +188,27 @@ export class PlaylistsRepository {
     return docs.map((doc) => doc._id.toString());
   }
 
+  async findIdsContainingAppInstances(
+    organizationId: string,
+    appInstanceIds: string[],
+  ): Promise<string[]> {
+    if (appInstanceIds.length === 0) {
+      return [];
+    }
+
+    const docs = await this.playlistModel
+      .find({
+        organizationId: new Types.ObjectId(organizationId),
+        'items.appInstanceId': {
+          $in: appInstanceIds.map((id) => new Types.ObjectId(id)),
+        },
+      })
+      .select({ _id: 1 })
+      .exec();
+
+    return docs.map((doc) => doc._id.toString());
+  }
+
   /** Summaries (no embedded items) for a set of ids, scoped to the org. */
   async findSummariesByIds(
     organizationId: string,
@@ -307,10 +329,18 @@ export class PlaylistsRepository {
       // schema fields, which would corrupt the persisted `items` and break the
       // cover recomputation. Pull the fields explicitly, like `duplicate` does.
       const remaining: PlaylistItemValue[] = playlist.items
-        .filter((item) => !mediaObjectIds.some((id) => id.equals(item.mediaId)))
+        .filter(
+          (item) =>
+            // App items have no mediaId — never purge them. Media items are
+            // dropped only when their id is in the purge set.
+            !item.mediaId ||
+            !mediaObjectIds.some((id) => id.equals(item.mediaId)),
+        )
         .map((item) => ({
           _id: item._id,
-          mediaId: item.mediaId,
+          type: item.type ?? PlaylistItemType.MEDIA,
+          ...(item.mediaId ? { mediaId: item.mediaId } : {}),
+          ...(item.appInstanceId ? { appInstanceId: item.appInstanceId } : {}),
           order: item.order,
           duration: item.duration,
           disabled: item.disabled,

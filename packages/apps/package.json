@@ -16,14 +16,18 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --clean --sourcemap && tsc -p tsconfig.json --emitDeclarationOnly",
-    "type-check": "tsc --noEmit -p tsconfig.json"
+    "build": "tsup src/index.ts --format esm,cjs --clean --sourcemap && tsc -p tsconfig.json --emitDeclarationOnly && pnpm run build:embeds",
+    "build:embeds": "vite build --config vite.embeds.config.ts",
+    "type-check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.embeds.json"
   },
   "dependencies": {
     "@edge/apps-contract": "workspace:*"
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.5",
+    "qrcode": "^1.5.4",
     "tsup": "^8.3.5",
-    "typescript": "~6.0.2"
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12"
   }
 }

@@ -745,6 +745,7 @@
       "libraryEmpty": "Nema medija u ovom folderu.",
       "libraryEmptySearch": "Nijedan medij ne odgovara pretrazi.",
       "playlistsTab": "Plejliste",
+      "appsTab": "Aplikacije",
       "playlistsSearch": "Pretraži plejliste...",
       "playlistsEmpty": "Još nema plejlisti.",
       "playlistsEmptySearch": "Nijedna plejlista ne odgovara pretrazi.",
@@ -775,10 +776,6 @@
       "appType": "Aplikacija",
       "addPlaylistToContent": "Dodaj plejlistu u sadržaj",
       "addApp": {
-        "trigger": "Dodaj aplikaciju",
-        "title": "Dodaj aplikaciju",
-        "description": "Izaberite aplikaciju za dodavanje na ovaj ekran.",
-        "empty": "Još nema aplikacija. Prvo je kreirajte na stranici Aplikacije.",
         "add": "Dodaj"
       },
       "conflict": "Ovaj ekran je izmenjen na drugom mestu. Vaše nesačuvane izmene su odbačene i učitana je najnovija verzija."
@@ -1147,7 +1144,8 @@
     "title": "Super Admin",
     "tabs": {
       "users": "Svi korisnici",
-      "apps": "Aplikacije"
+      "apps": "Aplikacije",
+      "categories": "Kategorije aplikacija"
     },
     "users": {
       "search": "Pretraži korisnike...",
@@ -1365,6 +1363,15 @@
     "installed": "Instalirano",
     "aboutTitle": "O ovoj aplikaciji",
     "search": "Pretraži aplikacije...",
+    "connections": {
+      "selectAccount": "Izaberite povezani nalog",
+      "connectAccount": "Poveži nalog",
+      "callbackSuccessTitle": "Nalog povezan",
+      "callbackSuccessBody": "Povezan {{account}}. Sada ga možete izabrati u podešavanjima aplikacije.",
+      "callbackErrorTitle": "Povezivanje nije uspelo",
+      "callbackErrorBody": "Nismo uspeli da povežemo nalog. Pokušajte ponovo.",
+      "backToApps": "Nazad na aplikacije"
+    },
     "tabs": {
       "store": "Prodavnica",
       "myApps": "Moje aplikacije"
@@ -1479,9 +1486,44 @@
         "error": "Čuvanje aplikacije nije uspelo.",
         "app": "Aplikacija",
         "appPlaceholder": "Izaberi aplikaciju za dodavanje…",
+        "appSearchPlaceholder": "Pretraži aplikacije…",
         "noAvailable": "Sve dostupne aplikacije su već u katalogu.",
         "iconPlaceholder": "Nalepi SVG kod…",
-        "color": "Boja brenda"
+        "color": "Boja brenda",
+        "categories": "Kategorije",
+        "noCategories": "Još nema kategorija — kreiraj ih u tabu Kategorije."
+      }
+    },
+    "categories": {
+      "description": "Grupiši aplikacije u kategorije da organizacije pretražuju katalog po temi.",
+      "uncategorized": "Ostalo",
+      "newCategory": "Nova kategorija",
+      "name": "Naziv",
+      "edit": "Izmeni",
+      "delete": "Obriši",
+      "deleted": "Kategorija obrisana",
+      "deleteError": "Brisanje kategorije nije uspelo.",
+      "empty": {
+        "title": "Još nema kategorija",
+        "description": "Kreiraj prvu kategoriju aplikacija."
+      },
+      "deleteDialog": {
+        "title": "Obrisati kategoriju?",
+        "description": "Ovo uklanja \"{{name}}\" iz kataloga i sa svake aplikacije kojoj je bila dodeljena."
+      },
+      "editor": {
+        "createTitle": "Nova kategorija",
+        "editTitle": "Izmeni kategoriju",
+        "description": "Kategorije pomažu organizacijama da pronađu aplikacije u katalogu.",
+        "save": "Sačuvaj izmene",
+        "create": "Kreiraj kategoriju",
+        "created": "Kategorija kreirana",
+        "updated": "Kategorija ažurirana",
+        "error": "Čuvanje kategorije nije uspelo."
+      },
+      "filter": {
+        "all": "Sve kategorije",
+        "searchPlaceholder": "Pretraži kategorije…"
       }
     }
   }

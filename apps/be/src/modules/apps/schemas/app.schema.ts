@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
+import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
 
 import type {
   ConfigSchema,
@@ -26,10 +26,10 @@ export class App {
   @Prop({ default: '' })
   about!: string;
 
-  @Prop({ required: true, default: 'native' })
+  @Prop({ type: String, required: true, default: 'native' })
   runtimeKind!: RuntimeKind;
 
-  @Prop({ required: true, default: 'static' })
+  @Prop({ type: String, required: true, default: 'static' })
   dataSource!: DataSource;
 
   /** The config form spec (validated against by instances). Stored as JSON. */
@@ -50,6 +50,10 @@ export class App {
   /** The single public/private toggle — only public apps are offered to organizations. */
   @Prop({ required: true, default: false })
   isPublic!: boolean;
+
+  /** Catalog categories this app belongs to (super-admin managed). */
+  @Prop({ type: [Types.ObjectId], ref: 'AppCategory', default: [] })
+  categoryIds!: Types.ObjectId[];
 
   createdAt!: Date;
   updatedAt!: Date;

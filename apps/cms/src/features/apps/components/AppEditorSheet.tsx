@@ -5,15 +5,10 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Combobox } from '@/components/ui/combobox'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -30,6 +25,7 @@ import {
   useCreateApp,
   useUpdateApp,
 } from '@/features/apps/hooks/useAdminApps'
+import { useAdminCategories } from '@/features/apps/hooks/useAdminCategories'
 import { resolveAppColor } from '@/features/apps/lib/appColor'
 import type { AdminApp } from '@/features/apps/types/app.types'
 import { getApiErrorMessage } from '@/lib/api-error'
@@ -45,6 +41,7 @@ const editorSchema = z.object({
   iconSvg: z.string().max(20000).optional(),
   color: z.string().max(32).optional(),
   isPublic: z.boolean(),
+  categoryIds: z.array(z.string()),
 })
 
 type EditorValues = z.infer<typeof editorSchema>
@@ -66,6 +63,8 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
   const { data: manifests = [] } = useAvailableManifests()
   const addable = manifests.filter((manifest) => !manifest.alreadyInCatalog)
 
+  const { data: categories = [] } = useAdminCategories()
+
   const defaults: EditorValues = {
     slug: app?.slug ?? '',
     name: app?.name ?? '',
@@ -74,7 +73,8 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
     about: app?.about ?? '',
     iconSvg: app?.iconSvg ?? '',
     color: app?.color ?? '',
-    isPublic: app?.isPublic ?? false,
+    isPublic: app?.isPublic ?? true,
+    categoryIds: app?.categoryIds ?? [],
   }
 
   const {
@@ -114,6 +114,7 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
       iconSvg: data.iconSvg,
       color: data.color,
       isPublic: data.isPublic,
+      categoryIds: data.categoryIds,
     }
 
     const onError = (error: unknown) => {
@@ -170,24 +171,19 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
                   name="slug"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={handleSelectManifest}>
-                      <SelectTrigger id="app-pick" className="w-full">
-                        <SelectValue placeholder={t('apps.admin.editor.appPlaceholder')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {addable.length === 0 ? (
-                          <div className="px-2 py-2 text-sm text-secondary">
-                            {t('apps.admin.editor.noAvailable')}
-                          </div>
-                        ) : (
-                          addable.map((manifest) => (
-                            <SelectItem key={manifest.slug} value={manifest.slug}>
-                              {manifest.name}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <Combobox
+                      id="app-pick"
+                      value={field.value}
+                      onChange={handleSelectManifest}
+                      options={addable.map((manifest) => ({
+                        label: manifest.name,
+                        value: manifest.slug,
+                      }))}
+                      placeholder={t('apps.admin.editor.appPlaceholder')}
+                      searchPlaceholder={t('apps.admin.editor.appSearchPlaceholder')}
+                      emptyLabel={t('apps.admin.editor.noAvailable')}
+                      aria-invalid={Boolean(errors.slug)}
+                    />
                   )}
                 />
                 <FieldError errors={[errors.slug]} />
@@ -202,7 +198,7 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
                 <Textarea
                   id="app-icon"
                   rows={3}
-                  className="flex-1 font-mono text-xs"
+                  className="max-h-36 flex-1 overflow-y-auto font-mono text-xs"
                   placeholder={t('apps.admin.editor.iconPlaceholder')}
                   {...register('iconSvg')}
                 />
@@ -279,6 +275,45 @@ export function AppEditorSheet({ app, open, onOpenChange }: AppEditorSheetProps)
                   <FieldLabel htmlFor="app-public">
                     {t('apps.admin.editor.isPublic')}
                   </FieldLabel>
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="categoryIds"
+              control={control}
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel>{t('apps.admin.editor.categories')}</FieldLabel>
+                  {categories.length === 0 ? (
+                    <p className="text-xs text-secondary">
+                      {t('apps.admin.editor.noCategories')}
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {categories.map((category) => {
+                        const checked = field.value.includes(category.id)
+                        return (
+                          <label
+                            key={category.id}
+                            className="flex items-center gap-2 text-sm text-primary"
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(value) => {
+                                field.onChange(
+                                  value === true
+                                    ? [...field.value, category.id]
+                                    : field.value.filter((id) => id !== category.id),
+                                )
+                              }}
+                            />
+                            {category.name}
+                          </label>
+                        )
+                      })}
+                    </div>
+                  )}
                 </Field>
               )}
             />

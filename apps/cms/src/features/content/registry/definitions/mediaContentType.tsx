@@ -52,7 +52,9 @@ export const mediaContentType: ContentTypeDefinition<MediaItem> = {
   },
 
   capabilities: {
-    showsDurationInput: true,
+    // Both images and videos show the duration; only images can edit it
+    // (video duration is intrinsic, shown disabled with no stepper buttons).
+    showsDurationInput: () => true,
     canEditDuration: (_item, meta) => meta?.type === "image",
   },
 

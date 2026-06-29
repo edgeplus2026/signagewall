@@ -1,6 +1,8 @@
 {
   "notFound": "Plejlista nije pronađena.",
   "mediaNotFound": "Jedna ili više medijskih stavki nije pronađeno.",
+  "appNotFound": "Jedna ili više aplikacija nije pronađeno.",
+  "invalidItem": "Svaka stavka plejliste mora referencirati medij ili aplikaciju.",
   "mediaNotReady": "Medij mora završiti obradu pre dodavanja u plejlistu.",
   "invalidMediaType": "U plejlistu se mogu dodati samo slike i video zapisi.",
   "itemNotFound": "Stavka plejliste nije pronađena.",

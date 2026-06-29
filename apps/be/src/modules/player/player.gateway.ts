@@ -11,6 +11,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { AppInstancesRepository } from '../apps/app-instances.repository';
+import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensRepository } from '../screens/screens.repository';
@@ -18,6 +20,7 @@ import { PlayerService } from './player.service';
 import type { ReportedProfile } from './player.service';
 import { PlayerEvents, PlayerSocketEvents } from './player.events';
 import type {
+  AppDataChangedEvent,
   DeviceCommandEvent,
   DevicePairedEvent,
   DeviceRevokedEvent,
@@ -86,6 +89,7 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly playerService: PlayerService,
     private readonly screensRepository: ScreensRepository,
     private readonly playlistsRepository: PlaylistsRepository,
+    private readonly appInstancesRepository: AppInstancesRepository,
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -383,6 +387,54 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     ]);
 
     await this.pushManyScreens(event.organizationId, [...screenIds]);
+  }
+
+  @OnEvent(PlayerEvents.AppDataChanged)
+  async onAppDataChanged(event: AppDataChangedEvent): Promise<void> {
+    // The connector cache is global, so find every instance of this app (across
+    // all orgs) that resolves to the changed cache key, then re-push the screens
+    // that use those instances — grouped by org so each push stays org-correct.
+    const instances = await this.appInstancesRepository.findBySlugs([
+      event.slug,
+    ]);
+    const byOrg = new Map<string, string[]>();
+    for (const instance of instances) {
+      if (cacheKeyForInstance(instance) !== event.cacheKey) {
+        continue;
+      }
+      const orgId = instance.organizationId.toString();
+      const ids = byOrg.get(orgId) ?? [];
+      ids.push(instance._id.toString());
+      byOrg.set(orgId, ids);
+    }
+
+    for (const [organizationId, instanceIds] of byOrg) {
+      const [directScreens, playlistIds] = await Promise.all([
+        this.screensRepository.findContainingAppInstanceIds(
+          organizationId,
+          instanceIds,
+        ),
+        this.playlistsRepository.findIdsContainingAppInstances(
+          organizationId,
+          instanceIds,
+        ),
+      ]);
+
+      const playlistScreens =
+        playlistIds.length > 0
+          ? await this.screensRepository.findContainingPlaylistIds(
+              organizationId,
+              playlistIds,
+            )
+          : [];
+
+      const screenIds = new Set<string>([
+        ...directScreens.map((screen) => screen._id.toString()),
+        ...playlistScreens.map((screen) => screen._id.toString()),
+      ]);
+
+      await this.pushManyScreens(organizationId, [...screenIds]);
+    }
   }
 
   @OnEvent(PlayerEvents.ScreensDeleted)

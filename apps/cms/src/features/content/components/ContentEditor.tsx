@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { useAllAppInstances, useApps } from '@/features/apps/hooks/useApps'
 import {
   ContentItemCard,
   ContentItemCardOverlay,
@@ -178,6 +179,13 @@ export function ContentEditor({
     [navigate],
   )
 
+  const handleUpdateApp = useCallback(
+    (appId: string, instanceId: string) => {
+      void navigate(`/apps/${appId}/instances/${instanceId}`)
+    },
+    [navigate],
+  )
+
   useEffect(() => {
     if (!isBelowLg) {
       // Close the mobile library sheet when the viewport grows past the
@@ -214,6 +222,8 @@ export function ContentEditor({
   )
 
   const { data: allPlaylists = [] } = usePlaylists()
+  const { data: allAppInstances = [] } = useAllAppInstances()
+  const { data: appCatalog = [] } = useApps()
 
   const cardLabels = useMemo(
     () => ({
@@ -236,13 +246,16 @@ export function ContentEditor({
       onDraftItemsChange(
         draftItems.map((item) =>
           item.clientId === clientId &&
-          getContentTypeDefinition(item.type).capabilities.showsDurationInput
+          getContentTypeDefinition(item.type).capabilities.showsDurationInput(
+            item,
+            resolveMeta(item),
+          )
             ? { ...item, duration: clamped }
             : item,
         ),
       )
     },
-    [draftItems, onDraftItemsChange],
+    [draftItems, onDraftItemsChange, resolveMeta],
   )
 
   const handleRemove = useCallback(
@@ -277,6 +290,19 @@ export function ContentEditor({
   const activeDragPlaylist =
     activeLibraryDrag?.type === 'playlist'
       ? (allPlaylists.find((entry) => entry.id === activeLibraryDrag.playlistId) ?? null)
+      : null
+  const activeDragApp =
+    activeLibraryDrag?.type === 'app'
+      ? (() => {
+          const instance = allAppInstances.find(
+            (entry) => entry.id === activeLibraryDrag.appInstanceId,
+          )
+          if (!instance) return null
+          return {
+            instance,
+            app: appCatalog.find((entry) => entry.slug === instance.appSlug),
+          }
+        })()
       : null
 
   const totalDuration = getDraftTotalDuration(draftItems)
@@ -347,6 +373,7 @@ export function ContentEditor({
                           onRemove={handleRemove}
                           onToggleDisabled={handleToggleDisabled}
                           onUpdatePlaylist={handleUpdatePlaylist}
+                          onUpdateApp={handleUpdateApp}
                           {...(meta && onContentMediaUpdate
                             ? { onUpdate: onContentMediaUpdate }
                             : {})}
@@ -411,6 +438,12 @@ export function ContentEditor({
           ) : activeDragPlaylist ? (
             getContentTypeDefinition('playlist').card.LibraryDragOverlay({
               meta: activeDragPlaylist,
+              isCustomSidebar: Boolean(sidebar),
+              ...(dragOverlaySize ?? {}),
+            })
+          ) : activeDragApp ? (
+            getContentTypeDefinition('app').card.LibraryDragOverlay({
+              meta: activeDragApp,
               isCustomSidebar: Boolean(sidebar),
               ...(dragOverlaySize ?? {}),
             })

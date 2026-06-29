@@ -20,6 +20,8 @@ export interface AppCatalogResponseDto {
   version: number;
   iconSvg: string;
   color: string;
+  /** Ids of the catalog categories this app belongs to. */
+  categoryIds: string[];
   /** Whether the requesting organization has installed this app. */
   isInstalled: boolean;
 }
@@ -48,6 +50,7 @@ export const toAppCatalogResponse = (
   version: app.version,
   iconSvg: app.iconSvg ?? '',
   color: app.color ?? '',
+  categoryIds: (app.categoryIds ?? []).map((id) => id.toString()),
 });
 
 export const toAppAdminResponse = (app: AppDocument): AppAdminResponseDto => ({

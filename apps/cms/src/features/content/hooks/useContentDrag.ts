@@ -245,7 +245,11 @@ export function useContentDrag({
         placeholderIndex === -1 ? baseItems.length : placeholderIndex
 
       const sourceId =
-        drag.source.type === "media" ? drag.source.mediaId : drag.source.playlistId
+        drag.source.type === "media"
+          ? drag.source.mediaId
+          : drag.source.type === "playlist"
+            ? drag.source.playlistId
+            : drag.source.appInstanceId
       const newItem = getContentTypeDefinition(drag.source.type).createDraftItem({
         id: sourceId,
         ...(drag.mediaType ? { mediaType: drag.mediaType } : {}),

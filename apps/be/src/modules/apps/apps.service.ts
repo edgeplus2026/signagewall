@@ -144,6 +144,7 @@ export class AppsService {
       iconSvg: dto.iconSvg ?? manifest.icon ?? '',
       color: dto.color ?? manifest.color ?? '',
       isPublic: dto.isPublic ?? false,
+      categoryIds: dto.categoryIds ?? [],
     };
     const created = await this.appsRepository.create(data);
     return toAppAdminResponse(created);

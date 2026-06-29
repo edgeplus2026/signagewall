@@ -1,0 +1,57 @@
+.wx {
+  gap: 1.5vh;
+}
+
+.wx-loc {
+  font-size: 5vw;
+  font-weight: 600;
+}
+
+.wx-now {
+  display: flex;
+  align-items: center;
+  gap: 2vw;
+}
+
+.wx-glyph-lg {
+  font-size: 12vw;
+  line-height: 1;
+}
+
+.wx-temp {
+  font-size: 14vw;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-label {
+  font-size: 3vw;
+  opacity: 0.8;
+}
+
+.wx-days {
+  display: flex;
+  gap: 3vw;
+  margin-top: 2vh;
+}
+
+.wx-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5vh;
+}
+
+.wx-dow {
+  font-size: 2.4vw;
+  opacity: 0.75;
+}
+
+.wx-glyph {
+  font-size: 4vw;
+}
+
+.wx-range {
+  font-size: 2.2vw;
+  font-variant-numeric: tabular-nums;
+}

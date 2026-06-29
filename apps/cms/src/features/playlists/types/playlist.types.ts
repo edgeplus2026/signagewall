@@ -4,9 +4,14 @@ export type PlaylistSortField = "name" | "createdAt"
 
 export type PlaylistSortDirection = "asc" | "desc"
 
+export type PlaylistItemType = "media" | "app"
+
 export interface PlaylistItem {
   id: string
-  mediaId: string
+  /** Defaults to `media` for items saved before apps were supported. */
+  type?: PlaylistItemType
+  mediaId?: string
+  appInstanceId?: string
   order: number
   duration: number
   disabled?: boolean
@@ -48,7 +53,9 @@ export interface DuplicatePlaylistRequest {
 
 export interface ReplacePlaylistItemInput {
   id?: string
-  mediaId: string
+  type: PlaylistItemType
+  mediaId?: string
+  appInstanceId?: string
   duration: number
   disabled?: boolean
 }

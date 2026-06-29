@@ -19,9 +19,11 @@ export function AppLivePreview({ color, children, className }: AppLivePreviewPro
   return (
     <div className={cn('flex w-full flex-col items-center', className)}>
       <div className="relative isolate w-full max-w-3xl">
+        {/* Kept inside the device bounds (no negative offsets / smaller blur) so a
+            parent overflow-hidden scroll container doesn't clip it. */}
         <div
           aria-hidden
-          className="absolute inset-x-10 -bottom-4 top-8 -z-10 rounded-[3rem] opacity-40 blur-3xl"
+          className="absolute inset-x-16 bottom-6 top-16 -z-10 rounded-[3rem] opacity-30 blur-2xl"
           style={{ backgroundColor: resolveAppColor(color) }}
         />
 

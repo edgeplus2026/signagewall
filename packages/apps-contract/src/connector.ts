@@ -29,7 +29,13 @@ export interface AppConnector<Config = Record<string, unknown>, Payload = unknow
 }
 
 export interface ConnectorContext {
-  organizationId: string
+  /**
+   * Owning organization, when the fetch is tied to one. Omitted by the global
+   * scheduler/webhook runtime (the connector cache is shared across orgs and a
+   * coarse `cacheKey` carries no org), so connectors must not rely on it for
+   * `server` apps; `connected` apps get tenant identity from {@link connection}.
+   */
+  organizationId?: string
   /** Resolved connection (decrypted tokens) for `connected` apps. */
   connection?: ResolvedConnection
   /** Structured logger from the host. */
@@ -48,6 +54,14 @@ export interface ConnectorResult<Payload> {
   playerPayload: Payload
   /** Optional private data persisted server-side only (never sent to players). */
   secrets?: Record<string, unknown>
+  /**
+   * Optional stable content signature (e.g. an ETag). When present, the host
+   * uses it — instead of comparing the whole payload — to decide whether the
+   * data changed and a fan-out is needed. Connectors whose payload includes
+   * volatile fields (rotating signed URLs, timestamps) should set this so they
+   * don't fan out on every refresh when the underlying content is unchanged.
+   */
+  version?: string
 }
 
 export interface ResolvedConnection {

@@ -18,6 +18,16 @@ export interface EdgeApp {
   about: string
   /** The config form spec for this app's instances. */
   configSchema: ConfigSchema
+  /** Ids of the catalog categories this app belongs to. */
+  categoryIds: string[]
+}
+
+/** A super-admin-managed catalog category for grouping/filtering apps. */
+export interface AppCategory {
+  id: string
+  name: string
+  slug: string
+  order: number
 }
 
 /** A configured instance of an installed app. */

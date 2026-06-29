@@ -86,8 +86,11 @@ export interface ContentTypeCardRenderers<TMeta> {
 }
 
 export interface ContentTypeCapabilities<TMeta> {
-  /** Whether the per-item duration input is rendered at all (media: yes). */
-  showsDurationInput: boolean
+  /**
+   * Whether the per-item duration input is rendered at all, given the resolved
+   * meta (images/apps: yes; videos have an intrinsic duration, so: no).
+   */
+  showsDurationInput: (item: ContentDraftItem, meta: TMeta | null) => boolean
   /** Whether the duration value is editable given the resolved meta (image only). */
   canEditDuration: (item: ContentDraftItem, meta: TMeta | null) => boolean
 }

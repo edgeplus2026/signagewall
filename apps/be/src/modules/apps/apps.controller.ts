@@ -20,6 +20,7 @@ import {
   ApiSuccessNullResponse,
   ApiSuccessResponse,
 } from '../../common/swagger';
+import { AppCategoriesService } from './app-categories.service';
 import { AppsService } from './apps.service';
 
 /** Organization-facing catalog browse + install. */
@@ -29,13 +30,24 @@ import { AppsService } from './apps.service';
 @Controller('apps')
 @UseGuards(OrgMembershipGuard)
 export class AppsController {
-  constructor(private readonly appsService: AppsService) {}
+  constructor(
+    private readonly appsService: AppsService,
+    private readonly categoriesService: AppCategoriesService,
+  ) {}
 
   @Get()
   @RequireOrgRole()
   @ApiSuccessResponse(Object, { isArray: true })
   list(@RequiredOrganizationId() organizationId: string) {
     return this.appsService.listCatalog(organizationId);
+  }
+
+  /** Catalog categories, for the org catalog filter (read-only). */
+  @Get('categories')
+  @RequireOrgRole()
+  @ApiSuccessResponse(Object, { isArray: true })
+  listCategories() {
+    return this.categoriesService.list();
   }
 
   @Get(':id')

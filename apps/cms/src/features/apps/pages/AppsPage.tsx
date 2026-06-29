@@ -64,8 +64,18 @@ export default function AppsPage() {
         className="flex flex-col gap-7"
       >
         <TabsList variant="line" className="w-fit shrink-0">
-          <TabsTrigger value="store">{t('apps.tabs.store')}</TabsTrigger>
-          <TabsTrigger value="my-apps">{t('apps.tabs.myApps')}</TabsTrigger>
+          <TabsTrigger value="store">
+            {t('apps.tabs.store')}
+            <span className="bg-quaternary text-secondary ml-2 inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium">
+              {apps.length}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="my-apps">
+            {t('apps.tabs.myApps')}
+            <span className="bg-quaternary text-secondary ml-2 inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium">
+              {myApps.length}
+            </span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="store" className="mt-0">

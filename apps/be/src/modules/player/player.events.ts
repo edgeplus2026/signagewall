@@ -35,6 +35,13 @@ export const PlayerEvents = {
   DevicePresenceChanged: 'player.device.presence-changed',
   /** A device setting changed (e.g. volume) — push live to the player. */
   DeviceCommand: 'player.device.command',
+  /**
+   * A `server` app's connector data changed for a cache key — every screen whose
+   * instances resolve to that key must re-resolve so the new payload reaches the
+   * player. The cache is global (shared across orgs), so this event carries no
+   * organizationId; the gateway resolves the affected screens across all orgs.
+   */
+  AppDataChanged: 'player.app.data-changed',
 } as const;
 
 export interface ScreenContentChangedEvent {
@@ -99,4 +106,13 @@ export interface DeviceCommandEvent {
   deviceId: string;
   screenId: string;
   command: PlayerCommand;
+}
+
+/**
+ * A connector cache key's payload changed. No `organizationId`: the cache is
+ * global, so the gateway resolves every affected screen across all orgs.
+ */
+export interface AppDataChangedEvent {
+  cacheKey: string;
+  slug: string;
 }

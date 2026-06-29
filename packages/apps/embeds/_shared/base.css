@@ -1,0 +1,66 @@
+/* Shared reset for embed apps. Each app fills the iframe (which the player sizes
+   to the slot) with a black backdrop, matching the player's media background. */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  /* Anchor the absolutely-positioned freshness footer (.data-meta). */
+  position: relative;
+}
+
+/* Small freshness footer for server apps (weather/fx/rss): shows data age and,
+   when stale, that we're serving last-known-good data after a failed fetch. */
+.data-meta {
+  position: absolute;
+  right: 0.8em;
+  bottom: 0.6em;
+  font-size: 1.5vh;
+  opacity: 0.5;
+  letter-spacing: 0.02em;
+}
+
+.data-meta.is-stale {
+  opacity: 0.95;
+  /* Amber: the data is last-known-good while the upstream is currently failing. */
+  color: #fbbf24;
+}
+
+/* Full-bleed iframe used by `web`/`youtube`. */
+.fill-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* Centered single-line/blocky content used by clock/text/qr/countdown. */
+.center {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.4em;
+}
