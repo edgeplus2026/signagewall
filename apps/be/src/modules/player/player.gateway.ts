@@ -21,6 +21,7 @@ import type { ReportedProfile } from './player.service';
 import { PlayerEvents, PlayerSocketEvents } from './player.events';
 import type {
   AppDataChangedEvent,
+  AppInstanceChangedEvent,
   DeviceCommandEvent,
   DevicePairedEvent,
   DeviceRevokedEvent,
@@ -409,32 +410,59 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     for (const [organizationId, instanceIds] of byOrg) {
-      const [directScreens, playlistIds] = await Promise.all([
-        this.screensRepository.findContainingAppInstanceIds(
-          organizationId,
-          instanceIds,
-        ),
-        this.playlistsRepository.findIdsContainingAppInstances(
-          organizationId,
-          instanceIds,
-        ),
-      ]);
+      const screenIds = await this.resolveScreenIdsForInstances(
+        organizationId,
+        instanceIds,
+      );
+      await this.pushManyScreens(organizationId, screenIds);
+    }
+  }
 
-      const playlistScreens =
-        playlistIds.length > 0
-          ? await this.screensRepository.findContainingPlaylistIds(
-              organizationId,
-              playlistIds,
-            )
-          : [];
+  @OnEvent(PlayerEvents.AppInstanceChanged)
+  async onAppInstanceChanged(event: AppInstanceChangedEvent): Promise<void> {
+    // Re-push every screen in this org that uses the edited instance (directly
+    // or via a playlist), so the new config reaches players live.
+    const screenIds = await this.resolveScreenIdsForInstances(
+      event.organizationId,
+      [event.instanceId],
+    );
+    await this.pushManyScreens(event.organizationId, screenIds);
+  }
 
-      const screenIds = new Set<string>([
+  /**
+   * Resolve the distinct screen ids in `organizationId` that contain any of
+   * `instanceIds`, directly or through a playlist. Shared by the app-data and
+   * app-instance fan-out handlers.
+   */
+  private async resolveScreenIdsForInstances(
+    organizationId: string,
+    instanceIds: string[],
+  ): Promise<string[]> {
+    const [directScreens, playlistIds] = await Promise.all([
+      this.screensRepository.findContainingAppInstanceIds(
+        organizationId,
+        instanceIds,
+      ),
+      this.playlistsRepository.findIdsContainingAppInstances(
+        organizationId,
+        instanceIds,
+      ),
+    ]);
+
+    const playlistScreens =
+      playlistIds.length > 0
+        ? await this.screensRepository.findContainingPlaylistIds(
+            organizationId,
+            playlistIds,
+          )
+        : [];
+
+    return [
+      ...new Set<string>([
         ...directScreens.map((screen) => screen._id.toString()),
         ...playlistScreens.map((screen) => screen._id.toString()),
-      ]);
-
-      await this.pushManyScreens(organizationId, [...screenIds]);
-    }
+      ]),
+    ];
   }
 
   @OnEvent(PlayerEvents.ScreensDeleted)

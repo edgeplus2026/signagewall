@@ -48,6 +48,14 @@ export interface Field {
   key: string
   type: FieldType
   label: string
+  /**
+   * Optional form section this field belongs to. Fields are grouped by section
+   * in first-appearance order. The first group renders untitled and always open
+   * (it holds the primary fields + the instance name); every later named section
+   * renders with its title as a collapsible block, collapsed by default. Purely
+   * presentational — the backend ignores it when validating config.
+   */
+  section?: string
   /** Helper / legend text shown under the field. */
   help?: string
   required?: boolean

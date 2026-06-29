@@ -1455,6 +1455,11 @@
         "save": "Save changes",
         "saved": "Changes saved",
         "duplicated": "Instance duplicated",
+        "name": {
+          "label": "Name",
+          "placeholder": "Instance name",
+          "required": "Name is required"
+        },
         "headline": {
           "label": "Headline",
           "placeholder": "Enter a headline",

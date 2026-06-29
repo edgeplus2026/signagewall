@@ -1437,6 +1437,11 @@
         "save": "Sačuvaj izmene",
         "saved": "Izmene sačuvane",
         "duplicated": "Instanca duplirana",
+        "name": {
+          "label": "Naziv",
+          "placeholder": "Naziv instance",
+          "required": "Naziv je obavezan"
+        },
         "headline": {
           "label": "Naslov",
           "placeholder": "Unesite naslov",

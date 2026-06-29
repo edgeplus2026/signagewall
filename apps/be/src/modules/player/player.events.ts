@@ -42,6 +42,12 @@ export const PlayerEvents = {
    * organizationId; the gateway resolves the affected screens across all orgs.
    */
   AppDataChanged: 'player.app.data-changed',
+  /**
+   * An app instance's config was edited (CMS) — every screen using that instance
+   * (directly or via a playlist) must re-resolve so the new config reaches the
+   * player live, without a manual reload.
+   */
+  AppInstanceChanged: 'player.app.instance-changed',
 } as const;
 
 export interface ScreenContentChangedEvent {
@@ -115,4 +121,14 @@ export interface DeviceCommandEvent {
 export interface AppDataChangedEvent {
   cacheKey: string;
   slug: string;
+}
+
+/**
+ * An app instance's config changed (operator edit). Org-scoped: the gateway
+ * re-pushes the screens in this org that use the instance directly or via a
+ * playlist.
+ */
+export interface AppInstanceChangedEvent {
+  organizationId: string;
+  instanceId: string;
 }

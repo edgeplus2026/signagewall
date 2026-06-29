@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { AppIcon } from '@/features/apps/components/AppIcon'
 import { SchemaForm } from '@/features/apps/config-form'
 import type { AppInstanceConfig, EdgeApp } from '@/features/apps/types/app.types'
@@ -6,6 +8,9 @@ interface AppInstanceConfigSidebarProps {
   app: EdgeApp
   /** Used as the SchemaForm reset key so switching instances reinitialises it. */
   instanceId: string
+  /** Instance name (editable as the first form field). */
+  name: string
+  onNameChange: (name: string) => void
   config: AppInstanceConfig
   onConfigChange: (config: AppInstanceConfig) => void
 }
@@ -13,9 +18,13 @@ interface AppInstanceConfigSidebarProps {
 export function AppInstanceConfigSidebar({
   app,
   instanceId,
+  name,
+  onNameChange,
   config,
   onConfigChange,
 }: AppInstanceConfigSidebarProps) {
+  const { t } = useTranslation()
+
   return (
     <aside className="flex w-full flex-col gap-6 lg:w-80 lg:shrink-0">
       {/* App header */}
@@ -27,12 +36,19 @@ export function AppInstanceConfigSidebar({
         </div>
       </div>
 
-      {/* Config fields — rendered from the app's schema. */}
+      {/* Name + config fields — rendered from the app's schema. */}
       <SchemaForm
         key={instanceId}
         schema={app.configSchema}
         value={config}
         onChange={onConfigChange}
+        nameField={{
+          value: name,
+          label: t('apps.instances.config.name.label'),
+          placeholder: t('apps.instances.config.name.placeholder'),
+          requiredMessage: t('apps.instances.config.name.required'),
+          onChange: onNameChange,
+        }}
         appSlug={app.slug}
       />
     </aside>

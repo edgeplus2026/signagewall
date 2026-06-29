@@ -30,6 +30,7 @@ import {
   useApp,
   useAppInstance,
   useDuplicateInstance,
+  useRenameInstance,
   useUpdateInstanceConfig,
 } from '@/features/apps/hooks/useApps'
 import type { AppInstanceConfig } from '@/features/apps/types/app.types'
@@ -58,19 +59,22 @@ export default function AppInstanceConfigPage() {
   const { data: instance, isLoading: instanceLoading } = useAppInstance(instanceId)
 
   const updateInstanceConfig = useUpdateInstanceConfig()
+  const renameInstance = useRenameInstance()
   const duplicateInstance = useDuplicateInstance()
 
   const [draft, setDraft] = useState<AppInstanceConfig | null>(
     instance ? { ...instance.config } : null,
   )
+  const [nameDraft, setNameDraft] = useState<string | null>(instance?.name ?? null)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  // Reset the local draft when navigating between instances — adjusting state
+  // Reset the local drafts when navigating between instances — adjusting state
   // during render (React's recommended alternative to an effect).
   const [lastInstanceId, setLastInstanceId] = useState(instance?.id ?? null)
   if ((instance?.id ?? null) !== lastInstanceId) {
     setLastInstanceId(instance?.id ?? null)
     setDraft(instance ? { ...instance.config } : null)
+    setNameDraft(instance?.name ?? null)
   }
 
   if (appLoading || instanceLoading) {
@@ -120,21 +124,32 @@ export default function AppInstanceConfigPage() {
   }
 
   const activeDraft = draft ?? instance.config
-  const isDirty = !configEquals(activeDraft, instance.config)
-  const isValid = buildConfigZod(app.configSchema).safeParse(activeDraft).success
+  const activeName = nameDraft ?? instance.name
+  const trimmedName = activeName.trim()
 
-  const handleSave = () => {
-    updateInstanceConfig.mutate(
-      { id: instance.id, config: activeDraft },
-      {
-        onSuccess: () => {
-          toast.success(t('apps.instances.config.saved'))
-        },
-        onError: (error) => {
-          toast.error(getApiErrorMessage(error, t('apps.instances.config.saveError')))
-        },
-      },
-    )
+  const isConfigDirty = !configEquals(activeDraft, instance.config)
+  const isNameDirty = trimmedName !== instance.name
+  const isDirty = isConfigDirty || isNameDirty
+
+  const isConfigValid = buildConfigZod(app.configSchema).safeParse(activeDraft).success
+  const isValid = isConfigValid && trimmedName.length > 0
+
+  const isSaving = updateInstanceConfig.isPending || renameInstance.isPending
+
+  const handleSave = async () => {
+    try {
+      // Persist whichever drafts changed. Rename is CMS-only; the config update
+      // is what triggers the live player push (see AppInstanceChanged event).
+      if (isNameDirty) {
+        await renameInstance.mutateAsync({ id: instance.id, name: trimmedName })
+      }
+      if (isConfigDirty) {
+        await updateInstanceConfig.mutateAsync({ id: instance.id, config: activeDraft })
+      }
+      toast.success(t('apps.instances.config.saved'))
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t('apps.instances.config.saveError')))
+    }
   }
 
   const handleDuplicate = () => {
@@ -155,6 +170,8 @@ export default function AppInstanceConfigPage() {
           <AppInstanceConfigSidebar
             app={app}
             instanceId={instance.id}
+            name={activeName}
+            onNameChange={setNameDraft}
             config={activeDraft}
             onConfigChange={setDraft}
           />
@@ -170,8 +187,10 @@ export default function AppInstanceConfigPage() {
         <div className="border-secondary flex shrink-0 items-center justify-end gap-2 border-t pt-3">
           <Button
             type="button"
-            disabled={!isDirty || !isValid || updateInstanceConfig.isPending}
-            onClick={handleSave}
+            disabled={!isDirty || !isValid || isSaving}
+            onClick={() => {
+              void handleSave()
+            }}
           >
             {t('apps.instances.config.save')}
           </Button>

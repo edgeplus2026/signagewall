@@ -1,9 +1,14 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { buildConfigZod, buildDefaultConfig } from '@edge/apps-contract';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ConnectionsService } from '../connections/connections.service';
 import { GraphWebhookService } from '../connections/webhooks/graph-webhook.service';
+import {
+  AppInstanceChangedEvent,
+  PlayerEvents,
+} from '../player/player.events';
 import { cacheKeyForInstance } from './connectors/cache-key.util';
 import { getConnector } from './connectors/connector-registry';
 import { AppInstancesRepository } from './app-instances.repository';
@@ -26,6 +31,7 @@ export class AppInstancesService {
     private readonly graphWebhookService: GraphWebhookService,
     @Inject(forwardRef(() => ConnectionsService))
     private readonly connectionsService: ConnectionsService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async list(
@@ -125,6 +131,14 @@ export class AppInstancesService {
     );
 
     void this.ensureWebhookSubscription(organizationId, updated!);
+
+    // Push the new config to every player showing this instance, live. The
+    // gateway resolves the affected screens (direct + via playlist) and re-sends
+    // their snapshot — without this, edits only appear after a manual reload.
+    this.eventEmitter.emit(PlayerEvents.AppInstanceChanged, {
+      organizationId,
+      instanceId: id,
+    } satisfies AppInstanceChangedEvent);
 
     return toAppInstanceResponse(updated!);
   }
