@@ -1,8 +1,8 @@
 # TODO — MVP task planovi
 
 Planovi za zaokruživanje signage proizvoda. Fajlovi su **poređani po redosledu
-implementacije (zavisnost-svesno)** — idi 01 → 09. Svi su prioritet pre MVP-a; broj
-fajla = redosled, ne "važnost".
+implementacije (zavisnost-svesno)** — idi 02 → 09 (01 je **isporučen**, videti
+"Završeno" niže). Svi su prioritet pre MVP-a; broj fajla = redosled, ne "važnost".
 
 Skala: ~5 playera/user × ~50 usera → **~500 online playera** (bez Redisa / horizontalnog
 skaliranja — videti event seam u `player.events.ts` za daleku budućnost).
@@ -37,11 +37,23 @@ Ovi planovi se predaju agentu/developeru zajedno sa ovim README-om. Pre koda:
 
 ---
 
+## Završeno (shipped)
+
+- **01 — Apps (iframe host + connector runtime + kategorije + MVP app set).** Player je
+  sad generički iframe host (nula per-app logike); connector runtime sa CRON dedup fan-out-om
+  (`weather`/`rss`/`fx`), `AppDataCache` (global, coarse cacheKey), kategorije + super-admin CRUD,
+  katalog filter. MVP app set radi: clock, text (sa color/bold), qr, countdown, web, youtube,
+  weather, rss, fx. Server appovi nose `dataMeta` (fetchedAt + stale "as of …" indikator),
+  offline iz poslednjeg keša, error-retry backoff. SSRF-hardened fetch za RSS.
+  - ⚠️ **Connected/OAuth (gcal, onedrive, slides + `connections` modul, Graph webhooks) je
+    KODIRAN ali van MVP-a (bila v1.1):** nije validiran protiv živih Google/Microsoft providera.
+    Drži ga **feature-flag-ovan/skriven** (degradira čisto kad `ENCRYPTION_KEY` nije setovan)
+    dok se ne odradi live OAuth round-trip end-to-end. NE računati ga u MVP launch surface.
+
 ## Redosled implementacije
 
 | # | Task | Zavisi od | Otključava |
 |---|---|---|---|
-| [01](./01-apps-architecture-rework.md) | **Apps** — iframe host + connector runtime + kategorije + **MVP app set** | — (keystone) | Sve appove; ticker-zone (06) |
 | [02](./02-cms-notifications.md) | CMS notifikacije (super-admin → korisnici) | — | In-app kanal za 03 |
 | [03](./03-device-offline-alerting.md) | Device-offline alerting operateru | 02 (in-app inbox) | — |
 | [04](./04-activity-log.md) | Activity log (org audit) — Mongoose plugin + CLS | — (uvodi CLS) | GDPR audit (09) |
@@ -51,7 +63,8 @@ Ovi planovi se predaju agentu/developeru zajedno sa ovim README-om. Pre koda:
 | [08](./08-native-shell-auto-update-tauri.md) | Native-shell auto-update (Tauri) | — (nezavisno) | OTA update fleete |
 | [09](./09-legal-tos-privacy-gdpr.md) | Legal (ToS/Privacy) + GDPR brisanje | **04** (audit) | Javni launch |
 
-**Logika redosleda:** 01 je keystone (najveći value, nezavisno). 02→03 (alerting reuse-uje
+**Logika redosleda:** 01 (Apps) je bio keystone i sad je isporučen — otključao je sve appove
+i ticker-zonu za 06. 02→03 (alerting reuse-uje
 notifikacioni inbox). 04 uvodi CLS (cross-cutting, treba i za 09). 05 postavlja player
 `Intl`-evaluator + standby scheduler obrazac (offline-safe, stojeće pravilo). 06 širi content
 model (zone) → proof-of-play (07) postaje zone-aware. 08 (Tauri) je nezavisno — uradi kad se
