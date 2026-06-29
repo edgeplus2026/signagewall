@@ -1,11 +1,32 @@
+import { cpSync, rmSync } from 'node:fs'
 import { readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 
 const dir = path.dirname(fileURLToPath(import.meta.url))
 const embedsRoot = path.resolve(dir, 'embeds')
+
+/** Primary build output (served same-origin by the player under `/apps`). */
+const playerOutDir = path.resolve(dir, '../../apps/player/public/apps')
+/** Mirror copy so the CMS serves the identical bundles for its live preview. */
+const cmsOutDir = path.resolve(dir, '../../apps/cms/public/apps')
+
+/**
+ * After the build, copy the bundles into the CMS public dir too, so the CMS
+ * live-preview iframe loads the exact same artifacts same-origin under `/apps`
+ * (no separate build, no drift). Both dirs are gitignored build output.
+ */
+function mirrorToCms(): Plugin {
+  return {
+    name: 'mirror-embeds-to-cms',
+    closeBundle() {
+      rmSync(cmsOutDir, { recursive: true, force: true })
+      cpSync(playerOutDir, cmsOutDir, { recursive: true })
+    },
+  }
+}
 
 /**
  * Discover every embed app: a folder under `embeds/` (excluding `_shared`) that
@@ -37,8 +58,9 @@ function discoverInputs(): Record<string, string> {
 export default defineConfig({
   root: embedsRoot,
   base: './',
+  plugins: [mirrorToCms()],
   build: {
-    outDir: path.resolve(dir, '../../apps/player/public/apps'),
+    outDir: playerOutDir,
     emptyOutDir: true,
     rollupOptions: {
       input: discoverInputs(),

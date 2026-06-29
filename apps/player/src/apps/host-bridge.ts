@@ -1,3 +1,8 @@
+import {
+  APP_CONFIG_TYPE,
+  isAppReadyMessage,
+} from '@edge/apps-contract'
+
 import type { AppRenderable } from '../types'
 
 /**
@@ -6,8 +11,8 @@ import type { AppRenderable } from '../types'
  * Every app — first or third party — is a self-contained web bundle served at
  * `${appsBase}/<slug>/index.html`. The player has no per-app code: it mounts a
  * sandboxed iframe, waits for the bundle to announce itself, then hands it the
- * instance config + connector payload over `postMessage`. This mirrors the
- * preview-token handshake in `../sync/preview-handshake.ts`:
+ * instance config + connector payload over `postMessage`. The message protocol
+ * is the shared one in `@edge/apps-contract` (`host-protocol.ts`):
  *
  *   1. app → host:  `{ type: 'app-ready' }` once the bundle is listening.
  *   2. host → app:  `{ type: 'app-config', config, data, meta }` addressed to
@@ -17,21 +22,6 @@ import type { AppRenderable } from '../types'
  * timeout or iframe error, so the engine can gate the on-screen swap on the app
  * actually being live (same readiness contract as image/video prepare).
  */
-
-const READY_TYPE = 'app-ready'
-const CONFIG_TYPE = 'app-config'
-
-interface AppReadyMessage {
-  type: typeof READY_TYPE
-}
-
-function isReadyMessage(data: unknown): data is AppReadyMessage {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    (data as { type?: unknown }).type === READY_TYPE
-  )
-}
 
 export interface AppHostHandle {
   /** The mounted iframe (already appended to the host element). */
@@ -122,7 +112,7 @@ export function mountAppHost(
       if (event.source !== iframe.contentWindow) {
         return
       }
-      if (!isReadyMessage(event.data)) {
+      if (!isAppReadyMessage(event.data)) {
         return
       }
       settled = true
@@ -130,7 +120,7 @@ export function mountAppHost(
       // Hand over config + payload, addressed to the app's origin only.
       iframe.contentWindow?.postMessage(
         {
-          type: CONFIG_TYPE,
+          type: APP_CONFIG_TYPE,
           config: item.config,
           data: item.data ?? null,
           meta: item.dataMeta ?? null,

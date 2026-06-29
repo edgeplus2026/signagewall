@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -21,7 +22,9 @@ import {
   ApiSuccessResponse,
 } from '../../common/swagger';
 import { AppCategoriesService } from './app-categories.service';
+import { AppDataService } from './app-data.service';
 import { AppsService } from './apps.service';
+import { PreviewAppDataDto } from './dto/preview-app-data.dto';
 
 /** Organization-facing catalog browse + install. */
 @ApiTags('apps')
@@ -33,6 +36,7 @@ export class AppsController {
   constructor(
     private readonly appsService: AppsService,
     private readonly categoriesService: AppCategoriesService,
+    private readonly appDataService: AppDataService,
   ) {}
 
   @Get()
@@ -80,5 +84,18 @@ export class AppsController {
   ): Promise<null> {
     await this.appsService.uninstall(organizationId, id);
     return null;
+  }
+
+  /**
+   * Resolve the connector payload for an app's live preview, given a draft
+   * config. `static` apps return `{ data: null }`. Org-scoped (the guard), but
+   * the underlying cache is global — previewing a key real screens already use
+   * is an instant hit. `slug` (not id) so the preview works against the manifest.
+   */
+  @Post(':slug/preview-data')
+  @RequireOrgRole()
+  @ApiSuccessResponse(Object)
+  previewData(@Param('slug') slug: string, @Body() dto: PreviewAppDataDto) {
+    return this.appDataService.getPreviewData(slug, dto.config);
   }
 }

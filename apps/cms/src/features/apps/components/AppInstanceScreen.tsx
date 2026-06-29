@@ -1,5 +1,5 @@
-import { toYouTubeEmbedUrl } from '@edge/apps'
-
+import { AppPreviewFrame } from '@/features/apps/components/AppPreviewFrame'
+import { useAppPreviewData } from '@/features/apps/hooks/useAppPreviewData'
 import type { AppInstanceConfig, EdgeApp } from '@/features/apps/types/app.types'
 
 interface AppInstanceScreenProps {
@@ -7,42 +7,13 @@ interface AppInstanceScreenProps {
   config: AppInstanceConfig
 }
 
-function readString(config: AppInstanceConfig, key: string): string {
-  const value = config[key]
-  return typeof value === 'string' ? value.trim() : ''
-}
-
 /**
- * The content shown inside the live-preview TV screen. App-specific by slug —
- * the same logic the player will render later. For now only YouTube exists.
+ * The content shown inside the live-preview TV screen. Generic for every app:
+ * mounts the same embed bundle the player runs and drives it with the live draft
+ * config (plus, for `server` apps, the connector payload from the preview-data
+ * endpoint). No per-app code — adding an app needs no change here.
  */
 export function AppInstanceScreen({ app, config }: AppInstanceScreenProps) {
-  if (app.slug === 'youtube') {
-    const embedUrl = toYouTubeEmbedUrl(readString(config, 'url'))
-    if (!embedUrl) {
-      return (
-        <div className="@container flex size-full items-center justify-center bg-neutral-950 text-center">
-          <p className="px-[8%] text-[3cqw] text-white/55">
-            Empty
-          </p>
-        </div>
-      )
-    }
-    return (
-      <iframe
-        src={embedUrl}
-        title={app.name}
-        className="size-full border-0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
-    )
-  }
-
-  // Generic fallback for apps without a dedicated preview yet.
-  return (
-    <div className="@container flex size-full items-center justify-center bg-neutral-900">
-      <span className="text-[3cqw] font-medium text-white/70">{app.name}</span>
-    </div>
-  )
+  const { data, meta } = useAppPreviewData(app, config)
+  return <AppPreviewFrame slug={app.slug} config={config} data={data} meta={meta} />
 }

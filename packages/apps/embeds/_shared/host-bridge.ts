@@ -1,17 +1,23 @@
 /**
- * Iframe (app) side of the player ↔ app handshake. The mirror of the player's
- * host bridge (`apps/player/src/apps/host-bridge.ts`), which itself follows the
- * preview-token handshake in `apps/player/src/sync/preview-handshake.ts`.
+ * Iframe (app) side of the player ↔ app handshake. The app-side mirror of the
+ * hosts (the player's `apps/player/src/apps/host-bridge.ts` and the CMS preview
+ * host), which both implement the shared wire protocol in
+ * `@edge/apps-contract` (`host-protocol.ts`).
  *
  * Sequence:
  *   1. app → parent:  `{ type: 'app-ready' }` once we are listening, so the host
  *      never posts the config before we can receive it. The ready ping carries
  *      no data, so a wildcard target origin is safe.
- *   2. parent → app:  `{ type: 'app-config', config, data }` addressed to our
- *      origin. We render on the first such message from the embedding parent.
+ *   2. parent → app:  `{ type: 'app-config', config, data, meta }` addressed to
+ *      our origin. We render on each such message from the embedding parent.
  *
  * The app bundle is loaded same-origin under `/apps/<slug>/`, so the host and
  * the app share an origin; we still pin the message source to the parent frame.
+ *
+ * NOTE: the constants below are the wire format and MUST match
+ * `@edge/apps-contract` (`APP_READY_TYPE` / `APP_CONFIG_TYPE`). They are kept
+ * inline (not imported) so the embed bundles stay tiny and dependency-free —
+ * importing the contract barrel would pull `zod` into every app bundle.
  */
 
 const READY_MESSAGE = { type: 'app-ready' } as const

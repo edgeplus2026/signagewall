@@ -8,6 +8,7 @@ build/
 
 # generated app embed bundles (built by @edge/apps `build:embeds`)
 apps/player/public/apps/
+apps/cms/public/apps/
 
 # env / secrets
 .env

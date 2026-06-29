@@ -60,8 +60,8 @@ function buildService(options: {
     findBySlugs: jest.fn().mockResolvedValue(options.instances),
   };
   const upsertPayload = jest.fn(
-    (data: { cacheKey: string; payload: unknown }) =>
-      Promise.resolve({ cacheKey: data.cacheKey, payload: data.payload }),
+    (data: { cacheKey: string; payload: unknown; fetchedAt?: Date }) =>
+      Promise.resolve({ ...data }),
   );
   const cacheRepository = {
     findByCacheKeys: jest.fn((keys: string[]) =>
@@ -101,6 +101,78 @@ const NOW = new Date('2024-03-01T12:00:00Z');
 
 afterEach(() => {
   jest.restoreAllMocks();
+});
+
+describe('AppDataService.getPreviewData', () => {
+  it('returns null data for a static app (no connector)', async () => {
+    const { service } = buildService({ instances: [] });
+    // Static apps have no connector — override the spy for this case.
+    jest.spyOn(registry, 'getConnector').mockReturnValue(undefined);
+
+    await expect(service.getPreviewData('clock', {})).resolves.toEqual({
+      data: null,
+      meta: null,
+    });
+  });
+
+  it('serves the shared cache when it is fresh, without fetching', async () => {
+    const { service, fetchData } = buildService({
+      instances: [],
+      payload: { temp: 21 },
+      cache: {
+        // getPreviewData uses real wall-clock freshness (no injected clock), so
+        // the entry must be recent relative to Date.now(), not the fixed NOW.
+        'weather:belgrade': {
+          payload: { temp: 21 },
+          fetchedAt: new Date(Date.now() - 5 * 60_000), // 5 min ago, < 900s
+        },
+      },
+    });
+
+    const result = await service.getPreviewData('weather', {
+      location: 'belgrade',
+    });
+
+    expect(fetchData).not.toHaveBeenCalled();
+    expect(result.data).toEqual({ temp: 21 });
+    expect(result.meta?.stale).toBe(false);
+  });
+
+  it('fetches once when nothing is cached', async () => {
+    const { service, fetchData } = buildService({
+      instances: [],
+      payload: { temp: 30 },
+    });
+
+    const result = await service.getPreviewData('weather', {
+      location: 'belgrade',
+    });
+
+    expect(fetchData).toHaveBeenCalledTimes(1);
+    expect(result.data).toEqual({ temp: 30 });
+    expect(result.meta?.stale).toBe(false);
+  });
+
+  it('falls back to the last-known payload (stale) when the fetch fails', async () => {
+    const { service, fetchData } = buildService({
+      instances: [],
+      cache: {
+        // Stale (older than cadence) so it tries to refresh, then fails.
+        'weather:belgrade': {
+          payload: { temp: 9 },
+          fetchedAt: new Date(NOW.getTime() - 60 * 60_000),
+        },
+      },
+    });
+    fetchData.mockRejectedValueOnce(new Error('upstream 500'));
+
+    const result = await service.getPreviewData('weather', {
+      location: 'belgrade',
+    });
+
+    expect(result.data).toEqual({ temp: 9 });
+    expect(result.meta?.stale).toBe(true);
+  });
 });
 
 describe('AppDataService.refreshDue', () => {

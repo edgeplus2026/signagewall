@@ -1,9 +1,15 @@
-import type { ConfigSchema } from '@edge/apps-contract'
+import type { ConfigSchema, DataSource } from '@edge/apps-contract'
 
 export interface EdgeApp {
   id: string
   /** Stable identifier; the player registry key. */
   slug: string
+  /**
+   * Where the app's data comes from. `static` renders from config alone;
+   * `server`/`connected` carry a connector payload — the live preview fetches it
+   * via the preview-data endpoint.
+   */
+  dataSource: DataSource
   name: string
   description: string
   /** Short tagline shown on the card and next to the title in the drawer. */
@@ -50,7 +56,6 @@ export type AppInstanceConfig = Record<string, unknown>
 /** Full catalog shape for super-admin management (adds the public toggle). */
 export interface AdminApp extends EdgeApp {
   runtimeKind: 'native' | 'embed'
-  dataSource: 'static' | 'server' | 'connected'
   version: number
   isPublic: boolean
   createdAt: string

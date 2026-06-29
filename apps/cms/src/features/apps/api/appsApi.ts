@@ -1,3 +1,5 @@
+import type { AppDataMeta } from '@edge/apps-contract'
+
 import type {
   AdminApp,
   AppInstance,
@@ -6,6 +8,12 @@ import type {
 } from '@/features/apps/types/app.types'
 import { ApiError } from '@/lib/api-error'
 import { api } from '@/lib/axios'
+
+/** Live-preview connector payload + freshness for a `server` app. */
+export interface AppPreviewDataResponse {
+  data: unknown
+  meta: AppDataMeta | null
+}
 
 const APPS_BASE = '/apps'
 const INSTANCES_BASE = '/app-instances'
@@ -64,6 +72,21 @@ export const appsApi = {
 
   uninstall: async (id: string): Promise<void> => {
     await api.delete(`${APPS_BASE}/${id}/install`)
+  },
+
+  /**
+   * Resolve the connector payload for a `server` app's live preview, for the
+   * given draft config. Returns `{ data: null, meta: null }` for `static` apps.
+   */
+  previewAppData: async (
+    slug: string,
+    config: AppInstanceConfig,
+  ): Promise<AppPreviewDataResponse> => {
+    const { data } = await api.post<AppPreviewDataResponse>(
+      `${APPS_BASE}/${encodeURIComponent(slug)}/preview-data`,
+      { config },
+    )
+    return data
   },
 
   // ----- Instances -----

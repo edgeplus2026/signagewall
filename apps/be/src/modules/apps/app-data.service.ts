@@ -1,7 +1,11 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { APP_MANIFESTS } from '@edge/apps';
-import type { ConnectorLogger, ResolvedConnection } from '@edge/apps-contract';
+import type {
+  AppDataMeta,
+  ConnectorLogger,
+  ResolvedConnection,
+} from '@edge/apps-contract';
 
 import { ConnectionsService } from '../connections/connections.service';
 import { AppDataChangedEvent, PlayerEvents } from '../player/player.events';
@@ -9,6 +13,7 @@ import { AppDataCacheRepository } from './app-data-cache.repository';
 import { AppInstancesRepository } from './app-instances.repository';
 import { cacheKeyForInstance } from './connectors/cache-key.util';
 import { connectorSlugs, getConnector } from './connectors/connector-registry';
+import { AppDataCacheDocument } from './schemas/app-data-cache.schema';
 
 /** One distinct cache key the scheduler may refresh, with a sample config. */
 interface DueCandidate {
@@ -17,6 +22,12 @@ interface DueCandidate {
   /** A representative instance config (all instances of a key share output). */
   config: Record<string, unknown>;
   refreshSeconds: number;
+}
+
+/** Live-preview connector payload + freshness for a `server` app instance. */
+export interface PreviewDataResult {
+  data: unknown;
+  meta: AppDataMeta | null;
 }
 
 /** Upper bound on concurrent upstream fetches per refresh cycle. */
@@ -189,9 +200,42 @@ export class AppDataService {
     candidate: DueCandidate,
     previous: { payload: unknown; version?: string },
   ): Promise<boolean> {
+    try {
+      const { saved, version } = await this.performFetch(candidate);
+      // Prefer the connector's stable version (ETag) when it provides one — so a
+      // payload with volatile fields (rotating URLs) doesn't look "changed" every
+      // refresh. Fall back to a deep payload compare otherwise.
+      if (version !== undefined && previous.version !== undefined) {
+        return version !== previous.version;
+      }
+      return !this.payloadsEqual(previous.payload, saved.payload);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Connector fetch failed for ${candidate.cacheKey}: ${message}`,
+      );
+      await this.cacheRepository.recordError(
+        candidate.cacheKey,
+        candidate.slug,
+        candidate.refreshSeconds,
+        message,
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Fetch a candidate's connector once and upsert the result. Shared by the
+   * scheduler ({@link refreshOne}) and the live-preview path
+   * ({@link getPreviewData}); the timeout + connection resolution live here, the
+   * callers own change-detection / error handling. Throws on connector failure.
+   */
+  private async performFetch(
+    candidate: DueCandidate,
+  ): Promise<{ saved: AppDataCacheDocument; version?: string }> {
     const connector = getConnector(candidate.slug);
     if (!connector) {
-      return false;
+      throw new Error(`no connector for slug ${candidate.slug}`);
     }
 
     const controller = new AbortController();
@@ -223,28 +267,82 @@ export class AppDataService {
         ...(result.version ? { version: result.version } : {}),
       });
 
-      // Prefer the connector's stable version (ETag) when it provides one — so a
-      // payload with volatile fields (rotating URLs) doesn't look "changed" every
-      // refresh. Fall back to a deep payload compare otherwise.
-      if (result.version !== undefined && previous.version !== undefined) {
-        return result.version !== previous.version;
-      }
-      return !this.payloadsEqual(previous.payload, saved.payload);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.warn(
-        `Connector fetch failed for ${candidate.cacheKey}: ${message}`,
-      );
-      await this.cacheRepository.recordError(
-        candidate.cacheKey,
-        candidate.slug,
-        candidate.refreshSeconds,
-        message,
-      );
-      return false;
+      return result.version !== undefined
+        ? { saved, version: result.version }
+        : { saved };
     } finally {
       clearTimeout(timeout);
     }
+  }
+
+  /**
+   * Resolve the connector payload for an app instance's *live preview*, given a
+   * draft config. Returns `{ data: null, meta: null }` for `static` apps (no
+   * connector / no cache key). For `server`/`connected` apps it serves the shared
+   * cache when fresh (so previewing a city/feed real screens already use is an
+   * instant hit), else fetches once. On fetch failure it falls back to the
+   * last-known payload flagged `stale`, or null when there's nothing cached.
+   */
+  async getPreviewData(
+    slug: string,
+    config: Record<string, unknown>,
+  ): Promise<PreviewDataResult> {
+    const connector = getConnector(slug);
+    if (!connector?.cacheKey) {
+      return { data: null, meta: null };
+    }
+
+    let cacheKey: string;
+    try {
+      cacheKey = connector.cacheKey(config);
+    } catch {
+      return { data: null, meta: null };
+    }
+    if (!cacheKey) {
+      return { data: null, meta: null };
+    }
+
+    const refreshSeconds = this.refreshSecondsFor(slug) ?? 900;
+    const candidate: DueCandidate = { cacheKey, slug, config, refreshSeconds };
+
+    const [existing] = await this.cacheRepository.findByCacheKeys([cacheKey]);
+
+    // Serve the shared cache when it's a fresh success (age within cadence).
+    if (
+      existing?.payload !== undefined &&
+      !existing.lastError &&
+      existing.fetchedAt &&
+      Date.now() - existing.fetchedAt.getTime() < refreshSeconds * 1000
+    ) {
+      return this.toPreviewResult(existing.payload, existing.fetchedAt, false);
+    }
+
+    try {
+      const { saved } = await this.performFetch(candidate);
+      return this.toPreviewResult(saved.payload, saved.fetchedAt, false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Preview fetch failed for ${cacheKey}: ${message}`);
+      // Fall back to the last-known-good payload, flagged stale; null otherwise.
+      if (existing?.payload !== undefined) {
+        return this.toPreviewResult(existing.payload, existing.fetchedAt, true);
+      }
+      return { data: null, meta: null };
+    }
+  }
+
+  private toPreviewResult(
+    payload: unknown,
+    fetchedAt: Date | undefined,
+    stale: boolean,
+  ): PreviewDataResult {
+    return {
+      data: payload ?? null,
+      meta: {
+        ...(fetchedAt ? { fetchedAt: fetchedAt.toISOString() } : {}),
+        stale,
+      },
+    };
   }
 
   private payloadsEqual(a: unknown, b: unknown): boolean {
