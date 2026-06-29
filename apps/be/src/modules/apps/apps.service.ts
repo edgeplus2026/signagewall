@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { APP_MANIFESTS } from '@edge/apps';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -25,12 +25,55 @@ export interface AvailableManifestDto {
 }
 
 @Injectable()
-export class AppsService {
+export class AppsService implements OnModuleInit {
+  private readonly logger = new Logger(AppsService.name);
+
   constructor(
     private readonly appsRepository: AppsRepository,
     private readonly orgAppsRepository: OrgAppsRepository,
     private readonly instancesRepository: AppInstancesRepository,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    await this.syncManifestDefinitions();
+  }
+
+  /**
+   * On boot, keep each catalog entry's *technical* definition (config schema,
+   * version, runtime, data source) in lockstep with its code manifest, so
+   * editing a manifest — adding fields/sections, bumping the version — reaches
+   * the CMS and validation without a manual re-add. Presentation/governance
+   * (name, copy, icon, colour, visibility, categories) stays operator-owned and
+   * is never overwritten. New manifests are NOT auto-added: super-admin still
+   * curates what enters the catalog.
+   */
+  private async syncManifestDefinitions(): Promise<void> {
+    const bySlug = new Map(
+      (await this.appsRepository.findAll()).map((app) => [app.slug, app]),
+    );
+    for (const manifest of APP_MANIFESTS) {
+      const existing = bySlug.get(manifest.slug);
+      if (!existing) {
+        continue;
+      }
+      const unchanged =
+        existing.version === manifest.version &&
+        existing.runtimeKind === manifest.runtimeKind &&
+        existing.dataSource === manifest.dataSource &&
+        JSON.stringify(existing.configSchema ?? []) ===
+          JSON.stringify(manifest.configSchema);
+      if (unchanged) {
+        continue;
+      }
+      await this.appsRepository.updateById(existing._id.toString(), {
+        configSchema: manifest.configSchema,
+        version: manifest.version,
+        runtimeKind: manifest.runtimeKind,
+        dataSource: manifest.dataSource,
+      });
+      this.logger.log(`Synced manifest definition for app "${manifest.slug}"`);
+    }
+  }
 
   // ----- Organization-facing catalog (public apps) -----
 

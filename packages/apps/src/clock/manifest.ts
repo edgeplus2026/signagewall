@@ -16,14 +16,35 @@ export const clockManifest: AppManifest = {
     'Display a live clock — 12- or 24-hour, with optional seconds and date.',
   runtimeKind: 'embed',
   dataSource: 'static',
-  version: 1,
+  version: 3,
   icon: CLOCK_ICON,
   color: '#0EA5E9',
   configSchema: [
+    // First (untitled) section — the theme preset. Picking an option fills the
+    // Background/Text color fields below (overwriting any custom values).
+    {
+      key: 'theme',
+      type: 'select',
+      label: 'Theme',
+      default: 'dark',
+      options: [
+        {
+          label: 'Light',
+          value: 'light',
+          set: { backgroundColor: '#FFFFFF', textColor: '#000000' },
+        },
+        {
+          label: 'Dark',
+          value: 'dark',
+          set: { backgroundColor: '#000000', textColor: '#FFFFFF' },
+        },
+      ],
+    },
     {
       key: 'format',
       type: 'select',
       label: 'Time format',
+      section: 'Clock Settings',
       default: '24h',
       options: [
         { label: '24-hour', value: '24h' },
@@ -34,13 +55,30 @@ export const clockManifest: AppManifest = {
       key: 'showSeconds',
       type: 'switch',
       label: 'Show seconds',
+      section: 'Clock Settings',
       default: false,
     },
     {
       key: 'showDate',
       type: 'switch',
       label: 'Show date',
+      section: 'Clock Settings',
       default: true,
+    },
+    // Filled by the theme; edit for a custom colour (re-picking a theme resets).
+    {
+      key: 'backgroundColor',
+      type: 'color',
+      label: 'Background color',
+      section: 'Theme Settings',
+      default: '#000000',
+    },
+    {
+      key: 'textColor',
+      type: 'color',
+      label: 'Text color',
+      section: 'Theme Settings',
+      default: '#FFFFFF',
     },
   ],
 }

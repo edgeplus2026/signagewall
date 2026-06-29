@@ -118,7 +118,13 @@ export function SchemaForm({
         disabled={disabled}
         onChange={(next) => {
           markTouched(field.key)
-          onChange({ ...value, [field.key]: next })
+          // A select option may carry `set` presets that overwrite sibling
+          // fields (e.g. a theme that sets background/text colors).
+          const preset =
+            field.type === 'select'
+              ? field.options?.find((option) => option.value === next)?.set
+              : undefined
+          onChange({ ...value, [field.key]: next, ...preset })
         }}
         onBlur={() => {
           markTouched(field.key)

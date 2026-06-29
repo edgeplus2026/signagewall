@@ -1,12 +1,23 @@
 .clock-time {
-  font-size: 18vw;
-  font-weight: 700;
+  font-size: 12.6vw;
+  font-weight: 300;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.12em;
+}
+
+/* AM/PM marker: smaller than the time, sits on its baseline. */
+.clock-period {
+  font-size: 0.4em;
+  font-weight: 300;
+  text-transform: uppercase;
 }
 
 .clock-date {
+  /* Same colour as the clock (inherits) and light weight. */
   font-size: 4vw;
-  font-weight: 400;
-  opacity: 0.75;
+  font-weight: 300;
+  margin-top: 0.3em;
 }

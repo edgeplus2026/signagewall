@@ -21,6 +21,13 @@ export type FieldType =
 export interface FieldOption {
   label: string
   value: string
+  /**
+   * Sibling field values applied when this option is chosen (a preset). E.g. a
+   * `theme` select whose "Dark" option sets `backgroundColor`/`textColor` —
+   * picking it overwrites those fields. Purely a CMS form convenience; the
+   * backend ignores it (the resulting values are validated like any other).
+   */
+  set?: Record<string, unknown>
 }
 
 /** Show a field only when another field has a given value. */

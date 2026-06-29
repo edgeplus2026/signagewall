@@ -1,4 +1,4 @@
-import { buildConfigZod } from '@edge/apps-contract'
+import { buildConfigZod, buildDefaultConfig } from '@edge/apps-contract'
 import {
   CopyIcon,
   ListVideoIcon,
@@ -6,7 +6,7 @@ import {
   MoreHorizontalIcon,
   Trash2Icon,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -62,19 +62,30 @@ export default function AppInstanceConfigPage() {
   const renameInstance = useRenameInstance()
   const duplicateInstance = useDuplicateInstance()
 
-  const [draft, setDraft] = useState<AppInstanceConfig | null>(
-    instance ? { ...instance.config } : null,
-  )
-  const [nameDraft, setNameDraft] = useState<string | null>(instance?.name ?? null)
+  // `draft`/`nameDraft` hold only the operator's edits; they're null until the
+  // form is touched, then compared against `baseline` to track dirtiness.
+  const [draft, setDraft] = useState<AppInstanceConfig | null>(null)
+  const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  // The saved config with the schema defaults merged in, so newly added fields
+  // (e.g. after an app upgrade) render with their defaults instead of blank — and
+  // dirtiness is measured against that, not the raw stored config.
+  const baseline = useMemo<AppInstanceConfig>(
+    () =>
+      app && instance
+        ? { ...buildDefaultConfig(app.configSchema), ...instance.config }
+        : {},
+    [app, instance],
+  )
 
   // Reset the local drafts when navigating between instances — adjusting state
   // during render (React's recommended alternative to an effect).
   const [lastInstanceId, setLastInstanceId] = useState(instance?.id ?? null)
   if ((instance?.id ?? null) !== lastInstanceId) {
     setLastInstanceId(instance?.id ?? null)
-    setDraft(instance ? { ...instance.config } : null)
-    setNameDraft(instance?.name ?? null)
+    setDraft(null)
+    setNameDraft(null)
   }
 
   if (appLoading || instanceLoading) {
@@ -123,11 +134,11 @@ export default function AppInstanceConfigPage() {
     return <Navigate to={app ? `/apps/${app.id}/instances` : '/apps'} replace />
   }
 
-  const activeDraft = draft ?? instance.config
+  const activeDraft = draft ?? baseline
   const activeName = nameDraft ?? instance.name
   const trimmedName = activeName.trim()
 
-  const isConfigDirty = !configEquals(activeDraft, instance.config)
+  const isConfigDirty = !configEquals(activeDraft, baseline)
   const isNameDirty = trimmedName !== instance.name
   const isDirty = isConfigDirty || isNameDirty
 
