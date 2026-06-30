@@ -1,4 +1,10 @@
 {
   "notFound": "Obaveštenje nije pronađeno.",
-  "cannotEditPublished": "Objavljena obaveštenja ne mogu da se menjaju. Prvo ih povucite iz objave."
+  "cannotEditPublished": "Objavljena obaveštenja ne mogu da se menjaju. Prvo ih povucite iz objave.",
+  "deviceOffline": {
+    "title": "«{{name}}» je van mreže od {{since}}"
+  },
+  "deviceRecovered": {
+    "title": "«{{name}}» je ponovo na mreži (nedostupnost {{downtime}})"
+  }
 }

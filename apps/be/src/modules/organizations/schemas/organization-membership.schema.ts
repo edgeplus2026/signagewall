@@ -30,7 +30,11 @@ export class OrganizationMembership {
   @Prop({ type: Types.ObjectId, ref: 'Organization', required: true })
   organizationId: Types.ObjectId;
 
-  @Prop({ enum: OrganizationRole, default: OrganizationRole.ADMIN })
+  @Prop({
+    type: String,
+    enum: OrganizationRole,
+    default: OrganizationRole.ADMIN,
+  })
   role: OrganizationRole;
 
   createdAt: Date;

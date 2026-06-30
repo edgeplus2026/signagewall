@@ -1243,6 +1243,47 @@
       }
     }
   },
+  "deviceAlerts": {
+    "inbox": {
+      "offline": "Screen offline",
+      "recovered": "Screen back online"
+    },
+    "screen": {
+      "title": "Alerts",
+      "mute": {
+        "label": "Mute offline alerts",
+        "description": "When on, this screen never raises offline alerts.",
+        "success": "Alert setting saved.",
+        "error": "Couldn't update the alert setting."
+      }
+    },
+    "settings": {
+      "title": "Device offline alerts",
+      "description": "Notify operators when a screen stays offline.",
+      "enabled": {
+        "label": "Enable offline alerts",
+        "description": "Master switch for this organization."
+      },
+      "threshold": {
+        "label": "Offline threshold",
+        "description": "Minutes a screen must stay offline before alerting.",
+        "unit": "minutes"
+      },
+      "recipients": {
+        "label": "Recipients",
+        "description": "Which members receive the alert.",
+        "adminsOnly": "Admins only",
+        "everyone": "Admins & members"
+      },
+      "respectAvailability": {
+        "label": "Respect schedule",
+        "description": "Don't alert while a screen is in a scheduled off-window."
+      },
+      "save": "Save",
+      "success": "Alert settings saved.",
+      "error": "Couldn't save alert settings."
+    }
+  },
   "superAdmin": {
     "title": "Super Admin",
     "tabs": {

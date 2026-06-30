@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useUpdateScreen } from "@/features/screens/hooks/useScreens"
 import {
@@ -118,6 +119,57 @@ export function ScreenSettingsTab({ screen }: ScreenSettingsTabProps) {
           </div>
         </form>
       </SettingsSection>
+
+      {/* Keyed on the saved value so it remounts (re-seeding local state)
+          after a successful toggle, instead of syncing via an effect. */}
+      <ScreenAlertsSection
+        key={String(screen.alertMuted)}
+        screenId={screen.id}
+        muted={screen.alertMuted}
+      />
     </div>
+  )
+}
+
+/** Per-screen offline-alert mute toggle, committed immediately on change. */
+function ScreenAlertsSection({
+  screenId,
+  muted,
+}: {
+  screenId: string
+  muted: boolean
+}) {
+  const { t } = useTranslation()
+  const updateScreen = useUpdateScreen()
+  const [alertMuted, setAlertMuted] = useState(muted)
+
+  const onToggleMute = async (next: boolean) => {
+    setAlertMuted(next) // optimistic
+    try {
+      await updateScreen.mutateAsync({
+        id: screenId,
+        payload: { alertMuted: next },
+      })
+      toast.success(t("deviceAlerts.screen.mute.success"))
+    } catch (error) {
+      setAlertMuted(!next) // revert on failure
+      toast.error(getApiErrorMessage(error, t("deviceAlerts.screen.mute.error")))
+    }
+  }
+
+  return (
+    <SettingsSection title={t("deviceAlerts.screen.title")}>
+      <SettingsRow
+        label={t("deviceAlerts.screen.mute.label")}
+        description={t("deviceAlerts.screen.mute.description")}
+      >
+        <Switch
+          checked={alertMuted}
+          disabled={updateScreen.isPending}
+          aria-label={t("deviceAlerts.screen.mute.label")}
+          onCheckedChange={(next) => void onToggleMute(next)}
+        />
+      </SettingsRow>
+    </SettingsSection>
   )
 }

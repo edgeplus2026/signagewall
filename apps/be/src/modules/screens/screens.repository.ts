@@ -20,6 +20,7 @@ export interface UpdateScreenData {
   name?: string;
   description?: string;
   availability?: ScreenAvailability;
+  alertMuted?: boolean;
 }
 
 export interface ReplaceItemsData {

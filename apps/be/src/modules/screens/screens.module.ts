@@ -29,6 +29,6 @@ import { Screen, ScreenSchema } from './schemas/screen.schema';
     AvailabilityEvaluator,
     OrgMembershipGuard,
   ],
-  exports: [ScreensService, ScreensRepository],
+  exports: [ScreensService, ScreensRepository, AvailabilityEvaluator],
 })
 export class ScreensModule {}

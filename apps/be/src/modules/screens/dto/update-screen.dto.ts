@@ -1,5 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class UpdateScreenDto {
   @ApiPropertyOptional()
@@ -14,4 +20,9 @@ export class UpdateScreenDto {
   @IsString()
   @MaxLength(2000)
   description?: string;
+
+  @ApiPropertyOptional({ description: 'Mute offline alerts for this screen.' })
+  @IsOptional()
+  @IsBoolean()
+  alertMuted?: boolean;
 }

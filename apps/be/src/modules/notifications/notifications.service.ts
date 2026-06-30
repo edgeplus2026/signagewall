@@ -22,7 +22,10 @@ import {
   NotificationChangedEvent,
   NotificationEvents,
 } from './notifications.events';
-import { NotificationsRepository } from './notifications.repository';
+import {
+  CreateSystemNotificationData,
+  NotificationsRepository,
+} from './notifications.repository';
 import { NotificationStatus } from './schemas/notification.schema';
 
 @Injectable()
@@ -142,6 +145,35 @@ export class NotificationsService {
     this.emitChanged(id);
   }
 
+  // --- System (generated) ----------------------------------------------------
+
+  /**
+   * Creates an already-published notification targeted at specific users on
+   * behalf of the system (no authoring super-admin), e.g. device-offline /
+   * recovery alerts. Returns the new id, or null when there are no recipients.
+   * Emits {@link NotificationEvents.Changed} so the bell live-refreshes.
+   */
+  async createSystemNotification(
+    data: Omit<CreateSystemNotificationData, 'publishedAt'> & {
+      publishedAt?: Date;
+    },
+  ): Promise<string | null> {
+    const recipientUserIds = [...new Set(data.recipientUserIds)];
+    if (recipientUserIds.length === 0) {
+      return null;
+    }
+
+    const created = await this.notificationsRepository.createSystem({
+      ...data,
+      recipientUserIds,
+      publishedAt: data.publishedAt ?? new Date(),
+    });
+
+    const id = created._id.toString();
+    this.emitChanged(id);
+    return id;
+  }
+
   // --- User (inbox) ----------------------------------------------------------
 
   async listForUser(
@@ -179,6 +211,7 @@ export class NotificationsService {
     const notification = await this.notificationsRepository.findVisibleById(
       id,
       userCreatedAt,
+      user.id,
     );
     if (!notification) {
       throw BusinessException.notFound(this.i18n.t('notifications.notFound'));

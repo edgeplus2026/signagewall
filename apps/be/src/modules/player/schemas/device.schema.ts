@@ -150,6 +150,22 @@ export class Device {
   @Prop({ default: false })
   online!: boolean;
 
+  /**
+   * True while an unresolved offline-alert incident is open for this device.
+   * Set once by the alert sweep (one alert per incident), cleared on recovery.
+   * Guards against duplicate alerts across sweeps and BE restarts.
+   */
+  @Prop({ default: false, index: true })
+  offlineAlertActive!: boolean;
+
+  /** When the most recent offline alert fired (telemetry / debounce). */
+  @Prop()
+  lastOfflineAlertAt?: Date;
+
+  /** `lastSeenAt` captured when the alert fired; downtime anchor for recovery. */
+  @Prop()
+  offlineSince?: Date;
+
   /** Playback volume 0–100, applied by the player to its video audio. */
   @Prop({ default: 100, min: 0, max: 100 })
   volume!: number;

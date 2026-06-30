@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import {
   NotificationAudienceType,
   NotificationDocument,
+  NotificationKind,
   NotificationStatus,
   RichTextContent,
 } from '../schemas/notification.schema';
@@ -25,13 +26,14 @@ export interface AdminNotificationDto {
   expiresAt: string | null;
   scheduledAt: string | null;
   audience: { type: NotificationAudienceType; ids?: string[] };
-  createdBy: string;
+  createdBy: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface UserNotificationDto {
   id: string;
+  kind: NotificationKind;
   title: string;
   content: RichTextContent | null;
   read: boolean;
@@ -46,6 +48,7 @@ export interface UserNotificationDto {
  */
 export interface VisibleNotificationRow {
   _id: Types.ObjectId;
+  kind?: NotificationKind;
   translations: {
     en?: AdminNotificationTranslationDto;
     sr?: AdminNotificationTranslationDto;
@@ -107,7 +110,7 @@ export const toAdminNotificationDto = (
     type: doc.audience?.type ?? 'all',
     ...(doc.audience?.ids ? { ids: doc.audience.ids } : {}),
   },
-  createdBy: doc.createdBy.toString(),
+  createdBy: doc.createdBy ? doc.createdBy.toString() : null,
   createdAt: doc.createdAt.toISOString(),
   updatedAt: doc.updatedAt.toISOString(),
 });
@@ -119,6 +122,7 @@ export const toUserNotificationDto = (
   const resolved = normalizeLang(lang);
   return {
     id: row._id.toString(),
+    kind: row.kind ?? 'broadcast',
     title: resolveTitle(row.translations, resolved),
     content: resolveContent(row.translations, resolved),
     read: row.read,

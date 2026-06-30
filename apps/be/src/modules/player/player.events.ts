@@ -101,6 +101,13 @@ export interface DevicePresenceChangedEvent {
   appVersion?: string;
   /** Defaults to true; false when the device was just unpaired. */
   paired?: boolean;
+  /**
+   * True only when this online event represents a fresh device connection, not
+   * a periodic heartbeat refresh (which re-emits presence every ~30s). Lets
+   * consumers act on the offline→online transition without running on every
+   * heartbeat — e.g. device-offline recovery alerting.
+   */
+  reconnected?: boolean;
 }
 
 /**

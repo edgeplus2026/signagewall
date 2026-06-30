@@ -42,5 +42,6 @@ import { Device, DeviceSchema } from './schemas/device.schema';
     PlayerTokenGuard,
     OrgMembershipGuard,
   ],
+  exports: [DevicesRepository],
 })
 export class PlayerModule {}

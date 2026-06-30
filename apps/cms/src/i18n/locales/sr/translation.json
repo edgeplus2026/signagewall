@@ -1225,6 +1225,47 @@
       }
     }
   },
+  "deviceAlerts": {
+    "inbox": {
+      "offline": "Ekran van mreže",
+      "recovered": "Ekran ponovo na mreži"
+    },
+    "screen": {
+      "title": "Upozorenja",
+      "mute": {
+        "label": "Utišaj upozorenja o nedostupnosti",
+        "description": "Kada je uključeno, ovaj ekran nikada ne pokreće upozorenja o nedostupnosti.",
+        "success": "Podešavanje upozorenja sačuvano.",
+        "error": "Nije moguće ažurirati podešavanje upozorenja."
+      }
+    },
+    "settings": {
+      "title": "Upozorenja o nedostupnosti uređaja",
+      "description": "Obavesti operatere kada ekran ostane van mreže.",
+      "enabled": {
+        "label": "Uključi upozorenja o nedostupnosti",
+        "description": "Glavni prekidač za ovu organizaciju."
+      },
+      "threshold": {
+        "label": "Prag nedostupnosti",
+        "description": "Koliko minuta ekran mora biti van mreže pre upozorenja.",
+        "unit": "minuta"
+      },
+      "recipients": {
+        "label": "Primaoci",
+        "description": "Koji članovi primaju upozorenje.",
+        "adminsOnly": "Samo administratori",
+        "everyone": "Administratori i članovi"
+      },
+      "respectAvailability": {
+        "label": "Poštuj raspored",
+        "description": "Ne upozoravaj dok je ekran u zakazanom periodu isključenja."
+      },
+      "save": "Sačuvaj",
+      "success": "Podešavanja upozorenja sačuvana.",
+      "error": "Nije moguće sačuvati podešavanja upozorenja."
+    }
+  },
   "superAdmin": {
     "title": "Super Admin",
     "tabs": {

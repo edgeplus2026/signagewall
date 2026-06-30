@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 
 import { AccountActionsSection } from '@/features/settings/components/AccountActionsSection'
+import { DeviceAlertsSection } from '@/features/settings/components/DeviceAlertsSection'
 import { HelpSection } from '@/features/settings/components/HelpSection'
 import { PreferencesSection } from '@/features/settings/components/PreferencesSection'
 import { SecuritySection } from '@/features/settings/components/SecuritySection'
@@ -19,6 +20,7 @@ export default function SettingsPage() {
       </div>
       <UserDetailsSection />
       <PreferencesSection />
+      <DeviceAlertsSection />
       <SecuritySection />
       <HelpSection />
       <AccountActionsSection />

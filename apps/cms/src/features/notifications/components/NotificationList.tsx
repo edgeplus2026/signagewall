@@ -1,4 +1,4 @@
-import { CheckCheck } from 'lucide-react'
+import { CheckCheck, Wifi, WifiOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -9,11 +9,60 @@ import {
 } from '@/features/notifications/hooks/useNotifications'
 import { formatRelativeTime } from '@/features/notifications/lib/formatDate'
 import { tiptapToPlainText } from '@/features/notifications/lib/tiptapText'
-import type { UserNotification } from '@/features/notifications/types/notification.types'
+import type {
+  NotificationKind,
+  UserNotification,
+} from '@/features/notifications/types/notification.types'
 import { cn } from '@/lib/utils'
 
 interface NotificationListProps {
   onSelect: (notification: UserNotification) => void
+}
+
+/**
+ * Leading indicator: a per-kind icon for system device alerts (offline/recovery)
+ * so operators can tell them apart from broadcasts at a glance, or the pulsing
+ * unread dot for broadcasts.
+ */
+function NotificationLeadingIcon({
+  kind,
+  read,
+}: {
+  kind: NotificationKind
+  read: boolean
+}) {
+  const { t } = useTranslation()
+
+  if (kind === 'device-offline') {
+    return (
+      <WifiOff
+        className={cn(
+          'mt-0.5 size-4 shrink-0',
+          read ? 'text-secondary' : 'text-danger',
+        )}
+        aria-label={t('deviceAlerts.inbox.offline')}
+      />
+    )
+  }
+  if (kind === 'device-recovered') {
+    return (
+      <Wifi
+        className={cn(
+          'mt-0.5 size-4 shrink-0',
+          read ? 'text-secondary' : 'text-emerald-600 dark:text-emerald-500',
+        )}
+        aria-label={t('deviceAlerts.inbox.recovered')}
+      />
+    )
+  }
+  return read ? (
+    <span className="mt-1.5 size-2 shrink-0 rounded-full bg-transparent" aria-hidden />
+  ) : (
+    <span className="relative mt-1.5 flex size-2 shrink-0" aria-hidden>
+      <span className="bg-danger absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
+      <span className="bg-danger relative inline-flex size-2 rounded-full" />
+    </span>
+  )
 }
 
 function NotificationListItem({
@@ -33,14 +82,10 @@ function NotificationListItem({
         onClick={() => { onSelect(notification); }}
         className="hover:bg-sidebar flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors"
       >
-        {notification.read ? (
-          <span className="mt-1.5 size-2 shrink-0 rounded-full bg-transparent" aria-hidden />
-        ) : (
-          <span className="relative mt-1.5 flex size-2 shrink-0" aria-hidden>
-            <span className="bg-danger absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
-            <span className="bg-danger relative inline-flex size-2 rounded-full" />
-          </span>
-        )}
+        <NotificationLeadingIcon
+          kind={notification.kind}
+          read={notification.read}
+        />
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline justify-between gap-2">
             <span

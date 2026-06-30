@@ -5,6 +5,7 @@ import { I18nService } from 'nestjs-i18n';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { UpdateOrgAlertSettingsDto } from './dto/update-org-alert-settings.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import {
   OrganizationResponseDto,
@@ -15,6 +16,10 @@ import {
   OrganizationMembershipDocument,
   OrganizationRole,
 } from './schemas/organization-membership.schema';
+import {
+  OrgAlertSettings,
+  resolveOrgAlertSettings,
+} from './schemas/organization.schema';
 
 @Injectable()
 export class OrganizationsService {
@@ -70,6 +75,44 @@ export class OrganizationsService {
     }
 
     return toOrganizationResponse(organization, membership.role);
+  }
+
+  // --- Device-offline alert settings -----------------------------------------
+
+  async getAlertSettings(organizationId: string): Promise<OrgAlertSettings> {
+    const organization =
+      await this.organizationsRepository.findById(organizationId);
+    if (!organization) {
+      throw BusinessException.notFound(this.i18n.t('organizations.notFound'));
+    }
+    return resolveOrgAlertSettings(organization.alertSettings);
+  }
+
+  async updateAlertSettings(
+    organizationId: string,
+    dto: UpdateOrgAlertSettingsDto,
+  ): Promise<OrgAlertSettings> {
+    const updated = await this.organizationsRepository.updateAlertSettings(
+      organizationId,
+      {
+        ...(dto.enabled !== undefined ? { enabled: dto.enabled } : {}),
+        ...(dto.offlineThresholdMin !== undefined
+          ? { offlineThresholdMin: dto.offlineThresholdMin }
+          : {}),
+        ...(dto.recipientRoles !== undefined
+          ? { recipientRoles: dto.recipientRoles }
+          : {}),
+        ...(dto.respectAvailability !== undefined
+          ? { respectAvailability: dto.respectAvailability }
+          : {}),
+      },
+    );
+
+    if (!updated) {
+      throw BusinessException.notFound(this.i18n.t('organizations.notFound'));
+    }
+
+    return resolveOrgAlertSettings(updated.alertSettings);
   }
 
   async delete(userId: string, organizationId: string): Promise<void> {

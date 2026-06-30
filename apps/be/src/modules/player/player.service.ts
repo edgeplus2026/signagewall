@@ -147,7 +147,9 @@ export class PlayerService {
       true,
       profile,
     );
-    this.emitPresence(updated, true);
+    // A fresh connection — the device just came online. Recovery alerting keys
+    // off this so it doesn't run on every heartbeat.
+    this.emitPresence(updated, true, { reconnected: true });
 
     return {
       kind: 'paired',
@@ -501,7 +503,7 @@ export class PlayerService {
     // Tell the CMS the device is gone (not merely offline) while the screen
     // binding is still readable; `unpair` clears `screenId`, so the presence
     // event can't be derived afterwards.
-    this.emitPresence(device, false, false);
+    this.emitPresence(device, false, { paired: false });
 
     await this.devicesRepository.unpair(device.deviceId);
     this.emitRevoked(device.deviceId);
@@ -532,7 +534,7 @@ export class PlayerService {
   private emitPresence(
     device: DeviceDocument | null,
     online: boolean,
-    paired = true,
+    options: { paired?: boolean; reconnected?: boolean } = {},
   ): void {
     if (!device) {
       return;
@@ -550,11 +552,12 @@ export class PlayerService {
       screenId,
       deviceId: device.deviceId,
       online,
-      paired,
+      paired: options.paired ?? true,
       lastSeenAt: (device.lastSeenAt ?? new Date()).toISOString(),
       ...(device.profile?.appVersion
         ? { appVersion: device.profile.appVersion }
         : {}),
+      ...(options.reconnected ? { reconnected: true } : {}),
     } satisfies DevicePresenceChangedEvent);
   }
 

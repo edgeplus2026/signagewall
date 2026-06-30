@@ -162,6 +162,10 @@ export class Screen {
   @Prop({ type: ScreenAvailabilitySchema })
   availability?: ScreenAvailability;
 
+  /** Operator opt-out: when true, this screen never raises offline alerts. */
+  @Prop({ default: false })
+  alertMuted!: boolean;
+
   createdAt!: Date;
   updatedAt!: Date;
 }

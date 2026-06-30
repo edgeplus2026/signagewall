@@ -1,3 +1,4 @@
+import { Wifi, WifiOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -34,7 +35,17 @@ export function NotificationSheet({
         {notification ? (
           <>
             <SheetHeader>
-              <SheetTitle>{notification.title}</SheetTitle>
+              <SheetTitle className="flex items-center gap-2">
+                {notification.kind === 'device-offline' ? (
+                  <WifiOff className="text-danger size-4 shrink-0" aria-hidden />
+                ) : notification.kind === 'device-recovered' ? (
+                  <Wifi
+                    className="size-4 shrink-0 text-emerald-600 dark:text-emerald-500"
+                    aria-hidden
+                  />
+                ) : null}
+                <span>{notification.title}</span>
+              </SheetTitle>
               <SheetDescription>
                 {formatDateTime(notification.publishedAt, i18n.language)}
               </SheetDescription>

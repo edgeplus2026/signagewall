@@ -109,8 +109,19 @@ export class DevicesRepository {
       .findOneAndUpdate(
         { deviceId },
         {
-          $set: { status: DeviceStatus.UNPAIRED, online: false },
-          $unset: { screenId: '', organizationId: '', tokenHash: '' },
+          // Clear any open alert incident too, so unpairing never leaves a
+          // dangling recovery to fire on a future re-pair.
+          $set: {
+            status: DeviceStatus.UNPAIRED,
+            online: false,
+            offlineAlertActive: false,
+          },
+          $unset: {
+            screenId: '',
+            organizationId: '',
+            tokenHash: '',
+            offlineSince: '',
+          },
         },
         { new: true },
       )
@@ -170,6 +181,66 @@ export class DevicesRepository {
           },
         },
         { new: true },
+      )
+      .exec();
+  }
+
+  // --- Offline-alert state ---------------------------------------------------
+
+  /**
+   * Paired devices that are offline and have no open alert incident yet. The
+   * caller applies the per-org threshold / mute / availability checks; this only
+   * narrows the candidate set the sweep has to evaluate.
+   */
+  findOfflineNotAlerted(): Promise<DeviceDocument[]> {
+    return this.deviceModel
+      .find({
+        status: DeviceStatus.PAIRED,
+        online: false,
+        offlineAlertActive: { $ne: true },
+        lastSeenAt: { $exists: true },
+      })
+      .exec();
+  }
+
+  /**
+   * Atomically opens an offline-alert incident. Returns the device only if this
+   * call won the claim (no incident was already open), so concurrent/overlapping
+   * sweeps and multiple BE instances each fire at most one alert per incident.
+   * The `online: false` guard makes the claim fail for a device that reconnected
+   * during the sweep (between `findOfflineNotAlerted` and here), so a back-online
+   * device is never given a spurious offline alert / permanently-stuck incident.
+   */
+  claimOfflineAlert(
+    deviceId: string,
+    offlineSince: Date,
+    now: Date,
+  ): Promise<DeviceDocument | null> {
+    return this.deviceModel
+      .findOneAndUpdate(
+        { deviceId, online: false, offlineAlertActive: { $ne: true } },
+        {
+          $set: {
+            offlineAlertActive: true,
+            lastOfflineAlertAt: now,
+            offlineSince,
+          },
+        },
+        { new: true },
+      )
+      .exec();
+  }
+
+  /**
+   * Atomically closes an open offline-alert incident. Returns the device only if
+   * this call won the clear (an incident was open), so recovery fires once.
+   */
+  clearOfflineAlert(deviceId: string): Promise<DeviceDocument | null> {
+    return this.deviceModel
+      .findOneAndUpdate(
+        { deviceId, offlineAlertActive: true },
+        { $set: { offlineAlertActive: false }, $unset: { offlineSince: '' } },
+        { new: false },
       )
       .exec();
   }

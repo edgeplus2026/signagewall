@@ -1,4 +1,10 @@
 {
   "notFound": "Notification not found.",
-  "cannotEditPublished": "Published notifications cannot be edited. Unpublish it first."
+  "cannotEditPublished": "Published notifications cannot be edited. Unpublish it first.",
+  "deviceOffline": {
+    "title": "«{{name}}» has been offline since {{since}}"
+  },
+  "deviceRecovered": {
+    "title": "«{{name}}» is back online (downtime {{downtime}})"
+  }
 }

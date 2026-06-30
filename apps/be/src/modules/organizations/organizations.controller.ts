@@ -23,6 +23,7 @@ import {
 } from '../../common/swagger';
 import type { RequestUser } from '../../common/interfaces/request-user.interface';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { UpdateOrgAlertSettingsDto } from './dto/update-org-alert-settings.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { OrganizationsService } from './organizations.service';
 import type { OrganizationMembershipDocument } from './schemas/organization-membership.schema';
@@ -46,6 +47,23 @@ export class OrganizationsController {
   @ApiSuccessResponse(OrganizationResponseSchema)
   create(@CurrentUser() user: RequestUser, @Body() dto: CreateOrganizationDto) {
     return this.organizationsService.create(user.id, dto);
+  }
+
+  @Get(':id/alert-settings')
+  @RequireOrgRole({ roles: [OrganizationRole.ADMIN], idParam: 'id' })
+  @ApiSuccessResponse(Object)
+  getAlertSettings(@Param('id') organizationId: string) {
+    return this.organizationsService.getAlertSettings(organizationId);
+  }
+
+  @Patch(':id/alert-settings')
+  @RequireOrgRole({ roles: [OrganizationRole.ADMIN], idParam: 'id' })
+  @ApiSuccessResponse(Object)
+  updateAlertSettings(
+    @Param('id') organizationId: string,
+    @Body() dto: UpdateOrgAlertSettingsDto,
+  ) {
+    return this.organizationsService.updateAlertSettings(organizationId, dto);
   }
 
   @Patch(':id')

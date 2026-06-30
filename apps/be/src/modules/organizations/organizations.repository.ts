@@ -5,6 +5,7 @@ import { ClientSession, Model, Types } from 'mongoose';
 import {
   Organization,
   OrganizationDocument,
+  OrgAlertSettings,
 } from './schemas/organization.schema';
 import {
   OrganizationInvitation,
@@ -137,6 +138,24 @@ export class OrganizationsRepository {
   ): Promise<OrganizationDocument | null> {
     return this.organizationModel
       .findByIdAndUpdate(organizationId, { name }, { new: true })
+      .exec();
+  }
+
+  /**
+   * Patches one or more `alertSettings.*` fields via dot-paths so a partial
+   * update never clobbers sibling settings.
+   */
+  updateAlertSettings(
+    organizationId: string,
+    partial: Partial<OrgAlertSettings>,
+  ): Promise<OrganizationDocument | null> {
+    const update: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(partial)) {
+      update[`alertSettings.${key}`] = value;
+    }
+
+    return this.organizationModel
+      .findByIdAndUpdate(organizationId, { $set: update }, { new: true })
       .exec();
   }
 

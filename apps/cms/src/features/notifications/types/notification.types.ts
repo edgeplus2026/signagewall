@@ -4,10 +4,17 @@ export type RichTextContent = Record<string, unknown>
 export type NotificationStatus = 'draft' | 'published'
 export type NotificationAudienceType = 'all' | 'orgs' | 'users'
 
+/** Super-admin broadcast vs. system-generated device alerts. */
+export type NotificationKind =
+  | 'broadcast'
+  | 'device-offline'
+  | 'device-recovered'
+
 // --- User-facing (inbox) -----------------------------------------------------
 
 export interface UserNotification {
   id: string
+  kind: NotificationKind
   title: string
   content: RichTextContent | null
   read: boolean
@@ -46,7 +53,8 @@ export interface AdminNotification {
   expiresAt: string | null
   scheduledAt: string | null
   audience: { type: NotificationAudienceType; ids?: string[] }
-  createdBy: string
+  /** Authoring super-admin id; null for system-generated notifications. */
+  createdBy: string | null
   createdAt: string
   updatedAt: string
 }

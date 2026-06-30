@@ -168,7 +168,11 @@ export class ScreensService {
     id: string,
     dto: UpdateScreenDto,
   ): Promise<ScreenDetailResponseDto> {
-    if (dto.name === undefined && dto.description === undefined) {
+    if (
+      dto.name === undefined &&
+      dto.description === undefined &&
+      dto.alertMuted === undefined
+    ) {
       throw BusinessException.badRequest(this.i18n.t('screens.emptyUpdate'));
     }
 
@@ -180,6 +184,7 @@ export class ScreensService {
         ...(dto.description !== undefined
           ? { description: dto.description }
           : {}),
+        ...(dto.alertMuted !== undefined ? { alertMuted: dto.alertMuted } : {}),
       },
     );
 

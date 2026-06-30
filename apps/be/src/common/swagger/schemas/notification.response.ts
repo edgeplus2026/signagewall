@@ -6,6 +6,9 @@ export class NotificationResponseSchema {
   @ApiProperty()
   id: string;
 
+  @ApiProperty({ enum: ['broadcast', 'device-offline', 'device-recovered'] })
+  kind: 'broadcast' | 'device-offline' | 'device-recovered';
+
   @ApiProperty()
   title: string;
 
@@ -100,8 +103,8 @@ export class AdminNotificationResponseSchema {
   @ApiProperty({ type: AdminNotificationAudienceSchema })
   audience: AdminNotificationAudienceSchema;
 
-  @ApiProperty()
-  createdBy: string;
+  @ApiProperty({ type: String, nullable: true })
+  createdBy: string | null;
 
   @ApiProperty({ format: 'date-time' })
   createdAt: string;

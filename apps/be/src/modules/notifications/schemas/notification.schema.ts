@@ -6,6 +6,16 @@ export type NotificationDocument = HydratedDocument<Notification>;
 export type NotificationStatus = 'draft' | 'published';
 export type NotificationAudienceType = 'all' | 'orgs' | 'users';
 
+/**
+ * Distinguishes super-admin authored broadcasts from system-generated alerts
+ * (e.g. device-offline / recovery). The CMS uses this to render a per-kind icon
+ * and the admin authoring list filters it out of the system kinds.
+ */
+export type NotificationKind =
+  | 'broadcast'
+  | 'device-offline'
+  | 'device-recovered';
+
 /** Tiptap document JSON. Stored verbatim and rendered through ProseMirror. */
 export type RichTextContent = Record<string, unknown>;
 
@@ -53,6 +63,32 @@ const NotificationAudienceSchema =
   SchemaFactory.createForClass(NotificationAudience);
 
 /**
+ * Structured context for system-generated notifications (device alerts). Pure
+ * traceability/history — the rendered message lives in `translations`.
+ */
+@Schema({ _id: false })
+export class NotificationMeta {
+  @Prop({ type: Types.ObjectId, ref: 'Organization' })
+  organizationId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Screen' })
+  screenId?: Types.ObjectId;
+
+  @Prop()
+  deviceId?: string;
+
+  /** When the device was last seen before the incident (downtime anchor). */
+  @Prop({ type: Date })
+  offlineSince?: Date;
+
+  /** Outage duration in ms, set on the recovery notification. */
+  @Prop()
+  downtimeMs?: number;
+}
+
+const NotificationMetaSchema = SchemaFactory.createForClass(NotificationMeta);
+
+/**
  * A global, super-admin authored in-app announcement. Read-state is tracked
  * per user in {@link NotificationReceipt} rather than by copying the document.
  * A notification is only visible once published and within its publish/expiry
@@ -62,6 +98,13 @@ const NotificationAudienceSchema =
 export class Notification {
   @Prop({ type: NotificationTranslationsSchema, required: true })
   translations: NotificationTranslations;
+
+  @Prop({
+    enum: ['broadcast', 'device-offline', 'device-recovered'],
+    default: 'broadcast',
+    index: true,
+  })
+  kind: NotificationKind;
 
   @Prop({ enum: ['draft', 'published'], default: 'draft' })
   status: NotificationStatus;
@@ -81,8 +124,13 @@ export class Notification {
   @Prop({ type: NotificationAudienceSchema, default: () => ({ type: 'all' }) })
   audience: NotificationAudience;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  createdBy: Types.ObjectId;
+  /** Authoring super-admin; null for system-generated notifications. */
+  @Prop({ type: Types.ObjectId, ref: 'User', default: null })
+  createdBy: Types.ObjectId | null;
+
+  /** Present only on system-generated notifications. */
+  @Prop({ type: NotificationMetaSchema, default: null })
+  meta: NotificationMeta | null;
 
   createdAt: Date;
   updatedAt: Date;

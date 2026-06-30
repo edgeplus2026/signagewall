@@ -26,5 +26,6 @@ import {
   ],
   controllers: [NotificationsController, NotificationsAdminController],
   providers: [NotificationsService, NotificationsRepository, SuperAdminGuard],
+  exports: [NotificationsService],
 })
 export class NotificationsModule {}

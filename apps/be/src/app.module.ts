@@ -25,6 +25,7 @@ import { MailModule } from './modules/mail/mail.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AppsModule } from './modules/apps/apps.module';
 import { ConnectionsModule } from './modules/connections/connections.module';
+import { DeviceAlertsModule } from './modules/device-alerts/device-alerts.module';
 import { MembersModule } from './modules/members/members.module';
 import { MediaModule } from './modules/media/media.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -84,6 +85,7 @@ import { UsersModule } from './modules/users/users.module';
     ConnectionsModule,
     PlayerModule,
     NotificationsModule,
+    DeviceAlertsModule,
     HealthModule,
   ],
   providers: [

@@ -2022,7 +2022,7 @@ export interface components {
             /** Format: date-time */
             scheduledAt: string | null;
             audience: components["schemas"]["AdminNotificationAudienceSchema"];
-            createdBy: string;
+            createdBy: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */

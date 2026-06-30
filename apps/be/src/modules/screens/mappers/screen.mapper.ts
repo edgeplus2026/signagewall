@@ -40,6 +40,8 @@ export interface ScreenSummaryResponseDto {
 
 export interface ScreenDetailResponseDto extends ScreenSummaryResponseDto {
   description?: string;
+  /** When true, this screen is excluded from offline alerting. */
+  alertMuted: boolean;
 }
 
 export interface ScreenStatusResponseDto {
@@ -103,6 +105,7 @@ export const toScreenDetailResponse = (
 ): ScreenDetailResponseDto => ({
   ...toScreenSummaryResponse(screen, thumbnailUrl),
   ...(screen.description ? { description: screen.description } : {}),
+  alertMuted: screen.alertMuted ?? false,
 });
 
 export const toScreenStatusResponse = (

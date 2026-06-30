@@ -131,6 +131,8 @@ export interface ScreenSummary {
 
 export interface ScreenDetail extends ScreenSummary {
   description?: string
+  /** When true, this screen is excluded from offline alerting. */
+  alertMuted: boolean
 }
 
 export type Screen = ScreenDetail & {
@@ -145,6 +147,7 @@ export interface CreateScreenRequest {
 export interface UpdateScreenRequest {
   name?: string
   description?: string
+  alertMuted?: boolean
 }
 
 export interface ReplaceScreenItemInput {
