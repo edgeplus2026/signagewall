@@ -16,6 +16,7 @@ export interface DevicePresenceEvent {
 const CmsSocketEvents = {
   WatchOrganization: 'org:watch',
   DevicePresence: 'device:presence',
+  NotificationsChanged: 'notifications:changed',
 } as const
 
 /**
@@ -76,6 +77,19 @@ export function onDevicePresence(
   instance.on(CmsSocketEvents.DevicePresence, handler)
   return () => {
     instance.off(CmsSocketEvents.DevicePresence, handler)
+  }
+}
+
+/**
+ * Subscribes to the payload-free signal the server broadcasts when the global
+ * notification set changes (publish/unpublish/delete). Handlers should refetch
+ * their own unread count / inbox — no notification data is sent over the wire.
+ */
+export function onNotificationsChanged(handler: () => void): () => void {
+  const instance = getRealtimeSocket()
+  instance.on(CmsSocketEvents.NotificationsChanged, handler)
+  return () => {
+    instance.off(CmsSocketEvents.NotificationsChanged, handler)
   }
 }
 

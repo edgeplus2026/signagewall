@@ -1,4 +1,5 @@
 import {
+  Bell,
   ChevronsUpDown,
   CircleHelp,
   LogOut,
@@ -111,12 +112,20 @@ export function SidebarUserMenu() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {user?.isSuperAdmin && !impersonationActive ? (
-                <DropdownMenuItem asChild className={menuItemClassName}>
-                  <Link to="/super-admin">
-                    <Shield />
-                    {t('layout.superAdmin')}
-                  </Link>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem asChild className={menuItemClassName}>
+                    <Link to="/super-admin">
+                      <Shield />
+                      {t('layout.superAdmin')}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className={menuItemClassName}>
+                    <Link to="/super-admin/notifications">
+                      <Bell />
+                      {t('layout.notifications')}
+                    </Link>
+                  </DropdownMenuItem>
+                </>
               ) : null}
               <DropdownMenuItem asChild className={menuItemClassName}>
                 <Link to="/settings">

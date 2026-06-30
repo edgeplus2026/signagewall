@@ -172,10 +172,7 @@ describe('PlayerContentService', () => {
         [withThumb._id.toString()]: withThumb,
         [noThumb._id.toString()]: noThumb,
       },
-      screenItems: [
-        screenMediaItem(withThumb, 0),
-        screenMediaItem(noThumb, 1),
-      ],
+      screenItems: [screenMediaItem(withThumb, 0), screenMediaItem(noThumb, 1)],
     });
 
     const snapshot = await service.resolveByScreenId('org', 'screen');

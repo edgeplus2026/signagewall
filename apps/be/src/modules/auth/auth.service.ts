@@ -127,7 +127,10 @@ export class AuthService {
    * signed up, echoing what they entered on the form (never the password). Must
    * never block or fail registration on a mail error.
    */
-  private notifyAdminOfRegistration(dto: RegisterDto, viaInvite: boolean): void {
+  private notifyAdminOfRegistration(
+    dto: RegisterDto,
+    viaInvite: boolean,
+  ): void {
     void this.mailService
       .sendNewRegistrationEmail({
         name: dto.name.trim(),

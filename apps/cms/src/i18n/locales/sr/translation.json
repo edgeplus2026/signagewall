@@ -116,6 +116,7 @@
     "apps": "Aplikacije",
     "settings": "Podešavanja",
     "superAdmin": "Super Admin",
+    "notifications": "Obaveštenja",
     "faq": "Česta pitanja",
     "users": "Korisnici",
     "guestUser": "Gost",
@@ -1140,6 +1141,80 @@
         "importing": "Uvoženje sadržaja...",
         "imported": "Dodato u vašu biblioteku medija",
         "importError": "Uvoz nije uspeo. Pokušajte ponovo."
+      }
+    }
+  },
+  "notifications": {
+    "bell": "Obaveštenja",
+    "title": "Obaveštenja",
+    "empty": "Nema novih obaveštenja.",
+    "loading": "Učitavanje…",
+    "markAllRead": "Označi sve kao pročitano",
+    "markRead": "Označi kao pročitano",
+    "editor": {
+      "bold": "Podebljano",
+      "italic": "Kurziv",
+      "heading": "Naslov",
+      "bulletList": "Lista sa tačkama",
+      "orderedList": "Numerisana lista",
+      "link": "Link",
+      "linkPrompt": "Unesite URL"
+    },
+    "status": {
+      "draft": "Nacrt",
+      "published": "Objavljeno",
+      "expired": "Isteklo"
+    },
+    "form": {
+      "createTitle": "Novo obaveštenje",
+      "editTitle": "Izmena obaveštenja",
+      "description": "Naslov i sadržaj po jeziku. Engleski je obavezan; srpski koristi engleski kao rezervu.",
+      "title": "Naslov",
+      "content": "Sadržaj",
+      "titleRequired": "Naslov je obavezan.",
+      "titleTooLong": "Naslov je predugačak.",
+      "contentRequired": "Sadržaj je obavezan.",
+      "languageEn": "Engleski",
+      "languageSr": "Srpski",
+      "expiresAt": "Ističe (opciono)",
+      "cancel": "Otkaži",
+      "createSubmit": "Sačuvaj nacrt",
+      "updateSubmit": "Sačuvaj izmene",
+      "createSuccess": "Nacrt obaveštenja je kreiran.",
+      "updateSuccess": "Obaveštenje je ažurirano.",
+      "error": "Došlo je do greške. Pokušajte ponovo."
+    },
+    "actions": {
+      "publishSuccess": "Obaveštenje je objavljeno.",
+      "unpublishSuccess": "Obaveštenje je povučeno iz objave."
+    },
+    "admin": {
+      "title": "Obaveštenja",
+      "create": "Novo obaveštenje",
+      "empty": "Još nema obaveštenja.",
+      "columns": {
+        "title": "Naslov",
+        "status": "Status",
+        "published": "Objavljeno"
+      },
+      "actions": {
+        "menu": "Radnje",
+        "edit": "Izmeni",
+        "publish": "Objavi",
+        "unpublish": "Povuci",
+        "delete": "Obriši"
+      },
+      "pagination": {
+        "previous": "Prethodna",
+        "next": "Sledeća",
+        "page": "Strana {{page}} od {{totalPages}}"
+      },
+      "delete": {
+        "title": "Obrisati obaveštenje?",
+        "description": "Ovo trajno uklanja obaveštenje i potvrde o čitanju. Ne može se opozvati.",
+        "cancel": "Otkaži",
+        "confirm": "Obriši",
+        "success": "Obaveštenje je obrisano."
       }
     }
   },

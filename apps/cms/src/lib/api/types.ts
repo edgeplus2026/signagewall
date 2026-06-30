@@ -11,7 +11,12 @@ export type ApiSuccessData<T> = T extends { success: true; data: infer Data }
 
 export type ApiOperationResponse<
   Operation extends keyof operations,
-  Status extends keyof operations[Operation]['responses'] = 200,
+  // Default to the 200 response when the operation has one; some operations
+  // (e.g. 204 No Content) don't, so fall back to `never` rather than breaking
+  // the default's constraint.
+  Status extends keyof operations[Operation]['responses'] = 200 extends keyof operations[Operation]['responses']
+    ? 200
+    : never,
 > = operations[Operation]['responses'][Status] extends {
   content: { 'application/json': infer Body }
 }
