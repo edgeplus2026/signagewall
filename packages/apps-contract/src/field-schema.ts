@@ -17,6 +17,22 @@ export type FieldType =
   | 'image'
   | 'color'
   | 'oauth'
+  /** A place picked via autocomplete; stored as {@link LocationValue}. */
+  | 'location'
+  /** Rich text authored in a WYSIWYG editor; stored as a sanitized HTML string. */
+  | 'richtext'
+
+/**
+ * The value a `location` field stores: a resolved place with coordinates (from
+ * the CMS autocomplete). A bare string is also accepted for backward
+ * compatibility — a city name the backend geocodes.
+ */
+export interface LocationValue {
+  /** Human label, e.g. "Tres Arroyos, Argentina". */
+  label?: string
+  lat: number
+  lng: number
+}
 
 export interface FieldOption {
   label: string
@@ -84,6 +100,7 @@ const STRING_LIKE_TYPES = new Set<FieldType>([
   'color',
   'image',
   'oauth',
+  'richtext',
 ])
 
 function buildStringSchema(field: Field): z.ZodString {
@@ -118,6 +135,16 @@ function buildFieldZod(field: Field): z.ZodTypeAny {
   } else if (field.type === 'select') {
     const values = (field.options ?? []).map((option) => option.value)
     schema = values.length > 0 ? z.enum(values as [string, ...string[]]) : z.string()
+  } else if (field.type === 'location') {
+    // A resolved place (lat/lng + label) or a bare city string (legacy/geocoded).
+    const place = z.object({
+      label: z.string().optional(),
+      lat: z.number(),
+      lng: z.number(),
+    })
+    schema = field.required
+      ? z.union([z.string().min(1), place])
+      : z.union([z.string(), place]).optional()
   } else {
     // multiselect
     const values = (field.options ?? []).map((option) => option.value)
@@ -143,11 +170,24 @@ function buildFieldZod(field: Field): z.ZodTypeAny {
  *
  * Used by the backend to validate instance config on write and by the CMS to
  * validate the config form, so both sides enforce exactly the same rules.
+ *
+ * When `values` is passed, fields hidden by their `visibleWhen` condition are
+ * not enforced (they pass through as-is) — so a `required` field that's
+ * currently hidden by another field's value doesn't block validation. Omit
+ * `values` to validate every field unconditionally.
  */
-export function buildConfigZod(schema: ConfigSchema): z.ZodObject<Record<string, z.ZodTypeAny>> {
+export function buildConfigZod(
+  schema: ConfigSchema,
+  values?: Record<string, unknown>,
+): z.ZodObject<Record<string, z.ZodTypeAny>> {
   const shape: Record<string, z.ZodTypeAny> = {}
   for (const field of schema) {
-    shape[field.key] = buildFieldZod(field)
+    const hidden =
+      values !== undefined &&
+      field.visibleWhen !== undefined &&
+      values[field.visibleWhen.field] !== field.visibleWhen.equals
+    // Hidden conditional field: accept (and keep) its value without enforcing it.
+    shape[field.key] = hidden ? z.any().optional() : buildFieldZod(field)
   }
   return z.object(shape)
 }

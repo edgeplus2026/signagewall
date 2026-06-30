@@ -28,18 +28,27 @@ export function parseYouTubeId(url: string): string | null {
 
 /**
  * Build an autoplaying embed URL, or null if the input isn't a YouTube link.
- * Autoplay requires `mute=1` — browsers block unmuted autoplay; the player can
- * unmute on a kiosk later.
+ *
+ * Plays with sound (`mute=0`) — on a signage/kiosk player autoplay-with-sound is
+ * allowed; a normal browser (e.g. the CMS preview) may keep it paused until a
+ * gesture, which is expected. `controls=0` hides YouTube's control bar, and
+ * `loop` (with `playlist=<id>`) keeps a single video looping so the
+ * recommended-videos end screen never appears.
  */
 export function toYouTubeEmbedUrl(url: string): string | null {
   const id = parseYouTubeId(url)
   if (!id) return null
   const params = new URLSearchParams({
     autoplay: '1',
-    mute: '1',
+    mute: '0',
+    controls: '0',
+    loop: '1',
+    playlist: id,
     playsinline: '1',
     rel: '0',
     modestbranding: '1',
+    iv_load_policy: '3',
+    disablekb: '1',
   })
   return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`
 }

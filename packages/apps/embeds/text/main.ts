@@ -4,51 +4,90 @@ import './style.css'
 
 const root = document.getElementById('app')
 
-const SIZES = {
-  small: '5vw',
-  medium: '8vw',
-  large: '12vw',
-} as const
-type SizeKey = keyof typeof SIZES
-const ALIGNS = new Set(['left', 'center', 'right'])
-/** Accept only a hex color, so the value can't smuggle extra CSS declarations. */
-const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
+/** A hex color; anything else falls back to the default. */
+const HEX = /^#[0-9a-fA-F]{3,8}$/
+/**
+ * Formatting tags the rich-text field can produce. Everything else is unwrapped
+ * to text and ALL attributes are stripped — so no `style`/`on*`/`href`/`src`
+ * survives and the operator-authored HTML can't carry script/XSS.
+ */
+const ALLOWED_TAGS = new Set([
+  'B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'BR', 'P', 'DIV', 'SPAN',
+  'UL', 'OL', 'LI', 'H1', 'H2', 'H3', 'BLOCKQUOTE',
+])
+/** The style declarations we keep (rich-text size / alignment / family / spacing). */
+const FONT_SIZE_RE = /^\d+(\.\d+)?(px|rem|em|%|vw|vh)$/
+const TEXT_ALIGN = new Set(['left', 'center', 'right', 'justify'])
+// font-family can't execute JS; we still bound it to plain font-token chars.
+const FONT_FAMILY_RE = /^[\w\s,'"-]{1,120}$/
+const LINE_HEIGHT_RE = /^\d+(\.\d+)?(px|rem|em|%)?$/
+const LETTER_SPACING_RE = /^(normal|-?\d+(\.\d+)?(px|rem|em))$/
 
-function isSizeKey(value: unknown): value is SizeKey {
-  return typeof value === 'string' && value in SIZES
+/**
+ * Sanitize operator HTML to a safe formatting subset before rendering: keep only
+ * allowed tags, and on them keep ONLY a validated `font-size` / `text-align`
+ * inline style (the editor's two style-based features). Everything else —
+ * `on*`, `href`, `src`, scripts, other CSS — is dropped, so the HTML can't carry
+ * script/XSS.
+ */
+function sanitize(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  const clean = (node: Element): void => {
+    for (const child of Array.from(node.children)) {
+      if (!ALLOWED_TAGS.has(child.tagName)) {
+        // Unwrap to text (a <script>/<img onerror> becomes harmless text/nothing).
+        child.replaceWith(document.createTextNode(child.textContent ?? ''))
+        continue
+      }
+      const el = child as HTMLElement
+      // Capture the style props we keep (the browser already parsed them).
+      const fontSize = el.style.fontSize
+      const textAlign = el.style.textAlign
+      const fontFamily = el.style.fontFamily
+      const lineHeight = el.style.lineHeight
+      const letterSpacing = el.style.letterSpacing
+      for (const attr of Array.from(el.attributes)) {
+        el.removeAttribute(attr.name)
+      }
+      if (fontSize && FONT_SIZE_RE.test(fontSize)) {
+        el.style.fontSize = fontSize
+      }
+      if (textAlign && TEXT_ALIGN.has(textAlign)) {
+        el.style.textAlign = textAlign
+      }
+      if (fontFamily && FONT_FAMILY_RE.test(fontFamily)) {
+        el.style.fontFamily = fontFamily
+      }
+      if (lineHeight && LINE_HEIGHT_RE.test(lineHeight)) {
+        el.style.lineHeight = lineHeight
+      }
+      if (letterSpacing && LETTER_SPACING_RE.test(letterSpacing)) {
+        el.style.letterSpacing = letterSpacing
+      }
+      clean(el)
+    }
+  }
+  clean(doc.body)
+  return doc.body.innerHTML
+}
+
+function pickColor(value: unknown, fallback: string): string {
+  return typeof value === 'string' && HEX.test(value) ? value : fallback
 }
 
 function render(config: Record<string, unknown>): void {
   if (!root) return
-  const body = typeof config.body === 'string' ? config.body : ''
-  const align =
-    typeof config.align === 'string' && ALIGNS.has(config.align)
-      ? config.align
-      : 'center'
-  const size: SizeKey = isSizeKey(config.size) ? config.size : 'medium'
-  const color =
-    typeof config.color === 'string' && HEX_COLOR.test(config.color)
-      ? config.color
-      : ''
-  const bold = config.bold === true
 
-  const p = document.createElement('p')
-  p.className = 'text-body'
-  // textContent escapes the operator-authored body; whitespace/newlines are
-  // preserved via CSS `white-space: pre-wrap`.
-  p.textContent = body
-  p.style.fontSize = SIZES[size]
-  p.style.textAlign = align
-  if (color) {
-    p.style.color = color
-  }
-  p.style.fontWeight = bold ? '700' : '400'
+  root.style.background = pickColor(config.backgroundColor, '#000000')
+
+  const block = document.createElement('div')
+  block.className = 'text-rich'
+  block.style.color = pickColor(config.color, '#FFFFFF')
+  block.innerHTML = sanitize(typeof config.body === 'string' ? config.body : '')
 
   const wrap = document.createElement('div')
-  wrap.className = 'center text-wrap'
-  wrap.style.justifyContent =
-    align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center'
-  wrap.appendChild(p)
+  wrap.className = 'center'
+  wrap.appendChild(block)
   root.replaceChildren(wrap)
 }
 

@@ -15,22 +15,153 @@ export const qrManifest: AppManifest = {
     'Turn a link or text into a QR code your audience can scan from the screen.',
   runtimeKind: 'embed',
   dataSource: 'static',
-  version: 1,
+  version: 3,
   icon: QR_ICON,
   color: '#111827',
   configSchema: [
     {
+      key: 'qrType',
+      type: 'select',
+      label: 'QR type',
+      default: 'url',
+      options: [
+        { label: 'Website URL', value: 'url' },
+        { label: 'Phone number', value: 'phone' },
+        { label: 'SMS', value: 'sms' },
+        { label: 'Email', value: 'email' },
+        { label: 'Wi-Fi', value: 'wifi' },
+        { label: 'Google Reviews', value: 'review' },
+      ],
+    },
+
+    // Website URL
+    {
       key: 'value',
-      type: 'text',
-      label: 'Link or text',
+      type: 'url',
+      label: 'Website URL',
       required: true,
       placeholder: 'https://example.com',
+      visibleWhen: { field: 'qrType', equals: 'url' },
     },
+
+    // Phone number
+    {
+      key: 'phone',
+      type: 'text',
+      label: 'Phone number',
+      required: true,
+      placeholder: '+381 60 123 4567',
+      visibleWhen: { field: 'qrType', equals: 'phone' },
+    },
+
+    // SMS
+    {
+      key: 'smsPhone',
+      type: 'text',
+      label: 'Phone number',
+      required: true,
+      placeholder: '+381 60 123 4567',
+      visibleWhen: { field: 'qrType', equals: 'sms' },
+    },
+    {
+      key: 'smsMessage',
+      type: 'text',
+      label: 'Message',
+      placeholder: 'Optional pre-filled message',
+      visibleWhen: { field: 'qrType', equals: 'sms' },
+    },
+
+    // Email
+    {
+      key: 'emailTo',
+      type: 'text',
+      label: 'Email address',
+      required: true,
+      placeholder: 'name@example.com',
+      visibleWhen: { field: 'qrType', equals: 'email' },
+    },
+    {
+      key: 'emailSubject',
+      type: 'text',
+      label: 'Subject',
+      placeholder: 'Optional subject',
+      visibleWhen: { field: 'qrType', equals: 'email' },
+    },
+    {
+      key: 'emailBody',
+      type: 'textarea',
+      label: 'Body',
+      placeholder: 'Optional message',
+      visibleWhen: { field: 'qrType', equals: 'email' },
+    },
+
+    // Wi-Fi
+    {
+      key: 'wifiSsid',
+      type: 'text',
+      label: 'Network name (SSID)',
+      required: true,
+      placeholder: 'MyNetwork',
+      visibleWhen: { field: 'qrType', equals: 'wifi' },
+    },
+    {
+      key: 'wifiPassword',
+      type: 'text',
+      label: 'Password',
+      placeholder: 'Leave blank for an open network',
+      visibleWhen: { field: 'qrType', equals: 'wifi' },
+    },
+    {
+      key: 'wifiSecurity',
+      type: 'select',
+      label: 'Security',
+      default: 'WPA',
+      options: [
+        { label: 'WPA/WPA2', value: 'WPA' },
+        { label: 'WEP', value: 'WEP' },
+        { label: 'None', value: 'nopass' },
+      ],
+      visibleWhen: { field: 'qrType', equals: 'wifi' },
+    },
+    {
+      key: 'wifiHidden',
+      type: 'switch',
+      label: 'Hidden network',
+      default: false,
+      visibleWhen: { field: 'qrType', equals: 'wifi' },
+    },
+
+    // Google Reviews
+    {
+      key: 'reviewPlaceId',
+      type: 'text',
+      label: 'Google Place ID',
+      required: true,
+      placeholder: 'ChIJ…',
+      help: "Your business's Google Place ID (find it via Google's Place ID Finder). The QR opens the review form.",
+      visibleWhen: { field: 'qrType', equals: 'review' },
+    },
+
+    // Common
     {
       key: 'caption',
       type: 'text',
       label: 'Caption',
       placeholder: 'Scan me',
+    },
+    {
+      key: 'color',
+      type: 'color',
+      label: 'Color',
+      section: 'Theme Settings',
+      default: '#000000',
+    },
+    {
+      key: 'backgroundColor',
+      type: 'color',
+      label: 'Background',
+      section: 'Theme Settings',
+      default: '#FFFFFF',
     },
   ],
 }

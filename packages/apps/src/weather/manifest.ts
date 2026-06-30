@@ -18,18 +18,17 @@ export const weatherManifest: AppManifest = {
     'Show the current weather and a short forecast for any city — updated automatically.',
   runtimeKind: 'embed',
   dataSource: 'server',
-  version: 1,
+  version: 2,
   refreshSeconds: 900,
   icon: WEATHER_ICON,
   color: '#38BDF8',
   configSchema: [
     {
       key: 'location',
-      type: 'text',
-      label: 'City',
+      type: 'location',
+      label: 'Location',
       required: true,
-      help: 'e.g. Belgrade',
-      placeholder: 'Belgrade',
+      placeholder: 'Search a city…',
     },
     {
       key: 'units',
@@ -39,6 +38,16 @@ export const weatherManifest: AppManifest = {
       options: [
         { label: 'Celsius (°C)', value: 'metric' },
         { label: 'Fahrenheit (°F)', value: 'imperial' },
+      ],
+    },
+    {
+      key: 'language',
+      type: 'select',
+      label: 'Language',
+      default: 'en',
+      options: [
+        { label: 'English', value: 'en' },
+        { label: 'Serbian', value: 'sr' },
       ],
     },
   ],

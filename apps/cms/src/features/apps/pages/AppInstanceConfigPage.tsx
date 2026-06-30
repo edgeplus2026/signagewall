@@ -142,7 +142,9 @@ export default function AppInstanceConfigPage() {
   const isNameDirty = trimmedName !== instance.name
   const isDirty = isConfigDirty || isNameDirty
 
-  const isConfigValid = buildConfigZod(app.configSchema).safeParse(activeDraft).success
+  const isConfigValid = buildConfigZod(app.configSchema, activeDraft).safeParse(
+    activeDraft,
+  ).success
   const isValid = isConfigValid && trimmedName.length > 0
 
   const isSaving = updateInstanceConfig.isPending || renameInstance.isPending

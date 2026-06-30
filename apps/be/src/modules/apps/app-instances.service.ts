@@ -103,7 +103,8 @@ export class AppInstancesService {
     }
 
     const schema = app.configSchema ?? [];
-    const result = buildConfigZod(schema).safeParse(config);
+    // Pass `config` so conditionally-hidden (visibleWhen) fields aren't enforced.
+    const result = buildConfigZod(schema, config).safeParse(config);
     if (!result.success) {
       throw BusinessException.badRequest(
         'Invalid app configuration',

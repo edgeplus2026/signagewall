@@ -1,7 +1,9 @@
 import type { FieldType } from '@edge/apps-contract'
 import type { ReactNode } from 'react'
 
+import { LocationControl } from '@/features/apps/config-form/LocationControl'
 import { OAuthControl } from '@/features/apps/config-form/OAuthControl'
+import { RichTextControl } from '@/features/apps/config-form/RichTextControl'
 import {
   CheckboxControl,
   ColorControl,
@@ -30,6 +32,10 @@ export const FIELD_CONTROLS: Record<FieldType, (props: FieldControlProps) => Rea
   // Connect a third-party account (Google/Microsoft) and store the chosen
   // connection id; used by `connected` apps (Calendar, OneDrive).
   oauth: OAuthControl,
+  // Searchable city dropdown; stores { label, lat, lng } for the weather app.
+  location: LocationControl,
+  // WYSIWYG rich text; stores semantic HTML (sanitized at render).
+  richtext: RichTextControl,
 }
 
 /** Field types rendered with the label beside the control instead of above it. */

@@ -1,11 +1,61 @@
-.text-wrap {
-  flex-direction: row;
-  padding: 6%;
+.text-rich {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 6%;
+  /* Default size for unsized text; the editor sets explicit px (10–100) per run. */
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: break-word;
 }
 
-.text-body {
-  white-space: pre-wrap;
-  font-weight: 600;
-  line-height: 1.2;
-  max-width: 100%;
+.text-rich p {
+  margin: 0 0 0.3em;
+}
+.text-rich p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists read better left-aligned so markers line up. */
+.text-rich ul,
+.text-rich ol {
+  display: inline-block;
+  margin: 0.2em 0;
+  padding-left: 1.4em;
+  text-align: left;
+}
+.text-rich ul {
+  list-style: disc;
+}
+.text-rich ol {
+  list-style: decimal;
+}
+.text-rich li {
+  margin: 0.1em 0;
+}
+
+.text-rich h1 {
+  font-size: 1.4em;
+  font-weight: 400;
+}
+.text-rich h2 {
+  font-size: 1.2em;
+  font-weight: 400;
+}
+
+.text-rich strong,
+.text-rich b {
+  font-weight: 700;
+}
+.text-rich em,
+.text-rich i {
+  font-style: italic;
+}
+.text-rich u {
+  text-decoration: underline;
+}
+.text-rich s,
+.text-rich strike {
+  text-decoration: line-through;
 }

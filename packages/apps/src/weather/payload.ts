@@ -14,7 +14,11 @@ export interface WeatherPayload {
   weatherCode: number
   /** Wind speed in km/h. */
   windKph: number
-  /** Short daily forecast (next few days). */
+  /** Relative humidity (%), current. */
+  humidity: number
+  /** Precipitation probability (%) for today. */
+  precipitationProbability: number
+  /** Daily forecast for the upcoming days (up to 6). */
   daily: WeatherDaily[]
   /** ISO timestamp of the upstream observation. */
   observedAt: string

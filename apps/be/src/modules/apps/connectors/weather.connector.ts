@@ -2,17 +2,22 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
+  LocationValue,
 } from '@edge/apps-contract';
 import type { WeatherDaily, WeatherPayload } from '@edge/apps';
 
 interface WeatherConfig {
-  location?: string;
-  // `units` is display-only; the bundle formats. Not part of the cacheKey.
+  /** A resolved place (lat/lng + label) or a legacy city string to geocode. */
+  location?: LocationValue | string;
+  // `units`/`language` are display-only (the bundle formats); not in the cacheKey.
   units?: string;
+  language?: string;
 }
 
 const GEOCODE_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
+/** Days requested upstream (the bundle always shows the upcoming six). */
+const FORECAST_DAYS = 7;
 
 /** Normalize a city name for use in the (coarse, shared) cache key. */
 function normalizeLocation(location: string): string {
@@ -22,6 +27,20 @@ function normalizeLocation(location: string): string {
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '') // strip combining diacritics
     .replace(/\s+/g, '-');
+}
+
+/** Read a location config as coordinates, a label, and/or a geocode query. */
+function parseLocation(value: WeatherConfig['location']): {
+  lat?: number;
+  lng?: number;
+  label?: string;
+  query?: string;
+} {
+  if (value && typeof value === 'object') {
+    return { lat: value.lat, lng: value.lng, label: value.label };
+  }
+  const query = (value ?? '').trim();
+  return query ? { query } : {};
 }
 
 async function fetchJson(
@@ -35,48 +54,67 @@ async function fetchJson(
   return response.json();
 }
 
+/** Resolve a free-text city to coordinates + a display name via Open-Meteo. */
+async function geocode(
+  query: string,
+  signal: AbortSignal | undefined,
+): Promise<{ lat: number; lng: number; label: string }> {
+  const geo = (await fetchJson(
+    `${GEOCODE_URL}?name=${encodeURIComponent(query)}&count=1`,
+    signal,
+  )) as {
+    results?: Array<{ latitude: number; longitude: number; name: string }>;
+  };
+  const place = geo.results?.[0];
+  if (!place) {
+    throw new Error(`weather: location not found: ${query}`);
+  }
+  return { lat: place.latitude, lng: place.longitude, label: place.name };
+}
+
 /**
  * Weather connector backed by Open-Meteo (no API key, no rate limit). The cache
- * key is the normalized city name, so every instance for the same city shares a
- * single geocode + forecast fetch. Returns neutral data (°C, raw numbers); the
- * embed bundle converts to the instance's display units.
+ * key is the rounded coordinate (or normalized city name), so every instance for
+ * the same place shares a single forecast fetch. Returns neutral data (°C + raw
+ * numbers); the embed bundle formats it per the instance config (units/language).
  */
 export const weatherConnector: AppConnector<WeatherConfig, WeatherPayload> = {
   cacheKey(config) {
-    return `weather:${normalizeLocation(config.location ?? '')}`;
+    const loc = parseLocation(config.location);
+    if (loc.lat !== undefined && loc.lng !== undefined) {
+      // ~1km buckets so the same picked place always shares one fetch.
+      return `weather:${loc.lat.toFixed(2)},${loc.lng.toFixed(2)}`;
+    }
+    return `weather:${normalizeLocation(loc.query ?? '')}`;
   },
 
   async fetchData(
     config: WeatherConfig,
     ctx: ConnectorContext,
   ): Promise<ConnectorResult<WeatherPayload>> {
-    const location = (config.location ?? '').trim();
-    if (!location) {
+    const loc = parseLocation(config.location);
+    if (loc.lat === undefined && !loc.query) {
       throw new Error('weather: missing location');
     }
 
-    const geo = (await fetchJson(
-      `${GEOCODE_URL}?name=${encodeURIComponent(location)}&count=1`,
-      ctx.signal,
-    )) as {
-      results?: Array<{ latitude: number; longitude: number; name: string }>;
-    };
-
-    const place = geo.results?.[0];
-    if (!place) {
-      throw new Error(`weather: location not found: ${location}`);
-    }
+    // Coordinates come straight from the picked place; a legacy string is geocoded.
+    const place =
+      loc.lat !== undefined && loc.lng !== undefined
+        ? { lat: loc.lat, lng: loc.lng, label: loc.label ?? '' }
+        : await geocode(loc.query ?? '', ctx.signal);
 
     const forecast = (await fetchJson(
-      `${FORECAST_URL}?latitude=${place.latitude}&longitude=${place.longitude}` +
-        `&current=temperature_2m,weather_code,wind_speed_10m` +
-        `&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&timezone=auto`,
+      `${FORECAST_URL}?latitude=${place.lat}&longitude=${place.lng}` +
+        `&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m` +
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+        `&forecast_days=${FORECAST_DAYS}&timezone=auto`,
       ctx.signal,
     )) as {
       current?: {
         temperature_2m: number;
         weather_code: number;
         wind_speed_10m: number;
+        relative_humidity_2m: number;
         time: string;
       };
       daily?: {
@@ -84,6 +122,7 @@ export const weatherConnector: AppConnector<WeatherConfig, WeatherPayload> = {
         weather_code: number[];
         temperature_2m_max: number[];
         temperature_2m_min: number[];
+        precipitation_probability_max?: number[];
       };
     };
 
@@ -101,15 +140,18 @@ export const weatherConnector: AppConnector<WeatherConfig, WeatherPayload> = {
     );
 
     const payload: WeatherPayload = {
-      location: place.name,
+      location: place.label,
       temperatureC: forecast.current.temperature_2m,
       weatherCode: forecast.current.weather_code,
       windKph: forecast.current.wind_speed_10m,
+      humidity: forecast.current.relative_humidity_2m,
+      precipitationProbability:
+        forecast.daily?.precipitation_probability_max?.[0] ?? 0,
       daily,
       observedAt: forecast.current.time,
     };
 
-    ctx.logger.debug('weather fetched', { location: place.name });
+    ctx.logger.debug('weather fetched', { location: place.label });
     return { playerPayload: payload };
   },
 };

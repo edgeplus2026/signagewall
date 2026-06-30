@@ -82,7 +82,6 @@ export function SchemaForm({
   appSlug,
   disabled,
 }: SchemaFormProps) {
-  const zodSchema = useMemo(() => buildConfigZod(schema), [schema])
   // Only surface a field's error once it has been interacted with.
   const [touched, setTouched] = useState<ReadonlySet<string>>(() => new Set())
 
@@ -90,7 +89,8 @@ export function SchemaForm({
 
   const errors = useMemo(() => {
     const map: Record<string, string> = {}
-    const result = zodSchema.safeParse(value)
+    // Pass `value` so conditionally-hidden (visibleWhen) fields aren't enforced.
+    const result = buildConfigZod(schema, value).safeParse(value)
     if (!result.success) {
       for (const issue of result.error.issues) {
         const key = String(issue.path[0] ?? '')
@@ -98,7 +98,7 @@ export function SchemaForm({
       }
     }
     return map
-  }, [zodSchema, value])
+  }, [schema, value])
 
   const markTouched = (key: string) => {
     setTouched((prev) => (prev.has(key) ? prev : new Set(prev).add(key)))
