@@ -27,6 +27,7 @@ import { AppsModule } from './modules/apps/apps.module';
 import { ConnectionsModule } from './modules/connections/connections.module';
 import { MembersModule } from './modules/members/members.module';
 import { MediaModule } from './modules/media/media.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { PlayerModule } from './modules/player/player.module';
 import { PlaylistsModule } from './modules/playlists/playlists.module';
@@ -82,6 +83,7 @@ import { UsersModule } from './modules/users/users.module';
     AppsModule,
     ConnectionsModule,
     PlayerModule,
+    NotificationsModule,
     HealthModule,
   ],
   providers: [

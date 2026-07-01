@@ -111,12 +111,14 @@ export function SidebarUserMenu() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {user?.isSuperAdmin && !impersonationActive ? (
-                <DropdownMenuItem asChild className={menuItemClassName}>
-                  <Link to="/super-admin">
-                    <Shield />
-                    {t('layout.superAdmin')}
-                  </Link>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem asChild className={menuItemClassName}>
+                    <Link to="/super-admin">
+                      <Shield />
+                      {t('layout.superAdmin')}
+                    </Link>
+                  </DropdownMenuItem>
+                </>
               ) : null}
               <DropdownMenuItem asChild className={menuItemClassName}>
                 <Link to="/settings">

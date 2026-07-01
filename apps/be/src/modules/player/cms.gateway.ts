@@ -9,6 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { NotificationEvents } from '../notifications/notifications.events';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { PlayerEvents } from './player.events';
 import type { DevicePresenceChangedEvent } from './player.events';
@@ -34,6 +35,8 @@ export const CmsSocketEvents = {
   WatchOrganization: 'org:watch',
   /** Server → client: a device's online/offline status changed. */
   DevicePresence: 'device:presence',
+  /** Server → client: the in-app notification set changed; refetch unread count. */
+  NotificationsChanged: 'notifications:changed',
 } as const;
 
 const orgRoom = (organizationId: string): string => `org:${organizationId}`;
@@ -114,6 +117,17 @@ export class CmsGateway {
         lastSeenAt: event.lastSeenAt,
         ...(event.appVersion ? { appVersion: event.appVersion } : {}),
       });
+  }
+
+  /**
+   * The globally-visible notification set changed (publish/unpublish/delete).
+   * Broadcast a payload-free signal to every authenticated CMS socket so each
+   * client refetches its own unread count. Safe for `audience: 'all'`: every
+   * `/cms` socket is an authenticated user and no notification data is sent.
+   */
+  @OnEvent(NotificationEvents.Changed)
+  onNotificationsChanged(): void {
+    this.server.emit(CmsSocketEvents.NotificationsChanged);
   }
 
   /** Returns the authenticated user id, or null if the token is missing/invalid. */

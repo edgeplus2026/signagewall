@@ -139,6 +139,7 @@
     "apps": "Apps",
     "settings": "Settings",
     "superAdmin": "Super Admin",
+    "notifications": "Notifications",
     "faq": "FAQ",
     "users": "Users",
     "guestUser": "Guest",
@@ -1158,12 +1159,97 @@
       }
     }
   },
+  "notifications": {
+    "bell": "Notifications",
+    "title": "Notifications",
+    "empty": "You're all caught up.",
+    "loading": "Loading…",
+    "markAllRead": "Mark all as read",
+    "markRead": "Mark as read",
+    "editor": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "heading": "Heading",
+      "bulletList": "Bullet list",
+      "orderedList": "Numbered list",
+      "link": "Link",
+      "linkPrompt": "Enter a URL"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "expired": "Expired"
+    },
+    "form": {
+      "createTitle": "New notification",
+      "editTitle": "Edit notification",
+      "description": "Title and content per language. English is required; Serbian falls back to English.",
+      "title": "Title",
+      "content": "Content",
+      "titleRequired": "Title is required.",
+      "titleTooLong": "Title is too long.",
+      "contentRequired": "Content is required.",
+      "languageEn": "English",
+      "languageSr": "Serbian",
+      "expiresAt": "Expires at (optional)",
+      "cancel": "Cancel",
+      "createSubmit": "Save draft",
+      "updateSubmit": "Save changes",
+      "createSuccess": "Notification draft created.",
+      "updateSuccess": "Notification updated.",
+      "error": "Something went wrong. Please try again."
+    },
+    "actions": {
+      "publishSuccess": "Notification published.",
+      "unpublishSuccess": "Notification unpublished."
+    },
+    "admin": {
+      "title": "Notifications",
+      "create": "New notification",
+      "empty": "No notifications yet.",
+      "columns": {
+        "title": "Title",
+        "status": "Status",
+        "published": "Published"
+      },
+      "actions": {
+        "menu": "Actions",
+        "edit": "Edit",
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "delete": "Delete"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {{page}} of {{totalPages}}"
+      },
+      "delete": {
+        "title": "Delete notification?",
+        "description": "This permanently removes the notification and its read receipts. This cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete",
+        "success": "Notification deleted."
+      },
+      "publishConfirm": {
+        "title": "Publish notification?",
+        "description": "This makes the notification visible to all users immediately.",
+        "confirm": "Publish"
+      },
+      "unpublishConfirm": {
+        "title": "Unpublish notification?",
+        "description": "This hides the notification from all users. You can publish it again later.",
+        "confirm": "Unpublish"
+      }
+    }
+  },
   "superAdmin": {
     "title": "Super Admin",
     "tabs": {
       "users": "All Users",
       "apps": "All Apps",
-      "categories": "Apps Categories"
+      "categories": "Apps Categories",
+      "notifications": "Notifications"
     },
     "users": {
       "search": "Search users...",
