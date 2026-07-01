@@ -2,7 +2,7 @@ import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { APP_MANIFESTS } from '@edge/apps';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
-import { AppInstancesRepository } from './app-instances.repository';
+import { AppInstancesService } from './app-instances.service';
 import { AppsRepository, type CreateAppData } from './apps.repository';
 import { OrgAppsRepository } from './org-apps.repository';
 import { CreateAppDto } from './dto/create-app.dto';
@@ -31,7 +31,7 @@ export class AppsService implements OnModuleInit {
   constructor(
     private readonly appsRepository: AppsRepository,
     private readonly orgAppsRepository: OrgAppsRepository,
-    private readonly instancesRepository: AppInstancesRepository,
+    private readonly instancesService: AppInstancesService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -123,8 +123,10 @@ export class AppsService implements OnModuleInit {
 
   async uninstall(organizationId: string, id: string): Promise<void> {
     await this.orgAppsRepository.uninstall(organizationId, id);
-    // Uninstalling removes the org's instances of the app.
-    await this.instancesRepository.deleteByApp(organizationId, id);
+    // Uninstalling removes the org's instances of the app — cascading the same
+    // way a single delete does, so it never leaves dangling references in
+    // playlists/screens or orphaned OAuth connections behind.
+    await this.instancesService.removeAllForApp(organizationId, id);
   }
 
   private async requirePublicApp(id: string): Promise<AppDocument> {

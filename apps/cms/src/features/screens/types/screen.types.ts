@@ -172,3 +172,8 @@ export interface AddPlaylistsToScreensRequest {
   screenIds: string[]
   playlistIds: string[]
 }
+
+export interface AddAppsToScreensRequest {
+  screenIds: string[]
+  appInstanceIds: string[]
+}

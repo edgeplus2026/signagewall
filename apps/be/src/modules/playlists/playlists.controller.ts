@@ -20,6 +20,7 @@ import {
   ApiSuccessNullResponse,
   ApiSuccessResponse,
 } from '../../common/swagger';
+import { AddPlaylistAppsDto } from './dto/add-playlist-apps.dto';
 import { AddPlaylistMediaDto } from './dto/add-playlist-media.dto';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { DeletePlaylistsDto } from './dto/delete-playlists.dto';
@@ -72,6 +73,17 @@ export class PlaylistsController {
     @Body() dto: AddPlaylistMediaDto,
   ): Promise<null> {
     await this.playlistsService.addMedia(organizationId, dto);
+    return null;
+  }
+
+  @Post('add-apps')
+  @RequireOrgRole()
+  @ApiSuccessNullResponse()
+  async addApps(
+    @RequiredOrganizationId() organizationId: string,
+    @Body() dto: AddPlaylistAppsDto,
+  ): Promise<null> {
+    await this.playlistsService.addApps(organizationId, dto);
     return null;
   }
 

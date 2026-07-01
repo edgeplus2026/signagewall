@@ -26,12 +26,14 @@ export default () => ({
     // 'common' allows any work/school/personal account; override for single-tenant.
     tenant: process.env.MICROSOFT_TENANT ?? 'common',
   },
+  canva: {
+    clientId: process.env.CANVA_CLIENT_ID,
+    clientSecret: process.env.CANVA_CLIENT_SECRET,
+  },
   // AES-256-GCM key for encrypting third-party OAuth tokens at rest.
   encryptionKey: process.env.ENCRYPTION_KEY,
   // Publicly reachable HTTPS base URL of this API (provider webhooks).
   publicApiUrl: process.env.PUBLIC_API_URL,
-  // Path in the CMS that connection OAuth callbacks redirect back to.
-  frontendConnectionsCallbackPath: '/apps/connections/callback',
   mail: {
     enabled: process.env.MAIL_ENABLED === 'true',
     from: process.env.MAIL_FROM ?? 'Edge <onboarding@resend.dev>',

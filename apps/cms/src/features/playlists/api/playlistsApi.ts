@@ -1,4 +1,5 @@
 import type {
+  AddAppsToPlaylistsRequest,
   AddMediaToPlaylistsRequest,
   CreatePlaylistRequest,
   DuplicatePlaylistRequest,
@@ -91,6 +92,10 @@ export const playlistsApi = {
 
   addMedia: async (payload: AddMediaToPlaylistsRequest): Promise<void> => {
     await api.post(`${PLAYLISTS_BASE}/add-media`, payload)
+  },
+
+  addApps: async (payload: AddAppsToPlaylistsRequest): Promise<void> => {
+    await api.post(`${PLAYLISTS_BASE}/add-apps`, payload)
   },
 }
 

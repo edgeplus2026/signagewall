@@ -357,6 +357,64 @@ export class PlaylistsRepository {
     return playlists.map((playlist) => playlist._id.toString());
   }
 
+  /**
+   * Drop `app` items referencing the given app instances from every playlist
+   * that contains them, re-normalizing order/duration. Used when an app instance
+   * is deleted, so playlists never keep dangling references. Mirrors
+   * {@link removeMediaItems}; app items carry no media cover so no cover refresh
+   * is needed. Returns the ids of the playlists that were modified.
+   */
+  async removeAppInstances(
+    organizationId: string,
+    appInstanceIds: string[],
+    session?: ClientSession,
+  ): Promise<string[]> {
+    if (appInstanceIds.length === 0) {
+      return [];
+    }
+
+    const appObjectIds = appInstanceIds.map((id) => new Types.ObjectId(id));
+    const query = this.playlistModel.find({
+      organizationId: new Types.ObjectId(organizationId),
+      'items.appInstanceId': { $in: appObjectIds },
+    });
+
+    if (session) {
+      query.session(session);
+    }
+
+    const playlists = await query.exec();
+
+    for (const playlist of playlists) {
+      const remaining: PlaylistItemValue[] = playlist.items
+        .filter(
+          (item) =>
+            // Media items have no appInstanceId — never purge them. App items
+            // are dropped only when their instance id is in the purge set.
+            !item.appInstanceId ||
+            !appObjectIds.some((id) => id.equals(item.appInstanceId)),
+        )
+        .map((item) => ({
+          _id: item._id,
+          type: item.type ?? PlaylistItemType.MEDIA,
+          ...(item.mediaId ? { mediaId: item.mediaId } : {}),
+          ...(item.appInstanceId ? { appInstanceId: item.appInstanceId } : {}),
+          order: item.order,
+          duration: item.duration,
+          disabled: item.disabled,
+        }));
+      const normalized = this.normalizeItems(remaining);
+      await this.saveNormalizedItems(
+        organizationId,
+        playlist._id.toString(),
+        normalized,
+        session,
+      );
+    }
+
+    return playlists.map((playlist) => playlist._id.toString());
+  }
+
   private normalizeItems(items: PlaylistItemValue[]): ReplaceItemsData {
     const sorted = [...items].sort((a, b) => a.order - b.order);
     const normalized: PlaylistItemValue[] = sorted.map((item, index) => ({

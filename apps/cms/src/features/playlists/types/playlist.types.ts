@@ -70,3 +70,8 @@ export interface AddMediaToPlaylistsRequest {
   playlistIds: string[]
   mediaIds: string[]
 }
+
+export interface AddAppsToPlaylistsRequest {
+  playlistIds: string[]
+  appInstanceIds: string[]
+}

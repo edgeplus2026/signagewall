@@ -24,6 +24,12 @@ export interface AppDataMeta {
   fetchedAt?: string
   /** True when the latest fetch failed (the payload is last-known-good). */
   stale?: boolean
+  /**
+   * True while an async upstream job (e.g. a Canva video export) is still
+   * running and the final payload isn't ready. The live preview polls until this
+   * clears; the bundle may show a "generating…" state.
+   */
+  pending?: boolean
 }
 
 /** app → host: the bundle announces it is listening. Carries no data. */

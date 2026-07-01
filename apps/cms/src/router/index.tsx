@@ -6,7 +6,6 @@ import AppLayout from '@/components/layout/AppLayout'
 import AppInstanceConfigPage from '@/features/apps/pages/AppInstanceConfigPage'
 import AppInstancesPage from '@/features/apps/pages/AppInstancesPage'
 import AppsPage from '@/features/apps/pages/AppsPage'
-import ConnectionCallbackPage from '@/features/apps/pages/ConnectionCallbackPage'
 import { ProtectedLayout } from '@/features/auth/components/ProtectedLayout'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import FaqPage from '@/features/faq/pages/FaqPage'
@@ -148,10 +147,6 @@ export const router = createBrowserRouter([
                 path: '/apps',
                 element: <AppsPage />,
                 handle: { breadcrumb: { labelKey: 'layout.apps' } },
-              },
-              {
-                path: '/apps/connections/callback',
-                element: <ConnectionCallbackPage />,
               },
               { path: '/apps/:appId/instances', element: <AppInstancesPage /> },
               {

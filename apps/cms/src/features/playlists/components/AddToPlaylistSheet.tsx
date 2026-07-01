@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
+  useAddAppsToPlaylists,
   useAddMediaToPlaylists,
   usePlaylists,
 } from "@/features/playlists/hooks/usePlaylists"
@@ -32,7 +33,10 @@ import { cn } from "@/lib/utils"
 interface AddToPlaylistSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  mediaIds: string[]
+  /** Media items to add (media mode). */
+  mediaIds?: string[]
+  /** App instances to add (apps mode). Mutually exclusive with `mediaIds`. */
+  appInstanceIds?: string[]
   onSuccess?: () => void
 }
 
@@ -57,14 +61,20 @@ function PlaylistThumbnail({ playlist }: { playlist: PlaylistSummary }) {
 export function AddToPlaylistSheet({
   open,
   onOpenChange,
-  mediaIds,
+  mediaIds = [],
+  appInstanceIds = [],
   onSuccess,
 }: AddToPlaylistSheetProps) {
   const { t } = useTranslation()
   const { data: playlists = [], isLoading } = usePlaylists()
   const addMedia = useAddMediaToPlaylists()
+  const addApps = useAddAppsToPlaylists()
   const [search, setSearch] = useState("")
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  // Apps mode when app instances are supplied; media mode otherwise.
+  const isApps = appInstanceIds.length > 0
+  const itemCount = isApps ? appInstanceIds.length : mediaIds.length
 
   // Reset on close so each open starts fresh (mirrors MoveMediaSheet).
   const handleOpenChange = (nextOpen: boolean) => {
@@ -96,13 +106,15 @@ export function AddToPlaylistSheet({
   }
 
   const handleSubmit = async () => {
-    if (selectedIds.size === 0 || mediaIds.length === 0) return
+    if (selectedIds.size === 0 || itemCount === 0) return
 
     try {
-      await addMedia.mutateAsync({
-        playlistIds: Array.from(selectedIds),
-        mediaIds,
-      })
+      const playlistIds = Array.from(selectedIds)
+      if (isApps) {
+        await addApps.mutateAsync({ playlistIds, appInstanceIds })
+      } else {
+        await addMedia.mutateAsync({ playlistIds, mediaIds })
+      }
       toast.success(
         t("playlists.addToPlaylist.success", { count: selectedIds.size }),
       )
@@ -124,7 +136,7 @@ export function AddToPlaylistSheet({
           <SheetTitle>{t("playlists.addToPlaylist.title")}</SheetTitle>
           <SheetDescription>
             {t("playlists.addToPlaylist.description", {
-              count: mediaIds.length,
+              count: itemCount,
             })}
           </SheetDescription>
         </SheetHeader>
@@ -227,7 +239,11 @@ export function AddToPlaylistSheet({
           </Button>
           <Button
             type="button"
-            disabled={selectedIds.size === 0 || addMedia.isPending}
+            disabled={
+              selectedIds.size === 0 ||
+              addMedia.isPending ||
+              addApps.isPending
+            }
             onClick={() => {
               void handleSubmit()
             }}

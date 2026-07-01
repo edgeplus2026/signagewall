@@ -1,14 +1,18 @@
 import { buildConfigZod, buildDefaultConfig } from '@edge/apps-contract'
 import {
-  CopyIcon,
   ListVideoIcon,
   MonitorIcon,
   MoreHorizontalIcon,
   Trash2Icon,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import {
+  Navigate,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom'
 import { toast } from 'sonner'
 
 
@@ -25,15 +29,18 @@ import { AppInstanceConfigSidebar } from '@/features/apps/components/AppInstance
 import { AppInstanceScreen } from '@/features/apps/components/AppInstanceScreen'
 import { AppLivePreview } from '@/features/apps/components/AppLivePreview'
 import { AppsBreadcrumb } from '@/features/apps/components/AppsBreadcrumb'
+import { ConnectAppPrompt } from '@/features/apps/components/ConnectAppPrompt'
 import { DeleteInstanceDialog } from '@/features/apps/components/DeleteInstanceDialog'
 import {
   useApp,
   useAppInstance,
-  useDuplicateInstance,
   useRenameInstance,
   useUpdateInstanceConfig,
 } from '@/features/apps/hooks/useApps'
+import { needsConnection } from '@/features/apps/lib/connectedApp'
 import type { AppInstanceConfig } from '@/features/apps/types/app.types'
+import { AddToPlaylistSheet } from '@/features/playlists/components/AddToPlaylistSheet'
+import { AddToScreenSheet } from '@/features/screens/components/AddToScreenSheet'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 /** Order-independent shallow compare of config values (primitives + arrays). */
@@ -55,18 +62,42 @@ export default function AppInstanceConfigPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { appId, instanceId } = useParams<{ appId: string; instanceId: string }>()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { data: app, isLoading: appLoading } = useApp(appId)
   const { data: instance, isLoading: instanceLoading } = useAppInstance(instanceId)
 
+  // Toast the OAuth connect outcome the backend redirected back with, then strip
+  // the query params so a refresh doesn't re-toast.
+  useEffect(() => {
+    const connected = searchParams.get('connected')
+    const connectError = searchParams.get('connect_error')
+    if (!connected && !connectError) return
+    if (connected) {
+      toast.success(
+        t('apps.connections.connectedToast', {
+          account: searchParams.get('account') ?? '',
+        }),
+      )
+    } else {
+      toast.error(t('apps.connections.connectErrorToast'))
+    }
+    const next = new URLSearchParams(searchParams)
+    next.delete('connected')
+    next.delete('connect_error')
+    next.delete('account')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams, t])
+
   const updateInstanceConfig = useUpdateInstanceConfig()
   const renameInstance = useRenameInstance()
-  const duplicateInstance = useDuplicateInstance()
 
   // `draft`/`nameDraft` hold only the operator's edits; they're null until the
   // form is touched, then compared against `baseline` to track dirtiness.
   const [draft, setDraft] = useState<AppInstanceConfig | null>(null)
   const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [addToScreenOpen, setAddToScreenOpen] = useState(false)
+  const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false)
 
   // The saved config with the schema defaults merged in, so newly added fields
   // (e.g. after an app upgrade) render with their defaults instead of blank — and
@@ -134,6 +165,19 @@ export default function AppInstanceConfigPage() {
     return <Navigate to={app ? `/apps/${app.id}/instances` : '/apps'} replace />
   }
 
+  // A `connected` app with no account yet: show only the centered connect prompt
+  // (no config form / preview / save bar) until an account is connected.
+  if (needsConnection(app, baseline)) {
+    return (
+      <>
+        <AppsBreadcrumb app={app} instanceName={instance.name} />
+        <div className="flex h-[calc(100dvh-5.5rem)] w-full min-w-0 flex-col lg:px-10">
+          <ConnectAppPrompt app={app} instanceId={instance.id} />
+        </div>
+      </>
+    )
+  }
+
   const activeDraft = draft ?? baseline
   const activeName = nameDraft ?? instance.name
   const trimmedName = activeName.trim()
@@ -163,15 +207,6 @@ export default function AppInstanceConfigPage() {
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('apps.instances.config.saveError')))
     }
-  }
-
-  const handleDuplicate = () => {
-    duplicateInstance.mutate(instance.id, {
-      onSuccess: (copy) => {
-        toast.success(t('apps.instances.config.duplicated'))
-        void navigate(`/apps/${app.id}/instances/${copy.id}`)
-      },
-    })
   }
 
   return (
@@ -218,7 +253,7 @@ export default function AppInstanceConfigPage() {
             <DropdownMenuContent align="end" className="w-auto min-w-52">
               <DropdownMenuItem
                 onClick={() => {
-                  toast.info(t('apps.instances.config.actions.addToScreenSoon'))
+                  setAddToScreenOpen(true)
                 }}
               >
                 <MonitorIcon />
@@ -226,15 +261,11 @@ export default function AppInstanceConfigPage() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  toast.info(t('apps.instances.config.actions.addToPlaylistSoon'))
+                  setAddToPlaylistOpen(true)
                 }}
               >
                 <ListVideoIcon />
                 {t('apps.instances.config.actions.addToPlaylist')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDuplicate}>
-                <CopyIcon />
-                {t('apps.instances.config.actions.duplicate')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -258,6 +289,19 @@ export default function AppInstanceConfigPage() {
         onDeleted={() => {
           void navigate(`/apps/${app.id}/instances`)
         }}
+      />
+
+      <AddToScreenSheet
+        open={addToScreenOpen}
+        onOpenChange={setAddToScreenOpen}
+        mode="apps"
+        appInstanceIds={[instance.id]}
+      />
+
+      <AddToPlaylistSheet
+        open={addToPlaylistOpen}
+        onOpenChange={setAddToPlaylistOpen}
+        appInstanceIds={[instance.id]}
       />
     </>
   )

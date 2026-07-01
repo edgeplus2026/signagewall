@@ -29,6 +29,8 @@ export interface AppDataMeta {
   fetchedAt?: string
   /** True when the latest fetch failed (the payload is last-known-good). */
   stale?: boolean
+  /** True while an async upstream job is still running (e.g. Canva video export). */
+  pending?: boolean
 }
 
 export interface AppConfigMessage<

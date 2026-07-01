@@ -1,4 +1,5 @@
 import type {
+  AddAppsToScreensRequest,
   AddMediaToScreensRequest,
   AddPlaylistsToScreensRequest,
   CreateScreenRequest,
@@ -95,6 +96,10 @@ export const screensApi = {
 
   addPlaylists: async (payload: AddPlaylistsToScreensRequest): Promise<void> => {
     await api.post(`${SCREENS_BASE}/add-playlists`, payload)
+  },
+
+  addApps: async (payload: AddAppsToScreensRequest): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/add-apps`, payload)
   },
 
   getDevice: async (id: string): Promise<ScreenDevice> => {

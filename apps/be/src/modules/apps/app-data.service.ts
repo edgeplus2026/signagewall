@@ -76,13 +76,18 @@ export class AppDataService {
           // older entries predate it, so fall back to `fetchedAt` (last success).
           lastAttemptAt: entry.lastAttemptAt ?? entry.fetchedAt,
           hadError: Boolean(entry.lastError),
+          pending: Boolean(entry.pending),
         },
       ]),
     );
     const previousByKey = new Map(
       cached.map((entry) => [
         entry.cacheKey,
-        { payload: entry.payload, version: entry.version },
+        {
+          payload: entry.payload,
+          version: entry.version,
+          secrets: entry.secrets,
+        },
       ]),
     );
 
@@ -125,6 +130,7 @@ export class AppDataService {
     const changed = await this.refreshOne(candidate, {
       payload: existing?.payload,
       version: existing?.version,
+      secrets: existing?.secrets,
     });
     if (changed) {
       this.eventEmitter.emit(PlayerEvents.AppDataChanged, {
@@ -176,12 +182,19 @@ export class AppDataService {
    * still bounding how hard we hammer a persistently broken feed.
    */
   private isDue(
-    state: { lastAttemptAt?: Date; hadError: boolean } | undefined,
+    state:
+      | { lastAttemptAt?: Date; hadError: boolean; pending?: boolean }
+      | undefined,
     candidate: DueCandidate,
     now: Date,
   ): boolean {
     const lastAttemptAt = state?.lastAttemptAt;
     if (!lastAttemptAt) {
+      return true;
+    }
+    // An in-flight async job (pending) is re-checked every tick so a slow export
+    // completes promptly instead of waiting a full cadence.
+    if (state?.pending) {
       return true;
     }
     const cadenceSeconds = state?.hadError
@@ -198,10 +211,21 @@ export class AppDataService {
    */
   private async refreshOne(
     candidate: DueCandidate,
-    previous: { payload: unknown; version?: string },
+    previous: {
+      payload: unknown;
+      version?: string;
+      secrets?: Record<string, unknown>;
+    },
   ): Promise<boolean> {
     try {
-      const { saved, version } = await this.performFetch(candidate);
+      const { saved, version, pending } = await this.performFetch(
+        candidate,
+        previous.secrets,
+      );
+      // A pending result kept the last-known payload; nothing changed to fan out.
+      if (pending) {
+        return false;
+      }
       // Prefer the connector's stable version (ETag) when it provides one — so a
       // payload with volatile fields (rotating URLs) doesn't look "changed" every
       // refresh. Fall back to a deep payload compare otherwise.
@@ -232,16 +256,23 @@ export class AppDataService {
    */
   private async performFetch(
     candidate: DueCandidate,
-  ): Promise<{ saved: AppDataCacheDocument; version?: string }> {
+    previousSecrets?: Record<string, unknown>,
+  ): Promise<{
+    saved: AppDataCacheDocument;
+    version?: string;
+    pending: boolean;
+  }> {
     const connector = getConnector(candidate.slug);
     if (!connector) {
       throw new Error(`no connector for slug ${candidate.slug}`);
     }
 
     const controller = new AbortController();
+    // Connectors backed by a slow async job (e.g. Canva mp4 export) can raise
+    // their own budget; everything else uses the default.
     const timeout = setTimeout(() => {
       controller.abort();
-    }, FETCH_TIMEOUT_MS);
+    }, connector.timeoutMs ?? FETCH_TIMEOUT_MS);
 
     try {
       // `connected` apps (oauth descriptor present) need a resolved connection
@@ -256,7 +287,22 @@ export class AppDataService {
         logger: this.connectorLogger,
         signal: controller.signal,
         ...(connection ? { connection } : {}),
+        // Feed the connector its previously-persisted state (e.g. an in-flight
+        // export job) so it can resume instead of blocking.
+        ...(previousSecrets ? { secrets: previousSecrets } : {}),
       });
+
+      // A pending result means an async job is still running: persist the new
+      // job state and keep the last-known payload on screen (no fan-out).
+      if (result.pending && result.playerPayload === undefined) {
+        const saved = await this.cacheRepository.upsertPending(
+          candidate.cacheKey,
+          candidate.slug,
+          candidate.refreshSeconds,
+          result.secrets,
+        );
+        return { saved, pending: true };
+      }
 
       const saved = await this.cacheRepository.upsertPayload({
         cacheKey: candidate.cacheKey,
@@ -265,11 +311,14 @@ export class AppDataService {
         fetchedAt: new Date(),
         refreshSeconds: candidate.refreshSeconds,
         ...(result.version ? { version: result.version } : {}),
+        ...(result.secrets ? { secrets: result.secrets } : {}),
       });
 
-      return result.version !== undefined
-        ? { saved, version: result.version }
-        : { saved };
+      return {
+        saved,
+        pending: false,
+        ...(result.version !== undefined ? { version: result.version } : {}),
+      };
     } finally {
       clearTimeout(timeout);
     }
@@ -318,7 +367,20 @@ export class AppDataService {
     }
 
     try {
-      const { saved } = await this.performFetch(candidate);
+      const { saved, pending } = await this.performFetch(
+        candidate,
+        existing?.secrets,
+      );
+      // An async job is still running: keep the last-known payload (if any) and
+      // flag `pending` so the preview polls until the export finishes.
+      if (pending) {
+        return this.toPreviewResult(
+          saved.payload,
+          saved.fetchedAt,
+          false,
+          true,
+        );
+      }
       return this.toPreviewResult(saved.payload, saved.fetchedAt, false);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -335,12 +397,14 @@ export class AppDataService {
     payload: unknown,
     fetchedAt: Date | undefined,
     stale: boolean,
+    pending = false,
   ): PreviewDataResult {
     return {
       data: payload ?? null,
       meta: {
         ...(fetchedAt ? { fetchedAt: fetchedAt.toISOString() } : {}),
         stale,
+        ...(pending ? { pending: true } : {}),
       },
     };
   }

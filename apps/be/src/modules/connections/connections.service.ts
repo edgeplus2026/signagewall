@@ -1,3 +1,5 @@
+import { randomBytes, createHash } from 'node:crypto';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -7,6 +9,11 @@ import { BusinessException } from '../../common/exceptions/business.exception';
 import { EncryptionService } from '../../common/services/encryption.service';
 import { getConnector } from '../apps/connectors/connector-registry';
 import { ConnectionsRepository } from './connections.repository';
+import {
+  type CanvaDesignSummary,
+  searchCanvaDesigns,
+} from './providers/canva-api';
+import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
 import { createMicrosoftOAuthProvider } from './providers/microsoft.oauth';
 import type { OAuthProvider } from './providers/oauth-provider';
@@ -30,11 +37,35 @@ interface StatePayload {
   userId: string;
   provider: ConnectionProvider;
   appSlug: string;
+  /** The instance the resulting connection is bound to (per-instance ownership). */
+  instanceId: string;
+  /**
+   * PKCE code verifier, for providers that require PKCE (Canva). Carried in the
+   * signed, short-lived state rather than a server-side store; it never leaves
+   * the backend and is consumed once on callback.
+   */
+  codeVerifier?: string;
+}
+
+/** Base64url-encode a buffer (PKCE: no padding, URL-safe alphabet). */
+function base64url(buffer: Buffer): string {
+  return buffer
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 }
 
 /** Refresh the access token when it expires within this window. */
 const REFRESH_SKEW_MS = 60_000;
 const STATE_TTL = '10m';
+
+/** Config namespace holding each provider's clientId/clientSecret. */
+const PROVIDER_CONFIG_NS: Record<ConnectionProvider, string> = {
+  [ConnectionProvider.GOOGLE]: 'google',
+  [ConnectionProvider.MICROSOFT]: 'microsoft',
+  [ConnectionProvider.CANVA]: 'canva',
+};
 
 @Injectable()
 export class ConnectionsService {
@@ -55,6 +86,22 @@ export class ConnectionsService {
   async list(organizationId: string): Promise<ConnectionSummary[]> {
     const docs = await this.repository.findByOrganization(organizationId);
     return docs.map((doc) => this.toSummary(doc));
+  }
+
+  /** Delete the connection owned by an instance (on disconnect / instance delete). */
+  async deleteByInstance(
+    organizationId: string,
+    instanceId: string,
+  ): Promise<void> {
+    await this.repository.deleteByInstance(organizationId, instanceId);
+  }
+
+  /** Delete every connection owned by the given instances (bulk; on uninstall). */
+  async deleteByInstances(
+    organizationId: string,
+    instanceIds: string[],
+  ): Promise<void> {
+    await this.repository.deleteByInstances(organizationId, instanceIds);
   }
 
   async delete(organizationId: string, id: string): Promise<void> {
@@ -78,6 +125,34 @@ export class ConnectionsService {
     }
   }
 
+  /** Token-free summary of a connection (for the CMS "Connected as X" header). */
+  async getSummary(
+    organizationId: string,
+    id: string,
+  ): Promise<ConnectionSummary> {
+    const doc = await this.repository.findById(organizationId, id);
+    if (!doc) {
+      throw BusinessException.notFound('Connection not found.');
+    }
+    return this.toSummary(doc);
+  }
+
+  /**
+   * Assert connection `id` exists, belongs to `organizationId`, AND is owned by
+   * `instanceId` — per-instance ownership, so one instance can't reference
+   * another instance's (or another tenant's) connection.
+   */
+  async assertOwnedByInstance(
+    organizationId: string,
+    instanceId: string,
+    id: string,
+  ): Promise<void> {
+    const doc = await this.repository.findById(organizationId, id);
+    if (!doc || doc.instanceId.toString() !== instanceId) {
+      throw BusinessException.notFound('Connection not found.');
+    }
+  }
+
   /**
    * Build the provider authorization URL for an OAuth start. The scopes come
    * from the connected app's connector OAuth descriptor, so each app requests
@@ -88,11 +163,20 @@ export class ConnectionsService {
     userId: string;
     provider: ConnectionProvider;
     appSlug: string;
+    instanceId: string;
   }): string {
     this.assertEnabled();
     const provider = this.getProvider(params.provider);
     const credentials = this.getCredentials(params.provider);
     const scopes = this.scopesForApp(params.appSlug, params.provider);
+
+    // PKCE (Canva requires it): generate a verifier now, stash it in the signed
+    // state, and send only its SHA-256 challenge to the provider.
+    const usePkce = params.provider === ConnectionProvider.CANVA;
+    const codeVerifier = usePkce ? base64url(randomBytes(32)) : undefined;
+    const codeChallenge = codeVerifier
+      ? base64url(createHash('sha256').update(codeVerifier).digest())
+      : undefined;
 
     const state = this.jwtService.sign(
       {
@@ -100,6 +184,8 @@ export class ConnectionsService {
         userId: params.userId,
         provider: params.provider,
         appSlug: params.appSlug,
+        instanceId: params.instanceId,
+        ...(codeVerifier ? { codeVerifier } : {}),
       } satisfies StatePayload,
       { secret: this.stateSecret(), expiresIn: STATE_TTL },
     );
@@ -109,19 +195,25 @@ export class ConnectionsService {
       redirectUri: this.redirectUri(params.provider),
       state,
       scopes,
+      ...(codeChallenge ? { codeChallenge } : {}),
     });
   }
 
   /**
    * Handle the provider callback: validate `state`, exchange the code, encrypt
-   * the tokens, and upsert the connection. Returns the org id so the controller
-   * can redirect to the right CMS context.
+   * the tokens, and upsert the connection OWNED BY the instance from the state.
+   * Returns the org + instance ids so the controller can bind the connection to
+   * the instance config and redirect back to it.
    */
   async handleCallback(
     provider: ConnectionProvider,
     code: string,
     state: string,
-  ): Promise<{ organizationId: string; connection: ConnectionSummary }> {
+  ): Promise<{
+    organizationId: string;
+    instanceId: string;
+    connection: ConnectionSummary;
+  }> {
     this.assertEnabled();
     const payload = this.verifyState(state);
     if (String(payload.provider) !== String(provider)) {
@@ -135,10 +227,12 @@ export class ConnectionsService {
       clientSecret: credentials.clientSecret,
       redirectUri: this.redirectUri(provider),
       code,
+      ...(payload.codeVerifier ? { codeVerifier: payload.codeVerifier } : {}),
     });
 
-    const doc = await this.repository.upsert({
+    const doc = await this.repository.upsertByInstance({
       organizationId: payload.organizationId,
+      instanceId: payload.instanceId,
       provider,
       accountLabel: result.accountLabel,
       scopes: result.scopes,
@@ -154,6 +248,7 @@ export class ConnectionsService {
 
     return {
       organizationId: payload.organizationId,
+      instanceId: payload.instanceId,
       connection: this.toSummary(doc),
     };
   }
@@ -181,6 +276,7 @@ export class ConnectionsService {
 
     return {
       id: doc._id.toString(),
+      provider: doc.provider,
       accountLabel: doc.accountLabel,
       accessToken,
       ...(doc.refreshTokenEnc
@@ -189,6 +285,25 @@ export class ConnectionsService {
       ...(expiresAt ? { expiresAt: expiresAt.toISOString() } : {}),
       scopes: doc.scopes,
     };
+  }
+
+  /**
+   * Search the Canva designs reachable through connection `id` for the CMS
+   * picker. Asserts the connection belongs to the org, then resolves it (which
+   * refreshes the access token if needed) so the listing never fails on an
+   * expired token. Returns token-free summaries only.
+   */
+  async listCanvaDesigns(
+    organizationId: string,
+    id: string,
+    query: string,
+  ): Promise<CanvaDesignSummary[]> {
+    await this.assertOwned(organizationId, id);
+    const connection = await this.resolveConnection(id);
+    if (connection.provider !== String(ConnectionProvider.CANVA)) {
+      throw BusinessException.badRequest('Connection is not a Canva account.');
+    }
+    return searchCanvaDesigns(connection.accessToken, query);
   }
 
   private needsRefresh(doc: AppConnectionDocument): boolean {
@@ -247,6 +362,9 @@ export class ConnectionsService {
     if (provider === ConnectionProvider.GOOGLE) {
       return googleOAuthProvider;
     }
+    if (provider === ConnectionProvider.CANVA) {
+      return canvaOAuthProvider;
+    }
     return createMicrosoftOAuthProvider(
       this.configService.get<string>('microsoft.tenant') ?? 'common',
     );
@@ -256,7 +374,7 @@ export class ConnectionsService {
     clientId: string;
     clientSecret: string;
   } {
-    const ns = provider === ConnectionProvider.GOOGLE ? 'google' : 'microsoft';
+    const ns = PROVIDER_CONFIG_NS[provider];
     const clientId = this.configService.get<string>(`${ns}.clientId`);
     const clientSecret = this.configService.get<string>(`${ns}.clientSecret`);
     if (!clientId || !clientSecret) {

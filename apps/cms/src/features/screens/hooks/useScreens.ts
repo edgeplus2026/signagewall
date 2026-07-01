@@ -10,6 +10,7 @@ import {
 } from '@/features/screens/lib/screenQueryKeys'
 import {
   DEFAULT_DEVICE_SETTINGS,
+  type AddAppsToScreensRequest,
   type AddMediaToScreensRequest,
   type AddPlaylistsToScreensRequest,
   type CreateScreenRequest,
@@ -376,6 +377,26 @@ export function useAddPlaylistsToScreens() {
 
   return useMutation({
     mutationFn: (payload: AddPlaylistsToScreensRequest) => screensApi.addPlaylists(payload),
+    onSuccess: (_data, variables) => {
+      const organizationId = useOrganizationStore.getState().activeOrganizationId
+      void queryClient.invalidateQueries({
+        queryKey: screensQueryKey(organizationId),
+        exact: true,
+      })
+      variables.screenIds.forEach((screenId) => {
+        queryClient.removeQueries({
+          queryKey: screenDetailQueryKey(organizationId, screenId),
+        })
+      })
+    },
+  })
+}
+
+export function useAddAppsToScreens() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: AddAppsToScreensRequest) => screensApi.addApps(payload),
     onSuccess: (_data, variables) => {
       const organizationId = useOrganizationStore.getState().activeOrganizationId
       void queryClient.invalidateQueries({

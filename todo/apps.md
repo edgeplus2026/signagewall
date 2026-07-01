@@ -4,11 +4,10 @@
 <!-- Youtube -->
 <!-- Website -->
 <!-- QR Code -->
+<!-- Canva -->
 
 Facebook
 Instagram
-Canva
-
 Excel
 Google Sheets
 Google Calendar

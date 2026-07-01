@@ -28,6 +28,7 @@ export const gcalManifest: AppManifest = {
       type: 'oauth',
       label: 'Google account',
       required: true,
+      provider: 'google',
     },
     {
       key: 'calendarId',

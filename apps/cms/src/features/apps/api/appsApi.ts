@@ -85,6 +85,10 @@ export const appsApi = {
     const { data } = await api.post<AppPreviewDataResponse>(
       `${APPS_BASE}/${encodeURIComponent(slug)}/preview-data`,
       { config },
+      // Each call returns quickly now — a slow export runs as an async job that
+      // the connector polls across ticks — so a small margin over the default is
+      // plenty (create + a brief inline poll on the first call).
+      { timeout: 25_000 },
     )
     return data
   },
@@ -125,13 +129,16 @@ export const appsApi = {
     return data
   },
 
-  duplicateInstance: async (id: string): Promise<AppInstance> => {
-    const { data } = await api.post<AppInstance>(`${INSTANCES_BASE}/${id}/duplicate`)
-    return data
-  },
-
   deleteInstance: async (id: string): Promise<void> => {
     await api.delete(`${INSTANCES_BASE}/${id}`)
+  },
+
+  /** Disconnect the instance's OAuth account (deletes connection, clears config). */
+  disconnectInstance: async (id: string): Promise<AppInstance> => {
+    const { data } = await api.delete<AppInstance>(
+      `${INSTANCES_BASE}/${id}/connection`,
+    )
+    return data
   },
 
   // ----- Super-admin catalog management -----

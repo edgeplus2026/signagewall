@@ -28,6 +28,6 @@ pnpm build            # turbo: build everything
 pnpm type-check       # turbo: type-check everything
 pnpm lint             # turbo: lint everything
 pnpm --filter @edge/cms dev   # run a cms
-pnpm --filter @edge/be start:dev #run a be
 pnpm --filter @edge/player dev #run a player
+pnpm --filter @edge/be start:dev #run a be
 ```

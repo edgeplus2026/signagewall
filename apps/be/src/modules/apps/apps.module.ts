@@ -4,6 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { ConnectionsModule } from '../connections/connections.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { PlaylistsModule } from '../playlists/playlists.module';
+import { ScreensModule } from '../screens/screens.module';
 import { UsersModule } from '../users/users.module';
 import { AppCategoriesAdminController } from './app-categories-admin.controller';
 import { AppCategoriesRepository } from './app-categories.repository';
@@ -41,6 +43,10 @@ import { OrgApp, OrgAppSchema } from './schemas/org-app.schema';
     UsersModule,
     OrganizationsModule,
     forwardRef(() => ConnectionsModule),
+    // Cascade: deleting an app instance purges its references from playlists and
+    // screens. forwardRef because both modules import AppsModule.
+    forwardRef(() => PlaylistsModule),
+    forwardRef(() => ScreensModule),
   ],
   controllers: [
     AppsController,

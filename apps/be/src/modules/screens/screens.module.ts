@@ -20,7 +20,7 @@ import { Screen, ScreenSchema } from './schemas/screen.schema';
     OrganizationsModule,
     forwardRef(() => MediaModule),
     forwardRef(() => PlaylistsModule),
-    AppsModule,
+    forwardRef(() => AppsModule),
   ],
   controllers: [ScreensController],
   providers: [

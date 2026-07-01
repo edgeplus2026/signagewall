@@ -1,12 +1,10 @@
 import type { AppManifest } from '@edge/apps-contract'
 
+import { canvaManifest } from './canva/manifest.js'
 import { clockManifest } from './clock/manifest.js'
-import { countdownManifest } from './countdown/manifest.js'
-import { fxManifest } from './fx/manifest.js'
 import { gcalManifest } from './gcal/manifest.js'
 import { onedriveManifest } from './onedrive/manifest.js'
 import { qrManifest } from './qr/manifest.js'
-import { rssManifest } from './rss/manifest.js'
 import { slidesManifest } from './slides/manifest.js'
 import { textManifest } from './text/manifest.js'
 import { weatherManifest } from './weather/manifest.js'
@@ -23,35 +21,30 @@ export const APP_MANIFESTS: AppManifest[] = [
   clockManifest,
   textManifest,
   qrManifest,
-  countdownManifest,
   webManifest,
   youtubeManifest,
   weatherManifest,
-  rssManifest,
-  fxManifest,
   gcalManifest,
   slidesManifest,
   onedriveManifest,
+  canvaManifest,
 ]
 
 export {
   clockManifest,
   textManifest,
   qrManifest,
-  countdownManifest,
   webManifest,
   youtubeManifest,
   weatherManifest,
-  rssManifest,
-  fxManifest,
   gcalManifest,
   slidesManifest,
   onedriveManifest,
+  canvaManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 
 export type { WeatherPayload, WeatherDaily } from './weather/payload.js'
-export type { RssPayload, RssItem } from './rss/payload.js'
-export type { FxPayload } from './fx/payload.js'
 export type { GcalPayload, GcalEvent } from './gcal/payload.js'
 export type { OneDrivePayload } from './onedrive/payload.js'
+export type { CanvaPayload } from './canva/payload.js'

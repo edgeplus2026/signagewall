@@ -609,6 +609,54 @@ export class ScreensService {
     return screens.map((screen) => screen._id.toString());
   }
 
+  /**
+   * Drops references to the given app instances from every screen that contains
+   * them (when an app instance is deleted). Returns the ids of the screens it
+   * modified so the caller can emit content-change events after the surrounding
+   * transaction commits. Mirrors {@link purgePlaylistReferences}.
+   */
+  async purgeAppInstanceReferences(
+    organizationId: string,
+    appInstanceIds: string[],
+    session?: ClientSession,
+  ): Promise<string[]> {
+    const uniqueIds = [...new Set(appInstanceIds)];
+    if (uniqueIds.length === 0) {
+      return [];
+    }
+
+    const appObjectIds = uniqueIds.map((id) => new Types.ObjectId(id));
+    const screens = await this.screensRepository.findContainingAppInstanceIds(
+      organizationId,
+      uniqueIds,
+      session,
+    );
+
+    for (const screen of screens) {
+      const remaining = this.toItemValues(screen.items).filter(
+        (item) =>
+          !(
+            item.type === ScreenItemType.APP &&
+            item.appInstanceId &&
+            appObjectIds.some((id) => id.equals(item.appInstanceId))
+          ),
+      );
+      const derived = await this.buildDerivedItemFields(
+        organizationId,
+        remaining,
+        session,
+      );
+      await this.screensRepository.updateDerivedItemsWithoutLock(
+        organizationId,
+        screen._id.toString(),
+        derived,
+        session,
+      );
+    }
+
+    return screens.map((screen) => screen._id.toString());
+  }
+
   async replaceItems(
     organizationId: string,
     id: string,

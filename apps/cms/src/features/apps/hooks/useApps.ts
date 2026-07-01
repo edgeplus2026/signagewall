@@ -142,16 +142,6 @@ export function useUpdateInstanceConfig() {
   })
 }
 
-export function useDuplicateInstance() {
-  const invalidate = useInstanceInvalidation()
-  return useMutation({
-    mutationFn: (id: string) => appsApi.duplicateInstance(id),
-    onSuccess: (instance) => {
-      invalidate(instance.id)
-    },
-  })
-}
-
 export function useDeleteInstance() {
   const invalidate = useInstanceInvalidation()
   return useMutation({

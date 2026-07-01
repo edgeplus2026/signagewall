@@ -3,8 +3,8 @@ import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
 
 /**
  * Cached connector output for a `server`/`connected` app, keyed by the
- * connector's coarse `cacheKey` (e.g. `weather:belgrade`, `rss:<hash>`,
- * `fx:eur`). The cache is GLOBAL — one entry per cacheKey for the whole system,
+ * connector's coarse `cacheKey` (e.g. `weather:belgrade`). The cache is GLOBAL
+ * — one entry per cacheKey for the whole system,
  * shared across organizations — so every instance resolving to the same key
  * shares a single upstream fetch and fan-out. The key is coarse and never
  * carries secrets (server apps are public feeds), which is what makes global
@@ -55,6 +55,23 @@ export class AppDataCache {
   /** Last fetch error message, when the most recent attempt failed. */
   @Prop()
   lastError?: string;
+
+  /**
+   * Private connector state (e.g. an in-flight async export job id), persisted
+   * server-side and fed back to the connector on the next fetch. NEVER sent to
+   * the player (the player resolver reads {@link payload} only).
+   */
+  @Prop({ type: MongooseSchema.Types.Mixed })
+  secrets?: Record<string, unknown>;
+
+  /**
+   * True while the connector's async job is still running. A pending entry is
+   * re-checked every scheduler tick (not on the normal cadence) and the live
+   * preview polls it, so a slow export (e.g. Canva video) completes without
+   * blocking a single fetch.
+   */
+  @Prop()
+  pending?: boolean;
 
   createdAt!: Date;
   updatedAt!: Date;

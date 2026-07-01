@@ -21,6 +21,13 @@ export type FieldType =
   | 'location'
   /** Rich text authored in a WYSIWYG editor; stored as a sanitized HTML string. */
   | 'richtext'
+  /**
+   * A resource picked from a connected account via an async, searchable
+   * dropdown (the CMS queries a backend "browse" endpoint as the user types).
+   * Stored as {@link RemoteSelectValue}. Which endpoint to query is named by the
+   * field's {@link Field.remoteSource}. Used by `connected` apps (e.g. Canva).
+   */
+  | 'remote-select'
 
 /**
  * The value a `location` field stores: a resolved place with coordinates (from
@@ -32,6 +39,16 @@ export interface LocationValue {
   label?: string
   lat: number
   lng: number
+}
+
+/**
+ * The value a `remote-select` field stores: the chosen resource's stable id plus
+ * a human label (so the CMS can show the selection without re-fetching). The
+ * backend connector uses {@link id} to fetch; {@link label} is display-only.
+ */
+export interface RemoteSelectValue {
+  id: string
+  label?: string
 }
 
 export interface FieldOption {
@@ -86,6 +103,17 @@ export interface Field {
   placeholder?: string
   /** For `select` / `multiselect`. */
   options?: FieldOption[]
+  /**
+   * For `remote-select`: names the backend browse endpoint the CMS queries as
+   * the user types (e.g. `'canva-designs'`). The backend ignores it on validate.
+   */
+  remoteSource?: string
+  /**
+   * For `oauth`: the single connection provider this app authenticates with
+   * (e.g. `'canva'`, `'google'`, `'microsoft'`). The CMS offers exactly this
+   * provider when connecting an account. The backend ignores it on validate.
+   */
+  provider?: string
   validation?: FieldValidation
   /** Conditional visibility based on another field's value. */
   visibleWhen?: FieldVisibility
@@ -145,6 +173,13 @@ function buildFieldZod(field: Field): z.ZodTypeAny {
     schema = field.required
       ? z.union([z.string().min(1), place])
       : z.union([z.string(), place]).optional()
+  } else if (field.type === 'remote-select') {
+    // A resource picked from a connected account: stable id + display label.
+    const resource = z.object({
+      id: z.string().min(1),
+      label: z.string().optional(),
+    })
+    schema = field.required ? resource : resource.optional()
   } else {
     // multiselect
     const values = (field.options ?? []).map((option) => option.value)

@@ -1364,13 +1364,18 @@
     "aboutTitle": "O ovoj aplikaciji",
     "search": "Pretraži aplikacije...",
     "connections": {
-      "selectAccount": "Izaberite povezani nalog",
-      "connectAccount": "Poveži nalog",
-      "callbackSuccessTitle": "Nalog povezan",
-      "callbackSuccessBody": "Povezan {{account}}. Sada ga možete izabrati u podešavanjima aplikacije.",
-      "callbackErrorTitle": "Povezivanje nije uspelo",
-      "callbackErrorBody": "Nismo uspeli da povežemo nalog. Pokušajte ponovo.",
-      "backToApps": "Nazad na aplikacije"
+      "connectPromptTitle": "Povežite svoj {{provider}} nalog",
+      "connectPromptBody": "Prijavite se preko {{provider}} naloga da počnete da koristite ovu aplikaciju na ekranima.",
+      "connectProvider": "Poveži {{provider}}",
+      "connectedToast": "Povezan {{account}}",
+      "connectErrorToast": "Nismo uspeli da povežemo nalog. Pokušajte ponovo.",
+      "reconnect": "Ponovo poveži",
+      "disconnect": "Prekini vezu"
+    },
+    "remoteSelect": {
+      "placeholder": "Pretražite i izaberite…",
+      "search": "Pretraga…",
+      "empty": "Nema rezultata"
     },
     "tabs": {
       "store": "Prodavnica",
@@ -1436,7 +1441,6 @@
       "config": {
         "save": "Sačuvaj izmene",
         "saved": "Izmene sačuvane",
-        "duplicated": "Instanca duplirana",
         "name": {
           "label": "Naziv",
           "placeholder": "Naziv instance",
@@ -1450,7 +1454,6 @@
         "actions": {
           "addToScreen": "Dodaj na ekran",
           "addToPlaylist": "Dodaj u plejlistu",
-          "duplicate": "Dupliraj",
           "delete": "Obriši",
           "addToScreenSoon": "Dodavanje na ekrane uskoro stiže.",
           "addToPlaylistSoon": "Dodavanje u plejliste uskoro stiže."

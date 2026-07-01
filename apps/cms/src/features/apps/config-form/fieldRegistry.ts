@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import { LocationControl } from '@/features/apps/config-form/LocationControl'
 import { OAuthControl } from '@/features/apps/config-form/OAuthControl'
+import { RemoteSelectControl } from '@/features/apps/config-form/RemoteSelectControl'
 import { RichTextControl } from '@/features/apps/config-form/RichTextControl'
 import {
   CheckboxControl,
@@ -36,6 +37,9 @@ export const FIELD_CONTROLS: Record<FieldType, (props: FieldControlProps) => Rea
   location: LocationControl,
   // WYSIWYG rich text; stores semantic HTML (sanitized at render).
   richtext: RichTextControl,
+  // Async searchable dropdown over a connected account; stores { id, label }.
+  // Used by `connected` apps that pick a remote resource (Canva designs).
+  'remote-select': RemoteSelectControl,
 }
 
 /** Field types rendered with the label beside the control instead of above it. */

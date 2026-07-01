@@ -10,6 +10,7 @@ import {
 
 export interface CreateConnectionData {
   organizationId: string;
+  instanceId: string;
   provider: ConnectionProvider;
   accountLabel: string;
   scopes: string[];
@@ -62,18 +63,20 @@ export class ConnectionsRepository {
   }
 
   /**
-   * Upsert a connection for (org, provider, accountLabel) — reconnecting the
-   * same account replaces its tokens rather than creating duplicates.
+   * Upsert the connection OWNED BY an instance — reconnecting (even to a
+   * different account) replaces that instance's tokens/label rather than
+   * creating duplicates. One connection per instance (unique index).
    */
-  async upsert(data: CreateConnectionData): Promise<AppConnectionDocument> {
+  async upsertByInstance(
+    data: CreateConnectionData,
+  ): Promise<AppConnectionDocument> {
     return this.model.findOneAndUpdate(
-      {
-        organizationId: new Types.ObjectId(data.organizationId),
-        provider: data.provider,
-        accountLabel: data.accountLabel,
-      },
+      { instanceId: new Types.ObjectId(data.instanceId) },
       {
         $set: {
+          organizationId: new Types.ObjectId(data.organizationId),
+          provider: data.provider,
+          accountLabel: data.accountLabel,
           scopes: data.scopes,
           accessTokenEnc: data.accessTokenEnc,
           ...(data.refreshTokenEnc
@@ -112,5 +115,32 @@ export class ConnectionsRepository {
       organizationId: new Types.ObjectId(organizationId),
     });
     return result.deletedCount > 0;
+  }
+
+  /** Delete the connection owned by an instance (on disconnect/instance delete). */
+  async deleteByInstance(
+    organizationId: string,
+    instanceId: string,
+  ): Promise<void> {
+    if (!Types.ObjectId.isValid(instanceId)) return;
+    await this.model.deleteOne({
+      instanceId: new Types.ObjectId(instanceId),
+      organizationId: new Types.ObjectId(organizationId),
+    });
+  }
+
+  /** Delete every connection owned by the given instances (bulk; on uninstall). */
+  async deleteByInstances(
+    organizationId: string,
+    instanceIds: string[],
+  ): Promise<void> {
+    const objectIds = instanceIds
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
+    if (objectIds.length === 0) return;
+    await this.model.deleteMany({
+      instanceId: { $in: objectIds },
+      organizationId: new Types.ObjectId(organizationId),
+    });
   }
 }

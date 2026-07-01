@@ -1,9 +1,8 @@
 import type { AppConnector } from '@edge/apps-contract';
 
-import { exchangeRateConnector } from './exchange-rate.connector';
+import { canvaConnector } from './canva.connector';
 import { gcalConnector } from './gcal.connector';
 import { onedriveConnector } from './onedrive.connector';
-import { rssConnector } from './rss.connector';
 import { weatherConnector } from './weather.connector';
 
 /**
@@ -15,10 +14,9 @@ import { weatherConnector } from './weather.connector';
  */
 const CONNECTORS: Record<string, AppConnector> = {
   weather: weatherConnector,
-  rss: rssConnector,
-  fx: exchangeRateConnector,
   gcal: gcalConnector,
   onedrive: onedriveConnector,
+  canva: canvaConnector,
 };
 
 /** The connector for `slug`, or undefined for `static` apps / unknown slugs. */

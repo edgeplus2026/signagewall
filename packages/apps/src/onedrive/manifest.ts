@@ -29,6 +29,7 @@ export const onedriveManifest: AppManifest = {
       type: 'oauth',
       label: 'Microsoft account',
       required: true,
+      provider: 'microsoft',
     },
     {
       key: 'itemId',

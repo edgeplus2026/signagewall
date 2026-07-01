@@ -87,14 +87,16 @@ export class AppInstancesController {
     return this.instancesService.updateConfig(organizationId, id, dto.config);
   }
 
-  @Post(':id/duplicate')
+  @Delete(':id/connection')
   @RequireOrgRole()
   @ApiSuccessResponse(Object)
-  duplicate(
+  disconnect(
     @RequiredOrganizationId() organizationId: string,
     @Param('id') id: string,
   ) {
-    return this.instancesService.duplicate(organizationId, id);
+    // Disconnect the instance's OAuth account: delete the connection and clear
+    // `connectionId` so the config form shows the connect prompt again.
+    return this.instancesService.disconnect(organizationId, id);
   }
 
   @Delete(':id')

@@ -3,12 +3,17 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { buildConfigZod, buildDefaultConfig } from '@edge/apps-contract';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { TransactionService } from '../../common/services/transaction.service';
 import { ConnectionsService } from '../connections/connections.service';
 import { GraphWebhookService } from '../connections/webhooks/graph-webhook.service';
 import {
   AppInstanceChangedEvent,
   PlayerEvents,
+  PlaylistChangedEvent,
+  ScreenContentChangedEvent,
 } from '../player/player.events';
+import { PlaylistsRepository } from '../playlists/playlists.repository';
+import { ScreensService } from '../screens/screens.service';
 import { cacheKeyForInstance } from './connectors/cache-key.util';
 import { getConnector } from './connectors/connector-registry';
 import { AppInstancesRepository } from './app-instances.repository';
@@ -31,6 +36,10 @@ export class AppInstancesService {
     private readonly graphWebhookService: GraphWebhookService,
     @Inject(forwardRef(() => ConnectionsService))
     private readonly connectionsService: ConnectionsService,
+    private readonly transactionService: TransactionService,
+    private readonly playlistsRepository: PlaylistsRepository,
+    @Inject(forwardRef(() => ScreensService))
+    private readonly screensService: ScreensService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -121,6 +130,7 @@ export class AppInstancesService {
     // org's private data (calendar/files) onto its own screens.
     await this.assertConnectionOwned(
       organizationId,
+      id,
       instance.appSlug,
       result.data,
     );
@@ -145,6 +155,62 @@ export class AppInstancesService {
   }
 
   /**
+   * Bind a freshly created OAuth connection to an instance's config (called from
+   * the connections callback after `handleCallback`). Writes only `connectionId`
+   * — the rest of the form (e.g. Canva's `design`) is filled in by the operator
+   * afterwards, so this intentionally skips full-schema validation. The
+   * connection must already be owned by this instance (per-instance ownership).
+   */
+  async bindConnection(
+    organizationId: string,
+    instanceId: string,
+    connectionId: string,
+  ): Promise<AppInstanceResponseDto> {
+    const instance = await this.requireInstance(organizationId, instanceId);
+    await this.connectionsService.assertOwnedByInstance(
+      organizationId,
+      instanceId,
+      connectionId,
+    );
+    const config = { ...instance.config, connectionId };
+    const updated = await this.instancesRepository.updateById(
+      organizationId,
+      instanceId,
+      { config },
+    );
+    this.eventEmitter.emit(PlayerEvents.AppInstanceChanged, {
+      organizationId,
+      instanceId,
+    } satisfies AppInstanceChangedEvent);
+    return toAppInstanceResponse(updated!);
+  }
+
+  /**
+   * Disconnect an instance's account: delete its owned connection and clear
+   * `connectionId` from its config (the config form then shows the connect
+   * prompt again).
+   */
+  async disconnect(
+    organizationId: string,
+    instanceId: string,
+  ): Promise<AppInstanceResponseDto> {
+    const instance = await this.requireInstance(organizationId, instanceId);
+    await this.connectionsService.deleteByInstance(organizationId, instanceId);
+    const config = { ...instance.config };
+    delete config.connectionId;
+    const updated = await this.instancesRepository.updateById(
+      organizationId,
+      instanceId,
+      { config },
+    );
+    this.eventEmitter.emit(PlayerEvents.AppInstanceChanged, {
+      organizationId,
+      instanceId,
+    } satisfies AppInstanceChangedEvent);
+    return toAppInstanceResponse(updated!);
+  }
+
+  /**
    * When the app is `connected` (has an OAuth descriptor) and the config carries
    * a `connectionId`, assert that connection belongs to `organizationId`.
    * Cross-org references are rejected as a bad request — closing an IDOR that
@@ -153,6 +219,7 @@ export class AppInstancesService {
    */
   private async assertConnectionOwned(
     organizationId: string,
+    instanceId: string,
     appSlug: string,
     config: Record<string, unknown>,
   ): Promise<void> {
@@ -163,7 +230,14 @@ export class AppInstancesService {
     if (typeof connectionId !== 'string' || !connectionId) {
       return;
     }
-    await this.connectionsService.assertOwned(organizationId, connectionId);
+    // Per-instance ownership: the connection must belong to THIS instance (and
+    // org) — closing an IDOR that would otherwise let one instance reference
+    // another instance's (or tenant's) private connection.
+    await this.connectionsService.assertOwnedByInstance(
+      organizationId,
+      instanceId,
+      connectionId,
+    );
   }
 
   /**
@@ -202,29 +276,109 @@ export class AppInstancesService {
     }
   }
 
-  async duplicate(
-    organizationId: string,
-    id: string,
-  ): Promise<AppInstanceResponseDto> {
-    const source = await this.requireInstance(organizationId, id);
-    const copy = await this.instancesRepository.create({
-      organizationId,
-      appId: source.appId.toString(),
-      appSlug: source.appSlug,
-      name: `${source.name} (copy)`,
-      config: { ...source.config },
-      configVersion: source.configVersion,
+  async remove(organizationId: string, id: string): Promise<void> {
+    // 404 up front so a bad id can't run a partial cascade.
+    await this.requireInstance(organizationId, id);
+
+    // Purge the instance's references from playlists and screens, then delete it
+    // — all in one transaction so content never points at a missing instance.
+    let affectedScreenIds: string[] = [];
+    let affectedPlaylistIds: string[] = [];
+    await this.transactionService.run(async (session) => {
+      affectedScreenIds = await this.screensService.purgeAppInstanceReferences(
+        organizationId,
+        [id],
+        session,
+      );
+      affectedPlaylistIds = await this.playlistsRepository.removeAppInstances(
+        organizationId,
+        [id],
+        session,
+      );
+      const deleted = await this.instancesRepository.deleteById(
+        organizationId,
+        id,
+        session,
+      );
+      if (!deleted) {
+        throw BusinessException.notFound('Instance not found');
+      }
     });
-    return toAppInstanceResponse(copy);
+
+    // Strict per-instance ownership: drop the connection this instance owned.
+    await this.connectionsService.deleteByInstance(organizationId, id);
+
+    // Emit after commit so the realtime resolver reads post-delete state. Screens
+    // that held the app directly re-resolve; playlists that held it notify every
+    // screen referencing them.
+    for (const screenId of affectedScreenIds) {
+      this.eventEmitter.emit(PlayerEvents.ScreenContentChanged, {
+        organizationId,
+        screenId,
+      } satisfies ScreenContentChangedEvent);
+    }
+    for (const playlistId of affectedPlaylistIds) {
+      this.eventEmitter.emit(PlayerEvents.PlaylistChanged, {
+        organizationId,
+        playlistId,
+      } satisfies PlaylistChangedEvent);
+    }
   }
 
-  async remove(organizationId: string, id: string): Promise<void> {
-    const deleted = await this.instancesRepository.deleteById(
+  /**
+   * Remove EVERY instance of an app for an org, cascading the same way as
+   * {@link remove}: purge the instances' references from playlists and screens,
+   * delete the instances, and drop their owned connections. Used when an app is
+   * uninstalled so uninstall can never leave dangling references or orphaned
+   * connections behind.
+   */
+  async removeAllForApp(organizationId: string, appId: string): Promise<void> {
+    const instances = await this.instancesRepository.findByApp(
       organizationId,
-      id,
+      appId,
     );
-    if (!deleted) {
-      throw BusinessException.notFound('Instance not found');
+    if (instances.length === 0) {
+      return;
+    }
+    const instanceIds = instances.map((instance) => instance._id.toString());
+
+    let affectedScreenIds: string[] = [];
+    let affectedPlaylistIds: string[] = [];
+    await this.transactionService.run(async (session) => {
+      affectedScreenIds = await this.screensService.purgeAppInstanceReferences(
+        organizationId,
+        instanceIds,
+        session,
+      );
+      affectedPlaylistIds = await this.playlistsRepository.removeAppInstances(
+        organizationId,
+        instanceIds,
+        session,
+      );
+      await this.instancesRepository.deleteByApp(
+        organizationId,
+        appId,
+        session,
+      );
+    });
+
+    // Strict per-instance ownership: drop every connection these instances owned.
+    await this.connectionsService.deleteByInstances(
+      organizationId,
+      instanceIds,
+    );
+
+    for (const screenId of affectedScreenIds) {
+      this.eventEmitter.emit(PlayerEvents.ScreenContentChanged, {
+        organizationId,
+        screenId,
+      } satisfies ScreenContentChangedEvent);
+    }
+    for (const playlistId of affectedPlaylistIds) {
+      this.eventEmitter.emit(PlayerEvents.PlaylistChanged, {
+        organizationId,
+        playlistId,
+      } satisfies PlaylistChangedEvent);
     }
   }
 

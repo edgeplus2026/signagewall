@@ -26,6 +26,13 @@ export interface AppConnector<Config = Record<string, unknown>, Payload = unknow
 
   /** OAuth descriptor for `connected` apps; absent for plain `server` apps. */
   oauth?: OAuthDescriptor
+
+  /**
+   * Optional per-connector fetch budget (ms) overriding the host default. Raise
+   * it for connectors whose upstream is a slow async job — e.g. Canva mp4 export
+   * (video rendering) can take far longer than the default image/JSON fetch.
+   */
+  timeoutMs?: number
 }
 
 export interface ConnectorContext {
@@ -38,6 +45,13 @@ export interface ConnectorContext {
   organizationId?: string
   /** Resolved connection (decrypted tokens) for `connected` apps. */
   connection?: ResolvedConnection
+  /**
+   * The `secrets` this connector persisted on its previous fetch for this cache
+   * key (server-side only; never from the player). Lets a connector be a state
+   * machine across fetches — e.g. remember an in-flight async export job and
+   * check it on the next tick instead of blocking. Undefined on the first fetch.
+   */
+  secrets?: Record<string, unknown>
   /** Structured logger from the host. */
   logger: ConnectorLogger
   signal?: AbortSignal
@@ -50,8 +64,19 @@ export interface ConnectorLogger {
 }
 
 export interface ConnectorResult<Payload> {
-  /** Public, sanitized data sent to the player. */
-  playerPayload: Payload
+  /**
+   * Public, sanitized data sent to the player. Optional only for a `pending`
+   * result (an async job is still running) — the host then keeps the last-known
+   * payload on screen. A normal (non-pending) result must provide it.
+   */
+  playerPayload?: Payload
+  /**
+   * True when the result isn't final because an async upstream job is still in
+   * progress (e.g. a Canva video export). The host preserves the existing cached
+   * payload, persists {@link secrets}, and re-checks on the next tick until the
+   * connector returns a final payload.
+   */
+  pending?: boolean
   /** Optional private data persisted server-side only (never sent to players). */
   secrets?: Record<string, unknown>
   /**
@@ -66,6 +91,8 @@ export interface ConnectorResult<Payload> {
 
 export interface ResolvedConnection {
   id: string
+  /** The OAuth provider this connection belongs to (e.g. 'google', 'canva'). */
+  provider: string
   accountLabel: string
   accessToken: string
   refreshToken?: string

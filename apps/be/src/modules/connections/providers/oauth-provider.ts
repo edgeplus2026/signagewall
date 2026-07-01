@@ -19,6 +19,11 @@ export interface OAuthStartParams {
   redirectUri: string;
   state: string;
   scopes: string[];
+  /**
+   * PKCE code challenge (S256 of the code verifier). Set only for providers that
+   * require PKCE (e.g. Canva); other providers ignore it.
+   */
+  codeChallenge?: string;
 }
 
 /**
@@ -38,6 +43,8 @@ export interface OAuthProvider {
     clientSecret: string;
     redirectUri: string;
     code: string;
+    /** PKCE code verifier; required by providers that issued a code challenge. */
+    codeVerifier?: string;
   }): Promise<OAuthExchangeResult>;
 
   /** Exchange a refresh token for a fresh access token. */

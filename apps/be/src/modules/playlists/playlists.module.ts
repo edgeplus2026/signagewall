@@ -19,7 +19,7 @@ import { Playlist, PlaylistSchema } from './schemas/playlist.schema';
       { name: Playlist.name, schema: PlaylistSchema },
     ]),
     OrganizationsModule,
-    AppsModule,
+    forwardRef(() => AppsModule),
     forwardRef(() => MediaModule),
     forwardRef(() => ScreensModule),
   ],

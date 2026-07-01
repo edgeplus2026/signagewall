@@ -17,6 +17,7 @@ interface Built {
   service: AppDataService;
   fetchData: jest.Mock;
   upsertPayload: jest.Mock;
+  upsertPending: jest.Mock;
   emit: jest.Mock;
   cacheByKey: Map<string, { payload: unknown; fetchedAt?: Date }>;
 }
@@ -32,21 +33,29 @@ function buildService(options: {
       version?: string;
       lastAttemptAt?: Date;
       lastError?: string;
+      pending?: boolean;
+      secrets?: Record<string, unknown>;
     }
   >;
   /** Payload the (single) connector returns each fetch. */
   payload?: unknown;
   /** Stable version (ETag) the connector returns each fetch. */
   version?: string;
+  /** When true, the connector reports an in-flight async job (pending). */
+  pending?: boolean;
 }): Built {
   const cacheByKey = new Map(
     Object.entries(options.cache ?? {}).map(([key, value]) => [key, value]),
   );
 
-  const fetchData = jest.fn().mockResolvedValue({
-    playerPayload: options.payload ?? { value: 1 },
-    ...(options.version ? { version: options.version } : {}),
-  });
+  const fetchData = jest.fn().mockResolvedValue(
+    options.pending
+      ? { pending: true, secrets: { job: { id: 'job-x' } } }
+      : {
+          playerPayload: options.payload ?? { value: 1 },
+          ...(options.version ? { version: options.version } : {}),
+        },
+  );
   // Every instance here uses the `weather` slug → one connector, keyed by
   // location, so distinct locations make distinct cache keys.
   jest.spyOn(registry, 'getConnector').mockReturnValue({
@@ -63,6 +72,21 @@ function buildService(options: {
     (data: { cacheKey: string; payload: unknown; fetchedAt?: Date }) =>
       Promise.resolve({ ...data }),
   );
+  const upsertPending = jest.fn(
+    (
+      cacheKey: string,
+      _slug: string,
+      _refreshSeconds: number,
+      secrets: Record<string, unknown> | undefined,
+    ) =>
+      // Preserve the last-known payload (like the real repo does).
+      Promise.resolve({
+        cacheKey,
+        ...(cacheByKey.get(cacheKey) ?? {}),
+        pending: true,
+        secrets,
+      }),
+  );
   const cacheRepository = {
     findByCacheKeys: jest.fn((keys: string[]) =>
       Promise.resolve(
@@ -76,6 +100,7 @@ function buildService(options: {
       ),
     ),
     upsertPayload,
+    upsertPending,
     recordError: jest.fn().mockResolvedValue(undefined),
   };
   const emit = jest.fn();
@@ -93,7 +118,7 @@ function buildService(options: {
     connectionsService as never,
   );
 
-  return { service, fetchData, upsertPayload, emit, cacheByKey };
+  return { service, fetchData, upsertPayload, upsertPending, emit, cacheByKey };
 }
 
 // The service reads `refreshSeconds` from APP_MANIFESTS; weather is 900s.
@@ -339,5 +364,65 @@ describe('AppDataService.refreshDue', () => {
 
     await expect(service.refreshDue(NOW)).resolves.toBe(1);
     expect(emit).not.toHaveBeenCalled();
+  });
+});
+
+describe('AppDataService async export jobs (pending)', () => {
+  it('persists the job (upsertPending) and does not fan out while pending', async () => {
+    const { service, upsertPending, upsertPayload, emit } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      pending: true,
+    });
+
+    const fetched = await service.refreshDue(NOW);
+
+    expect(fetched).toBe(1);
+    expect(upsertPending).toHaveBeenCalledTimes(1);
+    // Pending preserves the last-known payload — never writes a new one…
+    expect(upsertPayload).not.toHaveBeenCalled();
+    // …and there's nothing new to fan out.
+    expect(emit).not.toHaveBeenCalled();
+  });
+
+  it('re-checks a pending entry every tick (due even within cadence)', async () => {
+    const { service, fetchData } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      pending: true,
+      cache: {
+        'weather:belgrade': {
+          payload: { value: 1 },
+          // Attempted seconds ago — normally NOT due (900s cadence) — but a
+          // pending job is re-checked every tick.
+          lastAttemptAt: new Date(NOW.getTime() - 5_000),
+          fetchedAt: new Date(NOW.getTime() - 5_000),
+          pending: true,
+        },
+      },
+    });
+
+    await service.refreshDue(NOW);
+    expect(fetchData).toHaveBeenCalledTimes(1);
+  });
+
+  it('getPreviewData reports pending and keeps the last-known payload', async () => {
+    const { service } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      pending: true,
+      cache: {
+        'weather:belgrade': {
+          payload: { url: 'old' },
+          // Stale (older than cadence) so it doesn't short-circuit as fresh.
+          fetchedAt: new Date(NOW.getTime() - 20 * 60_000),
+          pending: true,
+        },
+      },
+    });
+
+    const result = await service.getPreviewData('weather', {
+      location: 'belgrade',
+    });
+
+    expect(result.meta?.pending).toBe(true);
+    expect(result.data).toEqual({ url: 'old' });
   });
 });

@@ -21,6 +21,7 @@ import {
   MediaItemStatus,
   MediaItemType,
 } from '../media/schemas/media-item.schema';
+import { AddPlaylistAppsDto } from './dto/add-playlist-apps.dto';
 import { AddPlaylistMediaDto } from './dto/add-playlist-media.dto';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { DuplicatePlaylistDto } from './dto/duplicate-playlist.dto';
@@ -260,6 +261,64 @@ export class PlaylistsService {
           items,
           addedDuration,
           setCover,
+        );
+      }),
+    );
+
+    for (const playlist of playlists) {
+      this.emitPlaylistChanged(organizationId, playlist._id.toString());
+    }
+  }
+
+  /**
+   * Append app instances to one or more playlists (additive, from the "Add to
+   * playlist" action). Mirrors {@link addMedia}: validates the instances exist,
+   * appends `app` items at a fixed default duration, and notifies players.
+   */
+  async addApps(
+    organizationId: string,
+    dto: AddPlaylistAppsDto,
+  ): Promise<void> {
+    const playlistIds = [...new Set(dto.playlistIds)];
+    const appInstanceIds = [...new Set(dto.appInstanceIds)];
+
+    await this.validateAppItems(organizationId, appInstanceIds);
+
+    const playlists = await this.playlistsRepository.findSummariesByIds(
+      organizationId,
+      playlistIds,
+    );
+
+    if (playlists.length !== playlistIds.length) {
+      throw BusinessException.notFound(this.i18n.t('playlists.notFound'));
+    }
+
+    for (const playlist of playlists) {
+      if (playlist.itemCount + appInstanceIds.length > MAX_PLAYLIST_ITEMS) {
+        throw BusinessException.badRequest(
+          this.i18n.t('playlists.maxItemsExceeded'),
+        );
+      }
+    }
+
+    await Promise.all(
+      playlists.map((playlist) => {
+        const baseOrder = playlist.itemCount;
+        const items = appInstanceIds.map((appInstanceId, index) => ({
+          _id: new Types.ObjectId(),
+          type: PlaylistItemType.APP,
+          appInstanceId: new Types.ObjectId(appInstanceId),
+          order: baseOrder + index,
+          duration: DEFAULT_ITEM_DURATION,
+          disabled: false,
+        }));
+        const addedDuration = items.length * DEFAULT_ITEM_DURATION;
+        // App items carry no media cover, so never set the playlist cover here.
+        return this.playlistsRepository.appendItems(
+          organizationId,
+          playlist._id.toString(),
+          items,
+          addedDuration,
         );
       }),
     );

@@ -5,6 +5,8 @@ import { FieldGroup } from '@/components/ui/field'
 import { CollapsibleSection } from '@/features/apps/config-form/CollapsibleSection'
 import { FieldRenderer } from '@/features/apps/config-form/FieldRenderer'
 import { AppSlugProvider } from '@/features/apps/config-form/appSlugContext'
+import { ConfigValuesProvider } from '@/features/apps/config-form/configValuesContext'
+import { InstanceIdProvider } from '@/features/apps/config-form/instanceIdContext'
 
 type ConfigValues = Record<string, unknown>
 
@@ -31,6 +33,8 @@ interface SchemaFormProps {
   nameField?: NameField
   /** The app slug, so the `oauth` control can start the right OAuth flow. */
   appSlug?: string
+  /** The instance id, so the `oauth` control can connect/disconnect this instance. */
+  instanceId?: string
   disabled?: boolean | undefined
 }
 
@@ -80,6 +84,7 @@ export function SchemaForm({
   onChange,
   nameField,
   appSlug,
+  instanceId,
   disabled,
 }: SchemaFormProps) {
   // Only surface a field's error once it has been interacted with.
@@ -138,6 +143,8 @@ export function SchemaForm({
 
   return (
     <AppSlugProvider value={appSlug ?? null}>
+      <InstanceIdProvider value={instanceId ?? null}>
+      <ConfigValuesProvider value={value}>
       <div className="flex flex-col gap-4">
         {sections.map((section, index) => {
           // First (untitled, always-open) section also carries the name field.
@@ -179,6 +186,8 @@ export function SchemaForm({
           )
         })}
       </div>
+      </ConfigValuesProvider>
+      </InstanceIdProvider>
     </AppSlugProvider>
   )
 }

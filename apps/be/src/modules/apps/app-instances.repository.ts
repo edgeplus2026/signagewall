@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 
 import type { AppInstanceConfig } from '@edge/apps-contract';
 
@@ -127,26 +127,52 @@ export class AppInstancesRepository {
       .exec();
   }
 
-  async deleteById(organizationId: string, id: string): Promise<boolean> {
+  async deleteById(
+    organizationId: string,
+    id: string,
+    session?: ClientSession,
+  ): Promise<boolean> {
     if (!Types.ObjectId.isValid(id)) return false;
-    const result = await this.model
-      .deleteOne({
-        _id: new Types.ObjectId(id),
-        organizationId: new Types.ObjectId(organizationId),
-      })
-      .exec();
+    const query = this.model.deleteOne({
+      _id: new Types.ObjectId(id),
+      organizationId: new Types.ObjectId(organizationId),
+    });
+    if (session) {
+      query.session(session);
+    }
+    const result = await query.exec();
     return result.deletedCount > 0;
   }
 
-  /** Remove all instances of an app for an org (used when uninstalling). */
-  async deleteByApp(organizationId: string, appId: string): Promise<number> {
-    if (!Types.ObjectId.isValid(appId)) return 0;
-    const result = await this.model
-      .deleteMany({
+  /** All instances of an app for an org (used to cascade-clean on uninstall). */
+  async findByApp(
+    organizationId: string,
+    appId: string,
+  ): Promise<AppInstanceDocument[]> {
+    if (!Types.ObjectId.isValid(appId)) return [];
+    return this.model
+      .find({
         organizationId: new Types.ObjectId(organizationId),
         appId: new Types.ObjectId(appId),
       })
       .exec();
+  }
+
+  /** Remove all instances of an app for an org (used when uninstalling). */
+  async deleteByApp(
+    organizationId: string,
+    appId: string,
+    session?: ClientSession,
+  ): Promise<number> {
+    if (!Types.ObjectId.isValid(appId)) return 0;
+    const query = this.model.deleteMany({
+      organizationId: new Types.ObjectId(organizationId),
+      appId: new Types.ObjectId(appId),
+    });
+    if (session) {
+      query.session(session);
+    }
+    const result = await query.exec();
     return result.deletedCount;
   }
 }

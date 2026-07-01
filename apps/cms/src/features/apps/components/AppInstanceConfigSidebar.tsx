@@ -50,6 +50,7 @@ export function AppInstanceConfigSidebar({
           onChange: onNameChange,
         }}
         appSlug={app.slug}
+        instanceId={instanceId}
       />
     </aside>
   )

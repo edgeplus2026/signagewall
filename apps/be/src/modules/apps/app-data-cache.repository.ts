@@ -14,6 +14,8 @@ export interface UpsertCacheData {
   fetchedAt: Date;
   refreshSeconds: number;
   version?: string;
+  /** Private connector state to persist (job id, etc.); never sent to players. */
+  secrets?: Record<string, unknown>;
 }
 
 @Injectable()
@@ -49,12 +51,43 @@ export class AppDataCacheRepository {
           lastAttemptAt: data.fetchedAt,
           refreshSeconds: data.refreshSeconds,
           ...(data.version ? { version: data.version } : {}),
+          // A final result clears the in-flight-job state and pending flag.
+          secrets: data.secrets ?? null,
+          pending: false,
         },
         $unset: { lastError: '' },
       },
       { new: true, upsert: true },
     );
     return updated;
+  }
+
+  /**
+   * Record that a connector's async job is still in progress: persist the new
+   * connector `secrets` (job id, etc.) and mark the entry pending, but KEEP the
+   * last-known payload/version/fetchedAt so the screen doesn't blank while the
+   * job runs. Only `lastAttemptAt` advances. Returns the saved document.
+   */
+  async upsertPending(
+    cacheKey: string,
+    slug: string,
+    refreshSeconds: number,
+    secrets: Record<string, unknown> | undefined,
+  ): Promise<AppDataCacheDocument> {
+    return this.model.findOneAndUpdate(
+      { cacheKey },
+      {
+        $set: {
+          slug,
+          refreshSeconds,
+          lastAttemptAt: new Date(),
+          pending: true,
+          secrets: secrets ?? null,
+        },
+        $unset: { lastError: '' },
+      },
+      { new: true, upsert: true },
+    );
   }
 
   /**
@@ -77,7 +110,10 @@ export class AppDataCacheRepository {
           refreshSeconds,
           lastError: message,
           lastAttemptAt: new Date(),
+          // A failed attempt ends any in-flight job so a retry re-creates it.
+          pending: false,
         },
+        $unset: { secrets: '' },
       },
       { upsert: true },
     );

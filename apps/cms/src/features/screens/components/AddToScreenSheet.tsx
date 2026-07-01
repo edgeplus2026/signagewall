@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
+  useAddAppsToScreens,
   useAddMediaToScreens,
   useAddPlaylistsToScreens,
   useScreens,
@@ -28,7 +29,7 @@ import {
 import { getApiErrorMessage } from "@/lib/api-error"
 import { cn } from "@/lib/utils"
 
-type AddToScreenMode = "media" | "playlists"
+type AddToScreenMode = "media" | "playlists" | "apps"
 
 interface AddToScreenSheetProps {
   open: boolean
@@ -36,6 +37,7 @@ interface AddToScreenSheetProps {
   mode: AddToScreenMode
   mediaIds?: string[]
   playlistIds?: string[]
+  appInstanceIds?: string[]
   onSuccess?: () => void
 }
 
@@ -45,12 +47,14 @@ export function AddToScreenSheet({
   mode,
   mediaIds = [],
   playlistIds = [],
+  appInstanceIds = [],
   onSuccess,
 }: AddToScreenSheetProps) {
   const { t } = useTranslation()
   const { data: screens = [], isLoading } = useScreens()
   const addMedia = useAddMediaToScreens()
   const addPlaylists = useAddPlaylistsToScreens()
+  const addApps = useAddAppsToScreens()
   const [search, setSearch] = useState("")
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
@@ -90,6 +94,9 @@ export function AddToScreenSheet({
       if (mode === "media") {
         if (mediaIds.length === 0) return
         await addMedia.mutateAsync({ screenIds: screenIdList, mediaIds })
+      } else if (mode === "apps") {
+        if (appInstanceIds.length === 0) return
+        await addApps.mutateAsync({ screenIds: screenIdList, appInstanceIds })
       } else {
         if (playlistIds.length === 0) return
         await addPlaylists.mutateAsync({
@@ -108,8 +115,14 @@ export function AddToScreenSheet({
   }
 
   const hasActiveSearch = search.trim().length > 0
-  const isPending = addMedia.isPending || addPlaylists.isPending
-  const itemCount = mode === "media" ? mediaIds.length : playlistIds.length
+  const isPending =
+    addMedia.isPending || addPlaylists.isPending || addApps.isPending
+  const itemCount =
+    mode === "media"
+      ? mediaIds.length
+      : mode === "apps"
+        ? appInstanceIds.length
+        : playlistIds.length
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>

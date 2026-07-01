@@ -7,14 +7,15 @@ import {
   playlistScreensQueryKey,
   playlistsQueryKey,
 } from '@/features/playlists/lib/playlistQueryKeys'
-import { screensQueryKey } from '@/features/screens/lib/screenQueryKeys'
 import type {
+  AddAppsToPlaylistsRequest,
   AddMediaToPlaylistsRequest,
   CreatePlaylistRequest,
   Playlist,
   ReplacePlaylistItemsRequest,
   UpdatePlaylistRequest,
 } from '@/features/playlists/types/playlist.types'
+import { screensQueryKey } from '@/features/screens/lib/screenQueryKeys'
 import { ApiError } from '@/lib/api-error'
 
 function invalidatePlaylists(
@@ -192,6 +193,26 @@ export function useAddMediaToPlaylists() {
       // refetches fresh items (the detail is typically not mounted while adding
       // from elsewhere, so invalidation alone wouldn't refetch it). Removing an
       // active detail query refetches it immediately.
+      void queryClient.invalidateQueries({
+        queryKey: playlistsQueryKey(organizationId),
+        exact: true,
+      })
+      variables.playlistIds.forEach((playlistId) => {
+        queryClient.removeQueries({
+          queryKey: playlistDetailQueryKey(organizationId, playlistId),
+        })
+      })
+    },
+  })
+}
+
+export function useAddAppsToPlaylists() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: AddAppsToPlaylistsRequest) => playlistsApi.addApps(payload),
+    onSuccess: (_data, variables) => {
+      const organizationId = useOrganizationStore.getState().activeOrganizationId
       void queryClient.invalidateQueries({
         queryKey: playlistsQueryKey(organizationId),
         exact: true,

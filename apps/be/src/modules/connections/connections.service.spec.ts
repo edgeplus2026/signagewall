@@ -25,6 +25,7 @@ function buildService(options: {
   const updateTokens = jest.fn().mockResolvedValue(undefined);
   const repository = {
     findByIdUnscoped: jest.fn().mockResolvedValue(options.doc ?? null),
+    findById: jest.fn().mockResolvedValue(options.doc ?? null),
     updateTokens,
   };
   const configService = {
@@ -67,6 +68,7 @@ function buildService(options: {
 function connectionDoc(overrides: Record<string, unknown> = {}) {
   return {
     _id: new Types.ObjectId(),
+    instanceId: new Types.ObjectId(),
     provider: ConnectionProvider.GOOGLE,
     accountLabel: 'user@example.com',
     scopes: ['calendar.readonly'],
@@ -77,6 +79,34 @@ function connectionDoc(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+
+describe('ConnectionsService.assertOwnedByInstance (per-instance ownership)', () => {
+  it('passes when the connection belongs to the instance', async () => {
+    const doc = connectionDoc();
+    const { service } = buildService({ doc });
+
+    await expect(
+      service.assertOwnedByInstance(
+        'org-1',
+        doc.instanceId.toString(),
+        doc._id.toString(),
+      ),
+    ).resolves.toBeUndefined();
+  });
+
+  it('rejects a connection owned by a different instance', async () => {
+    const doc = connectionDoc();
+    const { service } = buildService({ doc });
+
+    await expect(
+      service.assertOwnedByInstance(
+        'org-1',
+        new Types.ObjectId().toString(), // a different instance
+        doc._id.toString(),
+      ),
+    ).rejects.toThrow(/not found/i);
+  });
+});
 
 describe('ConnectionsService.resolveConnection', () => {
   it('returns decrypted tokens without refreshing a fresh connection', async () => {

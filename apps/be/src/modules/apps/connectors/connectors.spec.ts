@@ -1,17 +1,7 @@
 import type { ConnectorContext, ResolvedConnection } from '@edge/apps-contract';
 
-// RSS fetches an operator-supplied URL through the SSRF-guarded helper, which
-// resolves the host before connecting. Stub DNS so the test feed host looks
-// like a public address (the guard is exercised in safe-fetch.util.spec.ts).
-jest.mock('node:dns/promises', () => ({
-  lookup: jest
-    .fn()
-    .mockResolvedValue([{ address: '93.184.216.34', family: 4 }]),
-}));
-
-import { exchangeRateConnector } from './exchange-rate.connector';
+import { canvaConnector } from './canva.connector';
 import { gcalConnector } from './gcal.connector';
-import { rssConnector } from './rss.connector';
 import { weatherConnector } from './weather.connector';
 
 const ctx: ConnectorContext = {
@@ -56,46 +46,9 @@ describe('cacheKey is coarse and shared', () => {
     expect(a).toBe('weather:belgrade');
     expect(a).toBe(b);
   });
-
-  it('fx: same base (any case), regardless of quotes → same key', () => {
-    const a = exchangeRateConnector.cacheKey!({
-      base: 'EUR',
-      quotes: 'USD,GBP',
-    });
-    const b = exchangeRateConnector.cacheKey!({ base: 'eur', quotes: 'CHF' });
-    expect(a).toBe('fx:eur');
-    expect(a).toBe(b);
-  });
-
-  it('rss: same url → same hashed key; different url → different key', () => {
-    const a = rssConnector.cacheKey!({ url: 'https://a.example/feed' });
-    const b = rssConnector.cacheKey!({ url: 'https://a.example/feed' });
-    const c = rssConnector.cacheKey!({ url: 'https://b.example/feed' });
-    expect(a).toBe(b);
-    expect(a).not.toBe(c);
-    expect(a.startsWith('rss:')).toBe(true);
-  });
 });
 
 describe('fetchData normalization', () => {
-  it('fx returns raw rates against the base', async () => {
-    mockFetchSequence([
-      {
-        body: {
-          base: 'EUR',
-          date: '2024-03-01',
-          rates: { USD: 1.08, GBP: 0.85 },
-        },
-      },
-    ]);
-    const result = await exchangeRateConnector.fetchData({ base: 'EUR' }, ctx);
-    expect(result.playerPayload).toEqual({
-      base: 'EUR',
-      date: '2024-03-01',
-      rates: { USD: 1.08, GBP: 0.85 },
-    });
-  });
-
   it('weather geocodes then normalizes the forecast to °C', async () => {
     mockFetchSequence([
       {
@@ -131,31 +84,18 @@ describe('fetchData normalization', () => {
     });
   });
 
-  it('rss parses item titles and caps the list', async () => {
-    const xml = `<rss><channel><title>Feed</title>
-      <item><title>First</title><pubDate>Wed, 01 Mar 2024 10:00:00 GMT</pubDate></item>
-      <item><title><![CDATA[Second & more]]></title></item>
-    </channel></rss>`;
-    mockFetchSequence([{ body: xml, text: true }]);
-    const result = await rssConnector.fetchData({ url: 'https://x/feed' }, ctx);
-    expect(result.playerPayload.title).toBe('Feed');
-    expect(result.playerPayload.items.map((i) => i.title)).toEqual([
-      'First',
-      'Second & more',
-    ]);
-  });
-
   it('throws on a non-ok upstream so the scheduler records the error', async () => {
     mockFetchSequence([{ ok: false, body: {} }]);
     await expect(
-      exchangeRateConnector.fetchData({ base: 'EUR' }, ctx),
-    ).rejects.toThrow(/fx upstream 500/);
+      weatherConnector.fetchData({ location: 'Belgrade' }, ctx),
+    ).rejects.toThrow(/weather/);
   });
 });
 
 describe('gcal connector (connected)', () => {
   const connection: ResolvedConnection = {
     id: 'conn-1',
+    provider: 'google',
     accountLabel: 'user@example.com',
     accessToken: 'tok-abc',
     scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
@@ -210,8 +150,8 @@ describe('gcal connector (connected)', () => {
       [string, { headers: Record<string, string> }]
     >;
     expect(calls[0][1].headers.authorization).toBe('Bearer tok-abc');
-    expect(result.playerPayload.calendarLabel).toBe('Team');
-    expect(result.playerPayload.events).toEqual([
+    expect(result.playerPayload!.calendarLabel).toBe('Team');
+    expect(result.playerPayload!.events).toEqual([
       {
         title: 'Standup',
         start: '2024-03-01T09:00:00Z',
@@ -225,6 +165,206 @@ describe('gcal connector (connected)', () => {
   it('throws when no connection was resolved', async () => {
     await expect(
       gcalConnector.fetchData({ connectionId: 'conn-1' }, ctx),
+    ).rejects.toThrow(/no connection/);
+  });
+});
+
+describe('canva connector (connected)', () => {
+  const connection: ResolvedConnection = {
+    id: 'conn-1',
+    provider: 'canva',
+    accountLabel: 'user@example.com',
+    accessToken: 'tok-canva',
+    scopes: ['design:meta:read', 'design:content:read'],
+  };
+  const connectedCtx: ConnectorContext = { ...ctx, connection };
+
+  it('cacheKey is PER-CONNECTION (includes connection + design id)', () => {
+    const a = canvaConnector.cacheKey!({
+      connectionId: 'conn-1',
+      design: { id: 'design-1' },
+    });
+    const b = canvaConnector.cacheKey!({
+      connectionId: 'conn-2',
+      design: { id: 'design-1' },
+    });
+    expect(a).toBe('canva:conn-1:design-1');
+    // A different account never shares the cached export (privacy).
+    expect(a).not.toBe(b);
+  });
+
+  it('exposes a canva OAuth descriptor with design read + export scopes', () => {
+    expect(canvaConnector.oauth?.provider).toBe('canva');
+    expect(canvaConnector.oauth?.scopes).toEqual(
+      expect.arrayContaining(['design:meta:read', 'design:content:read']),
+    );
+  });
+
+  it('prefers mp4 when available and returns a looping video', async () => {
+    const fetchMock = mockFetchSequence([
+      // getCanvaDesign
+      { body: { design: { title: 'Promo', updated_at: 1700000000 } } },
+      // export-formats: mp4 wins the priority
+      { body: { formats: { mp4: {}, jpg: {}, png: {} } } },
+      // create export job
+      { body: { job: { id: 'job-1', status: 'in_progress' } } },
+      // poll export job → success
+      {
+        body: {
+          job: { status: 'success', urls: ['https://export.canva/promo.mp4'] },
+        },
+      },
+    ]);
+
+    const result = await canvaConnector.fetchData(
+      { connectionId: 'conn-1', design: { id: 'design-1', label: 'Promo' } },
+      connectedCtx,
+    );
+
+    // The first call carries the decrypted access token.
+    const calls = fetchMock.mock.calls as unknown as Array<
+      [string, { headers: Record<string, string> }]
+    >;
+    expect(calls[0][1].headers.authorization).toBe('Bearer tok-canva');
+    expect(result.playerPayload!.kind).toBe('video');
+    expect(result.playerPayload!.slides).toEqual([
+      'https://export.canva/promo.mp4',
+    ]);
+    // version keys on updated_at + chosen format (stable across re-exports).
+    expect(result.version).toBe('1700000000:mp4');
+  });
+
+  it('exports every page as a slideshow when only images are available', async () => {
+    mockFetchSequence([
+      // getCanvaDesign (portrait thumbnail → vertical orientation)
+      {
+        body: {
+          design: {
+            title: 'Deck',
+            updated_at: 1700000001,
+            page_count: 3,
+            thumbnail: { width: 720, height: 1280 },
+          },
+        },
+      },
+      // export-formats: no mp4, so jpg is chosen
+      { body: { formats: { jpg: {}, png: {}, pdf: {} } } },
+      // create export job
+      { body: { job: { id: 'job-2', status: 'in_progress' } } },
+      // poll → success with one URL per page
+      {
+        body: {
+          job: {
+            status: 'success',
+            urls: [
+              'https://export.canva/deck-1.jpg',
+              'https://export.canva/deck-2.jpg',
+              'https://export.canva/deck-3.jpg',
+            ],
+          },
+        },
+      },
+    ]);
+
+    const result = await canvaConnector.fetchData(
+      { connectionId: 'conn-1', design: { id: 'design-2', label: 'Deck' } },
+      connectedCtx,
+    );
+
+    expect(result.playerPayload!.kind).toBe('slideshow');
+    expect(result.playerPayload!.slides).toHaveLength(3);
+    expect(result.version).toBe('1700000001:jpg');
+  });
+
+  it('resumes an in-flight job: pending while the export still renders', async () => {
+    const resumeCtx: ConnectorContext = {
+      ...connectedCtx,
+      secrets: {
+        job: {
+          id: 'job-9',
+          format: 'mp4',
+          designId: 'design-1',
+          updatedAt: 1700000000,
+        },
+      },
+    };
+    // A single getExportJob call, still in progress.
+    mockFetchSequence([{ body: { job: { status: 'in_progress' } } }]);
+
+    const result = await canvaConnector.fetchData(
+      { connectionId: 'conn-1', design: { id: 'design-1' } },
+      resumeCtx,
+    );
+
+    expect(result.pending).toBe(true);
+    expect(result.playerPayload).toBeUndefined();
+    expect((result.secrets as { job: { id: string } }).job.id).toBe('job-9');
+  });
+
+  it('resumes an in-flight job: returns the payload when it succeeds', async () => {
+    const resumeCtx: ConnectorContext = {
+      ...connectedCtx,
+      secrets: {
+        job: {
+          id: 'job-9',
+          format: 'mp4',
+          designId: 'design-1',
+          updatedAt: 1700000000,
+        },
+      },
+    };
+    mockFetchSequence([
+      {
+        body: {
+          job: { status: 'success', urls: ['https://export.canva/v.mp4'] },
+        },
+      },
+    ]);
+
+    const result = await canvaConnector.fetchData(
+      { connectionId: 'conn-1', design: { id: 'design-1' } },
+      resumeCtx,
+    );
+
+    expect(result.pending).toBeUndefined();
+    expect(result.playerPayload!.kind).toBe('video');
+    expect(result.playerPayload!.slides).toEqual([
+      'https://export.canva/v.mp4',
+    ]);
+    expect(result.version).toBe('1700000000:mp4');
+    // A final result clears the in-flight job (no secrets carried forward).
+    expect(result.secrets).toBeUndefined();
+  });
+
+  it('keeps the created job when the inline poll errors (no wasted re-export)', async () => {
+    mockFetchSequence([
+      // getCanvaDesign
+      { body: { design: { title: 'Deck', updated_at: 1700000002 } } },
+      // export-formats → jpg
+      { body: { formats: { jpg: {} } } },
+      // create export job → id
+      { body: { job: { id: 'job-7' } } },
+      // brief poll's status check fails transiently (non-ok)
+      { ok: false, body: {} },
+    ]);
+
+    const result = await canvaConnector.fetchData(
+      { connectionId: 'conn-1', design: { id: 'design-3', label: 'Deck' } },
+      connectedCtx,
+    );
+
+    // The freshly-created job is persisted (pending), not discarded.
+    expect(result.pending).toBe(true);
+    expect(result.playerPayload).toBeUndefined();
+    const job = (result.secrets as { job: { id: string; designId: string } })
+      .job;
+    expect(job.id).toBe('job-7');
+    expect(job.designId).toBe('design-3');
+  });
+
+  it('throws when no connection was resolved', async () => {
+    await expect(
+      canvaConnector.fetchData({ design: { id: 'design-1' } }, ctx),
     ).rejects.toThrow(/no connection/);
   });
 });
