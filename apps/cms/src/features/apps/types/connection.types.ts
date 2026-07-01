@@ -9,8 +9,8 @@ export interface Connection {
   createdAt: string
 }
 
-/** A Canva design surfaced in the config-form picker (token-free). */
-export interface CanvaDesign {
+/** A resource surfaced in a `remote-select` config field (Canva design, Google calendar…). */
+export interface RemoteOption {
   id: string
   title: string
   thumbnailUrl?: string

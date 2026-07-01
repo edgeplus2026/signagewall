@@ -54,23 +54,25 @@ export class ConnectionsController {
     return this.connectionsService.getSummary(organizationId, id);
   }
 
-  @Get(':id/canva/designs')
+  @Get(':id/browse/:source')
   @ApiOrgScoped()
   @UseGuards(OrgMembershipGuard)
   @RequireOrgRole()
   @ApiSuccessResponse(Object, { isArray: true })
   @ApiOperation({
     summary:
-      'Search the Canva designs reachable through a connection (config form picker).',
+      "Search a connection's resources for a remote-select config field (e.g. Canva designs, Google calendars).",
   })
-  listCanvaDesigns(
+  browse(
     @RequiredOrganizationId() organizationId: string,
     @Param('id') id: string,
+    @Param('source') source: string,
     @Query('query') query?: string,
   ) {
-    return this.connectionsService.listCanvaDesigns(
+    return this.connectionsService.browseRemoteOptions(
       organizationId,
       id,
+      source,
       query ?? '',
     );
   }

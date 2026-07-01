@@ -5,20 +5,21 @@ const GCAL_ICON =
 
 /**
  * Google Calendar — a `connected` app. The operator connects a Google account
- * (OAuth, Faza 3) and picks a calendar; the backend connector fetches upcoming
- * events on its behalf and fans them out. The `oauth` field stores the chosen
- * connection id. Data is fetched per-connection (private), never shared across
- * accounts.
+ * (OAuth + refresh, per-instance) and picks a calendar from a searchable async
+ * dropdown; the backend connector fetches a broad event window and the embed
+ * renders it as a day / week / month / schedule view. View, language, theme and
+ * auto-scroll are display-only (applied by the embed), so instances sharing a
+ * calendar share one fetch. Data is per-connection (private), never shared.
  */
 export const gcalManifest: AppManifest = {
   slug: 'gcal',
   name: 'Google Calendar',
-  tagline: 'Show upcoming events from a Google Calendar',
+  tagline: 'Show a Google Calendar on your screens',
   description:
-    'Display the next events from a connected Google Calendar — great for meeting rooms and lobbies.',
+    'Display a connected Google Calendar as a day, week, month or schedule view — great for meeting rooms and lobbies.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 1,
+  version: 3,
   refreshSeconds: 300,
   icon: GCAL_ICON,
   color: '#4285F4',
@@ -31,19 +32,68 @@ export const gcalManifest: AppManifest = {
       provider: 'google',
     },
     {
-      key: 'calendarId',
-      type: 'text',
-      label: 'Calendar ID',
-      default: 'primary',
-      help: 'Use "primary" for the main calendar, or a specific calendar id',
-      placeholder: 'primary',
+      key: 'calendar',
+      type: 'remote-select',
+      label: 'Calendar',
+      required: true,
+      remoteSource: 'google-calendars',
+      placeholder: 'Search your calendars…',
+      help: 'Pick which of the account’s calendars to display.',
     },
     {
-      key: 'maxEvents',
-      type: 'number',
-      label: 'Max events',
-      default: 8,
-      validation: { min: 1, max: 20 },
+      key: 'calendarView',
+      type: 'select',
+      label: 'Calendar view',
+      default: 'schedule',
+      options: [
+        { label: 'Day', value: 'day' },
+        { label: 'Week', value: 'week' },
+        { label: 'Month', value: 'month' },
+        { label: 'Schedule', value: 'schedule' },
+      ],
+    },
+    {
+      key: 'onlyUpcoming',
+      type: 'switch',
+      label: 'Only show upcoming events',
+      default: true,
+      visibleWhen: { field: 'calendarView', equals: 'schedule' },
+    },
+    {
+      key: 'autoScroll',
+      type: 'switch',
+      label: 'Auto scroll',
+      default: false,
+      help: 'Slowly scroll the content when it overflows the screen.',
+    },
+    {
+      key: 'language',
+      type: 'select',
+      label: 'Language',
+      default: 'en',
+      options: [
+        { label: 'English', value: 'en' },
+        { label: 'Serbian', value: 'sr' },
+      ],
+    },
+    {
+      key: 'theme',
+      type: 'select',
+      label: 'Theme',
+      section: 'Theme Settings',
+      default: 'light',
+      options: [
+        { label: 'Light', value: 'light' },
+        { label: 'Dark', value: 'dark' },
+      ],
+    },
+    {
+      key: 'accentColor',
+      type: 'color',
+      label: 'Accent color',
+      section: 'Theme Settings',
+      default: '#111827',
+      help: 'Highlights today and event markers. Automatically adapts to the light or dark theme.',
     },
   ],
 }

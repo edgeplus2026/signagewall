@@ -9,10 +9,8 @@ import { BusinessException } from '../../common/exceptions/business.exception';
 import { EncryptionService } from '../../common/services/encryption.service';
 import { getConnector } from '../apps/connectors/connector-registry';
 import { ConnectionsRepository } from './connections.repository';
-import {
-  type CanvaDesignSummary,
-  searchCanvaDesigns,
-} from './providers/canva-api';
+import { searchCanvaDesigns } from './providers/canva-api';
+import { listGoogleCalendars } from './providers/google-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
 import { createMicrosoftOAuthProvider } from './providers/microsoft.oauth';
@@ -21,6 +19,13 @@ import {
   AppConnectionDocument,
   ConnectionProvider,
 } from './schemas/app-connection.schema';
+
+/** A resource surfaced to a `remote-select` config field (token-free). */
+export interface RemoteOption {
+  id: string;
+  title: string;
+  thumbnailUrl?: string;
+}
 
 /** Public (token-free) view of a connection for the CMS. */
 export interface ConnectionSummary {
@@ -293,17 +298,42 @@ export class ConnectionsService {
    * refreshes the access token if needed) so the listing never fails on an
    * expired token. Returns token-free summaries only.
    */
-  async listCanvaDesigns(
+  /**
+   * List/search the resources a connection exposes for a `remote-select` config
+   * field's `remoteSource` (e.g. Canva designs, Google calendars). Asserts the
+   * connection belongs to the org, resolves it (refreshing the token so the
+   * listing never fails on an expired token), verifies the provider matches the
+   * source, then dispatches. Returns token-free `{ id, title, thumbnailUrl? }`.
+   */
+  async browseRemoteOptions(
     organizationId: string,
     id: string,
+    source: string,
     query: string,
-  ): Promise<CanvaDesignSummary[]> {
+  ): Promise<RemoteOption[]> {
     await this.assertOwned(organizationId, id);
     const connection = await this.resolveConnection(id);
-    if (connection.provider !== String(ConnectionProvider.CANVA)) {
-      throw BusinessException.badRequest('Connection is not a Canva account.');
+
+    switch (source) {
+      case 'canva-designs':
+        this.assertProvider(connection.provider, ConnectionProvider.CANVA);
+        return searchCanvaDesigns(connection.accessToken, query);
+      case 'google-calendars':
+        this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
+        return listGoogleCalendars(connection.accessToken, query);
+      default:
+        throw BusinessException.badRequest(
+          `Unknown browse source "${source}".`,
+        );
     }
-    return searchCanvaDesigns(connection.accessToken, query);
+  }
+
+  private assertProvider(actual: string, expected: ConnectionProvider): void {
+    if (actual !== String(expected)) {
+      throw BusinessException.badRequest(
+        `Connection is not a ${expected} account.`,
+      );
+    }
   }
 
   private needsRefresh(doc: AppConnectionDocument): boolean {

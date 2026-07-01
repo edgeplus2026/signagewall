@@ -23,24 +23,28 @@ function connectionsQueryKey(organizationId: string | null | undefined) {
 }
 
 /**
- * Search a connection's Canva designs for the config-form picker. Keyed on the
+ * Search a connection's resources for a `remote-select` field (by its
+ * `remoteSource`, e.g. Canva designs or Google calendars). Keyed on the
  * (already debounced) query so each term is cached; `keepPreviousData` keeps the
  * last results on screen while the next search loads (no flicker). Disabled
  * until a connection is chosen.
  */
-export function useCanvaDesigns(
+export function useRemoteOptions(
   connectionId: string | undefined,
+  source: string,
   query: string,
 ) {
   const organizationId = useActiveOrganizationId()
   return useQuery({
     queryKey: [
       ...connectionsQueryKey(organizationId),
-      'canva-designs',
+      'browse',
+      source,
       connectionId ?? 'none',
       query,
     ],
-    queryFn: () => connectionsApi.listCanvaDesigns(connectionId ?? '', query),
+    queryFn: () =>
+      connectionsApi.browseRemoteOptions(connectionId ?? '', source, query),
     enabled: Boolean(organizationId) && Boolean(connectionId),
     placeholderData: keepPreviousData,
   })

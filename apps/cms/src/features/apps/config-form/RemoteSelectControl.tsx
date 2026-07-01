@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 import { useConfigValues } from '@/features/apps/config-form/configValuesContext'
 import type { FieldControlProps } from '@/features/apps/config-form/controls'
-import { useCanvaDesigns } from '@/features/apps/hooks/useConnections'
+import { useRemoteOptions } from '@/features/apps/hooks/useConnections'
 import { useDebouncedValue } from '@/features/media/stock/hooks/useDebouncedValue'
 
 interface RemoteSelectValue {
@@ -23,10 +23,10 @@ function asValue(value: unknown): RemoteSelectValue | null {
 /**
  * The `remote-select` field control: an async, searchable dropdown backed by a
  * connected account. Reads the sibling `connectionId` (from the form context) to
- * know which connection to query, debounces the search term, and stores the
- * chosen resource as `{ id, label }` so the selection shows without a re-fetch.
- *
- * Currently wired to `remoteSource: 'canva-designs'` (the only source today).
+ * know which connection to query, uses the field's `remoteSource` to pick the
+ * backend browse endpoint (Canva designs, Google calendars…), debounces the
+ * search term, and stores the chosen resource as `{ id, label }` so the
+ * selection shows without a re-fetch.
  */
 export function RemoteSelectControl({
   field,
@@ -41,19 +41,21 @@ export function RemoteSelectControl({
   const values = useConfigValues()
   const connectionId =
     typeof values.connectionId === 'string' ? values.connectionId : undefined
+  const source = field.remoteSource ?? ''
 
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebouncedValue(query, 300)
 
-  const { data: designs = [], isFetching } = useCanvaDesigns(
+  const { data: results = [], isFetching } = useRemoteOptions(
     connectionId,
+    source,
     debouncedQuery,
   )
 
   const selected = asValue(value)
-  const options: ComboboxOption[] = designs.map((design) => ({
-    value: design.id,
-    label: design.title,
+  const options: ComboboxOption[] = results.map((result) => ({
+    value: result.id,
+    label: result.title,
   }))
 
   const noConnection = !connectionId
@@ -67,7 +69,7 @@ export function RemoteSelectControl({
       onSearch={setQuery}
       loading={isFetching}
       onChange={(nextId) => {
-        const picked = designs.find((design) => design.id === nextId)
+        const picked = results.find((result) => result.id === nextId)
         onChange({ id: nextId, label: picked?.title ?? selected?.label })
       }}
       onBlur={onBlur}

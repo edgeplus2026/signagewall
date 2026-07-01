@@ -7,18 +7,44 @@ import type { GcalEvent, GcalPayload } from '@edge/apps';
 
 interface GcalConfig {
   connectionId?: string;
-  calendarId?: string;
-  maxEvents?: number;
+  /** The chosen calendar: { id, label } from the `remote-select` picker. */
+  calendar?: { id?: string } | string;
 }
 
 const CALENDAR_API = 'https://www.googleapis.com/calendar/v3/calendars';
-const MAX_STORED_EVENTS = 20;
+/** Cap on events stored per fetch (a busy 6-week window can be large). */
+const MAX_STORED_EVENTS = 250;
+
+/** Resolve the chosen calendar id from config ({ id } or legacy string). */
+function calendarIdOf(config: GcalConfig): string {
+  const value = config.calendar;
+  const id = typeof value === 'string' ? value : (value?.id ?? '');
+  return id.trim() || 'primary';
+}
+
+/**
+ * The event window to fetch: from a week before the 1st of the current month to
+ * six weeks after it. This covers every view the embed renders — the month grid
+ * (up to 6 weeks incl. leading/trailing days), the current week, today, and a
+ * near-term schedule — from a single fetch. The embed slices per view/timezone.
+ */
+function eventWindow(now: Date): { timeMin: string; timeMax: string } {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const timeMin = new Date(monthStart);
+  timeMin.setDate(timeMin.getDate() - 7);
+  const timeMax = new Date(monthStart);
+  timeMax.setDate(timeMax.getDate() + 42);
+  return { timeMin: timeMin.toISOString(), timeMax: timeMax.toISOString() };
+}
 
 /**
  * Google Calendar connector (`connected` app). Unlike `server` apps, its cache
  * key is PER-CONNECTION (a calendar is private) — it includes the connection id
  * and calendar id so data is never shared across accounts. `fetchData` uses the
- * resolved connection's access token (decrypted by ConnectionsService).
+ * resolved connection's access token (decrypted by ConnectionsService). It
+ * fetches a broad window (see {@link eventWindow}) so the embed can render any
+ * view (day/week/month/schedule); the view and other display settings are
+ * applied client-side and never affect the cache key.
  */
 export const gcalConnector: AppConnector<GcalConfig, GcalPayload> = {
   oauth: {
@@ -30,8 +56,7 @@ export const gcalConnector: AppConnector<GcalConfig, GcalPayload> = {
 
   cacheKey(config) {
     const connectionId = config.connectionId ?? 'none';
-    const calendarId = (config.calendarId ?? 'primary').trim() || 'primary';
-    return `gcal:${connectionId}:${calendarId}`;
+    return `gcal:${connectionId}:${calendarIdOf(config)}`;
   },
 
   async fetchData(
@@ -41,14 +66,15 @@ export const gcalConnector: AppConnector<GcalConfig, GcalPayload> = {
     if (!ctx.connection) {
       throw new Error('gcal: no connection resolved');
     }
-    const calendarId = (config.calendarId ?? 'primary').trim() || 'primary';
-    const max = clampMax(config.maxEvents);
+    const calendarId = calendarIdOf(config);
+    const { timeMin, timeMax } = eventWindow(new Date());
 
     const query = new URLSearchParams({
-      timeMin: new Date().toISOString(),
+      timeMin,
+      timeMax,
       singleEvents: 'true',
       orderBy: 'startTime',
-      maxResults: String(max),
+      maxResults: String(MAX_STORED_EVENTS),
     });
     const url = `${CALENDAR_API}/${encodeURIComponent(calendarId)}/events?${query.toString()}`;
 
@@ -101,11 +127,4 @@ function toEvent(item: GoogleEvent): GcalEvent | null {
     allDay,
     ...(item.location ? { location: item.location } : {}),
   };
-}
-
-function clampMax(value: number | undefined): number {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    return 8;
-  }
-  return Math.min(20, Math.max(1, Math.floor(value)));
 }

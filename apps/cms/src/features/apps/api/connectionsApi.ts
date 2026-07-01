@@ -1,7 +1,7 @@
 import type {
-  CanvaDesign,
   Connection,
   ConnectionProvider,
+  RemoteOption,
 } from '@/features/apps/types/connection.types'
 import { api } from '@/lib/axios'
 
@@ -33,16 +33,18 @@ export const connectionsApi = {
   },
 
   /**
-   * Search the Canva designs reachable through a connection (for the config-form
-   * picker). The backend refreshes the access token as needed, so this never
-   * fails on an expired token.
+   * Search a connection's resources for a `remote-select` field, by its
+   * `remoteSource` (e.g. 'canva-designs', 'google-calendars'). The backend
+   * refreshes the access token as needed, so this never fails on an expired
+   * token.
    */
-  listCanvaDesigns: async (
+  browseRemoteOptions: async (
     connectionId: string,
+    source: string,
     query: string,
-  ): Promise<CanvaDesign[]> => {
-    const { data } = await api.get<CanvaDesign[]>(
-      `${BASE}/${connectionId}/canva/designs`,
+  ): Promise<RemoteOption[]> => {
+    const { data } = await api.get<RemoteOption[]>(
+      `${BASE}/${connectionId}/browse/${source}`,
       { params: query ? { query } : {} },
     )
     return data

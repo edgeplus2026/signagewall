@@ -102,18 +102,21 @@ describe('gcal connector (connected)', () => {
   };
   const connectedCtx: ConnectorContext = { ...ctx, connection };
 
-  it('cacheKey is PER-CONNECTION (includes connection + calendar id)', () => {
+  it('cacheKey is PER-CONNECTION + calendar (from the picker value)', () => {
     const a = gcalConnector.cacheKey!({
       connectionId: 'conn-1',
-      calendarId: 'primary',
+      calendar: { id: 'team@group.calendar.google.com' },
     });
     const b = gcalConnector.cacheKey!({
       connectionId: 'conn-2',
-      calendarId: 'primary',
+      calendar: { id: 'team@group.calendar.google.com' },
     });
-    expect(a).toBe('gcal:conn-1:primary');
+    const primary = gcalConnector.cacheKey!({ connectionId: 'conn-1' });
+    expect(a).toBe('gcal:conn-1:team@group.calendar.google.com');
     // Different connections never share a cache entry (privacy).
     expect(a).not.toBe(b);
+    // No calendar chosen → defaults to the account's primary calendar.
+    expect(primary).toBe('gcal:conn-1:primary');
   });
 
   it('exposes a google OAuth descriptor with read-only scope', () => {
@@ -141,7 +144,7 @@ describe('gcal connector (connected)', () => {
     ]);
 
     const result = await gcalConnector.fetchData(
-      { connectionId: 'conn-1', calendarId: 'primary' },
+      { connectionId: 'conn-1', calendar: { id: 'primary' } },
       connectedCtx,
     );
 
@@ -150,6 +153,9 @@ describe('gcal connector (connected)', () => {
       [string, { headers: Record<string, string> }]
     >;
     expect(calls[0][1].headers.authorization).toBe('Bearer tok-abc');
+    // A broad window (timeMin/timeMax) is requested so any view can render.
+    expect(calls[0][0]).toContain('timeMin=');
+    expect(calls[0][0]).toContain('timeMax=');
     expect(result.playerPayload!.calendarLabel).toBe('Team');
     expect(result.playerPayload!.events).toEqual([
       {
