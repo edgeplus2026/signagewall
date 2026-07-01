@@ -1,8 +1,9 @@
 # TODO — MVP task planovi
 
 Planovi za zaokruživanje signage proizvoda. Fajlovi su **poređani po redosledu
-implementacije (zavisnost-svesno)** — idi 02 → 09 (01 je **isporučen**, videti
-"Završeno" niže). Svi su prioritet pre MVP-a; broj fajla = redosled, ne "važnost".
+implementacije (zavisnost-svesno)**. Svi su prioritet pre MVP-a; broj fajla =
+redosled, ne "važnost". (Numeracija je istorijska — premeštene/isporučene stavke
+zadržavaju svoj broj radi lakšeg praćenja.)
 
 Skala: ~5 playera/user × ~50 usera → **~500 online playera** (bez Redisa / horizontalnog
 skaliranja — videti event seam u `player.events.ts` za daleku budućnost).
@@ -32,7 +33,7 @@ Ovi planovi se predaju agentu/developeru zajedno sa ovim README-om. Pre koda:
 
 **Pravila rada:**
 1. **"Odluke / otvorena pitanja" u svakom fajlu = produktne odluke** — POTVRDI ih sa vlasnikom pre implementacije, **ne pogađaj**.
-2. **Veliki epovi (01 apps, 06 zones) su višenedeljni** — radi **fazu po fazu** (faze su u fajlu), ne sve odjednom.
+2. **Veliki epovi su višenedeljni** — radi **fazu po fazu** (faze su u fajlu), ne sve odjednom.
 3. Radi na grani; ne commit-uj bez dozvole; ne diraj nepovezane delove.
 
 ---
@@ -50,32 +51,43 @@ Ovi planovi se predaju agentu/developeru zajedno sa ovim README-om. Pre koda:
     Drži ga **feature-flag-ovan/skriven** (degradira čisto kad `ENCRYPTION_KEY` nije setovan)
     dok se ne odradi live OAuth round-trip end-to-end. NE računati ga u MVP launch surface.
 
-## Redosled implementacije
+- **02 — CMS notifikacije (super-admin → korisnici).** In-app inbox (zvono + popover),
+  per-jezik sadržaj (en/sr, fallback na en po polju), read-receipts (per-user, bez kopiranja
+  dokumenta), realtime `notifications:changed` preko `CmsGateway` (unread refetch), super-admin
+  authoring kao **tab u super-admin stranici** (create/edit/publish/unpublish/expiry, Tiptap
+  rich-text). Authoring iza `SuperAdminGuard`; inbox za sve autentifikovane korisnike.
+
+## Redosled implementacije (MVP)
 
 | # | Task | Zavisi od | Otključava |
 |---|---|---|---|
-| [02](./02-cms-notifications.md) | CMS notifikacije (super-admin → korisnici) | — | In-app kanal za 03 |
-| [03](./03-device-offline-alerting.md) | Device-offline alerting operateru | 02 (in-app inbox) | — |
-| [04](./04-activity-log.md) | Activity log (org audit) — Mongoose plugin + CLS | — (uvodi CLS) | GDPR audit (09) |
 | [05](./05-player-availability.md) | Availability u playeru (standby) | — (uvodi player `Intl`-evaluator + standby scheduler) | — |
-| [06](./06-zones-layouts.md) | Zone / Layouts (podeljen ekran) | — | Zone-aware proof-of-play (07) |
-| [07](./07-proof-of-play.md) | Proof-of-play / istorija reprodukcije | now-playing (postoji); zone-aware posle 06 | — |
 | [08](./08-native-shell-auto-update-tauri.md) | Native-shell auto-update (Tauri) | — (nezavisno) | OTA update fleete |
-| [09](./09-legal-tos-privacy-gdpr.md) | Legal (ToS/Privacy) + GDPR brisanje | **04** (audit) | Javni launch |
+| [09](./09-legal-tos-privacy-gdpr.md) | Legal (ToS/Privacy) + GDPR brisanje | ~~04 (audit)~~ → deferred, videti napomenu | Javni launch |
 
-**Logika redosleda:** 01 (Apps) je bio keystone i sad je isporučen — otključao je sve appove
-i ticker-zonu za 06. 02→03 (alerting reuse-uje
-notifikacioni inbox). 04 uvodi CLS (cross-cutting, treba i za 09). 05 postavlja player
-`Intl`-evaluator + standby scheduler obrazac (offline-safe, stojeće pravilo). 06 širi content
-model (zone) → proof-of-play (07) postaje zone-aware. 08 (Tauri) je nezavisno — uradi kad se
-player feature-i stabilizuju. 09 ide poslednje (pre launcha, zavisi od 04 audita).
+**Napomena o 09 ⟶ 04:** 09 je originalno računao na activity-log audit (04) za GDPR trag.
+Pošto je **04 premešten u deferred**, GDPR brisanje treba da stoji **samostalno** (bez audit
+loga) — ili odblokirati 04 iz deferred-a ako se ispostavi kao tvrd preduslov. Potvrditi sa
+vlasnikom pre 09.
 
-### Zones (06) — skok ka "kompletan DS"
-**06 (zones/layouts)** je najveći feature-gap vs velike konkurente; ostaje u roadmap-u kao
-najveći post-MVP ROI, ali nije blocker za launch fokusiranog full-screen MVP-a.
+**Logika redosleda:** 05 postavlja player `Intl`-evaluator + standby scheduler obrazac
+(offline-safe, stojeće pravilo). 08 (Tauri) je nezavisno — uradi kad se player feature-i
+stabilizuju. 09 ide poslednje (pre launcha).
 
 ## Deferred (van MVP-a, "za sada ne radimo")
+
+Svesno odloženo — **ništa od ovog ne ide u MVP.**
+
+- [`deferred/03-device-offline-alerting.md`](./deferred/03-device-offline-alerting.md) —
+  **Device-offline alerting** operateru (in-app upozorenje kad player padne). Reuse-uje
+  notifikacioni inbox (02).
+- [`deferred/04-activity-log.md`](./deferred/04-activity-log.md) —
+  **Activity log** (org audit) — Mongoose plugin + CLS. Uvodi CLS (cross-cutting); bio preduslov za 09.
+- [`deferred/06-zones-layouts.md`](./deferred/06-zones-layouts.md) —
+  **Zone / Layouts** (podeljen ekran). Najveći feature-gap vs velike konkurente i najveći
+  post-MVP ROI, ali nije blocker za fokusiran full-screen MVP.
+- [`deferred/07-proof-of-play.md`](./deferred/07-proof-of-play.md) —
+  **Proof-of-play / istorija reprodukcije** (now-playing postoji; zone-aware tek posle 06).
 - [`deferred/content-scheduling-dayparting.md`](./deferred/content-scheduling-dayparting.md) —
-  **Content scheduling / day-parting** (raspored po sadržaju: date range, dayparts, prioritet).
-  Svesno odložen. Kad se vrati: par sa zonama (06) i koristi isti `Intl`-evaluator obrazac kao
-  availability (05) — **stojeće pravilo, ne horizont** (videti korekciju u 05).
+  **Content scheduling / day-parting** (date range, dayparts, prioritet). Kad se vrati: par sa
+  zonama (06) i isti `Intl`-evaluator obrazac kao availability (05).
