@@ -13,7 +13,6 @@ import { searchCanvaDesigns } from './providers/canva-api';
 import { listGoogleCalendars } from './providers/google-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
-import { createMicrosoftOAuthProvider } from './providers/microsoft.oauth';
 import type { OAuthProvider } from './providers/oauth-provider';
 import {
   AppConnectionDocument,
@@ -68,7 +67,6 @@ const STATE_TTL = '10m';
 /** Config namespace holding each provider's clientId/clientSecret. */
 const PROVIDER_CONFIG_NS: Record<ConnectionProvider, string> = {
   [ConnectionProvider.GOOGLE]: 'google',
-  [ConnectionProvider.MICROSOFT]: 'microsoft',
   [ConnectionProvider.CANVA]: 'canva',
 };
 
@@ -389,15 +387,9 @@ export class ConnectionsService {
   }
 
   private getProvider(provider: ConnectionProvider): OAuthProvider {
-    if (provider === ConnectionProvider.GOOGLE) {
-      return googleOAuthProvider;
-    }
-    if (provider === ConnectionProvider.CANVA) {
-      return canvaOAuthProvider;
-    }
-    return createMicrosoftOAuthProvider(
-      this.configService.get<string>('microsoft.tenant') ?? 'common',
-    );
+    return provider === ConnectionProvider.GOOGLE
+      ? googleOAuthProvider
+      : canvaOAuthProvider;
   }
 
   private getCredentials(provider: ConnectionProvider): {

@@ -1,11 +1,10 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { buildConfigZod, buildDefaultConfig } from '@edge/apps-contract';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
 import { ConnectionsService } from '../connections/connections.service';
-import { GraphWebhookService } from '../connections/webhooks/graph-webhook.service';
 import {
   AppInstanceChangedEvent,
   PlayerEvents,
@@ -14,7 +13,6 @@ import {
 } from '../player/player.events';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensService } from '../screens/screens.service';
-import { cacheKeyForInstance } from './connectors/cache-key.util';
 import { getConnector } from './connectors/connector-registry';
 import { AppInstancesRepository } from './app-instances.repository';
 import { AppsRepository } from './apps.repository';
@@ -27,13 +25,9 @@ import { AppInstanceDocument } from './schemas/app-instance.schema';
 
 @Injectable()
 export class AppInstancesService {
-  private readonly logger = new Logger(AppInstancesService.name);
-
   constructor(
     private readonly instancesRepository: AppInstancesRepository,
     private readonly appsRepository: AppsRepository,
-    @Inject(forwardRef(() => GraphWebhookService))
-    private readonly graphWebhookService: GraphWebhookService,
     @Inject(forwardRef(() => ConnectionsService))
     private readonly connectionsService: ConnectionsService,
     private readonly transactionService: TransactionService,
@@ -141,8 +135,6 @@ export class AppInstancesService {
       { config: result.data, configVersion: app.version },
     );
 
-    void this.ensureWebhookSubscription(organizationId, updated!);
-
     // Push the new config to every player showing this instance, live. The
     // gateway resolves the affected screens (direct + via playlist) and re-sends
     // their snapshot — without this, edits only appear after a manual reload.
@@ -238,42 +230,6 @@ export class AppInstancesService {
       instanceId,
       connectionId,
     );
-  }
-
-  /**
-   * For a webhook-capable connected app (e.g. OneDrive on Microsoft Graph),
-   * register a change subscription so updates push live. Best-effort and
-   * out-of-band: a webhook/config issue must never fail the config save, and
-   * polling remains the fallback.
-   */
-  private async ensureWebhookSubscription(
-    organizationId: string,
-    instance: AppInstanceDocument,
-  ): Promise<void> {
-    const oauth = getConnector(instance.appSlug)?.oauth;
-    if (oauth?.provider !== 'microsoft') {
-      return;
-    }
-    const cacheKey = cacheKeyForInstance(instance);
-    const connectionId = instance.config.connectionId;
-    const itemId = instance.config.itemId;
-    if (
-      !cacheKey ||
-      typeof connectionId !== 'string' ||
-      typeof itemId !== 'string'
-    ) {
-      return;
-    }
-    try {
-      await this.graphWebhookService.ensureSubscription({
-        connectionId,
-        organizationId,
-        itemId,
-        cacheKey,
-      });
-    } catch (error) {
-      this.logger.warn(`Webhook subscription setup failed: ${String(error)}`);
-    }
   }
 
   async remove(organizationId: string, id: string): Promise<void> {

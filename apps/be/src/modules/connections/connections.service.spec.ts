@@ -30,13 +30,11 @@ function buildService(options: {
   };
   const configService = {
     get: (key: string) =>
-      key === 'microsoft.tenant'
-        ? 'common'
-        : key === 'google.clientId' || key === 'microsoft.clientId'
-          ? 'cid'
-          : key === 'google.clientSecret' || key === 'microsoft.clientSecret'
-            ? 'secret'
-            : undefined,
+      key === 'google.clientId'
+        ? 'cid'
+        : key === 'google.clientSecret'
+          ? 'secret'
+          : undefined,
     getOrThrow: () => 'jwt-secret',
   };
   const jwtService = { sign: jest.fn(), verify: jest.fn() };

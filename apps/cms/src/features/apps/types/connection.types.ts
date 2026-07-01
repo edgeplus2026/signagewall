@@ -1,4 +1,4 @@
-export type ConnectionProvider = 'google' | 'microsoft' | 'canva'
+export type ConnectionProvider = 'google' | 'canva'
 
 /** A connected third-party account (token-free view). */
 export interface Connection {

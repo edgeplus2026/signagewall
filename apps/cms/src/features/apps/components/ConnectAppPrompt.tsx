@@ -11,7 +11,6 @@ import type { ConnectionProvider } from '@/features/apps/types/connection.types'
 const PROVIDER_LABELS: Record<string, string> = {
   canva: 'Canva',
   google: 'Google',
-  microsoft: 'Microsoft',
 }
 
 interface ConnectAppPromptProps {

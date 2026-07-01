@@ -3,7 +3,6 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export enum ConnectionProvider {
   GOOGLE = 'google',
-  MICROSOFT = 'microsoft',
   CANVA = 'canva',
 }
 

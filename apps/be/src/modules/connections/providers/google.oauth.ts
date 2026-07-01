@@ -14,7 +14,7 @@ const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
 
 /**
- * Google OAuth for app connections (Calendar, Slides). Distinct from the login
+ * Google OAuth for app connections (Calendar). Distinct from the login
  * flow: requests `access_type=offline` + `prompt=consent` so Google returns a
  * refresh token, and asks for the data scopes the connected app needs.
  */

@@ -12,7 +12,7 @@ export type RuntimeKind = 'native' | 'embed'
  * Where an app gets its data.
  * - `static`    — everything is in the config; no server calls (e.g. YouTube URL, clock).
  * - `server`    — a backend connector fetches & normalizes (e.g. RSS, weather).
- * - `connected` — needs an OAuth/account connection (e.g. LinkedIn, Slides).
+ * - `connected` — needs an OAuth/account connection (e.g. Google Calendar, Canva).
  */
 export type DataSource = 'static' | 'server' | 'connected'
 

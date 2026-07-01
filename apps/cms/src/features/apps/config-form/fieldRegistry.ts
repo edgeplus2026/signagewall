@@ -30,8 +30,8 @@ export const FIELD_CONTROLS: Record<FieldType, (props: FieldControlProps) => Rea
   switch: SwitchControl,
   color: ColorControl,
   image: ImageControl,
-  // Connect a third-party account (Google/Microsoft) and store the chosen
-  // connection id; used by `connected` apps (Calendar, OneDrive).
+  // Connect a third-party account (Google/Canva) and store the chosen
+  // connection id; used by `connected` apps (Calendar, Canva).
   oauth: OAuthControl,
   // Searchable city dropdown; stores { label, lat, lng } for the weather app.
   location: LocationControl,
