@@ -24,7 +24,11 @@ interface FormState {
   notification: AdminNotification | null
 }
 
-export default function AdminNotificationsPage() {
+/**
+ * Authoring surface for global in-app notifications. Rendered as a tab inside
+ * the super-admin page (super-admin only), not a standalone route.
+ */
+export function AdminNotificationsTab() {
   const { t } = useTranslation()
   const [form, setForm] = useState<FormState>({
     open: false,
@@ -49,15 +53,12 @@ export default function AdminNotificationsPage() {
   }
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-7 lg:px-10">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-primary text-xl font-medium tracking-tight">
-          {t('notifications.admin.title')}
-        </h1>
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center justify-end">
         <Button
-          onClick={() =>
-            { setForm({ open: true, mode: 'create', notification: null }); }
-          }
+          onClick={() => {
+            setForm({ open: true, mode: 'create', notification: null })
+          }}
         >
           <Plus />
           {t('notifications.admin.create')}
@@ -65,17 +66,21 @@ export default function AdminNotificationsPage() {
       </div>
 
       <AdminNotificationsList
-        onEdit={(notification) =>
-          { setForm({ open: true, mode: 'edit', notification }); }
-        }
-        onDelete={(notification) => { setToDelete(notification); }}
+        onEdit={(notification) => {
+          setForm({ open: true, mode: 'edit', notification })
+        }}
+        onDelete={(notification) => {
+          setToDelete(notification)
+        }}
       />
 
       <NotificationFormSheet
         open={form.open}
         mode={form.mode}
         notification={form.notification}
-        onOpenChange={(open) => { setForm((current) => ({ ...current, open })); }}
+        onOpenChange={(open) => {
+          setForm((current) => ({ ...current, open }))
+        }}
       />
 
       <Dialog

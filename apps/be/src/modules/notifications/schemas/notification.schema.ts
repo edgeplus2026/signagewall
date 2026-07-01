@@ -90,5 +90,10 @@ export class Notification {
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);
 
-// Supports the visibility scan (status + publish/expiry window).
-NotificationSchema.index({ status: 1, publishedAt: 1, expiresAt: 1 });
+// Supports the visibility scan (status + audience + publish/expiry window).
+NotificationSchema.index({
+  status: 1,
+  'audience.type': 1,
+  publishedAt: 1,
+  expiresAt: 1,
+});

@@ -15,6 +15,9 @@ export function useNotificationsList(page = 1, limit = DEFAULT_PAGE_SIZE) {
     queryKey: [...NOTIFICATIONS_QUERY_KEY, 'list', page, limit],
     queryFn: () => notificationsApi.list({ page, limit }),
     placeholderData: keepPreviousData,
+    // The list lives inside the bell popover, which mounts on open — refetch
+    // every time the menu is opened so it always shows the latest.
+    refetchOnMount: 'always',
   })
 }
 
@@ -23,6 +26,9 @@ export function useUnreadCount() {
     queryKey: [...NOTIFICATIONS_QUERY_KEY, 'unread-count'],
     queryFn: () => notificationsApi.unreadCount(),
     refetchOnWindowFocus: true,
+    // Poll the unread count once a minute so the bell stays current without a
+    // realtime event.
+    refetchInterval: 60_000,
   })
 }
 

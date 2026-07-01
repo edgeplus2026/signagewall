@@ -3,13 +3,20 @@ import { useSearchParams } from 'react-router-dom'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AppCatalogTab } from '@/features/apps/components/AppCatalogTab'
+import { AdminNotificationsTab } from '@/features/notifications/components/AdminNotificationsTab'
 import { AllUsersTab } from '@/features/super-admin/components/AllUsersTab'
 import { useEnsureSuperAdminSession } from '@/features/super-admin/hooks/useEnsureSuperAdminSession'
 
-type SuperAdminTab = 'users' | 'apps'
+type SuperAdminTab = 'users' | 'apps' | 'notifications'
 
 function getActiveTab(tab: string | null): SuperAdminTab {
-  return tab === 'apps' ? 'apps' : 'users'
+  if (tab === 'apps') {
+    return 'apps'
+  }
+  if (tab === 'notifications') {
+    return 'notifications'
+  }
+  return 'users'
 }
 
 export default function SuperAdminPage() {
@@ -46,6 +53,9 @@ export default function SuperAdminPage() {
         <TabsList variant="line" className="w-fit shrink-0">
           <TabsTrigger value="users">{t('superAdmin.tabs.users')}</TabsTrigger>
           <TabsTrigger value="apps">{t('superAdmin.tabs.apps')}</TabsTrigger>
+          <TabsTrigger value="notifications">
+            {t('superAdmin.tabs.notifications')}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="mt-0">
@@ -54,6 +64,10 @@ export default function SuperAdminPage() {
 
         <TabsContent value="apps" className="mt-0">
           <AppCatalogTab />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-0">
+          <AdminNotificationsTab />
         </TabsContent>
       </Tabs>
     </div>

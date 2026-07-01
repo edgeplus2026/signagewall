@@ -1,9 +1,11 @@
+import { CheckCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import {
   useMarkAllNotificationsRead,
   useNotificationsList,
+  useUnreadCount,
 } from '@/features/notifications/hooks/useNotifications'
 import { formatRelativeTime } from '@/features/notifications/lib/formatDate'
 import { tiptapToPlainText } from '@/features/notifications/lib/tiptapText'
@@ -31,13 +33,14 @@ function NotificationListItem({
         onClick={() => { onSelect(notification); }}
         className="hover:bg-sidebar flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors"
       >
-        <span
-          className={cn(
-            'mt-1.5 size-2 shrink-0 rounded-full',
-            notification.read ? 'bg-transparent' : 'bg-brand',
-          )}
-          aria-hidden
-        />
+        {notification.read ? (
+          <span className="mt-1.5 size-2 shrink-0 rounded-full bg-transparent" aria-hidden />
+        ) : (
+          <span className="relative mt-1.5 flex size-2 shrink-0" aria-hidden>
+            <span className="bg-danger absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
+            <span className="bg-danger relative inline-flex size-2 rounded-full" />
+          </span>
+        )}
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline justify-between gap-2">
             <span
@@ -68,10 +71,14 @@ function NotificationListItem({
 export function NotificationList({ onSelect }: NotificationListProps) {
   const { t } = useTranslation()
   const { data, isLoading } = useNotificationsList(1)
+  const { data: unread } = useUnreadCount()
   const markAll = useMarkAllNotificationsRead()
 
   const items = data?.items ?? []
-  const hasUnread = items.some((notification) => !notification.read)
+  // Use the server's unread count (over ALL visible notifications), not just the
+  // first page shown here — otherwise "Mark all read" is wrongly disabled when
+  // the only unread notifications are older than this page.
+  const hasUnread = (unread?.count ?? 0) > 0
 
   return (
     <div className="flex max-h-[28rem] flex-col">
@@ -111,6 +118,7 @@ export function NotificationList({ onSelect }: NotificationListProps) {
           disabled={!hasUnread || markAll.isPending}
           onClick={() => { markAll.mutate(); }}
         >
+          <CheckCheck />
           {t('notifications.markAllRead')}
         </Button>
       </div>

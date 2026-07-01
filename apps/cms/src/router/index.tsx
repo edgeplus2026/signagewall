@@ -10,7 +10,6 @@ import { ProtectedLayout } from '@/features/auth/components/ProtectedLayout'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import FaqPage from '@/features/faq/pages/FaqPage'
 import MediaPage from '@/features/media/pages/MediaPage'
-import AdminNotificationsPage from '@/features/notifications/pages/AdminNotificationsPage'
 import CreateOrganizationPage from '@/features/organizations/pages/CreateOrganizationPage'
 import PlaylistPage from '@/features/playlists/pages/PlaylistPage'
 import PlaylistsPage from '@/features/playlists/pages/PlaylistsPage'
@@ -177,15 +176,6 @@ export const router = createBrowserRouter([
                   </SuperAdminGate>
                 ),
                 handle: { breadcrumb: { labelKey: 'layout.superAdmin' } },
-              },
-              {
-                path: '/super-admin/notifications',
-                element: (
-                  <SuperAdminGate>
-                    <AdminNotificationsPage />
-                  </SuperAdminGate>
-                ),
-                handle: { breadcrumb: { labelKey: 'layout.notifications' } },
               },
             ],
           },

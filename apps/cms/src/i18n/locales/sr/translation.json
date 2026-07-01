@@ -1215,6 +1215,16 @@
         "cancel": "Otkaži",
         "confirm": "Obriši",
         "success": "Obaveštenje je obrisano."
+      },
+      "publishConfirm": {
+        "title": "Objaviti obaveštenje?",
+        "description": "Ovo odmah čini obaveštenje vidljivim svim korisnicima.",
+        "confirm": "Objavi"
+      },
+      "unpublishConfirm": {
+        "title": "Povući obaveštenje?",
+        "description": "Ovo sakriva obaveštenje od svih korisnika. Možeš ga ponovo objaviti kasnije.",
+        "confirm": "Povuci"
       }
     }
   },
@@ -1222,7 +1232,8 @@
     "title": "Super Admin",
     "tabs": {
       "users": "Svi korisnici",
-      "apps": "Aplikacije"
+      "apps": "Aplikacije",
+      "notifications": "Obaveštenja"
     },
     "users": {
       "search": "Pretraži korisnike...",

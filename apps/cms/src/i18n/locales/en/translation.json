@@ -1233,6 +1233,16 @@
         "cancel": "Cancel",
         "confirm": "Delete",
         "success": "Notification deleted."
+      },
+      "publishConfirm": {
+        "title": "Publish notification?",
+        "description": "This makes the notification visible to all users immediately.",
+        "confirm": "Publish"
+      },
+      "unpublishConfirm": {
+        "title": "Unpublish notification?",
+        "description": "This hides the notification from all users. You can publish it again later.",
+        "confirm": "Unpublish"
       }
     }
   },
@@ -1240,7 +1250,8 @@
     "title": "Super Admin",
     "tabs": {
       "users": "All Users",
-      "apps": "All Apps"
+      "apps": "All Apps",
+      "notifications": "Notifications"
     },
     "users": {
       "search": "Search users...",

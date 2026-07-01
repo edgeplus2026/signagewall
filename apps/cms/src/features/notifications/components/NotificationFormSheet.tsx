@@ -22,7 +22,6 @@ import {
   useUpdateNotification,
 } from '@/features/notifications/hooks/useAdminNotifications'
 import { emptyTiptapDoc } from '@/features/notifications/lib/tiptapExtensions'
-import { tiptapToPlainText } from '@/features/notifications/lib/tiptapText'
 import {
   createNotificationFormSchema,
   type NotificationFormValues,
@@ -82,9 +81,12 @@ export function NotificationFormSheet({
     control,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<NotificationFormValues>({
     resolver: zodResolver(schema),
+    // Validate live so the submit button stays disabled until title + content
+    // are filled for every language.
+    mode: 'onChange',
     defaultValues: buildDefaults(notification),
   })
 
@@ -95,17 +97,15 @@ export function NotificationFormSheet({
   }, [open, notification, reset])
 
   const isCreate = mode === 'create'
+  const hasEnErrors = !!errors.titleEn || !!errors.contentEn
+  const hasSrErrors = !!errors.titleSr || !!errors.contentSr
 
   const onSubmit = handleSubmit(async (data) => {
-    const hasSerbian =
-      data.titleSr.trim().length > 0 || tiptapToPlainText(data.contentSr).length > 0
-
+    // Both languages are required by the schema, so always send both.
     const payload: CreateNotificationRequest = {
       translations: {
         en: { title: data.titleEn.trim(), content: data.contentEn },
-        ...(hasSerbian
-          ? { sr: { title: data.titleSr.trim(), content: data.contentSr } }
-          : {}),
+        sr: { title: data.titleSr.trim(), content: data.contentSr },
       },
       ...(data.expiresAt
         ? { expiresAt: new Date(data.expiresAt).toISOString() }
@@ -151,9 +151,15 @@ export function NotificationFormSheet({
             <TabsList variant="line" className="w-fit">
               <TabsTrigger value="en">
                 {t('notifications.form.languageEn')}
+                {hasEnErrors ? (
+                  <span className="bg-danger ml-1.5 inline-block size-1.5 rounded-full" aria-hidden />
+                ) : null}
               </TabsTrigger>
               <TabsTrigger value="sr">
                 {t('notifications.form.languageSr')}
+                {hasSrErrors ? (
+                  <span className="bg-danger ml-1.5 inline-block size-1.5 rounded-full" aria-hidden />
+                ) : null}
               </TabsTrigger>
             </TabsList>
 
@@ -195,7 +201,7 @@ export function NotificationFormSheet({
                   <Input id="notification-title-sr" {...register('titleSr')} />
                   <FieldError errors={[errors.titleSr]} />
                 </Field>
-                <Field>
+                <Field data-invalid={!!errors.contentSr}>
                   <FieldLabel htmlFor="notification-content-sr">
                     {t('notifications.form.content')}
                   </FieldLabel>
@@ -210,6 +216,7 @@ export function NotificationFormSheet({
                       />
                     )}
                   />
+                  <FieldError errors={[errors.contentSr]} />
                 </Field>
               </FieldGroup>
             </TabsContent>
@@ -237,7 +244,7 @@ export function NotificationFormSheet({
           >
             {t('notifications.form.cancel')}
           </Button>
-          <Button type="submit" form={FORM_ID} disabled={isSubmitting}>
+          <Button type="submit" form={FORM_ID} disabled={isSubmitting || !isValid}>
             {isCreate
               ? t('notifications.form.createSubmit')
               : t('notifications.form.updateSubmit')}

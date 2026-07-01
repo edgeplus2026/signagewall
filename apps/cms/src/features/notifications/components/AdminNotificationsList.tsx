@@ -6,6 +6,14 @@ import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -47,31 +55,48 @@ export function AdminNotificationsList({
 }: AdminNotificationsListProps) {
   const { t, i18n } = useTranslation()
   const [page, setPage] = useState(1)
+  const [confirm, setConfirm] = useState<{
+    type: 'publish' | 'unpublish'
+    notification: AdminNotification
+  } | null>(null)
   const { data, isLoading } = useAdminNotifications({ page })
   const publishMutation = usePublishNotification()
   const unpublishMutation = useUnpublishNotification()
 
   const items = data?.items ?? []
   const totalPages = data?.totalPages ?? 1
+  const confirmPending = publishMutation.isPending || unpublishMutation.isPending
 
-  const handlePublish = (notification: AdminNotification) => {
-    publishMutation.mutate(
-      { id: notification.id },
-      {
-        onSuccess: () => toast.success(t('notifications.actions.publishSuccess')),
-        onError: (error) =>
-          toast.error(getApiErrorMessage(error, t('notifications.form.error'))),
-      },
-    )
+  const handleConfirm = () => {
+    if (!confirm) {
+      return
+    }
+    const onError = (error: unknown) =>
+      toast.error(getApiErrorMessage(error, t('notifications.form.error')))
+
+    if (confirm.type === 'publish') {
+      publishMutation.mutate(
+        { id: confirm.notification.id },
+        {
+          onSuccess: () => {
+            toast.success(t('notifications.actions.publishSuccess'))
+            setConfirm(null)
+          },
+          onError,
+        },
+      )
+    } else {
+      unpublishMutation.mutate(confirm.notification.id, {
+        onSuccess: () => {
+          toast.success(t('notifications.actions.unpublishSuccess'))
+          setConfirm(null)
+        },
+        onError,
+      })
+    }
   }
 
-  const handleUnpublish = (notification: AdminNotification) => {
-    unpublishMutation.mutate(notification.id, {
-      onSuccess: () => toast.success(t('notifications.actions.unpublishSuccess')),
-      onError: (error) =>
-        toast.error(getApiErrorMessage(error, t('notifications.form.error'))),
-    })
-  }
+  const confirmKey = confirm ? `${confirm.type}Confirm` : 'publishConfirm'
 
   if (isLoading) {
     return (
@@ -142,13 +167,17 @@ export function AdminNotificationsList({
                         ) : null}
                         {isDraft ? (
                           <DropdownMenuItem
-                            onClick={() => { handlePublish(notification); }}
+                            onClick={() => {
+                              setConfirm({ type: 'publish', notification })
+                            }}
                           >
                             {t('notifications.admin.actions.publish')}
                           </DropdownMenuItem>
                         ) : (
                           <DropdownMenuItem
-                            onClick={() => { handleUnpublish(notification); }}
+                            onClick={() => {
+                              setConfirm({ type: 'unpublish', notification })
+                            }}
                           >
                             {t('notifications.admin.actions.unpublish')}
                           </DropdownMenuItem>
@@ -197,6 +226,37 @@ export function AdminNotificationsList({
           </Button>
         </div>
       ) : null}
+
+      <Dialog
+        open={confirm !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirm(null)
+          }
+        }}
+      >
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>
+              {t(`notifications.admin.${confirmKey}.title`)}
+            </DialogTitle>
+            <DialogDescription>
+              {t(`notifications.admin.${confirmKey}.description`)}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => { setConfirm(null); }}
+            >
+              {t('notifications.form.cancel')}
+            </Button>
+            <Button disabled={confirmPending} onClick={handleConfirm}>
+              {t(`notifications.admin.${confirmKey}.confirm`)}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

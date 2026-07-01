@@ -105,7 +105,10 @@ export class NotificationsService {
       throw BusinessException.notFound(this.i18n.t('notifications.notFound'));
     }
 
-    // Preserve the original publish moment on re-publish.
+    // Re-publishing a still-published notification (e.g. to change its expiry)
+    // keeps the original publish moment; publishing a draft — including one that
+    // was unpublished (which clears `publishedAt`) — stamps a fresh time so it
+    // re-announces.
     const publishedAt = notification.publishedAt ?? new Date();
     const expiresAt =
       dto.expiresAt !== undefined
