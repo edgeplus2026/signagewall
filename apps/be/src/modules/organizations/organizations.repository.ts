@@ -78,7 +78,8 @@ export class OrganizationsRepository {
       (membership) => membership.organizationId,
     );
     const organizations = await this.organizationModel
-      .find({ _id: { $in: organizationIds } })
+      // Hide orgs queued for deletion (soft-deleted) from every member.
+      .find({ _id: { $in: organizationIds }, deletedAt: null })
       .session(session ?? null)
       .exec();
 
@@ -127,8 +128,30 @@ export class OrganizationsRepository {
       .exec();
   }
 
+  /** Active (not soft-deleted) org lookup — the access gate. */
   findById(organizationId: string): Promise<OrganizationDocument | null> {
+    return this.organizationModel
+      .findOne({ _id: new Types.ObjectId(organizationId), deletedAt: null })
+      .exec();
+  }
+
+  /** Includes soft-deleted orgs — for the deletion sweep / cancel-deletion. */
+  findByIdIncludingDeleted(
+    organizationId: string,
+  ): Promise<OrganizationDocument | null> {
     return this.organizationModel.findById(organizationId).exec();
+  }
+
+  async setDeletedAt(
+    organizationId: string,
+    deletedAt: Date | null,
+    session?: ClientSession,
+  ): Promise<boolean> {
+    const result = await this.organizationModel
+      .findByIdAndUpdate(organizationId, { deletedAt }, { new: true })
+      .session(session ?? null)
+      .exec();
+    return result !== null;
   }
 
   updateById(

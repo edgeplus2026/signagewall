@@ -36,8 +36,16 @@ export const settingsApi = {
     return data
   },
 
-  deleteAccount: async (): Promise<void> => {
-    await api.delete(SETTINGS_BASE)
+  /** GDPR right of access: returns all personal data we hold about the user. */
+  exportData: async (): Promise<unknown> => {
+    const { data } = await api.get<unknown>(`${SETTINGS_BASE}/data-export`)
+    return data
+  },
+
+  /** Starts the 30-day account-deletion grace period. */
+  deleteAccount: async (): Promise<{ scheduledFor: string }> => {
+    const { data } = await api.delete<{ scheduledFor: string }>(SETTINGS_BASE)
+    return data
   },
 
   submitFeedback: async (payload: FeedbackRequest): Promise<void> => {

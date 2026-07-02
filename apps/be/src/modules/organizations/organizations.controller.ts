@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Patch,
@@ -17,7 +16,6 @@ import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import {
   ApiBearerAuthRequired,
   ApiCommonErrorResponses,
-  ApiSuccessNullResponse,
   ApiSuccessResponse,
   OrganizationResponseSchema,
 } from '../../common/swagger';
@@ -59,14 +57,4 @@ export class OrganizationsController {
     return this.organizationsService.update(organizationId, membership, dto);
   }
 
-  @Delete(':id')
-  @RequireOrgRole({ roles: [OrganizationRole.ADMIN], idParam: 'id' })
-  @ApiSuccessNullResponse()
-  async remove(
-    @CurrentUser() user: RequestUser,
-    @Param('id') organizationId: string,
-  ) {
-    await this.organizationsService.delete(user.id, organizationId);
-    return null;
-  }
 }

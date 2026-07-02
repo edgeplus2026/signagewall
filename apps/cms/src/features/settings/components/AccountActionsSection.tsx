@@ -1,5 +1,6 @@
+import { TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -12,11 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
 import { queryClient } from '@/providers/QueryProvider'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import { SettingsRow, SettingsSection } from '@/features/settings/components/SettingsSection'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 export function AccountActionsSection() {
   const { t } = useTranslation()
@@ -25,6 +28,17 @@ export function AccountActionsSection() {
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+
+  const deleteKeyword = t('settings.account.deleteConfirm.keyword')
+  const canDelete = confirmText.trim() === deleteKeyword
+
+  const handleDeleteOpenChange = (open: boolean) => {
+    setDeleteOpen(open)
+    if (!open) {
+      setConfirmText('')
+    }
+  }
 
   const handleLogout = () => {
     logout()
@@ -33,6 +47,9 @@ export function AccountActionsSection() {
   }
 
   const handleDeleteAccount = async () => {
+    if (!canDelete) {
+      return
+    }
     setIsDeleting(true)
     try {
       await settingsApi.deleteAccount()
@@ -42,8 +59,9 @@ export function AccountActionsSection() {
       setDeleteOpen(false)
       toast.success(t('settings.account.deleteSuccess'))
       void navigate('/login')
-    } catch {
-      toast.error(t('settings.account.deleteError'))
+    } catch (error) {
+      // Surfaces the sole-admin owner-blocker message from the API.
+      toast.error(getApiErrorMessage(error, t('settings.account.deleteError')))
     } finally {
       setIsDeleting(false)
     }
@@ -101,22 +119,61 @@ export function AccountActionsSection() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <Dialog open={deleteOpen} onOpenChange={handleDeleteOpenChange}>
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>{t('settings.account.deleteConfirm.title')}</DialogTitle>
-            <DialogDescription>{t('settings.account.deleteConfirm.description')}</DialogDescription>
+            <div className="bg-danger/10 text-danger mx-auto mb-1 flex size-11 items-center justify-center rounded-full">
+              <TriangleAlert className="size-5" />
+            </div>
+            <DialogTitle className="text-center">
+              {t('settings.account.deleteConfirm.title')}
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              {t('settings.account.deleteConfirm.description')}
+            </DialogDescription>
           </DialogHeader>
+
+          <div className="border-secondary/60 bg-sidebar/40 text-secondary flex flex-col gap-2 rounded-lg border p-3 text-[13px] leading-snug">
+            <p>{t('settings.account.deleteConfirm.point1')}</p>
+            <p>{t('settings.account.deleteConfirm.point2')}</p>
+            <p className="text-primary">
+              {t('settings.account.deleteConfirm.recover')}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="delete-confirm" className="text-primary text-sm">
+              <Trans
+                i18nKey="settings.account.deleteConfirm.prompt"
+                values={{ keyword: deleteKeyword }}
+                components={{ b: <span className="text-danger font-semibold" /> }}
+              />
+            </label>
+            <Input
+              id="delete-confirm"
+              value={confirmText}
+              autoComplete="off"
+              placeholder={deleteKeyword}
+              onChange={(event) => {
+                setConfirmText(event.target.value)
+              }}
+            />
+          </div>
+
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
-                setDeleteOpen(false)
+                handleDeleteOpenChange(false)
               }}
             >
               {t('settings.account.deleteConfirm.cancel')}
             </Button>
-            <Button variant="danger" disabled={isDeleting} onClick={() => void handleDeleteAccount()}>
+            <Button
+              variant="danger"
+              disabled={isDeleting || !canDelete}
+              onClick={() => void handleDeleteAccount()}
+            >
               {t('settings.account.deleteConfirm.confirm')}
             </Button>
           </DialogFooter>

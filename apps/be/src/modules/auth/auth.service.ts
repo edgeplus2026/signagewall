@@ -1,12 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
+import { Model, Types } from 'mongoose';
 import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
 import type { RequestUser } from '../../common/interfaces/request-user.interface';
+import {
+  PendingDeletion,
+  PendingDeletionDocument,
+} from '../data-deletion/schemas/pending-deletion.schema';
+import { LegalService } from '../legal/legal.service';
 import { MembersService } from '../members/members.service';
 import { MailService } from '../mail/mail.service';
 import {
@@ -47,6 +54,9 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly membersService: MembersService,
     private readonly transactionService: TransactionService,
+    private readonly legalService: LegalService,
+    @InjectModel(PendingDeletion.name)
+    private readonly pendingDeletionModel: Model<PendingDeletionDocument>,
     private readonly i18n: I18nService,
   ) {}
 
@@ -57,7 +67,7 @@ export class AuthService {
     );
   }
 
-  async register(dto: RegisterDto): Promise<RegisterResultDto> {
+  async register(dto: RegisterDto, ip?: string): Promise<RegisterResultDto> {
     if (dto.inviteToken) {
       const preview = await this.membersService.getInvitationPreview(
         dto.inviteToken,
@@ -102,6 +112,12 @@ export class AuthService {
           inviteToken,
           session,
         );
+        await this.legalService.recordAcceptances(
+          created._id.toString(),
+          undefined,
+          ip,
+          session,
+        );
         return created;
       });
 
@@ -114,6 +130,17 @@ export class AuthService {
     // persisted before sending, so a mail failure must not fail registration —
     // the user can still request a fresh link via resend.
     const user = await this.usersRepository.create(userData);
+    // Best-effort: consent is already enforced by the DTO, so a write failure
+    // here must not fail registration and orphan the just-created user (which
+    // would then block re-registration with "email already exists").
+    await this.legalService
+      .recordAcceptances(user._id.toString(), undefined, ip)
+      .catch((error: unknown) => {
+        this.logger.error(
+          `Recording legal consent failed for ${user.email}`,
+          error,
+        );
+      });
     this.notifyAdminOfRegistration(dto, false);
     await this.sendVerificationLink(user).catch((error: unknown) => {
       this.logger.error(`Verification email failed for ${user.email}`, error);
@@ -185,23 +212,33 @@ export class AuthService {
       select: ['password'],
     });
 
-    if (!user || !user.isActive) {
+    if (!user || !user.password) {
       throw BusinessException.unauthorized(
         this.i18n.t('auth.invalidCredentials'),
       );
     }
 
-    if (!user.password) {
-      throw BusinessException.unauthorized(
-        this.i18n.t('auth.invalidCredentials'),
-      );
-    }
-
+    // Verify the password before the active-check so an account in its
+    // self-deletion grace period can reactivate by simply logging in.
     const isValid = await bcrypt.compare(dto.password, user.password);
     if (!isValid) {
       throw BusinessException.unauthorized(
         this.i18n.t('auth.invalidCredentials'),
       );
+    }
+
+    if (!user.isActive) {
+      // Only a pending self-deletion (still in grace) may self-reactivate;
+      // admin-deactivated accounts stay locked out.
+      const reactivated = await this.reactivatePendingDeletion(
+        user._id.toString(),
+      );
+      if (!reactivated) {
+        throw BusinessException.unauthorized(
+          this.i18n.t('auth.invalidCredentials'),
+        );
+      }
+      user.isActive = true;
     }
 
     // Credentials are valid but the email is unconfirmed. Use a distinct
@@ -211,6 +248,31 @@ export class AuthService {
     }
 
     return this.buildAuthResponse(user);
+  }
+
+  /**
+   * Cancel a pending account deletion when the user logs back in during the
+   * 30-day grace period, restoring the account. Returns false when no pending
+   * self-deletion exists (e.g. an admin-deactivated account), which must stay
+   * locked out.
+   */
+  private async reactivatePendingDeletion(userId: string): Promise<boolean> {
+    const pending = await this.pendingDeletionModel
+      .findOne({
+        type: 'account',
+        targetId: new Types.ObjectId(userId),
+        status: 'pending',
+      })
+      .exec();
+
+    if (!pending) {
+      return false;
+    }
+
+    await this.usersRepository.reactivate(userId);
+    await this.pendingDeletionModel.deleteOne({ _id: pending._id }).exec();
+    this.logger.log(`Account ${userId} reactivated by login within grace period`);
+    return true;
   }
 
   async verifyEmail(token: string): Promise<{ verified: true }> {
@@ -440,7 +502,16 @@ export class AuthService {
       (await this.usersRepository.findByEmail(profile.email));
 
     if (user && !user.isActive) {
-      throw BusinessException.forbidden(this.i18n.t('auth.accountDisabled'));
+      // Same self-reactivation as password login: signing back in during the
+      // 30-day grace period restores an account pending self-deletion (Google
+      // has proven identity); admin-disabled accounts stay blocked.
+      const reactivated = await this.reactivatePendingDeletion(
+        user._id.toString(),
+      );
+      if (!reactivated) {
+        throw BusinessException.forbidden(this.i18n.t('auth.accountDisabled'));
+      }
+      user.isActive = true;
     }
 
     if (!user) {

@@ -1,8 +1,14 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 
+import {
+  PendingDeletion,
+  PendingDeletionSchema,
+} from '../data-deletion/schemas/pending-deletion.schema';
+import { LegalModule } from '../legal/legal.module';
 import { MailModule } from '../mail/mail.module';
 import { MembersModule } from '../members/members.module';
 import { UsersModule } from '../users/users.module';
@@ -33,6 +39,10 @@ export class AuthModule {
         UsersModule,
         MailModule,
         MembersModule,
+        LegalModule,
+        MongooseModule.forFeature([
+          { name: PendingDeletion.name, schema: PendingDeletionSchema },
+        ]),
         PassportModule.register({ defaultStrategy: 'jwt-access' }),
         JwtModule.register({}),
         ConfigModule,

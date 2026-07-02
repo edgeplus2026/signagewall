@@ -84,6 +84,17 @@ export class MediaRepository {
       .exec();
   }
 
+  /** Delete every media item for an org (org-erasure cascade). */
+  async deleteAllByOrganization(
+    organizationId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    await this.mediaModel
+      .deleteMany({ organizationId: new Types.ObjectId(organizationId) })
+      .session(session ?? null)
+      .exec();
+  }
+
   async findByParent(
     organizationId: string,
     parentId: string | null,

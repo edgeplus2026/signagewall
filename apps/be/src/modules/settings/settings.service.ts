@@ -2,9 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
-import { TransactionService } from '../../common/services/transaction.service';
 import { RequestUser } from '../../common/interfaces/request-user.interface';
 import { AuthService } from '../auth/auth.service';
+import { DataDeletionService } from '../data-deletion/data-deletion.service';
+import { LegalService } from '../legal/legal.service';
 import { MailService } from '../mail/mail.service';
 import { SupportEmailContext } from '../mail/templates/support-email.template';
 import { OrganizationsService } from '../organizations/organizations.service';
@@ -22,6 +23,24 @@ export interface AccountSettingsDto {
   theme: 'light' | 'dark' | 'system';
 }
 
+/** Full personal-data export served for the GDPR right of access. */
+export interface DataExportDto {
+  exportedAt: string;
+  profile: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    company?: string;
+    provider: string;
+    language: string;
+    theme: string;
+    createdAt: string;
+  };
+  organizations: { id: string; name: string; role: string }[];
+  legalAcceptances: { docType: string; version: string; acceptedAt: string }[];
+}
+
 @Injectable()
 export class SettingsService {
   private readonly logger = new Logger(SettingsService.name);
@@ -30,10 +49,45 @@ export class SettingsService {
     private readonly usersRepository: UsersRepository,
     private readonly authService: AuthService,
     private readonly organizationsService: OrganizationsService,
+    private readonly legalService: LegalService,
+    private readonly dataDeletionService: DataDeletionService,
     private readonly mailService: MailService,
-    private readonly transactionService: TransactionService,
     private readonly i18n: I18nService,
   ) {}
+
+  /** GDPR right of access: everything personal we hold about the user. */
+  async exportUserData(userId: string): Promise<DataExportDto> {
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw BusinessException.notFound(this.i18n.t('auth.userNotFound'));
+    }
+
+    const [organizations, legalAcceptances] = await Promise.all([
+      this.organizationsService.listForUser(userId),
+      this.legalService.listAcceptances(userId),
+    ]);
+
+    return {
+      exportedAt: new Date().toISOString(),
+      profile: {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        ...(user.phone ? { phone: user.phone } : {}),
+        ...(user.company ? { company: user.company } : {}),
+        provider: user.provider,
+        language: user.language,
+        theme: user.theme,
+        createdAt: user.createdAt.toISOString(),
+      },
+      organizations: organizations.map((org) => ({
+        id: org.id,
+        name: org.name,
+        role: org.role,
+      })),
+      legalAcceptances,
+    };
+  }
 
   async updateProfile(
     userId: string,
@@ -100,19 +154,13 @@ export class SettingsService {
     };
   }
 
-  async deleteAccount(userId: string): Promise<void> {
-    const deleted = await this.transactionService.run(async (session) => {
-      await this.organizationsService.deleteOrganizationsForUser(
-        userId,
-        session,
-      );
-
-      return this.usersRepository.deleteById(userId, session);
-    });
-
-    if (!deleted) {
-      throw BusinessException.notFound(this.i18n.t('auth.userNotFound'));
-    }
+  /**
+   * GDPR erasure: starts the 30-day deletion grace period (deactivates the
+   * account + revokes sessions now; the sweep anonymizes later). Rejected if the
+   * user solely owns an org with other members — see {@link DataDeletionService}.
+   */
+  async deleteAccount(userId: string): Promise<{ scheduledFor: string }> {
+    return this.dataDeletionService.requestAccountDeletion(userId);
   }
 
   async submitFeedback(

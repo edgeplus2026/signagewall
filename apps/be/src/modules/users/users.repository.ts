@@ -54,6 +54,56 @@ export class UsersRepository {
     return user;
   }
 
+  /** Start the deletion grace period: block login + revoke sessions. */
+  async deactivate(userId: string, session?: ClientSession): Promise<void> {
+    await this.userModel
+      .updateOne(
+        { _id: userId },
+        { $set: { isActive: false }, $unset: { refreshTokenHash: '' } },
+        { session },
+      )
+      .exec();
+  }
+
+  /** Undo a pending account deletion within the grace window. */
+  async reactivate(userId: string, session?: ClientSession): Promise<void> {
+    await this.userModel
+      .updateOne({ _id: userId }, { $set: { isActive: true } }, { session })
+      .exec();
+  }
+
+  /**
+   * Irreversibly anonymize PII while keeping the row so non-personal history
+   * (that references the user id) stays intact — GDPR/ZZPL erasure.
+   */
+  async anonymize(userId: string, session?: ClientSession): Promise<void> {
+    await this.userModel
+      .updateOne(
+        { _id: userId },
+        {
+          $set: {
+            name: 'Deleted user',
+            email: `deleted+${userId}@deleted.local`,
+            isActive: false,
+            isEmailVerified: false,
+          },
+          $unset: {
+            password: '',
+            phone: '',
+            company: '',
+            googleId: '',
+            refreshTokenHash: '',
+            passwordResetToken: '',
+            passwordResetExpiresAt: '',
+            emailVerificationToken: '',
+            emailVerificationExpiresAt: '',
+          },
+        },
+        { session },
+      )
+      .exec();
+  }
+
   findById(
     id: string,
     options?: FindUserOptions,

@@ -589,6 +589,31 @@ export class MediaService {
   }
 
   /**
+   * Erase every media item of an org and its R2 objects — the media half of the
+   * organization-deletion cascade. Standalone (no playlist/screen ref cleanup:
+   * those collections are being deleted too). R2 purge is best-effort.
+   */
+  async purgeOrganization(organizationId: string): Promise<void> {
+    const items =
+      await this.mediaRepository.findAllByOrganization(organizationId);
+    if (items.length === 0) {
+      return;
+    }
+
+    const storageKeys = items.flatMap(
+      (item) =>
+        [
+          item.storageKey,
+          item.thumbnailSmallKey,
+          item.thumbnailLargeKey,
+        ].filter(Boolean) as string[],
+    );
+
+    await this.mediaRepository.deleteAllByOrganization(organizationId);
+    await this.r2StorageService.deleteObjects(storageKeys);
+  }
+
+  /**
    * Re-drives media items stuck in PROCESSING (e.g. the process died, or a
    * transient failure left them un-finished). Invoked by the scheduled
    * reconciliation sweep. Runs globally across organizations.

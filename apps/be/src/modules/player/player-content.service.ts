@@ -16,6 +16,7 @@ import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
 import { AppInstanceDocument } from '../apps/schemas/app-instance.schema';
 import { MediaRepository } from '../media/media.repository';
+import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { PlaylistItemType } from '../playlists/schemas/playlist.schema';
 import { ScreensRepository } from '../screens/screens.repository';
@@ -108,6 +109,7 @@ export class PlayerContentService {
     private readonly mediaRepository: MediaRepository,
     private readonly appInstancesRepository: AppInstancesRepository,
     private readonly appDataCacheRepository: AppDataCacheRepository,
+    private readonly organizationsRepository: OrganizationsRepository,
     private readonly configService: ConfigService,
   ) {}
 
@@ -127,6 +129,21 @@ export class PlayerContentService {
 
     if (!screen) {
       return null;
+    }
+
+    // Org queued for GDPR deletion (soft-deleted): keep the device paired — so
+    // cancelling within the grace period restores content instantly — but serve
+    // an empty snapshot so its screens stop showing content immediately.
+    // `findById` returns null for soft-deleted orgs.
+    const organization =
+      await this.organizationsRepository.findById(organizationId);
+    if (!organization) {
+      return {
+        screenId: screen._id.toString(),
+        name: screen.name,
+        revision: 'org-pending-deletion',
+        items: [],
+      };
     }
 
     const pending = await this.collectPendingItems(

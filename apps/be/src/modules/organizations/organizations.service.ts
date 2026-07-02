@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ClientSession } from 'mongoose';
 import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -72,7 +71,13 @@ export class OrganizationsService {
     return toOrganizationResponse(organization, membership.role);
   }
 
-  async delete(userId: string, organizationId: string): Promise<void> {
+  /**
+   * Guard used before an organization is queued for GDPR deletion: a user may
+   * not delete their only org (it would leave them without one — they should
+   * delete their account instead). The erasure itself is orchestrated by
+   * {@link DataDeletionService} (see `DataDeletionController`).
+   */
+  async assertNotLastOrganization(userId: string): Promise<void> {
     const organizationCount =
       await this.organizationsRepository.countByUserId(userId);
 
@@ -80,43 +85,6 @@ export class OrganizationsService {
       throw BusinessException.badRequest(
         this.i18n.t('organizations.cannotDeleteLast'),
       );
-    }
-
-    const deleted = await this.transactionService.run((session) =>
-      this.organizationsRepository.deleteById(organizationId, session),
-    );
-
-    if (!deleted) {
-      throw BusinessException.notFound(this.i18n.t('organizations.notFound'));
-    }
-  }
-
-  async deleteOrganizationsForUser(
-    userId: string,
-    session?: ClientSession,
-  ): Promise<void> {
-    const items = await this.organizationsRepository.findByUserId(
-      userId,
-      session,
-    );
-
-    for (const { organization } of items) {
-      const organizationId = organization._id.toString();
-      const memberCount =
-        await this.organizationsRepository.countMembersByOrganizationId(
-          organizationId,
-          session,
-        );
-
-      if (memberCount <= 1) {
-        await this.organizationsRepository.deleteById(organizationId, session);
-      } else {
-        await this.organizationsRepository.deleteMembership(
-          userId,
-          organizationId,
-          session,
-        );
-      }
     }
   }
 

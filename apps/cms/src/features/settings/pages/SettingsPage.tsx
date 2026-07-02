@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { AccountActionsSection } from '@/features/settings/components/AccountActionsSection'
 import { HelpSection } from '@/features/settings/components/HelpSection'
 import { PreferencesSection } from '@/features/settings/components/PreferencesSection'
+import { PrivacyLegalSection } from '@/features/settings/components/PrivacyLegalSection'
 import { SecuritySection } from '@/features/settings/components/SecuritySection'
 import { UserDetailsSection } from '@/features/settings/components/UserDetailsSection'
 
@@ -22,6 +23,7 @@ export default function SettingsPage() {
       <SecuritySection />
       <HelpSection />
       <AccountActionsSection />
+      <PrivacyLegalSection />
     </div>
   )
 }

@@ -72,11 +72,15 @@ export class SettingsController {
     return this.settingsService.updateSettings(user.id, dto);
   }
 
+  /** GDPR right of access: download all personal data we hold about the user. */
+  @Get('data-export')
+  exportData(@CurrentUser() user: RequestUser) {
+    return this.settingsService.exportUserData(user.id);
+  }
+
   @Delete()
-  @ApiSuccessNullResponse()
-  async deleteAccount(@CurrentUser() user: RequestUser) {
-    await this.settingsService.deleteAccount(user.id);
-    return null;
+  deleteAccount(@CurrentUser() user: RequestUser) {
+    return this.settingsService.deleteAccount(user.id);
   }
 
   @Post('feedback')

@@ -21,6 +21,11 @@ export const createRegisterSchema = (t: TFunction) =>
       .refine((value) => isValidPhoneNumber(value), t('validation.phoneInvalid')),
     company: z.string().optional(),
     password: z.string().min(PASSWORD_MIN, t('validation.passwordMin', { min: PASSWORD_MIN })),
+    acceptedLegal: z
+      .boolean()
+      .refine((value) => value === true, {
+        message: t('validation.acceptLegalRequired'),
+      }),
   })
 
 export const createForgotPasswordSchema = (t: TFunction) =>

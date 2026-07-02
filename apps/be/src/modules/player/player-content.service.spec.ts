@@ -102,6 +102,11 @@ function buildService(options: {
     ),
   };
   const configService = { get: jest.fn().mockReturnValue('https://cdn.test') };
+  // Active org by default so content still resolves; a soft-deleted org would
+  // return null here and yield an empty snapshot.
+  const organizationsRepository = {
+    findById: jest.fn().mockResolvedValue({ _id: 'org' }),
+  };
 
   return new PlayerContentService(
     screensRepository as never,
@@ -109,6 +114,7 @@ function buildService(options: {
     mediaRepository as never,
     appInstancesRepository as never,
     appDataCacheRepository as never,
+    organizationsRepository as never,
     configService as never,
   );
 }

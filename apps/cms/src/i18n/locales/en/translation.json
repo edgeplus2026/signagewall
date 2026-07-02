@@ -5,7 +5,8 @@
     "nameMin": "Name must be at least {{min}} characters",
     "passwordMismatch": "Passwords do not match",
     "phoneRequired": "Phone number is required",
-    "phoneInvalid": "Enter a valid phone number"
+    "phoneInvalid": "Enter a valid phone number",
+    "acceptLegalRequired": "You must accept the Terms of Service and Privacy Policy."
   },
   "common": {
     "appName": "Edge",
@@ -64,7 +65,8 @@
       "inviteBadgeDescription": "Create your account to join {{name}}.",
       "inviteInvalidTitle": "Invitation expired",
       "inviteInvalidDescription": "This invitation link is invalid or has expired. Ask your organization admin to send a new invite.",
-      "inviteInvalidAction": "Register without an invitation"
+      "inviteInvalidAction": "Register without an invitation",
+      "acceptLegal": "I agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
     },
     "forgotPassword": {
       "title": "Forgot your password?",
@@ -232,7 +234,7 @@
     },
     "delete": {
       "title": "Delete organization",
-      "description": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+      "description": "Delete {{name}}? It will be hidden immediately and permanently erased after a 30-day grace period — including all its screens, devices, playlists, apps and media.",
       "confirm": "Delete",
       "cancel": "Cancel",
       "success": "Organization deleted",
@@ -258,7 +260,8 @@
       "preferences": "Preferences",
       "security": "Security",
       "help": "Help",
-      "account": "Account"
+      "account": "Account",
+      "privacy": "Privacy & legal"
     },
     "profile": {
       "email": "Email",
@@ -340,9 +343,33 @@
       "deleteError": "Could not delete account. Please try again.",
       "deleteConfirm": {
         "title": "Delete account?",
-        "description": "This action is permanent and cannot be undone. All your data will be removed.",
+        "description": "This will permanently delete your Edge account.",
         "cancel": "Cancel",
-        "confirm": "Delete account"
+        "confirm": "Delete account",
+        "point1": "Your account is deactivated immediately and all your sessions are ended.",
+        "point2": "After 30 days your personal data is permanently anonymized, and any organization you solely own is deleted with all its content.",
+        "recover": "Changed your mind? Log back in within 30 days to restore your account.",
+        "prompt": "Type <b>{{keyword}}</b> to confirm.",
+        "keyword": "DELETE"
+      }
+    },
+    "privacy": {
+      "export": {
+        "label": "Your data",
+        "description": "Download a copy of the personal data we hold about you.",
+        "action": "Download",
+        "success": "Your data export has been downloaded.",
+        "error": "Could not export your data. Please try again."
+      },
+      "terms": {
+        "label": "Terms of Service",
+        "description": "Read the current Terms of Service.",
+        "action": "View"
+      },
+      "privacy": {
+        "label": "Privacy Policy",
+        "description": "Read the current Privacy Policy.",
+        "action": "View"
       }
     }
   },
@@ -1637,6 +1664,18 @@
         "all": "All categories",
         "searchPlaceholder": "Search categories…"
       }
+    }
+  },
+  "legal": {
+    "back": "Back",
+    "loadError": "Could not load this document.",
+    "version": "Version {{version}} · effective {{date}}",
+    "reconsent": {
+      "title": "Updated legal terms",
+      "description": "We’ve updated our legal documents. Please review and accept them to continue.",
+      "accept": "I have read and accept the updated <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
+      "confirm": "Accept and continue",
+      "error": "Could not save your acceptance. Please try again."
     }
   }
 }

@@ -1,4 +1,11 @@
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  Equals,
+  IsBoolean,
+  IsEmail,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 import { NormalizeEmail } from '../../../common/decorators/normalize-email.decorator';
 
@@ -26,4 +33,9 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   inviteToken?: string;
+
+  /** Must be true — the user accepts the current Terms of Service + Privacy Policy. */
+  @IsBoolean()
+  @Equals(true)
+  acceptedLegal: boolean;
 }

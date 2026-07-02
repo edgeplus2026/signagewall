@@ -5,7 +5,8 @@
     "nameMin": "Ime mora imati najmanje {{min}} karaktera",
     "passwordMismatch": "Lozinke se ne poklapaju",
     "phoneRequired": "Broj telefona je obavezan",
-    "phoneInvalid": "Unesite validan broj telefona"
+    "phoneInvalid": "Unesite validan broj telefona",
+    "acceptLegalRequired": "Morate prihvatiti Uslove korišćenja i Politiku privatnosti."
   },
   "common": {
     "appName": "Edge",
@@ -56,7 +57,8 @@
       "hasAccount": "Već imate nalog?",
       "signIn": "Prijava",
       "success": "Nalog je uspešno kreiran",
-      "error": "Registracija nije uspela. Pokušajte ponovo."
+      "error": "Registracija nije uspela. Pokušajte ponovo.",
+      "acceptLegal": "Prihvatam <terms>Uslove korišćenja</terms> i <privacy>Politiku privatnosti</privacy>."
     },
     "forgotPassword": {
       "title": "Zaboravili ste lozinku?",
@@ -209,7 +211,7 @@
     },
     "delete": {
       "title": "Obriši organizaciju",
-      "description": "Da li ste sigurni da želite da obrišete {{name}}? Ova radnja se ne može poništiti.",
+      "description": "Obrisati {{name}}? Biće odmah sakrivena i trajno obrisana nakon 30 dana — uključujući sve njene ekrane, uređaje, plejliste, aplikacije i medije.",
       "confirm": "Obriši",
       "cancel": "Otkaži",
       "success": "Organizacija je obrisana",
@@ -235,7 +237,8 @@
       "preferences": "Podešavanja",
       "security": "Bezbednost",
       "help": "Pomoć",
-      "account": "Nalog"
+      "account": "Nalog",
+      "privacy": "Privatnost i pravno"
     },
     "profile": {
       "email": "Email",
@@ -317,9 +320,33 @@
       "deleteError": "Brisanje naloga nije uspelo. Pokušajte ponovo.",
       "deleteConfirm": {
         "title": "Obrisati nalog?",
-        "description": "Ova radnja je trajna i ne može se poništiti. Svi vaši podaci će biti uklonjeni.",
+        "description": "Ovo trajno briše vaš Edge nalog.",
         "cancel": "Otkaži",
-        "confirm": "Obriši nalog"
+        "confirm": "Obriši nalog",
+        "point1": "Nalog se odmah deaktivira i sve vaše sesije se prekidaju.",
+        "point2": "Nakon 30 dana vaši lični podaci se trajno anonimizuju, a svaka organizacija čiji ste jedini vlasnik briše se sa celokupnim sadržajem.",
+        "recover": "Predomislili ste se? Prijavite se ponovo u roku od 30 dana da vratite nalog.",
+        "prompt": "Unesite <b>{{keyword}}</b> za potvrdu.",
+        "keyword": "OBRIŠI"
+      }
+    },
+    "privacy": {
+      "export": {
+        "label": "Vaši podaci",
+        "description": "Preuzmite kopiju ličnih podataka koje čuvamo o vama.",
+        "action": "Preuzmi",
+        "success": "Izvoz vaših podataka je preuzet.",
+        "error": "Nije moguće izvesti podatke. Pokušajte ponovo."
+      },
+      "terms": {
+        "label": "Uslovi korišćenja",
+        "description": "Pročitajte važeće Uslove korišćenja.",
+        "action": "Otvori"
+      },
+      "privacy": {
+        "label": "Politika privatnosti",
+        "description": "Pročitajte važeću Politiku privatnosti.",
+        "action": "Otvori"
       }
     }
   },
@@ -1619,6 +1646,18 @@
         "all": "Sve kategorije",
         "searchPlaceholder": "Pretraži kategorije…"
       }
+    }
+  },
+  "legal": {
+    "back": "Nazad",
+    "loadError": "Nije moguće učitati ovaj dokument.",
+    "version": "Verzija {{version}} · važi od {{date}}",
+    "reconsent": {
+      "title": "Ažurirani pravni uslovi",
+      "description": "Ažurirali smo naše pravne dokumente. Pregledajte ih i prihvatite da biste nastavili.",
+      "accept": "Pročitao/la sam i prihvatam ažurirane <terms>Uslove korišćenja</terms> i <privacy>Politiku privatnosti</privacy>.",
+      "confirm": "Prihvati i nastavi",
+      "error": "Nije moguće sačuvati prihvatanje. Pokušajte ponovo."
     }
   }
 }

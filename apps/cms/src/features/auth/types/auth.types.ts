@@ -27,6 +27,7 @@ export interface RegisterRequest {
   phone: string
   company?: string
   password: string
+  acceptedLegal: boolean
   inviteToken?: string
 }
 

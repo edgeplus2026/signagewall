@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Ip, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { AuthThrottle } from '../../common/decorators/auth-throttle.decorator';
@@ -36,8 +36,8 @@ export class AuthController {
   @AuthThrottle()
   @Post('register')
   @ApiSuccessResponse(RegisterResponseSchema)
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  register(@Body() dto: RegisterDto, @Ip() ip: string) {
+    return this.authService.register(dto, ip);
   }
 
   @Public()

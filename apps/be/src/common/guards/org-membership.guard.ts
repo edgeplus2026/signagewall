@@ -80,6 +80,14 @@ export class OrgMembershipGuard implements CanActivate {
       throw BusinessException.forbidden(this.i18n.t('organizations.notMember'));
     }
 
+    // Block access to an org queued for deletion (soft-deleted) — findById only
+    // returns active orgs, so a missing org here means it's pending deletion.
+    const organization =
+      await this.organizationsRepository.findById(organizationId);
+    if (!organization) {
+      throw BusinessException.forbidden(this.i18n.t('organizations.notMember'));
+    }
+
     if (this.requiresAdmin(metadata.roles)) {
       if (
         normalizeOrganizationRole(membership.role) !== OrganizationRole.ADMIN

@@ -2,11 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Field,
   FieldDescription,
@@ -62,7 +63,14 @@ export function RegisterForm() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: '', email: '', phone: '', company: '', password: '' },
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      company: '',
+      password: '',
+      acceptedLegal: false,
+    },
   })
 
   useEffect(() => {
@@ -81,6 +89,7 @@ export function RegisterForm() {
       phone: '',
       company: '',
       password: '',
+      acceptedLegal: false,
     })
   }, [invitePreview, inviteToken, navigate, reset])
 
@@ -93,6 +102,7 @@ export function RegisterForm() {
         email: data.email,
         phone: data.phone,
         password: data.password,
+        acceptedLegal: data.acceptedLegal,
         ...(data.company ? { company: data.company } : {}),
         ...(inviteToken ? { inviteToken } : {}),
       })
@@ -217,6 +227,47 @@ export function RegisterForm() {
           <FieldLabel htmlFor="password">{t('common.password')}</FieldLabel>
           <PasswordInput id="password" autoComplete="new-password" {...register('password')} />
           <FieldError errors={[errors.password]} />
+        </Field>
+        <Field data-invalid={!!errors.acceptedLegal}>
+          <div className="flex items-start gap-2.5">
+            <Controller
+              name="acceptedLegal"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="acceptedLegal"
+                  className="mt-0.5"
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked === true)
+                  }}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+            <FieldLabel htmlFor="acceptedLegal" className="text-sm leading-snug font-normal">
+              <Trans
+                i18nKey="auth.register.acceptLegal"
+                components={{
+                  terms: (
+                    <Link
+                      to="/legal/terms"
+                      target="_blank"
+                      className="text-primary underline underline-offset-4"
+                    />
+                  ),
+                  privacy: (
+                    <Link
+                      to="/legal/privacy"
+                      target="_blank"
+                      className="text-primary underline underline-offset-4"
+                    />
+                  ),
+                }}
+              />
+            </FieldLabel>
+          </div>
+          <FieldError errors={[errors.acceptedLegal]} />
         </Field>
         <Field>
           <Button type="submit" className="w-full" disabled={isSubmitting}>

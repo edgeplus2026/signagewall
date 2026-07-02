@@ -57,22 +57,27 @@ Ovi planovi se predaju agentu/developeru zajedno sa ovim README-om. Pre koda:
   authoring kao **tab u super-admin stranici** (create/edit/publish/unpublish/expiry, Tiptap
   rich-text). Authoring iza `SuperAdminGuard`; inbox za sve autentifikovane korisnike.
 
+- **09 — Legal (ToS/Privacy) + GDPR.** Verzionisani ToS/Privacy (const-driven, pun tekst en/sr)
+  sa obaveznim consent-om na registraciji + blokirajući re-consent gate na bump verzije. GDPR
+  **data-export** (Settings → JSON). **Erasure** sa 30-dana grace: soft-delete (nalog
+  `isActive=false` + revoke sesija; org `deletedAt` sakriven, ekrani odmah dobijaju prazan
+  snapshot ali ostaju upareni), owner-org blocker, dnevni `@Cron` sweep koji kaskadno briše
+  (screens/devices/playlists/app-instances/connections + media & **R2 purge**) i anonimizuje PII
+  (+ briše legal acceptances). **Self-serve povratak logovanjem** (password + Google) u grace
+  periodu. Audit trag (04) svesno preskočen.
+  - ⚠️ **Legal tekst je temeljan draft** — popuni `[bracketed]` podatke firme i neka ga pregleda
+    advokat pre javnog launcha. Deletion-confirm mejl se (za sada) ne šalje.
+
 ## Redosled implementacije (MVP)
 
 | # | Task | Zavisi od | Otključava |
 |---|---|---|---|
 | [05](./05-player-availability.md) | Availability u playeru (standby) | — (uvodi player `Intl`-evaluator + standby scheduler) | — |
 | [08](./08-native-shell-auto-update-tauri.md) | Native-shell auto-update (Tauri) | — (nezavisno) | OTA update fleete |
-| [09](./09-legal-tos-privacy-gdpr.md) | Legal (ToS/Privacy) + GDPR brisanje | ~~04 (audit)~~ → deferred, videti napomenu | Javni launch |
-
-**Napomena o 09 ⟶ 04:** 09 je originalno računao na activity-log audit (04) za GDPR trag.
-Pošto je **04 premešten u deferred**, GDPR brisanje treba da stoji **samostalno** (bez audit
-loga) — ili odblokirati 04 iz deferred-a ako se ispostavi kao tvrd preduslov. Potvrditi sa
-vlasnikom pre 09.
 
 **Logika redosleda:** 05 postavlja player `Intl`-evaluator + standby scheduler obrazac
 (offline-safe, stojeće pravilo). 08 (Tauri) je nezavisno — uradi kad se player feature-i
-stabilizuju. 09 ide poslednje (pre launcha).
+stabilizuju.
 
 ## Deferred (van MVP-a, "za sada ne radimo")
 
@@ -82,7 +87,8 @@ Svesno odloženo — **ništa od ovog ne ide u MVP.**
   **Device-offline alerting** operateru (in-app upozorenje kad player padne). Reuse-uje
   notifikacioni inbox (02).
 - [`deferred/04-activity-log.md`](./deferred/04-activity-log.md) —
-  **Activity log** (org audit) — Mongoose plugin + CLS. Uvodi CLS (cross-cutting); bio preduslov za 09.
+  **Activity log** (org audit) — Mongoose plugin + CLS. Uvodi CLS (cross-cutting). 09 (Legal/GDPR)
+  je isporučen **bez** audit traga, pa je ovo sada nice-to-have (ne blocker).
 - [`deferred/06-zones-layouts.md`](./deferred/06-zones-layouts.md) —
   **Zone / Layouts** (podeljen ekran). Najveći feature-gap vs velike konkurente i najveći
   post-MVP ROI, ali nije blocker za fokusiran full-screen MVP.
