@@ -834,6 +834,14 @@
       "warning": "Screens will be turned off outside of working hours.",
       "startTime": "Start time",
       "endTime": "End time",
+      "statusBadge": {
+        "on": "Screen on",
+        "off": "Screen off",
+        "onUntil": "Within working hours — the screen goes to standby {{time}}.",
+        "offUntil": "In scheduled standby — the screen turns on {{time}}.",
+        "alwaysOn": "No schedule set — this screen is always on.",
+        "offIndefinite": "In standby — no upcoming working hours are scheduled."
+      },
       "modes": {
         "always": {
           "label": "Always on",

@@ -85,8 +85,6 @@ export class PlaybackController {
 
   /** Direction of travel (1 = forward, -1 = back); steers skip-on-failure. */
   private direction: 1 | -1 = 1
-  private prefetchAbort: AbortController | null = null
-  private prefetching = false
 
   /** Mirror mode — never auto-advances; driven only by {@link showItem}. */
   private readonly follow: boolean
@@ -160,11 +158,11 @@ export class PlaybackController {
       this.requestTransition(0)
       // In follow mode the device owns advancement; we never auto-advance, so
       // there is no stall to watch for. (We still preload the head above via the
-      // initial transition, and prefetch warms the cache for offline safety.)
+      // initial transition; SW-cache warming for offline safety is owned by the
+      // sync-layer prefetch, independent of this engine's lifecycle.)
       if (!this.follow) {
         this.startWatchdog()
       }
-      this.prefetchAll(true)
     }
   }
 
@@ -186,102 +184,6 @@ export class PlaybackController {
     this.requestTransition(index)
   }
 
-  /**
-   * Warms the SW media cache with *every* item up front (not just the one-ahead
-   * preload), so going offline at any point — or navigating back / across the
-   * loop seam — never hits an unfetched URL. Fetches are sequential and best
-   * effort: failures (e.g. already offline) are swallowed, and a re-run after
-   * reconnect is cheap since cached entries resolve from the cache.
-   */
-  prefetchAll(force = false): void {
-    if (this.items.length === 0) {
-      return
-    }
-    // A flaky link fires 'online' repeatedly. Restarting a healthy warm-up each
-    // time would keep cancelling mid-download and never reach the tail, so let a
-    // running pass continue; only `load()` (new content) forces a fresh restart.
-    if (this.prefetching && !force) {
-      return
-    }
-    this.prefetchAbort?.abort()
-    const controller = new AbortController()
-    this.prefetchAbort = controller
-    this.prefetching = true
-    const urls = this.items.flatMap((item) =>
-      item.kind === 'image' || item.kind === 'video' ? [item.url] : [],
-    )
-
-    void (async () => {
-      try {
-        for (const url of urls) {
-          if (controller.signal.aborted || this.destroyed) {
-            return
-          }
-          // Skip what the SW cache already holds, so a restart resumes at the
-          // first un-warmed item instead of redoing the head every reconnect.
-          if (await this.isCached(url)) {
-            continue
-          }
-          if (controller.signal.aborted || this.destroyed) {
-            return
-          }
-          // Stop warming once storage is near full: pushing more in would make
-          // the CacheFirst LRU evict items we already cached (churn), wasting
-          // egress on bytes that won't survive. Already-cached items above are
-          // still skipped, so the warm set we have is preserved.
-          if (await this.overStorageBudget()) {
-            return
-          }
-          try {
-            // Low priority so warming the cache never starves the bytes the
-            // playback slot is actively fetching for the on-screen item.
-            await fetch(url, {
-              mode: 'no-cors',
-              signal: controller.signal,
-              priority: 'low',
-            } as RequestInit & { priority: 'low' })
-          } catch {
-            // Offline or transient — leave it for the next reconnect/prefetch.
-          }
-        }
-      } finally {
-        // Only the latest pass clears the flag; a forced restart already
-        // replaced the controller and owns the warm-up now.
-        if (this.prefetchAbort === controller) {
-          this.prefetching = false
-        }
-      }
-    })()
-  }
-
-  /** True when cached bytes are within ~10% of the origin's storage quota. */
-  private async overStorageBudget(): Promise<boolean> {
-    const storage = navigator.storage as StorageManager | undefined
-    if (!storage?.estimate) {
-      return false
-    }
-    try {
-      const { usage, quota } = await storage.estimate()
-      if (!usage || !quota) {
-        return false
-      }
-      return usage / quota > 0.9
-    } catch {
-      return false
-    }
-  }
-
-  private async isCached(url: string): Promise<boolean> {
-    if (typeof caches === 'undefined') {
-      return false
-    }
-    try {
-      return (await caches.match(url)) !== undefined
-    } catch {
-      return false
-    }
-  }
-
   destroy(): void {
     this.destroyed = true
     this.epoch += 1
@@ -290,7 +192,6 @@ export class PlaybackController {
       document.removeEventListener('pointerdown', this.handleUserGesture)
       document.removeEventListener('keydown', this.handleUserGesture)
     }
-    this.prefetchAbort?.abort()
     this.clearAdvanceTimer()
     this.clearPreloadTimer()
     if (this.watchdogTimer !== undefined) {

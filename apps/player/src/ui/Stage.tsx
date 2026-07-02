@@ -90,13 +90,6 @@ export function Stage() {
       showItem: (itemId) => controller.showItem(itemId),
     })
 
-    // Coming back online, re-warm the cache so any items that couldn't be
-    // prefetched while offline get pulled in before the next drop.
-    const onOnline = (): void => {
-      controllerRef.current?.prefetchAll()
-    }
-    window.addEventListener('online', onOnline)
-
     const stop = effect(() => {
       controller.setVolume(volume.value / 100)
       // Orientation + scale are reflected as data-attributes on the stage root
@@ -113,9 +106,12 @@ export function Stage() {
     return () => {
       stop()
       unregisterControls()
-      window.removeEventListener('online', onOnline)
       controller.destroy()
       controllerRef.current = null
+      // Nothing is playing once the stage is gone (e.g. standby) — without
+      // this the heartbeat/now-playing stream would keep reporting the last
+      // item as on-screen.
+      playingItemId.value = null
     }
   }, [])
 

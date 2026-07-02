@@ -60,6 +60,8 @@ function buildService(options: {
     string,
     { payload: unknown; fetchedAt?: Date; lastError?: string }
   >;
+  /** Stored `screen.availability` subdocument, when the screen has one. */
+  availability?: unknown;
 }) {
   const screensRepository = {
     findById: jest.fn().mockResolvedValue({
@@ -67,6 +69,7 @@ function buildService(options: {
       name: 'Lobby',
       organizationId: new Types.ObjectId(),
       items: options.screenItems,
+      ...(options.availability ? { availability: options.availability } : {}),
     }),
   };
   const playlistsRepository = {
@@ -526,5 +529,187 @@ describe('PlayerContentService', () => {
     const third = await build(changed).resolveByScreenId('org', 'screen');
 
     expect(third?.revision).not.toBe(first?.revision);
+  });
+
+  describe('availability', () => {
+    const ALL_DAYS = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
+
+    /** Stored subdocument shape: both blocks always present (CMS bookkeeping). */
+    const storedAvailability = (mode: 'always' | 'weekly' | 'special') => ({
+      mode,
+      timezone: 'Europe/Belgrade',
+      weekly: ALL_DAYS.map((day) => ({
+        day,
+        enabled: day === 'monday',
+        start: '09:00',
+        end: '17:00',
+      })),
+      special: {
+        startDate: '2026-06-10',
+        endDate: '2026-06-12',
+        start: '09:00',
+        end: '17:00',
+      },
+    });
+
+    it('maps a weekly availability to enabled days only, without the special block', async () => {
+      const service = buildService({
+        mediaById: {},
+        screenItems: [],
+        availability: storedAvailability('weekly'),
+      });
+
+      const snapshot = await service.resolveByScreenId('org', 'screen');
+
+      // Only the enabled day is sent — disabled days carry placeholder hours
+      // that would needlessly churn the revision.
+      expect(snapshot?.availability).toEqual({
+        mode: 'weekly',
+        timezone: 'Europe/Belgrade',
+        weekly: [{ day: 'monday', enabled: true, start: '09:00', end: '17:00' }],
+      });
+      expect(snapshot?.availability).not.toHaveProperty('special');
+    });
+
+    it('does not churn the revision when only a disabled weekly day changes', async () => {
+      const base = storedAvailability('weekly');
+      const editedDisabledDay = {
+        ...base,
+        weekly: base.weekly.map((day: { day: string }) =>
+          day.day === 'sunday'
+            ? { ...day, start: '01:00', end: '05:00' } // cosmetic: Sunday stays disabled
+            : day,
+        ),
+      };
+
+      const first = await buildService({
+        mediaById: {},
+        screenItems: [],
+        availability: base,
+      }).resolveByScreenId('org', 'screen');
+      const second = await buildService({
+        mediaById: {},
+        screenItems: [],
+        availability: editedDisabledDay,
+      }).resolveByScreenId('org', 'screen');
+
+      expect(first?.revision).toBe(second?.revision);
+    });
+
+    it('fails open to always-on when a special-mode doc is missing its block', async () => {
+      const broken = { mode: 'special', timezone: 'Europe/Belgrade', weekly: [] };
+      const service = buildService({
+        mediaById: {},
+        screenItems: [],
+        availability: broken,
+      });
+
+      const snapshot = await service.resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.availability).toEqual({
+        mode: 'always',
+        timezone: 'Europe/Belgrade',
+      });
+    });
+
+    it('keeps the availability rule on the org-pending-deletion snapshot', async () => {
+      const service = buildService({
+        mediaById: {},
+        screenItems: [],
+        availability: storedAvailability('weekly'),
+      });
+      // Soft-deleted org: findById(org) returns null → empty snapshot.
+      (
+        service as unknown as {
+          organizationsRepository: { findById: jest.Mock };
+        }
+      ).organizationsRepository.findById = jest.fn().mockResolvedValue(null);
+
+      const snapshot = await service.resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.revision).toBe('org-pending-deletion');
+      expect(snapshot?.items).toEqual([]);
+      expect(snapshot?.availability).toEqual({
+        mode: 'weekly',
+        timezone: 'Europe/Belgrade',
+        weekly: [{ day: 'monday', enabled: true, start: '09:00', end: '17:00' }],
+      });
+    });
+
+    it('maps a special availability into the snapshot without the weekly block', async () => {
+      const service = buildService({
+        mediaById: {},
+        screenItems: [],
+        availability: storedAvailability('special'),
+      });
+
+      const snapshot = await service.resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.availability).toEqual({
+        mode: 'special',
+        timezone: 'Europe/Belgrade',
+        special: {
+          startDate: '2026-06-10',
+          endDate: '2026-06-12',
+          start: '09:00',
+          end: '17:00',
+        },
+      });
+      expect(snapshot?.availability).not.toHaveProperty('weekly');
+    });
+
+    it('maps an explicit always mode to a bare always rule', async () => {
+      const service = buildService({
+        mediaById: {},
+        screenItems: [],
+        availability: storedAvailability('always'),
+      });
+
+      const snapshot = await service.resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.availability).toEqual({
+        mode: 'always',
+        timezone: 'Europe/Belgrade',
+      });
+    });
+
+    it('omits availability when the screen has none (legacy always-on)', async () => {
+      const service = buildService({ mediaById: {}, screenItems: [] });
+
+      const snapshot = await service.resolveByScreenId('org', 'screen');
+
+      expect(snapshot).not.toBeNull();
+      expect(snapshot).not.toHaveProperty('availability');
+    });
+
+    it('changes the revision when only availability changes, stable otherwise', async () => {
+      const build = (availability?: unknown) =>
+        buildService({ mediaById: {}, screenItems: [], availability });
+
+      const first = await build(storedAvailability('weekly')).resolveByScreenId(
+        'org',
+        'screen',
+      );
+      const same = await build(storedAvailability('weekly')).resolveByScreenId(
+        'org',
+        'screen',
+      );
+      const special = await build(
+        storedAvailability('special'),
+      ).resolveByScreenId('org', 'screen');
+      const none = await build(undefined).resolveByScreenId('org', 'screen');
+
+      expect(first?.revision).toBe(same?.revision);
+      expect(first?.revision).not.toBe(special?.revision);
+      expect(first?.revision).not.toBe(none?.revision);
+    });
   });
 });

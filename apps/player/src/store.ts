@@ -51,14 +51,27 @@ export const playingItemId = signal<string | null>(null)
 /** Most recent non-fatal playback/runtime error, surfaced in diagnostics. */
 export const lastError = signal<string | null>(null)
 
-export type View = 'pairing' | 'playing'
+/**
+ * False while the screen is outside its scheduled working hours (standby).
+ * Driven by the availability scheduler from the snapshot's rule; defaults to
+ * on so a device without a rule (or before boot rehydration) never blanks.
+ */
+export const availabilityOn = signal<boolean>(true)
+
+export type View = 'pairing' | 'playing' | 'standby'
 
 /**
- * What the shell should render. We play whenever there is content; otherwise we
- * fall back to the branded pairing/splash screen — whether unpaired (showing a
- * code) or paired-but-empty (showing the splash, never black).
+ * What the shell should render. Standby (pure black, engine unmounted) wins
+ * whenever the availability rule says the screen is off — the rule only exists
+ * on a paired snapshot, so an unpaired device still shows the pairing screen.
+ * Otherwise we play whenever there is content, falling back to the branded
+ * pairing/splash screen — whether unpaired (showing a code) or paired-but-empty
+ * (showing the splash, never black).
  */
 export const view = computed<View>(() => {
+  if (!availabilityOn.value) {
+    return 'standby'
+  }
   const items = snapshot.value?.items ?? []
   return items.length > 0 ? 'playing' : 'pairing'
 })

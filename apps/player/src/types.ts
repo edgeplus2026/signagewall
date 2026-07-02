@@ -6,6 +6,7 @@
  */
 export type {
   AppRenderable,
+  AvailabilityRule,
   DailyReloadSetting,
   DeviceOrientation,
   DeviceScale,

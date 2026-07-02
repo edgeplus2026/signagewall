@@ -4,6 +4,8 @@
  * the backend (snapshot producer) and the player (snapshot consumer).
  */
 
+import type { AvailabilityRule } from './availability.js'
+
 export interface ImageRenderable {
   id: string
   kind: 'image'
@@ -55,4 +57,9 @@ export interface PlayerSnapshot {
   name: string
   revision: string
   items: Renderable[]
+  /**
+   * Working-hours rule the player evaluates locally (standby scheduling).
+   * Absent ⇒ always on.
+   */
+  availability?: AvailabilityRule
 }

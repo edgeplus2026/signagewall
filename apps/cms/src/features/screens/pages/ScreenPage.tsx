@@ -5,13 +5,19 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ContentEditorSkeleton } from '@/features/content/components/ContentEditorSkeleton'
 import { OpenWebPlayerButton } from '@/features/screens/components/OpenWebPlayerButton'
+import { ScreenAvailabilityBadge } from '@/features/screens/components/ScreenAvailabilityBadge'
 import { ScreenAvailabilityTab } from '@/features/screens/components/ScreenAvailabilityTab'
 import { ScreenBreadcrumb } from '@/features/screens/components/ScreenBreadcrumb'
 import { ScreenContentTab } from '@/features/screens/components/ScreenContentTab'
 import { ScreenDeviceTab } from '@/features/screens/components/ScreenDeviceTab'
 import { ScreenPresenceBadge } from '@/features/screens/components/ScreenPresenceBadge'
 import { ScreenSettingsTab } from '@/features/screens/components/ScreenSettingsTab'
-import { useScreen, useScreenAvailability, useScreenDevice } from '@/features/screens/hooks/useScreens'
+import {
+  useScreen,
+  useScreenAvailability,
+  useScreenDevice,
+  useScreenStatus,
+} from '@/features/screens/hooks/useScreens'
 import { useScreenPresence } from '@/features/screens/providers/presenceContext'
 import type { ScreenManageTab } from '@/features/screens/types/screen.types'
 import { cn } from '@/lib/utils'
@@ -37,6 +43,7 @@ export default function ScreenPage() {
   const livePresence = useScreenPresence(screenId ?? undefined)
   const { data: deviceSnapshot } = useScreenDevice(screenId ?? null)
   const presence = livePresence ?? deviceSnapshot ?? undefined
+  const { data: availabilityStatus } = useScreenStatus(screenId ?? null)
   const isContentTab = activeTab === 'content'
 
   if (!screenId) {
@@ -112,6 +119,7 @@ export default function ScreenPage() {
 
             <div className="flex items-center gap-2 sm:ml-auto">
               <OpenWebPlayerButton />
+              <ScreenAvailabilityBadge status={availabilityStatus ?? undefined} />
               <ScreenPresenceBadge device={presence} />
             </div>
           </div>

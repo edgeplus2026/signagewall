@@ -307,6 +307,14 @@ body {
   display: block;
 }
 
+/* Standby (outside working hours): pure black, nothing rendered — the layer is
+   explicit belt-and-braces on top of the already-black root. */
+.player-standby {
+  position: fixed;
+  inset: 0;
+  background: #000;
+}
+
 /* Minimal centred fallback (e.g. error-boundary recovery) */
 .player-fallback {
   position: fixed;

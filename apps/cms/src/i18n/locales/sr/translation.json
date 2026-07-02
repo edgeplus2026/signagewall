@@ -813,6 +813,14 @@
       "warning": "Ekrani će biti isključeni van radnog vremena.",
       "startTime": "Vreme početka",
       "endTime": "Vreme završetka",
+      "statusBadge": {
+        "on": "Ekran uključen",
+        "off": "Ekran isključen",
+        "onUntil": "Unutar radnog vremena — ekran prelazi u pripravnost {{time}}.",
+        "offUntil": "U zakazanoj pripravnosti — ekran se uključuje {{time}}.",
+        "alwaysOn": "Nema rasporeda — ovaj ekran je uvek uključen.",
+        "offIndefinite": "U pripravnosti — nema zakazanog radnog vremena."
+      },
       "modes": {
         "always": {
           "label": "Uvek uključeno",

@@ -68,16 +68,31 @@ Ovi planovi se predaju agentu/developeru zajedno sa ovim README-om. Pre koda:
   - ⚠️ **Legal tekst je temeljan draft** — popuni `[bracketed]` podatke firme i neka ga pregleda
     advokat pre javnog launcha. Deletion-confirm mejl se (za sada) ne šalje.
 
+- **05 — Availability u playeru (standby/on-off scheduling).** BE šalje availability **pravilo
+  (config)** — `always`/`weekly`/`special` + IANA timezone — u `PlayerSnapshot` (i u revision hash,
+  pa promena stiže i na reconnect posle offline-a). Deljeni **Intl-evaluator** u
+  `@edge/player-contract` (`isAvailabilityOn`/`nextAvailabilityBoundary`, DST-aware, bez luxon/rrule
+  u player bundle-u; parity sa BE luxon evaluatorom pinovan portovanim testovima). Player
+  **`AvailabilityScheduler`** (chunked wall-clock, klon daily-reload-a, offline-safe, idempotentna
+  rekomputacija — preživi device-sleep) prebacuje u **standby** (čisto crno + Stage unmount-ovan →
+  engine ugašen, nula dekodiranja). Prefetch izmešten iz engine-a u **sync sloj** pa keš grije i
+  tokom standby-ja (noćni push kampanje spreman na otvaranju). CMS: **Screen on/off badge** + hover
+  tooltip (poll `GET /status`) levo od online/offline badge-a; **live preview** verno prikazuje
+  standby. `updateAvailability` re-push-uje snapshot i **ne dira `updatedAt`** (config, ne sadržaj —
+  da ne obara content-editor optimistic lock).
+  - ⚠️ **Server `'sleep'` nudge svesno preskočen** (rezervisan event ostaje mrtav): lokalni scheduler
+    je izvor istine, offline-safe; server-push bi bio čista redundansa sa cron/tajmer troškom.
+  - ⚠️ **Special posle `endDate` = OFF zauvek** (potvrđena semantika): zaboravljeno isteklo special
+    pravilo drži ekran crnim dok se ne promeni.
+
 ## Redosled implementacije (MVP)
 
 | # | Task | Zavisi od | Otključava |
 |---|---|---|---|
-| [05](./05-player-availability.md) | Availability u playeru (standby) | — (uvodi player `Intl`-evaluator + standby scheduler) | — |
 | [08](./08-native-shell-auto-update-tauri.md) | Native-shell auto-update (Tauri) | — (nezavisno) | OTA update fleete |
 
-**Logika redosleda:** 05 postavlja player `Intl`-evaluator + standby scheduler obrazac
-(offline-safe, stojeće pravilo). 08 (Tauri) je nezavisno — uradi kad se player feature-i
-stabilizuju.
+**Logika redosleda:** 08 (Tauri) je nezavisno — uradi kad se player feature-i stabilizuju
+(05, koji je postavio player `Intl`-evaluator + standby scheduler obrazac, je isporučen).
 
 ## Deferred (van MVP-a, "za sada ne radimo")
 

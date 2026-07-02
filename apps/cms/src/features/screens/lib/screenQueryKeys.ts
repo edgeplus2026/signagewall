@@ -24,3 +24,10 @@ export function screenDeviceQueryKey(
 ) {
   return [...screensQueryKey(organizationId), "device", id] as const
 }
+
+export function screenStatusQueryKey(
+  organizationId: string | null | undefined,
+  id: string,
+) {
+  return [...screensQueryKey(organizationId), "status", id] as const
+}

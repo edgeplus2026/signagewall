@@ -2,6 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 
+import type {
+  AvailabilityRule,
+  ImageRenderable,
+  PlayerSnapshot,
+  Renderable,
+  VideoRenderable,
+} from '@edge/player-contract';
+
 import {
   getPublicBaseUrl,
   toMediaItemResponse,
@@ -21,68 +29,21 @@ import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { PlaylistItemType } from '../playlists/schemas/playlist.schema';
 import { ScreensRepository } from '../screens/screens.repository';
 import {
+  ScreenAvailability,
+  ScreenAvailabilityMode,
   ScreenItemDocument,
   ScreenItemType,
 } from '../screens/schemas/screen.schema';
 
 const DEFAULT_DURATION_SECONDS = 15;
 
-export interface ImageRenderable {
-  id: string;
-  kind: 'image';
-  url: string;
-  durationMs: number;
-  width?: number;
-  height?: number;
-}
-
-export interface VideoRenderable {
-  id: string;
-  kind: 'video';
-  url: string;
-  durationMs: number;
-  mimeType?: string;
-  width?: number;
-  height?: number;
-}
-
-export interface AppRenderable {
-  id: string;
-  kind: 'app';
-  slug: string;
-  config: Record<string, unknown>;
-  durationMs: number;
-  /** Connector payload for `server` apps; absent for `static` apps. */
-  data?: unknown;
-  /**
-   * Freshness metadata for `server`-app payloads, so the bundle can show an
-   * honest "as of …" age and flag stale data. Absent for `static` apps.
-   */
-  dataMeta?: {
-    /** ISO time the payload was last successfully fetched, if ever. */
-    fetchedAt?: string;
-    /** True when the latest fetch failed (the payload is last-known-good). */
-    stale?: boolean;
-  };
-}
-
-export type PlayerRenderable =
-  | ImageRenderable
-  | VideoRenderable
-  | AppRenderable;
-
 /**
- * The denormalized, ready-to-play view of a screen the player consumes. The
- * player makes ONE call (or one socket push) and plays it as a flat loop — no
- * N+1 resolution of playlists/media on the device. `revision` lets both sides
- * cheaply detect whether content actually changed.
+ * The snapshot/renderable shapes are the canonical contract types from
+ * `@edge/player-contract` — the single source of truth shared with the player
+ * and CMS. `PlayerRenderable` is re-exported under its historical BE name.
  */
-export interface PlayerSnapshot {
-  screenId: string;
-  name: string;
-  revision: string;
-  items: PlayerRenderable[];
-}
+export type { PlayerSnapshot };
+export type PlayerRenderable = Renderable;
 
 /** An ordered, still-to-resolve screen entry (a media ref or an app instance). */
 interface PendingMediaEntry {
@@ -138,11 +99,16 @@ export class PlayerContentService {
     const organization =
       await this.organizationsRepository.findById(organizationId);
     if (!organization) {
+      // Still carry the availability rule: without it the player would fall
+      // back to always-on and a screen that should be dark (outside working
+      // hours) would light up the branded splash instead of staying black.
+      const availability = this.toAvailabilityRule(screen.availability);
       return {
         screenId: screen._id.toString(),
         name: screen.name,
         revision: 'org-pending-deletion',
         items: [],
+        ...(availability ? { availability } : {}),
       };
     }
 
@@ -249,12 +215,69 @@ export class PlayerContentService {
       );
     }
 
+    // The availability rule rides in the snapshot AND in the revision: the
+    // gateway only re-pushes on reconnect when revisions differ, so without
+    // this an availability change made while a device was offline would never
+    // reach it.
+    const availability = this.toAvailabilityRule(screen.availability);
+    revisionParts.push(`availability:${JSON.stringify(availability ?? null)}`);
+
     return {
       screenId: screen._id.toString(),
       name: screen.name,
       revision: this.hashRevision(revisionParts),
       items,
+      ...(availability ? { availability } : {}),
     };
+  }
+
+  /**
+   * Maps the stored availability subdocument to the wire rule the player
+   * evaluates locally. Only the active block is sent, and only its meaningful
+   * fields: the inactive block, and disabled weekly days (which carry
+   * placeholder times), are CMS bookkeeping and must not churn the revision.
+   * Missing/garbage sub-blocks degrade to always-on (fail open) rather than
+   * throwing — a signage device must never be bricked by a bad document.
+   */
+  private toAvailabilityRule(
+    availability: ScreenAvailability | undefined,
+  ): AvailabilityRule | undefined {
+    if (!availability) {
+      return undefined;
+    }
+    if (availability.mode === ScreenAvailabilityMode.WEEKLY) {
+      return {
+        mode: 'weekly',
+        timezone: availability.timezone,
+        // Enabled days only: the evaluator ignores disabled ones, and sending
+        // them would leak their placeholder hours into the revision hash so a
+        // cosmetic edit to a day that stays off would needlessly re-push.
+        weekly: (availability.weekly ?? [])
+          .filter((day) => day.enabled)
+          .map((day) => ({
+            day: day.day,
+            enabled: true,
+            start: day.start,
+            end: day.end,
+          })),
+      };
+    }
+    if (
+      availability.mode === ScreenAvailabilityMode.SPECIAL &&
+      availability.special
+    ) {
+      return {
+        mode: 'special',
+        timezone: availability.timezone,
+        special: {
+          startDate: availability.special.startDate,
+          endDate: availability.special.endDate,
+          start: availability.special.start,
+          end: availability.special.end,
+        },
+      };
+    }
+    return { mode: 'always', timezone: availability.timezone };
   }
 
   /**

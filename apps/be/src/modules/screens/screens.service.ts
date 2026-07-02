@@ -227,14 +227,22 @@ export class ScreensService {
     const updated = await this.screensRepository.updateById(
       organizationId,
       id,
-      {
-        availability,
-      },
+      { availability },
+      // Availability is config, not content: bumping `updatedAt` here would
+      // invalidate the content editor's optimistic lock (which is keyed on
+      // `updatedAt`) and 409 the operator's next content save. The player still
+      // gets the change — the snapshot revision folds in the availability rule
+      // independently of `updatedAt`.
+      { touch: false },
     );
 
     if (!updated) {
       throw BusinessException.notFound(this.i18n.t('screens.notFound'));
     }
+
+    // The rule rides in the player snapshot, so an edit must re-push it to the
+    // device just like a content change.
+    this.emitContentChanged(organizationId, id);
 
     return toScreenAvailabilityResponse(availability);
   }

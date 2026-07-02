@@ -104,10 +104,17 @@ export class ScreensRepository {
     return screen;
   }
 
+  /**
+   * Patches top-level screen fields. `touch: false` skips the automatic
+   * `updatedAt` bump — used for config-only changes (e.g. availability) that
+   * must not invalidate the content editor's optimistic lock, which is keyed on
+   * `updatedAt`.
+   */
   async updateById(
     organizationId: string,
     id: string,
     data: UpdateScreenData,
+    options: { touch?: boolean } = {},
   ): Promise<ScreenDocument | null> {
     return this.screenModel
       .findOneAndUpdate(
@@ -116,7 +123,7 @@ export class ScreensRepository {
           organizationId: new Types.ObjectId(organizationId),
         },
         { $set: data },
-        { new: true },
+        { new: true, timestamps: options.touch ?? true },
       )
       .select(SUMMARY_PROJECTION)
       .exec();

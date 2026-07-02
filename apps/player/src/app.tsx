@@ -4,13 +4,16 @@ import { getToken } from './device'
 import { loadSnapshot } from './persistence/idb'
 import { isPreview, previewParams } from './preview'
 import { orientation, paired, scale, snapshot, view } from './store'
+import { startAvailability } from './sync/availability'
 import { startDailyReload } from './sync/daily-reload'
+import { startPrefetch } from './sync/prefetch'
 import { requestPreviewToken } from './sync/preview-handshake'
 import { connectPlayer, connectPreview, disconnectPlayer } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 import { PairingScreen } from './ui/PairingScreen'
 import { Stage } from './ui/Stage'
+import { Standby } from './ui/Standby'
 
 export function App() {
   useEffect(() => {
@@ -29,7 +32,13 @@ export function App() {
       const stopHandshake = requestPreviewToken((token) => {
         connectPreview({ screenId: params.screenId, token })
       })
-      return stopHandshake
+      // Mirror standby too: the preview must go dark outside working hours
+      // exactly as the device will, evaluating the same rule from the snapshot.
+      const stopAvailability = startAvailability()
+      return () => {
+        stopHandshake()
+        stopAvailability()
+      }
     }
 
     // Offline-first boot: if we already hold a token we are paired, and we can
@@ -51,11 +60,22 @@ export function App() {
     // independently of the socket so it works offline.
     const stopDailyReload = startDailyReload()
 
+    // Drive standby from the snapshot's availability rule — evaluated locally,
+    // so it flips on schedule even when fully offline.
+    const stopAvailability = startAvailability()
+
+    // Warm the media cache from the sync layer so it keeps running while the
+    // screen is in standby (Stage unmounted) — content pushed during off-hours
+    // is cached before the working-hours window reopens.
+    const stopPrefetch = startPrefetch()
+
     // Symmetric teardown: tear the socket (and its heartbeat / now-playing
     // stream) down alongside the daily-reload loop. In production the player
     // never unmounts, but this keeps dev StrictMode/HMR remounts clean instead
     // of leaking a live socket + timers.
     return () => {
+      stopPrefetch()
+      stopAvailability()
       stopDailyReload()
       disconnectPlayer()
     }
@@ -69,7 +89,7 @@ export function App() {
     return (
       <ErrorBoundary>
         <div class="player-root">
-          <Stage />
+          {current === 'standby' ? <Standby /> : <Stage />}
         </div>
       </ErrorBoundary>
     )
@@ -80,6 +100,7 @@ export function App() {
       <div class="player-root">
         {current === 'pairing' && <PairingScreen />}
         {current === 'playing' && <Stage />}
+        {current === 'standby' && <Standby />}
         <Diagnostics />
       </div>
     </ErrorBoundary>

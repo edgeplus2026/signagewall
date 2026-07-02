@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { FakeClock } from '../../test/fake-clock'
 import { DailyReloadScheduler, nextReloadAt } from './daily-reload'
 
 // The module imports the store (and transitively config/device) only for the
@@ -7,48 +8,6 @@ import { DailyReloadScheduler, nextReloadAt } from './daily-reload'
 // has no browser/runtime side effects.
 vi.mock('../store', () => ({ dailyReload: { value: { enabled: true, time: '03:00' } } }))
 vi.mock('../restart', () => ({ restartPlayer: () => undefined }))
-
-/** A controllable clock + timer queue so the scheduler is fully deterministic. */
-class FakeClock {
-  private current = 0
-  private nextId = 1
-  private timers = new Map<number, { fireAt: number; fn: () => void }>()
-
-  now = (): number => this.current
-
-  setTimer = (fn: () => void, ms: number): number => {
-    const id = this.nextId++
-    this.timers.set(id, { fireAt: this.current + ms, fn })
-    return id
-  }
-
-  clearTimer = (id: number): void => {
-    this.timers.delete(id)
-  }
-
-  /** Advances time, firing every due timer in chronological order. */
-  advance(ms: number): void {
-    const until = this.current + ms
-    // Loop because a fired timer may schedule the next chunk.
-    for (;;) {
-      const due = [...this.timers.entries()]
-        .filter(([, t]) => t.fireAt <= until)
-        .sort((a, b) => a[1].fireAt - b[1].fireAt)
-      if (due.length === 0) {
-        break
-      }
-      const [id, timer] = due[0]
-      this.timers.delete(id)
-      this.current = timer.fireAt
-      timer.fn()
-    }
-    this.current = until
-  }
-
-  get pending(): number {
-    return this.timers.size
-  }
-}
 
 const HOUR = 60 * 60 * 1000
 

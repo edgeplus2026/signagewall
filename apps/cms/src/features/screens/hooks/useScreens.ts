@@ -7,6 +7,7 @@ import {
   screenDetailQueryKey,
   screenDeviceQueryKey,
   screensQueryKey,
+  screenStatusQueryKey,
 } from '@/features/screens/lib/screenQueryKeys'
 import {
   DEFAULT_DEVICE_SETTINGS,
@@ -17,6 +18,7 @@ import {
   type ReplaceScreenItemsRequest,
   type Screen,
   type ScreenAvailability,
+  type ScreenAvailabilityStatus,
   type ScreenDevice,
   type ScreenDeviceOrientation,
   type ScreenDeviceScale,
@@ -76,6 +78,21 @@ export function useScreenAvailability(id: string | null) {
     queryFn: (): Promise<ScreenAvailability | null> =>
       id ? screensApi.getAvailability(id) : Promise.resolve(null),
     enabled: Boolean(organizationId && id),
+  })
+}
+
+export function useScreenStatus(id: string | null) {
+  const organizationId = useActiveOrganizationId()
+
+  return useQuery({
+    queryKey: screenStatusQueryKey(organizationId, id ?? ''),
+    queryFn: (): Promise<ScreenAvailabilityStatus | null> =>
+      id ? screensApi.getStatus(id) : Promise.resolve(null),
+    enabled: Boolean(organizationId && id),
+    // `isOn` flips at working-hours boundaries, so poll (and refetch on focus)
+    // to keep the badge current without a socket for this low-traffic view.
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -294,6 +311,12 @@ export function useUpdateScreenAvailability() {
         screenAvailabilityQueryKey(organizationId, variables.id),
         data,
       )
+      // The on/off status is derived server-side from the new rule, so refetch
+      // it to update the Screen on/off badge immediately instead of on the next
+      // poll.
+      void queryClient.invalidateQueries({
+        queryKey: screenStatusQueryKey(organizationId, variables.id),
+      })
     },
   })
 }
