@@ -1,8 +1,9 @@
 import { useEffect } from 'preact/hooks'
 
-import { getToken } from './device'
+import { getDeviceId, getToken } from './device'
 import { loadSnapshot } from './persistence/idb'
 import { isPreview, previewParams } from './preview'
+import { reflectDeviceIdInUrl } from './recovery'
 import { orientation, paired, scale, snapshot, view } from './store'
 import { startAvailability } from './sync/availability'
 import { startDailyReload } from './sync/daily-reload'
@@ -40,6 +41,11 @@ export function App() {
         stopAvailability()
       }
     }
+
+    // Mirror our stable identity into the URL (?device=<uuid>) so this tab is a
+    // durable bookmark: if localStorage is later wiped, reopening this URL lets
+    // the player re-adopt the same deviceId and recover its paired screen.
+    reflectDeviceIdInUrl(getDeviceId())
 
     // Offline-first boot: if we already hold a token we are paired, and we can
     // render the last persisted snapshot instantly — before the network is up.

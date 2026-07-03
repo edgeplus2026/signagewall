@@ -7,6 +7,7 @@ import {
   isScale,
   normalizeDailyReload,
 } from './device-settings'
+import { getUrlDeviceId } from './recovery'
 import type {
   DailyReloadSetting,
   DeviceOrientation,
@@ -33,8 +34,14 @@ let cachedDeviceId: string | undefined
 /**
  * Reads (or lazily creates) the stable device id. We persist it in both
  * localStorage and — best effort — keep an in-memory copy, so a transient
- * storage hiccup on a kiosk doesn't immediately mint a new identity. Clearing
- * storage intentionally yields a brand-new device that must be re-paired.
+ * storage hiccup on a kiosk doesn't immediately mint a new identity.
+ *
+ * When localStorage holds nothing (first boot, or storage was wiped) we fall back
+ * to a `deviceId` carried in the URL (`?device=<uuid>`, see `recovery.ts`) before
+ * minting a fresh one — this is what lets a cleared device re-adopt its old
+ * identity from a bookmarked/CMS link and slide back into its paired screen.
+ * localStorage always wins over the URL, so an existing local identity is never
+ * overridden by opening someone else's link.
  */
 export function getDeviceId(): string {
   if (cachedDeviceId) {
@@ -44,7 +51,7 @@ export function getDeviceId(): string {
   let deviceId = safeGet(DEVICE_ID_KEY)
 
   if (!deviceId) {
-    deviceId = crypto.randomUUID()
+    deviceId = getUrlDeviceId() ?? crypto.randomUUID()
     safeSet(DEVICE_ID_KEY, deviceId)
   }
 
