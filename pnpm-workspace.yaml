@@ -5,7 +5,9 @@ packages:
 
 # Per-dependency install-script approval (pnpm 11). The backend needs bcrypt
 # (auth) and ffmpeg/ffprobe (video processing); the resolver is used by eslint.
-# @scarf/scarf is telemetry — explicitly denied.
+# @scarf/scarf is telemetry — explicitly denied. msgpackr-extract is an optional
+# native accelerator for msgpackr (pulled in by bullmq); msgpackr falls back to
+# pure JS without it, so its build is denied.
 allowBuilds:
   bcrypt: true
   ffmpeg-static: true
@@ -13,3 +15,4 @@ allowBuilds:
   unrs-resolver: true
   esbuild: true
   "@scarf/scarf": false
+  msgpackr-extract: false

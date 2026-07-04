@@ -431,6 +431,133 @@
       "error": "Could not remove user. Please try again."
     }
   },
+  "aiGenerator": {
+    "button": "AI Generator",
+    "title": "AI content generator",
+    "description": "Answer a few questions and we'll draft on-screen slides for you.",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "generate": "Generate",
+    "stepCount": "Step {{current}} of {{total}}",
+    "steps": {
+      "business": "Business",
+      "audience": "Audience & goal",
+      "voice": "Voice",
+      "review": "Review"
+    },
+    "fields": {
+      "industry": "Industry",
+      "industryPlaceholder": "Select an industry",
+      "businessName": "Business name",
+      "businessNamePlaceholder": "e.g. Italian Coffee",
+      "targetAudience": "Target audience",
+      "targetAudiencePlaceholder": "e.g. Young professionals, families",
+      "primaryGoal": "Primary goal",
+      "primaryGoalPlaceholder": "Select a goal",
+      "tone": "Tone",
+      "tonePlaceholder": "Select a tone",
+      "language": "Language",
+      "languagePlaceholder": "Select a language",
+      "keyPoints": "Key points",
+      "keyPointsPlaceholder": "One idea per line (optional)",
+      "keyPointsHelp": "Optional. Up to 10 points you want reflected in the content."
+    },
+    "industries": {
+      "retail": "Retail",
+      "hospitality": "Hospitality",
+      "restaurant": "Restaurant",
+      "cafe": "Café",
+      "healthcare": "Healthcare",
+      "fitness": "Fitness",
+      "beauty": "Beauty & wellness",
+      "realEstate": "Real estate",
+      "automotive": "Automotive",
+      "education": "Education",
+      "technology": "Technology",
+      "finance": "Finance",
+      "events": "Events",
+      "nonprofit": "Non-profit",
+      "other": "Other"
+    },
+    "goals": {
+      "promotion": "Promotion / offer",
+      "announcement": "Announcement",
+      "event": "Event",
+      "awareness": "Brand awareness",
+      "welcome": "Welcome message",
+      "info": "General info"
+    },
+    "tones": {
+      "professional": "Professional",
+      "friendly": "Friendly",
+      "energetic": "Energetic",
+      "playful": "Playful",
+      "luxurious": "Luxurious",
+      "minimal": "Minimal"
+    },
+    "languages": {
+      "en": "English",
+      "sr": "Serbian"
+    },
+    "review": {
+      "notProvided": "Not provided"
+    },
+    "generating": {
+      "title": "Generating your content",
+      "description": "This can take a few moments. You can keep this open."
+    },
+    "result": {
+      "description": "Review the slides, then create a draft playlist.",
+      "slide": "Slide {{number}}",
+      "playlistName": "Playlist name",
+      "playlistNamePlaceholder": "Name your playlist",
+      "create": "Create playlist",
+      "regenerate": "Start over"
+    },
+    "failed": {
+      "title": "Generation failed",
+      "description": "Something went wrong while generating. Please try again.",
+      "retry": "Try again"
+    },
+    "validation": {
+      "industryRequired": "Please select an industry.",
+      "goalRequired": "Please select a goal.",
+      "toneRequired": "Please select a tone.",
+      "languageRequired": "Please select a language.",
+      "businessNameMax": "Business name must be at most 120 characters.",
+      "targetAudienceMax": "Target audience must be at most 200 characters.",
+      "keyPointsMax": "Key points must be at most 2000 characters."
+    },
+    "toast": {
+      "createSuccess": "Draft playlist created",
+      "createError": "Could not create the playlist. Please try again.",
+      "generateError": "Could not start generation. Please try again."
+    },
+    "history": {
+      "description": "Create AI content or revisit a past generation.",
+      "new": "New generation",
+      "empty": "No generations yet",
+      "emptyDescription": "Start a new generation to create content for your screens.",
+      "delete": "Delete",
+      "deleteSuccess": "Generation deleted",
+      "deleteError": "Could not delete the generation. Please try again."
+    },
+    "status": {
+      "queued": "Queued",
+      "processing": "Generating",
+      "succeeded": "Ready",
+      "failed": "Failed"
+    },
+    "detail": {
+      "back": "Back to history"
+    },
+    "notify": {
+      "ready": "Your AI content is ready",
+      "view": "View",
+      "failed": "AI generation failed"
+    }
+  },
   "playlists": {
     "title": "Playlists",
     "playlistCount": "{{count}} playlists",

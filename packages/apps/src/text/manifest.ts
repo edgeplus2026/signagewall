@@ -14,7 +14,7 @@ export const textManifest: AppManifest = {
   description: 'Display a short message or announcement on your screens.',
   runtimeKind: 'embed',
   dataSource: 'static',
-  version: 2,
+  version: 3,
   icon: TEXT_ICON,
   color: '#6366F1',
   configSchema: [
@@ -22,7 +22,26 @@ export const textManifest: AppManifest = {
       key: 'body',
       type: 'richtext',
       label: 'Message',
-      required: true,
+      // Optional: a slide can be image-only (a full-screen background photo).
+      help: 'Optional when a background image is set.',
+    },
+    {
+      key: 'backgroundImage',
+      type: 'url',
+      label: 'Background image URL',
+      help: 'Optional. A full-screen background photo behind the text.',
+    },
+    {
+      key: 'overlay',
+      type: 'select',
+      label: 'Image overlay',
+      default: 'dark',
+      help: 'Darkens the background image so text stays readable.',
+      options: [
+        { label: 'None', value: 'none' },
+        { label: 'Light', value: 'light' },
+        { label: 'Dark', value: 'dark' },
+      ],
     },
     {
       key: 'color',
@@ -33,7 +52,7 @@ export const textManifest: AppManifest = {
     {
       key: 'backgroundColor',
       type: 'color',
-      label: 'Background',
+      label: 'Background color',
       default: '#000000',
     },
   ],

@@ -9,6 +9,10 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import {
+  AiContentEvents,
+  type AiContentChangedEvent,
+} from '../ai-content/ai-content.events';
 import { NotificationEvents } from '../notifications/notifications.events';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { PlayerEvents } from './player.events';
@@ -37,6 +41,8 @@ export const CmsSocketEvents = {
   DevicePresence: 'device:presence',
   /** Server → client: the in-app notification set changed; refetch unread count. */
   NotificationsChanged: 'notifications:changed',
+  /** Server → client: an AI content generation changed; refetch that job. */
+  AiContentChanged: 'ai-content:changed',
 } as const;
 
 const orgRoom = (organizationId: string): string => `org:${organizationId}`;
@@ -128,6 +134,22 @@ export class CmsGateway {
   @OnEvent(NotificationEvents.Changed)
   onNotificationsChanged(): void {
     this.server.emit(CmsSocketEvents.NotificationsChanged);
+  }
+
+  /**
+   * An AI content generation reached a terminal state. Nudge only the sockets
+   * watching that generation's organization so the wizard refetches the job —
+   * the payload carries no content, just which generation changed.
+   */
+  @OnEvent(AiContentEvents.Changed)
+  onAiContentChanged(event: AiContentChangedEvent): void {
+    this.server
+      .to(orgRoom(event.organizationId))
+      .emit(CmsSocketEvents.AiContentChanged, {
+        generationId: event.generationId,
+        userId: event.userId,
+        status: event.status,
+      });
   }
 
   /** Returns the authenticated user id, or null if the token is missing/invalid. */

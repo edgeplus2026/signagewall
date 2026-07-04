@@ -13,10 +13,19 @@ export interface DevicePresenceEvent {
   appVersion?: string
 }
 
+/** Payload the server sends when an AI content generation changes state. */
+export interface AiContentChangedEvent {
+  generationId: string
+  /** Owner of the generation — lets a client notify only the initiator. */
+  userId: string
+  status: string
+}
+
 const CmsSocketEvents = {
   WatchOrganization: 'org:watch',
   DevicePresence: 'device:presence',
   NotificationsChanged: 'notifications:changed',
+  AiContentChanged: 'ai-content:changed',
 } as const
 
 /**
@@ -90,6 +99,21 @@ export function onNotificationsChanged(handler: () => void): () => void {
   instance.on(CmsSocketEvents.NotificationsChanged, handler)
   return () => {
     instance.off(CmsSocketEvents.NotificationsChanged, handler)
+  }
+}
+
+/**
+ * Subscribes to the server's nudge that an AI content generation changed state.
+ * The handler receives which generation changed (and its status) so a caller can
+ * refetch just that job. Delivered only to sockets watching the generation's org.
+ */
+export function onAiContentChanged(
+  handler: (event: AiContentChangedEvent) => void,
+): () => void {
+  const instance = getRealtimeSocket()
+  instance.on(CmsSocketEvents.AiContentChanged, handler)
+  return () => {
+    instance.off(CmsSocketEvents.AiContentChanged, handler)
   }
 }
 

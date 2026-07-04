@@ -48,4 +48,23 @@ export const envValidationSchema = Joi.object({
   STOCK_MEDIA_MAX_IMPORT_BYTES: Joi.number().default(50 * 1024 * 1024),
   PLAYER_PAIRING_CODE_TTL_MINUTES: Joi.number().default(15),
   PLAYER_OFFLINE_AFTER_SECONDS: Joi.number().default(90),
+  // Redis (BullMQ). REDIS_URL takes precedence over host/port when provided.
+  REDIS_URL: Joi.string().optional().allow(''),
+  REDIS_HOST: Joi.string().default('localhost'),
+  REDIS_PORT: Joi.number().default(6379),
+  REDIS_PASSWORD: Joi.string().optional().allow(''),
+  REDIS_TLS: Joi.boolean().truthy('true').falsy('false').default(false),
+  // OpenRouter (AI content generator). Feature is disabled when the key is unset.
+  OPENROUTER_API_KEY: Joi.string().optional().allow(''),
+  OPENROUTER_MODEL: Joi.string().default(
+    'meta-llama/llama-3.3-70b-instruct:free',
+  ),
+  OPENROUTER_BASE_URL: Joi.string()
+    .uri()
+    .default('https://openrouter.ai/api/v1'),
+  OPENROUTER_TIMEOUT_MS: Joi.number().default(60000),
+  OPENROUTER_APP_URL: Joi.string().uri().optional().allow(''),
+  OPENROUTER_APP_TITLE: Joi.string().optional().allow(''),
+  AI_CONTENT_DAILY_LIMIT: Joi.number().default(10),
+  AI_CONTENT_DEFAULT_SLIDES: Joi.number().default(5),
 });

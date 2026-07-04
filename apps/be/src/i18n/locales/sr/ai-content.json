@@ -1,0 +1,10 @@
+{
+  "notConfigured": "Generisanje AI sadržaja trenutno nije dostupno.",
+  "dailyLimit": "Dostigli ste današnji limit za AI generisanje. Pokušajte ponovo sutra.",
+  "queueUnavailable": "Generisanje AI sadržaja je privremeno nedostupno. Pokušajte ponovo za trenutak.",
+  "notFound": "Generisanje nije pronađeno.",
+  "notReady": "Ovo generisanje još nije spremno.",
+  "invalidOutput": "Generisani sadržaj nije mogao da se iskoristi. Pokušajte da generišete ponovo.",
+  "textAppMissing": "Aplikacija Tekst mora biti omogućena pre nego što se AI sadržaj doda u plejlistu.",
+  "defaultPlaylistName": "AI generisana plejlista"
+}
