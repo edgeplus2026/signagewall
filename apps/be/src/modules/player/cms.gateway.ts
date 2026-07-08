@@ -116,6 +116,7 @@ export class CmsGateway {
         paired: event.paired ?? true,
         lastSeenAt: event.lastSeenAt,
         ...(event.appVersion ? { appVersion: event.appVersion } : {}),
+        ...(event.shellVersion ? { shellVersion: event.shellVersion } : {}),
       });
   }
 

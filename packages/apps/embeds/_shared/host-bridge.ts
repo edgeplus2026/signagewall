@@ -22,6 +22,7 @@
 
 const READY_MESSAGE = { type: 'app-ready' } as const
 const CONFIG_TYPE = 'app-config'
+const ACTIVE_TYPE = 'app-active'
 
 /** Freshness metadata for `server`-app payloads (`null` for static apps). */
 export interface AppDataMeta {
@@ -51,12 +52,44 @@ interface RawConfigMessage {
   meta: unknown
 }
 
+interface RawActiveMessage {
+  type: typeof ACTIVE_TYPE
+  active: boolean
+  muted?: boolean
+}
+
 function isConfigMessage(data: unknown): data is RawConfigMessage {
   return (
     typeof data === 'object' &&
     data !== null &&
     (data as { type?: unknown }).type === CONFIG_TYPE
   )
+}
+
+function isActiveMessage(data: unknown): data is RawActiveMessage {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    (data as { type?: unknown }).type === ACTIVE_TYPE &&
+    typeof (data as { active?: unknown }).active === 'boolean'
+  )
+}
+
+/** Options for {@link connectToHost}. */
+export interface ConnectOptions {
+  /**
+   * Fires whenever the host toggles this app between the on-screen (active) item
+   * and a hidden/preloaded one, or the screen's audio state changes. Media apps
+   * MUST gate playback on `active`: the player preloads the next item into a
+   * hidden slot, and `display:none` mutes the picture but NOT the audio — so an
+   * app that autoplays sound on config alone would blare while the previous item
+   * is still up. `muted` carries the screen's master mute (the always-muted
+   * preview sends `true`); play silent when it is set. Apps default to inactive
+   * AND muted: do not start audible playback until this fires with
+   * `active: true, muted: false`. May fire before or after the first config, and
+   * repeatedly.
+   */
+  onActive?: (active: boolean, muted: boolean) => void
 }
 
 /**
@@ -70,7 +103,10 @@ function isConfigMessage(data: unknown): data is RawConfigMessage {
 export function connectToHost<
   Config = Record<string, unknown>,
   Payload = unknown,
->(onConfig: (message: AppConfigMessage<Config, Payload>) => void): () => void {
+>(
+  onConfig: (message: AppConfigMessage<Config, Payload>) => void,
+  options: ConnectOptions = {},
+): () => void {
   if (typeof window === 'undefined' || window.parent === window) {
     return () => undefined
   }
@@ -88,6 +124,10 @@ export function connectToHost<
         data: (event.data.data ?? null) as Payload | null,
         meta: (event.data.meta ?? null) as AppDataMeta | null,
       })
+    } else if (isActiveMessage(event.data)) {
+      // Default to muted when the flag is absent — never blast audio on a stale
+      // or partial message.
+      options.onActive?.(event.data.active, event.data.muted ?? true)
     }
   }
 

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ReportedProfile } from '@edge/player-contract';
 import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -26,14 +27,10 @@ import {
   DeviceStatus,
 } from './schemas/device.schema';
 
-/** Profile fields the player reports on connect/heartbeat. */
-export interface ReportedProfile {
-  platform?: string;
-  userAgent?: string;
-  appVersion?: string;
-  screenWidth?: number;
-  screenHeight?: number;
-}
+// `ReportedProfile` (what the player reports on connect/heartbeat) is the shared
+// contract type from `@edge/player-contract` — imported above and re-exported so
+// existing importers (e.g. player.gateway) keep resolving it from here.
+export type { ReportedProfile };
 
 export type ConnectResult =
   | {
@@ -555,6 +552,9 @@ export class PlayerService {
       ...(device.profile?.appVersion
         ? { appVersion: device.profile.appVersion }
         : {}),
+      ...(device.profile?.shellVersion
+        ? { shellVersion: device.profile.shellVersion }
+        : {}),
     } satisfies DevicePresenceChangedEvent);
   }
 
@@ -625,6 +625,9 @@ export class PlayerService {
       ...(profile.screenHeight !== undefined
         ? { screenHeight: profile.screenHeight }
         : {}),
+      ...(profile.shellVersion ? { shellVersion: profile.shellVersion } : {}),
+      ...(profile.runtime ? { runtime: profile.runtime } : {}),
+      ...(profile.updateStatus ? { updateStatus: profile.updateStatus } : {}),
     };
   }
 
@@ -645,6 +648,9 @@ export class PlayerService {
       ...(profile.screenHeight !== undefined
         ? { screenHeight: profile.screenHeight }
         : {}),
+      ...(profile.shellVersion ? { shellVersion: profile.shellVersion } : {}),
+      ...(profile.runtime ? { runtime: profile.runtime } : {}),
+      ...(profile.updateStatus ? { updateStatus: profile.updateStatus } : {}),
     };
   }
 

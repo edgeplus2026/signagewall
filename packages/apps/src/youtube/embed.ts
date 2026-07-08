@@ -29,18 +29,22 @@ export function parseYouTubeId(url: string): string | null {
 /**
  * Build an autoplaying embed URL, or null if the input isn't a YouTube link.
  *
- * Plays with sound (`mute=0`) — on a signage/kiosk player autoplay-with-sound is
- * allowed; a normal browser (e.g. the CMS preview) may keep it paused until a
- * gesture, which is expected. `controls=0` hides YouTube's control bar, and
- * `loop` (with `playlist=<id>`) keeps a single video looping so the
- * recommended-videos end screen never appears.
+ * `muted` sets the `mute` param: the player passes the screen's mute state
+ * (volume 0 ⇒ muted) and the CMS preview always passes `true` (a preview is
+ * never audible). `mute` is a load-time param, so the caller remounts the iframe
+ * to change it. `controls=0` hides YouTube's control bar, and `loop` (with
+ * `playlist=<id>`) keeps a single video looping so the recommended-videos end
+ * screen never appears.
  */
-export function toYouTubeEmbedUrl(url: string): string | null {
+export function toYouTubeEmbedUrl(
+  url: string,
+  options: { muted?: boolean } = {},
+): string | null {
   const id = parseYouTubeId(url)
   if (!id) return null
   const params = new URLSearchParams({
     autoplay: '1',
-    mute: '0',
+    mute: options.muted ? '1' : '0',
     controls: '0',
     loop: '1',
     playlist: id,

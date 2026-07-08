@@ -1,4 +1,5 @@
 import {
+  APP_ACTIVE_TYPE,
   APP_CONFIG_TYPE,
   isAppReadyMessage,
 } from '@edge/apps-contract'
@@ -28,6 +29,15 @@ export interface AppHostHandle {
   readonly iframe: HTMLIFrameElement
   /** Resolves once the app posts `app-ready`; rejects on timeout / load error. */
   readonly ready: Promise<void>
+  /**
+   * Tells the app whether it is the on-screen (active) item and whether its
+   * audio is muted. Media apps gate playback on `active` (so a *preloaded* app
+   * host, still hidden in the back buffer, stays silent until the slot
+   * activates) and mute on `muted` (so the screen volume governs app sound).
+   * Buffered until the app is ready, then sent; safe to call before or after
+   * readiness, and repeatedly.
+   */
+  setActive(active: boolean, muted: boolean): void
   /** Detaches the listener, clears the timeout and removes the iframe. */
   dispose(): void
 }
@@ -85,10 +95,22 @@ export function mountAppHost(
   iframe.setAttribute('allow', IFRAME_ALLOW)
 
   let settled = false
+  /** True once the app has posted `app-ready` (distinct from `settled`, which
+   * also covers error/timeout/dispose). Gates the active signal below. */
+  let appReady = false
+  /** Latest active/mute directive requested before the app was ready; flushed on ready. */
+  let pendingActive: { active: boolean; muted: boolean } | null = null
   let timer: ReturnType<typeof setTimeout> | undefined
   let onMessage: ((event: MessageEvent) => void) | undefined
   let onError: (() => void) | undefined
   let rejectReady: ((error: Error) => void) | undefined
+
+  const sendActive = (active: boolean, muted: boolean): void => {
+    iframe.contentWindow?.postMessage(
+      { type: APP_ACTIVE_TYPE, active, muted },
+      targetOrigin,
+    )
+  }
 
   const cleanupListeners = (): void => {
     if (timer !== undefined) {
@@ -116,6 +138,7 @@ export function mountAppHost(
         return
       }
       settled = true
+      appReady = true
       cleanupListeners()
       // Hand over config + payload, addressed to the app's origin only.
       iframe.contentWindow?.postMessage(
@@ -127,6 +150,12 @@ export function mountAppHost(
         },
         targetOrigin,
       )
+      // Flush an active/mute directive requested while the app was still
+      // loading, so a slot that activated mid-handshake isn't left inactive.
+      if (pendingActive !== null) {
+        sendActive(pendingActive.active, pendingActive.muted)
+        pendingActive = null
+      }
       resolve()
     }
 
@@ -154,6 +183,14 @@ export function mountAppHost(
   return {
     iframe,
     ready,
+    setActive(active: boolean, muted: boolean): void {
+      // Buffer until the app is listening; the ready handler flushes the latest.
+      if (appReady) {
+        sendActive(active, muted)
+      } else {
+        pendingActive = { active, muted }
+      }
+    },
     dispose(): void {
       // Settle a still-pending `ready` so a superseded/torn-down load never
       // leaves the awaiting `prepare()` hanging (image/video resolve the same

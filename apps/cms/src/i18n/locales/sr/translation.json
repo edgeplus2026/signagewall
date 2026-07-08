@@ -702,6 +702,21 @@
       "deviceIdDescription": "Stabilni identifikator uparenog ekrana.",
       "neverSeen": "Nikada",
       "unknown": "Nepoznato",
+      "shellVersion": "Verzija ljuske",
+      "shellVersionDescription": "Verzija native ljuske (Tauri) instalirane na uređaju.",
+      "updateStatus": "Status ažuriranja",
+      "updateStatusDescription": "Stanje automatskog ažuriranja ljuske uređaja.",
+      "updateResult": {
+        "idle": "Neaktivno",
+        "checking": "Proverava se…",
+        "up-to-date": "Ažurno",
+        "available": "Dostupna nadogradnja",
+        "downloading": "Preuzimanje…",
+        "ready": "Ažuriranje spremno",
+        "installing": "Instalacija…",
+        "error": "Greška pri ažuriranju",
+        "unhealthy": "Ažuriranje neispravno"
+      },
       "settings": {
         "title": "Prikaz",
         "save": "Sačuvaj izmene",

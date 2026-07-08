@@ -6,6 +6,8 @@ import {
   SCALES,
   type DeviceOrientation as DeviceOrientationValue,
   type DeviceScale as DeviceScaleValue,
+  type DeviceUpdateStatus as DeviceUpdateStatusValue,
+  type PlayerRuntime,
 } from '@edge/player-contract';
 
 export { DEFAULT_DAILY_RELOAD_TIME };
@@ -78,6 +80,31 @@ export class DeviceSettings {
 export const DeviceSettingsSchema =
   SchemaFactory.createForClass(DeviceSettings);
 
+/** Native-shell OTA update status the player reports (absent in a browser). */
+@Schema({ _id: false })
+export class DeviceUpdateStatus {
+  @Prop({ trim: true })
+  currentVersion?: string;
+
+  @Prop({ trim: true })
+  availableVersion?: string;
+
+  /** ISO timestamp of the last update check. */
+  @Prop({ trim: true })
+  lastCheckAt?: string;
+
+  /**
+   * Typed to the contract's union so the CMS reads a known set of states.
+   * Needs an explicit `type: String` — Mongoose can't infer a runtime type
+   * from a TS union via reflect-metadata.
+   */
+  @Prop({ type: String, trim: true })
+  lastResult?: DeviceUpdateStatusValue['lastResult'];
+}
+
+export const DeviceUpdateStatusSchema =
+  SchemaFactory.createForClass(DeviceUpdateStatus);
+
 /** Hardware/runtime profile reported by the player at connect time. */
 @Schema({ _id: false })
 export class DeviceProfile {
@@ -87,6 +114,7 @@ export class DeviceProfile {
   @Prop({ trim: true })
   userAgent?: string;
 
+  /** Web (PWA) bundle version. */
   @Prop({ trim: true })
   appVersion?: string;
 
@@ -95,6 +123,20 @@ export class DeviceProfile {
 
   @Prop()
   screenHeight?: number;
+
+  /** Native shell (Tauri) version — distinct from the web `appVersion`. */
+  @Prop({ trim: true })
+  shellVersion?: string;
+
+  /**
+   * Runtime host the player detected ('tauri' | 'browser' | …). Explicit
+   * `type: String` because it's a TS union (Mongoose can't infer it).
+   */
+  @Prop({ type: String, trim: true })
+  runtime?: PlayerRuntime;
+
+  @Prop({ type: DeviceUpdateStatusSchema })
+  updateStatus?: DeviceUpdateStatus;
 }
 
 export const DeviceProfileSchema = SchemaFactory.createForClass(DeviceProfile);

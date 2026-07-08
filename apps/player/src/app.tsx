@@ -1,12 +1,17 @@
 import { useEffect } from 'preact/hooks'
 
 import { getDeviceId, getToken } from './device'
+import {
+  bootstrapNativeIdentity,
+  bootstrapNativeRuntime,
+} from './native/bootstrap'
 import { loadSnapshot } from './persistence/idb'
 import { isPreview, previewParams } from './preview'
 import { reflectDeviceIdInUrl } from './recovery'
 import { orientation, paired, scale, snapshot, view } from './store'
 import { startAvailability } from './sync/availability'
 import { startDailyReload } from './sync/daily-reload'
+import { startOnline } from './sync/online'
 import { startPrefetch } from './sync/prefetch'
 import { requestPreviewToken } from './sync/preview-handshake'
 import { connectPlayer, connectPreview, disconnectPlayer } from './sync/socket'
@@ -42,47 +47,62 @@ export function App() {
       }
     }
 
-    // Mirror our stable identity into the URL (?device=<uuid>) so this tab is a
-    // durable bookmark: if localStorage is later wiped, reopening this URL lets
-    // the player re-adopt the same deviceId and recover its paired screen.
-    reflectDeviceIdInUrl(getDeviceId())
+    // Track connectivity from the very first paint (independent of the async
+    // boot) so network-only apps are correctly hidden even if we start offline.
+    const stopOnline = startOnline()
 
-    // Offline-first boot: if we already hold a token we are paired, and we can
-    // render the last persisted snapshot instantly — before the network is up.
-    if (getToken()) {
-      paired.value = true
-    }
-    void loadSnapshot().then((persisted) => {
-      // Re-hydrate only while still paired: a revoke that lands before this
-      // resolves clears the token, and we must not resurface old content.
-      if (persisted && !snapshot.value && getToken()) {
-        snapshot.value = persisted
+    // Native shell first: seed the deviceId from the native store and load the
+    // shell version BEFORE anything reads the identity, so the socket sends the
+    // recovered native id (not a freshly-minted UUID) and the first heartbeat
+    // already carries the shell version. Both no-op in a plain browser. useEffect
+    // can't be async, so run boot in a guarded IIFE and collect disposers.
+    let disposed = false
+    let stopDailyReload: (() => void) | undefined
+    let stopAvailability: (() => void) | undefined
+    let stopPrefetch: (() => void) | undefined
+
+    void (async () => {
+      await bootstrapNativeIdentity()
+      await bootstrapNativeRuntime()
+      if (disposed) return
+
+      // Mirror our stable identity into the URL (?device=<uuid>) so this tab is a
+      // durable bookmark: if localStorage is later wiped, reopening this URL lets
+      // the player re-adopt the same deviceId and recover its paired screen.
+      reflectDeviceIdInUrl(getDeviceId())
+
+      // Offline-first boot: if we already hold a token we are paired, and we can
+      // render the last persisted snapshot instantly — before the network is up.
+      if (getToken()) {
+        paired.value = true
       }
-    })
+      void loadSnapshot().then((persisted) => {
+        // Re-hydrate only while still paired: a revoke that lands before this
+        // resolves clears the token, and we must not resurface old content.
+        if (persisted && !snapshot.value && getToken()) {
+          snapshot.value = persisted
+        }
+      })
 
-    connectPlayer()
+      connectPlayer()
 
-    // Drive the automatic daily reload from the persisted/pushed setting. Runs
-    // independently of the socket so it works offline.
-    const stopDailyReload = startDailyReload()
+      // Offline-capable background loops: daily reload, standby (availability),
+      // and media prefetch (keeps the cache warm even during standby).
+      stopDailyReload = startDailyReload()
+      stopAvailability = startAvailability()
+      stopPrefetch = startPrefetch()
+    })()
 
-    // Drive standby from the snapshot's availability rule — evaluated locally,
-    // so it flips on schedule even when fully offline.
-    const stopAvailability = startAvailability()
-
-    // Warm the media cache from the sync layer so it keeps running while the
-    // screen is in standby (Stage unmounted) — content pushed during off-hours
-    // is cached before the working-hours window reopens.
-    const stopPrefetch = startPrefetch()
-
-    // Symmetric teardown: tear the socket (and its heartbeat / now-playing
-    // stream) down alongside the daily-reload loop. In production the player
-    // never unmounts, but this keeps dev StrictMode/HMR remounts clean instead
-    // of leaking a live socket + timers.
+    // Symmetric teardown: stop whatever boot managed to start. Safe before boot
+    // finishes — the disposers are undefined and disconnectPlayer guards on a
+    // null socket; `disposed` also aborts a late boot so it never starts loops
+    // after unmount. Keeps dev StrictMode/HMR remounts from leaking sockets/timers.
     return () => {
-      stopPrefetch()
-      stopAvailability()
-      stopDailyReload()
+      disposed = true
+      stopOnline()
+      stopPrefetch?.()
+      stopAvailability?.()
+      stopDailyReload?.()
       disconnectPlayer()
     }
   }, [])

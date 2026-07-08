@@ -24,6 +24,8 @@ export const youtubeManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 1,
+  // Streams the video live from YouTube — nothing to show offline.
+  requiresNetwork: true,
   icon: YOUTUBE_ICON,
   color: '#FF0000',
   configSchema: [

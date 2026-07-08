@@ -1,4 +1,5 @@
 import {
+  APP_ACTIVE_TYPE,
   APP_CONFIG_TYPE,
   type AppDataMeta,
   isAppReadyMessage,
@@ -118,6 +119,14 @@ export function mountAppPreview(
       send(pending)
       pending = null
     }
+    // The previewed app is, by definition, the on-screen (active) item — unlike
+    // the player there is no hidden preload here. Tell it so, so media apps
+    // (e.g. YouTube, which gate playback on `app-active`) actually render — but
+    // always muted: a live preview is never audible.
+    iframe.contentWindow?.postMessage(
+      { type: APP_ACTIVE_TYPE, active: true, muted: true },
+      targetOrigin,
+    )
   }
 
   window.addEventListener('message', onMessage)

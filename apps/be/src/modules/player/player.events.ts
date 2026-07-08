@@ -99,6 +99,8 @@ export interface DevicePresenceChangedEvent {
   online: boolean;
   lastSeenAt: string;
   appVersion?: string;
+  /** Native shell version, when the device runs inside the Tauri shell. */
+  shellVersion?: string;
   /** Defaults to true; false when the device was just unpaired. */
   paired?: boolean;
 }

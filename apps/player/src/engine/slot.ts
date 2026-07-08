@@ -28,6 +28,13 @@ export class Slot {
   /** Playback volume 0–1, applied to the `<video>` element. */
   private volume = 1
   /**
+   * True while an app item is the on-screen (active) item — i.e. between
+   * {@link activate} and {@link release}. Gates pushing live audio (mute) changes
+   * to the app: a hidden/preloaded app is silent regardless, so only the active
+   * one needs them.
+   */
+  private appActive = false
+  /**
    * Set when {@link activate} wanted sound (volume > 0) but the browser's
    * autoplay policy forced us to fall back to muted playback to keep the
    * picture. The very first video on a page without sticky user activation hits
@@ -117,6 +124,16 @@ export class Slot {
    */
   setVolume(volume: number): void {
     this.volume = Math.min(1, Math.max(0, volume))
+    // An app owns its audio inside an iframe, so the screen volume can't reach it
+    // through a `<video>` element — push the mute state (volume 0 ⇒ muted) over
+    // the handshake instead. Only the active app is audible; a hidden one is
+    // silent already, so skip it (and avoid a needless postMessage).
+    if (this.current?.kind === 'app') {
+      if (this.appActive) {
+        this.appHostHandle?.setActive(true, this.volume === 0)
+      }
+      return
+    }
     if (this.current?.kind !== 'video') {
       return
     }
@@ -143,6 +160,16 @@ export class Slot {
   /** Makes the (already prepared) content visible and starts playback. */
   activate(onEnded: () => void): void {
     this.el.classList.add('is-active')
+
+    // Apps are preloaded silent (see host-bridge): tell this one it is now the
+    // on-screen item so a media app (e.g. YouTube) may start playback — muting it
+    // iff the screen volume is 0. Without this a preloaded app would either never
+    // play or — worse — the hidden preload would have played audio while the
+    // previous item was still up.
+    if (this.current?.kind === 'app') {
+      this.appActive = true
+      this.appHostHandle?.setActive(true, this.volume === 0)
+    }
 
     if (this.current?.kind === 'video') {
       this.endedHandler = onEnded
@@ -244,6 +271,7 @@ export class Slot {
       this.appHostHandle.dispose()
       this.appHostHandle = null
     }
+    this.appActive = false
     this.hideAll()
     this.current = null
   }

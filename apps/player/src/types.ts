@@ -11,12 +11,15 @@ export type {
   DeviceOrientation,
   DeviceScale,
   DeviceSettings,
+  DeviceUpdateStatus,
   ImageRenderable,
   PairedPayload,
   PairingCodePayload,
   PlayerCommand,
+  PlayerRuntime,
   PlayerSnapshot,
   Renderable,
+  ReportedProfile,
   VideoRenderable,
 } from '@edge/player-contract'
 

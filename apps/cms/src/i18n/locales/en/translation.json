@@ -724,6 +724,21 @@
       "deviceIdDescription": "Stable identifier of the paired display.",
       "neverSeen": "Never",
       "unknown": "Unknown",
+      "shellVersion": "Shell version",
+      "shellVersionDescription": "The native shell (Tauri) version installed on the device.",
+      "updateStatus": "Update status",
+      "updateStatusDescription": "State of the device's automatic shell updates.",
+      "updateResult": {
+        "idle": "Idle",
+        "checking": "Checking…",
+        "up-to-date": "Up to date",
+        "available": "Update available",
+        "downloading": "Downloading…",
+        "ready": "Update ready",
+        "installing": "Installing…",
+        "error": "Update error",
+        "unhealthy": "Update unhealthy"
+      },
       "settings": {
         "title": "Display",
         "save": "Save changes",

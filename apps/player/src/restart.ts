@@ -11,9 +11,17 @@ declare global {
     AndroidBridge?: { restart?: () => void }
     /** Electron preload-exposed API. */
     electronAPI?: { restart?: () => void }
-    /** Tauri runtime. */
+    /**
+     * Tauri runtime globals (exposed because the shell sets
+     * `withGlobalTauri: true`). Declared here as the single home for the
+     * `__TAURI__` shape; the native layer (`native/*`) reaches IPC through it.
+     */
     __TAURI__?: {
       process?: { relaunch?: () => void | Promise<void> }
+      core?: {
+        invoke?: <T>(cmd: string, args?: Record<string, unknown>) => Promise<T>
+      }
+      app?: { getVersion?: () => Promise<string> }
     }
   }
 }

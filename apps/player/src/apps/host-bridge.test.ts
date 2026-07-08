@@ -252,4 +252,69 @@ describe('mountAppHost', () => {
     })
     expect(createdIframe.contentWindow.postMessage).not.toHaveBeenCalled()
   })
+
+  it('setActive after ready posts app-active (with mute) to the app origin', async () => {
+    const handle = mountAppHost(host as unknown as HTMLElement, ITEM, OPTIONS)
+    emit({
+      source: createdIframe.contentWindow as unknown as MessageEventSource,
+      data: { type: 'app-ready' },
+    })
+    await handle.ready
+
+    handle.setActive(true, false)
+    expect(createdIframe.contentWindow.postMessage).toHaveBeenLastCalledWith(
+      { type: 'app-active', active: true, muted: false },
+      'https://player.example',
+    )
+    // A volume-0 change re-pushes with muted true.
+    handle.setActive(true, true)
+    expect(createdIframe.contentWindow.postMessage).toHaveBeenLastCalledWith(
+      { type: 'app-active', active: true, muted: true },
+      'https://player.example',
+    )
+  })
+
+  it('setActive before ready is buffered and flushed after config on ready', async () => {
+    const handle = mountAppHost(host as unknown as HTMLElement, ITEM, OPTIONS)
+    // Slot activated mid-handshake: no message may go out until the app listens.
+    handle.setActive(true, false)
+    expect(createdIframe.contentWindow.postMessage).not.toHaveBeenCalled()
+
+    emit({
+      source: createdIframe.contentWindow as unknown as MessageEventSource,
+      data: { type: 'app-ready' },
+    })
+    await handle.ready
+
+    // Config lands first, then the buffered active/mute directive.
+    expect(createdIframe.contentWindow.postMessage).toHaveBeenNthCalledWith(
+      1,
+      { type: 'app-config', config: { format: '24h' }, data: null, meta: null },
+      'https://player.example',
+    )
+    expect(createdIframe.contentWindow.postMessage).toHaveBeenNthCalledWith(
+      2,
+      { type: 'app-active', active: true, muted: false },
+      'https://player.example',
+    )
+  })
+
+  it('setActive before ready only flushes the latest directive', async () => {
+    const handle = mountAppHost(host as unknown as HTMLElement, ITEM, OPTIONS)
+    handle.setActive(true, false)
+    handle.setActive(false, true)
+
+    emit({
+      source: createdIframe.contentWindow as unknown as MessageEventSource,
+      data: { type: 'app-ready' },
+    })
+    await handle.ready
+
+    const activeCalls = createdIframe.contentWindow.postMessage.mock.calls.filter(
+      ([msg]) => (msg as { type?: string }).type === 'app-active',
+    )
+    expect(activeCalls).toEqual([
+      [{ type: 'app-active', active: false, muted: true }, 'https://player.example'],
+    ])
+  })
 })

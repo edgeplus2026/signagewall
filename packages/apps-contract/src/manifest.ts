@@ -34,6 +34,16 @@ export interface AppManifest {
   /** Bumped when the schema or runtime contract changes; instances record the version they were saved against. */
   version: number
   /**
+   * True when the app can't render meaningfully without live internet at the
+   * player — it embeds live remote content (e.g. YouTube's stream, an arbitrary
+   * web page, a Canva CDN asset) that the backend never captures into the
+   * snapshot. The player hides such apps from the rotation while offline and
+   * brings them back the moment connectivity returns (no reload). Absent/false
+   * for apps that work offline: `static` apps (clock, QR, text) and data-backed
+   * apps (weather, gcal) whose last-synced payload is cached in the snapshot.
+   */
+  requiresNetwork?: boolean
+  /**
    * Refresh cadence (seconds) for the backend connector, for `server`/`connected`
    * apps only. The scheduler re-fetches a cache-key's data once this many seconds
    * have elapsed since its last fetch. Absent for `static` apps (no connector).

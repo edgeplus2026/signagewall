@@ -86,12 +86,15 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
               online: event.online,
               deviceId: event.deviceId,
               lastSeenAt: event.lastSeenAt,
-              ...(previous?.profile || event.appVersion
+              ...(previous?.profile || event.appVersion || event.shellVersion
                 ? {
                     profile: {
                       ...previous?.profile,
                       ...(event.appVersion
                         ? { appVersion: event.appVersion }
+                        : {}),
+                      ...(event.shellVersion
+                        ? { shellVersion: event.shellVersion }
                         : {}),
                     },
                   }

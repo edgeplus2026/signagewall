@@ -22,6 +22,9 @@ export const canvaManifest: AppManifest = {
   dataSource: 'connected',
   version: 2,
   refreshSeconds: 900,
+  // Renders the exported design straight from Canva's CDN — needs internet to
+  // fetch the asset, so hide it offline rather than show a broken frame.
+  requiresNetwork: true,
   icon: CANVA_ICON,
   color: '#00C4CC',
   configSchema: [

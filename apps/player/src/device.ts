@@ -7,12 +7,14 @@ import {
   isScale,
   normalizeDailyReload,
 } from './device-settings'
+import { getShellVersion, getUpdateStatus } from './native/runtime'
 import { getUrlDeviceId } from './recovery'
 import type {
   DailyReloadSetting,
   DeviceOrientation,
   DeviceScale,
   PairingCodePayload,
+  ReportedProfile,
 } from './types'
 
 const DEVICE_ID_KEY = 'edge.player.deviceId'
@@ -57,6 +59,26 @@ export function getDeviceId(): string {
 
   cachedDeviceId = deviceId
   return deviceId
+}
+
+/**
+ * The persisted device id from localStorage, or undefined — a raw read that
+ * never mints. Used by the native-shell boot bootstrap to decide whether to
+ * promote an existing local identity into the native store.
+ */
+export function readLocalDeviceId(): string | undefined {
+  return safeGet(DEVICE_ID_KEY) ?? undefined
+}
+
+/**
+ * Forces the device identity to `id`, writing it to BOTH the in-memory cache and
+ * localStorage so the synchronous {@link getDeviceId} ladder returns it no matter
+ * the call order. The native-shell bootstrap calls this with the id read from the
+ * native store, before anything else reads the identity.
+ */
+export function seedDeviceId(id: string): void {
+  cachedDeviceId = id
+  safeSet(DEVICE_ID_KEY, id)
 }
 
 export function getToken(): string | undefined {
@@ -200,21 +222,23 @@ export function getPlatform(): PlayerPlatform {
   return 'browser'
 }
 
-export interface DeviceProfile {
-  platform: string
-  userAgent: string
-  appVersion: string
-  screenWidth: number
-  screenHeight: number
-}
-
-export function getProfile(): DeviceProfile {
+/**
+ * The device profile reported on connect + every heartbeat. The first five
+ * fields are the web-only profile; `runtime`/`shellVersion`/`updateStatus` are
+ * populated by the native shell (undefined in a browser). `appVersion` is the
+ * WEB bundle version — the distinct native `shellVersion` is never folded into it.
+ * The shape lives in `@edge/player-contract` (`ReportedProfile`).
+ */
+export function getProfile(): ReportedProfile {
   return {
     platform: navigator.platform || 'web',
     userAgent: navigator.userAgent,
     appVersion: config.appVersion,
     screenWidth: Math.round(window.screen.width * window.devicePixelRatio),
     screenHeight: Math.round(window.screen.height * window.devicePixelRatio),
+    runtime: getPlatform(),
+    shellVersion: getShellVersion(),
+    updateStatus: getUpdateStatus(),
   }
 }
 

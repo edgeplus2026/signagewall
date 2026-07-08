@@ -11,6 +11,8 @@ export interface DevicePresenceEvent {
   paired?: boolean
   lastSeenAt: string
   appVersion?: string
+  /** Native shell version, when the device runs inside the Tauri shell. */
+  shellVersion?: string
 }
 
 const CmsSocketEvents = {

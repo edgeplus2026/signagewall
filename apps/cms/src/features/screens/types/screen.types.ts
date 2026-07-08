@@ -6,6 +6,8 @@ import {
   type DeviceOrientation,
   type DeviceScale,
   type DeviceSettings,
+  type DeviceUpdateStatus,
+  type PlayerRuntime,
 } from '@edge/player-contract'
 
 export type ScreenViewMode = 'grid' | 'list'
@@ -23,9 +25,14 @@ export type ScreenManageTab = 'content' | 'device' | 'settings' | 'availability'
 export interface ScreenDeviceProfile {
   platform?: string
   userAgent?: string
+  /** Web (PWA) bundle version. */
   appVersion?: string
   screenWidth?: number
   screenHeight?: number
+  /** Native shell (Tauri) version — absent when the device runs in a browser. */
+  shellVersion?: string
+  runtime?: PlayerRuntime
+  updateStatus?: DeviceUpdateStatus
 }
 
 // Device display + power settings come from @edge/player-contract — the single

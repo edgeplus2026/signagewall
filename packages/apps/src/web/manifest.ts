@@ -17,6 +17,8 @@ export const webManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 1,
+  // Loads a live remote page in an iframe — blank/error without internet.
+  requiresNetwork: true,
   icon: WEB_ICON,
   color: '#10B981',
   configSchema: [

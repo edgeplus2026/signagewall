@@ -133,6 +133,31 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
               </span>
             </SettingsRow>
 
+            {device?.profile?.shellVersion ? (
+              <SettingsRow
+                label={t('screens.device.shellVersion')}
+                description={t('screens.device.shellVersionDescription')}
+              >
+                <span className="text-secondary text-sm">
+                  {device.profile.shellVersion}
+                </span>
+              </SettingsRow>
+            ) : null}
+
+            {device?.profile?.updateStatus?.lastResult ? (
+              <SettingsRow
+                label={t('screens.device.updateStatus')}
+                description={t('screens.device.updateStatusDescription')}
+              >
+                <span className="text-secondary text-sm">
+                  {t(
+                    `screens.device.updateResult.${device.profile.updateStatus.lastResult}`,
+                    { defaultValue: device.profile.updateStatus.lastResult },
+                  )}
+                </span>
+              </SettingsRow>
+            ) : null}
+
             {device?.deviceId ? (
               <SettingsRow
                 label={t('screens.device.deviceIdLabel')}

@@ -7,6 +7,7 @@ import { reportError } from '../sentry'
 import { registerPlaybackControls } from '../sync/playback-bus'
 import {
   lastError,
+  online,
   orientation,
   playingItemId,
   scale,
@@ -30,7 +31,15 @@ export function Stage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const controllerRef = useRef<PlaybackController | null>(null)
   const hideTimerRef = useRef<number | undefined>(undefined)
+  const shieldRef = useRef<HTMLDivElement>(null)
   const [controlsVisible, setControlsVisible] = useState(false)
+
+  // Pull keyboard focus back to the parent (our transparent shield) and off any
+  // app iframe. An iframe with focus swallows the arrow keys, so without this
+  // the back/next keyboard nav silently dies whenever an app is on screen.
+  const focusShield = useCallback((): void => {
+    shieldRef.current?.focus({ preventScroll: true })
+  }, [])
 
   // Show the controls and (re)arm the inactivity timer that hides them again.
   const reveal = useCallback((): void => {
@@ -64,6 +73,9 @@ export function Stage() {
       {
         onItem: (item) => {
           playingItemId.value = item.id
+          // Reclaim focus from the outgoing app's iframe so keyboard nav keeps
+          // working on the next item (a no-op for images/videos).
+          focusShield()
         },
         onError: (error) => {
           lastError.value =
@@ -91,12 +103,19 @@ export function Stage() {
     })
 
     const stop = effect(() => {
-      controller.setVolume(volume.value / 100)
+      // The CMS live preview is never audible — force-mute everything (videos via
+      // volume 0, apps via the mute propagated on that same 0). On a real device
+      // the screen volume governs; 0 there mutes apps too, not just videos.
+      controller.setVolume(isPreview ? 0 : volume.value / 100)
       // Orientation + scale are reflected as data-attributes on the stage root
       // (driven by CSS), so they never touch the imperatively-managed media
       // slots inside it — no VDOM churn on the hot path.
       root.dataset.orientation = orientation.value
       root.dataset.scale = scale.value
+      // Connectivity gates network-only apps: apply it before (re)loading so an
+      // offline load skips them, and so a live online↔offline flip re-bases the
+      // rotation instantly without a reload (setOnline is a no-op if unchanged).
+      controller.setOnline(online.value)
       const snap = snapshot.value
       if (snap) {
         controller.load(snap)
@@ -123,6 +142,10 @@ export function Stage() {
       return undefined
     }
 
+    // Focus the shield up front so the arrow keys work immediately, even when
+    // the very first item is an app whose iframe would otherwise hold focus.
+    focusShield()
+
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'ArrowLeft') {
         goPrevious()
@@ -130,17 +153,25 @@ export function Stage() {
         goNext()
       }
     }
+    // A tap/click anywhere reveals the controls and pulls focus back to the
+    // parent (off any app iframe), so keyboard nav survives after interaction.
+    const onPointerDown = (): void => {
+      focusShield()
+      reveal()
+    }
 
     window.addEventListener('pointermove', reveal)
+    window.addEventListener('pointerdown', onPointerDown)
     window.addEventListener('keydown', onKeyDown)
     return () => {
       window.removeEventListener('pointermove', reveal)
+      window.removeEventListener('pointerdown', onPointerDown)
       window.removeEventListener('keydown', onKeyDown)
       if (hideTimerRef.current !== undefined) {
         window.clearTimeout(hideTimerRef.current)
       }
     }
-  }, [reveal, goPrevious, goNext])
+  }, [reveal, goPrevious, goNext, focusShield])
 
   // The controls are a *sibling* of the engine root, not a child: the engine
   // appends its slot elements directly into `player-stage`, so keeping any JSX
@@ -156,6 +187,12 @@ export function Stage() {
     <>
       <div ref={rootRef} class="player-stage" />
       <div class="player-controls" data-visible={controlsVisible ? 'true' : 'false'}>
+        {/* Transparent, focusable capture layer sitting above the app iframes
+            but below the buttons. Without it an on-screen app iframe swallows
+            pointer/keyboard events, so the controls never reveal on mouse move
+            and the arrow keys never reach us. Signage apps are display-only, so
+            shielding their input is harmless (and prevents stray interaction). */}
+        <div ref={shieldRef} class="player-input-shield" tabindex={-1} />
         <button
           type="button"
           class="player-control player-control--prev"
