@@ -1,0 +1,192 @@
+//! Edge Player native shell (Tauri v2).
+//!
+//! Wraps the REMOTE web player in a fullscreen, unattended kiosk window and
+//! persists the stable `deviceId` in the OS app-config dir (surviving a WebView2
+//! storage wipe). The web player reaches these commands over `window.__TAURI__`
+//! (the config sets `withGlobalTauri: true`); see `apps/player/src/native/`.
+//!
+//! Phase 1 scaffold: shell + kiosk window + autostart + single-instance + the
+//! three identity/version commands. OTA updater, watchdog/health-check, and CEC
+//! display-power are layered in later phases.
+
+use std::fs;
+use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
+use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+
+/// Fallback player origin for local dev. Production is baked in at build time via
+/// `EDGE_PLAYER_URL` (CI sets it); it must also be listed in
+/// `capabilities/default.json` `remote.urls` for IPC to reach the remote page.
+const DEFAULT_PLAYER_URL: &str = "http://localhost:5174";
+
+/// Persisted device identity. Stored as JSON in `app_config_dir/device.json`.
+#[derive(Serialize, Deserialize, Default)]
+struct DeviceRecord {
+    #[serde(rename = "deviceId")]
+    device_id: Option<String>,
+}
+
+fn device_file(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let dir = app.path().app_config_dir().map_err(|e| e.to_string())?;
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    Ok(dir.join("device.json"))
+}
+
+/// Reads the persisted deviceId, or `None` if absent/unreadable. Called by the
+/// web boot bootstrap before it reads any identity (native store wins the ladder).
+#[tauri::command]
+fn get_device_id(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    let path = device_file(&app)?;
+    if !path.exists() {
+        return Ok(None);
+    }
+    let raw = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let record: DeviceRecord = serde_json::from_str(&raw).unwrap_or_default();
+    Ok(record.device_id)
+}
+
+/// Persists the deviceId to the native store (durable across WebView wipes + updates).
+#[tauri::command]
+fn set_device_id(app: tauri::AppHandle, id: String) -> Result<(), String> {
+    let path = device_file(&app)?;
+    let record = DeviceRecord {
+        device_id: Some(id),
+    };
+    let raw = serde_json::to_string_pretty(&record).map_err(|e| e.to_string())?;
+    fs::write(&path, raw).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// The native shell version (distinct from the web bundle's `appVersion`).
+#[tauri::command]
+fn shell_version(app: tauri::AppHandle) -> String {
+    app.package_info().version.to_string()
+}
+
+/// Result of a (read-only) update check, reported to the web layer which folds
+/// it into the heartbeat profile. Phase 2 only *detects*; download/install come
+/// in a later phase. camelCase to match the web `DeviceUpdateStatus` shape.
+#[derive(Serialize)]
+struct UpdateCheck {
+    available: bool,
+    #[serde(rename = "currentVersion")]
+    current_version: String,
+    #[serde(rename = "availableVersion")]
+    available_version: Option<String>,
+}
+
+/// Checks the update endpoint (`plugins.updater.endpoints`) for a newer signed
+/// build WITHOUT downloading or installing it. The web `checkForUpdate()` calls
+/// this at boot and maps the result into the reported update status. Errors
+/// (unreachable endpoint, malformed manifest) surface as `Err` → the web side
+/// records `lastResult: 'error'` and the device stays on the current version.
+#[cfg(desktop)]
+#[tauri::command]
+async fn check_update(app: tauri::AppHandle) -> Result<UpdateCheck, String> {
+    use tauri_plugin_updater::UpdaterExt;
+
+    let current_version = app.package_info().version.to_string();
+    let updater = app.updater().map_err(|e| e.to_string())?;
+    match updater.check().await.map_err(|e| e.to_string())? {
+        Some(update) => Ok(UpdateCheck {
+            available: true,
+            current_version,
+            available_version: Some(update.version),
+        }),
+        None => Ok(UpdateCheck {
+            available: false,
+            current_version,
+            available_version: None,
+        }),
+    }
+}
+
+/// Mobile stub: the updater crate is desktop-only (installer-based OTA), so on a
+/// future mobile build this keeps the command in the handler list resolvable and
+/// reports "no update" — mobile updates through its own store channel.
+#[cfg(not(desktop))]
+#[tauri::command]
+async fn check_update(app: tauri::AppHandle) -> Result<UpdateCheck, String> {
+    Ok(UpdateCheck {
+        available: false,
+        current_version: app.package_info().version.to_string(),
+        available_version: None,
+    })
+}
+
+pub fn run() {
+    tauri::Builder::default()
+        // Only one shell per machine; focus the existing window on a second launch.
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_focus();
+            }
+        }))
+        // `window.__TAURI__.process.relaunch()` — used by the web `restart.ts`.
+        .plugin(tauri_plugin_process::init())
+        // Launch on boot so a rebooted mini-PC comes back to the player unattended.
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
+        .invoke_handler(tauri::generate_handler![
+            get_device_id,
+            set_device_id,
+            shell_version,
+            check_update
+        ])
+        .setup(|app| {
+            // OTA updater (desktop only): register the plugin at runtime so the
+            // `check_update` command — and the later download/install path — can
+            // reach `app.updater()`. Registering here (vs the builder chain) is
+            // the plugin's documented pattern and keeps the chain cfg-free.
+            #[cfg(desktop)]
+            app.handle()
+                .plugin(tauri_plugin_updater::Builder::new().build())?;
+
+            // Register autostart-on-boot only in release: a dev build shouldn't
+            // add itself to the OS login items.
+            #[cfg(not(debug_assertions))]
+            {
+                use tauri_plugin_autostart::ManagerExt;
+                // Best-effort: don't fail boot if autostart registration is denied.
+                let _ = app.autolaunch().enable();
+            }
+
+            // Build the window pointing at the (remote) player. The URL is baked
+            // in per-environment via `EDGE_PLAYER_URL` (CI sets it for prod).
+            let url = option_env!("EDGE_PLAYER_URL").unwrap_or(DEFAULT_PLAYER_URL);
+            let target = url
+                .parse()
+                .map_err(|_| format!("invalid EDGE_PLAYER_URL: {url}"))?;
+
+            let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(target))
+                .title("Edge Player");
+
+            // Kiosk only in release; a plain resizable window in dev so it's easy
+            // to work with (not fullscreen / always-on-top on the dev machine).
+            #[cfg(not(debug_assertions))]
+            let builder = builder
+                .fullscreen(true)
+                .decorations(false)
+                .always_on_top(true)
+                .resizable(false)
+                .skip_taskbar(true);
+
+            #[cfg(debug_assertions)]
+            let builder = builder.inner_size(1280.0, 720.0);
+
+            let window = builder.build()?;
+
+            // In dev, open devtools so console/network (e.g. socket) errors are visible.
+            #[cfg(debug_assertions)]
+            window.open_devtools();
+            #[cfg(not(debug_assertions))]
+            let _ = window;
+
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running Edge Player shell");
+}

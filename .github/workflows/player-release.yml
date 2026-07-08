@@ -1,0 +1,254 @@
+# Edge Player — native shell (Tauri) release pipeline.
+#
+# Builds + minisign-signs the kiosk installers on an OS matrix (Tauri does NOT
+# cross-compile), assembles the updater `latest.json`, and publishes the
+# artifacts + manifest to a public Cloudflare R2 bucket that the updater's
+# `plugins.updater.endpoints` fetches over HTTPS.
+#
+# Trigger:
+#   - push tag `player-v<x.y.z>`  -> full build + publish to R2
+#   - workflow_dispatch (version) -> build-only smoke test (no publish)
+#
+# The git tag is the single source of truth for the version: CI stamps it into
+# tauri.conf.json before building, so `latest.json.version` == the built native
+# version the updater compares against.
+#
+# Required repo config (Settings -> Secrets and variables -> Actions):
+#   Secrets:   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD,
+#              R2_ACCOUNT_ID, R2_RELEASES_ACCESS_KEY_ID, R2_RELEASES_SECRET_ACCESS_KEY
+#   Variables: EDGE_PLAYER_URL, R2_RELEASES_BUCKET, R2_RELEASES_PUBLIC_URL
+name: player-release
+
+on:
+  push:
+    tags: ['player-v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. 0.2.0). Build-only, no publish.'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Resolve the version once (from the tag or the dispatch input) so every
+  # matrix job and the publish job stamp the exact same value.
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            version="${GITHUB_REF_NAME#player-v}"
+          else
+            version="${{ inputs.version }}"
+          fi
+          if [ -z "$version" ]; then
+            echo "::error::could not resolve a version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $version"
+
+  build:
+    needs: meta
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # `--bundles` is set explicitly per-platform because the committed
+          # bundle.targets (["nsis"]) is Windows-only; mac needs the `app`
+          # bundle to emit the updater `.app.tar.gz`.
+          - platform: windows-latest
+            key: windows-x86_64
+            args: '--bundles nsis'
+            rust_target: ''
+            bundle_glob: apps/player/src-tauri/target/release/bundle/nsis/*-setup.exe
+          - platform: macos-latest
+            key: darwin-aarch64
+            args: '--target aarch64-apple-darwin --bundles app'
+            rust_target: aarch64-apple-darwin
+            bundle_glob: apps/player/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz
+          - platform: macos-latest
+            key: darwin-x86_64
+            args: '--target x86_64-apple-darwin --bundles app'
+            rust_target: x86_64-apple-darwin
+            bundle_glob: apps/player/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
+    runs-on: ${{ matrix.platform }}
+    name: build (${{ matrix.key }})
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version comes from the root package.json `packageManager: pnpm@11.8.0`
+      # field — passing `version` here too errors with "Multiple versions".
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/player/src-tauri
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # `tauri build`'s beforeDevCommand only builds the player itself, not its
+      # workspace deps (@edge/apps writes into apps/player/public/apps/**, and
+      # the TS contracts must exist). Build the dependency graph first.
+      - name: Build workspace dependencies
+        run: pnpm turbo run build --filter=@edge/player^...
+
+      # Stamp the release-specific, non-committed values:
+      #  - version (from the tag) into tauri.conf.json
+      #  - prod updater endpoint into plugins.updater.endpoints
+      #  - real prod origin in place of the REPLACE_PROD_ORIGIN capability
+      - name: Stamp version, endpoint & prod origin
+        shell: bash
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+          EDGE_PLAYER_URL: ${{ vars.EDGE_PLAYER_URL }}
+          R2_PUBLIC: ${{ vars.R2_RELEASES_PUBLIC_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EDGE_PLAYER_URL:-}" ]; then
+            echo "::error::EDGE_PLAYER_URL variable is not set — the shell would bake localhost."
+            exit 1
+          fi
+          if [ -z "${R2_PUBLIC:-}" ]; then
+            echo "::error::R2_RELEASES_PUBLIC_URL variable is not set — no updater endpoint."
+            exit 1
+          fi
+          conf=apps/player/src-tauri/tauri.conf.json
+          caps=apps/player/src-tauri/capabilities/default.json
+          endpoint="${R2_PUBLIC%/}/edge-player/latest.json"
+          origin=$(node -e 'process.stdout.write(new URL(process.env.EDGE_PLAYER_URL).origin)')
+          jq --arg v "$VERSION" --arg ep "$endpoint" \
+            '.version = $v | .plugins.updater.endpoints = [$ep]' "$conf" > "$conf.tmp"
+          mv "$conf.tmp" "$conf"
+          jq --arg o "$origin" \
+            '.remote.urls |= map(if . == "https://REPLACE_PROD_ORIGIN" then $o else . end)' "$caps" > "$caps.tmp"
+          mv "$caps.tmp" "$caps"
+          echo "version=$VERSION  endpoint=$endpoint  origin=$origin"
+
+      - name: Build & sign the shell
+        uses: tauri-apps/tauri-action@v0
+        env:
+          # option_env! bakes this at Rust compile time; the shell loads this
+          # remote player URL at runtime.
+          EDGE_PLAYER_URL: ${{ vars.EDGE_PLAYER_URL }}
+          # Minisign signing keys — must be real process env (.env files do not work).
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: apps/player
+          # No tagName/releaseId -> build only, do NOT touch GitHub Releases.
+          args: ${{ matrix.args }}
+
+      # Collect the updater artifact (+ its .sig) into a flat folder, renaming
+      # away spaces so the latest.json URLs never need %20 encoding.
+      - name: Stage artifacts
+        shell: bash
+        env:
+          BUNDLE_GLOB: ${{ matrix.bundle_glob }}
+        run: |
+          set -euo pipefail
+          mkdir -p staging
+          found=0
+          while IFS= read -r -d '' f; do
+            base="$(basename "$f" | tr ' ' '-')"
+            cp "$f" "staging/$base"
+            if [ -f "$f.sig" ]; then
+              cp "$f.sig" "staging/$base.sig"
+            else
+              echo "::warning::no signature next to $f (signing key missing?)"
+            fi
+            found=1
+          done < <(find "$(dirname "$BUNDLE_GLOB")" -maxdepth 1 -name "$(basename "$BUNDLE_GLOB")" -print0)
+          if [ "$found" -eq 0 ]; then
+            echo "::error::no updater artifact matched $BUNDLE_GLOB"
+            exit 1
+          fi
+          ls -la staging
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.key }}
+          path: staging/
+          if-no-files-found: error
+
+  publish:
+    needs: [meta, build]
+    # Only real tag releases publish; workflow_dispatch stays a build-only test.
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist-release
+          pattern: release-*
+
+      - name: Assemble latest.json
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+          R2_PUBLIC: ${{ vars.R2_RELEASES_PUBLIC_URL }}
+        run: |
+          set -euo pipefail
+          node apps/player/scripts/release/build-latest-json.mjs \
+            --version "$VERSION" \
+            --artifacts dist-release \
+            --public-base "$R2_PUBLIC" \
+            --out dist-release/latest.json
+          echo "--- latest.json ---"
+          cat dist-release/latest.json
+
+      - name: Publish to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_RELEASES_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_RELEASES_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          # R2 rejects the AWS SDK/CLI default CRC32 integrity headers on PutObject.
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          BUCKET: ${{ vars.R2_RELEASES_BUCKET }}
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          endpoint="https://${ACCOUNT_ID}.r2.cloudflarestorage.com"
+          # Installers first (immutable, versioned path) so the manifest never
+          # points at a not-yet-uploaded file. The .sig files are NOT uploaded —
+          # their contents are already inlined into latest.json.
+          for d in dist-release/release-*; do
+            for f in "$d"/*; do
+              case "$f" in
+                *.sig) continue ;;
+              esac
+              name="$(basename "$f")"
+              aws s3 cp "$f" "s3://${BUCKET}/edge-player/${VERSION}/${name}" \
+                --endpoint-url "$endpoint"
+            done
+          done
+          # Manifest last, at a stable key, un-cached so devices see it promptly.
+          aws s3 cp dist-release/latest.json "s3://${BUCKET}/edge-player/latest.json" \
+            --endpoint-url "$endpoint" \
+            --content-type application/json \
+            --cache-control "no-cache"
+          echo "Published edge-player ${VERSION} to R2 bucket ${BUCKET}."

@@ -1,0 +1,41 @@
+[package]
+name = "edge-player"
+version = "0.1.0"
+description = "Edge Player native shell"
+authors = ["Future Forward"]
+edition = "2021"
+rust-version = "1.77.2"
+
+# The Tauri v2 convention: a thin bin that calls into a lib crate (keeps the door
+# open for the mobile targets later, which require the lib layout).
+[lib]
+name = "edge_player_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-process = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# OTA updater (Phase 2). Desktop-only: the updater ships as installer artifacts
+# per OS; mobile (Android, later) updates through its own store channel, so the
+# crate is gated to the desktop targets to keep an eventual mobile build clean.
+[target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
+tauri-plugin-updater = "2"
+
+# Later phases (added in their phases, not now):
+#   (health/watchdog + CEC are plain std/OS calls, no extra crates required)
+
+[profile.release]
+# Smaller, kiosk-appropriate release binaries.
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
