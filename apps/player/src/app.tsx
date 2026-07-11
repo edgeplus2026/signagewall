@@ -5,6 +5,7 @@ import {
   bootstrapNativeIdentity,
   bootstrapNativeRuntime,
 } from './native/bootstrap'
+import { reportHealthy, startStandbyUpdate } from './native/updater'
 import { loadSnapshot } from './persistence/idb'
 import { isPreview, previewParams } from './preview'
 import { reflectDeviceIdInUrl } from './recovery'
@@ -22,6 +23,14 @@ import { Stage } from './ui/Stage'
 import { Standby } from './ui/Standby'
 
 export function App() {
+  // Signal the native shell that the web layer booted and rendered: this clears
+  // the post-update health watchdog and confirms the running shell version as
+  // last-known-good. Fires once after first paint; native no-op in a browser or
+  // the CMS preview iframe.
+  useEffect(() => {
+    void reportHealthy()
+  }, [])
+
   useEffect(() => {
     // Preview mode (CMS iframe): a read-only spectator. Skip the whole device
     // boot — no token, no persisted snapshot, no heartbeat, no daily-reload —
@@ -60,6 +69,7 @@ export function App() {
     let stopDailyReload: (() => void) | undefined
     let stopAvailability: (() => void) | undefined
     let stopPrefetch: (() => void) | undefined
+    let stopStandbyUpdate: (() => void) | undefined
 
     void (async () => {
       await bootstrapNativeIdentity()
@@ -91,6 +101,10 @@ export function App() {
       stopDailyReload = startDailyReload()
       stopAvailability = startAvailability()
       stopPrefetch = startPrefetch()
+      // Apply a pending shell update whenever the screen is dark (standby) —
+      // the catch-up for devices powered off or offline during the nightly
+      // window. Started after availability so `view` reflects the rule.
+      stopStandbyUpdate = startStandbyUpdate()
     })()
 
     // Symmetric teardown: stop whatever boot managed to start. Safe before boot
@@ -100,6 +114,7 @@ export function App() {
     return () => {
       disposed = true
       stopOnline()
+      stopStandbyUpdate?.()
       stopPrefetch?.()
       stopAvailability?.()
       stopDailyReload?.()

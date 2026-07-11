@@ -13,9 +13,13 @@
 # tauri.conf.json before building, so `latest.json.version` == the built native
 # version the updater compares against.
 #
+# Every third-party action is pinned to a commit SHA: this workflow handles the
+# OTA signing key, and a hijacked mutable tag could exfiltrate it and then sign
+# malware that every device in the fleet would happily install.
+#
 # Required repo config (Settings -> Secrets and variables -> Actions):
-#   Secrets:   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD,
-#              R2_ACCOUNT_ID, R2_RELEASES_ACCESS_KEY_ID, R2_RELEASES_SECRET_ACCESS_KEY
+#   Secrets:   TAURI_SIGNING_PRIVATE_KEY, R2_ACCOUNT_ID,
+#              R2_RELEASES_ACCESS_KEY_ID, R2_RELEASES_SECRET_ACCESS_KEY
 #   Variables: EDGE_PLAYER_URL, R2_RELEASES_BUCKET, R2_RELEASES_PUBLIC_URL
 name: player-release
 
@@ -32,6 +36,11 @@ permissions:
   contents: read
 
 jobs:
+  # A release must never ship code that doesn't lint, compile, or pass its tests
+  # — including the Windows-only rollback path (see player-ci.yml).
+  check:
+    uses: ./.github/workflows/player-ci.yml
+
   # Resolve the version once (from the tag or the dispatch input) so every
   # matrix job and the publish job stamp the exact same value.
   meta:
@@ -56,7 +65,7 @@ jobs:
           echo "Resolved version: $version"
 
   build:
-    needs: meta
+    needs: [meta, check]
     timeout-minutes: 45
     strategy:
       fail-fast: false
@@ -65,56 +74,63 @@ jobs:
           # `--bundles` is set explicitly per-platform because the committed
           # bundle.targets (["nsis"]) is Windows-only; mac needs the `app`
           # bundle to emit the updater `.app.tar.gz`.
+          #
+          # `optional` marks the dev/test platforms: the fleet is Windows, and a
+          # transient macOS-runner hiccup must not block shipping a critical
+          # Windows shell update.
           - platform: windows-latest
             key: windows-x86_64
+            optional: false
             args: '--bundles nsis'
             rust_target: ''
             bundle_glob: apps/player/src-tauri/target/release/bundle/nsis/*-setup.exe
           - platform: macos-latest
             key: darwin-aarch64
+            optional: true
             args: '--target aarch64-apple-darwin --bundles app'
             rust_target: aarch64-apple-darwin
             bundle_glob: apps/player/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz
           - platform: macos-latest
             key: darwin-x86_64
+            optional: true
             args: '--target x86_64-apple-darwin --bundles app'
             rust_target: x86_64-apple-darwin
             bundle_glob: apps/player/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
     runs-on: ${{ matrix.platform }}
+    continue-on-error: ${{ matrix.optional }}
     name: build (${{ matrix.key }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       # Version comes from the root package.json `packageManager: pnpm@11.8.0`
       # field — passing `version` here too errors with "Multiple versions".
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
         with:
           targets: ${{ matrix.rust_target }}
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
         with:
           workspaces: apps/player/src-tauri
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # `tauri build`'s beforeDevCommand only builds the player itself, not its
+      # `tauri build`'s beforeBuildCommand only builds the player itself, not its
       # workspace deps (@edge/apps writes into apps/player/public/apps/**, and
       # the TS contracts must exist). Build the dependency graph first.
       - name: Build workspace dependencies
         run: pnpm turbo run build --filter=@edge/player^...
 
-      # Stamp the release-specific, non-committed values:
-      #  - version (from the tag) into tauri.conf.json
-      #  - prod updater endpoint into plugins.updater.endpoints
-      #  - real prod origin in place of the REPLACE_PROD_ORIGIN capability
+      # Stamp the release-specific, non-committed values, then FAIL CLOSED if any
+      # dev placeholder survived. A silently-unsubstituted origin would ship a
+      # capability that denies the remote page every Tauri command, fleet-wide.
       - name: Stamp version, endpoint & prod origin
         shell: bash
         env:
@@ -135,30 +151,52 @@ jobs:
           caps=apps/player/src-tauri/capabilities/default.json
           endpoint="${R2_PUBLIC%/}/edge-player/latest.json"
           origin=$(node -e 'process.stdout.write(new URL(process.env.EDGE_PLAYER_URL).origin)')
+
           jq --arg v "$VERSION" --arg ep "$endpoint" \
             '.version = $v | .plugins.updater.endpoints = [$ep]' "$conf" > "$conf.tmp"
           mv "$conf.tmp" "$conf"
-          jq --arg o "$origin" \
-            '.remote.urls |= map(if . == "https://REPLACE_PROD_ORIGIN" then $o else . end)' "$caps" > "$caps.tmp"
+
+          # Replace remote.urls WHOLESALE: mapping only the placeholder would
+          # leave the dev http://localhost:5174 entry granting native commands
+          # (identity, updater, process) to any page served from localhost.
+          jq --arg o "$origin" '.remote.urls = [$o]' "$caps" > "$caps.tmp"
           mv "$caps.tmp" "$caps"
+
+          # --- fail closed ---
+          if grep -q 'REPLACE_' "$conf" "$caps"; then
+            echo "::error::an unsubstituted REPLACE_ placeholder survived into the release build"
+            exit 1
+          fi
+          if ! jq -e '.plugins.updater.endpoints | length == 1 and all(.[]; startswith("https://"))' "$conf" >/dev/null; then
+            echo "::error::updater endpoint must be exactly one https:// URL"
+            exit 1
+          fi
+          if ! jq -e --arg o "$origin" '.remote.urls == [$o]' "$caps" >/dev/null; then
+            echo "::error::capability remote.urls is not pinned to the prod origin"
+            exit 1
+          fi
           echo "version=$VERSION  endpoint=$endpoint  origin=$origin"
 
       - name: Build & sign the shell
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@fce9c6108b31ea247710505d3aaaa893ee6768d4 # v0
         env:
           # option_env! bakes this at Rust compile time; the shell loads this
           # remote player URL at runtime.
           EDGE_PLAYER_URL: ${{ vars.EDGE_PLAYER_URL }}
-          # Minisign signing keys — must be real process env (.env files do not work).
+          # Minisign signing key — must be real process env (.env files do not
+          # work). The key has no passphrase, so no PASSWORD secret exists: an
+          # absent secret expands to "", which Tauri reads as "no password".
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
         with:
           projectPath: apps/player
           # No tagName/releaseId -> build only, do NOT touch GitHub Releases.
           args: ${{ matrix.args }}
 
       # Collect the updater artifact (+ its .sig) into a flat folder, renaming
-      # away spaces so the latest.json URLs never need %20 encoding.
+      # away spaces so the latest.json URLs never need %20 encoding. A missing
+      # signature is a HARD failure: an unsigned artifact can never be installed
+      # by the updater, so shipping one would just brick the release.
       - name: Stage artifacts
         shell: bash
         env:
@@ -170,20 +208,20 @@ jobs:
           while IFS= read -r -d '' f; do
             base="$(basename "$f" | tr ' ' '-')"
             cp "$f" "staging/$base"
-            if [ -f "$f.sig" ]; then
-              cp "$f.sig" "staging/$base.sig"
-            else
-              echo "::warning::no signature next to $f (signing key missing?)"
+            if [ ! -f "$f.sig" ]; then
+              echo "::error::no signature next to $f — is TAURI_SIGNING_PRIVATE_KEY set?"
+              exit 1
             fi
-            found=1
+            cp "$f.sig" "staging/$base.sig"
+            found=$((found + 1))
           done < <(find "$(dirname "$BUNDLE_GLOB")" -maxdepth 1 -name "$(basename "$BUNDLE_GLOB")" -print0)
-          if [ "$found" -eq 0 ]; then
-            echo "::error::no updater artifact matched $BUNDLE_GLOB"
+          if [ "$found" -ne 1 ]; then
+            echo "::error::expected exactly 1 updater artifact matching $BUNDLE_GLOB, found $found"
             exit 1
           fi
           ls -la staging
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-${{ matrix.key }}
           path: staging/
@@ -195,17 +233,19 @@ jobs:
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: dist-release
           pattern: release-*
 
+      # `--require` fails closed: the fleet is Windows, so a manifest without a
+      # windows-x86_64 entry must never be published (the mac legs are optional).
       - name: Assemble latest.json
         env:
           VERSION: ${{ needs.meta.outputs.version }}
@@ -216,6 +256,7 @@ jobs:
             --version "$VERSION" \
             --artifacts dist-release \
             --public-base "$R2_PUBLIC" \
+            --require windows-x86_64 \
             --out dist-release/latest.json
           echo "--- latest.json ---"
           cat dist-release/latest.json
@@ -233,9 +274,21 @@ jobs:
         run: |
           set -euo pipefail
           endpoint="https://${ACCOUNT_ID}.r2.cloudflarestorage.com"
-          # Installers first (immutable, versioned path) so the manifest never
-          # points at a not-yet-uploaded file. The .sig files are NOT uploaded —
-          # their contents are already inlined into latest.json.
+
+          # Published versions are IMMUTABLE. Overwriting edge-player/<version>/
+          # would hand devices that already took that version different bytes
+          # under the same version number — and they'd never re-pull, leaving the
+          # fleet split-brained on one version string.
+          existing=$(aws s3 ls "s3://${BUCKET}/edge-player/${VERSION}/" --endpoint-url "$endpoint" || true)
+          if [ -n "$existing" ]; then
+            echo "::error::edge-player/${VERSION}/ already exists on R2 — versions are immutable, bump the version"
+            echo "$existing"
+            exit 1
+          fi
+
+          # Installers first (versioned path) so the manifest never points at a
+          # not-yet-uploaded file. The .sig files are NOT uploaded — their
+          # contents are already inlined into latest.json.
           for d in dist-release/release-*; do
             for f in "$d"/*; do
               case "$f" in
@@ -246,6 +299,7 @@ jobs:
                 --endpoint-url "$endpoint"
             done
           done
+
           # Manifest last, at a stable key, un-cached so devices see it promptly.
           aws s3 cp dist-release/latest.json "s3://${BUCKET}/edge-player/latest.json" \
             --endpoint-url "$endpoint" \

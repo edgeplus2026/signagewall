@@ -1,0 +1,89 @@
+# Edge Player — quality gate for the web player and the native (Tauri) shell.
+#
+# Runs on every push/PR that touches the player, and is CALLED by
+# player-release.yml so a release can never ship code that doesn't lint, compile,
+# or pass its tests.
+#
+# The Rust lane runs on BOTH windows and macos on purpose: the updater's rollback
+# path is `#[cfg(windows)]`, so a macOS-only lane would never even compile it —
+# exactly the "green locally, broken on the device" gap this fleet cannot afford.
+name: player-ci
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/player/**'
+      - 'packages/**'
+      - '.github/workflows/player-*.yml'
+  pull_request:
+    paths:
+      - 'apps/player/**'
+      - 'packages/**'
+      - '.github/workflows/player-*.yml'
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: web (typecheck + tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build workspace dependencies
+        run: pnpm turbo run build --filter=@edge/player^...
+      - name: Typecheck
+        run: pnpm --filter @edge/player exec tsc --noEmit
+      - name: Unit tests
+        run: pnpm --filter @edge/player test
+      - name: Lint
+        run: pnpm --filter @edge/player lint
+
+  rust:
+    name: rust (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+        with:
+          workspaces: apps/player/src-tauri
+
+      - run: pnpm install --frozen-lockfile
+      # `generate_context!` embeds `frontendDist` at compile time, so the web
+      # bundle must exist before cargo can even parse the crate.
+      - name: Build the frontend (required to compile the shell)
+        run: |
+          pnpm turbo run build --filter=@edge/player^...
+          pnpm --filter @edge/player build
+
+      - name: Format
+        working-directory: apps/player/src-tauri
+        run: cargo fmt --check
+      - name: Clippy
+        working-directory: apps/player/src-tauri
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Tests
+        working-directory: apps/player/src-tauri
+        run: cargo test

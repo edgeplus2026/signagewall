@@ -108,6 +108,56 @@ Windows Authenticode / macOS notarization are **not** wired yet (installers show
 "unknown publisher"); only the minisign OTA signature is applied. Add the code
 cert later.
 
+## Verifying the OTA loop end-to-end (two-version harness)
+
+Unit tests cover the state machine (`cargo test`) and the web policy (`vitest`),
+but nothing above them proves a real installer is produced, signed, fetched,
+installed, and health-gated. Run this once per meaningful updater change — it is
+the only thing that catches a signature/manifest/naming mismatch before 500
+devices do.
+
+```bash
+export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/edge-player.key)"
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
+
+# 1. Build the OLD version and install it (macOS: open the .app from the bundle).
+apps/player/scripts/release/bump.sh 0.1.0
+pnpm turbo run build --filter=@edge/player^...
+pnpm --filter @edge/player tauri build --target aarch64-apple-darwin --bundles app
+
+# 2. Build the NEW version (this is what the device must pull).
+apps/player/scripts/release/bump.sh 0.2.0
+pnpm --filter @edge/player tauri build --target aarch64-apple-darwin --bundles app
+
+# 3. Serve it as a real update channel (reuse the CI generator so the manifest is
+#    byte-identical to what ships).
+mkdir -p /tmp/ota/release-darwin-aarch64 && cd /tmp/ota
+cp ".../bundle/macos/Edge Player.app.tar.gz"     release-darwin-aarch64/edge-player.app.tar.gz
+cp ".../bundle/macos/Edge Player.app.tar.gz.sig" release-darwin-aarch64/edge-player.app.tar.gz.sig
+node <repo>/apps/player/scripts/release/build-latest-json.mjs \
+  --version 0.2.0 --artifacts . --public-base http://localhost:9099 --out latest.json
+python3 -m http.server 9099
+```
+
+Point `plugins.updater.endpoints` at `http://localhost:9099/latest.json` (add
+`"dangerousInsecureTransportProtocol": true` for the plain-HTTP test), run the
+installed 0.1.0, and drive it from the window's console:
+
+```js
+await window.__TAURI__.core.invoke('run_update')
+```
+
+**What must be true:** it downloads, verifies the signature, installs, relaunches
+into **0.2.0**; `report_healthy` then promotes 0.2.0 to last-known-good in
+`~/Library/Application Support/rs.futureforward.edge.player/updates/state.json`
+and prunes the old cached installer. To exercise the **watchdog**, block
+`report_healthy` (comment out the call in `app.tsx`) and confirm that after 90 s
+the state flips to `unhealthy`.
+
+> The Windows rollback (silent NSIS reinstall + relaunch after the process exits)
+> is the one path this harness cannot cover — it needs a real Windows kiosk. It is
+> marked `verify-pending` in `updater.rs`.
+
 ## ⚠️ Spike to verify before relying on this (top risk)
 
 Remote content calling Tauri commands is gated by the capability `remote.urls`.

@@ -1,13 +1,16 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { FakeClock } from '../../test/fake-clock'
-import { DailyReloadScheduler, nextReloadAt } from './daily-reload'
+import { restartPlayer } from '../restart'
+import { applyUpdateOrReload } from '../native/updater'
+import { DailyReloadScheduler, nextReloadAt, startDailyReload } from './daily-reload'
 
 // The module imports the store (and transitively config/device) only for the
 // `startDailyReload` wiring helper. Stub those so importing the unit under test
 // has no browser/runtime side effects.
 vi.mock('../store', () => ({ dailyReload: { value: { enabled: true, time: '03:00' } } }))
-vi.mock('../restart', () => ({ restartPlayer: () => undefined }))
+vi.mock('../restart', () => ({ restartPlayer: vi.fn() }))
+vi.mock('../native/updater', () => ({ applyUpdateOrReload: vi.fn() }))
 
 const HOUR = 60 * 60 * 1000
 
@@ -118,5 +121,32 @@ describe('DailyReloadScheduler', () => {
 
     clock.advance(24 * HOUR)
     expect(onReload).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * The scheduler tests above all inject their own `onReload`, so none of them
+ * would notice if the PRODUCTION wiring regressed back to a plain restart —
+ * silently disabling OTA for the whole fleet while staying green. This pins it.
+ */
+describe('startDailyReload (production wiring)', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.clearAllMocks()
+  })
+
+  it('applies a pending shell update at the nightly window, not a plain restart', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 26, 2, 59, 30)) // 30s before the 03:00 window
+
+    const stop = startDailyReload()
+    await vi.advanceTimersByTimeAsync(31_000)
+
+    expect(applyUpdateOrReload).toHaveBeenCalledTimes(1)
+    // applyUpdateOrReload owns the restart decision (it must NOT double-restart
+    // when Rust is already relaunching into the new version).
+    expect(restartPlayer).not.toHaveBeenCalled()
+
+    stop()
   })
 })

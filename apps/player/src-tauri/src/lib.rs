@@ -5,9 +5,12 @@
 //! storage wipe). The web player reaches these commands over `window.__TAURI__`
 //! (the config sets `withGlobalTauri: true`); see `apps/player/src/native/`.
 //!
-//! Phase 1 scaffold: shell + kiosk window + autostart + single-instance + the
-//! three identity/version commands. OTA updater, watchdog/health-check, and CEC
-//! display-power are layered in later phases.
+//! Includes the kiosk window + autostart + single-instance + identity/version
+//! commands, the OTA updater (check/download/install) and a post-update
+//! health-check watchdog with rollback (see `updater.rs`). CEC display-power is
+//! a later phase.
+
+mod updater;
 
 use std::fs;
 use std::path::PathBuf;
@@ -46,15 +49,37 @@ fn get_device_id(app: tauri::AppHandle) -> Result<Option<String>, String> {
     Ok(record.device_id)
 }
 
-/// Persists the deviceId to the native store (durable across WebView wipes + updates).
+/// A canonical lowercase UUID — the only shape we accept as a device identity.
+/// The command is reachable from the (remote) player page, so we refuse to write
+/// anything that isn't a UUID rather than let an injected script rebind the
+/// durable identity to arbitrary content.
+fn is_uuid(id: &str) -> bool {
+    let groups = [8usize, 4, 4, 4, 12];
+    let mut parts = id.split('-');
+    for len in groups {
+        match parts.next() {
+            Some(part) if part.len() == len && part.bytes().all(|b| b.is_ascii_hexdigit()) => {}
+            _ => return false,
+        }
+    }
+    parts.next().is_none()
+}
+
+/// Persists the deviceId to the native store (durable across WebView wipes +
+/// updates). Written atomically — a torn write here would silently reset the
+/// device to a fresh identity on the next boot, which is exactly the failure the
+/// native store exists to prevent.
 #[tauri::command]
 fn set_device_id(app: tauri::AppHandle, id: String) -> Result<(), String> {
+    if !is_uuid(&id) {
+        return Err("deviceId must be a UUID".into());
+    }
     let path = device_file(&app)?;
     let record = DeviceRecord {
         device_id: Some(id),
     };
     let raw = serde_json::to_string_pretty(&record).map_err(|e| e.to_string())?;
-    fs::write(&path, raw).map_err(|e| e.to_string())?;
+    updater::write_atomic(&path, raw.as_bytes()).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -65,8 +90,8 @@ fn shell_version(app: tauri::AppHandle) -> String {
 }
 
 /// Result of a (read-only) update check, reported to the web layer which folds
-/// it into the heartbeat profile. Phase 2 only *detects*; download/install come
-/// in a later phase. camelCase to match the web `DeviceUpdateStatus` shape.
+/// it into the heartbeat profile. Detection only — applying an update is
+/// `updater::run_update`. camelCase to match the web `DeviceUpdateStatus` shape.
 #[derive(Serialize)]
 struct UpdateCheck {
     available: bool,
@@ -134,7 +159,10 @@ pub fn run() {
             get_device_id,
             set_device_id,
             shell_version,
-            check_update
+            check_update,
+            updater::run_update,
+            updater::report_healthy,
+            updater::get_update_state
         ])
         .setup(|app| {
             // OTA updater (desktop only): register the plugin at runtime so the
@@ -144,6 +172,13 @@ pub fn run() {
             #[cfg(desktop)]
             app.handle()
                 .plugin(tauri_plugin_updater::Builder::new().build())?;
+
+            // Cross-thread update flags: `healthy` (web → watchdog), `decided`
+            // (exactly one of report_healthy / watchdog acts on a pending update)
+            // and `running` (run_update re-entrancy). See `updater.rs`.
+            let guards = updater::UpdateGuards::default();
+            updater::spawn_health_watchdog(app.handle().clone(), &guards);
+            app.manage(guards);
 
             // Register autostart-on-boot only in release: a dev build shouldn't
             // add itself to the OS login items.
@@ -178,6 +213,26 @@ pub fn run() {
             let builder = builder.inner_size(1280.0, 720.0);
 
             let window = builder.build()?;
+
+            // Unattended kiosk: refuse to close. Alt+F4 / Ctrl+W would otherwise
+            // leave the screen dark until the next OS boot (autostart), with
+            // nobody on site to reopen it. Release only — dev must stay closable.
+            //
+            // NOTE: we deliberately do NOT pin navigation with `on_navigation`.
+            // The IPC surface is already origin-gated by `capabilities` (a page
+            // from another origin gets no commands), and a URL-level allowlist
+            // risks breaking the YouTube/Canva/Web iframe embeds, which we cannot
+            // verify against WebView2 without a real Windows device.
+            #[cfg(not(debug_assertions))]
+            {
+                let kiosk = window.clone();
+                window.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        let _ = kiosk.set_focus();
+                    }
+                });
+            }
 
             // In dev, open devtools so console/network (e.g. socket) errors are visible.
             #[cfg(debug_assertions)]

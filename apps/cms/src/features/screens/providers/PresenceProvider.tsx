@@ -86,7 +86,10 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
               online: event.online,
               deviceId: event.deviceId,
               lastSeenAt: event.lastSeenAt,
-              ...(previous?.profile || event.appVersion || event.shellVersion
+              ...(previous?.profile ||
+              event.appVersion ||
+              event.shellVersion ||
+              event.updateResult
                 ? {
                     profile: {
                       ...previous?.profile,
@@ -95,6 +98,14 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
                         : {}),
                       ...(event.shellVersion
                         ? { shellVersion: event.shellVersion }
+                        : {}),
+                      ...(event.updateResult
+                        ? {
+                            updateStatus: {
+                              ...previous?.profile?.updateStatus,
+                              lastResult: event.updateResult,
+                            },
+                          }
                         : {}),
                     },
                   }

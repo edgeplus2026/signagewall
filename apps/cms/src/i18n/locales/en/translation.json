@@ -733,8 +733,6 @@
         "checking": "Checking…",
         "up-to-date": "Up to date",
         "available": "Update available",
-        "downloading": "Downloading…",
-        "ready": "Update ready",
         "installing": "Installing…",
         "error": "Update error",
         "unhealthy": "Update unhealthy"

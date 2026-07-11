@@ -10,10 +10,15 @@
  * darwin-x86_64, ...). The `.sig` CONTENT is inlined into `signature` (a path or
  * URL does not work), and each `url` points at the versioned R2 object.
  *
+ * Fails CLOSED: `--require` lists the platform keys that must be present (the
+ * fleet is Windows, so a manifest missing windows-x86_64 must never publish),
+ * and each platform folder must hold exactly one installer + its signature. A
+ * manifest 500 devices poll is not a place to guess.
+ *
  * Usage:
  *   node build-latest-json.mjs --version 0.2.0 --artifacts dist-release \
  *     --public-base https://releases.example.com --out dist-release/latest.json
- *   [--notes "..."]
+ *   [--require windows-x86_64,darwin-aarch64] [--notes "..."]
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -53,6 +58,10 @@ function main() {
   const publicBase = args['public-base']
   const out = args.out
   const notes = args.notes ?? `Edge Player ${version ?? ''}`.trim()
+  const required = (args.require ?? '')
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean)
 
   if (!version) fail('missing --version')
   if (!artifactsDir) fail('missing --artifacts')
@@ -74,8 +83,16 @@ function main() {
 
     const dir = join(artifactsDir, entry.name)
     const files = readdirSync(dir)
-    const installer = files.find((f) => !f.endsWith('.sig'))
-    if (!installer) fail(`no installer artifact in ${dir}`)
+    // Exactly one installer + its .sig. Anything else (a stray file, a renamed
+    // artifact, a leaked .DS_Store) means the artifact wiring drifted, and
+    // guessing would publish a manifest that points at the wrong bytes.
+    const installers = files.filter((f) => !f.endsWith('.sig'))
+    if (installers.length !== 1) {
+      fail(
+        `expected exactly 1 installer in ${dir}, found ${installers.length}: ${files.join(', ')}`,
+      )
+    }
+    const installer = installers[0]
 
     const sigPath = join(dir, `${installer}.sig`)
     if (!existsSync(sigPath)) fail(`missing signature: ${sigPath}`)
@@ -91,6 +108,13 @@ function main() {
 
   if (Object.keys(platforms).length === 0) {
     fail(`no platform artifacts found under ${artifactsDir}/${ARTIFACT_PREFIX}*`)
+  }
+
+  // Fail closed on a missing must-have platform: the fleet is Windows, so a
+  // manifest without it would silently strand every device on the old version.
+  const missing = required.filter((key) => !platforms[key])
+  if (missing.length > 0) {
+    fail(`required platform(s) missing from the manifest: ${missing.join(', ')}`)
   }
 
   const manifest = {

@@ -9,7 +9,7 @@ import { getUrlDeviceId } from '../recovery'
 import { getNativeDeviceId, setNativeDeviceId } from './device-store'
 import { loadShellVersion } from './runtime'
 import { isTauri } from './tauri'
-import { checkForUpdate } from './updater'
+import { checkForUpdate, loadUpdateState } from './updater'
 
 /**
  * Resolves the device identity through the durability ladder
@@ -55,5 +55,8 @@ export async function bootstrapNativeRuntime(): Promise<void> {
     return
   }
   await loadShellVersion()
+  // Reflect a prior failed-update/rollback outcome into the reported status
+  // before the first heartbeat, then kick off a fresh detection check.
+  await loadUpdateState()
   void checkForUpdate()
 }

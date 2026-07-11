@@ -26,8 +26,15 @@ fi
 
 # tauri.conf.json is authoritative for the app/updater version.
 jq --arg v "$version" '.version = $v' "$conf" > "$conf.tmp" && mv "$conf.tmp" "$conf"
-# Keep the crate metadata in sync (first `version = "..."` = [package] version).
-perl -0pi -e 'BEGIN{$n=0} s/version = "[^"]*"/version = "'"$version"'"/ if $n++ == 0' "$cargo"
+
+# Keep the crate metadata in sync. Anchored to the start of a line so it can only
+# ever match `[package].version` — an unanchored match would happily rewrite
+# `rust-version = "..."` or a dependency's version if the manifest were reordered.
+perl -pi -e 'if (!$done && s/^version = "[^"]*"/version = "'"$version"'"/) { $done = 1 }' "$cargo"
+if ! grep -q "^version = \"$version\"" "$cargo"; then
+  echo "failed to stamp [package].version in $cargo" >&2
+  exit 1
+fi
 
 git -C "$root" add "$conf" "$cargo"
 git -C "$root" commit -m "chore(player): release v$version"

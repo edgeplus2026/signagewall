@@ -1,5 +1,6 @@
 import { effect } from '@preact/signals'
 
+import { applyUpdateOrReload } from '../native/updater'
 import { restartPlayer } from '../restart'
 import { dailyReload } from '../store'
 import type { DailyReloadSetting } from '../types'
@@ -158,7 +159,13 @@ export class DailyReloadScheduler {
  * and while fully offline. Returns a disposer.
  */
 export function startDailyReload(): () => void {
-  const scheduler = new DailyReloadScheduler()
+  // At the nightly window, apply a pending shell update if one is available
+  // (which installs + relaunches into the new version); otherwise fall back to
+  // the normal player reload. The generic scheduler keeps its plain-restart
+  // default — the update-aware action lives in the native layer.
+  const scheduler = new DailyReloadScheduler({
+    onReload: () => void applyUpdateOrReload(),
+  })
   const stop = effect(() => {
     scheduler.apply(dailyReload.value)
   })

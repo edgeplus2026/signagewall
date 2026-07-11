@@ -154,6 +154,11 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
                     `screens.device.updateResult.${device.profile.updateStatus.lastResult}`,
                     { defaultValue: device.profile.updateStatus.lastResult },
                   )}
+                  {/* Without the target version "Update available" tells the
+                      operator nothing actionable — which build is on offer? */}
+                  {device.profile.updateStatus.availableVersion
+                    ? ` → ${device.profile.updateStatus.availableVersion}`
+                    : null}
                 </span>
               </SettingsRow>
             ) : null}

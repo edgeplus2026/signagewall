@@ -9,7 +9,7 @@
   "permissions": [
     "core:default",
     "core:app:allow-version",
-    "process:default",
+    "process:allow-restart",
     "autostart:allow-enable",
     "autostart:allow-is-enabled"
   ]

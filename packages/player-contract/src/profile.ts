@@ -21,16 +21,22 @@ export interface DeviceUpdateStatus {
   availableVersion?: string
   /** ISO timestamp of the last update check. */
   lastCheckAt?: string
+  /**
+   * Every member here is actually emitted — `checking`/`available`/`up-to-date`/
+   * `error` by the web layer, `installing`/`unhealthy` by the native updater.
+   * Don't add a state until something produces it: a state the fleet can never
+   * report is a lie the CMS tells the operator.
+   */
   lastResult?:
     | 'idle'
     | 'checking'
-    | 'up-to-date'
-    /** A newer signed build exists on the channel but hasn't been downloaded yet. */
+    /** A newer signed build exists on the channel but hasn't been applied yet. */
     | 'available'
-    | 'downloading'
-    | 'ready'
+    | 'up-to-date'
+    /** Downloaded and being installed; the shell restarts out of this state. */
     | 'installing'
     | 'error'
+    /** A freshly-installed version failed its health check (and was rolled back). */
     | 'unhealthy'
 }
 

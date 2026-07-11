@@ -10,6 +10,7 @@
 import {
   PlayerSocketEvents,
   type DeviceSettingsPayload,
+  type DeviceUpdateStatus,
   type PlayerCommand,
 } from '@edge/player-contract';
 
@@ -101,6 +102,12 @@ export interface DevicePresenceChangedEvent {
   appVersion?: string;
   /** Native shell version, when the device runs inside the Tauri shell. */
   shellVersion?: string;
+  /**
+   * Latest OTA outcome (`available` / `installing` / `error` / `unhealthy` / …)
+   * so a rollout can be watched from the screens list instead of one device tab
+   * at a time — a device that rolled back still looks perfectly "online".
+   */
+  updateResult?: DeviceUpdateStatus['lastResult'];
   /** Defaults to true; false when the device was just unpaired. */
   paired?: boolean;
 }
