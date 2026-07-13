@@ -19,7 +19,7 @@ export const gcalManifest: AppManifest = {
     'Display a connected Google Calendar as a day, week, month or schedule view — great for meeting rooms and lobbies.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 3,
+  version: 4,
   refreshSeconds: 300,
   icon: GCAL_ICON,
   color: '#4285F4',
@@ -93,7 +93,6 @@ export const gcalManifest: AppManifest = {
       label: 'Accent color',
       section: 'Theme Settings',
       default: '#111827',
-      help: 'Highlights today and event markers. Automatically adapts to the light or dark theme.',
     },
   ],
 }

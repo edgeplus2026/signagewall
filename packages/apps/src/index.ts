@@ -37,6 +37,13 @@ export {
   canvaManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
+export {
+  FONT_OPTIONS,
+  FONT_WEIGHT_OPTIONS,
+  STYLE_SECTION,
+  styleFields,
+} from './_shared/style-fields.js'
+export type { StyleFieldDefaults } from './_shared/style-fields.js'
 
 export type { WeatherPayload, WeatherDaily } from './weather/payload.js'
 export type { GcalPayload, GcalEvent } from './gcal/payload.js'

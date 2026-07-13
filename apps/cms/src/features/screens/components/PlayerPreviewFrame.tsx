@@ -2,6 +2,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ScaledViewport } from '@/components/common/ScaledViewport'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { useStepDevice } from '@/features/screens/hooks/useScreens'
 import {
@@ -103,16 +104,23 @@ export function PlayerPreviewFrame({
 
         {/* Glass panel: always landscape — it represents the physical display. */}
         <div className="relative aspect-video overflow-hidden rounded-lg bg-black ring-1 ring-black/60 ring-inset">
-          <iframe
-            ref={iframeRef}
-            src={src}
-            title={t('screens.device.preview.frameTitle')}
-            allow="autoplay; fullscreen"
-            // No Referer header → the player URL never lands in the player
-            // server's logs via the referrer either.
-            referrerPolicy="no-referrer"
-            className="absolute inset-0 h-full w-full border-0"
-          />
+          {/* The player runs in a virtual 1080p viewport, scaled down to fit — not
+              in the handful of pixels the panel is wide. Apps (and the player's own
+              chrome) size themselves in `vw`/`vh`, so only a real-resolution
+              viewport mirrors what the display actually shows. The step controls
+              stay outside it: they're operator UI, not part of the mirrored screen. */}
+          <ScaledViewport>
+            <iframe
+              ref={iframeRef}
+              src={src}
+              title={t('screens.device.preview.frameTitle')}
+              allow="autoplay; fullscreen"
+              // No Referer header → the player URL never lands in the player
+              // server's logs via the referrer either.
+              referrerPolicy="no-referrer"
+              className="size-full border-0"
+            />
+          </ScaledViewport>
 
           {/* Remote step controls — drive the real device, preview mirrors it. */}
           <button

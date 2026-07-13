@@ -1,84 +1,187 @@
 /* Google Calendar embed.
+
    Design tokens live on the theme classes; the accent is injected per instance
-   as the `--accent` custom property (set inline on `.gc`). Every view
-   (day / week / month / schedule) reads the same tokens so they stay in sync.
+   as `--accent` (set inline on `.gc`). Every event colour — strip, node, chip
+   rail, live fill, Now badge — is derived from `--ev`, which is the accent. The
+   indirection is kept (rather than reading `--accent-vis` everywhere) so a
+   per-event colour only ever has to be set on `.gc-item` / `.gc-chip`.
 
    Sizing uses clamp(min, vw, max): fluid with the slot width but bounded so text
-   stays readable both in the small CMS preview and on full-size screens. */
+   stays readable both in the small CMS preview and on a full-size screen. */
 
 .gc {
-  --radius: clamp(8px, 0.9vw, 16px);
+  /* Tight radii: an event card is a document row, not a bubble. */
+  --radius: clamp(7px, 0.62vw, 11px);
+  --radius-sm: clamp(5px, 0.42vw, 7px);
   --gap: clamp(6px, 0.7vw, 14px);
 
   /* Accent, made visible on either theme. On dark themes a dark brand colour is
      lightened so it never disappears; fills/lines are derived from it. */
   --accent-vis: var(--accent);
-  --accent-soft: color-mix(in srgb, var(--accent-vis) 12%, transparent);
-  --accent-line: color-mix(in srgb, var(--accent-vis) 45%, transparent);
+  --accent-soft: color-mix(in srgb, var(--accent-vis) 10%, transparent);
+  --accent-line: color-mix(in srgb, var(--accent-vis) 40%, transparent);
+  /* Text/graphics drawn ON a solid accent or event colour. */
+  --on-solid: var(--bg);
+  /* The colour every event is drawn in. */
+  --ev: var(--accent-vis);
+
+  /* Type weights. Every text style pulls from one of these rather than
+     hard-coding a number, so the scale stays in proportion if it is retuned. */
+  --w-head: 600; /* view heading / day group label */
+  --w-label: 600; /* micro-labels, times, day numbers */
+  --w-title: 550; /* event title */
+  --w-strong: 650; /* event title, in progress */
+  --w-body: 500; /* clock, chip text */
 
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: clamp(14px, 3.4vw, 48px);
-  gap: clamp(10px, 1.6vw, 24px);
+  padding: clamp(14px, 2.4vw, 38px);
+  gap: clamp(8px, 1.1vw, 18px);
   overflow: hidden;
-  background: var(--bg);
   color: var(--fg);
   font-family:
+    'Inter',
     system-ui,
     -apple-system,
     'Segoe UI',
     Roboto,
     sans-serif;
   -webkit-font-smoothing: antialiased;
-  letter-spacing: 0.01em;
+  text-rendering: optimizeLegibility;
 }
 
+/* The light theme separates a card from the page by TONE, not by a drop shadow:
+   a warm-grey canvas with pure-white cards on it. (White-on-white forces a soft
+   shadow to do the separating, which is exactly what reads as cheap.) */
 .gc-theme-light {
-  --bg: #ffffff;
-  --surface: #f6f6f7;
-  --surface-strong: #f0f0f2;
-  --fg: #18181b;
-  --muted: #71717a;
-  --faint: #a1a1aa;
-  --line: rgba(24, 24, 27, 0.08);
-  --line-strong: rgba(24, 24, 27, 0.14);
+  --bg: #eef0f3;
+  --surface: #e7e9ee;
+  --card: #ffffff;
+  --card-line: rgba(17, 19, 24, 0.06);
+  --fg: #14161a;
+  --muted: #5c6270;
+  --faint: #949aa6;
+  --line: rgba(17, 19, 24, 0.09);
+  --line-strong: rgba(17, 19, 24, 0.18);
+  --ink: #000000;
+  --shadow: none;
+  --shimmer: rgba(255, 255, 255, 0.8);
+
+  background:
+    radial-gradient(
+      78% 52% at 100% 0%,
+      color-mix(in srgb, var(--accent-vis) 10%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #f2f4f6 0%, #e9ebef 100%);
 }
 
 .gc-theme-dark {
-  --bg: #0d0e10;
-  --surface: rgba(255, 255, 255, 0.04);
-  --surface-strong: rgba(255, 255, 255, 0.07);
-  --fg: #f4f4f5;
-  --muted: rgba(244, 244, 245, 0.6);
-  --faint: rgba(244, 244, 245, 0.38);
+  --bg: #0b0c0e;
+  --surface: rgba(255, 255, 255, 0.05);
+  --card: rgba(255, 255, 255, 0.045);
+  --card-line: rgba(255, 255, 255, 0.08);
+  --fg: #f2f3f5;
+  --muted: rgba(242, 243, 245, 0.62);
+  --faint: rgba(242, 243, 245, 0.4);
   --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.16);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --ink: #ffffff;
   --accent-vis: color-mix(in srgb, var(--accent) 62%, #ffffff);
+  --shadow: none;
+  --shimmer: rgba(255, 255, 255, 0.07);
+
+  background:
+    radial-gradient(
+      78% 52% at 100% 0%,
+      color-mix(in srgb, var(--accent-vis) 14%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #121317 0%, #0a0b0d 100%);
+}
+
+/* Event tints, derived from `--ev` on the elements that draw an event. */
+.gc-item,
+.gc-chip {
+  --ev-soft: color-mix(in srgb, var(--ev) 11%, transparent);
+  --ev-line: color-mix(in srgb, var(--ev) 38%, transparent);
+  /* The event colour pushed toward the theme's ink so small text stays legible. */
+  --ev-text: color-mix(in srgb, var(--ev) 78%, var(--ink));
 }
 
 /* ----- header ----- */
 
+/* Kept deliberately shallow: the header is a caption for the agenda, not a
+   hero — every pixel it takes is one fewer event on the screen. */
 .gc-head {
   display: flex;
-  align-items: baseline;
-  gap: 0.6em;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5em;
   flex-shrink: 0;
-  padding-bottom: clamp(8px, 1vw, 16px);
+  padding-bottom: clamp(7px, 0.85vw, 14px);
   border-bottom: 1px solid var(--line);
-  font-size: clamp(19px, 2.5vw, 44px);
-  font-weight: 500;
-  line-height: 1.15;
+}
+
+.gc-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  font-size: clamp(10px, 0.95vw, 15px);
+  font-weight: var(--w-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gc-dot {
+  flex-shrink: 0;
+  width: 0.62em;
+  height: 0.62em;
+  border-radius: 999px;
+  background: var(--accent-vis);
+  box-shadow: 0 0 0 0.22em var(--accent-soft);
+}
+
+.gc-title {
+  margin-top: 0.14em;
+  font-size: clamp(19px, 2.15vw, 40px);
+  font-weight: var(--w-head);
+  letter-spacing: -0.022em;
+  line-height: 1.08;
   color: var(--fg);
 }
 
-.gc-head::before {
-  content: '';
-  align-self: stretch;
-  width: clamp(3px, 0.32vw, 5px);
-  border-radius: 999px;
-  background: var(--accent-vis);
+.gc-head-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15em;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.gc-clock {
+  font-size: clamp(14px, 1.5vw, 28px);
+  font-weight: var(--w-body);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+
+.gc-count {
+  font-size: clamp(9px, 0.9vw, 14px);
+  font-weight: var(--w-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
 }
 
 /* Scroll region — auto-scroll drives scrollTop; overflow hidden hides the bar. */
@@ -88,74 +191,330 @@
   overflow: hidden;
 }
 
-/* ----- agenda list (day / week column / schedule) ----- */
+/* ----- timeline rows (day / schedule) ----- */
 
 .gc-list {
   list-style: none;
-  display: flex;
-  flex-direction: column;
 }
 
+/* The time column is sized for the widest label a locale can produce
+   ("07:30 PM"), so a 12-hour clock never wraps onto a second line. */
 .gc-item {
-  display: flex;
-  gap: clamp(10px, 1.4vw, 28px);
-  align-items: baseline;
-  padding: clamp(7px, 0.9vw, 15px) 0;
-  border-bottom: 1px solid var(--line);
-  font-size: clamp(15px, 1.55vw, 26px);
-  line-height: 1.3;
+  --row-gap: clamp(7px, 0.9vh, 14px);
+
+  display: grid;
+  grid-template-columns:
+    clamp(66px, 7.4vw, 140px)
+    clamp(14px, 1.3vw, 24px)
+    minmax(0, 1fr);
+  padding-bottom: var(--row-gap);
 }
 
-.gc-item:last-child {
-  border-bottom: 0;
+.gc-item.is-past {
+  opacity: 0.5;
 }
+
+/* Time column — centred against the card, so the time, the rail node and the
+   card all sit on one optical line whatever the card's height. */
 
 .gc-when {
-  flex-shrink: 0;
-  min-width: clamp(74px, 9vw, 168px);
-  color: var(--muted);
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-}
-
-.gc-body {
   display: flex;
   flex-direction: column;
-  gap: 0.15em;
-  min-width: 0;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.1em;
+  padding-right: 0.2em;
 }
 
-.gc-title {
-  font-weight: 450;
+.gc-start {
+  font-size: clamp(13px, 1.38vw, 26px);
+  font-weight: var(--w-label);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   color: var(--fg);
 }
 
+.gc-end {
+  font-size: clamp(10px, 1.02vw, 18px);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--faint);
+}
+
+.gc-allday {
+  padding: 0.32em 0.7em;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: clamp(8px, 0.78vw, 13px);
+  font-weight: var(--w-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Rail — a continuous hairline with one node per event. */
+
+.gc-rail {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+/* The rail cell is exactly as tall as the card, so it runs on past the bottom
+   edge to bridge the gap to the next row and keep one unbroken line. */
+.gc-rail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: calc(-1 * var(--row-gap));
+  width: 2px;
+  background: var(--line);
+}
+
+/* Cap the rail at the first and last node so it doesn't dangle. */
+.gc-item:first-child .gc-rail::before {
+  top: 50%;
+}
+
+.gc-item:last-child .gc-rail::before {
+  bottom: 50%;
+}
+
+.gc-node {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(8px, 0.78vw, 13px);
+  height: clamp(8px, 0.78vw, 13px);
+  border-radius: 999px;
+  background: var(--ev);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+
+.gc-item.is-live .gc-node {
+  box-shadow:
+    0 0 0 3px var(--bg),
+    0 0 0 6px var(--ev-line);
+}
+
+/* Card */
+
+.gc-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  overflow: hidden;
+  padding: clamp(10px, 1.1vw, 20px) clamp(12px, 1.3vw, 24px);
+  padding-left: clamp(16px, 1.7vw, 32px);
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.gc-strip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: clamp(3px, 0.36vw, 6px);
+  background: var(--ev);
+}
+
+.gc-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28em;
+}
+
+.gc-item-title {
+  font-size: clamp(15px, 1.6vw, 29px);
+  font-weight: var(--w-title);
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.gc-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  font-size: clamp(10px, 1.02vw, 18px);
+  line-height: 1.3;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.gc-dur {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+}
+
 .gc-loc {
-  font-size: 0.78em;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gc-icon {
+  flex-shrink: 0;
+  width: 1.05em;
+  height: 1.05em;
+  opacity: 0.75;
+}
+
+/* In-progress emphasis: tinted card, coloured "Now" badge, elapsed bar. */
+
+.gc-item.is-live .gc-card {
+  background: var(--ev-soft);
+  border-color: var(--ev-line);
+  box-shadow: 0 6px 22px -8px color-mix(in srgb, var(--ev) 40%, transparent);
+}
+
+.gc-item.is-live .gc-item-title {
+  font-weight: var(--w-strong);
+}
+
+.gc-badge {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.42em 0.8em;
+  border-radius: 999px;
+  font-size: clamp(8px, 0.8vw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.gc-item.is-live .gc-badge-now {
+  display: inline-flex;
+  background: var(--ev);
+  color: var(--on-solid);
+}
+
+.gc-item.is-next .gc-badge-next {
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
   color: var(--muted);
 }
 
-.gc-empty {
-  color: var(--faint);
-  font-size: clamp(14px, 1.5vw, 22px);
-  font-weight: 400;
-  padding: clamp(8px, 1.4vh, 18px) 0;
+.gc-pulse {
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 999px;
+  background: currentColor;
+  animation: gc-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes gc-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.72);
+  }
+}
+
+.gc-progress {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: clamp(2px, 0.22vw, 4px);
+  background: color-mix(in srgb, var(--ev) 16%, transparent);
+}
+
+.gc-item.is-live .gc-progress {
+  display: block;
+}
+
+/* An all-day event is "today", not "in progress": no Now badge, no elapsed bar,
+   and no tinted card — an untimed event running all day would otherwise sit
+   there lit up like a live meeting. */
+.gc-item.is-allday.is-live .gc-badge-now,
+.gc-item.is-allday .gc-progress {
+  display: none;
+}
+
+.gc-item.is-allday.is-live .gc-card {
+  background: var(--card);
+  border-color: var(--card-line);
+  box-shadow: var(--shadow);
+}
+
+.gc-item.is-allday.is-live .gc-node {
+  box-shadow: 0 0 0 3px var(--bg);
+}
+
+.gc-progress-fill {
+  width: 0;
+  height: 100%;
+  background: var(--ev);
+  transition: width 0.6s linear;
 }
 
 /* ----- schedule day groups ----- */
 
 .gc-group + .gc-group {
-  margin-top: clamp(16px, 2.4vh, 34px);
+  margin-top: clamp(14px, 2.2vh, 32px);
 }
 
 .gc-group-head {
-  font-size: clamp(11px, 1.05vw, 16px);
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  margin-bottom: clamp(8px, 1.1vh, 16px);
+}
+
+.gc-group-label {
+  font-size: clamp(11px, 1.05vw, 17px);
+  font-weight: var(--w-head);
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  color: var(--muted);
-  padding-bottom: clamp(5px, 0.7vh, 10px);
-  margin-bottom: clamp(4px, 0.6vh, 8px);
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+.gc-group.is-today .gc-group-label {
+  color: var(--accent-vis);
+}
+
+.gc-group-date {
+  font-size: clamp(10px, 0.95vw, 15px);
+  font-weight: var(--w-body);
+  letter-spacing: 0.03em;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.gc-group-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
 }
 
 /* ----- week view (7 day columns) ----- */
@@ -171,60 +530,112 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border: 1px solid var(--line);
+  overflow: hidden;
+  border: 1px solid var(--card-line);
   border-radius: var(--radius);
-  padding: clamp(8px, 0.9vw, 16px) clamp(7px, 0.7vw, 13px);
-  background: var(--surface);
+  background: var(--card);
+  box-shadow: var(--shadow);
 }
 
 .gc-col.is-today {
-  background: var(--accent-soft);
   border-color: var(--accent-line);
 }
 
 .gc-col-head {
   display: flex;
   flex-direction: column;
-  gap: 0.1em;
-  margin-bottom: clamp(6px, 0.8vh, 12px);
-  font-size: clamp(11px, 1.05vw, 17px);
-  font-weight: 500;
-  color: var(--muted);
-  line-height: 1.1;
+  align-items: center;
+  gap: 0.15em;
+  padding: clamp(7px, 0.85vw, 15px) 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
 }
 
 .gc-col.is-today .gc-col-head {
-  color: var(--accent-vis);
+  background: var(--accent-soft);
+  border-bottom-color: var(--accent-line);
 }
 
-.gc-col .gc-list {
+.gc-col-dow {
+  font-size: clamp(8px, 0.82vw, 13px);
+  font-weight: var(--w-label);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.gc-col-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.7em;
+  height: 1.7em;
+  border-radius: 999px;
+  font-size: clamp(14px, 1.5vw, 28px);
+  font-weight: var(--w-label);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+
+.gc-col.is-today .gc-col-num {
+  background: var(--accent-vis);
+  color: var(--on-solid);
+}
+
+.gc-col-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(6px, 0.65vw, 12px);
+}
+
+/* Bound the chip box to the column so the fitter has a height to measure against. */
+.gc-col-body .gc-chips {
+  flex: 1;
   gap: clamp(4px, 0.5vh, 8px);
 }
 
-.gc-col .gc-item {
+/* ----- event chips (week columns / month cells) ----- */
+
+.gc-chip {
+  display: flex;
   flex-direction: column;
   gap: 0.1em;
-  padding: 0;
-  border-bottom: 0;
-  font-size: clamp(11px, 1vw, 16px);
-}
-
-.gc-col .gc-when {
   min-width: 0;
-  font-size: 0.86em;
+  padding: clamp(4px, 0.5vw, 9px) clamp(5px, 0.55vw, 10px);
+  border-left: clamp(2px, 0.24vw, 4px) solid var(--ev);
+  border-radius: var(--radius-sm);
+  background: var(--ev-soft);
 }
 
-.gc-col .gc-title {
+.gc-chip.is-past {
+  opacity: 0.45;
+}
+
+.gc-chip.is-live {
+  box-shadow: inset 0 0 0 1px var(--ev-line);
+}
+
+.gc-chip-time {
+  font-size: clamp(8px, 0.82vw, 14px);
+  font-weight: var(--w-label);
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ev-text);
+}
+
+.gc-chip-title {
+  font-size: clamp(9px, 0.95vw, 16px);
+  font-weight: var(--w-body);
+  line-height: 1.25;
+  color: var(--fg);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-}
-
-.gc-col .gc-empty {
-  font-size: clamp(10px, 0.95vw, 14px);
-  padding: 0;
 }
 
 /* ----- month view (6x7 grid) ----- */
@@ -237,13 +648,13 @@
 }
 
 .gc-dow {
-  font-size: clamp(10px, 1vw, 15px);
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  padding-bottom: clamp(2px, 0.5vh, 7px);
+  font-size: clamp(9px, 0.88vw, 14px);
+  font-weight: var(--w-label);
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--faint);
   text-align: center;
-  padding-bottom: clamp(4px, 0.6vh, 8px);
 }
 
 .gc-month {
@@ -261,19 +672,22 @@
   gap: clamp(3px, 0.4vh, 6px);
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: clamp(5px, 0.6vh, 10px) clamp(5px, 0.5vw, 9px);
-  background: var(--surface);
+  padding: clamp(5px, 0.55vw, 10px);
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  box-shadow: var(--shadow);
 }
 
 .gc-cell.is-out {
   background: transparent;
   border-color: transparent;
+  box-shadow: none;
 }
 
 .gc-cell.is-out .gc-daynum {
   color: var(--faint);
+  opacity: 0.65;
 }
 
 .gc-cell.is-today {
@@ -281,27 +695,29 @@
   border-color: var(--accent-line);
 }
 
+/* Bare number — only today wears the accent disc, so the eye lands on it alone.
+   Kept compact: every pixel it takes is one the chip fitter can't give to an
+   event. */
 .gc-daynum {
   display: flex;
   align-items: center;
   justify-content: center;
   align-self: flex-start;
-  min-width: clamp(18px, 1.9vw, 30px);
-  height: clamp(18px, 1.9vw, 30px);
-  padding: 0 0.3em;
-  font-size: clamp(11px, 1.1vw, 17px);
-  font-weight: 450;
+  min-width: clamp(17px, 1.7vw, 28px);
+  height: clamp(17px, 1.7vw, 28px);
+  border-radius: 999px;
+  font-size: clamp(10px, 0.98vw, 17px);
+  font-weight: var(--w-label);
+  font-variant-numeric: tabular-nums;
   color: var(--fg);
 }
 
 .gc-cell.is-today .gc-daynum {
-  border-radius: 999px;
   background: var(--accent-vis);
-  color: var(--bg);
-  font-weight: 500;
+  color: var(--on-solid);
 }
 
-.gc-pills {
+.gc-chips {
   display: flex;
   flex-direction: column;
   gap: clamp(2px, 0.3vh, 5px);
@@ -309,21 +725,104 @@
   overflow: hidden;
 }
 
-.gc-pill {
-  font-size: clamp(9px, 0.9vw, 14px);
-  line-height: 1.3;
-  padding: clamp(1px, 0.2vh, 3px) clamp(4px, 0.4vw, 8px);
-  border-radius: calc(var(--radius) * 0.5);
-  background: var(--surface-strong);
-  color: var(--fg);
-  border-left: 2px solid var(--accent-line);
+/* Month cells are short: one line per chip, time dropped, tighter padding. */
+.gc-month .gc-chip {
+  flex-direction: row;
+  align-items: center;
+  padding: clamp(2px, 0.28vh, 4px) clamp(4px, 0.42vw, 8px);
+}
+
+.gc-month .gc-chip-title {
+  -webkit-line-clamp: 1;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .gc-more {
-  font-size: clamp(9px, 0.85vw, 13px);
+  padding-left: 0.35em;
+  padding-top: 0.15em;
+  font-size: clamp(8px, 0.85vw, 14px);
+  font-weight: var(--w-label);
+  letter-spacing: 0.02em;
   color: var(--muted);
-  padding-left: clamp(4px, 0.4vw, 8px);
+}
+
+/* The fitter hides overflowing chips with the `hidden` attribute; `display:flex`
+   on `.gc-chip` would otherwise beat the UA's `[hidden] { display: none }`. */
+.gc-chip[hidden],
+.gc-more[hidden] {
+  display: none;
+}
+
+/* ----- empty states ----- */
+
+.gc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  height: 100%;
+  min-height: clamp(70px, 16vh, 200px);
+  color: var(--faint);
+  font-size: clamp(13px, 1.3vw, 23px);
+  font-weight: var(--w-body);
+  letter-spacing: 0.01em;
+}
+
+.gc-empty svg {
+  width: clamp(24px, 2.5vw, 46px);
+  height: auto;
+  opacity: 0.45;
+}
+
+/* Compact variant inside a week column. */
+.gc-empty.is-compact {
+  height: auto;
+  min-height: 0;
+  padding-top: clamp(4px, 0.8vh, 10px);
+  font-size: clamp(8px, 0.85vw, 14px);
+  font-weight: var(--w-body);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+/* ----- loading skeleton ----- */
+
+.gc-skel {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.1vh, 16px);
+}
+
+.gc-skel-title {
+  width: clamp(150px, 19vw, 360px);
+  height: clamp(24px, 2.7vw, 52px);
+  margin-top: 0.22em;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.gc-skel-row {
+  position: relative;
+  overflow: hidden;
+  height: clamp(46px, 6vh, 90px);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.gc-skel-row::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--shimmer), transparent);
+  animation: gc-shimmer 1.7s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.12s);
+}
+
+@keyframes gc-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }

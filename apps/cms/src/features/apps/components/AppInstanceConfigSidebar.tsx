@@ -26,7 +26,7 @@ export function AppInstanceConfigSidebar({
   const { t } = useTranslation()
 
   return (
-    <aside className="flex w-full flex-col gap-6 lg:w-80 lg:shrink-0">
+    <aside className="flex w-full flex-col gap-6 lg:w-96 lg:shrink-0">
       {/* App header */}
       <div className="flex items-start gap-3">
         <AppIcon iconSvg={app.iconSvg} color={app.color} className="size-12 rounded-xl shadow-md" />

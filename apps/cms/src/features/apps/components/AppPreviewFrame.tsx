@@ -1,6 +1,7 @@
 import type { AppDataMeta } from '@edge/apps-contract'
 import { useEffect, useRef } from 'react'
 
+import { ScaledViewport } from '@/components/common/ScaledViewport'
 import {
   type AppPreviewHandle,
   mountAppPreview,
@@ -64,5 +65,12 @@ export function AppPreviewFrame({ slug, config, data, meta }: AppPreviewFramePro
     handleRef.current?.postConfig({ config, data, meta: meta ?? null })
   }, [config, data, meta])
 
-  return <div ref={hostRef} className="size-full bg-black" />
+  // The bundle is mounted into a virtual 1080p viewport, not into however many
+  // pixels the preview box happens to be — apps size themselves in `vw`/`vh`, so
+  // only a real-resolution viewport renders what the screen will actually show.
+  return (
+    <ScaledViewport className="bg-black">
+      <div ref={hostRef} className="size-full" />
+    </ScaledViewport>
+  )
 }

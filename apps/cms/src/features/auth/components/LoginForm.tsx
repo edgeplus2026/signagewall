@@ -148,7 +148,9 @@ export function LoginForm() {
         <Field data-invalid={!!errors.google}>
           <GoogleLoginButton />
           <FieldError errors={[errors.google]} />
-          <FieldDescription className="text-center">
+          {/* A footer CTA, not help text — it keeps the body size the smaller
+              field-description default would otherwise take from it. */}
+          <FieldDescription className="text-center text-sm">
             {t('auth.login.noAccount')}{' '}
             <Link to="/register" className="underline underline-offset-4">
               {t('auth.login.signUp')}

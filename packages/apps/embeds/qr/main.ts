@@ -1,6 +1,7 @@
 import QRCode from 'qrcode'
 
 import { connectToHost } from '../_shared/host-bridge.js'
+import { applyTextStyle } from '../_shared/text-style.js'
 import '../_shared/base.css'
 import './style.css'
 
@@ -80,6 +81,8 @@ async function render(config: Record<string, unknown>): Promise<void> {
   const light = pickColor(config.backgroundColor, '#ffffff')
 
   root.style.background = light
+  // Style Settings (font/size/line height/letter spacing) → CSS custom props.
+  applyTextStyle(root, config)
 
   if (!value) {
     root.innerHTML = '<div class="center"><p>Set a QR value</p></div>'
@@ -101,7 +104,8 @@ async function render(config: Record<string, unknown>): Promise<void> {
     img.style.background = light
 
     const wrap = document.createElement('div')
-    wrap.className = 'center'
+    // Row layout only when there is a caption; a lone code stays centered.
+    wrap.className = caption ? 'center qr-row' : 'center'
     wrap.appendChild(img)
     if (caption) {
       const cap = document.createElement('div')

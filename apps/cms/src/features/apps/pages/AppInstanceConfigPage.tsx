@@ -124,7 +124,7 @@ export default function AppInstanceConfigPage() {
       <div className="flex h-[calc(100dvh-5.5rem)] w-full min-w-0 flex-col gap-4 lg:px-10">
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden pb-4 lg:flex-row lg:gap-8">
           {/* Config sidebar */}
-          <div className="flex w-full flex-col gap-6 lg:w-80 lg:shrink-0">
+          <div className="flex w-full flex-col gap-6 lg:w-96 lg:shrink-0">
             <div className="flex items-start gap-3">
               <Skeleton className="size-12 shrink-0 rounded-xl" />
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -144,7 +144,7 @@ export default function AppInstanceConfigPage() {
 
           {/* Live preview */}
           <div className="flex min-w-0 flex-1 items-center justify-center">
-            <div className="flex w-full max-w-3xl flex-col items-center gap-3">
+            <div className="flex w-full max-w-xl flex-col items-center gap-3">
               <Skeleton className="aspect-video w-full rounded-2xl" />
               <Skeleton className="h-6 w-16 rounded-b-md" />
               <Skeleton className="h-2.5 w-44 rounded-full" />
