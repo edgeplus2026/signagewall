@@ -85,6 +85,10 @@ export function styleFields(defaults: StyleFieldDefaults = {}): Field[] {
       type: 'number',
       label: 'Font size (%)',
       section: STYLE_SECTION,
+      // "A percent of what?" is the obvious question this field otherwise leaves
+      // hanging — and the answer (of the app's own size, which already tracks the
+      // screen) is also the reassurance that a big screen won't shrink the text.
+      help: '100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.',
       default: defaults.fontSize ?? 100,
       validation: { min: 25, max: 400 },
     },

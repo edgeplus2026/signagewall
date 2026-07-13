@@ -26,6 +26,7 @@ export const clockManifest: AppManifest = {
       key: 'theme',
       type: 'select',
       label: 'Theme',
+      help: 'A starting point — it fills in the colors below, which you can still change.',
       default: 'dark',
       options: [
         {
@@ -46,9 +47,11 @@ export const clockManifest: AppManifest = {
       label: 'Time format',
       section: 'Clock Settings',
       default: '24h',
+      // Showing the format rather than naming it — "14:30" answers the question
+      // faster than "24-hour" does, and needs no help text under it.
       options: [
-        { label: '24-hour', value: '24h' },
-        { label: '12-hour', value: '12h' },
+        { label: '24-hour (14:30)', value: '24h' },
+        { label: '12-hour (2:30 PM)', value: '12h' },
       ],
     },
     {

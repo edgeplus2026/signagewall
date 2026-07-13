@@ -29,11 +29,12 @@ export const weatherManifest: AppManifest = {
       label: 'Location',
       required: true,
       placeholder: 'Search a city…',
+      help: 'Start typing and pick a place from the list. The forecast follows it.',
     },
     {
       key: 'units',
       type: 'select',
-      label: 'Units',
+      label: 'Temperature units',
       default: 'metric',
       options: [
         { label: 'Celsius (°C)', value: 'metric' },
@@ -44,6 +45,8 @@ export const weatherManifest: AppManifest = {
       key: 'language',
       type: 'select',
       label: 'Language',
+      // A bare "Language" reads as the CMS's own language. Say which one it is.
+      help: "The language the weather is shown in on the screen. It doesn't change this page.",
       default: 'en',
       options: [
         { label: 'English', value: 'en' },

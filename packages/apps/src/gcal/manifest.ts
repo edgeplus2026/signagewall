@@ -30,6 +30,11 @@ export const gcalManifest: AppManifest = {
       label: 'Google account',
       required: true,
       provider: 'google',
+      // The read-only promise is the first thing a non-technical operator wants
+      // answered before they hand over a Google account. It is true — the OAuth
+      // scope is `calendar.readonly` (see gcal.connector.ts). Keep the two in
+      // step: if the scope ever widens, this sentence has to go.
+      help: 'Sign in once. Edge only reads your calendars — it never adds, changes or deletes anything.',
     },
     {
       key: 'calendar',
@@ -38,12 +43,13 @@ export const gcalManifest: AppManifest = {
       required: true,
       remoteSource: 'google-calendars',
       placeholder: 'Search your calendars…',
-      help: 'Pick which of the account’s calendars to display.',
+      help: 'Start typing to find the calendar you want on screen.',
     },
     {
       key: 'calendarView',
       type: 'select',
       label: 'Calendar view',
+      help: 'How events are laid out on the screen.',
       default: 'schedule',
       options: [
         { label: 'Day', value: 'day' },
@@ -56,6 +62,7 @@ export const gcalManifest: AppManifest = {
       key: 'onlyUpcoming',
       type: 'switch',
       label: 'Only show upcoming events',
+      help: 'Events that have already ended drop off the list.',
       default: true,
       visibleWhen: { field: 'calendarView', equals: 'schedule' },
     },
@@ -64,12 +71,15 @@ export const gcalManifest: AppManifest = {
       type: 'switch',
       label: 'Auto scroll',
       default: false,
-      help: 'Slowly scroll the content when it overflows the screen.',
+      help: 'Slowly scrolls the screen when there are more events than fit on it.',
     },
     {
       key: 'language',
       type: 'select',
       label: 'Language',
+      // Operators reasonably read a bare "Language" as the CMS's own language.
+      // Say which one it is.
+      help: "The language dates and events are shown in on the screen. It doesn't change this page.",
       default: 'en',
       options: [
         { label: 'English', value: 'en' },
@@ -92,6 +102,7 @@ export const gcalManifest: AppManifest = {
       type: 'color',
       label: 'Accent color',
       section: 'Theme Settings',
+      help: "Colors today's date and every event on the calendar.",
       default: '#111827',
     },
   ],

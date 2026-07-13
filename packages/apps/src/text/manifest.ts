@@ -23,6 +23,7 @@ export const textManifest: AppManifest = {
       type: 'richtext',
       label: 'Message',
       required: true,
+      help: 'What the screen says. Keep it short — people read it from across the room.',
     },
     {
       key: 'color',
@@ -33,7 +34,7 @@ export const textManifest: AppManifest = {
     {
       key: 'backgroundColor',
       type: 'color',
-      label: 'Background',
+      label: 'Background color',
       default: '#000000',
     },
   ],

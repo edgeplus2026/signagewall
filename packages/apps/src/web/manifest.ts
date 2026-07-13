@@ -25,10 +25,13 @@ export const webManifest: AppManifest = {
     {
       key: 'url',
       type: 'url',
-      label: 'Page URL',
+      label: 'Page address',
       required: true,
       placeholder: 'https://example.com',
-      help: 'The site must allow being embedded. Many sites (Google, social networks, most banking dashboards) block embedding and will show a blank screen — use a page or dashboard you control, or its public/embed URL.',
+      // The blank-screen trap, stated as the symptom the operator will actually
+      // see. "Blocks framing / X-Frame-Options" means nothing to them; "comes up
+      // blank" is the thing they would otherwise file as a bug.
+      help: 'Not every site can be shown this way. Google, social networks and most banking sites refuse, and come up blank on screen — a page you own, or a dashboard’s public share link, works best.',
     },
   ],
 }
