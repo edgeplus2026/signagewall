@@ -2,6 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      CSP for the player page. The Tauri shell loads this page from a REMOTE origin
+      (WebviewUrl::External), so `tauri.conf.json`'s `security.csp` does NOT apply
+      to it — this <meta> (served with the page) is the only place a policy reaches
+      the shell's WebView. It is the missing XSS containment on the one page that
+      holds the full native IPC surface (window.__TAURI__): with it, an injected
+      inline/remote <script> can no longer run and reach set_device_id/run_update.
+      Deliberately narrow: only script/object/base are constrained. Media, connect
+      (socket + Tauri IPC), and frame-src stay unrestricted because signage media
+      and the YouTube/Canva/Web app iframes load from arbitrary operator origins;
+      `frame-ancestors` is intentionally absent so the CMS preview can still iframe
+      this build. VERIFY on a real WebView2 kiosk (IPC + all app types) before release.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; object-src 'none'; base-uri 'self';"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#000000" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

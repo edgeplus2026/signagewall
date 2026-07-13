@@ -36,8 +36,12 @@ fn device_file(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     Ok(dir.join("device.json"))
 }
 
-/// Reads the persisted deviceId, or `None` if absent/unreadable. Called by the
-/// web boot bootstrap before it reads any identity (native store wins the ladder).
+/// Reads the persisted deviceId. `Ok(None)` means the store is provably ABSENT
+/// (no file); a read/parse failure is `Err`, deliberately NOT `Ok(None)`. The web
+/// boot bootstrap relies on that distinction: it only overwrites the store when
+/// the read said "absent", so a transient IO error or a corrupt file can't be
+/// mistaken for "empty" and clobbered with a freshly-minted id (which would
+/// permanently strand the paired screen).
 #[tauri::command]
 fn get_device_id(app: tauri::AppHandle) -> Result<Option<String>, String> {
     let path = device_file(&app)?;
@@ -45,20 +49,27 @@ fn get_device_id(app: tauri::AppHandle) -> Result<Option<String>, String> {
         return Ok(None);
     }
     let raw = fs::read_to_string(&path).map_err(|e| e.to_string())?;
-    let record: DeviceRecord = serde_json::from_str(&raw).unwrap_or_default();
+    // A corrupt file is not "absent" — surface it as an error so the caller keeps
+    // the (unreadable) store rather than overwriting a possibly-recoverable id.
+    let record: DeviceRecord = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
     Ok(record.device_id)
 }
 
-/// A canonical lowercase UUID — the only shape we accept as a device identity.
+/// A canonical **lowercase** UUID — the only shape we accept as a device identity.
 /// The command is reachable from the (remote) player page, so we refuse to write
 /// anything that isn't a UUID rather than let an injected script rebind the
-/// durable identity to arbitrary content.
+/// durable identity to arbitrary content. Lowercase-only matches the web side
+/// (`crypto.randomUUID()` and `recovery.ts`'s lowercased URL id), so the native
+/// store can never hold a case variant that mismatches the id used everywhere
+/// else on a case-sensitive comparison.
 fn is_uuid(id: &str) -> bool {
     let groups = [8usize, 4, 4, 4, 12];
     let mut parts = id.split('-');
     for len in groups {
         match parts.next() {
-            Some(part) if part.len() == len && part.bytes().all(|b| b.is_ascii_hexdigit()) => {}
+            Some(part)
+                if part.len() == len
+                    && part.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) => {}
             _ => return false,
         }
     }
@@ -113,7 +124,15 @@ async fn check_update(app: tauri::AppHandle) -> Result<UpdateCheck, String> {
 
     let current_version = app.package_info().version.to_string();
     let updater = app.updater().map_err(|e| e.to_string())?;
-    match updater.check().await.map_err(|e| e.to_string())? {
+    // Bound the check exactly as `run_update` does: a flaky signage uplink that
+    // accepts the TCP connection but never responds would otherwise hang this
+    // future forever, pinning the reported status on `checking` for the whole
+    // session (the web `checkForUpdate` never resolves).
+    let checked = tokio::time::timeout(updater::UPDATE_TIMEOUT, updater.check())
+        .await
+        .map_err(|_| "update check timed out".to_string())?
+        .map_err(|e| e.to_string())?;
+    match checked {
         Some(update) => Ok(UpdateCheck {
             available: true,
             current_version,
@@ -161,6 +180,7 @@ pub fn run() {
             shell_version,
             check_update,
             updater::run_update,
+            updater::report_alive,
             updater::report_healthy,
             updater::get_update_state
         ])
@@ -244,4 +264,33 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running Edge Player shell");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_uuid;
+
+    #[test]
+    fn accepts_a_canonical_lowercase_uuid() {
+        assert!(is_uuid("11111111-2222-4333-8444-555566667777"));
+        assert!(is_uuid("abcdef01-2345-6789-abcd-ef0123456789"));
+    }
+
+    #[test]
+    fn rejects_uppercase_so_the_stored_form_matches_the_web() {
+        // The web only ever produces lowercase (crypto.randomUUID / lowercased
+        // URL id); accepting uppercase would let an injected script persist a case
+        // variant that mismatches everywhere else on a case-sensitive compare.
+        assert!(!is_uuid("ABCDEF01-2345-6789-ABCD-EF0123456789"));
+        assert!(!is_uuid("11111111-2222-4333-8444-55556666AAAA"));
+    }
+
+    #[test]
+    fn rejects_malformed_shapes() {
+        assert!(!is_uuid(""));
+        assert!(!is_uuid("not-a-uuid"));
+        assert!(!is_uuid("11111111-2222-4333-8444-555566667777-extra"));
+        assert!(!is_uuid("11111111-2222-4333-8444-55556666777")); // 11-char tail
+        assert!(!is_uuid("1111111g-2222-4333-8444-555566667777")); // non-hex
+    }
 }

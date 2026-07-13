@@ -239,11 +239,39 @@ describe('loadUpdateState', () => {
     await loadUpdateState()
     expect(getUpdateStatus()).toBeUndefined()
   })
+
+  it('keeps a rollback (unhealthy) visible after a routine check clobbers nothing', async () => {
+    // Regression for the rollout-visibility bug: on a post-rollback boot,
+    // loadUpdateState surfaces `unhealthy`, then checkForUpdate runs and used to
+    // overwrite it with `available`/`up-to-date` before the first heartbeat — so
+    // the CMS attention badge never lit. The native apply outcome must win.
+    const invoke = vi.fn(async (cmd: string) => {
+      if (cmd === 'get_update_state') {
+        return { lastResult: 'unhealthy', rolledBack: true, currentVersion: '0.2.0' }
+      }
+      if (cmd === 'check_update') {
+        return { available: true, currentVersion: '0.2.0', availableVersion: '0.3.0' }
+      }
+      return undefined
+    })
+    vi.stubGlobal('window', {
+      __TAURI_INTERNALS__: {},
+      __TAURI__: { core: { invoke } },
+    })
+    const { loadUpdateState, checkForUpdate, getUpdateStatus } = await load()
+    await loadUpdateState()
+    await checkForUpdate()
+    expect(getUpdateStatus()?.lastResult).toBe('unhealthy')
+  })
 })
 
 describe('reportHealthy', () => {
-  it('invokes the native report_healthy command', async () => {
-    const invoke = vi.fn(async () => undefined)
+  it('invokes the native report_healthy command and stops once the IPC lands', async () => {
+    // The probe (get_update_state) resolves, proving the IPC round-trip works, so
+    // report_healthy is sent exactly once — no needless retries on a healthy boot.
+    const invoke = vi.fn(async (cmd: string) =>
+      cmd === 'get_update_state' ? { currentVersion: '0.1.0' } : undefined,
+    )
     vi.stubGlobal('window', {
       __TAURI_INTERNALS__: {},
       __TAURI__: { core: { invoke } },
@@ -251,6 +279,35 @@ describe('reportHealthy', () => {
     const { reportHealthy } = await load()
     await reportHealthy()
     expect(invoke).toHaveBeenCalledWith('report_healthy', undefined)
+    const healthyCalls = invoke.mock.calls.filter(([c]) => c === 'report_healthy')
+    expect(healthyCalls).toHaveLength(1)
+  })
+
+  it('retries a dropped report_healthy so a hiccup cannot trigger a spurious rollback', async () => {
+    vi.useFakeTimers()
+    try {
+      let probes = 0
+      const invoke = vi.fn(async (cmd: string) => {
+        if (cmd === 'get_update_state') {
+          probes += 1
+          // First probe fails (IPC hiccup); the retry lands.
+          return probes >= 2 ? { currentVersion: '0.1.0' } : undefined
+        }
+        return undefined
+      })
+      vi.stubGlobal('window', {
+        __TAURI_INTERNALS__: {},
+        __TAURI__: { core: { invoke } },
+      })
+      const { reportHealthy } = await load()
+      const done = reportHealthy()
+      await vi.advanceTimersByTimeAsync(1000)
+      await done
+      const healthyCalls = invoke.mock.calls.filter(([c]) => c === 'report_healthy')
+      expect(healthyCalls).toHaveLength(2)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('is a no-op in a plain browser', async () => {
@@ -278,5 +335,34 @@ describe('startStandbyUpdate', () => {
     availabilityOn.value = false // off-hours → view becomes 'standby'
     expect(invoke).toHaveBeenCalledWith('run_update', undefined)
     stop()
+  })
+})
+
+describe('startMaintenanceUpdates', () => {
+  it('applies a pending update on its cadence, independent of content scheduling', async () => {
+    vi.useFakeTimers()
+    try {
+      const invoke = vi.fn(async () => ({ kind: 'up-to-date' }))
+      vi.stubGlobal('window', {
+        __TAURI_INTERNALS__: {},
+        __TAURI__: { core: { invoke } },
+      })
+      vi.resetModules()
+      const { startMaintenanceUpdates } = await import('./updater')
+      const stop = startMaintenanceUpdates()
+      expect(invoke).not.toHaveBeenCalled() // nothing on start — waits for the tick
+      await vi.advanceTimersByTimeAsync(6 * 60 * 60 * 1000)
+      expect(invoke).toHaveBeenCalledWith('run_update', undefined)
+      stop()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('is a no-op disposer in a plain browser', async () => {
+    vi.stubGlobal('window', {})
+    vi.resetModules()
+    const { startMaintenanceUpdates } = await import('./updater')
+    expect(() => startMaintenanceUpdates()()).not.toThrow()
   })
 })

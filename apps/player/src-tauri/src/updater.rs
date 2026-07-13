@@ -24,16 +24,33 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Manager};
+
+/// SHA-256 (hex, lowercase) of a file, or `None` if it can't be read. Used to
+/// verify the cached rollback installer hasn't been swapped since we promoted it.
+fn file_sha256(path: &Path) -> Option<String> {
+    let bytes = fs::read(path).ok()?;
+    let digest = Sha256::digest(&bytes);
+    Some(digest.iter().map(|b| format!("{b:02x}")).collect())
+}
 
 /// How long after a post-update boot we wait for the web layer to report healthy
 /// before rolling back. Generous enough for shell + WebView + remote page load.
 const HEALTH_TIMEOUT: Duration = Duration::from_secs(90);
 
+/// How many consecutive offline post-update boots (the page never loaded, so we
+/// can't tell a bad build from a dead link) to DEFER a rollback before giving up
+/// and rolling back anyway. A rollback can't help an offline device, so we wait
+/// for connectivity; but a build that never runs JS at all is eventually rolled
+/// back rather than looping forever.
+const MAX_OFFLINE_DEFERS: u32 = 3;
+
 /// Upper bound on the update check and on the download. A signage mini-PC on a
 /// flaky link can otherwise leave a half-open transfer hanging forever, silently
-/// wedging the update path with no error surfaced.
-const UPDATE_TIMEOUT: Duration = Duration::from_secs(15 * 60);
+/// wedging the update path with no error surfaced. Also used by `lib.rs`
+/// `check_update`, so its boot-time detection is bounded the same way.
+pub(crate) const UPDATE_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 
 /// Prefix of every cached installer file; also what [`prune_installers`] matches
 /// so it can never delete `state.json`.
@@ -42,7 +59,14 @@ const INSTALLER_PREFIX: &str = "edge-player-";
 /// Cross-thread update flags, registered as Tauri managed state.
 #[derive(Default)]
 pub struct UpdateGuards {
-    /// Set by `report_healthy`: the web layer booted and rendered this run.
+    /// Set by `report_alive`: the web JS booted, proving the WebView loaded the
+    /// remote page. Distinct from `healthy` so the watchdog can tell "the update
+    /// broke the running app" (alive, never healthy) from "the device is offline
+    /// so the remote page never loaded" (not alive) — the latter must not trigger
+    /// a rollback to a shell that loads the same unreachable URL.
+    pub alive: Arc<AtomicBool>,
+    /// Set by `report_healthy`: the web layer booted AND reached a confirmed
+    /// working state (connected + first content rendered, or a legit idle view).
     pub healthy: Arc<AtomicBool>,
     /// Whoever CASes this first owns the pending-update decision — so
     /// `report_healthy` and the watchdog can never both act (promote + roll back).
@@ -71,6 +95,11 @@ pub struct UpdaterState {
     /// rollback target for the next update.
     #[serde(rename = "lastGoodInstaller")]
     pub last_good_installer: Option<String>,
+    /// SHA-256 (hex) of `last_good_installer` at the moment it was promoted
+    /// healthy. Re-checked before the rollback executes that cached file, so a
+    /// locally-swapped payload is refused rather than run as the kiosk user.
+    #[serde(rename = "lastGoodSha256", default)]
+    pub last_good_sha256: Option<String>,
     /// Version just installed and awaiting a health confirmation on next boot.
     #[serde(rename = "pendingVersion")]
     pub pending_version: Option<String>,
@@ -80,13 +109,38 @@ pub struct UpdaterState {
     /// Whether the last boot rolled back a failed update.
     #[serde(rename = "rolledBack")]
     pub rolled_back: Option<bool>,
+    /// Count of consecutive post-update boots that could not confirm health
+    /// because the WebView never even loaded the remote page (device offline).
+    /// The watchdog defers rollback while this is small — a rollback can't help an
+    /// offline device — but rolls back once it crosses [`MAX_OFFLINE_DEFERS`], so
+    /// a build that never runs JS is still eventually recovered from.
+    #[serde(rename = "postUpdateAttempts", default)]
+    pub post_update_attempts: u32,
+    /// Versions that already failed their health check on THIS device. Never
+    /// auto-installed again: without this a rolled-back build is re-detected,
+    /// re-downloaded, re-installed and re-rolled-back every off-hours window
+    /// forever (flapping the screen, burning fleet-wide R2 bandwidth). A genuine
+    /// fix ships under a new, un-poisoned version and still installs.
+    #[serde(rename = "poisonedVersions", default)]
+    pub poisoned_versions: Vec<String>,
+}
+
+/// The terminal shape of a `run_update` invocation. A typed enum (kebab-cased to
+/// the exact wire strings the web `RunResult['kind']` union expects) rather than a
+/// bare `String`, so a typo can't compile and silently land in the web's `error`
+/// branch. (`error` isn't produced here — an install failure returns `Err`.)
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum RunKind {
+    Updating,
+    UpToDate,
+    Busy,
 }
 
 /// Result of a `run_update` invocation, reported back to the web layer.
 #[derive(Serialize)]
 pub struct RunResult {
-    /// `"updating"`, `"up-to-date"`, `"busy"`, or `"error"`.
-    kind: String,
+    kind: RunKind,
     version: Option<String>,
 }
 
@@ -139,12 +193,28 @@ pub fn promote(state: &UpdaterState, current: &str, installer: Option<&Path>) ->
     next.pending_version = None;
     next.last_result = Some("up-to-date".into());
     next.rolled_back = Some(false);
+    next.post_update_attempts = 0;
     next
 }
 
 /// Only files we wrote are prunable — never `state.json`.
 pub fn is_installer_name(name: &str) -> bool {
     name.starts_with(INSTALLER_PREFIX)
+}
+
+/// True when `version` already failed its health check on this device and must
+/// never be auto-installed again (see [`UpdaterState::poisoned_versions`]).
+pub fn is_poisoned(state: &UpdaterState, version: &str) -> bool {
+    state.poisoned_versions.iter().any(|v| v == version)
+}
+
+/// Marks `version` as failed-health so the update path stops re-attempting it.
+/// Idempotent; keeps the list bounded (a device only ever sees a handful of bad
+/// versions before a fix ships).
+pub fn poison(state: &mut UpdaterState, version: &str) {
+    if !is_poisoned(state, version) {
+        state.poisoned_versions.push(version.to_string());
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -162,7 +232,20 @@ pub fn write_atomic(path: &Path, data: &[u8]) -> std::io::Result<()> {
         file.write_all(data)?;
         file.sync_all()?;
     }
-    fs::rename(&tmp, path)
+    fs::rename(&tmp, path)?;
+    // Make the rename itself durable. Without fsyncing the directory the entry
+    // update can be lost on a power cut even though `rename` already returned —
+    // losing the just-written rollback state or the durable deviceId, the exact
+    // "torn write" this function exists to prevent. Best-effort and platform
+    // gated: a directory handle can't be fsynced this way on Windows (where NTFS
+    // journals metadata anyway); macOS (dev/test) and Linux get the guarantee.
+    #[cfg(unix)]
+    if let Some(parent) = path.parent() {
+        if let Ok(dir) = fs::File::open(parent) {
+            let _ = dir.sync_all();
+        }
+    }
+    Ok(())
 }
 
 fn updates_dir(app: &AppHandle) -> Result<PathBuf, String> {
@@ -227,6 +310,93 @@ fn prune_installers(app: &AppHandle, keep: &Path) {
 }
 
 // ---------------------------------------------------------------------------
+// Manifest authentication (closes the signed-downgrade gap)
+// ---------------------------------------------------------------------------
+
+/// Reads the updater endpoint + minisign pubkey from the SAME `tauri.conf.json`
+/// the plugin uses (embedded at compile time — CI stamps the prod endpoint before
+/// building, so this and the plugin can't disagree). Returns `(endpoint, pubkey)`.
+#[cfg(desktop)]
+fn updater_config() -> Result<(String, String), String> {
+    let conf: serde_json::Value =
+        serde_json::from_str(include_str!("../tauri.conf.json")).map_err(|e| e.to_string())?;
+    let updater = &conf["plugins"]["updater"];
+    let endpoint = updater["endpoints"][0]
+        .as_str()
+        .ok_or("no updater endpoint in tauri.conf.json")?
+        .to_string();
+    let pubkey = updater["pubkey"]
+        .as_str()
+        .ok_or("no updater pubkey in tauri.conf.json")?
+        .to_string();
+    Ok((endpoint, pubkey))
+}
+
+/// Parses Tauri's `pubkey` (base64 of the whole minisign public-key FILE) into a
+/// verifier. `minisign_verify::PublicKey::from_base64` wants only the raw key
+/// line, so we decode the file text and pull the `RW…` line out of the two-line
+/// `untrusted comment: …\nRW…` format.
+#[cfg(desktop)]
+fn parse_pubkey(pubkey_b64: &str) -> Result<minisign_verify::PublicKey, String> {
+    use base64::Engine as _;
+    let file_bytes = base64::engine::general_purpose::STANDARD
+        .decode(pubkey_b64.trim())
+        .map_err(|e| e.to_string())?;
+    let file_text = String::from_utf8(file_bytes).map_err(|e| e.to_string())?;
+    let key_line = file_text
+        .lines()
+        .map(str::trim)
+        .find(|l| !l.is_empty() && !l.starts_with("untrusted comment"))
+        .ok_or("no key line in updater pubkey")?;
+    minisign_verify::PublicKey::from_base64(key_line).map_err(|e| e.to_string())
+}
+
+/// Authenticates the update manifest before its `(version, url)` is trusted. The
+/// plugin verifies only the installer BYTES, so an attacker with R2 write (or a
+/// TLS-MITM) could otherwise publish a high-version manifest pointing at an old,
+/// genuinely-signed, vulnerable installer — a signed-downgrade. We fetch
+/// `latest.json` + its detached `.sig` and verify the manifest against the same
+/// minisign pubkey; the caller aborts on failure (fail closed). Skipped for the
+/// plain-HTTP dev/test endpoint (prod is always https — CI enforces exactly one
+/// https URL), so the local two-version harness needs no manifest signature.
+///
+/// Residual: the plugin re-fetches the manifest after this — a small TOCTOU
+/// window an attacker would have to time a swap into, on top of holding R2 write.
+/// Closing it fully would mean owning the download too (reimplementing the plugin).
+#[cfg(desktop)]
+async fn verify_manifest_signature() -> Result<(), String> {
+    let (endpoint, pubkey_b64) = updater_config()?;
+    if !endpoint.starts_with("https://") {
+        return Ok(()); // dev/test http harness; prod is always https
+    }
+    let client = reqwest::Client::new();
+    let manifest = tokio::time::timeout(UPDATE_TIMEOUT, async {
+        client.get(&endpoint).send().await?.bytes().await
+    })
+    .await
+    .map_err(|_| "manifest fetch timed out".to_string())?
+    .map_err(|e| e.to_string())?;
+    let sig_text = tokio::time::timeout(UPDATE_TIMEOUT, async {
+        client
+            .get(format!("{endpoint}.sig"))
+            .send()
+            .await?
+            .text()
+            .await
+    })
+    .await
+    .map_err(|_| "manifest signature fetch timed out".to_string())?
+    .map_err(|e| e.to_string())?;
+
+    let pubkey = parse_pubkey(&pubkey_b64)?;
+    let sig = minisign_verify::Signature::decode(&sig_text)
+        .map_err(|e| format!("malformed manifest signature: {e}"))?;
+    pubkey
+        .verify(&manifest, &sig, false)
+        .map_err(|e| format!("manifest signature verification failed: {e}"))
+}
+
+// ---------------------------------------------------------------------------
 // Commands
 // ---------------------------------------------------------------------------
 
@@ -249,7 +419,7 @@ pub async fn run_update(
         .is_err()
     {
         return Ok(RunResult {
-            kind: "busy".into(),
+            kind: RunKind::Busy,
             version: None,
         });
     }
@@ -264,12 +434,28 @@ pub async fn run_update(
 
     let Some(update) = checked else {
         return Ok(RunResult {
-            kind: "up-to-date".into(),
+            kind: RunKind::UpToDate,
             version: None,
         });
     };
 
     let version = update.version.clone();
+
+    // Authenticate the manifest that produced this update BEFORE downloading its
+    // (attacker-influenceable) url — closes the signed-downgrade gap. Fail closed:
+    // a manifest we can't verify never installs.
+    verify_manifest_signature().await?;
+
+    // Never auto-install a version that already failed its health check here — a
+    // rolled-back build is still "available" on the channel, so without this the
+    // device would re-download, re-install and re-roll-it-back every off-hours
+    // window forever. A genuine fix ships under a new version and is not poisoned.
+    if is_poisoned(&read_state(&app), &version) {
+        return Ok(RunResult {
+            kind: RunKind::UpToDate,
+            version: None,
+        });
+    }
 
     // Signature-verified download (the plugin rejects a bad signature itself).
     let bytes = tokio::time::timeout(UPDATE_TIMEOUT, update.download(|_chunk, _total| {}, || {}))
@@ -286,12 +472,17 @@ pub async fn run_update(
     state.pending_version = Some(version.clone());
     state.last_result = Some("installing".into());
     state.rolled_back = Some(false);
+    state.post_update_attempts = 0; // fresh install — reset the offline-defer counter
     write_state(&app, &state)?;
 
     // If the install fails (AV quarantine, file lock, no privileges) the process
     // keeps running the OLD version. Clear the pending marker so we don't sit on
-    // `installing` forever and the next boot reports a clean error.
+    // `installing` forever and the next boot reports a clean error — and delete
+    // the installer we just cached, or a device stuck unable to install would
+    // accumulate one 10-100 MB file per released version until the disk fills
+    // (prune otherwise only runs on the healthy-promote path).
     if let Err(err) = update.install(&bytes) {
+        let _ = fs::remove_file(&installer);
         let mut failed = read_state(&app);
         failed.pending_version = None;
         failed.last_result = Some("error".into());
@@ -306,7 +497,7 @@ pub async fn run_update(
     // process. Kept so the command's contract stays total.
     #[allow(unreachable_code)]
     Ok(RunResult {
-        kind: "updating".into(),
+        kind: RunKind::Updating,
         version: Some(version),
     })
 }
@@ -319,14 +510,22 @@ pub async fn run_update(
     _guards: tauri::State<'_, UpdateGuards>,
 ) -> Result<RunResult, String> {
     Ok(RunResult {
-        kind: "up-to-date".into(),
+        kind: RunKind::UpToDate,
         version: None,
     })
 }
 
-/// Called by the web layer once it has booted and rendered. Clears the watchdog
-/// and, if this is a post-update boot, promotes the just-installed version to
-/// last-known-good so it becomes the rollback target for the next update.
+/// Called by the web layer the instant its JS boots — before it has connected or
+/// rendered — proving the WebView loaded the remote page. See [`UpdateGuards::alive`].
+#[tauri::command]
+pub fn report_alive(guards: tauri::State<'_, UpdateGuards>) {
+    guards.alive.store(true, Ordering::SeqCst);
+}
+
+/// Called by the web layer once it has booted AND reached a confirmed working
+/// state (connected + first content rendered, or a legitimate idle view). Clears
+/// the watchdog and, if this is a post-update boot, promotes the just-installed
+/// version to last-known-good so it becomes the rollback target for the next update.
 #[tauri::command]
 pub fn report_healthy(app: AppHandle, guards: tauri::State<'_, UpdateGuards>) {
     guards.healthy.store(true, Ordering::SeqCst);
@@ -347,7 +546,10 @@ pub fn report_healthy(app: AppHandle, guards: tauri::State<'_, UpdateGuards>) {
     }
 
     let installer = cached_installer(&app, &current).ok();
-    let promoted = promote(&state, &current, installer.as_deref());
+    let mut promoted = promote(&state, &current, installer.as_deref());
+    // Record the healthy installer's hash so the rollback can prove the cached
+    // file is the same bytes we ran, not a locally-planted swap.
+    promoted.last_good_sha256 = installer.as_deref().and_then(file_sha256);
     let _ = write_state(&app, &promoted);
 
     if let Some(good) = installer.as_deref() {
@@ -384,6 +586,21 @@ pub fn get_update_state(app: AppHandle) -> UpdateStateReport {
 /// brings the shell back on the next OS boot.
 #[cfg(windows)]
 fn rollback_to(app: &AppHandle, state: &mut UpdaterState, installer: &str) {
+    // Re-verify the cached installer before executing it. It lives in a
+    // user-writable dir with no OS code signature (currentUser install, no
+    // Authenticode), and minisign only guarded the original DOWNLOAD — never this
+    // cached exec. A local attacker who swapped the file would otherwise get their
+    // payload run, silently, as the kiosk user. Refuse anything whose bytes don't
+    // match the hash recorded when we promoted this installer healthy.
+    let integrity_ok = match (&state.last_good_sha256, file_sha256(Path::new(installer))) {
+        (Some(expected), Some(actual)) => *expected == actual,
+        _ => false, // no recorded hash or unreadable file — don't trust it
+    };
+    if !integrity_ok {
+        flag_unhealthy(app, state); // no trustworthy rollback target — flag, don't run it
+        return;
+    }
+
     let spawned = std::process::Command::new(installer).arg("/S").spawn();
     state.pending_version = None;
     state.rolled_back = Some(spawned.is_ok());
@@ -427,6 +644,7 @@ pub fn spawn_health_watchdog(app: AppHandle, guards: &UpdateGuards) {
         return; // not a post-update boot — nothing to watch
     }
 
+    let alive = guards.alive.clone();
     let healthy = guards.healthy.clone();
     let decided = guards.decided.clone();
     std::thread::spawn(move || {
@@ -440,8 +658,33 @@ pub fn spawn_health_watchdog(app: AppHandle, guards: &UpdateGuards) {
         {
             return; // report_healthy won the race under the wire
         }
+        // Re-check under the decision: report_healthy may have stored healthy=true
+        // after our initial load but before we won the CAS. Don't roll back a
+        // build that just reported healthy at the wire.
+        if healthy.load(Ordering::SeqCst) {
+            return;
+        }
 
         let mut state = read_state(&app);
+
+        // The page never loaded (no `report_alive`): the device is offline / the
+        // remote origin is unreachable, NOT necessarily a bad build. A rollback
+        // can't help — the previous shell loads the same URL and would fail
+        // identically — and a failed rollback only makes it worse. Defer, leaving
+        // the pending marker so a later (online) boot can confirm health or roll
+        // back with real evidence. Give up only after MAX_OFFLINE_DEFERS boots, so
+        // a build that genuinely never runs JS is still eventually recovered from.
+        if !alive.load(Ordering::SeqCst) {
+            state.post_update_attempts += 1;
+            if state.post_update_attempts < MAX_OFFLINE_DEFERS {
+                let _ = write_state(&app, &state); // keep pending; just record the attempt
+                return;
+            }
+        }
+
+        // Either the page loaded but never got healthy (the update broke the
+        // running app) or we've deferred too many times — roll back.
+        poison(&mut state, &current);
         match state.last_good_installer.clone() {
             Some(installer) => rollback_to(&app, &mut state, &installer),
             None => flag_unhealthy(&app, &mut state), // first-ever update: no target
@@ -470,14 +713,47 @@ mod tests {
         let state = UpdaterState {
             last_good_version: Some("0.1.0".into()),
             last_good_installer: Some("/tmp/edge-player-0.1.0.exe".into()),
+            last_good_sha256: Some("deadbeef".into()),
             pending_version: Some("0.2.0".into()),
             last_result: Some("installing".into()),
             rolled_back: Some(false),
+            post_update_attempts: 2,
+            poisoned_versions: vec!["0.2.0".into()],
         };
         let raw = serde_json::to_string(&state).unwrap();
         assert!(raw.contains("lastGoodVersion"), "camelCase keys: {raw}");
+        assert!(raw.contains("poisonedVersions"), "camelCase keys: {raw}");
         let back: UpdaterState = serde_json::from_str(&raw).unwrap();
         assert_eq!(state, back);
+    }
+
+    #[cfg(desktop)]
+    #[test]
+    fn committed_updater_config_and_pubkey_parse() {
+        // The pubkey format wrangling (base64-of-file → key line → verifier) is the
+        // riskiest part of manifest auth; pin it against the real committed pubkey.
+        let (endpoint, pubkey_b64) = updater_config().expect("config must read");
+        assert!(!endpoint.is_empty(), "endpoint present");
+        parse_pubkey(&pubkey_b64).expect("committed pubkey must parse into a verifier");
+    }
+
+    #[test]
+    fn poison_is_idempotent_and_blocks_reinstall() {
+        let mut state = UpdaterState::default();
+        assert!(!is_poisoned(&state, "0.2.0"));
+        poison(&mut state, "0.2.0");
+        poison(&mut state, "0.2.0"); // idempotent
+        assert!(is_poisoned(&state, "0.2.0"));
+        assert_eq!(state.poisoned_versions, vec!["0.2.0".to_string()]);
+        // A genuine fix under a new version is not blocked.
+        assert!(!is_poisoned(&state, "0.3.0"));
+    }
+
+    #[test]
+    fn missing_poisoned_field_deserializes_to_empty() {
+        // Older state.json written before the field existed must still load.
+        let back: UpdaterState = serde_json::from_str(r#"{"pendingVersion":"0.2.0"}"#).unwrap();
+        assert!(back.poisoned_versions.is_empty());
     }
 
     #[test]

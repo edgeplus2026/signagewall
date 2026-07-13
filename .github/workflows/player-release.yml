@@ -99,6 +99,13 @@ jobs:
     runs-on: ${{ matrix.platform }}
     continue-on-error: ${{ matrix.optional }}
     name: build (${{ matrix.key }})
+    # This job holds the fleet OTA signing key. Gate it behind a protected GitHub
+    # Environment so a workflow_dispatch on an arbitrary branch can't run the
+    # signing step (and exfiltrate the key) without a reviewer. NOTE: this line is
+    # inert until the `fleet-signing` Environment is created in repo Settings with
+    # required reviewers / branch restrictions — do that as part of hardening
+    # (see the release README); referencing it here is only the hook.
+    environment: fleet-signing
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
@@ -232,12 +239,22 @@ jobs:
     # Only real tag releases publish; workflow_dispatch stays a build-only test.
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
+    # Same gate as the build job: this job signs the manifest with the OTA key, so
+    # it must only run for allowed release refs and (if configured) with approval.
+    environment: fleet-signing
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
+          cache: pnpm
+
+      # The @tauri-apps/cli (for `tauri signer sign`) — no Rust build needed, the
+      # signer is pure JS. Installs the workspace so `pnpm exec tauri` resolves.
+      - run: pnpm install --frozen-lockfile
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
@@ -260,6 +277,23 @@ jobs:
             --out dist-release/latest.json
           echo "--- latest.json ---"
           cat dist-release/latest.json
+
+      # Sign the MANIFEST itself (not just the installer bytes, which the artifacts
+      # already carry). The shell verifies this detached signature before trusting
+      # the manifest's (version, url) — so an attacker with R2 write / a MITM can't
+      # point a high-version manifest at an old, signed, vulnerable installer
+      # (signed-downgrade). Same minisign key as the installers.
+      - name: Sign the manifest
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        run: |
+          set -euo pipefail
+          pnpm --filter @edge/player exec tauri signer sign dist-release/latest.json
+          test -f dist-release/latest.json.sig \
+            || { echo "::error::no latest.json.sig produced — is TAURI_SIGNING_PRIVATE_KEY set?"; exit 1; }
+          echo "--- latest.json.sig ---"
+          cat dist-release/latest.json.sig
 
       - name: Publish to R2
         env:
@@ -299,6 +333,15 @@ jobs:
                 --endpoint-url "$endpoint"
             done
           done
+
+          # Manifest signature next to the manifest — the shell fetches
+          # `latest.json.sig` and verifies it before trusting the manifest.
+          # Upload it BEFORE the manifest so a device can never fetch a new
+          # manifest whose signature isn't up yet.
+          aws s3 cp dist-release/latest.json.sig "s3://${BUCKET}/edge-player/latest.json.sig" \
+            --endpoint-url "$endpoint" \
+            --content-type text/plain \
+            --cache-control "no-cache"
 
           # Manifest last, at a stable key, un-cached so devices see it promptly.
           aws s3 cp dist-release/latest.json "s3://${BUCKET}/edge-player/latest.json" \

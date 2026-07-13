@@ -117,4 +117,30 @@ describe('bootstrapNativeIdentity', () => {
     expect(getDeviceId()).toBe(MINTED_ID)
     expect(nativeWrites(invoke)).toEqual([MINTED_ID])
   })
+
+  it('does NOT overwrite the store when the read fails, even with everything else empty', async () => {
+    // Regression: a transient get_device_id failure (IO error / corrupt file /
+    // hung IPC) must not be mistaken for "absent" and clobbered with a fresh
+    // mint — the store may still hold the real id, and overwriting it would
+    // permanently strand the paired screen.
+    const storage = fakeStorage() // localStorage also wiped: the worst case
+    const invoke = vi.fn(async (cmd: string) => {
+      if (cmd === 'get_device_id') throw new Error('config disk IO error')
+      if (cmd === 'shell_version') return '1.2.3'
+      return undefined
+    })
+    vi.stubGlobal('window', {
+      __TAURI_INTERNALS__: {},
+      __TAURI__: { core: { invoke } },
+      localStorage: storage,
+      location: { search: '', href: 'tauri://localhost/' },
+    })
+    vi.stubGlobal('crypto', { randomUUID: () => MINTED_ID })
+    const { bootstrapNativeIdentity, getDeviceId } = await load()
+    await bootstrapNativeIdentity()
+    // A usable identity is seeded for THIS session…
+    expect(getDeviceId()).toBe(MINTED_ID)
+    // …but the native store is left untouched (no clobbering write).
+    expect(nativeWrites(invoke)).toEqual([])
+  })
 })

@@ -113,6 +113,24 @@ describe('DailyReloadScheduler', () => {
     expect(onReload).toHaveBeenCalledTimes(2)
   })
 
+  it('does not infinitely recurse when applied inside the pre-target fire window', () => {
+    // Regression: applying at 02:59:59.5 — inside the <=1s window before the
+    // 03:00 target — used to re-arm `fire()` on now(), recomputing the SAME
+    // still-future target, so `fire → scheduleNextChunk → fire` recursed
+    // synchronously into a stack overflow that killed the scheduler.
+    const { clock, scheduler, onReload } = setup(
+      new Date(2026, 5, 26, 2, 59, 59, 500),
+    )
+    expect(() =>
+      scheduler.apply({ enabled: true, time: '03:00' }),
+    ).not.toThrow()
+    expect(onReload).toHaveBeenCalledTimes(1)
+
+    // And it re-armed for the NEXT day, not a past/identical target.
+    clock.advance(25 * HOUR) // past the next day's 03:00
+    expect(onReload).toHaveBeenCalledTimes(2)
+  })
+
   it('stop() cancels any pending timer', () => {
     const { clock, scheduler, onReload } = setup(new Date(2026, 5, 26, 1, 0, 0))
     scheduler.apply({ enabled: true, time: '03:00' })

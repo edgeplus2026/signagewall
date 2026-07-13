@@ -137,8 +137,19 @@ export class DailyReloadScheduler {
     // that bridge is slow, no-ops, or falls back to a reload the WebView
     // ignores, re-basing here is what keeps the daily reload firing on
     // subsequent days instead of dying on a past target.
+    //
+    // Anchor the next target on `max(now, targetAt)`, NOT on `now()` alone: when
+    // we fire inside the pre-target window (`remaining <= FIRE_WINDOW_MS`, i.e.
+    // the clock is a few hundred ms BEFORE the target), re-basing on `now()`
+    // would recompute the SAME still-future target, `scheduleNextChunk` would see
+    // it within the fire window again, and `fire → scheduleNextChunk → fire`
+    // would recurse synchronously into a stack overflow that kills the scheduler.
+    // Anchoring past the just-fired target guarantees a strictly-later one.
+    // (`max` still fires exactly once on a device-sleep overshoot, where `now`
+    // is already past the target and wins.)
     if (this.setting?.enabled) {
-      this.targetAt = nextReloadAt(this.setting.time, this.deps.now())
+      const anchor = Math.max(this.deps.now(), this.targetAt)
+      this.targetAt = nextReloadAt(this.setting.time, anchor)
       this.scheduleNextChunk()
     }
     this.deps.onReload()

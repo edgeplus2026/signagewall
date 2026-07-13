@@ -1,6 +1,6 @@
 import type { PlayerSnapshot, Renderable } from '../types'
 import { itemRequiresNetwork } from './network-apps'
-import { Slot, type Surface } from './slot'
+import { Slot } from './slot'
 
 /**
  * The slice of {@link Slot} the controller drives. Extracted as an interface so
@@ -9,7 +9,7 @@ import { Slot, type Surface } from './slot'
  */
 export interface PlaybackSlot {
   readonly el: HTMLElement
-  prepare(item: Renderable, surface: Surface, volume: number): Promise<void>
+  prepare(item: Renderable, volume: number): Promise<void>
   activate(onEnded: () => void): void
   deactivate(): void
   release(): void
@@ -378,7 +378,7 @@ export class PlaybackController {
     if (this.preload && this.preload.index === index) {
       prep = this.preload.promise
     } else {
-      prep = back.prepare(item, this.surface(), this.volume)
+      prep = back.prepare(item, this.volume)
     }
     this.preload = null
 
@@ -469,7 +469,7 @@ export class PlaybackController {
     }
 
     const back = this.slots[this.activeIndex ^ 1]
-    const promise = back.prepare(item, this.surface(), this.volume)
+    const promise = back.prepare(item, this.volume)
     this.preload = { index: next, promise }
     promise.catch((error: unknown) => {
       // Only report if this preload is still pending. If showAt already consumed
@@ -572,13 +572,6 @@ export class PlaybackController {
     if (this.preloadTimer !== undefined) {
       window.clearTimeout(this.preloadTimer)
       this.preloadTimer = undefined
-    }
-  }
-
-  private surface(): Surface {
-    return {
-      width: this.root.clientWidth,
-      height: this.root.clientHeight,
     }
   }
 }

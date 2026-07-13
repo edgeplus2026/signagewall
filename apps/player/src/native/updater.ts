@@ -20,7 +20,7 @@ import { effect } from '@preact/signals'
 import { restartPlayer } from '../restart'
 import { view } from '../store'
 import type { DeviceUpdateStatus } from '../types'
-import { getShellVersion, setUpdateStatus } from './runtime'
+import { getShellVersion, setApplyOutcome, setDetectionStatus } from './runtime'
 import { isTauri, nativeInvoke } from './tauri'
 
 /** Shape returned by the Rust `check_update` command (camelCase via serde). */
@@ -58,7 +58,7 @@ export async function checkForUpdate(): Promise<void> {
     return
   }
 
-  setUpdateStatus({
+  setDetectionStatus({
     lastResult: 'checking',
     currentVersion: getShellVersion(),
     lastCheckAt: new Date().toISOString(),
@@ -71,7 +71,7 @@ export async function checkForUpdate(): Promise<void> {
   // to reach or parse the endpoint as an error and stay on the current version,
   // rather than reporting a misleading "up to date".
   if (!result) {
-    setUpdateStatus({
+    setDetectionStatus({
       lastResult: 'error',
       currentVersion: getShellVersion(),
       lastCheckAt,
@@ -87,7 +87,7 @@ export async function checkForUpdate(): Promise<void> {
       ? { availableVersion: result.availableVersion }
       : {}),
   }
-  setUpdateStatus(status)
+  setDetectionStatus(status)
 }
 
 /** True while an apply is already running — see {@link runUpdate}. */
@@ -104,13 +104,21 @@ let updateInFlight = false
  * "available" forever with no sign the device had tried and failed.
  */
 async function runUpdate(): Promise<RunResult | undefined> {
-  if (!isTauri() || updateInFlight) {
+  if (!isTauri()) {
     return undefined
+  }
+  // A concurrent apply already holds the guard (the nightly window and the
+  // standby catch-up are independent triggers and can overlap). Report it as
+  // `busy` — the same shape Rust returns — so the caller does NOT restart the
+  // process out from under an in-flight download/install (which would abort it
+  // and defer the update a day).
+  if (updateInFlight) {
+    return { kind: 'busy' }
   }
   updateInFlight = true
 
   const currentVersion = getShellVersion()
-  setUpdateStatus({
+  setApplyOutcome({
     lastResult: 'checking',
     currentVersion,
     lastCheckAt: new Date().toISOString(),
@@ -122,7 +130,7 @@ async function runUpdate(): Promise<RunResult | undefined> {
     // A successful install never returns here — the process restarts into the
     // new version — so anything we DO see is a terminal non-install outcome.
     if (result?.kind !== 'busy') {
-      setUpdateStatus({
+      setApplyOutcome({
         currentVersion,
         lastCheckAt: new Date().toISOString(),
         // undefined = the Rust command rejected (nativeInvoke swallows it).
@@ -143,10 +151,12 @@ async function runUpdate(): Promise<RunResult | undefined> {
  */
 export async function applyUpdateOrReload(): Promise<void> {
   const result = await runUpdate()
-  // 'updating' means the shell is installing and relaunching itself — we must
-  // not also restart. Anything else (no update, error, busy, browser) still owes
-  // the nightly content reload.
-  if (result?.kind === 'updating') {
+  // 'updating' means the shell is installing and relaunching itself; 'busy' means
+  // a concurrent apply (standby catch-up) is already mid-flight and owns the
+  // restart. In BOTH cases we must not restart, or we'd abort that in-flight
+  // download/install. Anything else (no update, error, browser) still owes the
+  // nightly content reload.
+  if (result?.kind === 'updating' || result?.kind === 'busy') {
     return
   }
   restartPlayer()
@@ -177,13 +187,76 @@ export function startStandbyUpdate(): () => void {
   })
 }
 
+/** How often the maintenance backstop re-checks for a pending shell update. */
+const MAINTENANCE_INTERVAL_MS = 6 * 60 * 60 * 1000 // 6h
+
 /**
- * Tells the native shell that the web layer booted and rendered successfully —
- * this clears the post-update health watchdog and promotes the running version
- * to last-known-good. No-op in a plain browser.
+ * A maintenance backstop that applies a pending shell update on a fixed cadence,
+ * INDEPENDENT of content scheduling. Both other triggers ride content signals —
+ * the nightly `applyUpdateOrReload` needs daily-reload enabled, and
+ * {@link startStandbyUpdate} needs the screen to actually blank — so a 24/7
+ * always-on screen with daily-reload off has neither and would detect updates at
+ * boot yet never apply them, staying on an old/vulnerable shell forever. This
+ * guarantees at least one apply path always exists. It no-ops on most ticks
+ * (nothing pending) and, when it does apply, costs only the brief restart into
+ * the new version — the unavoidable price of updating a screen that never idles.
+ * Returns a disposer. No-op in a plain browser.
+ */
+export function startMaintenanceUpdates(): () => void {
+  if (!isTauri()) {
+    return () => undefined
+  }
+  const timer = setInterval(() => {
+    void applyUpdateIfAvailable()
+  }, MAINTENANCE_INTERVAL_MS)
+  return () => clearInterval(timer)
+}
+
+/**
+ * Tells the native shell the web JS is running (the WebView loaded the remote
+ * page) — sent as early as possible, before connect/render. It is deliberately
+ * distinct from {@link reportHealthy}: it lets the post-update watchdog tell a
+ * build that broke the app (alive, but never healthy → roll back) from a device
+ * that is simply offline so the remote page never loaded (not alive → defer,
+ * because rolling back to a shell that loads the same URL can't help). Best-effort
+ * and fire-and-forget: if it is dropped the watchdog just treats the boot as
+ * offline and defers, which is the safe direction. No-op in a plain browser.
+ */
+export async function reportAlive(): Promise<void> {
+  await nativeInvoke('report_alive')
+}
+
+/**
+ * Tells the native shell that the web layer booted and reached a confirmed
+ * working state — this clears the post-update health watchdog and promotes the
+ * running version to last-known-good. No-op in a plain browser.
+ *
+ * This is the single most safety-critical signal in the system: if it never
+ * lands, the watchdog rolls a perfectly good update back at `HEALTH_TIMEOUT`.
+ * `nativeInvoke` swallows a transient IPC rejection to `undefined`, so a one-shot
+ * fire-and-forget could be silently dropped — we retry with backoff, well inside
+ * the 90 s watchdog window, so a momentary hiccup can't trigger a spurious
+ * fleet-wide rollback.
  */
 export async function reportHealthy(): Promise<void> {
-  await nativeInvoke('report_healthy')
+  if (!isTauri()) {
+    return
+  }
+  // The Rust command returns `()` (undefined) on success and — via nativeInvoke —
+  // also `undefined` on a swallowed rejection, so the return can't tell them
+  // apart. Confirm delivery out-of-band instead: get_update_state resolves iff
+  // the IPC round-trip works, so a resolved probe means report_healthy landed too.
+  const attempts = [0, 1000, 3000, 8000]
+  for (const delay of attempts) {
+    if (delay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+    await nativeInvoke('report_healthy')
+    const probe = await nativeInvoke<UpdateStateReport>('get_update_state')
+    if (probe !== undefined) {
+      return // IPC is alive; report_healthy in the same channel landed.
+    }
+  }
 }
 
 /**
@@ -199,7 +272,7 @@ export async function loadUpdateState(): Promise<void> {
   if (!state?.lastResult) {
     return
   }
-  setUpdateStatus({
+  setApplyOutcome({
     currentVersion: state.currentVersion ?? getShellVersion(),
     lastResult: state.lastResult,
     lastCheckAt: new Date().toISOString(),

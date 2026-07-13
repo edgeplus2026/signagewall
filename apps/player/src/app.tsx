@@ -1,3 +1,4 @@
+import { effect } from '@preact/signals'
 import { useEffect } from 'preact/hooks'
 
 import { getDeviceId, getToken } from './device'
@@ -5,11 +6,23 @@ import {
   bootstrapNativeIdentity,
   bootstrapNativeRuntime,
 } from './native/bootstrap'
-import { reportHealthy, startStandbyUpdate } from './native/updater'
+import {
+  reportHealthy,
+  startMaintenanceUpdates,
+  startStandbyUpdate,
+} from './native/updater'
 import { loadSnapshot } from './persistence/idb'
 import { isPreview, previewParams } from './preview'
 import { reflectDeviceIdInUrl } from './recovery'
-import { orientation, paired, scale, snapshot, view } from './store'
+import {
+  connection,
+  orientation,
+  paired,
+  playingItemId,
+  scale,
+  snapshot,
+  view,
+} from './store'
 import { startAvailability } from './sync/availability'
 import { startDailyReload } from './sync/daily-reload'
 import { startOnline } from './sync/online'
@@ -23,12 +36,30 @@ import { Stage } from './ui/Stage'
 import { Standby } from './ui/Standby'
 
 export function App() {
-  // Signal the native shell that the web layer booted and rendered: this clears
-  // the post-update health watchdog and confirms the running shell version as
-  // last-known-good. Fires once after first paint; native no-op in a browser or
-  // the CMS preview iframe.
+  // Confirm to the native shell's post-update watchdog that this build actually
+  // WORKS — not merely that React mounted. `reportAlive` (in main.tsx) already
+  // said the page loaded; we withhold `reportHealthy` until the player reaches a
+  // real working state, so a build that mounts but can't play content is caught
+  // and rolled back instead of being promoted to last-known-good. Healthy means:
+  //   - content is actually on screen (`playingItemId` set — proves decode/render
+  //     works, and covers offline playback of cached content), OR
+  //   - we connected to the backend AND it settled on a legit idle view (paired-
+  //     but-empty pairing screen, or standby/off-hours) — nothing to play, but
+  //     provably functioning.
+  // Native no-op in a browser or the CMS preview iframe. Fires once.
   useEffect(() => {
-    void reportHealthy()
+    let reported = false
+    const stop = effect(() => {
+      const contentOnScreen = playingItemId.value !== null
+      const connectedAndIdle =
+        connection.value === 'online' &&
+        (view.value === 'pairing' || view.value === 'standby')
+      if (!reported && (contentOnScreen || connectedAndIdle)) {
+        reported = true
+        void reportHealthy()
+      }
+    })
+    return stop
   }, [])
 
   useEffect(() => {
@@ -70,6 +101,7 @@ export function App() {
     let stopAvailability: (() => void) | undefined
     let stopPrefetch: (() => void) | undefined
     let stopStandbyUpdate: (() => void) | undefined
+    let stopMaintenanceUpdates: (() => void) | undefined
 
     void (async () => {
       await bootstrapNativeIdentity()
@@ -105,6 +137,9 @@ export function App() {
       // the catch-up for devices powered off or offline during the nightly
       // window. Started after availability so `view` reflects the rule.
       stopStandbyUpdate = startStandbyUpdate()
+      // Backstop on a fixed cadence, independent of daily-reload/standby, so a
+      // 24/7 always-on screen still applies shell updates rather than never.
+      stopMaintenanceUpdates = startMaintenanceUpdates()
     })()
 
     // Symmetric teardown: stop whatever boot managed to start. Safe before boot
@@ -114,6 +149,7 @@ export function App() {
     return () => {
       disposed = true
       stopOnline()
+      stopMaintenanceUpdates?.()
       stopStandbyUpdate?.()
       stopPrefetch?.()
       stopAvailability?.()

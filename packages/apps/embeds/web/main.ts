@@ -31,8 +31,14 @@ function mount(url: string): void {
   frame.className = 'fill-frame'
   frame.title = 'Web page'
   frame.src = url
-  // Let embedded dashboards autoplay/fullscreen; the player iframe sandbox is
-  // the outer security boundary.
+  // Sandbox the arbitrary operator-supplied page. Without this it can navigate
+  // the whole kiosk away (top-navigation), spawn popups, or trigger downloads —
+  // all denied by default once a sandbox attribute is present. `allow-scripts`
+  // and `allow-same-origin` keep real dashboards functional; the omitted
+  // capabilities are the kiosk-escape vectors. (The outer app-host iframe is the
+  // first boundary; this is defense-in-depth on the untrusted inner content.)
+  frame.setAttribute('sandbox', 'allow-scripts allow-same-origin')
+  // Let embedded dashboards autoplay/fullscreen.
   frame.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture'
   // A site that refuses framing (X-Frame-Options / CSP frame-ancestors) renders
   // a blank/error frame the parent can't read cross-origin — there is no

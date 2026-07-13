@@ -25,21 +25,62 @@ export function isTauri(): boolean {
  * Invokes a Rust command over the Tauri IPC. Returns `undefined` outside Tauri
  * or on any error (missing bridge, rejected command), so callers never have to
  * guard the environment themselves.
+ *
+ * `timeoutMs` bounds the call: a native command that never resolves (blocking
+ * file IO on a failing config disk) would otherwise hang the awaiting caller
+ * forever — on the boot path that means the device never reaches `connectPlayer`.
+ * On timeout it resolves `undefined`, consistent with the "undefined on any
+ * failure" contract.
  */
 export async function nativeInvoke<T>(
   cmd: string,
   args?: Record<string, unknown>,
+  timeoutMs?: number,
 ): Promise<T | undefined> {
   if (!isTauri()) {
     return undefined
   }
   try {
-    const invoke = window.__TAURI__?.core?.invoke
-    if (!invoke) {
-      return undefined
-    }
-    return await invoke<T>(cmd, args)
+    return await nativeInvokeStrict<T>(cmd, args, timeoutMs)
   } catch {
     return undefined
+  }
+}
+
+/**
+ * Like {@link nativeInvoke} but SURFACES failures (throws) instead of swallowing
+ * them to `undefined`. Callers that must tell "the command failed" apart from "it
+ * returned nothing" — e.g. the identity read, where the difference decides
+ * whether it is safe to overwrite the durable store — use this. Honors the same
+ * `timeoutMs` (a hang rejects rather than hanging the caller).
+ */
+export async function nativeInvokeStrict<T>(
+  cmd: string,
+  args?: Record<string, unknown>,
+  timeoutMs?: number,
+): Promise<T> {
+  const invoke = window.__TAURI__?.core?.invoke
+  if (!invoke) {
+    throw new Error('native bridge unavailable')
+  }
+  const call = invoke<T>(cmd, args)
+  if (timeoutMs === undefined) {
+    return await call
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      call,
+      new Promise<T>((_resolve, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`${cmd} timed out`)),
+          timeoutMs,
+        )
+      }),
+    ])
+  } finally {
+    if (timer !== undefined) {
+      clearTimeout(timer)
+    }
   }
 }

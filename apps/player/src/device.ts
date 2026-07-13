@@ -8,6 +8,7 @@ import {
   normalizeDailyReload,
 } from './device-settings'
 import { getShellVersion, getUpdateStatus } from './native/runtime'
+import { isTauri } from './native/tauri'
 import { getUrlDeviceId } from './recovery'
 import type {
   DailyReloadSetting,
@@ -206,11 +207,12 @@ export type PlayerPlatform =
 export function getPlatform(): PlayerPlatform {
   const ua = navigator.userAgent.toLowerCase()
   // Electron/Tauri expose themselves on the window; check those first since
-  // their userAgents otherwise look like a normal Chrome browser.
+  // their userAgents otherwise look like a normal Chrome browser. Reuse the
+  // single Tauri detector so the two never drift on a future globals change.
+  if (isTauri()) {
+    return 'tauri'
+  }
   if (typeof window !== 'undefined') {
-    if ('__TAURI__' in window || '__TAURI_INTERNALS__' in window) {
-      return 'tauri'
-    }
     if ('electronAPI' in window || ua.includes('electron')) {
       return 'electron'
     }

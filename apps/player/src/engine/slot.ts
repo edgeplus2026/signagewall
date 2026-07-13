@@ -4,11 +4,6 @@ import type { Renderable } from '../types'
 
 const LOAD_TIMEOUT_MS = 12_000
 
-export interface Surface {
-  width: number
-  height: number
-}
-
 /**
  * One A/B rendering layer. Each slot owns a pooled `<img>`, `<video>` and an app
  * mount host that are reused for the slot's entire lifetime — never created or
@@ -97,7 +92,7 @@ export class Slot {
    * decoded/buffered enough to show without a flash. Rejects on load error or
    * timeout so the controller can skip the item instead of blocking the loop.
    */
-  async prepare(item: Renderable, _surface: Surface, volume: number): Promise<void> {
+  async prepare(item: Renderable, volume: number): Promise<void> {
     this.release()
     const seq = this.prepareSeq
     this.current = item
@@ -247,6 +242,15 @@ export class Slot {
    */
   deactivate(): void {
     this.el.classList.remove('is-active')
+    // Tell an outgoing APP it is no longer on screen so it stops its audio now,
+    // at the start of the crossfade — otherwise `active:false` was never sent and
+    // the app kept sounding until `release()` disposed its iframe ~TRANSITION_MS
+    // (or, for a 1-item/offline playlist, a whole item) later, audibly overlapping
+    // the incoming item. Video is paused by release(); an image is silent.
+    if (this.current?.kind === 'app' && this.appActive) {
+      this.appActive = false
+      this.appHostHandle?.setActive(false, this.volume === 0)
+    }
   }
 
   /** Hides the slot and frees all decoded media buffers it was holding. */
