@@ -1,3 +1,4 @@
+import { DEFAULT_ACCENT } from '../../src/_shared/theme.js'
 import { pickColor } from '../_shared/color.js'
 import { connectToHost } from '../_shared/host-bridge.js'
 import type { ClockContext } from './context.js'
@@ -33,9 +34,9 @@ let timer: ReturnType<typeof setTimeout> | undefined
 
 /** The theme presets the manifest's `theme` options mirror. */
 const PRESETS: Record<string, { bg: string; text: string; accent: string }> = {
-  light: { bg: '#FFFFFF', text: '#0F172A', accent: '#0EA5E9' },
-  dark: { bg: '#000000', text: '#FFFFFF', accent: '#0EA5E9' },
-  midnight: { bg: '#0B1220', text: '#E2E8F0', accent: '#F97316' },
+  light: { bg: '#FFFFFF', text: '#0F172A', accent: DEFAULT_ACCENT },
+  dark: { bg: '#000000', text: '#FFFFFF', accent: DEFAULT_ACCENT },
+  midnight: { bg: '#0B1220', text: '#E2E8F0', accent: DEFAULT_ACCENT },
 }
 
 /**
@@ -48,7 +49,7 @@ function resolveColors(): { bg: string; text: string; accent: string } {
   const preset =
     (typeof config.theme === 'string' ? PRESETS[config.theme] : undefined) ??
     PRESETS.dark ??
-    { bg: '#000000', text: '#FFFFFF', accent: '#0EA5E9' }
+    { bg: '#000000', text: '#FFFFFF', accent: DEFAULT_ACCENT }
 
   return {
     bg: pickColor(config.backgroundColor, preset.bg),
@@ -83,6 +84,12 @@ function render(): void {
   // The faces reach the accent through the cascade, never through the context —
   // which is why all five of them recolour from one custom property.
   root.style.setProperty('--ck-accent', accent)
+  // The background goes out as a custom property AS WELL AS onto the root, because a
+  // face may need to paint something OPAQUE in it. Flip's cards are stacked layers
+  // that have to hide each other: a translucent fill lets the layer beneath show
+  // through, and on a split-flap the layer beneath is the digit you just left. See
+  // `templates/flip.css`.
+  root.style.setProperty('--ck-bg', bg)
 
   const name = typeof config.face === 'string' ? config.face : DEFAULT_FACE
   const template = templateFor(name)

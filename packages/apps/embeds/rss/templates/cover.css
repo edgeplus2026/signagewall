@@ -107,16 +107,10 @@
     radial-gradient(130% 90% at 78% 6%, transparent 42%, rgba(255, 255, 255, 0.5));
 }
 
-/* Here the clock sits on a photograph rather than a flat ground. Its frosted chip
-   already carries it; it just wants a little more of itself behind the glass. */
-.rs-mode-cover .rs-clock {
-  background: color-mix(in srgb, currentColor 16%, transparent);
-  text-shadow: 0 0.02em 0.1em rgba(0, 0, 0, 0.35);
-}
-
-.rs-mode-cover.rs-theme-light .rs-clock {
-  text-shadow: 0 0.02em 0.1em rgba(255, 255, 255, 0.55);
-}
+/* The clock used to be given extra help here, being the layout that puts it on a
+   photograph. It no longer needs its own rule: the shared clock carries a
+   theme-flipped shadow for exactly this, and cover is only one of the four layouts
+   that needed it (style.css). */
 
 /* ----- The words ----- */
 

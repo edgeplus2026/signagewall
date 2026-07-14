@@ -1,37 +1,34 @@
 /* Google Calendar embed.
 
-   Design tokens live on the theme classes; the accent is injected per instance
-   as `--accent` (set inline on `.gc`). Every event colour — strip, node, chip
-   rail, live fill, Now badge — is derived from `--ev`, which is the accent. The
-   indirection is kept (rather than reading `--accent-vis` everywhere) so a
-   per-event colour only ever has to be set on `.gc-item` / `.gc-chip`.
+   ONE INK, NO ACCENT. This app has no accent colour and no field behind one, and
+   that is the design rather than an omission. A calendar is a page that is ALL
+   content — every cell of it carries an event — so an accent does not mark one
+   thing here, it tints the whole screen, and a wall of a single hue stops saying
+   "look here" the moment everything is it. What marks things instead is what a
+   printed calendar has always used: a ruled grid, the weight of the type, and one
+   filled disc on today.
+
+   Every view is the same object seen at a different range — a table of hairlines
+   with things sitting in it. Month is the weeks, week and day are the hours,
+   schedule is the run of days. They share a header, a palette and a line width, so
+   an operator flipping between them is changing the zoom, not the app.
 
    Sizing uses clamp(min, vw, max): fluid with the slot width but bounded so text
    stays readable both in the small CMS preview and on a full-size screen. */
 
 .gc {
-  /* Tight radii: an event card is a document row, not a bubble. */
+  /* Tight radii: a calendar is a document, not a bubble. */
   --radius: clamp(7px, 0.62vw, 11px);
   --radius-sm: clamp(5px, 0.42vw, 7px);
   --gap: clamp(6px, 0.7vw, 14px);
 
-  /* Accent, made visible on either theme. On dark themes a dark brand colour is
-     lightened so it never disappears; fills/lines are derived from it. */
-  --accent-vis: var(--accent);
-  --accent-soft: color-mix(in srgb, var(--accent-vis) 10%, transparent);
-  --accent-line: color-mix(in srgb, var(--accent-vis) 40%, transparent);
-  /* Text/graphics drawn ON a solid accent or event colour. */
-  --on-solid: var(--bg);
-  /* The colour every event is drawn in. */
-  --ev: var(--accent-vis);
-
   /* Type weights. Every text style pulls from one of these rather than
      hard-coding a number, so the scale stays in proportion if it is retuned. */
-  --w-head: 600; /* view heading / day group label */
-  --w-label: 600; /* micro-labels, times, day numbers */
+  --w-head: 600; /* view heading */
+  --w-label: 600; /* day numbers, micro-labels */
   --w-title: 550; /* event title */
   --w-strong: 650; /* event title, in progress */
-  --w-body: 500; /* clock, chip text */
+  --w-body: 500; /* times, chip text */
 
   width: 100%;
   height: 100%;
@@ -52,9 +49,9 @@
   text-rendering: optimizeLegibility;
 }
 
-/* The light theme separates a card from the page by TONE, not by a drop shadow:
-   a warm-grey canvas with pure-white cards on it. (White-on-white forces a soft
-   shadow to do the separating, which is exactly what reads as cheap.) */
+/* The light theme separates the page from its ink by TONE: a warm-grey canvas,
+   hairlines a shade darker, and no shadow anywhere — a drop shadow is what a
+   calendar reaches for when it has stopped trusting its own lines. */
 .gc-theme-light {
   --bg: #eef0f3;
   --surface: #e7e9ee;
@@ -63,19 +60,13 @@
   --fg: #14161a;
   --muted: #5c6270;
   --faint: #949aa6;
-  --line: rgba(17, 19, 24, 0.09);
+  --line: rgba(17, 19, 24, 0.11);
   --line-strong: rgba(17, 19, 24, 0.18);
   --ink: #000000;
   --shadow: none;
   --shimmer: rgba(255, 255, 255, 0.8);
 
-  background:
-    radial-gradient(
-      78% 52% at 100% 0%,
-      color-mix(in srgb, var(--accent-vis) 10%, transparent),
-      transparent 70%
-    ),
-    linear-gradient(180deg, #f2f4f6 0%, #e9ebef 100%);
+  background: linear-gradient(180deg, #f2f4f6 0%, #e9ebef 100%);
 }
 
 .gc-theme-dark {
@@ -86,70 +77,44 @@
   --fg: #f2f3f5;
   --muted: rgba(242, 243, 245, 0.62);
   --faint: rgba(242, 243, 245, 0.4);
-  --line: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.1);
   --line-strong: rgba(255, 255, 255, 0.18);
   --ink: #ffffff;
-  --accent-vis: color-mix(in srgb, var(--accent) 62%, #ffffff);
   --shadow: none;
   --shimmer: rgba(255, 255, 255, 0.07);
 
-  background:
-    radial-gradient(
-      78% 52% at 100% 0%,
-      color-mix(in srgb, var(--accent-vis) 14%, transparent),
-      transparent 70%
-    ),
-    linear-gradient(180deg, #121317 0%, #0a0b0d 100%);
+  background: linear-gradient(180deg, #121317 0%, #0a0b0d 100%);
 }
 
-/* Event tints, derived from `--ev` on the elements that draw an event. */
-.gc-item,
-.gc-chip {
-  --ev-soft: color-mix(in srgb, var(--ev) 11%, transparent);
-  --ev-line: color-mix(in srgb, var(--ev) 38%, transparent);
-  /* The event colour pushed toward the theme's ink so small text stays legible. */
-  --ev-text: color-mix(in srgb, var(--ev) 78%, var(--ink));
-}
+/* ----- header -----
+   A page title, not a status bar. It says what calendar this is, what you are
+   looking at, and how much of it there is — and then it gets out of the way, because
+   every pixel it takes is one fewer event on the screen.
 
-/* ----- header ----- */
+   There is no clock in it. A calendar is not a dashboard, and the time of day is the
+   one thing a person standing in front of a screen already knows. */
 
-/* Kept deliberately shallow: the header is a caption for the agenda, not a
-   hero — every pixel it takes is one fewer event on the screen. */
 .gc-head {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1.5em;
   flex-shrink: 0;
-  padding-bottom: clamp(7px, 0.85vw, 14px);
-  border-bottom: 1px solid var(--line);
+  padding-bottom: clamp(8px, 1vw, 16px);
 }
 
-.gc-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.6em;
-  font-size: clamp(10px, 0.95vw, 15px);
-  font-weight: var(--w-label);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.gc-eyebrow,
+.gc-count {
+  font-size: clamp(11px, 1vw, 16px);
+  font-weight: var(--w-body);
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.gc-dot {
-  flex-shrink: 0;
-  width: 0.62em;
-  height: 0.62em;
-  border-radius: 999px;
-  background: var(--accent-vis);
-  box-shadow: 0 0 0 0.22em var(--accent-soft);
-}
-
 .gc-title {
-  margin-top: 0.14em;
+  margin-top: 0.1em;
   font-size: clamp(19px, 2.15vw, 40px);
   font-weight: var(--w-head);
   letter-spacing: -0.022em;
@@ -158,30 +123,8 @@
 }
 
 .gc-head-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.15em;
   flex-shrink: 0;
   text-align: right;
-}
-
-.gc-clock {
-  font-size: clamp(14px, 1.5vw, 28px);
-  font-weight: var(--w-body);
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
-  color: var(--fg);
-}
-
-.gc-count {
-  font-size: clamp(9px, 0.9vw, 14px);
-  font-weight: var(--w-label);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--faint);
-  white-space: nowrap;
 }
 
 /* Scroll region — auto-scroll drives scrollTop; overflow hidden hides the bar. */
@@ -191,151 +134,351 @@
   overflow: hidden;
 }
 
-/* ----- timeline rows (day / schedule) ----- */
-
-.gc-list {
-  list-style: none;
+.gc-icon {
+  flex-shrink: 0;
+  width: 1.05em;
+  height: 1.05em;
+  opacity: 0.75;
 }
 
-/* The time column is sized for the widest label a locale can produce
-   ("07:30 PM"), so a 12-hour clock never wraps onto a second line. */
-.gc-item {
-  --row-gap: clamp(7px, 0.9vh, 14px);
+/* ----- the time grid (day + week) -----
 
+   A real clock face for the day: the hours down the side, the events sitting where
+   they actually fall and standing as tall as they actually last. The old week view
+   was seven lists of chips, which told you WHAT was on but never WHEN — a two-hour
+   meeting and a five-minute one were the same little box.
+
+   The gutter and the day columns are ONE grid, so a column can never drift from its
+   own heading: the hour rail, the all-day rail and the body are three rows of it. */
+
+.gc-tg {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns:
-    clamp(66px, 7.4vw, 140px)
-    clamp(14px, 1.3vw, 24px)
-    minmax(0, 1fr);
-  padding-bottom: var(--row-gap);
+  grid-template-columns: clamp(48px, 5vw, 92px) repeat(var(--days), minmax(0, 1fr));
+  /* The all-day rail's floor is set HERE, on the row, not as a `min-height` on the
+     cells: an empty rail (the common case — most days have no birthday on them) has
+     nothing in it to hold it open, and it collapsed to a sliver that pinched its own
+     label against the first hour. */
+  grid-template-rows: auto minmax(clamp(28px, 3.4vh, 52px), auto) minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
 }
 
-.gc-item.is-past {
-  opacity: 0.5;
+/* The frame draws the outside; the cells draw only the lines inside it. Every day
+   column carries the line on its LEFT — including the first, which is what separates
+   it from the gutter — so no edge is ever drawn twice. */
+.gc-tg-head,
+.gc-tg-ad,
+.gc-tg-col {
+  border-left: 1px solid var(--line);
 }
 
-/* Time column — centred against the card, so the time, the rail node and the
-   card all sit on one optical line whatever the card's height. */
+.gc-tg-corner,
+.gc-tg-head {
+  border-bottom: 1px solid var(--line);
+}
 
-.gc-when {
+.gc-tg-head {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  gap: 0.1em;
-  padding-right: 0.2em;
+  gap: 0.2em;
+  padding: clamp(7px, 0.8vw, 14px) 0;
 }
 
-.gc-start {
-  font-size: clamp(13px, 1.38vw, 26px);
-  font-weight: var(--w-label);
-  line-height: 1.15;
-  letter-spacing: -0.015em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  color: var(--fg);
-}
-
-.gc-end {
-  font-size: clamp(10px, 1.02vw, 18px);
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+.gc-tg-dow {
+  font-size: clamp(9px, 0.86vw, 14px);
+  font-weight: var(--w-body);
+  text-transform: capitalize;
   color: var(--faint);
 }
 
-.gc-allday {
-  padding: 0.32em 0.7em;
-  border: 1px solid var(--line-strong);
+.gc-tg-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75em;
+  height: 1.75em;
   border-radius: 999px;
-  font-size: clamp(8px, 0.78vw, 13px);
+  font-size: clamp(14px, 1.5vw, 27px);
+  font-weight: var(--w-body);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+
+/* The one filled shape on the page. */
+.gc-tg-head.is-today .gc-tg-num {
+  background: var(--fg);
+  color: var(--bg);
   font-weight: var(--w-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+}
+
+/* The day view has one column and all the room in the world, so its heading lies
+   down: the disc, then the weekday beside it. */
+.gc-view-day .gc-tg-head {
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.55em;
+  padding-left: clamp(10px, 1vw, 18px);
+}
+
+.gc-view-day .gc-tg-num {
+  order: -1;
+}
+
+.gc-view-day .gc-tg-dow {
+  font-size: clamp(12px, 1.15vw, 20px);
   color: var(--muted);
+}
+
+/* ----- the all-day rail -----
+   An untimed event has nowhere to sit in an hour grid, and dropping it on the 8am
+   line would be a lie. It gets its own rail above the hours, which is also where a
+   birthday belongs: true of the day, not of a time in it. */
+
+.gc-tg-corner,
+.gc-tg-ad-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: clamp(6px, 0.6vw, 11px);
+}
+
+.gc-tg-ad-label,
+.gc-tg-ad {
+  border-bottom: 1px solid var(--line);
+}
+
+.gc-tg-ad-label {
+  font-size: clamp(9px, 0.86vw, 14px);
+  font-weight: var(--w-body);
+  color: var(--faint);
   white-space: nowrap;
 }
 
-/* Rail — a continuous hairline with one node per event. */
-
-.gc-rail {
-  position: relative;
+.gc-tg-ad {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: clamp(2px, 0.3vh, 4px);
+  /* Capped, not free: a day with nine birthdays on it must not push the hours off
+     the screen. Past the cap the fitter turns the rest into "+N". */
+  max-height: clamp(40px, 5.4vh, 80px);
+  overflow: hidden;
+  padding: clamp(5px, 0.5vw, 9px) clamp(6px, 0.6vw, 11px);
 }
 
-/* The rail cell is exactly as tall as the card, so it runs on past the bottom
-   edge to bridge the gap to the next row and keep one unbroken line. */
-.gc-rail::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: calc(-1 * var(--row-gap));
-  width: 2px;
-  background: var(--line);
+/* ----- the hours -----
+   The gutter's labels and the columns' lines are separate elements that must agree
+   to the pixel. They do it by construction, not by arithmetic: both are flex columns
+   of the same number of `flex: 1` children, so the browser divides the same height
+   the same way twice. */
+
+.gc-tg-gutter,
+.gc-tg-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
-/* Cap the rail at the first and last node so it doesn't dangle. */
-.gc-item:first-child .gc-rail::before {
-  top: 50%;
-}
-
-.gc-item:last-child .gc-rail::before {
-  bottom: 50%;
-}
-
-.gc-node {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: clamp(8px, 0.78vw, 13px);
-  height: clamp(8px, 0.78vw, 13px);
-  border-radius: 999px;
-  background: var(--ev);
-  box-shadow: 0 0 0 3px var(--bg);
-}
-
-.gc-item.is-live .gc-node {
-  box-shadow:
-    0 0 0 3px var(--bg),
-    0 0 0 6px var(--ev-line);
-}
-
-/* Card */
-
-.gc-card {
+.gc-tg-col {
   position: relative;
+}
+
+.gc-tg-hour,
+.gc-tg-slot {
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+}
+
+/* The all-day rail already drew this line. */
+.gc-tg-hour:first-child,
+.gc-tg-slot:first-child {
+  border-top: none;
+}
+
+.gc-tg-hour {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.35em clamp(6px, 0.6vw, 11px) 0 0;
+  font-size: clamp(9px, 0.88vw, 15px);
+  font-weight: var(--w-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+/* ----- an event, standing in its own hours ----- */
+
+.gc-tg-ev {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  overflow: hidden;
+  /* The lane leaves a hair of space on the right so two side-by-side events read as
+     two, and every block clears the hour line under it. */
+  margin: 1px 2px 1px 0;
+  padding: clamp(4px, 0.42vw, 8px) clamp(5px, 0.5vw, 10px);
+  border-left: clamp(2px, 0.24vw, 4px) solid var(--fg);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  container-type: inline-size;
+}
+
+/* Three events at the same hour of a seven-day week get a sliver of column each, and
+   a sliver cannot say WHEN as well as WHAT. So below a width the time gives way and
+   the title takes the room: "11:0…" is worse than no time at all, and the hour is
+   already legible from where the block starts on the rail. The block asks its own
+   width — the lane count doesn't answer this, because the same three lanes are
+   roomy in the day view and hopeless in the week. */
+@container (max-width: 88px) {
+  .gc-tg-ev-time {
+    display: none;
+  }
+
+  /* And what room is left goes to the words: smaller type, tighter padding, a third
+     line. It will still not hold "Sastanak sa klijentom" at this width — nothing
+     would — but it holds enough of it to know which meeting it is, which is the whole
+     job of a block this size. */
+  .gc-tg-ev {
+    padding: 2px 3px 2px 4px;
+  }
+
+  .gc-tg-ev-title {
+    font-size: clamp(9px, 0.78vw, 13px);
+    line-height: 1.15;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+}
+
+.gc-tg-ev-title {
+  font-size: clamp(10px, 0.98vw, 17px);
+  font-weight: var(--w-title);
+  line-height: 1.2;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.gc-tg-ev-time {
+  font-size: clamp(9px, 0.86vw, 14px);
+  font-weight: var(--w-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Done, and running. Both in ink: what is over recedes, what is happening now holds
+   its full weight and thickens its rail. No badge — a pill shouting at the one live
+   event is the loudest thing on a page whose whole argument is that it doesn't. */
+.gc-tg-ev.is-past {
+  opacity: 0.45;
+}
+
+.gc-tg-ev.is-live {
+  background: color-mix(in srgb, var(--ink) 11%, transparent);
+}
+
+.gc-tg-ev.is-live .gc-tg-ev-title {
+  font-weight: var(--w-strong);
+}
+
+/* ----- schedule -----
+   A run of days, one line each. The date rides with every row rather than heading a
+   group of them: a wall is read in glances, and a glance that lands three rows into a
+   section has nothing to tell it which day it is looking at. */
+
+.gc-agenda {
+  list-style: none;
+}
+
+.gc-row {
+  display: grid;
+  grid-template-columns:
+    clamp(46px, 5vw, 88px)
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  gap: clamp(10px, 1.2vw, 22px);
+  padding: clamp(9px, 1.1vh, 18px) 0;
+  border-top: 1px solid var(--line);
+}
+
+.gc-row:first-child {
+  border-top: none;
+}
+
+.gc-row.is-past {
+  opacity: 0.45;
+}
+
+.gc-row-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05em;
+}
+
+.gc-row-dow,
+.gc-row-mon {
+  font-size: clamp(9px, 0.86vw, 14px);
+  font-weight: var(--w-body);
+  text-transform: capitalize;
+  color: var(--faint);
+}
+
+.gc-row-num {
   display: flex;
   align-items: center;
-  gap: 1em;
-  overflow: hidden;
-  padding: clamp(10px, 1.1vw, 20px) clamp(12px, 1.3vw, 24px);
-  padding-left: clamp(16px, 1.7vw, 32px);
-  border: 1px solid var(--card-line);
-  border-radius: var(--radius);
-  background: var(--card);
-  box-shadow: var(--shadow);
+  justify-content: center;
+  min-width: 1.7em;
+  height: 1.7em;
+  border-radius: 999px;
+  font-size: clamp(16px, 1.7vw, 30px);
+  font-weight: var(--w-body);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
 }
 
-.gc-strip {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: clamp(3px, 0.36vw, 6px);
-  background: var(--ev);
+.gc-row.is-today .gc-row-num {
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: var(--w-label);
 }
 
-.gc-card-main {
-  flex: 1;
+/* The hairline between the date and the event is the row's spine — and the one
+   place the live state shows, thickening into solid ink for whatever is running. */
+.gc-row-body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.28em;
+  gap: 0.2em;
+  padding-left: clamp(10px, 1.2vw, 22px);
+  border-left: 1px solid var(--line);
 }
 
-.gc-item-title {
-  font-size: clamp(15px, 1.6vw, 29px);
+.gc-row.is-live .gc-row-body {
+  border-left-color: var(--fg);
+}
+
+.gc-row-title {
+  font-size: clamp(14px, 1.45vw, 26px);
   font-weight: var(--w-title);
   line-height: 1.25;
   letter-spacing: -0.012em;
@@ -344,317 +487,73 @@
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
-.gc-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.9em;
-  font-size: clamp(10px, 1.02vw, 18px);
-  line-height: 1.3;
-  color: var(--muted);
-  min-width: 0;
+.gc-row.is-live .gc-row-title {
+  font-weight: var(--w-strong);
 }
 
-.gc-dur {
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-  color: var(--faint);
-}
-
-.gc-loc {
+.gc-row-loc {
   display: flex;
   align-items: center;
   gap: 0.3em;
   min-width: 0;
+  font-size: clamp(10px, 0.95vw, 16px);
+  color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.gc-icon {
-  flex-shrink: 0;
-  width: 1.05em;
-  height: 1.05em;
-  opacity: 0.75;
-}
-
-/* In-progress emphasis: tinted card, coloured "Now" badge, elapsed bar. */
-
-.gc-item.is-live .gc-card {
-  background: var(--ev-soft);
-  border-color: var(--ev-line);
-  box-shadow: 0 6px 22px -8px color-mix(in srgb, var(--ev) 40%, transparent);
-}
-
-.gc-item.is-live .gc-item-title {
-  font-weight: var(--w-strong);
-}
-
-.gc-badge {
-  display: none;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 0.45em;
-  padding: 0.42em 0.8em;
-  border-radius: 999px;
-  font-size: clamp(8px, 0.8vw, 13px);
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.gc-item.is-live .gc-badge-now {
-  display: inline-flex;
-  background: var(--ev);
-  color: var(--on-solid);
-}
-
-.gc-item.is-next .gc-badge-next {
-  display: inline-flex;
-  border: 1px solid var(--line-strong);
-  color: var(--muted);
-}
-
-.gc-pulse {
-  width: 0.55em;
-  height: 0.55em;
-  border-radius: 999px;
-  background: currentColor;
-  animation: gc-pulse 2.2s ease-in-out infinite;
-}
-
-@keyframes gc-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.3;
-    transform: scale(0.72);
-  }
-}
-
-.gc-progress {
-  display: none;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: clamp(2px, 0.22vw, 4px);
-  background: color-mix(in srgb, var(--ev) 16%, transparent);
-}
-
-.gc-item.is-live .gc-progress {
-  display: block;
-}
-
-/* An all-day event is "today", not "in progress": no Now badge, no elapsed bar,
-   and no tinted card — an untimed event running all day would otherwise sit
-   there lit up like a live meeting. */
-.gc-item.is-allday.is-live .gc-badge-now,
-.gc-item.is-allday .gc-progress {
-  display: none;
-}
-
-.gc-item.is-allday.is-live .gc-card {
-  background: var(--card);
-  border-color: var(--card-line);
-  box-shadow: var(--shadow);
-}
-
-.gc-item.is-allday.is-live .gc-node {
-  box-shadow: 0 0 0 3px var(--bg);
-}
-
-.gc-progress-fill {
-  width: 0;
-  height: 100%;
-  background: var(--ev);
-  transition: width 0.6s linear;
-}
-
-/* ----- schedule day groups ----- */
-
-.gc-group + .gc-group {
-  margin-top: clamp(14px, 2.2vh, 32px);
-}
-
-.gc-group-head {
-  display: flex;
-  align-items: center;
-  gap: 0.7em;
-  margin-bottom: clamp(8px, 1.1vh, 16px);
-}
-
-.gc-group-label {
-  font-size: clamp(11px, 1.05vw, 17px);
-  font-weight: var(--w-head);
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  color: var(--fg);
-  white-space: nowrap;
-}
-
-.gc-group.is-today .gc-group-label {
-  color: var(--accent-vis);
-}
-
-.gc-group-date {
-  font-size: clamp(10px, 0.95vw, 15px);
+.gc-row-when {
+  font-size: clamp(11px, 1.05vw, 18px);
   font-weight: var(--w-body);
-  letter-spacing: 0.03em;
-  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
   white-space: nowrap;
 }
 
-.gc-group-rule {
-  flex: 1;
-  height: 1px;
-  background: var(--line);
-}
+/* ----- month view -----
 
-/* ----- week view (7 day columns) ----- */
+   The same table, zoomed out to the weeks. No cards: the days are cells sharing
+   hairlines, the way a printed calendar has always drawn them. The old floating
+   cards spent a gap between every pair of days to say what the lines say for free,
+   and thirty little shadowed boxes read as thirty widgets, not as one month. */
 
-.gc-week {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--gap);
-  min-height: 100%;
-}
-
-.gc-col {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-  border: 1px solid var(--card-line);
-  border-radius: var(--radius);
-  background: var(--card);
-  box-shadow: var(--shadow);
-}
-
-.gc-col.is-today {
-  border-color: var(--accent-line);
-}
-
-.gc-col-head {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15em;
-  padding: clamp(7px, 0.85vw, 15px) 0;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
-}
-
-.gc-col.is-today .gc-col-head {
-  background: var(--accent-soft);
-  border-bottom-color: var(--accent-line);
-}
-
-.gc-col-dow {
-  font-size: clamp(8px, 0.82vw, 13px);
-  font-weight: var(--w-label);
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.gc-col-num {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.7em;
-  height: 1.7em;
-  border-radius: 999px;
-  font-size: clamp(14px, 1.5vw, 28px);
-  font-weight: var(--w-label);
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--fg);
-}
-
-.gc-col.is-today .gc-col-num {
-  background: var(--accent-vis);
-  color: var(--on-solid);
-}
-
-.gc-col-body {
+/* The rail and the cells are one frame: the lines run straight from the weekday
+   labels down through the whole month. */
+.gc-grid {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: clamp(6px, 0.65vw, 12px);
-}
-
-/* Bound the chip box to the column so the fitter has a height to measure against. */
-.gc-col-body .gc-chips {
-  flex: 1;
-  gap: clamp(4px, 0.5vh, 8px);
-}
-
-/* ----- event chips (week columns / month cells) ----- */
-
-.gc-chip {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1em;
-  min-width: 0;
-  padding: clamp(4px, 0.5vw, 9px) clamp(5px, 0.55vw, 10px);
-  border-left: clamp(2px, 0.24vw, 4px) solid var(--ev);
-  border-radius: var(--radius-sm);
-  background: var(--ev-soft);
-}
-
-.gc-chip.is-past {
-  opacity: 0.45;
-}
-
-.gc-chip.is-live {
-  box-shadow: inset 0 0 0 1px var(--ev-line);
-}
-
-.gc-chip-time {
-  font-size: clamp(8px, 0.82vw, 14px);
-  font-weight: var(--w-label);
-  letter-spacing: 0.01em;
-  font-variant-numeric: tabular-nums;
-  color: var(--ev-text);
-}
-
-.gc-chip-title {
-  font-size: clamp(9px, 0.95vw, 16px);
-  font-weight: var(--w-body);
-  line-height: 1.25;
-  color: var(--fg);
   overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
 }
-
-/* ----- month view (6x7 grid) ----- */
 
 .gc-dows {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--gap);
   flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .gc-dow {
-  padding-bottom: clamp(2px, 0.5vh, 7px);
-  font-size: clamp(9px, 0.88vw, 14px);
-  font-weight: var(--w-label);
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
+  padding: clamp(6px, 0.66vw, 12px) clamp(7px, 0.7vw, 13px);
+  border-left: 1px solid var(--line);
+  font-size: clamp(10px, 0.9vw, 15px);
+  font-weight: var(--w-body);
+  /* "pon" → "Pon". The locale gives them lower case; a column heading is a label,
+     not prose. Uppercasing the lot would shout a thing nobody reads twice. */
+  text-transform: capitalize;
   color: var(--faint);
-  text-align: center;
+}
+
+.gc-dow:first-child {
+  border-left: none;
 }
 
 .gc-month {
@@ -663,59 +562,72 @@
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   grid-auto-rows: 1fr;
-  gap: var(--gap);
 }
 
 .gc-cell {
   display: flex;
   flex-direction: column;
-  gap: clamp(3px, 0.4vh, 6px);
+  gap: clamp(3px, 0.42vh, 7px);
   min-height: 0;
   overflow: hidden;
-  padding: clamp(5px, 0.55vw, 10px);
-  border: 1px solid var(--card-line);
-  border-radius: var(--radius-sm);
-  background: var(--card);
-  box-shadow: var(--shadow);
+  padding: clamp(6px, 0.66vw, 12px) clamp(7px, 0.7vw, 13px);
+  border-left: 1px solid var(--line);
+  border-top: 1px solid var(--line);
 }
 
-.gc-cell.is-out {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
+/* The frame already draws the outer edge; the cells only draw the lines INSIDE it.
+   Without these two the border doubles up all down the left edge and along the top,
+   and a 2px line where every other one is 1px is the kind of thing you see without
+   ever working out what you are looking at. */
+.gc-cell:nth-child(7n + 1) {
+  border-left: none;
 }
 
+.gc-cell:nth-child(-n + 7) {
+  border-top: none;
+}
+
+/* A day from the neighbouring month keeps its cell — the grid is the point, and a
+   hole in it would be louder than the day is — and gives up only its ink. */
 .gc-cell.is-out .gc-daynum {
   color: var(--faint);
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
+.gc-cell.is-out .gc-chip {
+  opacity: 0.5;
+}
+
+/* Barely there, and it does not need to be more: the disc is what marks today. This
+   only stops the cell from looking like every other one. */
 .gc-cell.is-today {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
 }
 
-/* Bare number — only today wears the accent disc, so the eye lands on it alone.
-   Kept compact: every pixel it takes is one the chip fitter can't give to an
-   event. */
 .gc-daynum {
   display: flex;
   align-items: center;
   justify-content: center;
   align-self: flex-start;
-  min-width: clamp(17px, 1.7vw, 28px);
-  height: clamp(17px, 1.7vw, 28px);
+  min-width: clamp(19px, 1.85vw, 30px);
+  height: clamp(19px, 1.85vw, 30px);
   border-radius: 999px;
-  font-size: clamp(10px, 0.98vw, 17px);
-  font-weight: var(--w-label);
+  font-size: clamp(11px, 1vw, 17px);
+  font-weight: var(--w-body);
   font-variant-numeric: tabular-nums;
   color: var(--fg);
 }
 
 .gc-cell.is-today .gc-daynum {
-  background: var(--accent-vis);
-  color: var(--on-solid);
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: var(--w-label);
 }
+
+/* ----- chips (month cells, all-day rail) -----
+   A chip is a LINE OF TEXT. The grid's lines already separate the days; a tinted
+   block behind every title is a second separator doing the same job, at twice the
+   ink. */
 
 .gc-chips {
   display: flex;
@@ -725,29 +637,48 @@
   overflow: hidden;
 }
 
-/* Month cells are short: one line per chip, time dropped, tighter padding. */
-.gc-month .gc-chip {
-  flex-direction: row;
+.gc-chip {
+  display: flex;
   align-items: center;
-  padding: clamp(2px, 0.28vh, 4px) clamp(4px, 0.42vw, 8px);
+  min-width: 0;
 }
 
-.gc-month .gc-chip-title {
-  -webkit-line-clamp: 1;
+.gc-chip-time {
+  margin-right: 0.4em;
+  font-size: clamp(9px, 0.82vw, 14px);
+  font-weight: var(--w-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+}
+
+.gc-chip-title {
+  font-size: clamp(10px, 0.9vw, 15px);
+  font-weight: var(--w-body);
+  line-height: 1.3;
+  /* Under the day number, over the weekday label: the events are what you read
+     second, and the ranking has to be visible from across the room. */
+  color: color-mix(in srgb, var(--fg) 78%, transparent);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* A past event is not a lesser event on a month grid. Half of any month is behind
+   us, and dimming it dims half the wall — a thing the agenda can afford (you read
+   that one AGAINST the clock) and this one cannot. */
+.gc-chip.is-past {
+  opacity: 1;
 }
 
 .gc-more {
-  padding-left: 0.35em;
-  padding-top: 0.15em;
   font-size: clamp(8px, 0.85vw, 14px);
-  font-weight: var(--w-label);
-  letter-spacing: 0.02em;
-  color: var(--muted);
+  font-weight: var(--w-body);
+  color: var(--faint);
 }
 
-/* The fitter hides overflowing chips with the `hidden` attribute; `display:flex`
-   on `.gc-chip` would otherwise beat the UA's `[hidden] { display: none }`. */
+/* The fitter hides overflowing chips with the `hidden` attribute; `display:flex` on
+   `.gc-chip` would otherwise beat the UA's `[hidden] { display: none }`. */
 .gc-chip[hidden],
 .gc-more[hidden] {
   display: none;
@@ -775,15 +706,10 @@
   opacity: 0.45;
 }
 
-/* Compact variant inside a week column. */
 .gc-empty.is-compact {
   height: auto;
   min-height: 0;
-  padding-top: clamp(4px, 0.8vh, 10px);
   font-size: clamp(8px, 0.85vw, 14px);
-  font-weight: var(--w-body);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   opacity: 0.75;
 }
 
@@ -824,5 +750,11 @@
 @keyframes gc-shimmer {
   100% {
     transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gc-skel-row::after {
+    animation: none;
   }
 }

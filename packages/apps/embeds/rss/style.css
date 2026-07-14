@@ -45,23 +45,38 @@
    patches its text in place on a timer — re-rendering the story once a minute
    just to move a clock would restart every animation on the screen. */
 
-/* It reads as a device, not as a caption. Monospaced digits in a frosted chip,
-   with the colon pulsing in the accent — the one thing on the screen that proves
-   the player is alive rather than a photo of a player. All system faces: these
-   run offline, so a web font is not on the table.
+/* Bare digits, no plate. Monospaced, with the colon pulsing in the accent — the
+   one thing on the screen that proves the player is alive rather than a photo of
+   a player. All system faces: these run offline, so a web font is not on the
+   table.
+
+   Nothing sits behind the digits now, and FOUR of the layouts run a photograph
+   under this exact corner (cover, primetime, broadcast, kinetic) — the chip used
+   to be what held them up over one. The shadow below replaces it, and it is
+   keyed on the THEME rather than on those four layouts, because a list of modes
+   is a list that goes stale the first time someone writes a fifth full-bleed one.
+
+   It costs the flat layouts nothing, which is the point: a dark glow on a
+   near-black page and a white one on a white page are both invisible. It has to
+   flip with the theme for the same reason it is needed at all — dark digits on a
+   bright picture want a light halo, and a dark smudge under them would just read
+   as a printing error.
 
    `tabular-nums` matters more than it looks: without it the 1s are narrow and
    the whole clock twitches sideways every time the minute rolls over. */
 .rs-clock {
   position: absolute;
-  /* Same edge as the QR code below it — they read as one column of chrome. */
-  top: calc(var(--rs-edge) * 1.7);
+  /* Tucked up under the progress tiles, which are pinned across the top at
+     `0.85 × --rs-edge` in every layout. That rail is the floor the clock cannot go
+     above — the digits would land on it — and it is the whole reason this sits a
+     little lower than the same clock in Weather, which has no rail to clear.
+     Right edge shared with the QR code below, so the two read as one column of
+     chrome. */
+  top: calc(var(--rs-edge) * 1.35);
   right: var(--rs-edge);
   z-index: 3;
   display: flex;
   align-items: baseline;
-  padding: 0.24em 0.55em;
-  border-radius: 999px;
   font-family:
     ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
     Menlo, Consolas, monospace;
@@ -70,10 +85,18 @@
   line-height: 1.1;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
-  backdrop-filter: blur(10px) saturate(130%);
+  /* Two layers, and both earn it: a TIGHT one that draws an edge around each glyph
+     (what actually saves white digits on a white sky — a soft glow alone just goes
+     grey against it) and a wide soft one that lifts them off a busy picture. */
+  text-shadow:
+    0 0 0.05em rgba(0, 0, 0, 0.75),
+    0 0.02em 0.3em rgba(0, 0, 0, 0.55);
+}
+
+.rs-theme-light .rs-clock {
+  text-shadow:
+    0 0 0.05em rgba(255, 255, 255, 0.9),
+    0 0.02em 0.3em rgba(255, 255, 255, 0.75);
 }
 
 .rs-clock-sep {

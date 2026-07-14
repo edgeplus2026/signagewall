@@ -189,8 +189,8 @@ function render(): void {
   // gets it and none of them has to render one.
   //
   // But it is an OVERLAY, pinned to the top-right corner, and a layout with anything
-  // of its own up there (the week's temperature, the postcard's icon, the top-right
-  // tile) would have the clock sitting on top of it. `has-clock` is how a layout
+  // of its own up there (the week's temperature, the top-right tile) would have the
+  // clock sitting on top of it. `has-clock` is how a layout
   // knows to keep that corner clear — and knows NOT to give up the space when the
   // operator has turned the clock off, which is the whole reason this is a class on
   // the root rather than a permanent margin in each layout.

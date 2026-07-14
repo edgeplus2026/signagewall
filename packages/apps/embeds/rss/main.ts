@@ -1,3 +1,4 @@
+import { DEFAULT_ACCENT } from '../../src/_shared/theme.js'
 import { ITEM_COUNT, SECONDS_PER_STORY } from '../../src/rss/limits.js'
 import type { RssItem, RssPayload } from '../../src/rss/payload.js'
 import { connectToHost } from '../_shared/host-bridge.js'
@@ -36,8 +37,8 @@ import { DEFAULT_MODE, templateFor } from './templates/index.js'
 
 const root = document.getElementById('app')
 
-/** The app's accent. Fixed, not operator-configurable. */
-const ACCENT = '#F97316'
+/** The app's accent: the product's, and fixed — not operator-configurable. */
+const ACCENT = DEFAULT_ACCENT
 
 /** The two themes, whole. The operator picks one; there are no loose colours. */
 const PALETTE = {

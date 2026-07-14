@@ -84,7 +84,7 @@
    an analogue clock feel like an object rather than a diagram, and it is one curve
    away. */
 .ck-hand-second {
-  stroke: var(--ck-accent, #0ea5e9);
+  stroke: var(--ck-accent, #f97316);
   stroke-width: 2.5;
   transition: transform 180ms cubic-bezier(0.34, 1.9, 0.5, 1);
 }
@@ -96,7 +96,7 @@
 /* The counterweight pin, in the accent, sitting on top of the cap — the detail that
    reads as "watch" rather than "clip art". */
 .ck-cap-second {
-  fill: var(--ck-accent, #0ea5e9);
+  fill: var(--ck-accent, #f97316);
 }
 
 /* Reduced motion: the hands still move (they must — it is a clock), they just stop

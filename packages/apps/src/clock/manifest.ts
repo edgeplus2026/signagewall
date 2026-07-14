@@ -1,5 +1,6 @@
 import type { AppManifest } from '@edge/apps-contract'
 
+import { DEFAULT_ACCENT } from '../_shared/theme.js'
 import { DEFAULT_CLOCK_FACE, clockFaceOptions } from './faces.js'
 
 const CLOCK_ICON =
@@ -38,6 +39,12 @@ export const clockManifest: AppManifest = {
     // Picking a theme fills the three colour fields below (overwriting any custom
     // values). It is a starting point, not a mode — the operator can still change
     // any of the three afterwards.
+    //
+    // A theme changes the BACKGROUND and the TEXT, never the accent: all three carry
+    // the product accent, because it is the product's, not the theme's. Each one
+    // still has to name it — the `set` is what refills the field, so a theme that
+    // left `accentColor` out would leave a custom accent behind after a theme change
+    // and quietly make itself a half-reset. See `_shared/theme.ts`.
     {
       key: 'theme',
       type: 'select',
@@ -51,7 +58,7 @@ export const clockManifest: AppManifest = {
           set: {
             backgroundColor: '#FFFFFF',
             textColor: '#0F172A',
-            accentColor: '#0EA5E9',
+            accentColor: DEFAULT_ACCENT,
           },
         },
         {
@@ -60,7 +67,7 @@ export const clockManifest: AppManifest = {
           set: {
             backgroundColor: '#000000',
             textColor: '#FFFFFF',
-            accentColor: '#0EA5E9',
+            accentColor: DEFAULT_ACCENT,
           },
         },
         {
@@ -69,7 +76,7 @@ export const clockManifest: AppManifest = {
           set: {
             backgroundColor: '#0B1220',
             textColor: '#E2E8F0',
-            accentColor: '#F97316',
+            accentColor: DEFAULT_ACCENT,
           },
         },
       ],
@@ -127,7 +134,7 @@ export const clockManifest: AppManifest = {
       label: 'Accent colour',
       section: 'Theme Settings',
       help: 'The second hand, the ticking colon, the ring that closes — the one thing on the face that moves.',
-      default: '#0EA5E9',
+      default: DEFAULT_ACCENT,
     },
   ],
 }

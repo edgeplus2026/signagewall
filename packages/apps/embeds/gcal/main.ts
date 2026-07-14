@@ -3,6 +3,16 @@ import { connectToHost } from '../_shared/host-bridge.js'
 import '../_shared/base.css'
 import './style.css'
 
+/**
+ * Google Calendar, drawn in one colour.
+ *
+ * There is no accent in this app and no colour field behind one. A calendar is a
+ * page that is ALL content — every cell carries an event — so an accent here does
+ * not mark one thing, it tints the whole screen, and a wall of one hue stops
+ * saying "look here" the moment everything is it. What is left does the marking:
+ * the ruled grid, the weight of the type, and a single filled disc on today.
+ */
+
 /** Display settings the operator sets in the config form. */
 interface GcalConfig {
   calendarView?: 'day' | 'week' | 'month' | 'schedule'
@@ -10,38 +20,24 @@ interface GcalConfig {
   autoScroll?: boolean
   language?: 'en' | 'sr'
   theme?: 'light' | 'dark'
-  accentColor?: string
-}
-
-const DEFAULT_ACCENT = '#111827'
-
-/** Only accept plain hex colours before injecting into the `--accent` var. */
-function safeAccent(value: string | undefined): string {
-  return value && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value)
-    ? value
-    : DEFAULT_ACCENT
 }
 
 const STRINGS = {
   en: {
-    today: 'Today',
-    tomorrow: 'Tomorrow',
     noEvents: 'No events',
     noEventsLong: 'Nothing scheduled',
     allDay: 'All day',
-    now: 'Now',
-    next: 'Next',
+    upcoming: 'Upcoming',
+    everything: 'All events',
     loading: 'Loading calendar…',
     events: (n: number) => (n === 1 ? '1 event' : `${n} events`),
   },
   sr: {
-    today: 'Danas',
-    tomorrow: 'Sutra',
     noEvents: 'Nema događaja',
     noEventsLong: 'Ništa nije zakazano',
     allDay: 'Ceo dan',
-    now: 'U toku',
-    next: 'Sledeće',
+    upcoming: 'Predstojeće',
+    everything: 'Svi događaji',
     loading: 'Učitavanje kalendara…',
     events: (n: number) => `${n} ${n === 1 ? 'događaj' : 'događaja'}`,
   },
@@ -132,6 +128,37 @@ function clockTime(d: Date, locale: string): string {
   return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 }
 
+/** The gutter's hour marks: "8:00", not "08:00" — a rail of leading zeros is noise. */
+function hourLabel(hour: number, locale: string): string {
+  const d = new Date(2000, 0, 1, hour, 0)
+  return d.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' })
+}
+
+function timeRange(event: GcalEvent, locale: string): string {
+  const start = clockTime(eventStart(event), locale)
+  if (!event.end) return start
+  return `${start}–${clockTime(eventEnd(event), locale)}`
+}
+
+/**
+ * A date, as a TITLE.
+ *
+ * `toLocaleDateString` is right and it still isn't what we want on a wall: Serbian
+ * writes the month in lower case and closes the year with an ordinal dot, which is
+ * correct in a sentence and wrong as a heading. Capitalise the first letter, drop a
+ * trailing dot. English produces neither, so it passes through untouched — this is
+ * a typographic trim, not a translation.
+ */
+function asTitle(value: string, locale: string): string {
+  const trimmed = value.replace(/\.$/, '')
+  return trimmed.charAt(0).toLocaleUpperCase(locale) + trimmed.slice(1)
+}
+
+/** Minutes from the local midnight of `day` — negative before it, >1440 after. */
+function minutesInDay(at: Date, day: Date): number {
+  return (at.getTime() - startOfDay(day).getTime()) / 60_000
+}
+
 /** Events overlapping `day` — including the middle days of multi-day events. */
 function eventsOnDay(events: GcalEvent[], day: Date): GcalEvent[] {
   const from = startOfDay(day).getTime()
@@ -159,61 +186,45 @@ function timeAttrs(event: GcalEvent): string {
   return ` data-start="${start}" data-end="${end}"${allDay}`
 }
 
-function durationLabel(event: GcalEvent): string {
-  if (event.allDay || !event.end) return ''
-  const minutes = Math.round(
-    (eventEnd(event).getTime() - eventStart(event).getTime()) / 60_000,
-  )
-  if (minutes <= 0) return ''
-  const hours = Math.floor(minutes / 60)
-  const rest = minutes % 60
-  if (hours >= 24) return ''
-  if (hours === 0) return `${rest}m`
-  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`
-}
-
 // ----- event rendering -----
 
-/** Timeline row used by the day and schedule views. */
-function eventRow(event: GcalEvent, locale: string, lang: Lang): string {
-  const title = escapeHtml(event.title)
-
+/**
+ * One line of the schedule: the date on the left, the event, the hours on the
+ * right, a hairline under it. The date rides with every row rather than heading a
+ * group of them — a wall is read in glances, and a glance that lands three rows
+ * into a section has nothing to tell it which day it is looking at.
+ */
+function scheduleRow(
+  event: GcalEvent,
+  now: Date,
+  locale: string,
+  lang: Lang,
+): string {
+  const start = eventStart(event)
   const when = event.allDay
-    ? `<span class="gc-allday">${escapeHtml(STRINGS[lang].allDay)}</span>`
-    : `<span class="gc-start">${escapeHtml(clockTime(eventStart(event), locale))}</span>${
-        event.end
-          ? `<span class="gc-end">${escapeHtml(clockTime(eventEnd(event), locale))}</span>`
-          : ''
-      }`
+    ? escapeHtml(STRINGS[lang].allDay)
+    : escapeHtml(timeRange(event, locale))
 
-  const bits: string[] = []
-  const duration = durationLabel(event)
-  if (duration) bits.push(`<span class="gc-dur">${duration}</span>`)
-  if (event.location) {
-    bits.push(
-      `<span class="gc-loc">${ICON_PIN}${escapeHtml(event.location)}</span>`,
-    )
-  }
-  const meta = bits.length ? `<div class="gc-meta">${bits.join('')}</div>` : ''
+  const location = event.location
+    ? `<div class="gc-row-loc">${ICON_PIN}${escapeHtml(event.location)}</div>`
+    : ''
 
   return `
-    <li class="gc-item${event.allDay ? ' is-allday' : ''}"${timeAttrs(event)}>
-      <div class="gc-when">${when}</div>
-      <div class="gc-rail"><span class="gc-node"></span></div>
-      <div class="gc-card">
-        <span class="gc-strip"></span>
-        <div class="gc-card-main">
-          <div class="gc-item-title">${title}</div>
-          ${meta}
-        </div>
-        <span class="gc-badge gc-badge-now"><i class="gc-pulse"></i>${escapeHtml(STRINGS[lang].now)}</span>
-        <span class="gc-badge gc-badge-next">${escapeHtml(STRINGS[lang].next)}</span>
-        <div class="gc-progress"><div class="gc-progress-fill"></div></div>
+    <li class="gc-row${sameDay(start, now) ? ' is-today' : ''}"${timeAttrs(event)}>
+      <div class="gc-row-date">
+        <span class="gc-row-dow">${escapeHtml(start.toLocaleDateString(locale, { weekday: 'short' }))}</span>
+        <span class="gc-row-num">${start.getDate()}</span>
+        <span class="gc-row-mon">${escapeHtml(start.toLocaleDateString(locale, { month: 'short' }))}</span>
       </div>
+      <div class="gc-row-body">
+        <div class="gc-row-title">${escapeHtml(event.title)}</div>
+        ${location}
+      </div>
+      <div class="gc-row-when">${when}</div>
     </li>`
 }
 
-/** Compact chip used by the week columns and the month cells. */
+/** Compact chip used by the month cells and the time grid's all-day rail. */
 function eventChip(
   event: GcalEvent,
   locale: string,
@@ -236,21 +247,173 @@ function emptyState(lang: Lang, compact: boolean): string {
   }<span>${escapeHtml(text)}</span></div>`
 }
 
-function agenda(events: GcalEvent[], locale: string, lang: Lang): string {
-  if (events.length === 0) return emptyState(lang, false)
-  return `<ul class="gc-list">${events
-    .map((event) => eventRow(event, locale, lang))
-    .join('')}</ul>`
+// ----- the time grid (day + week) -----
+
+/**
+ * The hours the grid draws. A working day by default — starting at midnight would
+ * spend a third of the screen on the hours nobody is in the building — but it is a
+ * FLOOR, not a rule: an event outside it widens the window rather than being drawn
+ * outside the grid or, worse, silently left out.
+ */
+const GRID_FROM = 8
+const GRID_TO = 20
+
+interface Placed {
+  event: GcalEvent
+  /** Minutes from this day's midnight, clamped to the day. */
+  from: number
+  to: number
+  lane: number
+}
+
+/**
+ * Timed events for one day, each clamped to it and given a lane.
+ *
+ * Two events at the same hour must not be drawn on top of each other — the one
+ * underneath is simply gone, and a calendar that hides an appointment is worse than
+ * no calendar. So overlapping events share the column's width: greedily, each event
+ * takes the first lane whose last event has already ended.
+ */
+function placeDay(events: GcalEvent[], day: Date): { placed: Placed[]; lanes: number } {
+  const timed = events
+    .filter((event) => !event.allDay)
+    .map((event) => ({
+      event,
+      from: Math.max(0, minutesInDay(eventStart(event), day)),
+      to: Math.min(1440, minutesInDay(eventEnd(event), day)),
+      lane: 0,
+    }))
+    // A zero-length event still deserves to be seen: give it a floor of 15 minutes.
+    .map((p) => ({ ...p, to: Math.max(p.to, p.from + 15) }))
+    .sort((a, b) => a.from - b.from || b.to - a.to)
+
+  const laneEnds: number[] = []
+  for (const p of timed) {
+    let lane = laneEnds.findIndex((end) => end <= p.from)
+    if (lane === -1) {
+      lane = laneEnds.length
+      laneEnds.push(0)
+    }
+    laneEnds[lane] = p.to
+    p.lane = lane
+  }
+  return { placed: timed, lanes: Math.max(1, laneEnds.length) }
+}
+
+/** The window, widened by whatever falls outside the working day. */
+function hourWindow(days: Date[], events: GcalEvent[]): { from: number; to: number } {
+  let from = GRID_FROM
+  let to = GRID_TO
+  for (const day of days) {
+    for (const p of placeDay(eventsOnDay(events, day), day).placed) {
+      from = Math.min(from, Math.floor(p.from / 60))
+      to = Math.max(to, Math.ceil(p.to / 60))
+    }
+  }
+  return { from: Math.max(0, from), to: Math.min(24, Math.max(to, from + 1)) }
+}
+
+function timeGrid(
+  days: Date[],
+  data: GcalPayload,
+  now: Date,
+  locale: string,
+  lang: Lang,
+  // Seven columns have room for "Uto" and no more; one column has room for the
+  // whole word, and on the view that is ABOUT a single day it should say it.
+  longDow = false,
+): string {
+  const { from, to } = hourWindow(days, data.events)
+  const spanMinutes = (to - from) * 60
+  const hourCount = to - from
+
+  const heads = days
+    .map((day) => {
+      const isToday = sameDay(day, now)
+      const dow = day.toLocaleDateString(locale, {
+        weekday: longDow ? 'long' : 'short',
+      })
+      return `
+        <div class="gc-tg-head${isToday ? ' is-today' : ''}">
+          <span class="gc-tg-dow">${escapeHtml(dow)}</span>
+          <span class="gc-tg-num">${day.getDate()}</span>
+        </div>`
+    })
+    .join('')
+
+  const allDayCells = days
+    .map((day) => {
+      const chips = eventsOnDay(data.events, day)
+        .filter((event) => event.allDay)
+        .map((event) => eventChip(event, locale, false))
+        .join('')
+      return `<div class="gc-tg-ad gc-chips gc-fit">${chips}<div class="gc-more" hidden></div></div>`
+    })
+    .join('')
+
+  const hours = Array.from(
+    { length: hourCount },
+    (_unused, i) =>
+      `<div class="gc-tg-hour"><span>${escapeHtml(hourLabel(from + i, locale))}</span></div>`,
+  ).join('')
+
+  const columns = days
+    .map((day) => {
+      const isToday = sameDay(day, now)
+      const slots = Array.from(
+        { length: hourCount },
+        () => '<div class="gc-tg-slot"></div>',
+      ).join('')
+
+      const { placed, lanes } = placeDay(eventsOnDay(data.events, day), day)
+      const blocks = placed
+        .map((p) => {
+          // Clipped to the window, not dropped by it: an event that starts before
+          // the first hour drawn still begins at the top of the column.
+          const top = Math.max(0, ((p.from - from * 60) / spanMinutes) * 100)
+          const bottom = Math.min(100, ((p.to - from * 60) / spanMinutes) * 100)
+          const width = 100 / lanes
+          return `
+            <div class="gc-tg-ev"${timeAttrs(p.event)} style="top:${top.toFixed(3)}%;height:${Math.max(0, bottom - top).toFixed(3)}%;left:${(p.lane * width).toFixed(3)}%;width:${width.toFixed(3)}%">
+              <div class="gc-tg-ev-title">${escapeHtml(p.event.title)}</div>
+              <div class="gc-tg-ev-time">${escapeHtml(timeRange(p.event, locale))}</div>
+            </div>`
+        })
+        .join('')
+
+      return `<div class="gc-tg-col${isToday ? ' is-today' : ''}">${slots}${blocks}</div>`
+    })
+    .join('')
+
+  // One grid, N+1 columns: the hour gutter and then a column per day. The head, the
+  // all-day rail and the body are its three rows, so every line in the thing is the
+  // same line — the day columns cannot drift from their own headings.
+  return `
+    <div class="gc-tg" style="--days:${days.length}">
+      <div class="gc-tg-corner"></div>
+      ${heads}
+      <div class="gc-tg-ad-label">${escapeHtml(STRINGS[lang].allDay)}</div>
+      ${allDayCells}
+      <div class="gc-tg-gutter">${hours}</div>
+      ${columns}
+    </div>`
 }
 
 // ----- header -----
 
+/**
+ * The same header on every view: what calendar this is, what you are looking at,
+ * and how much of it there is.
+ *
+ * No clock. It used to carry one and the app is better without it — a calendar is
+ * not a status bar, and the time of day is the one thing a person standing in front
+ * of a screen already knows. (The Clock app exists, and a playlist can run both.)
+ */
 function header(
   eyebrow: string,
   title: string,
   count: number | null,
   lang: Lang,
-  locale: string,
 ): string {
   const events =
     count === null
@@ -259,13 +422,10 @@ function header(
   return `
     <header class="gc-head">
       <div class="gc-head-main">
-        <div class="gc-eyebrow"><i class="gc-dot"></i>${escapeHtml(eyebrow)}</div>
+        <div class="gc-eyebrow">${escapeHtml(eyebrow)}</div>
         <h1 class="gc-title">${escapeHtml(title)}</h1>
       </div>
-      <div class="gc-head-side">
-        <div class="gc-clock">${escapeHtml(clockTime(new Date(), locale))}</div>
-        ${events}
-      </div>
+      <div class="gc-head-side">${events}</div>
     </header>`
 }
 
@@ -278,14 +438,24 @@ function renderDay(
   lang: Lang,
 ): string {
   const events = eventsOnDay(data.events, now)
-  const heading = now.toLocaleDateString(locale, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  })
+  // The day view names the WEEKDAY above the date rather than the calendar: on the
+  // one view that is about a single day, "Tuesday" is what the person in front of
+  // the screen came for, and the calendar's name is the least of it.
+  const eyebrow = asTitle(
+    now.toLocaleDateString(locale, { weekday: 'long' }),
+    locale,
+  )
+  const heading = asTitle(
+    now.toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }),
+    locale,
+  )
   return `
-    ${header(data.calendarLabel, heading, events.length, lang, locale)}
-    <div class="gc-scroll">${agenda(events, locale, lang)}</div>`
+    ${header(eyebrow, heading, events.length, lang)}
+    ${timeGrid([now], data, now, locale, lang, true)}`
 }
 
 function renderWeek(
@@ -296,40 +466,28 @@ function renderWeek(
 ): string {
   const weekStart = startOfWeek(now)
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
-  const range = `${weekStart.toLocaleDateString(locale, {
-    day: 'numeric',
-    month: 'short',
-  })} – ${addDays(weekStart, 6).toLocaleDateString(locale, {
-    day: 'numeric',
-    month: 'short',
-  })}`
 
-  let total = 0
-  const columns = days
-    .map((day) => {
-      const dayEvents = eventsOnDay(data.events, day)
-      total += dayEvents.length
-      const isToday = sameDay(day, now)
-      const dow = day.toLocaleDateString(locale, { weekday: 'short' })
-      const body = dayEvents.length
-        ? `<div class="gc-chips gc-fit">${dayEvents
-            .map((event) => eventChip(event, locale, true))
-            .join('')}<div class="gc-more" hidden></div></div>`
-        : emptyState(lang, true)
-      return `
-        <div class="gc-col${isToday ? ' is-today' : ''}">
-          <div class="gc-col-head">
-            <span class="gc-col-dow">${escapeHtml(dow)}</span>
-            <span class="gc-col-num">${day.getDate()}</span>
-          </div>
-          <div class="gc-col-body">${body}</div>
-        </div>`
-    })
-    .join('')
+  // `formatRange` and not a hand-built "13. jul – 19. jul": it is the locale that
+  // knows a range within one month collapses to "13–19. jul 2026", and knows to
+  // write it "July 13 – 19, 2026" in English. Building that by hand is how an app
+  // ends up fluent in one language and clumsy in the other.
+  const range = asTitle(
+    new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).formatRange(days[0] ?? now, days[6] ?? now),
+    locale,
+  )
+
+  const total = days.reduce(
+    (sum, day) => sum + eventsOnDay(data.events, day).length,
+    0,
+  )
 
   return `
-    ${header(data.calendarLabel, range, total, lang, locale)}
-    <div class="gc-scroll"><div class="gc-week">${columns}</div></div>`
+    ${header(data.calendarLabel, range, total, lang)}
+    ${timeGrid(days, data, now, locale, lang)}`
 }
 
 function renderMonth(
@@ -338,12 +496,20 @@ function renderMonth(
   locale: string,
   lang: Lang,
 ): string {
-  const heading = now.toLocaleDateString(locale, {
-    month: 'long',
-    year: 'numeric',
-  })
   const monthFirst = new Date(now.getFullYear(), now.getMonth(), 1)
+  const monthLast = new Date(now.getFullYear(), now.getMonth() + 1, 0)
   const gridStart = startOfWeek(monthFirst)
+  const gridEnd = addDays(startOfWeek(monthLast), 6)
+
+  // Only the weeks the month actually touches — five for most, six when it spills.
+  // A fixed 42 cells buys a guaranteed rectangle and pays for it with a whole empty
+  // row of nothing on two months out of three, which on a wall is just a wasted
+  // seventh of the screen. Rounding the division absorbs the 23- and 25-hour days a
+  // DST change puts in the middle of a month.
+  const cellCount =
+    Math.round(
+      (gridEnd.getTime() - gridStart.getTime()) / (24 * 60 * 60 * 1000),
+    ) + 1
 
   const dows = Array.from({ length: 7 }, (_, i) =>
     addDays(gridStart, i).toLocaleDateString(locale, { weekday: 'short' }),
@@ -352,7 +518,7 @@ function renderMonth(
     .join('')
 
   let total = 0
-  const cells = Array.from({ length: 42 }, (_, i) => {
+  const cells = Array.from({ length: cellCount }, (_, i) => {
     const day = addDays(gridStart, i)
     const inMonth = day.getMonth() === now.getMonth()
     const isToday = sameDay(day, now)
@@ -370,10 +536,20 @@ function renderMonth(
       </div>`
   }).join('')
 
+  // The weekday rail and the cells are wrapped as ONE object: they share a frame and
+  // the same hairlines, so the thing reads as a ruled table rather than a row of
+  // labels floating above a row of boxes.
+  const heading = asTitle(
+    now.toLocaleDateString(locale, { month: 'long', year: 'numeric' }),
+    locale,
+  )
+
   return `
-    ${header(data.calendarLabel, heading, total, lang, locale)}
-    <div class="gc-dows">${dows}</div>
-    <div class="gc-month">${cells}</div>`
+    ${header(data.calendarLabel, heading, total, lang)}
+    <div class="gc-grid">
+      <div class="gc-dows">${dows}</div>
+      <div class="gc-month">${cells}</div>
+    </div>`
 }
 
 function renderSchedule(
@@ -387,59 +563,35 @@ function renderSchedule(
     .filter((event) =>
       onlyUpcoming ? eventEnd(event).getTime() >= now.getTime() : true,
     )
-    .sort(compareEvents)
-
-  const heading = now.toLocaleDateString(locale, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  })
-
-  if (events.length === 0) {
-    return `
-      ${header(data.calendarLabel, heading, 0, lang, locale)}
-      <div class="gc-scroll">${emptyState(lang, false)}</div>`
-  }
-
-  const groups = new Map<number, GcalEvent[]>()
-  for (const event of events) {
-    const key = startOfDay(eventStart(event)).getTime()
-    const list = groups.get(key) ?? []
-    list.push(event)
-    groups.set(key, list)
-  }
-
-  const tomorrow = addDays(startOfDay(now), 1)
-  const sections = [...groups.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .map(([key, list]) => {
-      const day = new Date(key)
-      const isToday = sameDay(day, now)
-      const label = isToday
-        ? STRINGS[lang].today
-        : sameDay(day, tomorrow)
-          ? STRINGS[lang].tomorrow
-          : day.toLocaleDateString(locale, { weekday: 'long' })
-      const date = day.toLocaleDateString(locale, {
-        day: 'numeric',
-        month: 'long',
-      })
-      const rows = list.map((event) => eventRow(event, locale, lang)).join('')
-      return `
-        <section class="gc-group${isToday ? ' is-today' : ''}">
-          <div class="gc-group-head">
-            <span class="gc-group-label">${escapeHtml(label)}</span>
-            <span class="gc-group-date">${escapeHtml(date)}</span>
-            <span class="gc-group-rule"></span>
-          </div>
-          <ul class="gc-list">${rows}</ul>
-        </section>`
+    // By DAY first, and only then by `compareEvents`.
+    //
+    // `compareEvents` floats all-day events above timed ones, which is what you want
+    // inside a day and a disaster across a list of them: sorted flat, every birthday
+    // in the calendar climbs above tomorrow morning's meeting. The old view got away
+    // with it because it grouped the days afterwards and the grouping put them back;
+    // this one has no groups to hide behind.
+    .sort((a, b) => {
+      const dayA = startOfDay(eventStart(a)).getTime()
+      const dayB = startOfDay(eventStart(b)).getTime()
+      return dayA - dayB || compareEvents(a, b)
     })
-    .join('')
+
+  // The heading names the LIST, not today's date: this view is a run of days, and
+  // titling it with one of them was always a small lie.
+  const heading = onlyUpcoming
+    ? STRINGS[lang].upcoming
+    : STRINGS[lang].everything
+
+  const body =
+    events.length === 0
+      ? emptyState(lang, false)
+      : `<ul class="gc-agenda">${events
+          .map((event) => scheduleRow(event, now, locale, lang))
+          .join('')}</ul>`
 
   return `
-    ${header(data.calendarLabel, heading, events.length, lang, locale)}
-    <div class="gc-scroll">${sections}</div>`
+    ${header(data.calendarLabel, heading, events.length, lang)}
+    <div class="gc-scroll">${body}</div>`
 }
 
 function renderSkeleton(lang: Lang): string {
@@ -450,7 +602,7 @@ function renderSkeleton(lang: Lang): string {
   return `
     <header class="gc-head">
       <div class="gc-head-main">
-        <div class="gc-eyebrow"><i class="gc-dot"></i>${escapeHtml(STRINGS[lang].loading)}</div>
+        <div class="gc-eyebrow">${escapeHtml(STRINGS[lang].loading)}</div>
         <div class="gc-skel-title"></div>
       </div>
     </header>
@@ -497,43 +649,26 @@ function fitAllChips(): void {
 // ----- live status (ticks in place, so auto-scroll never restarts) -----
 
 /**
- * Re-derive `is-past` / `is-live` / `is-next` from the wall clock and update the
- * in-progress bar. Runs on a timer against the already-rendered DOM: rebuilding
- * the markup would reset the auto-scroll position every tick.
+ * Re-derive `is-past` / `is-live` from the wall clock. Runs on a timer against the
+ * already-rendered DOM: rebuilding the markup would reset the auto-scroll position
+ * every tick.
+ *
+ * Both are drawn in ink, not in colour — a dimmed row for what is done, a solid
+ * rail for what is running. There is no "Now" badge any more: a pill shouting at
+ * the one event that happens to be in progress is the loudest thing on a page whose
+ * whole argument is that it doesn't shout.
  */
 function refreshStatuses(now: number): void {
   if (!root) return
-  let nextMarked = false
   for (const el of root.querySelectorAll<HTMLElement>('[data-start]')) {
     const start = Number(el.dataset.start)
     const end = Number(el.dataset.end)
-    const live = start <= now && now < end
-    const past = end <= now
-    el.classList.toggle('is-live', live)
-    el.classList.toggle('is-past', past)
-
-    // Rows are laid out chronologically, so the first non-past row is "next".
-    // All-day rows are skipped: an untimed event isn't what happens next.
-    const isItem = el.classList.contains('gc-item')
-    const isNext = isItem && !el.dataset.allday && !live && !past && !nextMarked
-    if (isNext) nextMarked = true
-    el.classList.toggle('is-next', isNext)
-
-    const fill = el.querySelector<HTMLElement>('.gc-progress-fill')
-    if (fill) {
-      const span = end - start
-      const pct = live && span > 0 ? ((now - start) / span) * 100 : 0
-      fill.style.width = `${Math.min(100, Math.max(0, pct))}%`
-    }
+    el.classList.toggle('is-live', start <= now && now < end)
+    el.classList.toggle('is-past', end <= now)
   }
 }
 
-function refreshClock(now: Date, locale: string): void {
-  const el = root?.querySelector<HTMLElement>('.gc-clock')
-  if (el) el.textContent = clockTime(now, locale)
-}
-
-function startTicker(locale: string): void {
+function startTicker(): void {
   if (ticker !== undefined) clearInterval(ticker)
   ticker = window.setInterval(() => {
     const now = new Date()
@@ -542,7 +677,6 @@ function startTicker(locale: string): void {
       render(state.config, state.data)
       return
     }
-    refreshClock(now, locale)
     refreshStatuses(now.getTime())
   }, TICK_MS)
 }
@@ -600,7 +734,6 @@ function render(config: GcalConfig, data: GcalPayload | null): void {
   const lang: Lang = config.language === 'sr' ? 'sr' : 'en'
   const locale = localeOf(lang)
   const theme = config.theme === 'dark' ? 'dark' : 'light'
-  const accent = safeAccent(config.accentColor)
   const view = config.calendarView ?? 'schedule'
   const now = new Date()
   renderedDay = startOfDay(now).getTime()
@@ -625,14 +758,14 @@ function render(config: GcalConfig, data: GcalPayload | null): void {
   }
 
   // `gc-view-*` (not `gc-<view>`) so the root modifier never collides with the
-  // inner grid classes `.gc-week` / `.gc-month`, which would otherwise override
-  // the root's flex layout.
-  root.innerHTML = `<div class="gc gc-view-${view} gc-theme-${theme}" style="--accent:${accent}">${body}</div>`
+  // inner grid classes `.gc-month` / `.gc-tg`, which would otherwise override the
+  // root's flex layout.
+  root.innerHTML = `<div class="gc gc-view-${view} gc-theme-${theme}">${body}</div>`
 
   refreshStatuses(now.getTime())
   // Chips can only be measured once the grid has been laid out.
   requestAnimationFrame(fitAllChips)
-  startTicker(locale)
+  startTicker()
 
   if (config.autoScroll) {
     startAutoScroll()

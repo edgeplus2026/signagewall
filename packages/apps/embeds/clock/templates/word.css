@@ -61,10 +61,10 @@
 
 .ck-word-cell.is-lit {
   opacity: 1;
-  color: var(--ck-accent, #0ea5e9);
+  color: var(--ck-accent, #f97316);
   /* The glow is what makes it read as a lit letter rather than a coloured one — a
      word clock is a box with LEDs behind a stencil, and this is that. */
-  text-shadow: 0 0 0.5em color-mix(in srgb, var(--ck-accent, #0ea5e9) 55%, transparent);
+  text-shadow: 0 0 0.5em color-mix(in srgb, var(--ck-accent, #f97316) 55%, transparent);
 }
 
 /* The date sits under the grid, and quieter here than on the other faces — the grid

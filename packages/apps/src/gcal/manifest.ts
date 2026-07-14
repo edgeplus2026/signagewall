@@ -97,13 +97,13 @@ export const gcalManifest: AppManifest = {
         { label: 'Dark', value: 'dark' },
       ],
     },
-    {
-      key: 'accentColor',
-      type: 'color',
-      label: 'Accent color',
-      section: 'Theme Settings',
-      help: "Colors today's date and every event on the calendar.",
-      default: '#111827',
-    },
+    // No accent colour field, and its absence is the design.
+    //
+    // A calendar is a page that is ALL content: every cell carries an event. An
+    // accent there does not mark ONE thing — it tints the whole screen, and a wall
+    // of a single hue stops meaning "look here" the moment everything is it. The
+    // views are drawn in one ink: a ruled grid, the weight of the type, and a
+    // single filled disc on today. Handing the operator a colour picker would only
+    // let them undo that.
   ],
 }

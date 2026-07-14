@@ -48,12 +48,12 @@
    traffic-light face (red/amber/green rings) would read as an alert, and this is a
    clock. */
 .ck-orbit-hour {
-  stroke: var(--ck-accent, #0ea5e9);
+  stroke: var(--ck-accent, #f97316);
   opacity: 1;
 }
 
 .ck-orbit-minute {
-  stroke: var(--ck-accent, #0ea5e9);
+  stroke: var(--ck-accent, #f97316);
   opacity: 0.6;
 }
 

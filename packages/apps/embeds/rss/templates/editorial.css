@@ -17,11 +17,22 @@
   font-family: Georgia, 'Times New Roman', 'Noto Serif', serif;
 }
 
-/* The plate runs to the right edge, so the shared bottom-right QR would sit on
-   top of the photograph. Move it under the text column instead and lift the whole
-   page to make room — the page is centred, so it simply rises. */
-.ed.has-qr {
-  padding-bottom: 11em;
+/* The plate runs to the right edge, so the shared bottom-right QR would sit on top
+   of the photograph. It moves under the TEXT COLUMN instead — and the room for it
+   has to be made THERE, not on the page.
+
+   Lifting the whole page (a bottom padding on `.ed`) is the obvious move and it is
+   the wrong one: the grid centres both columns in whatever is left, so the plate —
+   which has nothing underneath it and needs no room — rises along with the text,
+   climbs into the clock and the progress tiles, and leaves a band of dead space
+   under itself.
+
+   So the reservation goes on the column alone. Under `align-items: center` a bottom
+   padding of P centres the column's CONTENT at `(H - P) / 2`, which is exactly where
+   the page-wide padding used to put it — the words do not move. The plate stays
+   centred on the full height, and stops running away. */
+.ed.has-qr .ed-column {
+  padding-bottom: 7.5em;
 }
 
 .ed .rs-qr {
@@ -130,8 +141,16 @@
     padding: 5em 2.4em 3em;
   }
 
+  /* Portrait stacks the plate OVER the column and centres the QR beneath both, so
+     here the whole page really does have to rise — the plate is no longer beside the
+     QR, it is above it. Which means the column must NOT reserve the room a second
+     time, or the page is lifted twice. */
   .ed.has-qr {
     padding-bottom: 11em;
+  }
+
+  .ed.has-qr .ed-column {
+    padding-bottom: 0;
   }
 
   .ed-plate {

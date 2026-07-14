@@ -17,7 +17,6 @@ import type { FieldOption } from '@edge/apps-contract'
  */
 export const WEATHER_DISPLAY_MODES = [
   { value: 'glance', label: 'At a glance — the temperature and the week' },
-  { value: 'horizon', label: 'Horizon — the sky fills the screen' },
   { value: 'panel', label: 'Panel — every reading, laid out' },
   { value: 'hourly', label: 'Hour by hour — how today unfolds' },
   { value: 'week', label: 'The week — seven days, warmest to coldest' },
@@ -25,7 +24,6 @@ export const WEATHER_DISPLAY_MODES = [
   { value: 'minimal', label: 'Minimal — the temperature, and nothing else' },
   { value: 'agency', label: 'Agency — a weather desk on the news' },
   { value: 'tiles', label: 'Tiles — a board of cards' },
-  { value: 'postcard', label: 'Postcard — the place, in big letters' },
 ] as const
 
 /** The `displayMode` config values, narrowed to the modes we actually ship. */

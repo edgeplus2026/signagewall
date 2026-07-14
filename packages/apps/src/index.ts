@@ -47,6 +47,7 @@ export {
   styleFields,
 } from './_shared/style-fields.js'
 export type { StyleFieldDefaults } from './_shared/style-fields.js'
+export { DEFAULT_ACCENT } from './_shared/theme.js'
 
 export {
   DEFAULT_DISPLAY_MODE,

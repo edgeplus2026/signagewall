@@ -2,11 +2,9 @@ import type { WeatherDisplayMode } from '../../../src/weather/display-modes.js'
 import type { WeatherTemplate } from '../context.js'
 import { agencyTemplate } from './agency.js'
 import { glanceTemplate } from './glance.js'
-import { horizonTemplate } from './horizon.js'
 import { hourlyTemplate } from './hourly.js'
 import { minimalTemplate } from './minimal.js'
 import { panelTemplate } from './panel.js'
-import { postcardTemplate } from './postcard.js'
 import { solarTemplate } from './solar.js'
 import { tilesTemplate } from './tiles.js'
 import { weekTemplate } from './week.js'
@@ -38,7 +36,6 @@ import { weekTemplate } from './week.js'
 
 const TEMPLATES: Record<WeatherDisplayMode, WeatherTemplate> = {
   glance: glanceTemplate,
-  horizon: horizonTemplate,
   panel: panelTemplate,
   hourly: hourlyTemplate,
   week: weekTemplate,
@@ -46,7 +43,6 @@ const TEMPLATES: Record<WeatherDisplayMode, WeatherTemplate> = {
   minimal: minimalTemplate,
   agency: agencyTemplate,
   tiles: tilesTemplate,
-  postcard: postcardTemplate,
 }
 
 /** The layout used when the config names none, or names one we don't ship. */

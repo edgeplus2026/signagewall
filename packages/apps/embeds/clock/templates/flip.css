@@ -40,7 +40,22 @@
   right: 0;
   height: 50%;
   overflow: hidden;
-  background: color-mix(in srgb, currentColor 11%, transparent);
+
+  /* THE FILL MUST BE OPAQUE, and this is the whole trick of the card.
+     `currentColor 11%` over the BACKGROUND, never over `transparent`.
+
+     The two look identical on screen and they are not the same thing. A leaf is a
+     piece of card LYING ON another piece of card, and the one underneath is not
+     showing the same number: the static bottom half goes on holding the OLD digit for
+     ever (see `flip.ts` — nothing cleans up after the fold, and nothing needs to,
+     precisely because the leaf covers it). Mix with `transparent` and that leaf is a
+     sheet of glass: the old digit reads straight through the new one, and the card
+     spends its life showing an 8 with a 0 inside it.
+
+     `--ck-bg` is the operator's background colour, published by `main.ts` for exactly
+     this. The fallback is the default theme's black — it should never be reached,
+     because the property is set before any face is mounted. */
+  background: color-mix(in srgb, currentColor 11%, var(--ck-bg, #000000));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 7%, transparent);
   /* The card must be opaque from behind, or the leaf's own reverse would show
      through as it passes the halfway point. */
@@ -62,14 +77,16 @@
 .ck-flip-leaf-bottom {
   bottom: 0;
   border-radius: 0 0 0.1em 0.1em;
-  /* The lower half of a flap sits in the upper half's shadow. */
+  /* The lower half of a flap sits in the upper half's shadow. The shadow is a
+     translucent sheen — it is allowed to be, because it lies on the opaque base
+     below it in this same background, not on the layer behind the card. */
   background:
     linear-gradient(
       to bottom,
       color-mix(in srgb, currentColor 4%, transparent),
       transparent 30%
     ),
-    color-mix(in srgb, currentColor 11%, transparent);
+    color-mix(in srgb, currentColor 11%, var(--ck-bg, #000000));
 }
 
 /* THE DIGIT IS CENTRED ON THE WHOLE CARD, and each window clips it.
@@ -157,7 +174,7 @@
 .ck-flip-colon {
   font-size: 0.5em;
   font-weight: 300;
-  color: var(--ck-accent, #0ea5e9);
+  color: var(--ck-accent, #f97316);
   animation: ck-pulse 2s ease-in-out infinite;
 }
 

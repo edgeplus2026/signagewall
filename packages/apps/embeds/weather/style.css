@@ -57,17 +57,19 @@
    It shows the PLAYER's time, not the forecast place's: the people reading it are
    standing in front of the screen, not in the city being forecast.
 
+   There is no plate behind it: the digits sit straight on the sky. So they INHERIT the
+   sky's text-shadow rather than cancelling it — with no backdrop to lift them off a
+   bright cloud, that shadow is the only thing keeping them legible.
+
    `tabular-nums` matters more than it looks: without it the 1s are narrow and the
    whole clock twitches sideways every time the minute rolls over. */
 .wx-clock {
   position: absolute;
-  top: calc(var(--wx-edge) * 1.4);
+  top: calc(var(--wx-edge) * 0.75);
   right: var(--wx-edge);
   z-index: 4;
   display: flex;
   align-items: baseline;
-  padding: 0.24em 0.55em;
-  border-radius: 999px;
   font-family:
     ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
     Menlo, Consolas, monospace;
@@ -75,11 +77,6 @@
   font-weight: 700;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
-  text-shadow: none;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
-  backdrop-filter: blur(10px) saturate(130%);
 }
 
 .wx-clock-sep {
