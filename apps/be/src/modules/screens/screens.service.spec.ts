@@ -42,7 +42,9 @@ function buildService(options: { updateResult?: unknown } = {}) {
     updateById: jest
       .fn()
       .mockResolvedValue(
-        options.updateResult === undefined ? { _id: 'screen' } : options.updateResult,
+        options.updateResult === undefined
+          ? { _id: 'screen' }
+          : options.updateResult,
       ),
   };
   const eventEmitter = { emit: jest.fn() };

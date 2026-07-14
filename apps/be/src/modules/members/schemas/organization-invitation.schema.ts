@@ -20,7 +20,11 @@ export class OrganizationInvitation {
   @Prop({ required: true, trim: true })
   name: string;
 
-  @Prop({ type: String, enum: OrganizationRole, default: OrganizationRole.MEMBER })
+  @Prop({
+    type: String,
+    enum: OrganizationRole,
+    default: OrganizationRole.MEMBER,
+  })
   role: OrganizationRole;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })

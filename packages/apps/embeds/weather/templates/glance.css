@@ -1,0 +1,151 @@
+/* "At a glance" — the temperature and the place up top with the icon beside them,
+   the week along the bottom.
+
+   The chrome (the place, the readings, the day cards) is shared; this file is only
+   the arrangement. Every length is `em` against the fluid root size on `.wx`, so
+   the whole thing scales with the screen rather than with one axis of it. */
+
+.wx-glance {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  /* The top clears the clock. */
+  padding: 3.4em 2.6em 2.6em;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+/* The top block TAKES the space rather than being pushed away from the week by it.
+
+   With `justify-content: space-between` on the column instead, the two blocks were
+   shoved to opposite edges and the middle of the screen — the biggest, most valuable
+   part of it — was left as a void, with the temperature crammed up under the clock. */
+.wx-glance-top {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2em;
+  min-width: 0;
+}
+
+.wx-glance-now {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The number is the app. Everything else on the screen is a caption to it, and the
+   weight is light on purpose — at this size a bold face stops reading as a
+   temperature and starts reading as a scoreboard. */
+.wx-glance-temp {
+  margin: 0.06em 0 0.24em;
+  font-size: 11em;
+  font-weight: 200;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-glance-icon {
+  flex: none;
+  width: 15em;
+  height: 15em;
+  max-height: 46vh;
+}
+
+.wx-glance .wx-metrics {
+  gap: 2.2em;
+}
+
+/* ----- Portrait -----
+   The icon can't sit beside the temperature on a narrow screen — it would squeeze
+   the number that the whole layout exists to show. It goes above instead, and the
+   week keeps the bottom. */
+@media (max-aspect-ratio: 1/1) {
+  .wx-glance {
+    padding: 3.4em 1.8em 2.2em;
+    gap: 1.4em;
+  }
+
+  .wx-glance-top {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 0.4em;
+  }
+
+  .wx-glance-icon {
+    width: 11em;
+    height: 11em;
+    margin-top: 0;
+    align-self: center;
+  }
+
+  .wx-glance-temp {
+    font-size: 9em;
+  }
+
+  .wx-glance .wx-metrics {
+    flex-wrap: wrap;
+    gap: 1.2em 1.8em;
+  }
+}
+
+/* ----- Motion -----
+   One entrance, in reading order: the place, the number, the readings, the week.
+   The stagger is what makes it land as composed rather than as a page that
+   flickered into being. */
+
+@keyframes wx-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.8em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wx-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wx-glance-now > *,
+.wx-glance .wx-days {
+  animation: wx-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.wx-glance-now > :nth-child(1) {
+  animation-delay: 80ms;
+}
+.wx-glance-now > :nth-child(2) {
+  animation-delay: 160ms;
+}
+.wx-glance-now > :nth-child(3) {
+  animation-delay: 260ms;
+}
+.wx-glance .wx-days {
+  animation-delay: 340ms;
+}
+
+.wx-glance-icon {
+  animation: wx-pop 1s cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wx-glance-now > *,
+  .wx-glance .wx-days,
+  .wx-glance-icon {
+    animation: none;
+  }
+}

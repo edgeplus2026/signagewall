@@ -1,0 +1,133 @@
+/* "Orbit" — three rings, and the time in the middle of them.
+
+   The rings are `stroke-dasharray` on plain circles (see orbit.ts). The only thing
+   the CSS has to get right is that they START AT TWELVE: an SVG circle begins its
+   path at three o'clock, so a ring left alone fills from the right-hand side and the
+   face reads as wrong without anyone being able to say why. */
+
+.ck-orbit {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(66vh, 66vw);
+  height: min(66vh, 66vw);
+}
+
+.ck-orbit-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Rotate the whole ring group a quarter turn anticlockwise, so every ring's start
+   lands at the top. Doing it here, once, rather than per-circle keeps the dash maths
+   in the TS honest — it is a fraction of a circumference and nothing more. */
+.ck-orbit-rings {
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transform-box: view-box;
+}
+
+.ck-orbit-track {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 9;
+  opacity: 0.1;
+}
+
+.ck-orbit-fill {
+  fill: none;
+  stroke-width: 9;
+  stroke-linecap: round;
+  transition: stroke-dasharray 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The three rings are the same colour at three strengths, not three colours. A
+   traffic-light face (red/amber/green rings) would read as an alert, and this is a
+   clock. */
+.ck-orbit-hour {
+  stroke: var(--ck-accent, #0ea5e9);
+  opacity: 1;
+}
+
+.ck-orbit-minute {
+  stroke: var(--ck-accent, #0ea5e9);
+  opacity: 0.6;
+}
+
+/* The seconds ring is the only one that visibly moves, so it gets the tighter easing
+   — it should feel like a tick, not like a slide. */
+.ck-orbit-second {
+  stroke: currentColor;
+  opacity: 0.5;
+  stroke-width: 5;
+  transition: stroke-dasharray 220ms cubic-bezier(0.34, 1.6, 0.6, 1);
+}
+
+/* ----- The readout -----
+   Centred inside the rings, and small. It is a caption to the shape, not the point
+   of the face — a big number in the middle would make the rings decoration. */
+
+.ck-orbit-readout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15em;
+  pointer-events: none;
+}
+
+.ck-orbit-time {
+  display: flex;
+  align-items: baseline;
+  font-size: min(11vw, 15vh);
+  font-weight: 200;
+  line-height: 1;
+}
+
+.ck-orbit-time .ck-sep {
+  margin: 0 0.04em;
+}
+
+.ck-orbit-sub {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  font-size: min(3vw, 4vh);
+  font-weight: 400;
+  opacity: 0.6;
+  letter-spacing: 0.08em;
+}
+
+.ck-orbit-period {
+  text-transform: uppercase;
+}
+
+.ck-orbit-sub:empty {
+  display: none;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .ck-orbit {
+    width: min(84vw, 52vh);
+    height: min(84vw, 52vh);
+  }
+
+  .ck-orbit-time {
+    font-size: min(15vw, 13vh);
+  }
+
+  .ck-orbit-sub {
+    font-size: min(4.5vw, 4vh);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ck-orbit-fill {
+    transition: none;
+  }
+}

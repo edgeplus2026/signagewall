@@ -1,0 +1,319 @@
+/* "Primetime" — the streaming-service hero.
+
+   The gradient runs SIDEWAYS, which is the whole difference between this and a
+   poster: the picture stays a picture on the right while the left half becomes a
+   page you can set type on. A bottom-up scrim would bury the photograph. */
+
+.pt {
+  --pt-rail: 13.5em;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.pt-backdrop {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+}
+
+.pt-backdrop .rs-media-img {
+  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
+}
+
+.pt-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0.96) 0%,
+      rgba(0, 0, 0, 0.9) 26%,
+      rgba(0, 0, 0, 0.62) 46%,
+      rgba(0, 0, 0, 0.15) 70%,
+      transparent 100%
+    ),
+    linear-gradient(to top, rgba(0, 0, 0, 0.96) 0%, transparent 44%);
+}
+
+.rs-theme-light .pt-fade {
+  background:
+    linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.97) 0%,
+      rgba(255, 255, 255, 0.93) 26%,
+      rgba(255, 255, 255, 0.68) 46%,
+      rgba(255, 255, 255, 0.2) 70%,
+      transparent 100%
+    ),
+    linear-gradient(to top, rgba(255, 255, 255, 0.97) 0%, transparent 44%);
+}
+
+/* ----- The hero ----- */
+
+.pt-hero {
+  position: absolute;
+  z-index: 2;
+  left: 3em;
+  right: 45%;
+  bottom: 3em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7em;
+}
+
+/* The rail owns the bottom of the screen; the hero sits above it — with a gap.
+   `rail + 1.6em` put the hero's last line exactly on the rail's first, which read
+   as one column of text that had gone wrong rather than two blocks. */
+.pt.has-rail .pt-hero {
+  bottom: calc(var(--pt-rail) + 3.6em);
+}
+
+.pt-brand {
+  font-size: 1.1em;
+  font-weight: 800;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--rs-accent, #f97316);
+}
+
+.pt-title {
+  font-size: 4.2em;
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pt-summary {
+  max-width: 30em;
+  font-size: 1.4em;
+  font-weight: 300;
+  line-height: 1.45;
+  opacity: 0.82;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pt-meta {
+  font-size: 1em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* ----- The rail ----- */
+
+.pt-rail {
+  position: absolute;
+  z-index: 2;
+  left: 3em;
+  right: 3em;
+  bottom: 1.6em;
+  height: var(--pt-rail);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+}
+
+.pt-rail-label {
+  font-size: 0.95em;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.pt-cards {
+  list-style: none;
+  display: flex;
+  gap: 1em;
+  min-height: 0;
+  flex: 1;
+}
+
+.pt-card {
+  width: 15em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  min-width: 0;
+}
+
+.pt-card-art {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 0.4em;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.pt-card-title {
+  font-size: 0.95em;
+  font-weight: 500;
+  line-height: 1.28;
+  opacity: 0.78;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* The QR sits above the rail rather than on top of it. */
+.pt.has-rail .rs-qr {
+  bottom: calc(var(--pt-rail) + 2.4em);
+}
+
+/* ----- Portrait -----
+   The sideways gradient has nothing to work with on a narrow screen, so it turns
+   back into a bottom-up one and the rail drops to two cards. */
+
+@media (max-aspect-ratio: 1/1) {
+  .pt {
+    --pt-rail: 11.5em;
+  }
+
+  .pt-fade {
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.96) 0%,
+      rgba(0, 0, 0, 0.86) 34%,
+      rgba(0, 0, 0, 0.4) 60%,
+      transparent 88%
+    );
+  }
+
+  .rs-theme-light .pt-fade {
+    background: linear-gradient(
+      to top,
+      rgba(255, 255, 255, 0.97) 0%,
+      rgba(255, 255, 255, 0.9) 34%,
+      rgba(255, 255, 255, 0.44) 60%,
+      transparent 88%
+    );
+  }
+
+  .pt-hero {
+    left: 2.2em;
+    right: 2.2em;
+  }
+
+  .pt-title {
+    font-size: 3.1em;
+  }
+
+  .pt-rail {
+    left: 2.2em;
+    right: 2.2em;
+  }
+
+  /* Only what fits. A card squeezed to a thumbnail is not a promise of anything. */
+  .pt-card:nth-child(n + 3) {
+    display: none;
+  }
+
+  .pt-card {
+    flex: 1;
+    width: auto;
+  }
+
+  .pt.has-rail .rs-qr {
+    display: none;
+  }
+}
+
+/* ----- Motion ----- */
+
+@keyframes pt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.4em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pt-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.pt-backdrop,
+.pt-fade {
+  animation: pt-fade-in 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pt-brand {
+  animation: pt-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+.pt-title {
+  animation: pt-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 220ms both;
+}
+
+.pt-summary {
+  animation: pt-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 320ms both;
+}
+
+.pt-meta {
+  animation: pt-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 400ms both;
+}
+
+/* The rail deals itself out, left to right — the gesture of a queue being laid
+   down rather than a block of cards appearing. */
+.pt-card {
+  animation: pt-rise 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pt-rail-label {
+  animation: pt-rise 800ms cubic-bezier(0.16, 1, 0.3, 1) 460ms both;
+}
+
+.pt-card:nth-child(1) {
+  animation-delay: 540ms;
+}
+.pt-card:nth-child(2) {
+  animation-delay: 620ms;
+}
+.pt-card:nth-child(3) {
+  animation-delay: 700ms;
+}
+.pt-card:nth-child(4) {
+  animation-delay: 780ms;
+}
+
+.pt .rs-qr {
+  animation: pt-rise 800ms cubic-bezier(0.16, 1, 0.3, 1) 860ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-backdrop,
+  .pt-backdrop .rs-media-img,
+  .pt-fade,
+  .pt-brand,
+  .pt-title,
+  .pt-summary,
+  .pt-meta,
+  .pt-rail-label,
+  .pt-card,
+  .pt .rs-qr {
+    animation: none;
+    transform: none;
+  }
+}

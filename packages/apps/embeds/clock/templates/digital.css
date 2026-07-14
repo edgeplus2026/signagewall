@@ -1,0 +1,63 @@
+/* "Digital" — one line of numerals, as big as the screen will take.
+
+   The size is the design. Everything else here exists to stop the number moving:
+   tabular figures (shared, `.ck-digits`), a baseline-aligned marker, and seconds
+   set smaller so they don't drag the eye off the time. */
+
+.ck-digital {
+  display: inline-flex;
+  align-items: baseline;
+  /* Bounded by BOTH axes. `vw` alone would shrink the clock to nothing on a
+     portrait screen; `vh` alone would overflow a wide one. The smaller of the two
+     always fits, and on a 16:9 panel it lands just under the full width. */
+  font-size: min(19vw, 34vh);
+  font-weight: 200;
+  line-height: 1;
+}
+
+/* The colon is optically heavy against thin numerals and it sits too wide by
+   default. Pulling it in on both sides is what makes "14:30" read as a time rather
+   than as two numbers with a punctuation mark between them. */
+.ck-digital .ck-sep {
+  margin: 0 0.04em;
+  font-weight: 200;
+}
+
+/* Seconds are a footnote to the time. At the same size they would compete with it,
+   and the eye would land on the fastest-moving thing on the screen — which is the
+   one part nobody is reading. */
+.ck-digital-seconds {
+  font-size: 0.42em;
+  font-weight: 300;
+  opacity: 0.72;
+  /* Baseline-aligned by the flex container; this nudges it off the numerals so the
+     colon before it has room. */
+  margin-left: 0.05em;
+}
+
+.ck-digital-sep-sm {
+  font-size: 0.42em;
+  margin-left: 0.1em;
+}
+
+.ck-digital-period {
+  margin-left: 0.16em;
+  font-size: 0.26em;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* An empty marker (a 24-hour clock renders the span but never fills it) would still
+   take its margin and push the clock a hair off-centre. */
+.ck-digital-period:empty {
+  display: none;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .ck-digital {
+    /* Portrait: the clock is width-bound, so let it use more of that width. */
+    font-size: min(26vw, 30vh);
+  }
+}

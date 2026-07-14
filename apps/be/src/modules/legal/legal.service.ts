@@ -79,7 +79,12 @@ export class LegalService {
   ): Promise<void> {
     for (const docType of docTypes) {
       await this.legalRepository.create(
-        { userId, docType, version: CURRENT_LEGAL[docType].version, ...(ip ? { ip } : {}) },
+        {
+          userId,
+          docType,
+          version: CURRENT_LEGAL[docType].version,
+          ...(ip ? { ip } : {}),
+        },
         session,
       );
     }

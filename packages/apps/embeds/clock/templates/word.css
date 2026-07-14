@@ -1,0 +1,94 @@
+/* "Words" — a grid of letters, of which only the time is lit.
+
+   The unlit letters are the design. They have to be visible enough to read as a
+   field of letters (or the lit words look like they are floating in a void) and dim
+   enough that the phrase separates from them instantly. That balance is the whole
+   face, and it lives in exactly two numbers: the two opacities below. */
+
+.ck-word {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ck-word-grid {
+  display: grid;
+  /* Eleven columns, and they must be EQUAL — a word clock is a physical grid, and the
+     moment the columns take their natural widths the letters stop lining up into
+     vertical channels and it looks like a paragraph. `1fr` eleven times, never
+     `auto-fit`. */
+  grid-template-columns: repeat(11, 1fr);
+  gap: 0.32em 0.28em;
+
+  /* THE GRID IS SIZED BY ITS WIDTH, AND ITS HEIGHT FOLLOWS.
+
+     The cells are square, so eleven columns and ten rows make the whole grid about
+     11:10 — which means the width decides the height, and the height is the one that
+     can fall off the screen. Sizing this off the FONT (as it first was) let the letters
+     set the cell size, the ten rows added up to more than the viewport, and the top and
+     bottom rows were simply cut off the screen.
+
+     So: pick a width that both axes can afford — `82vh` leaves the ~91% of it that the
+     ten rows come to comfortably inside the viewport, with room for the date — and let
+     the type follow the cell rather than the other way round. */
+  width: min(88vw, 82vh);
+
+  font-family:
+    ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
+    Menlo, Consolas, monospace;
+  font-size: min(5.4vw, 5.1vh);
+  font-weight: 600;
+  line-height: 1;
+  /* Wide tracking: the letters must not read as words when they are unlit, or the
+     filler starts spelling things and the eye keeps catching on it. */
+  letter-spacing: 0.06em;
+}
+
+.ck-word-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Square cells, so the grid is a grid and not a table of text. */
+  aspect-ratio: 1;
+  opacity: 0.14;
+  /* Slower than a second, so a minute rolling over reads as the words fading INTO
+     each other rather than as the grid blinking. */
+  transition:
+    opacity 700ms ease,
+    color 700ms ease,
+    text-shadow 700ms ease;
+}
+
+.ck-word-cell.is-lit {
+  opacity: 1;
+  color: var(--ck-accent, #0ea5e9);
+  /* The glow is what makes it read as a lit letter rather than a coloured one — a
+     word clock is a box with LEDs behind a stencil, and this is that. */
+  text-shadow: 0 0 0.5em color-mix(in srgb, var(--ck-accent, #0ea5e9) 55%, transparent);
+}
+
+/* The date sits under the grid, and quieter here than on the other faces — the grid
+   is already dense, and a bright line under it would fight the phrase for attention. */
+.ck-word ~ .ck-date {
+  opacity: 0.45;
+  font-size: 1.6em;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .ck-word-grid {
+    /* Portrait: the grid is width-bound (eleven columns is a lot of columns on a narrow
+       screen), so it takes the width it can get and the ten rows follow from the square
+       cells — which on a tall screen is never the constraint. */
+    width: min(92vw, 82vh);
+    font-size: min(6.4vw, 5.1vh);
+    gap: 0.28em 0.24em;
+  }
+}
+
+/* Reduced motion: the letters still light, they just don't fade. The face is
+   unusable without the lighting, so there is nothing else to take away. */
+@media (prefers-reduced-motion: reduce) {
+  .ck-word-cell {
+    transition: none;
+  }
+}

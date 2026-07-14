@@ -574,7 +574,9 @@ describe('PlayerContentService', () => {
       expect(snapshot?.availability).toEqual({
         mode: 'weekly',
         timezone: 'Europe/Belgrade',
-        weekly: [{ day: 'monday', enabled: true, start: '09:00', end: '17:00' }],
+        weekly: [
+          { day: 'monday', enabled: true, start: '09:00', end: '17:00' },
+        ],
       });
       expect(snapshot?.availability).not.toHaveProperty('special');
     });
@@ -605,7 +607,11 @@ describe('PlayerContentService', () => {
     });
 
     it('fails open to always-on when a special-mode doc is missing its block', async () => {
-      const broken = { mode: 'special', timezone: 'Europe/Belgrade', weekly: [] };
+      const broken = {
+        mode: 'special',
+        timezone: 'Europe/Belgrade',
+        weekly: [],
+      };
       const service = buildService({
         mediaById: {},
         screenItems: [],
@@ -640,7 +646,9 @@ describe('PlayerContentService', () => {
       expect(snapshot?.availability).toEqual({
         mode: 'weekly',
         timezone: 'Europe/Belgrade',
-        weekly: [{ day: 'monday', enabled: true, start: '09:00', end: '17:00' }],
+        weekly: [
+          { day: 'monday', enabled: true, start: '09:00', end: '17:00' },
+        ],
       });
     });
 

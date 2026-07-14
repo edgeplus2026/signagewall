@@ -1,0 +1,353 @@
+/* "Cover" — full-bleed photo, headline over it.
+
+   Lengths are `em` against the fluid root size on `.rss` (style.css), so the
+   poster scales with the screen and works turned on its side without a second
+   layout. The scrim flips with the theme: dark screen → black gradient and light
+   text, light screen → white gradient and dark text. Text colour is inherited
+   from the app root either way, so nothing here hard-codes a colour. */
+
+.cv {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* ----- The photo ----- */
+
+.cv-media {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+}
+
+.cv-media .rs-media-img {
+  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
+}
+
+/* No picture at all (Hacker News, most mailing lists) — or one that died on the
+   way. Not an apology for a missing image: a cover in its own right, built from
+   the accent. The shared placeholder is only a glyph on a tint; here it earns the
+   whole screen, so it is restyled into a mesh. */
+.cv-media .rs-media-ph {
+  background:
+    radial-gradient(
+      58% 58% at 18% 22%,
+      color-mix(in srgb, var(--rs-accent, #f97316) 62%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      48% 48% at 86% 16%,
+      color-mix(in srgb, #6366f1 52%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      70% 70% at 62% 92%,
+      color-mix(in srgb, #ec4899 40%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(160deg, #0b1020, #131a2e);
+}
+
+.cv-media .rs-media-ph svg {
+  width: 9%;
+  height: 9%;
+  opacity: 0.28;
+}
+
+/* ----- The scrim -----
+   Heavy at the bottom where the words are, gone by the top where the picture is. */
+
+/* The stops are placed against where the words actually land, not by eye: the
+   headline occupies roughly 26–58% of the height measured from the bottom, so the
+   scrim has to still be near-opaque at 58% or a white-haired subject swallows the
+   first line. It was doing exactly that. */
+.cv-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    /* A thin veil under the top chrome. The clock and the progress tiles are the
+       only things on this layout that sit on the BARE photograph, and a half-
+       filled tile at 20% opacity simply disappears into a brick wall. */
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0.16) 9%,
+      transparent 17%
+    ),
+    linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(0, 0, 0, 0.89) 34%,
+      rgba(0, 0, 0, 0.8) 58%,
+      rgba(0, 0, 0, 0.42) 74%,
+      rgba(0, 0, 0, 0.1) 89%,
+      transparent 100%
+    ),
+    radial-gradient(130% 90% at 78% 6%, transparent 42%, rgba(0, 0, 0, 0.45));
+}
+
+.rs-theme-light .cv-scrim {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.72) 0%,
+      rgba(255, 255, 255, 0.22) 9%,
+      transparent 17%
+    ),
+    linear-gradient(
+      to top,
+      rgba(255, 255, 255, 0.96) 0%,
+      rgba(255, 255, 255, 0.92) 34%,
+      rgba(255, 255, 255, 0.84) 58%,
+      rgba(255, 255, 255, 0.46) 74%,
+      rgba(255, 255, 255, 0.12) 89%,
+      transparent 100%
+    ),
+    radial-gradient(130% 90% at 78% 6%, transparent 42%, rgba(255, 255, 255, 0.5));
+}
+
+/* Here the clock sits on a photograph rather than a flat ground. Its frosted chip
+   already carries it; it just wants a little more of itself behind the glass. */
+.rs-mode-cover .rs-clock {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  text-shadow: 0 0.02em 0.1em rgba(0, 0, 0, 0.35);
+}
+
+.rs-mode-cover.rs-theme-light .rs-clock {
+  text-shadow: 0 0.02em 0.1em rgba(255, 255, 255, 0.55);
+}
+
+/* ----- The words ----- */
+
+.cv-content {
+  position: absolute;
+  z-index: 3;
+  left: 2.6em;
+  right: 2.6em;
+  bottom: 2.4em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7em;
+}
+
+/* The QR code sits bottom-right; keep the headline out from under it. */
+.cv.has-qr .cv-content {
+  right: 12em;
+}
+
+.cv-badge {
+  padding: 0.35em 0.9em;
+  border-radius: 999px;
+  background: var(--rs-accent, #f97316);
+  color: #fff;
+  font-size: 1.05em;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.cv-headline {
+  /* Big enough to read from across a room, but it was eating the screen and
+     leaving the story with nowhere to go. The headline and the summary are one
+     budget: every step the headline takes comes out of the summary. */
+  font-size: 4.5em;
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  /* Three lines. A fourth is a headline nobody standing up will finish.
+     `-webkit-line-clamp` rather than a `max-height`: the height clamp cut the
+     headline dead mid-word with no ellipsis, and sheared the descenders off the
+     third line as a bonus. This ends it on an "…" and leaves the tails alone. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* Over a photograph the scrim does most of the work, but a bright subject —
+     a white-haired one, a snowfield — can still swallow a letter. This costs
+     nothing and means the headline never depends on what was photographed. */
+  text-shadow: 0 0.02em 0.14em rgba(0, 0, 0, 0.45);
+}
+
+.rs-theme-light .cv-headline {
+  text-shadow: 0 0.02em 0.14em rgba(255, 255, 255, 0.5);
+}
+
+.cv-summary {
+  /* The headline's box stops at its last baseline; without this the summary sits
+     right on top of the descenders. */
+  margin-top: 0.5em;
+  /* It was set at 1.25em in a 26em column — a caption, tucked under the headline,
+     unreadable from where this screen is actually watched. It's the second half of
+     the story, so it gets read from across the room too: bigger, and running the
+     width of the screen instead of a third of it. */
+  /* Long enough to fill the screen, short enough to still be a line of type — a
+     measure past ~70 characters stops being readable no matter how big it is. */
+  max-width: 36em;
+  font-size: 1.75em;
+  font-weight: 300;
+  line-height: 1.45;
+  opacity: 0.85;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cv-date {
+  font-size: 1.05em;
+  opacity: 0.6;
+}
+
+/* ----- The QR panel, restyled -----
+   A frosted card rather than a bare code: over a photograph, a naked white square
+   reads as a sticker somebody left on the screen. */
+
+.cv .rs-qr {
+  padding: 0.7em 0.7em 0.5em;
+  border-radius: 0.9em;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  /* `currentColor` at low alpha, spelled as a shadow rather than a `color-mix()`
+     border: a signage player can be running a years-old webview, and a border it
+     can't parse is a border it drops entirely. A shadow degrades to nothing. */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+.cv .rs-qr-img {
+  box-shadow: none;
+  border-radius: 0.35em;
+}
+
+/* ----- Motion -----
+   The headline arrives a word at a time, each rising out of its own mask, in
+   reading order. Everything else eases in on the same expo-out curve. */
+
+/* Each word is its own mask, and the mask is exactly the trap. An inline-block is
+   only as tall as its line box — 1.04em here — while the font's ink runs from its
+   ascender to its descender, comfortably taller than that. So `overflow: hidden`
+   cropped the type at BOTH ends: the tails off every p, g and y, and the tops off
+   every d, b, h and capital.
+   Padding on both sides gives the ink room inside the mask; the matching negative
+   margins hand the space straight back, so the line box never moves. Both are
+   needed — fixing only the bottom is what left the first line beheaded. */
+.cv-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-top: 0.22em;
+  margin-top: -0.22em;
+  padding-bottom: 0.22em;
+  margin-bottom: -0.22em;
+}
+
+.cv-word > span {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: cv-word-rise 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Each word waits its turn — capped, so a long headline still lands promptly. */
+  animation-delay: calc(240ms + min(var(--i) * 42ms, 900ms));
+}
+
+@keyframes cv-word-rise {
+  to {
+    transform: none;
+  }
+}
+
+@keyframes cv-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.2em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cv-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cv-media,
+.cv-scrim {
+  animation: cv-fade 1100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cv-badge {
+  animation: cv-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+.cv-summary {
+  animation: cv-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 620ms both;
+}
+
+.cv-date {
+  animation: cv-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 720ms both;
+}
+
+.cv .rs-qr {
+  animation: cv-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 820ms both;
+}
+
+/* ----- Portrait -----
+   A poster is already the right shape for a portrait screen; it only needs the
+   headline to stop being landscape-sized. */
+
+@media (max-aspect-ratio: 1/1) {
+  .cv-content {
+    left: 2em;
+    right: 2em;
+    bottom: 2em;
+  }
+
+  /* The code goes above the words, not beside them — there is no room beside.
+     Clear of the panel's full height (code + label + padding), not level with it. */
+  .cv.has-qr .cv-content {
+    right: 2em;
+    bottom: 12em;
+  }
+
+  .cv .rs-qr {
+    left: 0;
+    right: 0;
+    bottom: var(--rs-edge);
+    align-self: center;
+    margin: 0 auto;
+    width: fit-content;
+  }
+
+  .cv-headline {
+    font-size: 3.3em;
+  }
+
+  .cv-summary {
+    max-width: none;
+    font-size: 1.5em;
+  }
+}
+
+/* Asked for no motion, given none. The rotation still turns; it just cuts. */
+@media (prefers-reduced-motion: reduce) {
+  .cv-media,
+  .cv-scrim,
+  .cv-media .rs-media-img,
+  .cv-badge,
+  .cv-summary,
+  .cv-date,
+  .cv .rs-qr,
+  .cv-word > span {
+    animation: none;
+    transform: none;
+  }
+}

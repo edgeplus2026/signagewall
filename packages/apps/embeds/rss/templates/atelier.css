@@ -1,0 +1,303 @@
+/* "Atelier" — the deluxe edition. Champagne on charcoal.
+
+   The one template that overrides the app's accent instead of living with it. It
+   sets it on `.rs-mode-atelier`, which is the APP ROOT — so the clock's colon, the
+   progress tiles and the QR frame all turn gold with it. Setting it on the
+   template's own root would have left an orange clock hanging over a gold page,
+   which is precisely the sort of half-measure this layout exists to avoid. */
+
+.rs-mode-atelier {
+  --rs-accent: #c8a86b;
+  /* A charcoal that isn't black — black is cheap; near-black with a warm cast is
+     what an expensive room actually looks like. */
+  background: #14120f;
+  color: #f3ede3;
+}
+
+.rs-mode-atelier.rs-theme-light {
+  background: #faf7f1;
+  color: #1d1a15;
+}
+
+.at {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5em 3.5em 3.5em;
+  box-sizing: border-box;
+  font-family: Georgia, 'Times New Roman', 'Noto Serif', serif;
+  /* A slow light across the whole surface. Barely there, and the room feels lit. */
+  background:
+    radial-gradient(
+      120% 80% at 22% 12%,
+      color-mix(in srgb, var(--rs-accent) 9%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(90% 70% at 88% 96%, rgba(0, 0, 0, 0.35), transparent 60%);
+}
+
+.at.has-qr {
+  padding-right: 12em;
+}
+
+.at-frame {
+  display: grid;
+  grid-template-columns: minmax(0, 30%) minmax(0, 1fr);
+  align-items: center;
+  gap: 4.5em;
+  max-width: 84em;
+  width: 100%;
+}
+
+/* ----- The plate -----
+   Two rules, not one, and a gap between them. A single border is a box; two are a
+   frame, and a frame is the thing that says somebody chose to hang this. */
+
+.at-plate {
+  position: relative;
+  padding: 0.55em;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rs-accent) 55%, transparent);
+}
+
+.at-media {
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  border-radius: 0;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--rs-accent) 30%, transparent);
+}
+
+.at-media .rs-media-img {
+  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
+}
+
+/* ----- The text ----- */
+
+.at-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* Name, flanked by hairlines. Tracked out until it stops being a word and becomes
+   a piece of the architecture. */
+.at-house {
+  display: flex;
+  align-items: center;
+  gap: 1.1em;
+  width: 100%;
+  margin-bottom: 1.6em;
+}
+
+.at-hair {
+  flex: 1;
+  height: 1px;
+  background: var(--rs-accent);
+  opacity: 0.5;
+  transform-origin: center;
+}
+
+.at-house-name {
+  flex: none;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: 0.88em;
+  font-weight: 600;
+  letter-spacing: 0.5em;
+  /* The tracking pushes the last letter off its own box; give it back. */
+  text-indent: 0.5em;
+  text-transform: uppercase;
+  color: var(--rs-accent);
+}
+
+.at-headline {
+  font-size: 3.8em;
+  font-weight: 400;
+  line-height: 1.18;
+  letter-spacing: 0.005em;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* A short gold stroke under the headline. Does nothing, says everything. */
+.at-flourish {
+  width: 4.5em;
+  height: 2px;
+  margin: 1.3em 0;
+  background: var(--rs-accent);
+  transform-origin: left center;
+}
+
+.at-summary {
+  max-width: 32em;
+  font-size: 1.45em;
+  font-weight: 400;
+  line-height: 1.65;
+  opacity: 0.75;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.at-date {
+  margin-top: 1.8em;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: 0.82em;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+.at .rs-qr-label {
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+/* ----- Portrait ----- */
+
+@media (max-aspect-ratio: 1/1) {
+  .at {
+    padding: 5em 2.4em 3em;
+  }
+
+  .at.has-qr {
+    padding-right: 2.4em;
+    padding-bottom: 11.5em;
+  }
+
+  .at-frame {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.6em;
+    justify-items: center;
+  }
+
+  .at-media {
+    aspect-ratio: 4 / 3;
+    max-height: 30vh;
+  }
+
+  .at-plate {
+    max-width: 26em;
+  }
+
+  .at-headline {
+    font-size: 2.8em;
+  }
+
+  .at .rs-qr {
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: fit-content;
+  }
+}
+
+/* ----- Motion -----
+   Slower than everything else here, and with a longer hold. Haste is the tell. */
+
+@keyframes at-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes at-lift {
+  from {
+    opacity: 0;
+    transform: translateY(0.6em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes at-reveal {
+  from {
+    opacity: 0;
+    clip-path: inset(6% 6% 6% 6%);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.at-plate {
+  animation: at-lift 1300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.at-media {
+  animation: at-reveal 1500ms cubic-bezier(0.16, 1, 0.3, 1) 150ms both;
+}
+
+.at-hair {
+  animation: at-draw 1100ms cubic-bezier(0.16, 1, 0.3, 1) 200ms both;
+}
+
+.at-house-name {
+  animation: at-lift 1100ms cubic-bezier(0.16, 1, 0.3, 1) 320ms both;
+}
+
+.at-headline {
+  animation: at-lift 1200ms cubic-bezier(0.16, 1, 0.3, 1) 480ms both;
+}
+
+.at-flourish {
+  animation: at-draw 900ms cubic-bezier(0.16, 1, 0.3, 1) 760ms both;
+}
+
+.at-summary {
+  animation: at-lift 1200ms cubic-bezier(0.16, 1, 0.3, 1) 860ms both;
+}
+
+.at-date {
+  animation: at-lift 1200ms cubic-bezier(0.16, 1, 0.3, 1) 980ms both;
+}
+
+.at .rs-qr {
+  animation: at-lift 1200ms cubic-bezier(0.16, 1, 0.3, 1) 1080ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .at-plate,
+  .at-media,
+  .at-media .rs-media-img,
+  .at-hair,
+  .at-house-name,
+  .at-headline,
+  .at-flourish,
+  .at-summary,
+  .at-date,
+  .at .rs-qr {
+    animation: none;
+    clip-path: none;
+    transform: none;
+  }
+}

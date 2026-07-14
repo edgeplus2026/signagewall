@@ -1,8 +1,20 @@
 import type { ConnectorContext, ResolvedConnection } from '@edge/apps-contract';
+import type { RssPayload } from '@edge/apps';
 
 import { canvaConnector } from './canva.connector';
 import { gcalConnector } from './gcal.connector';
+import { rssConnector } from './rss.connector';
+import { safeFetchText } from './safe-fetch.util';
 import { weatherConnector } from './weather.connector';
+
+// The RSS connector fetches through the SSRF guard, which resolves the host over
+// DNS and refuses anything non-public — so a test feed at `example.com` would be
+// blocked before it was ever parsed. The guard has its own spec
+// (`safe-fetch.util.spec.ts`); here we mock it and test the parsing.
+jest.mock('./safe-fetch.util', () => ({ safeFetchText: jest.fn() }));
+const safeFetchMock = safeFetchText as jest.MockedFunction<
+  typeof safeFetchText
+>;
 
 const ctx: ConnectorContext = {
   organizationId: '',
@@ -60,8 +72,12 @@ describe('fetchData normalization', () => {
         body: {
           current: {
             temperature_2m: 21,
+            apparent_temperature: 19,
             weather_code: 1,
             wind_speed_10m: 9,
+            wind_direction_10m: 200,
+            relative_humidity_2m: 55,
+            is_day: 1,
             time: '2024-03-01T12:00',
           },
           daily: {
@@ -69,6 +85,10 @@ describe('fetchData normalization', () => {
             weather_code: [1],
             temperature_2m_max: [24],
             temperature_2m_min: [12],
+            precipitation_probability_max: [30],
+            uv_index_max: [4],
+            sunrise: ['2024-03-01T06:12'],
+            sunset: ['2024-03-01T17:38'],
           },
         },
       },
@@ -80,8 +100,123 @@ describe('fetchData normalization', () => {
     expect(result.playerPayload).toMatchObject({
       location: 'Belgrade',
       temperatureC: 21,
-      daily: [{ date: '2024-03-01', maxC: 24, minC: 12 }],
+      feelsLikeC: 19,
+      windDegrees: 200,
+      isDay: true,
+      precipitationProbability: 30,
+      daily: [
+        {
+          date: '2024-03-01',
+          maxC: 24,
+          minC: 12,
+          precipitationProbability: 30,
+          uvIndexMax: 4,
+          sunrise: '2024-03-01T06:12',
+          sunset: '2024-03-01T17:38',
+        },
+      ],
     });
+  });
+
+  // The hourly series comes back from LOCAL MIDNIGHT, so most of a midday response
+  // is already in the past. Shipping it whole would put "3am, 4°" on a wall at
+  // lunchtime — the trim is the only thing standing between the payload and that.
+  it('weather trims the hourly series to the current hour onward', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          current: {
+            temperature_2m: 21,
+            weather_code: 1,
+            wind_speed_10m: 9,
+            relative_humidity_2m: 55,
+            is_day: 1,
+            // Half past twelve: the 12:00 bucket is the one we are IN, and it is the
+            // one the layouts label "Now".
+            time: '2024-03-01T12:30',
+          },
+          hourly: {
+            time: [
+              '2024-03-01T10:00',
+              '2024-03-01T11:00',
+              '2024-03-01T12:00',
+              '2024-03-01T13:00',
+            ],
+            temperature_2m: [15, 18, 21, 23],
+            weather_code: [1, 1, 2, 3],
+            precipitation_probability: [0, 5, 10, 40],
+            is_day: [1, 1, 1, 1],
+          },
+          daily: {
+            time: ['2024-03-01'],
+            weather_code: [1],
+            temperature_2m_max: [24],
+            temperature_2m_min: [12],
+          },
+        },
+      },
+    ]);
+
+    const result = await weatherConnector.fetchData(
+      { location: { lat: 44.8, lng: 20.5, label: 'Belgrade' } },
+      ctx,
+    );
+
+    expect(result.playerPayload?.hourly).toEqual([
+      {
+        time: '2024-03-01T12:00',
+        temperatureC: 21,
+        weatherCode: 2,
+        precipitationProbability: 10,
+        isDay: true,
+      },
+      {
+        time: '2024-03-01T13:00',
+        temperatureC: 23,
+        weatherCode: 3,
+        precipitationProbability: 40,
+        isDay: true,
+      },
+    ]);
+  });
+
+  // A player caches the last payload it was given, so the embed has to survive a
+  // forecast with none of the fields added after v1 — which is exactly what upstream
+  // returns when a series is unavailable for a location.
+  it('weather omits the optional fields rather than writing undefined into them', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          current: {
+            temperature_2m: 21,
+            weather_code: 1,
+            wind_speed_10m: 9,
+            relative_humidity_2m: 55,
+            time: '2024-03-01T12:00',
+          },
+          daily: {
+            time: ['2024-03-01'],
+            weather_code: [1],
+            temperature_2m_max: [24],
+            temperature_2m_min: [12],
+          },
+        },
+      },
+    ]);
+
+    const result = await weatherConnector.fetchData(
+      { location: { lat: 44.8, lng: 20.5, label: 'Belgrade' } },
+      ctx,
+    );
+    const payload = result.playerPayload!;
+
+    expect(payload.hourly).toEqual([]);
+    expect(payload).not.toHaveProperty('feelsLikeC');
+    expect(payload).not.toHaveProperty('windDegrees');
+    expect(payload.daily[0]).not.toHaveProperty('sunrise');
+    // `is_day` absent upstream: the embed defaults to daylight, but the connector
+    // still has to say something, and a missing sun is a worse guess than a present one.
+    expect(payload.isDay).toBe(true);
   });
 
   it('throws on a non-ok upstream so the scheduler records the error', async () => {
@@ -372,5 +507,374 @@ describe('canva connector (connected)', () => {
     await expect(
       canvaConnector.fetchData({ design: { id: 'design-1' } }, ctx),
     ).rejects.toThrow(/no connection/);
+  });
+});
+
+describe('rss connector (server)', () => {
+  const FEED = 'https://news.example.com/feed.xml';
+
+  beforeEach(() => {
+    safeFetchMock.mockReset();
+  });
+
+  async function fetchFeed(xml: string): Promise<RssPayload> {
+    safeFetchMock.mockResolvedValue(xml);
+    const result = await rssConnector.fetchData({ url: FEED }, ctx);
+    return result.playerPayload as RssPayload;
+  }
+
+  describe('cacheKey', () => {
+    it('is the feed URL, so the same feed shares one fetch', () => {
+      const a = rssConnector.cacheKey!({ url: FEED });
+      const b = rssConnector.cacheKey!({ url: ` ${FEED} ` });
+      expect(a).toBe(b);
+      expect(a).toMatch(/^rss:[0-9a-f]{40}$/);
+    });
+
+    it('ignores display settings — differently styled screens still share it', () => {
+      // The whole economy of the app rests on this: 100 screens on one feed must
+      // cost one upstream fetch, however each of them is configured to look.
+      const plain = rssConnector.cacheKey!({ url: FEED });
+      const styled = rssConnector.cacheKey!({
+        url: FEED,
+        displayMode: 'story',
+        theme: 'light',
+        showQr: false,
+        itemCount: 3,
+        secondsPerStory: 20,
+      } as never);
+      expect(styled).toBe(plain);
+    });
+
+    it('normalizes trivial spelling differences so they still share one fetch', () => {
+      const plain = rssConnector.cacheKey!({
+        url: 'https://news.example.com/feed',
+      });
+      for (const spelling of [
+        'https://news.example.com/feed/',
+        'https://NEWS.EXAMPLE.COM/feed',
+        'https://news.example.com/feed#top',
+      ]) {
+        expect(rssConnector.cacheKey!({ url: spelling })).toBe(plain);
+      }
+    });
+
+    it('is a different key for a different feed', () => {
+      expect(rssConnector.cacheKey!({ url: FEED })).not.toBe(
+        rssConnector.cacheKey!({ url: 'https://other.example.com/rss' }),
+      );
+    });
+  });
+
+  describe('RSS 2.0', () => {
+    it('normalizes title, link, summary, image and date', async () => {
+      const payload = await fetchFeed(`<?xml version="1.0"?>
+        <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+          <channel>
+            <title>The Example Times</title>
+            <link>https://news.example.com</link>
+            <item>
+              <title>Bridge reopens after two years</title>
+              <link>https://news.example.com/bridge</link>
+              <description><![CDATA[<p>The <b>old bridge</b> is open again.</p>]]></description>
+              <pubDate>Tue, 01 Jul 2025 09:30:00 GMT</pubDate>
+              <media:content url="https://cdn.example.com/bridge.jpg" medium="image"/>
+            </item>
+          </channel>
+        </rss>`);
+
+      expect(payload.title).toBe('The Example Times');
+      expect(payload.link).toBe('https://news.example.com/');
+      expect(payload.items).toHaveLength(1);
+      expect(payload.items[0]).toEqual({
+        title: 'Bridge reopens after two years',
+        link: 'https://news.example.com/bridge',
+        // Markup stripped: the bundle renders text, never a feed's HTML.
+        summary: 'The old bridge is open again.',
+        imageUrl: 'https://cdn.example.com/bridge.jpg',
+        publishedAt: '2025-07-01T09:30:00.000Z',
+      });
+    });
+
+    it('falls back through enclosure and then the body <img> for the image', async () => {
+      const payload = await fetchFeed(`<rss><channel>
+        <title>T</title>
+        <item>
+          <title>With enclosure</title>
+          <enclosure url="https://cdn.example.com/a.png" type="image/png"/>
+        </item>
+        <item>
+          <title>With an inline image only</title>
+          <content:encoded xmlns:content="http://purl.org/rss/1.0/modules/content/"><![CDATA[
+            <p>Lead</p><img src="/img/inline.jpg" alt=""/>
+          ]]></content:encoded>
+        </item>
+        <item><title>With no image at all</title></item>
+      </channel></rss>`);
+
+      expect(payload.items[0]?.imageUrl).toBe('https://cdn.example.com/a.png');
+      // Relative src resolved against the feed's own address.
+      expect(payload.items[1]?.imageUrl).toBe(
+        'https://news.example.com/img/inline.jpg',
+      );
+      expect(payload.items[2]?.imageUrl).toBeUndefined();
+    });
+
+    it('picks the biggest size a media:group offers, not the first', async () => {
+      // News CMSes ship one picture at several sizes in no reliable order. Taking
+      // the first hands a 1080p wall a 240px thumbnail stretched across half of it.
+      const payload =
+        await fetchFeed(`<rss xmlns:media="http://search.yahoo.com/mrss/">
+        <channel><title>T</title>
+          <item>
+            <title>Sized</title>
+            <media:thumbnail url="https://cdn.example.com/small.jpg" width="240"/>
+            <media:thumbnail url="https://cdn.example.com/large.jpg" width="1920"/>
+            <media:thumbnail url="https://cdn.example.com/medium.jpg" width="640"/>
+          </item>
+        </channel>
+      </rss>`);
+
+      expect(payload.items[0]?.imageUrl).toBe(
+        'https://cdn.example.com/large.jpg',
+      );
+    });
+
+    it('drops a non-http(s) image and link rather than passing them to the screen', async () => {
+      const payload = await fetchFeed(`<rss><channel>
+        <title>T</title>
+        <item>
+          <title>Hostile</title>
+          <link>javascript:alert(1)</link>
+          <enclosure url="javascript:alert(2)" type="image/png"/>
+        </item>
+      </channel></rss>`);
+
+      expect(payload.items[0]?.link).toBeUndefined();
+      expect(payload.items[0]?.imageUrl).toBeUndefined();
+    });
+
+    it('truncates a long summary so the cached payload stays small', async () => {
+      const payload = await fetchFeed(`<rss><channel><title>T</title>
+        <item>
+          <title>Long</title>
+          <description>${'word '.repeat(200)}</description>
+        </item>
+      </channel></rss>`);
+
+      const summary = payload.items[0]?.summary ?? '';
+      expect(summary.length).toBeLessThanOrEqual(301);
+      expect(summary.endsWith('…')).toBe(true);
+    });
+
+    it('caps a runaway title, which one layout renders a span per character of', async () => {
+      // Feeds ship monsters — a malformed CDATA block, an article body pasted into
+      // <title>. The `kinetic` layout sets the headline a letter at a time, so an
+      // unbounded title there is an unbounded number of animated DOM nodes on a
+      // signage stick. Bound it at the door instead of in each of ten renderers.
+      const payload = await fetchFeed(`<rss><channel><title>T</title>
+        <item><title>${'word '.repeat(200)}</title></item>
+      </channel></rss>`);
+
+      const title = payload.items[0]?.title ?? '';
+      expect(title.length).toBeLessThanOrEqual(221);
+      expect(title.endsWith('…')).toBe(true);
+    });
+
+    it('caps the stored items at 30 however big the feed is', async () => {
+      const items = Array.from(
+        { length: 50 },
+        (_unused, i) => `<item><title>Story ${i}</title></item>`,
+      ).join('');
+      const payload = await fetchFeed(
+        `<rss><channel><title>T</title>${items}</channel></rss>`,
+      );
+      expect(payload.items).toHaveLength(30);
+      expect(payload.items[0]?.title).toBe('Story 0');
+    });
+
+    it('decodes entities in a CDATA title instead of printing them on the wall', async () => {
+      // CDATA is literal by definition, so the XML parser decodes nothing inside
+      // it — and feeds wrap titles in CDATA constantly. `DJI&#8217;s` reached the
+      // screen exactly like that.
+      const payload = await fetchFeed(`<rss><channel>
+        <title><![CDATA[The Verge &#8212; Tech]]></title>
+        <item><title><![CDATA[DJI&#8217;s <b>best</b> mic]]></title></item>
+      </channel></rss>`);
+
+      expect(payload.title).toBe('The Verge — Tech');
+      // Entities resolved AND the markup CDATA smuggled through stripped out.
+      expect(payload.items[0]?.title).toBe('DJI’s best mic');
+    });
+
+    it('survives an out-of-range numeric entity instead of breaking the feed forever', async () => {
+      // `String.fromCodePoint` THROWS above U+10FFFF, and that number comes out
+      // of a stranger's feed. Unguarded, one bad entity in one headline threw out
+      // of the parse and the feed then failed on every refresh, permanently.
+      const payload = await fetchFeed(`<rss><channel><title>T</title>
+        <item><title>Bad &#x110000; entity &#999999999; here &#8217;ok</title></item>
+      </channel></rss>`);
+
+      // The impossible ones are left as literal text; the real one still decodes.
+      expect(payload.items[0]?.title).toBe(
+        'Bad &#x110000; entity &#999999999; here ’ok',
+      );
+    });
+
+    it('skips an item with no title rather than rendering a blank story', async () => {
+      const payload = await fetchFeed(`<rss><channel><title>T</title>
+        <item><description>orphan</description></item>
+        <item><title>Real</title></item>
+      </channel></rss>`);
+      expect(payload.items).toHaveLength(1);
+      expect(payload.items[0]?.title).toBe('Real');
+    });
+  });
+
+  describe('Atom', () => {
+    it('reads the story link from the alternate <link href>, not rel="self"', async () => {
+      const payload = await fetchFeed(`<?xml version="1.0"?>
+        <feed xmlns="http://www.w3.org/2005/Atom">
+          <title>Atom Journal</title>
+          <link rel="self" href="https://news.example.com/atom.xml"/>
+          <entry>
+            <title>An entry</title>
+            <link rel="enclosure" href="https://cdn.example.com/audio.mp3"/>
+            <link rel="alternate" href="https://news.example.com/entry-1"/>
+            <summary>A short teaser.</summary>
+            <published>2025-06-30T08:00:00Z</published>
+          </entry>
+        </feed>`);
+
+      expect(payload.title).toBe('Atom Journal');
+      expect(payload.items[0]).toEqual({
+        title: 'An entry',
+        link: 'https://news.example.com/entry-1',
+        summary: 'A short teaser.',
+        publishedAt: '2025-06-30T08:00:00.000Z',
+      });
+    });
+
+    it('takes the teaser from <summary> but still finds the image in <content>', async () => {
+      // The Verge (and much of the Atom world) writes a plain teaser into
+      // <summary> and puts the illustrated body in <content>. Searching only the
+      // field we chose for the summary found no image and shipped a text-only
+      // screen for every such feed.
+      const payload = await fetchFeed(`<?xml version="1.0"?>
+        <feed xmlns="http://www.w3.org/2005/Atom">
+          <title>Illustrated</title>
+          <entry>
+            <title>Two fields, two jobs</title>
+            <link rel="alternate" href="https://news.example.com/two"/>
+            <summary type="html">The teaser, written for a teaser.</summary>
+            <content type="html">
+              &lt;p&gt;The body.&lt;/p&gt;&lt;img src="https://cdn.example.com/lead.png"/&gt;
+            </content>
+          </entry>
+        </feed>`);
+
+      expect(payload.items[0]?.summary).toBe(
+        'The teaser, written for a teaser.',
+      );
+      expect(payload.items[0]?.imageUrl).toBe(
+        'https://cdn.example.com/lead.png',
+      );
+    });
+
+    it('decodes a double-encoded image URL instead of losing it at the #', async () => {
+      // HTML inside XML is encoded twice, so `&amp;#038;` survives the XML parse
+      // as `&#038;`. Left alone, that `#` starts a URL fragment and the image
+      // loads without half its query — WordPress feeds do this constantly.
+      const payload = await fetchFeed(`<?xml version="1.0"?>
+        <feed xmlns="http://www.w3.org/2005/Atom">
+          <title>WP</title>
+          <entry>
+            <title>Double-encoded</title>
+            <content type="html">
+              &lt;img src="https://cdn.example.com/a.png?quality=90&amp;#038;crop=1" /&gt;
+            </content>
+          </entry>
+        </feed>`);
+
+      expect(payload.items[0]?.imageUrl).toBe(
+        'https://cdn.example.com/a.png?quality=90&crop=1',
+      );
+    });
+
+    it('prefers a written teaser over truncating the full article', async () => {
+      const payload = await fetchFeed(`<rss><channel><title>T</title>
+        <item>
+          <title>Both</title>
+          <description>The teaser.</description>
+          <content:encoded xmlns:content="http://purl.org/rss/1.0/modules/content/">
+            ${'The full article body. '.repeat(40)}
+          </content:encoded>
+        </item>
+      </channel></rss>`);
+      expect(payload.items[0]?.summary).toBe('The teaser.');
+    });
+  });
+
+  describe('RSS 1.0 / RDF', () => {
+    it('finds items hanging off the root beside <channel>', async () => {
+      const payload = await fetchFeed(`<?xml version="1.0"?>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                 xmlns:dc="http://purl.org/dc/elements/1.1/">
+          <channel><title>RDF Wire</title></channel>
+          <item>
+            <title>An RDF story</title>
+            <link>https://news.example.com/rdf-1</link>
+            <dc:date>2025-06-29T10:00:00Z</dc:date>
+          </item>
+        </rdf:RDF>`);
+
+      expect(payload.title).toBe('RDF Wire');
+      expect(payload.items[0]).toMatchObject({
+        title: 'An RDF story',
+        link: 'https://news.example.com/rdf-1',
+        publishedAt: '2025-06-29T10:00:00.000Z',
+      });
+    });
+  });
+
+  describe('failures are surfaced, not swallowed', () => {
+    it('throws on a missing url', async () => {
+      await expect(rssConnector.fetchData({}, ctx)).rejects.toThrow(
+        /missing feed url/,
+      );
+      expect(safeFetchMock).not.toHaveBeenCalled();
+    });
+
+    it('throws when the document is not a feed', async () => {
+      await expect(
+        fetchFeed('<html><body>Not a feed</body></html>'),
+      ).rejects.toThrow(/not an RSS or Atom feed/);
+    });
+
+    it('throws on an empty feed, so the last good payload stays on screen', async () => {
+      await expect(
+        fetchFeed('<rss><channel><title>Empty</title></channel></rss>'),
+      ).rejects.toThrow(/no items/);
+    });
+
+    it('lets an SSRF block propagate to the scheduler', async () => {
+      safeFetchMock.mockRejectedValue(
+        new Error('Blocked non-public address: 10.0.0.1'),
+      );
+      await expect(
+        rssConnector.fetchData({ url: 'http://internal.corp/feed' }, ctx),
+      ).rejects.toThrow(/non-public/);
+    });
+  });
+
+  it('carries no timestamp, so an unchanged feed does not fan out every refresh', async () => {
+    // The host deep-compares payloads to decide whether to push to every player.
+    // A `fetchedAt` in here would make a quiet feed look new every 5 minutes.
+    const xml = `<rss><channel><title>T</title>
+      <item><title>Same story</title></item>
+    </channel></rss>`;
+    const first = await fetchFeed(xml);
+    const second = await fetchFeed(xml);
+    expect(second).toEqual(first);
   });
 });

@@ -1,17 +1,12 @@
 import QRCode from 'qrcode'
 
+import { pickColor } from '../_shared/color.js'
 import { connectToHost } from '../_shared/host-bridge.js'
 import { applyTextStyle } from '../_shared/text-style.js'
 import '../_shared/base.css'
 import './style.css'
 
 const root = document.getElementById('app')
-
-/** A hex color; anything else falls back to the default. */
-const HEX = /^#[0-9a-fA-F]{3,8}$/
-function pickColor(value: unknown, fallback: string): string {
-  return typeof value === 'string' && HEX.test(value) ? value : fallback
-}
 
 function str(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''

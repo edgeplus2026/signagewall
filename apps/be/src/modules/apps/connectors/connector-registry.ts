@@ -2,6 +2,7 @@ import type { AppConnector } from '@edge/apps-contract';
 
 import { canvaConnector } from './canva.connector';
 import { gcalConnector } from './gcal.connector';
+import { rssConnector } from './rss.connector';
 import { weatherConnector } from './weather.connector';
 
 /**
@@ -15,6 +16,7 @@ const CONNECTORS: Record<string, AppConnector> = {
   weather: weatherConnector,
   gcal: gcalConnector,
   canva: canvaConnector,
+  rss: rssConnector,
 };
 
 /** The connector for `slug`, or undefined for `static` apps / unknown slugs. */

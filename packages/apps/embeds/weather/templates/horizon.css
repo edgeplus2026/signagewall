@@ -1,0 +1,160 @@
+/* "Horizon" — the sky fills the screen; everything else hugs the bottom edge.
+
+   The layout is two bands: an empty one (the sky, with the icon floating in it)
+   and a dense one (the numbers). The emptiness is the design — it is what gives
+   the drifting clouds and the falling rain somewhere to be. */
+
+.wx-horizon {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  /* The sky takes whatever is left. The ground takes only what it needs. */
+  grid-template-rows: minmax(0, 1fr) auto;
+  /* A floor of 0 on the column. An implicit `auto` column takes its MINIMUM from its
+     items' max-content, so one long place name or a wide rail would push the column
+     past the screen and shove the layout off the right-hand edge. (This is not
+     hypothetical — it is exactly what the Agency ticker did.) */
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ----- The sky ----- */
+
+.wx-horizon-sky {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.wx-horizon-icon {
+  width: 19em;
+  height: 19em;
+  max-height: 46vh;
+  /* Breathing, not bobbing. Slow enough that you never catch it moving — you only
+     notice that the screen isn't a photograph. */
+  animation: wx-float 9s ease-in-out infinite;
+}
+
+@keyframes wx-float {
+  0%,
+  100% {
+    transform: translateY(-0.3em);
+  }
+  50% {
+    transform: translateY(0.3em);
+  }
+}
+
+/* ----- The ground -----
+   A scrim under the numbers, not a panel: it fades up out of the sky so the sky
+   still owns the screen. Without it the readings would sit on whatever the
+   gradient happened to be doing down there, which on a clear day is its lightest
+   stop — the exact place white text has the least to work with. */
+
+.wx-horizon-ground {
+  padding: 2.4em 2.6em 2.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4em;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.38),
+    rgba(0, 0, 0, 0.16) 55%,
+    transparent
+  );
+}
+
+/* On the light theme the scrim would be a grey smear under black text. There, the
+   contrast is already won. */
+.wx-sky-light .wx-horizon-ground {
+  background: none;
+}
+
+.wx-horizon-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5em;
+  min-width: 0;
+}
+
+.wx-horizon-text {
+  min-width: 0;
+}
+
+.wx-horizon-place {
+  font-size: 3.4em;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-horizon-condition {
+  margin-top: 0.1em;
+  font-size: 1.7em;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.wx-horizon-temp {
+  flex: none;
+  font-size: 8.5em;
+  font-weight: 200;
+  line-height: 0.82;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The rail is quieter here than anywhere else in the app: on this layout it is a
+   footnote to the sky, so the cards lose their fill and keep only a hairline. */
+.wx-horizon .wx-hour,
+.wx-horizon .wx-day {
+  background: none;
+  box-shadow: none;
+  padding: 0.2em;
+}
+
+.wx-horizon .wx-hours,
+.wx-horizon .wx-days {
+  gap: 0.4em;
+  padding-top: 1.1em;
+  border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .wx-horizon-ground {
+    padding: 2em 1.8em 1.8em;
+  }
+
+  .wx-horizon-head {
+    /* Side by side, a portrait screen would crush the place name into an ellipsis
+       to make room for the number. Stack instead and both get their full width. */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2em;
+  }
+
+  .wx-horizon-place {
+    font-size: 2.9em;
+  }
+
+  .wx-horizon-temp {
+    font-size: 7.5em;
+  }
+
+  .wx-horizon-icon {
+    width: 15em;
+    height: 15em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wx-horizon-icon {
+    animation: none;
+  }
+}

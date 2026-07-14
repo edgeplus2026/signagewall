@@ -1,43 +1,76 @@
 import type { AppManifest } from '@edge/apps-contract'
 
+import { DEFAULT_CLOCK_FACE, clockFaceOptions } from './faces.js'
+
 const CLOCK_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 
 /**
  * Clock / Date — the most common signage app. Pure client-side: renders the
- * current time (and optionally the date) in the configured format. `embed`
- * runtime; no server connector.
+ * current time (and optionally the date) on the chosen face. `embed` runtime; no
+ * server connector, and nothing to fetch — which is why it is the app that is still
+ * right on a screen that has been off the network for a month.
+ *
+ * `face` is the app's spine: the faces live in `faces.ts` and each has a template
+ * behind it in the embed. Adding one must not touch this file beyond the list it
+ * already reads.
  */
 export const clockManifest: AppManifest = {
   slug: 'clock',
   name: 'Clock',
   tagline: 'Show the current time on your screens',
   description:
-    'Display a live clock — 12- or 24-hour, with optional seconds and date.',
+    'Display a live clock — digital, analogue, split-flap, or spelled out in words.',
   runtimeKind: 'embed',
   dataSource: 'static',
-  version: 3,
+  version: 4,
   icon: CLOCK_ICON,
   color: '#0EA5E9',
   configSchema: [
-    // First (untitled) section — the theme preset. Picking an option fills the
-    // Background/Text color fields below (overwriting any custom values).
+    {
+      key: 'face',
+      type: 'select',
+      label: 'Face',
+      help: 'How the clock tells the time.',
+      default: DEFAULT_CLOCK_FACE,
+      options: clockFaceOptions(),
+    },
+    // Picking a theme fills the three colour fields below (overwriting any custom
+    // values). It is a starting point, not a mode — the operator can still change
+    // any of the three afterwards.
     {
       key: 'theme',
       type: 'select',
       label: 'Theme',
-      help: 'A starting point — it fills in the colors below, which you can still change.',
+      help: 'A starting point — it fills in the colours below, which you can still change.',
       default: 'dark',
       options: [
         {
           label: 'Light',
           value: 'light',
-          set: { backgroundColor: '#FFFFFF', textColor: '#000000' },
+          set: {
+            backgroundColor: '#FFFFFF',
+            textColor: '#0F172A',
+            accentColor: '#0EA5E9',
+          },
         },
         {
           label: 'Dark',
           value: 'dark',
-          set: { backgroundColor: '#000000', textColor: '#FFFFFF' },
+          set: {
+            backgroundColor: '#000000',
+            textColor: '#FFFFFF',
+            accentColor: '#0EA5E9',
+          },
+        },
+        {
+          label: 'Midnight',
+          value: 'midnight',
+          set: {
+            backgroundColor: '#0B1220',
+            textColor: '#E2E8F0',
+            accentColor: '#F97316',
+          },
         },
       ],
     },
@@ -59,6 +92,11 @@ export const clockManifest: AppManifest = {
       type: 'switch',
       label: 'Show seconds',
       section: 'Clock Settings',
+      // Deliberately NOT gated with `visibleWhen`: that can only test one face
+      // value, so it would silently hide this field the day a second face stopped
+      // using it. The help carries the condition instead — the Words face rounds to
+      // the nearest five minutes and has nowhere to put a second.
+      help: 'Not used by the Words face, which tells the time to the nearest five minutes.',
       default: false,
     },
     {
@@ -72,16 +110,24 @@ export const clockManifest: AppManifest = {
     {
       key: 'backgroundColor',
       type: 'color',
-      label: 'Background color',
+      label: 'Background colour',
       section: 'Theme Settings',
       default: '#000000',
     },
     {
       key: 'textColor',
       type: 'color',
-      label: 'Text color',
+      label: 'Text colour',
       section: 'Theme Settings',
       default: '#FFFFFF',
+    },
+    {
+      key: 'accentColor',
+      type: 'color',
+      label: 'Accent colour',
+      section: 'Theme Settings',
+      help: 'The second hand, the ticking colon, the ring that closes — the one thing on the face that moves.',
+      default: '#0EA5E9',
     },
   ],
 }

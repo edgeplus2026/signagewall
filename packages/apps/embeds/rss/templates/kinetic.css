@@ -1,0 +1,257 @@
+/* "Kinetic" — the one that performs.
+
+   Everything animated here is `transform` and `opacity`, and nothing else. That
+   is not a style note, it is the whole reason this layout is possible on a signage
+   box: those two are the only properties a browser can hand to the compositor and
+   animate without touching layout or paint. Animate a `width` or a `top` per
+   character instead and a hundred spans will bring a cheap Android stick to its
+   knees. */
+
+.kn {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* ----- The picture, opening like a shutter ----- */
+
+.kn-media {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+}
+
+.kn-media .rs-media-img {
+  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
+}
+
+/* A wash over the picture so the slab and the type have something to sit on. */
+.kn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    100deg,
+    rgba(0, 0, 0, 0.92) 0%,
+    rgba(0, 0, 0, 0.78) 34%,
+    rgba(0, 0, 0, 0.3) 62%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+}
+
+.rs-theme-light .kn::after {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(255, 255, 255, 0.84) 34%,
+    rgba(255, 255, 255, 0.38) 62%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
+}
+
+/* ----- The slab -----
+   A solid bar of accent that wipes across before anything else happens. It does
+   nothing except announce that something is about to. */
+.kn-slab {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0.55em;
+  z-index: 2;
+  background: var(--rs-accent, #f97316);
+  transform-origin: left center;
+}
+
+/* ----- The words ----- */
+
+.kn-content {
+  position: absolute;
+  z-index: 3;
+  left: 3.2em;
+  right: 3.2em;
+  bottom: 3em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7em;
+  /* The hinge every letter swings on. Without a perspective the rotateX below is
+     a vertical squash, not a flip. */
+  perspective: 900px;
+}
+
+.kn.has-qr .kn-content {
+  right: 12em;
+}
+
+.kn-source {
+  font-size: 1.05em;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--rs-accent, #f97316);
+}
+
+.kn-headline {
+  font-size: 4.4em;
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Words stay whole so the line wraps like a line. */
+.kn-w {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.kn-c {
+  display: inline-block;
+  transform-origin: 50% 100%;
+}
+
+.kn-summary {
+  margin-top: 0.3em;
+  max-width: 34em;
+  font-size: 1.5em;
+  font-weight: 300;
+  line-height: 1.45;
+  opacity: 0.85;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.kn-date {
+  font-size: 1em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* ----- Portrait ----- */
+
+@media (max-aspect-ratio: 1/1) {
+  .kn-content {
+    left: 2.2em;
+    right: 2.2em;
+    bottom: 2.4em;
+  }
+
+  .kn.has-qr .kn-content {
+    right: 2.2em;
+    bottom: 12em;
+  }
+
+  .kn-headline {
+    font-size: 3.2em;
+  }
+
+  .kn .rs-qr {
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: fit-content;
+  }
+}
+
+/* ----- Motion ----- */
+
+/* The shutter. `clip-path` is the one exception to the transform-only rule, and it
+   runs once on one element rather than a hundred. */
+@keyframes kn-shutter {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes kn-wipe {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* The hinge: each letter starts face-down below its own baseline and swings up. */
+@keyframes kn-flip {
+  from {
+    opacity: 0;
+    transform: rotateX(-92deg) translateY(0.35em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes kn-slide {
+  from {
+    opacity: 0;
+    transform: translateX(-1.4em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.kn-media {
+  animation: kn-shutter 1100ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.kn-slab {
+  transform: scaleY(0);
+  transform-origin: top center;
+  animation: kn-wipe 620ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.kn-source {
+  animation: kn-slide 700ms cubic-bezier(0.16, 1, 0.3, 1) 380ms both;
+}
+
+.kn-c {
+  animation: kn-flip 620ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  /* Capped, or the tail of a long headline is still arriving as the story leaves. */
+  animation-delay: calc(500ms + var(--i) * 16ms);
+}
+
+.kn-summary {
+  animation: kn-slide 800ms cubic-bezier(0.16, 1, 0.3, 1) 900ms both;
+}
+
+.kn-date {
+  animation: kn-slide 800ms cubic-bezier(0.16, 1, 0.3, 1) 1000ms both;
+}
+
+.kn .rs-qr {
+  animation: kn-slide 800ms cubic-bezier(0.16, 1, 0.3, 1) 1100ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kn-media,
+  .kn-media .rs-media-img,
+  .kn-slab,
+  .kn-source,
+  .kn-c,
+  .kn-summary,
+  .kn-date,
+  .kn .rs-qr {
+    animation: none;
+    clip-path: none;
+    transform: none;
+  }
+}
