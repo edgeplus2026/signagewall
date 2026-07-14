@@ -373,10 +373,17 @@ function timeGrid(
           const top = Math.max(0, ((p.from - from * 60) / spanMinutes) * 100)
           const bottom = Math.min(100, ((p.to - from * 60) / spanMinutes) * 100)
           const width = 100 / lanes
+          // The `-body` wrapper is not decoration. The block is a size CONTAINER (it
+          // has to be: how much of an event fits depends on how tall its own hours
+          // are), and a container query may only style a container's DESCENDANTS —
+          // never the container itself. Laying the title and the time out therefore
+          // has to happen one level in, on something the query can actually reach.
           return `
             <div class="gc-tg-ev"${timeAttrs(p.event)} style="top:${top.toFixed(3)}%;height:${Math.max(0, bottom - top).toFixed(3)}%;left:${(p.lane * width).toFixed(3)}%;width:${width.toFixed(3)}%">
-              <div class="gc-tg-ev-title">${escapeHtml(p.event.title)}</div>
-              <div class="gc-tg-ev-time">${escapeHtml(timeRange(p.event, locale))}</div>
+              <div class="gc-tg-ev-body">
+                <div class="gc-tg-ev-title">${escapeHtml(p.event.title)}</div>
+                <div class="gc-tg-ev-time">${escapeHtml(timeRange(p.event, locale))}</div>
+              </div>
             </div>`
         })
         .join('')

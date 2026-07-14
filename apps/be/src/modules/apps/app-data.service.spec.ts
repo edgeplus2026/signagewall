@@ -110,11 +110,16 @@ function buildService(options: {
   const connectionsService = {
     resolveConnection: jest.fn(),
   };
+  // No `publicApiUrl`: these tests are the poll path, and with no public address the
+  // service passes no `webhookUrl` and connectors don't subscribe — which is exactly
+  // what a machine with no inbound route should do.
+  const configService = { get: jest.fn().mockReturnValue(undefined) };
 
   const service = new AppDataService(
     appInstancesRepository as never,
     cacheRepository as never,
     eventEmitter as never,
+    configService as never,
     connectionsService as never,
   );
 

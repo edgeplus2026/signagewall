@@ -35,6 +35,21 @@ export class AppDataCacheRepository {
   }
 
   /**
+   * The entry whose connector is subscribed under this push-channel id.
+   *
+   * This is how an incoming provider notification — which knows nothing about us
+   * except the channel id we handed it — finds its way back to a cache key. The id is
+   * a UUID we generated and only the provider was ever told, so matching one is also
+   * what authenticates the ping: a stranger POSTing to the endpoint has nothing to
+   * match with.
+   */
+  async findByChannelId(
+    channelId: string,
+  ): Promise<AppDataCacheDocument | null> {
+    return this.model.findOne({ 'secrets.channel.id': channelId }).exec();
+  }
+
+  /**
    * Upsert a freshly-fetched payload, clearing any prior error. Returns the
    * saved document so the caller can compare against the previous payload to
    * decide whether to fan out.

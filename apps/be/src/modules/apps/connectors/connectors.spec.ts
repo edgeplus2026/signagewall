@@ -308,6 +308,158 @@ describe('gcal connector (connected)', () => {
       gcalConnector.fetchData({ connectionId: 'conn-1' }, ctx),
     ).rejects.toThrow(/no connection/);
   });
+
+  // The host has no `version` to compare for this connector, so it deep-compares the
+  // payload to decide whether to re-push it to every screen. A timestamp in there is
+  // never equal to itself: the calendar looked changed on every fetch and every screen
+  // showing it was rebuilt, mid-animation, every five minutes, for nothing.
+  it('puts NO timestamp in the payload (it would fan out on every refresh)', async () => {
+    mockFetchSequence([{ body: { summary: 'Team', items: [] } }]);
+
+    const result = await gcalConnector.fetchData(
+      { connectionId: 'conn-1' },
+      connectedCtx,
+    );
+
+    expect(result.playerPayload).toEqual({
+      calendarLabel: 'Team',
+      events: [],
+    });
+    expect(result.playerPayload).not.toHaveProperty('fetchedAt');
+  });
+
+  // The window used to be anchored on the 1st of the month and run 42 days from it,
+  // so it SHRANK through the month and anything past its end was never fetched at all.
+  it('asks for a window that rolls with today, not with the 1st of the month', async () => {
+    const fetchMock = mockFetchSequence([{ body: { items: [] } }]);
+    jest.useFakeTimers().setSystemTime(new Date('2026-07-31T10:00:00Z'));
+
+    await gcalConnector.fetchData({ connectionId: 'conn-1' }, connectedCtx);
+
+    const url = new URL((fetchMock.mock.calls[0] as [string])[0]);
+    const timeMax = new Date(url.searchParams.get('timeMax')!);
+    const timeMin = new Date(url.searchParams.get('timeMin')!);
+    const daysAhead =
+      (timeMax.getTime() - Date.now()) / (24 * 60 * 60 * 1000);
+
+    // On the 31st, the old window could see 12 days. This one still sees ~60.
+    expect(daysAhead).toBeGreaterThan(59);
+    expect(timeMin.getTime()).toBeLessThan(Date.now());
+    jest.useRealTimers();
+  });
+
+  describe('push subscription', () => {
+    const CHANNEL = 'https://api.example.com/api/v1/webhooks/google/calendar';
+    const watchCtx: ConnectorContext = { ...connectedCtx, webhookUrl: CHANNEL };
+
+    it('registers a watch channel and remembers it in secrets', async () => {
+      const fetchMock = mockFetchSequence([
+        { body: { summary: 'Team', items: [] } },
+        { body: { resourceId: 'res-1', expiration: '1800000000000' } },
+      ]);
+
+      const result = await gcalConnector.fetchData(
+        { connectionId: 'conn-1' },
+        watchCtx,
+      );
+
+      const [url, init] = fetchMock.mock.calls[1] as [
+        string,
+        { method: string; body: string },
+      ];
+      expect(url).toContain('/events/watch');
+      expect(init.method).toBe('POST');
+      const body = JSON.parse(init.body) as { address: string; type: string };
+      expect(body.address).toBe(CHANNEL);
+      expect(body.type).toBe('web_hook');
+
+      const channel = (result.secrets as { channel: { resourceId: string } })
+        .channel;
+      expect(channel.resourceId).toBe('res-1');
+      // The payload still arrives — the subscription is a side-effect of the fetch.
+      expect(result.playerPayload!.calendarLabel).toBe('Team');
+    });
+
+    // A laptop has no address Google could POST to. Subscribing is skipped and the
+    // poll carries the data; this must not be an error.
+    it('does not subscribe when the deployment has no public URL', async () => {
+      const fetchMock = mockFetchSequence([{ body: { items: [] } }]);
+
+      const result = await gcalConnector.fetchData(
+        { connectionId: 'conn-1' },
+        connectedCtx,
+      );
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(result.secrets).toBeUndefined();
+      expect(result.playerPayload).toBeDefined();
+    });
+
+    it('reuses a live channel instead of re-subscribing every poll', async () => {
+      const fetchMock = mockFetchSequence([{ body: { items: [] } }]);
+      const alive = {
+        id: 'chan-1',
+        resourceId: 'res-1',
+        expiration: Date.now() + 5 * 24 * 60 * 60 * 1000,
+        address: CHANNEL,
+      };
+
+      const result = await gcalConnector.fetchData(
+        { connectionId: 'conn-1' },
+        { ...watchCtx, secrets: { channel: alive } },
+      );
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect((result.secrets as { channel: unknown }).channel).toEqual(alive);
+    });
+
+    it('renews a channel that is about to expire, and stops the old one', async () => {
+      const fetchMock = mockFetchSequence([
+        { body: { items: [] } },
+        { body: { resourceId: 'res-2', expiration: '1800000000000' } },
+        { body: {} }, // channels/stop
+      ]);
+      const dying = {
+        id: 'chan-old',
+        resourceId: 'res-old',
+        expiration: Date.now() + 60_000,
+        address: CHANNEL,
+      };
+
+      const result = await gcalConnector.fetchData(
+        { connectionId: 'conn-1' },
+        { ...watchCtx, secrets: { channel: dying } },
+      );
+
+      const stop = fetchMock.mock.calls[2] as [string, { body: string }];
+      expect(stop[0]).toContain('/channels/stop');
+      expect(JSON.parse(stop[1].body)).toMatchObject({
+        id: 'chan-old',
+        resourceId: 'res-old',
+      });
+      expect(
+        (result.secrets as { channel: { resourceId: string } }).channel
+          .resourceId,
+      ).toBe('res-2');
+    });
+
+    // A calendar that can't be watched must still be READ. Failing the fetch over a
+    // failed subscription trades a screen that is five minutes stale for a blank one.
+    it('still returns the events when the subscription fails', async () => {
+      mockFetchSequence([
+        { body: { summary: 'Team', items: [] } },
+        { ok: false, body: {} },
+      ]);
+
+      const result = await gcalConnector.fetchData(
+        { connectionId: 'conn-1' },
+        watchCtx,
+      );
+
+      expect(result.playerPayload!.calendarLabel).toBe('Team');
+      expect(result.secrets).toBeUndefined();
+    });
+  });
 });
 
 describe('canva connector (connected)', () => {

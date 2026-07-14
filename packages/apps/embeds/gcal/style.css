@@ -319,45 +319,48 @@
 .gc-tg-ev {
   position: absolute;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1em;
   overflow: hidden;
   /* The lane leaves a hair of space on the right so two side-by-side events read as
      two, and every block clears the hour line under it. */
   margin: 1px 2px 1px 0;
-  padding: clamp(4px, 0.42vw, 8px) clamp(5px, 0.5vw, 10px);
+
+  /* FIXED, and no container query below may touch it. A size query is answered by the
+     container's CONTENT box, so a rule that changed this padding would change the very
+     measurement that chose the rule: pad 4, measure 26, match "under 30", unpad,
+     measure 34, stop matching, pad again. Nothing in a block's own size query may move
+     the block's own box. */
+  padding: 4px clamp(5px, 0.5vw, 10px);
   border-left: clamp(2px, 0.24vw, 4px) solid var(--fg);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: color-mix(in srgb, var(--ink) 6%, transparent);
-  container-type: inline-size;
+
+  /* An event you cannot see is an event that isn't there: a half-hour meeting in a
+     nineteen-hour day is seventeen pixels of column, and a shorter one rounds to a
+     line. This is the floor at which one line of type still fits. */
+  min-height: 22px;
+
+  /* `size`, not `inline-size`: the HEIGHT is what actually breaks this block, and it
+     took a real calendar to show it. An hour band is only as tall as the day is long —
+     one event at 01:15 widens the day to nineteen hours and every band shrinks with
+     it — so the same block that comfortably stacks a title over a time on a working
+     day has half the room for it on that one. */
+  container-type: size;
 }
 
-/* Three events at the same hour of a seven-day week get a sliver of column each, and
-   a sliver cannot say WHEN as well as WHAT. So below a width the time gives way and
-   the title takes the room: "11:0…" is worse than no time at all, and the hour is
-   already legible from where the block starts on the rail. The block asks its own
-   width — the lane count doesn't answer this, because the same three lanes are
-   roomy in the day view and hopeless in the week. */
-@container (max-width: 88px) {
-  .gc-tg-ev-time {
-    display: none;
-  }
-
-  /* And what room is left goes to the words: smaller type, tighter padding, a third
-     line. It will still not hold "Sastanak sa klijentom" at this width — nothing
-     would — but it holds enough of it to know which meeting it is, which is the whole
-     job of a block this size. */
-  .gc-tg-ev {
-    padding: 2px 3px 2px 4px;
-  }
-
-  .gc-tg-ev-title {
-    font-size: clamp(9px, 0.78vw, 13px);
-    line-height: 1.15;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-  }
+/* A CONTAINER QUERY CANNOT STYLE ITS OWN CONTAINER — it reaches the container's
+   descendants and nothing else. That is the whole reason this wrapper exists: the
+   block above has to be the container (its height is the thing being asked about), so
+   the flex box that arranges the title and the time has to live one level inside it,
+   where the queries can actually get at it. Without this, every rule below aimed at
+   `.gc-tg-ev` was silently dropped, the block stayed a column, and its words ran out
+   of it. */
+.gc-tg-ev-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  min-width: 0;
+  /* Fills the block, so the one-line layout below can centre itself in it. */
+  height: 100%;
 }
 
 .gc-tg-ev-title {
@@ -386,8 +389,12 @@
 /* Done, and running. Both in ink: what is over recedes, what is happening now holds
    its full weight and thickens its rail. No badge — a pill shouting at the one live
    event is the loudest thing on a page whose whole argument is that it doesn't. */
+/* RECEDE, DON'T VANISH. This was 0.45, which is a fine amount to fade a row in a list
+   you are scrolling past and far too much for a block on a wall: by six in the evening
+   every event on a day grid is behind us, so the whole screen was dimmed at once and
+   the day read as empty rather than as done. Past is a rank, not a deletion. */
 .gc-tg-ev.is-past {
-  opacity: 0.45;
+  opacity: 0.7;
 }
 
 .gc-tg-ev.is-live {
@@ -396,6 +403,78 @@
 
 .gc-tg-ev.is-live .gc-tg-ev-title {
   font-weight: var(--w-strong);
+}
+
+/* ----- the block, cut down to the room it got -----
+
+   EVERY RULE BELOW MUST STAY BELOW THE ONES ABOVE, and it is not a matter of taste.
+   A `@container` query adds NOTHING to a selector's specificity: `.gc-tg-ev-title`
+   inside one weighs exactly what `.gc-tg-ev-title` outside one weighs, so the only
+   thing deciding which wins is which comes LAST. These rules sat above the plain ones
+   and lost every property they shared with them — silently, and in a way no
+   type-check or build can see: the block kept its full-size type and its two-line
+   clamp in a box half that tall, and the words ran out of it and were sliced against
+   the edge. Do not let a tidy-up hoist them back up beside the block they modify. */
+
+/* NOT TWO LINES TALL — the stacked title and time need about forty pixels between
+   them and this box hasn't got it. So lay them on ONE line instead of stacking them
+   into a space that cannot hold both, which is what was pushing the words out of the
+   block and slicing them in half against its edge. */
+@container (max-height: 40px) {
+  .gc-tg-ev-body {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45em;
+  }
+
+  .gc-tg-ev-title {
+    display: block;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .gc-tg-ev-time {
+    flex: none;
+  }
+}
+
+/* A one-line block has to hold the title AND the hours SIDE BY SIDE, and a day column
+   in a seven-day week has not got the width for both. The time is what goes. It is the
+   cheaper of the two by far: where the block sits on the rail has already said when it
+   is, while a title squeezed down to "Ju…" says nothing at all — and it is the title
+   that squeezes, because the time is a fixed run of digits that will not. */
+@container (max-height: 40px) and (max-width: 220px) {
+  .gc-tg-ev-time {
+    display: none;
+  }
+}
+
+/* ONE LINE, AND BARELY. Same trade, forced by height rather than width. */
+@container (max-height: 20px) {
+  .gc-tg-ev-time {
+    display: none;
+  }
+
+  .gc-tg-ev-title {
+    font-size: clamp(9px, 0.8vw, 13px);
+    line-height: 1.1;
+  }
+}
+
+/* Three events at the same hour of a seven-day week get a sliver of column each, and a
+   sliver cannot say WHEN as well as WHAT. So below a width the time gives way and the
+   title takes the room: "11:0…" is worse than no time at all. The block asks its own
+   width — the lane count can't answer this, because the same three lanes are roomy in
+   the day view and hopeless in the week. */
+@container (max-width: 88px) {
+  .gc-tg-ev-time {
+    display: none;
+  }
+
+  .gc-tg-ev-title {
+    font-size: clamp(9px, 0.78vw, 13px);
+    line-height: 1.15;
+  }
 }
 
 /* ----- schedule -----
@@ -424,7 +503,7 @@
 }
 
 .gc-row.is-past {
-  opacity: 0.45;
+  opacity: 0.7;
 }
 
 .gc-row-date {
