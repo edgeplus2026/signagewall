@@ -10,10 +10,15 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**9 apps ship today** (all `runtimeKind: 'embed'`):
-- `static` (config only, no server): `clock`, `text`, `qr`, `web`, `youtube`
-- `server` (backend connector, public API): `weather` (Open-Meteo), `rss`
+**21 apps ship today** (all `runtimeKind: 'embed'`):
+- `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
+  `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
+- `server` (backend connector, public API): `weather` (Open-Meteo), `airquality` (Open-Meteo),
+  `currency` (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `rss`
 - `connected` (OAuth account): `gcal` (Google Calendar), `canva`
+
+**Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
+`datetime` config field type (enabler E4a). Remaining work is marked below — ✅ = shipped.
 
 ## 1. How the app system works (read once)
 
@@ -86,7 +91,7 @@ An app is split across at most three places, joined **only by its `slug`**:
 
 ### D. New config field type (only if `configSchema` needs a type not in the list)
 Field types today (`apps-contract/src/field-schema.ts`): `text, textarea, url, number, select,
-multiselect, checkbox, switch, image, color, oauth, location, richtext, remote-select`. To add one:
+multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime, remote-select`. To add one:
 (1) extend the `FieldType` union + `buildFieldZod` (+ `buildDefaultConfig`); (2) add a control to CMS
 `features/apps/config-form/fieldRegistry.ts` + a component. See **Enabler E4**.
 
@@ -118,7 +123,8 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, remote-s
 | **E1** | **Microsoft (Azure AD / MS Graph) OAuth provider**: extend `ConnectionProvider` enum (be `schemas/app-connection.schema.ts` + cms `features/apps/types/connection.types.ts`), add `providers/microsoft.oauth.ts` (`OAuthProvider`), register in `ConnectionsService.getProvider` + `PROVIDER_CONFIG_NS`, add `microsoft-api.ts`, add client-id/secret env. | L | Outlook Calendar, Teams, SharePoint/PowerPoint, Power BI |
 | **E2** | **Meta (Facebook/Instagram Graph) OAuth provider** + create a Meta app + app review/business verification. | L (external approval) | Instagram, Facebook Page |
 | **E3** | **Slack OAuth provider** (`conversations.history` scope). | M | Slack channel app |
-| **E4** | **New field types** as apps need them: `datetime` (countdown target), `repeater`/`list` (menu rows, ticker lines, multi-city). Each = union + zod + CMS control. *Note: several Tier-1 apps ship an MVP without this using `text`(ISO)/`textarea`(one item per line); add the richer control as a follow-up.* | M each | Countdown, Menu, Ticker, World clocks |
+| **E4a** ✅ | **`datetime` field type** — native date/time picker, stored as a local `YYYY-MM-DDTHH:MM` string. Shipped: contract union + zod (string-like) + CMS `DateTimeControl`; used by the Countdown `target`. | S | Countdown (done) |
+| **E4b** | **`repeater`/`list` field type** — an add/remove/reorder row editor (each row a small set of typed sub-fields). Each = union + zod + CMS control. Menu / Ticker / World clocks currently ship the `textarea` MVP; this is the editing-UX upgrade (and a searchable time-zone picker for World clocks). | M | Menu, Ticker, World clocks (richer editing) |
 | **E5** | **Keyed-connector convention**: a documented, tested way for `server` connectors to read API keys (env var / config namespace) + a small helper; no connector reads env today. | S–M | Stocks, Sports, (keyed News/Transit) |
 | **E6** | Refresh [`README.md`](./README.md) — its `player.tsx` / `runtimeKind: 'native'` note is stale; reality is `embeds/<slug>/` bundles. | S | docs accuracy |
 
@@ -134,7 +140,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | # | App | Slug | dataSource | Category | Effort | Depends |
 |---|---|---|---|---|---|---|
 | **Tier 1 — static, no backend (ship first)** ||||||
-| 1 | Countdown / Timer ✅ | `countdown` | static | Utilities | S | (E4a nice-to-have) |
+| 1 | Countdown / Timer ✅ | `countdown` | static | Utilities | S | E4a ✅ |
 | 2 | Vimeo ✅ | `vimeo` | static | Media | S | — |
 | 3 | Google Slides (published) ✅ | `gslides-public` | static | Productivity | S | — |
 | 4 | Dashboard embed (public) ✅ | `dashboard` | static | Data & Dashboards | S | — |
@@ -170,11 +176,11 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 
 ### Tier 1 — static quick wins
 
-**1. Countdown / Timer** (`countdown`, static)
-Counts down to (or up from) an event. **Config:** `title` (text), `target` (datetime — MVP: `text` ISO
-with pattern; upgrade with E4a), `mode` (select: down/up), `showLabels` (switch), theme via
-`styleFields`. **Render:** compute remaining d/h/m/s client-side, tick with `setInterval`. `requiresNetwork:
-false`. Broad appeal (events, "days since incident", launches).
+**1. Countdown / Timer** (`countdown`, static) — ✅ shipped
+Counts down to (or up from) an event. **Config:** `title` (text), `target` (**datetime** — native
+picker, E4a ✅), `mode` (select: down/up), `finishedText` (text), `showLabels` (switch), theme +
+`styleFields`. **Render:** compute remaining d/h/m/s client-side, drift-free tick (build-once/patch).
+`requiresNetwork: false`. Broad appeal (events, "days since incident", launches).
 
 **2. Vimeo** (`vimeo`, static, `requiresNetwork: true`)
 Vimeo analogue of YouTube. **Config:** `url` (url, vimeo pattern), `autoplay/loop/muted` (switch).
@@ -297,14 +303,19 @@ committing. Latest tweets from a handle.
 
 ## 5. Suggested sequencing (milestones)
 
-- **M1 — Fast value, no auth:** E0, E6, then Tier 1 statics (countdown, vimeo, gslides-public,
-  dashboard, stream, ticker, menu) + keyless Tier 2 (air quality, currency, crypto, power-prices).
-  Optionally E4 to upgrade menu/ticker/countdown editors.
-- **M2 — Google reuse:** Google Sheets, Google Slides (private), Google Photos.
+- **M1 — Fast value, no auth ✅ done:** all Tier 1 statics + keyless Tier 2 (air quality, currency,
+  crypto, power-prices) shipped, plus the `datetime` field (E4a). Still open in this band: **E0** (seed
+  categories), **E6** (README refresh), and **E4b** (repeater editor for menu / ticker / world-clocks).
+- **M2 — Google reuse (next up):** Google Sheets, Google Slides (private), Google Photos. No new OAuth
+  provider — extend the existing `google` connection with scopes + a `remote-select` browse endpoint.
 - **M3 — Microsoft (E1):** Outlook Calendar (reuse gcal embed), then Power BI / SharePoint / Teams.
 - **M4 — Keyed feeds (E5):** stocks, sports, transit; news presets.
 - **M5 — Social (E2/E3):** Slack, Instagram, Facebook; X/TikTok/LinkedIn only if the API cost/approval
   is acceptable.
+
+**Recommended next:** **E4b** (repeater field type) — cheap, and it lifts three shipped apps from the
+textarea MVP to a real row editor — then **M2 / Google Sheets**, the highest-value data app and the
+first exercise of the `connected` (OAuth-reuse) recipe.
 
 ## 6. Known caveats to carry into implementation
 
