@@ -1,0 +1,68 @@
+/* Air quality. A big index number coloured by its band, the category label under
+   it, the place above, and a row of pollutant chips. The band colour is set at
+   runtime (--aq-band) from the AQI value. */
+
+.aq {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 5vh 5vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5vh;
+  text-align: center;
+  font-family: var(--app-font, inherit);
+  font-weight: var(--app-font-weight, 300);
+  letter-spacing: var(--app-letter-spacing, 0);
+}
+
+.aq-place {
+  font-size: calc(min(3.4vw, 6vh) * var(--app-font-scale, 1));
+  font-weight: 500;
+  opacity: 0.92;
+}
+
+.aq-value {
+  font-variant-numeric: tabular-nums;
+  font-size: calc(min(22vw, 34vh) * var(--app-font-scale, 1));
+  line-height: 0.95;
+  font-weight: 700;
+  color: var(--aq-band, currentColor);
+}
+
+.aq-category {
+  font-size: calc(min(5vw, 8vh) * var(--app-font-scale, 1));
+  font-weight: 600;
+  color: var(--aq-band, currentColor);
+}
+
+.aq-scale {
+  font-size: calc(min(1.8vw, 3vh) * var(--app-font-scale, 1));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0.6;
+}
+
+.aq-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.4vh 2vw;
+  margin-top: 1.5vh;
+}
+.aq-chip {
+  font-size: calc(min(1.9vw, 3.2vh) * var(--app-font-scale, 1));
+  padding: 0.6vh 1.4vw;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+.aq-chip b {
+  font-weight: 700;
+}
+
+.aq-empty {
+  font-size: 3vh;
+  opacity: 0.6;
+}

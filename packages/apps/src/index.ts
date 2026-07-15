@@ -1,13 +1,25 @@
 import type { AppManifest } from '@edge/apps-contract'
 
+import { airqualityManifest } from './airquality/manifest.js'
 import { canvaManifest } from './canva/manifest.js'
 import { clockManifest } from './clock/manifest.js'
+import { countdownManifest } from './countdown/manifest.js'
+import { cryptoManifest } from './crypto/manifest.js'
+import { currencyManifest } from './currency/manifest.js'
+import { dashboardManifest } from './dashboard/manifest.js'
 import { gcalManifest } from './gcal/manifest.js'
+import { gslidesPublicManifest } from './gslides-public/manifest.js'
+import { menuManifest } from './menu/manifest.js'
+import { powerPricesManifest } from './power-prices/manifest.js'
 import { qrManifest } from './qr/manifest.js'
 import { rssManifest } from './rss/manifest.js'
+import { streamManifest } from './stream/manifest.js'
 import { textManifest } from './text/manifest.js'
+import { tickerManifest } from './ticker/manifest.js'
+import { vimeoManifest } from './vimeo/manifest.js'
 import { weatherManifest } from './weather/manifest.js'
 import { webManifest } from './web/manifest.js'
+import { worldclockManifest } from './worldclock/manifest.js'
 import { youtubeManifest } from './youtube/manifest.js'
 
 /**
@@ -18,11 +30,23 @@ import { youtubeManifest } from './youtube/manifest.js'
  */
 export const APP_MANIFESTS: AppManifest[] = [
   clockManifest,
+  worldclockManifest,
   textManifest,
+  tickerManifest,
   qrManifest,
+  countdownManifest,
+  menuManifest,
   webManifest,
+  dashboardManifest,
   youtubeManifest,
+  vimeoManifest,
+  streamManifest,
+  gslidesPublicManifest,
   weatherManifest,
+  airqualityManifest,
+  currencyManifest,
+  cryptoManifest,
+  powerPricesManifest,
   gcalManifest,
   canvaManifest,
   rssManifest,
@@ -30,16 +54,30 @@ export const APP_MANIFESTS: AppManifest[] = [
 
 export {
   clockManifest,
+  worldclockManifest,
   textManifest,
+  tickerManifest,
   qrManifest,
+  countdownManifest,
+  menuManifest,
   webManifest,
+  dashboardManifest,
   youtubeManifest,
+  vimeoManifest,
+  streamManifest,
+  gslidesPublicManifest,
   weatherManifest,
+  airqualityManifest,
+  currencyManifest,
+  cryptoManifest,
+  powerPricesManifest,
   gcalManifest,
   canvaManifest,
   rssManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
+export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'
+export { toGoogleSlidesEmbedUrl } from './gslides-public/embed.js'
 export {
   FONT_OPTIONS,
   FONT_WEIGHT_OPTIONS,
@@ -78,3 +116,13 @@ export type {
 export type { GcalPayload, GcalEvent } from './gcal/payload.js'
 export type { CanvaPayload } from './canva/payload.js'
 export type { RssPayload, RssItem } from './rss/payload.js'
+export type { FxPayload, FxRate } from './currency/payload.js'
+export type { AirQualityPayload } from './airquality/payload.js'
+export type {
+  PowerPricesPayload,
+  PowerHour,
+} from './power-prices/payload.js'
+
+export { COIN_LIST, COINS_BY_ID, coinOptions } from './crypto/coins.js'
+export type { Coin } from './crypto/coins.js'
+export type { CryptoPayload, CryptoCoin } from './crypto/payload.js'

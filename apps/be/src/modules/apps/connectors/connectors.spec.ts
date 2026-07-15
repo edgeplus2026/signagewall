@@ -1,8 +1,12 @@
 import type { ConnectorContext, ResolvedConnection } from '@edge/apps-contract';
 import type { RssPayload } from '@edge/apps';
 
+import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';
+import { cryptoConnector } from './crypto.connector';
+import { currencyConnector } from './currency.connector';
 import { gcalConnector } from './gcal.connector';
+import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { safeFetchText } from './safe-fetch.util';
 import { weatherConnector } from './weather.connector';
@@ -1028,5 +1032,192 @@ describe('rss connector (server)', () => {
     const first = await fetchFeed(xml);
     const second = await fetchFeed(xml);
     expect(second).toEqual(first);
+  });
+});
+
+describe('currency connector (server)', () => {
+  it('cacheKey is the base + sorted targets, order- and display-agnostic', () => {
+    const a = currencyConnector.cacheKey!({
+      base: 'eur',
+      targets: ['USD', 'GBP'],
+    });
+    const b = currencyConnector.cacheKey!({
+      base: 'EUR',
+      targets: ['gbp', 'usd', 'EUR'], // any order; the base is dropped
+    });
+    expect(a).toBe('fx:EUR:GBP,USD');
+    expect(a).toBe(b);
+  });
+
+  it('normalizes rates in sorted order and drops codes the upstream omits', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          amount: 1,
+          base: 'EUR',
+          date: '2026-07-14',
+          rates: { USD: 1.14, GBP: 0.85 }, // DKK requested but omitted upstream
+        },
+      },
+    ]);
+    const result = await currencyConnector.fetchData(
+      { base: 'EUR', targets: ['USD', 'GBP', 'DKK'] },
+      ctx,
+    );
+    expect(result.playerPayload).toEqual({
+      base: 'EUR',
+      date: '2026-07-14',
+      rates: [
+        { code: 'GBP', rate: 0.85 },
+        { code: 'USD', rate: 1.14 },
+      ],
+    });
+  });
+
+  it('carries only the upstream date, so an unchanged day does not fan out', async () => {
+    const body = {
+      base: 'EUR',
+      date: '2026-07-14',
+      rates: { USD: 1.14 },
+    };
+    mockFetchSequence([{ body }, { body }]);
+    const first = await currencyConnector.fetchData(
+      { base: 'EUR', targets: ['USD'] },
+      ctx,
+    );
+    const second = await currencyConnector.fetchData(
+      { base: 'EUR', targets: ['USD'] },
+      ctx,
+    );
+    expect(second).toEqual(first);
+  });
+});
+
+describe('crypto connector (server)', () => {
+  it('cacheKey is the sorted coin set + quote currency', () => {
+    const a = cryptoConnector.cacheKey!({
+      coins: ['ethereum', 'bitcoin'],
+      vs: 'USD',
+    });
+    expect(a).toBe('crypto:bitcoin,ethereum:usd');
+  });
+
+  it('labels coins from the catalog in a stable order with the 24h change', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          bitcoin: { usd: 65000, usd_24h_change: 2.3 },
+          ethereum: { usd: 1900, usd_24h_change: -1.1 },
+        },
+      },
+    ]);
+    const result = await cryptoConnector.fetchData(
+      { coins: ['ethereum', 'bitcoin'], vs: 'usd' },
+      ctx,
+    );
+    // Curated order (BTC before ETH), not the config order.
+    expect(result.playerPayload).toEqual({
+      vs: 'usd',
+      coins: [
+        { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', price: 65000, change24h: 2.3 },
+        { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', price: 1900, change24h: -1.1 },
+      ],
+    });
+  });
+});
+
+describe('air quality connector (server)', () => {
+  it('cacheKey is coarse coordinates, shared regardless of the shown index', () => {
+    const a = airqualityConnector.cacheKey!({
+      location: { lat: 55.681, lng: 12.571 },
+      scale: 'european',
+    });
+    const b = airqualityConnector.cacheKey!({
+      location: { lat: 55.684, lng: 12.574 },
+      scale: 'us',
+    });
+    expect(a).toBe('aq:55.68,12.57');
+    expect(a).toBe(b);
+  });
+
+  it('carries both indices and the pollutants it was sent', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          current: {
+            time: '2026-07-15T15:00',
+            european_aqi: 35,
+            us_aqi: 31,
+            pm2_5: 6.1,
+            pm10: 9.2,
+            ozone: 88,
+            nitrogen_dioxide: 6,
+            sulphur_dioxide: 0.6,
+          },
+        },
+      },
+    ]);
+    const result = await airqualityConnector.fetchData(
+      { location: { lat: 55.68, lng: 12.57, label: 'Copenhagen' } },
+      ctx,
+    );
+    expect(result.playerPayload).toEqual({
+      location: 'Copenhagen',
+      observedAt: '2026-07-15T15:00',
+      europeanAqi: 35,
+      usAqi: 31,
+      pm25: 6.1,
+      pm10: 9.2,
+      o3: 88,
+      no2: 6,
+      so2: 0.6,
+    });
+  });
+});
+
+describe('power-prices connector (server)', () => {
+  it('cacheKey is the area only (currency is display-only)', () => {
+    expect(powerPricesConnector.cacheKey!({ area: 'dk1', currency: 'EUR' })).toBe(
+      'power:DK1',
+    );
+    expect(powerPricesConnector.cacheKey!({ area: 'DK1', currency: 'DKK' })).toBe(
+      'power:DK1',
+    );
+  });
+
+  it('orders hours oldest-first and converts MWh prices to per-kWh', async () => {
+    mockFetchSequence([
+      {
+        // API returns newest-first; the connector reverses to ascending.
+        body: {
+          records: [
+            {
+              HourUTC: '2026-07-15T13:00:00',
+              HourDK: '2026-07-15T15:00:00',
+              PriceArea: 'DK1',
+              SpotPriceDKK: 1900,
+              SpotPriceEUR: 255,
+            },
+            {
+              HourUTC: '2026-07-15T12:00:00',
+              HourDK: '2026-07-15T14:00:00',
+              PriceArea: 'DK1',
+              SpotPriceDKK: 1850,
+              SpotPriceEUR: 248,
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await powerPricesConnector.fetchData({ area: 'DK1' }, ctx);
+    const payload = result.playerPayload!;
+    expect(payload.area).toBe('DK1');
+    expect(payload.hours).toEqual([
+      { start: '2026-07-15T14:00:00', dkk: 1.85, eur: 0.248 },
+      { start: '2026-07-15T15:00:00', dkk: 1.9, eur: 0.255 },
+    ]);
+    // The current hour is resolved from UTC; it always points inside the series.
+    expect(payload.currentIndex).toBeGreaterThanOrEqual(-1);
+    expect(payload.currentIndex).toBeLessThan(payload.hours.length);
   });
 });

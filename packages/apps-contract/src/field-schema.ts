@@ -22,6 +22,11 @@ export type FieldType =
   /** Rich text authored in a WYSIWYG editor; stored as a sanitized HTML string. */
   | 'richtext'
   /**
+   * A date and time chosen from a native picker. Stored as a local ISO string
+   * `YYYY-MM-DDTHH:MM` (no timezone — it is the screen's local wall time).
+   */
+  | 'datetime'
+  /**
    * A resource picked from a connected account via an async, searchable
    * dropdown (the CMS queries a backend "browse" endpoint as the user types).
    * Stored as {@link RemoteSelectValue}. Which endpoint to query is named by the
@@ -129,6 +134,8 @@ const STRING_LIKE_TYPES = new Set<FieldType>([
   'image',
   'oauth',
   'richtext',
+  // A local ISO string from the picker; validated as a (required → non-empty) string.
+  'datetime',
 ])
 
 function buildStringSchema(field: Field): z.ZodString {
