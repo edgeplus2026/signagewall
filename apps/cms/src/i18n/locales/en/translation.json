@@ -670,10 +670,20 @@
         "addToScreen": "Add to screen",
         "clearAllContent": "Clear all content",
         "moveToTrash": "Delete playlist",
-        "previewComingSoon": "Preview is not available yet.",
         "addComingSoon": "Adding media is not available yet.",
         "editComingSoon": "Edit is not available yet."
       }
+    },
+    "preview": {
+      "title": "Preview: {{name}}",
+      "description": "A slideshow preview of this playlist's content.",
+      "empty": "Add content to this playlist to preview it.",
+      "previous": "Previous item",
+      "next": "Next item",
+      "play": "Play",
+      "pause": "Pause",
+      "close": "Close preview",
+      "counter": "{{current}} / {{total}}"
     },
     "content": {
       "totalDuration": "Total duration",

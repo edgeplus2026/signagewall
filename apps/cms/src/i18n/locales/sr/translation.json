@@ -647,10 +647,20 @@
         "addToScreen": "Dodaj na ekran",
         "clearAllContent": "Obriši sav sadržaj",
         "moveToTrash": "Premesti u otpad",
-        "previewComingSoon": "Pregled još nije dostupan.",
         "addComingSoon": "Dodavanje medija još nije dostupno.",
         "editComingSoon": "Izmena još nije dostupna."
       }
+    },
+    "preview": {
+      "title": "Pregled: {{name}}",
+      "description": "Pregled sadržaja plejliste u vidu slajdšoua.",
+      "empty": "Dodajte sadržaj u ovu plejlistu da biste je pregledali.",
+      "previous": "Prethodna stavka",
+      "next": "Sledeća stavka",
+      "play": "Pusti",
+      "pause": "Pauziraj",
+      "close": "Zatvori pregled",
+      "counter": "{{current}} / {{total}}"
     },
     "content": {
       "totalDuration": "Ukupno trajanje",
