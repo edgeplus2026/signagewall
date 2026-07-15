@@ -10,12 +10,12 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**24 apps ship today** (all `runtimeKind: 'embed'`):
+**25 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
 - `server` (backend connector, public API): `weather` (Open-Meteo), `airquality` (Open-Meteo),
-  `currency` (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays`
-  (Nager.Date), `onthisday` (Wikipedia), `wisdom` (quotes), `rss`
+  `sunmoon` (Open-Meteo), `currency` (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices`
+  (Energinet), `holidays` (Nager.Date), `onthisday` (Wikipedia), `wisdom` (quotes), `rss`
 - `connected` (OAuth account): `gcal` (Google Calendar), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
@@ -162,6 +162,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 30 | Public holidays ✅ | `holidays` | server | Information | M | — |
 | 31 | On this day ✅ | `onthisday` | server | Information | M | — |
 | 32 | Quotes / wisdom ✅ | `wisdom` | server | Information | M | — |
+| 33 | Sun & Moon ✅ | `sunmoon` | server | Information | M | — |
 | **Tier 3 — connected, reuse Google provider** ||||||
 | 17 | Google Sheets (KPI/table) | `gsheets` | connected | Data & Dashboards | M | — |
 | 18 | Google Slides (private) | `gslides` | connected | Productivity | M–L | — |
@@ -277,6 +278,12 @@ copied via `nest-cli.json` assets) per category set under one cache key, with a 
 the batch is stable within a day and turns over daily (`refreshSeconds` 86400). `cacheKey`
 `wisdom:v2:<sorted categories>`; `quoteCount` / `secondsPerQuote` are display-only. The embed rotates
 quotes through a set of designs. See `src/wisdom/` + `embeds/wisdom/`.
+
+**33. Sun & Moon** (`sunmoon`, server) — ✅ shipped. **Open-Meteo** daily sun (no key), the same
+provider as Weather / Air quality. `cacheKey sun:<lat>,<lng>` (location-only); `refreshSeconds` 21600.
+**Payload:** `{location, sunrise, sunset, daylightSeconds, observedAt}` (place-local ISO). **Embed:**
+sunrise/sunset, day length, a live sunrise→sunset progress bar, and the current **moon phase** computed
+client-side (location-independent, so it isn't in the payload). No fetch timestamp.
 
 ### Tier 3 — connected (reuse Google provider)
 

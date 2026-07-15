@@ -16,6 +16,7 @@ import { powerPricesManifest } from './power-prices/manifest.js'
 import { qrManifest } from './qr/manifest.js'
 import { rssManifest } from './rss/manifest.js'
 import { streamManifest } from './stream/manifest.js'
+import { sunmoonManifest } from './sunmoon/manifest.js'
 import { textManifest } from './text/manifest.js'
 import { tickerManifest } from './ticker/manifest.js'
 import { vimeoManifest } from './vimeo/manifest.js'
@@ -56,6 +57,7 @@ export const APP_MANIFESTS: AppManifest[] = [
   wisdomManifest,
   holidaysManifest,
   onthisdayManifest,
+  sunmoonManifest,
 ]
 
 export {
@@ -83,6 +85,7 @@ export {
   wisdomManifest,
   holidaysManifest,
   onthisdayManifest,
+  sunmoonManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'
@@ -154,3 +157,4 @@ export type { Coin } from './crypto/coins.js'
 export type { CryptoPayload, CryptoCoin } from './crypto/payload.js'
 export type { HolidaysPayload, Holiday } from './holidays/payload.js'
 export type { OnThisDayPayload, OnThisDayEvent } from './onthisday/payload.js'
+export type { SunMoonPayload } from './sunmoon/payload.js'

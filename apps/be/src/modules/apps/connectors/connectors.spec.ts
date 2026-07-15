@@ -11,6 +11,7 @@ import { onthisdayConnector } from './onthisday.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { safeFetchText } from './safe-fetch.util';
+import { sunmoonConnector } from './sunmoon.connector';
 import { weatherConnector } from './weather.connector';
 
 // The RSS connector fetches through the SSRF guard, which resolves the host over
@@ -1293,5 +1294,39 @@ describe('onthisday connector (server)', () => {
       { year: 1969, text: 'Apollo 11 launches.' },
       { year: 1492, text: 'Columbus reaches the Americas.' },
     ]);
+  });
+});
+
+describe('sunmoon connector (server)', () => {
+  it('cacheKey is coarse coordinates', () => {
+    expect(
+      sunmoonConnector.cacheKey!({ location: { lat: 55.681, lng: 12.571 } }),
+    ).toBe('sun:55.68,12.57');
+  });
+
+  it('normalizes today\'s sun times and daylight length', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          daily: {
+            time: ['2026-07-16'],
+            sunrise: ['2026-07-16T04:48'],
+            sunset: ['2026-07-16T21:43'],
+            daylight_duration: [60922.21],
+          },
+        },
+      },
+    ]);
+    const result = await sunmoonConnector.fetchData(
+      { location: { lat: 55.68, lng: 12.57, label: 'Copenhagen' } },
+      ctx,
+    );
+    expect(result.playerPayload).toEqual({
+      location: 'Copenhagen',
+      sunrise: '2026-07-16T04:48',
+      sunset: '2026-07-16T21:43',
+      daylightSeconds: 60922.21,
+      observedAt: '2026-07-16',
+    });
   });
 });
