@@ -1,0 +1,58 @@
+import type { AppManifest } from '@edge/apps-contract'
+
+import { styleFields } from '../_shared/style-fields.js'
+
+const STOCKS_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18 9 12l4 3 7-8"/><path d="M20 11V7h-4"/></svg>'
+
+/**
+ * Stocks — a `server` app showing live quotes for a set of tickers via Finnhub.
+ * Unlike the keyless apps, this one needs a market-data API key configured in the
+ * backend (`FINNHUB_API_KEY`; free tier at finnhub.io) — see enabler E5. Without
+ * it the connector fails cleanly and the screen holds its last quotes rather than
+ * going blank.
+ *
+ * Tickers are one-per-line for now (a `textarea`); a proper repeater field is the
+ * follow-up (BACKLOG.md E4b). The connector fetches once per ticker set under a
+ * coarse cache key and fans it out.
+ */
+export const stocksManifest: AppManifest = {
+  slug: 'stocks',
+  name: 'Stocks',
+  tagline: 'Live stock prices on your screens',
+  description:
+    'Show live prices and daily change for the stock tickers you choose. Requires a market-data key configured by your administrator.',
+  runtimeKind: 'embed',
+  dataSource: 'server',
+  version: 1,
+  refreshSeconds: 300,
+  icon: STOCKS_ICON,
+  color: '#10B981',
+  configSchema: [
+    {
+      key: 'symbols',
+      type: 'textarea',
+      label: 'Tickers',
+      help: 'One ticker per line, e.g. AAPL, MSFT, TSLA. Shown in a consistent order.',
+      required: true,
+      placeholder: 'AAPL\nMSFT\nNVDA',
+    },
+    {
+      key: 'showChange',
+      type: 'switch',
+      label: 'Show daily change',
+      default: true,
+    },
+    {
+      key: 'theme',
+      type: 'select',
+      label: 'Theme',
+      default: 'dark',
+      options: [
+        { label: 'Light', value: 'light' },
+        { label: 'Dark', value: 'dark' },
+      ],
+    },
+    ...styleFields(),
+  ],
+}

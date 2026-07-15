@@ -10,12 +10,13 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**25 apps ship today** (all `runtimeKind: 'embed'`):
+**26 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
-- `server` (backend connector, public API): `weather` (Open-Meteo), `airquality` (Open-Meteo),
-  `sunmoon` (Open-Meteo), `currency` (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices`
-  (Energinet), `holidays` (Nager.Date), `onthisday` (Wikipedia), `wisdom` (quotes), `rss`
+- `server` (backend connector): `weather` (Open-Meteo), `airquality` (Open-Meteo), `sunmoon`
+  (Open-Meteo), `currency` (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet),
+  `holidays` (Nager.Date), `onthisday` (Wikipedia), `wisdom` (quotes), `rss`, and `stocks` (Finnhub —
+  the one app needing an API key, `FINNHUB_API_KEY`)
 - `connected` (OAuth account): `gcal` (Google Calendar), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
@@ -126,7 +127,7 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 | **E3** | **Slack OAuth provider** (`conversations.history` scope). | M | Slack channel app |
 | **E4a** ✅ | **`datetime` field type** — native date/time picker, stored as a local `YYYY-MM-DDTHH:MM` string. Shipped: contract union + zod (string-like) + CMS `DateTimeControl`; used by the Countdown `target`. | S | Countdown (done) |
 | **E4b** | **`repeater`/`list` field type** — an add/remove/reorder row editor (each row a small set of typed sub-fields). Each = union + zod + CMS control. Menu / Ticker / World clocks currently ship the `textarea` MVP; this is the editing-UX upgrade (and a searchable time-zone picker for World clocks). | M | Menu, Ticker, World clocks (richer editing) |
-| **E5** | **Keyed-connector convention**: a documented, tested way for `server` connectors to read API keys (env var / config namespace) + a small helper; no connector reads env today. | S–M | Stocks, Sports, (keyed News/Transit) |
+| **E5** ✅ | **Keyed-connector convention** — `requireConnectorKey(name)` in `connectors/env.util.ts` reads a key from the backend env and throws cleanly when it's missing (the host then keeps last-known-good). Keys live in `.env` / `.env.example`. Shipped; used by Stocks. | S–M | sports, transit (keyed) now unblocked |
 | **E6** | Refresh [`README.md`](./README.md) — its `player.tsx` / `runtimeKind: 'native'` note is stale; reality is `embeds/<slug>/` bundles. | S | docs accuracy |
 
 ## 4. App catalog (prioritized)
@@ -154,7 +155,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 10 | Currency / FX ✅ | `currency` | server | Finance | M | — |
 | 11 | Crypto prices ✅ | `crypto` | server | Finance | M | — |
 | 12 | Electricity spot prices ✅ | `power-prices` | server | Finance | M | — |
-| 13 | Stocks / index | `stocks` | server | Finance | M–L | E5 |
+| 13 | Stocks ✅ | `stocks` | server | Finance | M–L | E5 ✅ |
 | 14 | Sports scores | `sports` | server | Information | L | E5 |
 | 15 | Transit departures | `transit` | server | Information | L | E5 (region-specific) |
 | 16 | News headlines | `news` | server | Information | S–M | (RSS-preset variant) |
@@ -241,10 +242,11 @@ price + 24h %.
 `currency` (select), `includeVat`/`includeTariffs` (switch), `layout` (now + today's hourly curve).
 **Payload:** current price + hourly series + unit.
 
-**13. Stocks / index** (`stocks`, server) — **keyed** (Finnhub / Alpha Vantage / Twelve Data free
-tier). **Depends E5.** `cacheKey` `stocks:<symbols>`. `refreshSeconds` 300–900 (mind free-tier rate
-limits — dedupe symbols hard). **Config:** `symbols` (repeater/multiselect), `layout`. **Payload:**
-per-symbol price + change.
+**13. Stocks** (`stocks`, server) — ✅ shipped. **Finnhub** `/quote` (free tier; needs `FINNHUB_API_KEY`
+via enabler E5). `cacheKey stocks:<sorted tickers>`, `refreshSeconds` 300; one call per ticker (capped
+at 15), unknown tickers dropped, a 401 surfaced. **Config:** `symbols` (textarea MVP), `showChange`,
+theme. A missing key makes the connector throw, so the screen holds its last quotes. (A keyless CSV
+source, Stooq, was tried first but returned 404 — not reliable enough for a backend.)
 
 **14. Sports scores / fixtures** (`sports`, server) — **keyed** (TheSportsDB / API-Football).
 **Depends E5.** `cacheKey` `sports:<league>:<team>`. `refreshSeconds` 60–300 (live) / 3600 (idle).
@@ -341,7 +343,8 @@ committing. Latest tweets from a handle.
 - **M2 — Google reuse (next up):** Google Sheets, Google Slides (private), Google Photos. No new OAuth
   provider — extend the existing `google` connection with scopes + a `remote-select` browse endpoint.
 - **M3 — Microsoft (E1):** Outlook Calendar (reuse gcal embed), then Power BI / SharePoint / Teams.
-- **M4 — Keyed feeds (E5):** stocks, sports, transit; news presets.
+- **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Finnhub); sports and transit next (same keyed pattern via
+  `requireConnectorKey`); news presets.
 - **M5 — Social (E2/E3):** Slack, Instagram, Facebook; X/TikTok/LinkedIn only if the API cost/approval
   is acceptable.
 

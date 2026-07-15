@@ -11,6 +11,7 @@ import { onthisdayConnector } from './onthisday.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { safeFetchText } from './safe-fetch.util';
+import { stocksConnector } from './stocks.connector';
 import { sunmoonConnector } from './sunmoon.connector';
 import { weatherConnector } from './weather.connector';
 
@@ -1327,6 +1328,47 @@ describe('sunmoon connector (server)', () => {
       sunset: '2026-07-16T21:43',
       daylightSeconds: 60922.21,
       observedAt: '2026-07-16',
+    });
+  });
+});
+
+describe('stocks connector (server, keyed)', () => {
+  const KEY = 'FINNHUB_API_KEY';
+  const original = process.env[KEY];
+  afterAll(() => {
+    if (original === undefined) delete process.env[KEY];
+    else process.env[KEY] = original;
+  });
+
+  it('cacheKey is the sorted ticker set (no key needed)', () => {
+    expect(stocksConnector.cacheKey!({ symbols: 'msft\naapl\nAAPL' })).toBe(
+      'stocks:AAPL,MSFT',
+    );
+  });
+
+  it('throws a clear error when the API key is missing', async () => {
+    delete process.env[KEY];
+    await expect(
+      stocksConnector.fetchData({ symbols: 'AAPL' }, ctx),
+    ).rejects.toThrow(/FINNHUB_API_KEY/);
+  });
+
+  it('normalizes Finnhub quotes, sorted, dropping unknown tickers', async () => {
+    process.env[KEY] = 'test-key';
+    mockFetchSequence([
+      { body: { c: 210, d: 2, dp: 0.96, pc: 208 } }, // AAPL
+      { body: { c: 420, d: -3, dp: -0.71, pc: 423 } }, // MSFT
+      { body: { c: 0, d: null, dp: null, pc: 0 } }, // ZZZZ — unknown ticker
+    ]);
+    const result = await stocksConnector.fetchData(
+      { symbols: 'MSFT\nAAPL\nZZZZ' },
+      ctx,
+    );
+    expect(result.playerPayload).toEqual({
+      quotes: [
+        { symbol: 'AAPL', price: 210, change: 2, changePercent: 0.96 },
+        { symbol: 'MSFT', price: 420, change: -3, changePercent: -0.71 },
+      ],
     });
   });
 });

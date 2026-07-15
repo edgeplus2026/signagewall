@@ -9,6 +9,7 @@ import { holidaysConnector } from './holidays.connector';
 import { onthisdayConnector } from './onthisday.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
+import { stocksConnector } from './stocks.connector';
 import { sunmoonConnector } from './sunmoon.connector';
 import { weatherConnector } from './weather.connector';
 import { wisdomConnector } from './wisdom.connector';
@@ -31,6 +32,7 @@ const CONNECTORS: Record<string, AppConnector> = {
   rss: rssConnector,
   holidays: holidaysConnector,
   onthisday: onthisdayConnector,
+  stocks: stocksConnector,
   sunmoon: sunmoonConnector,
   wisdom: wisdomConnector,
 };
