@@ -106,4 +106,31 @@ export default () => ({
       10,
     ),
   },
+  // Redis — backs the BullMQ queue used by the AI content generator. A full
+  // `REDIS_URL` (e.g. rediss://…) takes precedence over host/port when set.
+  redis: {
+    url: process.env.REDIS_URL,
+    host: process.env.REDIS_HOST ?? 'localhost',
+    port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+    password: process.env.REDIS_PASSWORD,
+    tls: process.env.REDIS_TLS === 'true',
+  },
+  // OpenRouter — the (swappable) AI provider for content generation.
+  openrouter: {
+    apiKey: process.env.OPENROUTER_API_KEY,
+    model:
+      process.env.OPENROUTER_MODEL ??
+      'meta-llama/llama-3.3-70b-instruct:free',
+    baseUrl: process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1',
+    timeoutMs: parseInt(process.env.OPENROUTER_TIMEOUT_MS ?? '60000', 10),
+    // Optional attribution headers OpenRouter recommends for API traffic.
+    appUrl: process.env.OPENROUTER_APP_URL,
+    appTitle: process.env.OPENROUTER_APP_TITLE ?? 'Edge CMS',
+  },
+  aiContent: {
+    // Max generations per user per UTC day.
+    dailyLimit: parseInt(process.env.AI_CONTENT_DAILY_LIMIT ?? '10', 10),
+    // Slides requested from the model (never asked of the user).
+    defaultSlides: parseInt(process.env.AI_CONTENT_DEFAULT_SLIDES ?? '5', 10),
+  },
 });

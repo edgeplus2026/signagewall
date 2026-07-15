@@ -95,18 +95,24 @@ export class PlaylistsRepository {
   async createWithItems(
     data: CreatePlaylistData,
     derived: ReplaceItemsData,
+    session?: ClientSession,
   ): Promise<PlaylistDocument> {
-    const [playlist] = await this.playlistModel.create([
-      {
-        organizationId: new Types.ObjectId(data.organizationId),
-        name: data.name,
-        ...(data.description ? { description: data.description } : {}),
-        items: derived.items,
-        itemCount: derived.itemCount,
-        totalDuration: derived.totalDuration,
-        ...(derived.coverMediaId ? { coverMediaId: derived.coverMediaId } : {}),
-      },
-    ]);
+    const [playlist] = await this.playlistModel.create(
+      [
+        {
+          organizationId: new Types.ObjectId(data.organizationId),
+          name: data.name,
+          ...(data.description ? { description: data.description } : {}),
+          items: derived.items,
+          itemCount: derived.itemCount,
+          totalDuration: derived.totalDuration,
+          ...(derived.coverMediaId
+            ? { coverMediaId: derived.coverMediaId }
+            : {}),
+        },
+      ],
+      session ? { session } : {},
+    );
 
     return playlist;
   }

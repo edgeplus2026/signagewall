@@ -75,20 +75,65 @@ function pickColor(value: unknown, fallback: string): string {
   return typeof value === 'string' && HEX.test(value) ? value : fallback
 }
 
+/**
+ * A safe http(s) image URL for use in `background-image: url("…")`. Rejects any
+ * value that could break out of the CSS url() (quotes, parens, whitespace,
+ * backslash) so an operator- or AI-supplied URL can't inject CSS.
+ */
+const SAFE_URL = /^https?:\/\/[^\s"'()\\]+$/i
+function pickUrl(value: unknown): string | null {
+  return typeof value === 'string' && SAFE_URL.test(value) ? value : null
+}
+
+const OVERLAYS = new Set(['none', 'light', 'dark'])
+function pickOverlay(value: unknown): string {
+  return typeof value === 'string' && OVERLAYS.has(value) ? value : 'dark'
+}
+
 function render(config: Record<string, unknown>): void {
   if (!root) return
 
-  root.style.background = pickColor(config.backgroundColor, '#000000')
+  const bgImage = pickUrl(config.backgroundImage)
 
-  const block = document.createElement('div')
-  block.className = 'text-rich'
-  block.style.color = pickColor(config.color, '#FFFFFF')
-  block.innerHTML = sanitize(typeof config.body === 'string' ? config.body : '')
+  // Reset the layered styles each render (config can update in place).
+  root.style.backgroundImage = ''
+  root.style.backgroundSize = ''
+  root.style.backgroundPosition = ''
+  if (bgImage) {
+    root.style.backgroundColor = '#000000'
+    root.style.backgroundImage = `url("${bgImage}")`
+    root.style.backgroundSize = 'cover'
+    root.style.backgroundPosition = 'center'
+  } else {
+    root.style.background = pickColor(config.backgroundColor, '#000000')
+  }
 
-  const wrap = document.createElement('div')
-  wrap.className = 'center'
-  wrap.appendChild(block)
-  root.replaceChildren(wrap)
+  const children: HTMLElement[] = []
+
+  // Scrim over the photo so overlaid text stays legible.
+  if (bgImage) {
+    const overlay = pickOverlay(config.overlay)
+    if (overlay !== 'none') {
+      const scrim = document.createElement('div')
+      scrim.className = `text-scrim text-scrim-${overlay}`
+      children.push(scrim)
+    }
+  }
+
+  const bodyHtml = sanitize(typeof config.body === 'string' ? config.body : '')
+  if (bodyHtml.trim()) {
+    const block = document.createElement('div')
+    block.className = 'text-rich'
+    block.style.color = pickColor(config.color, '#FFFFFF')
+    block.innerHTML = bodyHtml
+
+    const wrap = document.createElement('div')
+    wrap.className = 'center'
+    wrap.appendChild(block)
+    children.push(wrap)
+  }
+
+  root.replaceChildren(...children)
 }
 
 connectToHost(({ config }) => render(config))
