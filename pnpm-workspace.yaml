@@ -8,10 +8,23 @@ packages:
 # @scarf/scarf is telemetry — explicitly denied. msgpackr-extract is an optional
 # native accelerator for msgpackr (pulled in by bullmq); msgpackr falls back to
 # pure JS without it, so its build is denied.
+#
+# @ffprobe-installer ships the binary as per-platform packages, so each runner
+# installs a *different* one and each needs its own approval — otherwise pnpm's
+# strictDepBuilds aborts the install with ERR_PNPM_IGNORED_BUILDS. CI runs the
+# web lane on ubuntu (linux-x64) and the rust lane on windows (win32-x64) and
+# macOS (darwin-arm64); the rest cover Intel Macs and Linux ARM/ia32 devices.
 allowBuilds:
   bcrypt: true
   ffmpeg-static: true
   "@ffprobe-installer/darwin-arm64": true
+  "@ffprobe-installer/darwin-x64": true
+  "@ffprobe-installer/linux-x64": true
+  "@ffprobe-installer/linux-arm64": true
+  "@ffprobe-installer/linux-arm": true
+  "@ffprobe-installer/linux-ia32": true
+  "@ffprobe-installer/win32-x64": true
+  "@ffprobe-installer/win32-ia32": true
   unrs-resolver: true
   esbuild: true
   "@scarf/scarf": false
