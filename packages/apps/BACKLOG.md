@@ -10,13 +10,13 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**26 apps ship today** (all `runtimeKind: 'embed'`):
+**27 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
-- `server` (backend connector): `weather` (Open-Meteo), `airquality` (Open-Meteo), `sunmoon`
-  (Open-Meteo), `currency` (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet),
-  `holidays` (Nager.Date), `onthisday` (Wikipedia), `wisdom` (quotes), `rss`, and `stocks` (Finnhub —
-  the one app needing an API key, `FINNHUB_API_KEY`)
+- `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
+  (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays` (Nager.Date),
+  `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, and
+  `stocks` (Finnhub — needs `FINNHUB_API_KEY`)
 - `connected` (OAuth account): `gcal` (Google Calendar), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
@@ -156,7 +156,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 11 | Crypto prices ✅ | `crypto` | server | Finance | M | — |
 | 12 | Electricity spot prices ✅ | `power-prices` | server | Finance | M | — |
 | 13 | Stocks ✅ | `stocks` | server | Finance | M–L | E5 ✅ |
-| 14 | Sports scores | `sports` | server | Information | L | E5 |
+| 14 | Sports ✅ | `sports` | server | Information | L | E5 ✅ (free-key default) |
 | 15 | Transit departures | `transit` | server | Information | L | E5 (region-specific) |
 | 16 | News headlines | `news` | server | Information | S–M | (RSS-preset variant) |
 | **Added since — keyless server apps (shipped)** ||||||
@@ -248,9 +248,11 @@ at 15), unknown tickers dropped, a 401 surfaced. **Config:** `symbols` (textarea
 theme. A missing key makes the connector throw, so the screen holds its last quotes. (A keyless CSV
 source, Stooq, was tried first but returned 404 — not reliable enough for a backend.)
 
-**14. Sports scores / fixtures** (`sports`, server) — **keyed** (TheSportsDB / API-Football).
-**Depends E5.** `cacheKey` `sports:<league>:<team>`. `refreshSeconds` 60–300 (live) / 3600 (idle).
-**Config:** league/team pick, `mode` (live/upcoming/table). **Payload:** fixtures + scores.
+**14. Sports** (`sports`, server) — ✅ shipped. **TheSportsDB** (`THESPORTSDB_API_KEY`, defaults to the
+free public test key — works out of the box, upgradeable via E5). Resolves a team by name, then fetches
+upcoming fixtures + recent results in parallel; either endpoint failing degrades to an empty section.
+`cacheKey sports:<team>` (team-only; `mode`/`count` display-only), `refreshSeconds` 600. **Payload:**
+`{team, upcoming[], results[]}` (scores on results).
 
 **15. Transit departures** (`transit`, server) — **region-specific** (Rejseplanen (DK), GTFS-RT,
 Nordic transit APIs; some keyed). **Depends E5; advanced.** `cacheKey` `transit:<stop>`.
@@ -343,8 +345,8 @@ committing. Latest tweets from a handle.
 - **M2 — Google reuse (next up):** Google Sheets, Google Slides (private), Google Photos. No new OAuth
   provider — extend the existing `google` connection with scopes + a `remote-select` browse endpoint.
 - **M3 — Microsoft (E1):** Outlook Calendar (reuse gcal embed), then Power BI / SharePoint / Teams.
-- **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Finnhub); sports and transit next (same keyed pattern via
-  `requireConnectorKey`); news presets.
+- **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Finnhub), sports ✅ (TheSportsDB, free-key default); transit
+  next (same keyed pattern); news presets.
 - **M5 — Social (E2/E3):** Slack, Instagram, Facebook; X/TikTok/LinkedIn only if the API cost/approval
   is acceptable.
 

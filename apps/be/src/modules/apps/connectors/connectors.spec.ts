@@ -11,6 +11,7 @@ import { onthisdayConnector } from './onthisday.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { safeFetchText } from './safe-fetch.util';
+import { sportsConnector } from './sports.connector';
 import { stocksConnector } from './stocks.connector';
 import { sunmoonConnector } from './sunmoon.connector';
 import { weatherConnector } from './weather.connector';
@@ -1368,6 +1369,75 @@ describe('stocks connector (server, keyed)', () => {
       quotes: [
         { symbol: 'AAPL', price: 210, change: 2, changePercent: 0.96 },
         { symbol: 'MSFT', price: 420, change: -3, changePercent: -0.71 },
+      ],
+    });
+  });
+});
+
+describe('sports connector (server)', () => {
+  it('cacheKey is the team only (mode/count are display-only)', () => {
+    expect(sportsConnector.cacheKey!({ team: '  Arsenal ' })).toBe(
+      'sports:arsenal',
+    );
+    expect(
+      sportsConnector.cacheKey!({ team: 'Arsenal', mode: 'both', count: 10 }),
+    ).toBe('sports:arsenal');
+  });
+
+  it('resolves the team then normalizes fixtures and results', async () => {
+    mockFetchSequence([
+      { body: { teams: [{ idTeam: '133604', strTeam: 'Arsenal' }] } },
+      {
+        body: {
+          events: [
+            {
+              strHomeTeam: 'Girona',
+              strAwayTeam: 'Arsenal',
+              dateEvent: '2026-08-01',
+              strTime: '18:00:00',
+              strLeague: 'Club Friendlies',
+            },
+          ],
+        },
+      },
+      {
+        body: {
+          results: [
+            {
+              strHomeTeam: 'Arsenal',
+              strAwayTeam: 'Spurs',
+              dateEvent: '2026-05-20',
+              strTime: '16:30:00',
+              strLeague: 'Premier League',
+              intHomeScore: '2',
+              intAwayScore: '1',
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await sportsConnector.fetchData({ team: 'Arsenal' }, ctx);
+    expect(result.playerPayload).toEqual({
+      team: 'Arsenal',
+      upcoming: [
+        {
+          home: 'Girona',
+          away: 'Arsenal',
+          date: '2026-08-01',
+          time: '18:00',
+          league: 'Club Friendlies',
+        },
+      ],
+      results: [
+        {
+          home: 'Arsenal',
+          away: 'Spurs',
+          date: '2026-05-20',
+          time: '16:30',
+          league: 'Premier League',
+          homeScore: 2,
+          awayScore: 1,
+        },
       ],
     });
   });

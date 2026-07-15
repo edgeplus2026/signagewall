@@ -1,0 +1,98 @@
+/* Sports board. Team name over one or two sections (upcoming / recent), each a
+   list of rows: date+time, the match-up, and a league or score on the right. */
+
+.sp {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 5vh 6vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2vh;
+  font-family: var(--app-font, inherit);
+  font-weight: var(--app-font-weight, 400);
+  letter-spacing: var(--app-letter-spacing, 0);
+}
+
+.sp-team {
+  font-size: calc(min(4vw, 6.5vh) * var(--app-font-scale, 1));
+  font-weight: 700;
+}
+
+.sp-section {
+  font-size: calc(min(1.9vw, 3.2vh) * var(--app-font-scale, 1));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0.6;
+  margin-top: 1vh;
+}
+
+.sp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3vh;
+}
+
+.sp-row {
+  display: flex;
+  align-items: center;
+  gap: 3vw;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  padding-bottom: 1.2vh;
+}
+.sp-row:last-child {
+  border-bottom: 0;
+}
+
+.sp-when {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  min-width: 8ch;
+}
+.sp-date {
+  font-size: calc(min(2vw, 3.4vh) * var(--app-font-scale, 1));
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sp-time {
+  font-variant-numeric: tabular-nums;
+  font-size: calc(min(1.5vw, 2.6vh) * var(--app-font-scale, 1));
+  opacity: 0.65;
+}
+
+.sp-match {
+  flex: 1;
+  font-size: calc(min(2.4vw, 4vh) * var(--app-font-scale, 1));
+  line-height: 1.2;
+}
+.sp-vs {
+  opacity: 0.5;
+  padding: 0 0.6vw;
+}
+
+.sp-tail {
+  flex: none;
+  text-align: right;
+  white-space: nowrap;
+}
+.sp-score {
+  font-variant-numeric: tabular-nums;
+  font-size: calc(min(3vw, 5vh) * var(--app-font-scale, 1));
+  font-weight: 700;
+  color: var(--sp-accent, #2563eb);
+}
+.sp-league {
+  font-size: calc(min(1.5vw, 2.6vh) * var(--app-font-scale, 1));
+  opacity: 0.6;
+  max-width: 22vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-empty {
+  margin: auto;
+  font-size: 3vh;
+  opacity: 0.6;
+}
