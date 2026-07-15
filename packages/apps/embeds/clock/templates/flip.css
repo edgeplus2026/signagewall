@@ -1,0 +1,225 @@
+/* "Flip" — a split-flap board.
+
+   Read `flip.ts` first: the four-layer card and the two leaves are explained there,
+   and none of the rules below make sense without it. */
+
+.ck-flip {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  /* The card's own size is driven by this, and everything inside the card is a
+     fraction of it — so the whole board scales from this one number. */
+  font-size: min(13vw, 24vh);
+}
+
+/* ----- The card ----- */
+
+.ck-flip-card {
+  position: relative;
+  width: 1.28em;
+  height: 1.5em;
+  /* The leaves rotate in 3D. Without a perspective on the parent they would rotate
+     in the plane of the screen and simply squash — the fold would read as a wipe,
+     not as a piece of card turning over. This one value is the difference. */
+  perspective: 22em;
+  font-family:
+    ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
+    Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* The four layers are all the same object: a half-height window with the digit
+   behind it. What differs is which half of the digit each one shows, and whether it
+   moves. */
+.ck-flip-half,
+.ck-flip-leaf {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+
+  /* THE FILL MUST BE OPAQUE, and this is the whole trick of the card.
+     `currentColor 11%` over the BACKGROUND, never over `transparent`.
+
+     The two look identical on screen and they are not the same thing. A leaf is a
+     piece of card LYING ON another piece of card, and the one underneath is not
+     showing the same number: the static bottom half goes on holding the OLD digit for
+     ever (see `flip.ts` — nothing cleans up after the fold, and nothing needs to,
+     precisely because the leaf covers it). Mix with `transparent` and that leaf is a
+     sheet of glass: the old digit reads straight through the new one, and the card
+     spends its life showing an 8 with a 0 inside it.
+
+     `--ck-bg` is the operator's background colour, published by `main.ts` for exactly
+     this. The fallback is the default theme's black — it should never be reached,
+     because the property is set before any face is mounted. */
+  background: color-mix(in srgb, currentColor 11%, var(--ck-bg, #000000));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 7%, transparent);
+  /* The card must be opaque from behind, or the leaf's own reverse would show
+     through as it passes the halfway point. */
+  backface-visibility: hidden;
+}
+
+.ck-flip-top,
+.ck-flip-leaf-top {
+  top: 0;
+  border-radius: 0.1em 0.1em 0 0;
+  /* The seam. A split-flap board is two pieces of card meeting in the middle, and
+     the shadow along that meeting is what sells it. */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, currentColor 7%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.ck-flip-bottom,
+.ck-flip-leaf-bottom {
+  bottom: 0;
+  border-radius: 0 0 0.1em 0.1em;
+  /* The lower half of a flap sits in the upper half's shadow. The shadow is a
+     translucent sheen — it is allowed to be, because it lies on the opaque base
+     below it in this same background, not on the layer behind the card. */
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, currentColor 4%, transparent),
+      transparent 30%
+    ),
+    color-mix(in srgb, currentColor 11%, var(--ck-bg, #000000));
+}
+
+/* THE DIGIT IS CENTRED ON THE WHOLE CARD, and each window clips it.
+
+   The span is given the card's full height (200% of the half it lives in) and
+   anchored to its window's own edge — top-anchored in the top half, bottom-anchored
+   in the bottom. Both then centre the digit at the card's midpoint, so the two
+   halves show the top and bottom of ONE glyph rather than two glyphs that happen to
+   line up. Getting this wrong is what makes a hand-rolled flip clock look like it is
+   showing a different number in each half. */
+.ck-flip-half span,
+.ck-flip-leaf span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 200%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ck-flip-top span,
+.ck-flip-leaf-top span {
+  top: 0;
+}
+
+.ck-flip-bottom span,
+.ck-flip-leaf-bottom span {
+  bottom: 0;
+}
+
+/* ----- The leaves -----
+   They hinge on the card's midline: the top leaf falls forward from its bottom edge,
+   the bottom leaf falls in onto its top edge. Between flips both sit flat at 0°,
+   covering their halves — which is why a card at rest looks exactly like a card that
+   has never moved. */
+
+.ck-flip-leaf-top {
+  transform-origin: bottom;
+  transform: rotateX(0deg);
+}
+
+.ck-flip-leaf-bottom {
+  transform-origin: top;
+  transform: rotateX(0deg);
+}
+
+@keyframes ck-leaf-out {
+  from {
+    transform: rotateX(0deg);
+  }
+  to {
+    transform: rotateX(-90deg);
+  }
+}
+
+@keyframes ck-leaf-in {
+  from {
+    transform: rotateX(90deg);
+  }
+  to {
+    transform: rotateX(0deg);
+  }
+}
+
+/* Back to back, not overlapping: the second leaf starts at exactly the moment the
+   first finishes, which is what makes it read as ONE piece of card travelling
+   through the fold rather than two flaps moving at once.
+
+   `both` on the incoming leaf is load-bearing twice over. Backwards, it holds the
+   leaf at 90° (edge-on, invisible) through the first 260ms, so the old bottom half
+   stays visible underneath. Forwards, it PARKS the leaf at 0° when the animation
+   ends and leaves it there — which is what lets the static bottom half go on holding
+   the old value with nobody ever seeing it. */
+.ck-flip-card.is-flipping .ck-flip-leaf-top {
+  animation: ck-leaf-out 260ms cubic-bezier(0.4, 0.1, 0.9, 0.4) forwards;
+}
+
+.ck-flip-card.is-flipping .ck-flip-leaf-bottom {
+  animation: ck-leaf-in 260ms cubic-bezier(0.15, 0.7, 0.5, 1.1) 260ms both;
+}
+
+/* ----- The rest of the board ----- */
+
+.ck-flip-colon {
+  font-size: 0.5em;
+  font-weight: 300;
+  color: var(--ck-accent, #f97316);
+  animation: ck-pulse 2s ease-in-out infinite;
+}
+
+.ck-flip-period {
+  align-self: flex-start;
+  margin-top: 0.1em;
+  font-size: 0.22em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.ck-flip-period:empty {
+  display: none;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .ck-flip {
+    font-size: min(19vw, 20vh);
+    gap: 0.3em;
+  }
+}
+
+/* ----- Reduced motion -----
+   No fold. But simply killing the two animations is WRONG, and wrong in a way that
+   only shows up on the one machine that asked for it: with no animation, the top
+   leaf never falls away — it sits at 0° covering the top half, holding the OLD digit
+   for ever, and the clock stops.
+
+   So the top leaf is removed from the picture entirely, uncovering the static top
+   half (which `paint` already fills with the new value). The bottom leaf can stay:
+   it holds the new value at 0° over the bottom half, which is precisely where it
+   would have ended up anyway. The card cuts to the new number, and it is still a
+   clock. */
+@media (prefers-reduced-motion: reduce) {
+  .ck-flip-leaf-top {
+    display: none;
+  }
+
+  .ck-flip-card.is-flipping .ck-flip-leaf-bottom {
+    animation: none;
+  }
+
+  .ck-flip-colon {
+    animation: none;
+  }
+}

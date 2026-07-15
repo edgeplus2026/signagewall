@@ -1,0 +1,158 @@
+/* "The week" — a header, then seven rows that fill the screen.
+
+   The rows are shared chrome (`style.css`), including the shared scale that makes
+   the bars comparable. This file gives them the room to breathe: on a wall, seven
+   rows crammed into the top half would be a table, and the point of this layout is
+   that it is NOT a table. */
+
+.wx-weekview {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 3.4em 2.8em 2.6em;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6em;
+}
+
+/* ----- The header -----
+   Today, reduced to a caption. It is the only layout in the app where the current
+   temperature is not the biggest thing on the screen, and that is deliberate: the
+   operator chose the week. */
+
+.wx-weekview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2em;
+  padding-bottom: 1.2em;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  min-width: 0;
+}
+
+.wx-weekview-text {
+  min-width: 0;
+}
+
+.wx-weekview-place {
+  font-size: 2.8em;
+  font-weight: 600;
+  line-height: 1.05;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-weekview-heading {
+  margin-top: 0.15em;
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* The clock is an overlay in this corner, and it landed squarely on top of the
+   temperature. Reserve the corner — but only when there is a clock to reserve it for,
+   or a screen with the clock switched off would carry a hole for no reason. */
+.wx.has-clock .wx-weekview-head {
+  padding-right: 7.5em;
+}
+
+.wx-weekview-now {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.wx-weekview-icon {
+  width: 3.6em;
+  height: 3.6em;
+}
+
+.wx-weekview-temp {
+  font-size: 3.6em;
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----- The rows -----
+   `flex: 1` on the list and on every row: the seven of them share out all the
+   height there is, so the layout fills a 4K wall and a phone-sized preview without
+   a single fixed dimension. This is why the rows aren't just `gap`-ed — they
+   GROW. */
+
+.wx-weekview .wx-week {
+  flex: 1;
+  min-height: 0;
+  justify-content: space-between;
+}
+
+.wx-weekview .wx-week-row {
+  flex: 1;
+  min-height: 0;
+  /* A hairline between the days, so the eye tracks across a row rather than
+     drifting up into the next one. */
+  border-bottom: 1px solid color-mix(in srgb, currentColor 9%, transparent);
+}
+
+.wx-weekview .wx-week-row:last-child {
+  border-bottom: none;
+}
+
+/* Today, called out. Not with a colour — the accent is already the bar's — but with
+   weight, which survives every sky the app can paint behind it. */
+.wx-weekview .wx-week-row:first-child .wx-week-name,
+.wx-weekview .wx-week-row:first-child .wx-week-high {
+  font-weight: 700;
+}
+
+.wx-weekview .wx-week-row:first-child .wx-week-track {
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+/* ----- Portrait ----- */
+@media (max-aspect-ratio: 1/1) {
+  .wx-weekview {
+    padding: 3.4em 1.6em 2em;
+  }
+
+  .wx-weekview-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6em;
+  }
+
+  .wx-weekview-place {
+    font-size: 2.4em;
+  }
+}
+
+/* ----- Motion -----
+   The bars grow from their left edge (`style.css`), one after another, so the week
+   assembles itself left to right and top to bottom — the same order it is read in.
+   Seven delays, written out: a loop would need a preprocessor, and this is CSS. */
+
+.wx-weekview .wx-week-row:nth-child(1) .wx-week-bar {
+  animation-delay: 60ms;
+}
+.wx-weekview .wx-week-row:nth-child(2) .wx-week-bar {
+  animation-delay: 140ms;
+}
+.wx-weekview .wx-week-row:nth-child(3) .wx-week-bar {
+  animation-delay: 220ms;
+}
+.wx-weekview .wx-week-row:nth-child(4) .wx-week-bar {
+  animation-delay: 300ms;
+}
+.wx-weekview .wx-week-row:nth-child(5) .wx-week-bar {
+  animation-delay: 380ms;
+}
+.wx-weekview .wx-week-row:nth-child(6) .wx-week-bar {
+  animation-delay: 460ms;
+}
+.wx-weekview .wx-week-row:nth-child(7) .wx-week-bar {
+  animation-delay: 540ms;
+}

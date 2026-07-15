@@ -1,13 +1,16 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { FakeClock } from '../../test/fake-clock'
-import { DailyReloadScheduler, nextReloadAt } from './daily-reload'
+import { restartPlayer } from '../restart'
+import { applyUpdateOrReload } from '../native/updater'
+import { DailyReloadScheduler, nextReloadAt, startDailyReload } from './daily-reload'
 
 // The module imports the store (and transitively config/device) only for the
 // `startDailyReload` wiring helper. Stub those so importing the unit under test
 // has no browser/runtime side effects.
 vi.mock('../store', () => ({ dailyReload: { value: { enabled: true, time: '03:00' } } }))
-vi.mock('../restart', () => ({ restartPlayer: () => undefined }))
+vi.mock('../restart', () => ({ restartPlayer: vi.fn() }))
+vi.mock('../native/updater', () => ({ applyUpdateOrReload: vi.fn() }))
 
 const HOUR = 60 * 60 * 1000
 
@@ -110,6 +113,24 @@ describe('DailyReloadScheduler', () => {
     expect(onReload).toHaveBeenCalledTimes(2)
   })
 
+  it('does not infinitely recurse when applied inside the pre-target fire window', () => {
+    // Regression: applying at 02:59:59.5 — inside the <=1s window before the
+    // 03:00 target — used to re-arm `fire()` on now(), recomputing the SAME
+    // still-future target, so `fire → scheduleNextChunk → fire` recursed
+    // synchronously into a stack overflow that killed the scheduler.
+    const { clock, scheduler, onReload } = setup(
+      new Date(2026, 5, 26, 2, 59, 59, 500),
+    )
+    expect(() =>
+      scheduler.apply({ enabled: true, time: '03:00' }),
+    ).not.toThrow()
+    expect(onReload).toHaveBeenCalledTimes(1)
+
+    // And it re-armed for the NEXT day, not a past/identical target.
+    clock.advance(25 * HOUR) // past the next day's 03:00
+    expect(onReload).toHaveBeenCalledTimes(2)
+  })
+
   it('stop() cancels any pending timer', () => {
     const { clock, scheduler, onReload } = setup(new Date(2026, 5, 26, 1, 0, 0))
     scheduler.apply({ enabled: true, time: '03:00' })
@@ -118,5 +139,32 @@ describe('DailyReloadScheduler', () => {
 
     clock.advance(24 * HOUR)
     expect(onReload).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * The scheduler tests above all inject their own `onReload`, so none of them
+ * would notice if the PRODUCTION wiring regressed back to a plain restart —
+ * silently disabling OTA for the whole fleet while staying green. This pins it.
+ */
+describe('startDailyReload (production wiring)', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.clearAllMocks()
+  })
+
+  it('applies a pending shell update at the nightly window, not a plain restart', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 26, 2, 59, 30)) // 30s before the 03:00 window
+
+    const stop = startDailyReload()
+    await vi.advanceTimersByTimeAsync(31_000)
+
+    expect(applyUpdateOrReload).toHaveBeenCalledTimes(1)
+    // applyUpdateOrReload owns the restart decision (it must NOT double-restart
+    // when Rust is already relaunching into the new version).
+    expect(restartPlayer).not.toHaveBeenCalled()
+
+    stop()
   })
 })

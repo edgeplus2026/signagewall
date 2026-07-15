@@ -19,7 +19,7 @@ export const gcalManifest: AppManifest = {
     'Display a connected Google Calendar as a day, week, month or schedule view — great for meeting rooms and lobbies.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 3,
+  version: 4,
   refreshSeconds: 300,
   icon: GCAL_ICON,
   color: '#4285F4',
@@ -30,6 +30,11 @@ export const gcalManifest: AppManifest = {
       label: 'Google account',
       required: true,
       provider: 'google',
+      // The read-only promise is the first thing a non-technical operator wants
+      // answered before they hand over a Google account. It is true — the OAuth
+      // scope is `calendar.readonly` (see gcal.connector.ts). Keep the two in
+      // step: if the scope ever widens, this sentence has to go.
+      help: 'Sign in once. Edge only reads your calendars — it never adds, changes or deletes anything.',
     },
     {
       key: 'calendar',
@@ -38,12 +43,13 @@ export const gcalManifest: AppManifest = {
       required: true,
       remoteSource: 'google-calendars',
       placeholder: 'Search your calendars…',
-      help: 'Pick which of the account’s calendars to display.',
+      help: 'Start typing to find the calendar you want on screen.',
     },
     {
       key: 'calendarView',
       type: 'select',
       label: 'Calendar view',
+      help: 'How events are laid out on the screen.',
       default: 'schedule',
       options: [
         { label: 'Day', value: 'day' },
@@ -56,6 +62,7 @@ export const gcalManifest: AppManifest = {
       key: 'onlyUpcoming',
       type: 'switch',
       label: 'Only show upcoming events',
+      help: 'Events that have already ended drop off the list.',
       default: true,
       visibleWhen: { field: 'calendarView', equals: 'schedule' },
     },
@@ -64,12 +71,15 @@ export const gcalManifest: AppManifest = {
       type: 'switch',
       label: 'Auto scroll',
       default: false,
-      help: 'Slowly scroll the content when it overflows the screen.',
+      help: 'Slowly scrolls the screen when there are more events than fit on it.',
     },
     {
       key: 'language',
       type: 'select',
       label: 'Language',
+      // Operators reasonably read a bare "Language" as the CMS's own language.
+      // Say which one it is.
+      help: "The language dates and events are shown in on the screen. It doesn't change this page.",
       default: 'en',
       options: [
         { label: 'English', value: 'en' },
@@ -87,13 +97,13 @@ export const gcalManifest: AppManifest = {
         { label: 'Dark', value: 'dark' },
       ],
     },
-    {
-      key: 'accentColor',
-      type: 'color',
-      label: 'Accent color',
-      section: 'Theme Settings',
-      default: '#111827',
-      help: 'Highlights today and event markers. Automatically adapts to the light or dark theme.',
-    },
+    // No accent colour field, and its absence is the design.
+    //
+    // A calendar is a page that is ALL content: every cell carries an event. An
+    // accent there does not mark ONE thing — it tints the whole screen, and a wall
+    // of a single hue stops meaning "look here" the moment everything is it. The
+    // views are drawn in one ink: a ruled grid, the weight of the type, and a
+    // single filled disc on today. Handing the operator a colour picker would only
+    // let them undo that.
   ],
 }

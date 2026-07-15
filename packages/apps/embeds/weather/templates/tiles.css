@@ -1,0 +1,242 @@
+/* "Tiles" — a bento grid.
+
+   FOUR COLUMNS, THREE ROWS. Fixed, and not `auto-fit`, which is what this started as
+   and which was quietly wrong: `repeat(auto-fit, minmax(9em, 1fr))` fits as many
+   columns as the screen allows — ten of them on a 1600px panel — so the tiles came out
+   as tall thin slivers, the 2×2 tile was a narrow tower, and the board ran out of
+   content two thirds of the way across, leaving a third of the screen empty. A bento
+   grid needs its proportions DECIDED, not derived from the viewport.
+
+   Twelve cells; the current-weather tile takes four; the template fills the remaining
+   eight with however many readings it has and makes up the difference in forecast
+   days, so the board is always exactly full. The two numbers (4×3 here, `CELLS = 12`
+   there) have to agree — that is the price of a grid with no holes in it. */
+
+.wx-tiles {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 3.4em 2.2em 2.2em;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 1em;
+}
+
+/* The clock overlays the top-right corner, which here is a TILE — no amount of
+   padding-right helps, because the tile is in the grid. Push the whole board down
+   instead, so the clock floats in the margin above it. */
+.wx.has-clock .wx-tiles {
+  padding-top: 5.6em;
+}
+
+/* ----- The tile itself -----
+   Every tile is the same object: same fill, same hairline, same corner. The
+   uniformity is what stops eleven unlike things from reading as clutter — only the
+   SIZE varies, and size is what carries the hierarchy. */
+
+.wx-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2em;
+  min-width: 0;
+  min-height: 0;
+  padding: 1.1em 1.3em;
+  border-radius: 1.1em;
+  background: color-mix(in srgb, currentColor 11%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 9%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+.wx-tile-label {
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wx-tile-value {
+  font-size: 2.6em;
+  font-weight: 400;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-tile-note {
+  font-size: 1em;
+  font-weight: 500;
+  opacity: 0.6;
+}
+
+/* ----- The big one -----
+   Two columns and two rows. It is the only tile that gets to be a composition
+   rather than a label and a number. */
+
+.wx-tile-now {
+  grid-column: span 2;
+  grid-row: span 2;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8em;
+  /* Lifted out of the field of tiles with the accent, faintly. It is the one the
+     eye should land on first. */
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--wx-accent) 22%, transparent),
+    color-mix(in srgb, currentColor 10%, transparent) 70%
+  );
+}
+
+.wx-tile-now-text {
+  min-width: 0;
+}
+
+.wx-tile-place {
+  font-size: 1.5em;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wx-tile-temp {
+  font-size: 5.4em;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-tile-condition {
+  font-size: 1.3em;
+  font-weight: 400;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wx-tile-now-icon {
+  flex: none;
+  width: 7em;
+  height: 7em;
+  max-width: 40%;
+}
+
+/* ----- The day tiles ----- */
+
+.wx-tile-day {
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  padding: 0.9em 0.5em;
+}
+
+.wx-tile-day-icon {
+  width: 3em;
+  height: 3em;
+}
+
+.wx-tile-day-temps {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-tile-day-temps b {
+  font-size: 1.5em;
+  font-weight: 600;
+}
+
+.wx-tile-day-temps span {
+  font-size: 1.1em;
+  opacity: 0.6;
+}
+
+/* ----- Portrait -----
+   Two columns instead of four. The cell count is unchanged (the big tile still takes
+   2×2, and there are still eight others), so the same twelve cells simply stack into
+   six rows — and the board stays exactly full without the template knowing anything
+   about the screen's shape. */
+@media (max-aspect-ratio: 1/1) {
+  .wx-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    padding: 3.4em 1.4em 1.8em;
+    gap: 0.8em;
+  }
+
+  .wx.has-clock .wx-tiles {
+    padding-top: 5.4em;
+  }
+
+  .wx-tile-temp {
+    font-size: 4.8em;
+  }
+
+  .wx-tile-value {
+    font-size: 2.2em;
+  }
+}
+
+/* ----- Motion -----
+   The tiles arrive one after another, on a short stagger, so the board assembles
+   rather than appearing. Nine delays written out; the tenth tile onward shares the
+   last one, which nobody has ever noticed. */
+
+@keyframes wx-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.6em) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wx-tile {
+  animation: wx-tile-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.wx-tile:nth-child(1) {
+  animation-delay: 40ms;
+}
+.wx-tile:nth-child(2) {
+  animation-delay: 100ms;
+}
+.wx-tile:nth-child(3) {
+  animation-delay: 150ms;
+}
+.wx-tile:nth-child(4) {
+  animation-delay: 200ms;
+}
+.wx-tile:nth-child(5) {
+  animation-delay: 250ms;
+}
+.wx-tile:nth-child(6) {
+  animation-delay: 300ms;
+}
+.wx-tile:nth-child(7) {
+  animation-delay: 350ms;
+}
+.wx-tile:nth-child(8) {
+  animation-delay: 400ms;
+}
+.wx-tile:nth-child(n + 9) {
+  animation-delay: 450ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wx-tile {
+    animation: none;
+  }
+}

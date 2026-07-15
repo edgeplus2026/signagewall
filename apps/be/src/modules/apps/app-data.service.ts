@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { APP_MANIFESTS } from '@edge/apps';
 import type {
@@ -49,9 +50,28 @@ export class AppDataService {
     private readonly appInstancesRepository: AppInstancesRepository,
     private readonly cacheRepository: AppDataCacheRepository,
     private readonly eventEmitter: EventEmitter2,
+    private readonly configService: ConfigService,
     @Inject(forwardRef(() => ConnectionsService))
     private readonly connectionsService: ConnectionsService,
   ) {}
+
+  /**
+   * Where a provider posts its change notifications, or undefined when this
+   * deployment has no address a provider could reach.
+   *
+   * `PUBLIC_API_URL` is the whole condition, and localhost is not a substitute: the
+   * caller here is Google, not a browser. Unset it and the connectors simply don't
+   * subscribe and the poll carries the data — which is exactly what should happen on
+   * a developer's laptop.
+   */
+  private webhookUrl(): string | undefined {
+    const base = this.configService.get<string>('publicApiUrl');
+    if (!base) {
+      return undefined;
+    }
+    const prefix = this.configService.get<string>('apiPrefix') ?? 'api';
+    return `${base.replace(/\/$/, '')}/${prefix}/v1/webhooks/google/calendar`;
+  }
 
   /**
    * One refresh cycle: collect the distinct cache keys in active use, fetch the
@@ -281,6 +301,7 @@ export class AppDataService {
         ? await this.resolveConnection(candidate)
         : undefined;
 
+      const webhookUrl = this.webhookUrl();
       const result = await connector.fetchData(candidate.config, {
         // No organizationId: the runtime is global (the cache is shared across
         // orgs); `connected` apps get tenant identity from `connection`.
@@ -288,8 +309,10 @@ export class AppDataService {
         signal: controller.signal,
         ...(connection ? { connection } : {}),
         // Feed the connector its previously-persisted state (e.g. an in-flight
-        // export job) so it can resume instead of blocking.
+        // export job, or a live push channel) so it can resume instead of blocking
+        // and renew instead of re-subscribing.
         ...(previousSecrets ? { secrets: previousSecrets } : {}),
+        ...(webhookUrl ? { webhookUrl } : {}),
       });
 
       // A pending result means an async job is still running: persist the new

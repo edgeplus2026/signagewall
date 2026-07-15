@@ -31,7 +31,10 @@ export class DataDeletionController {
 
   /** Queue an organization for GDPR deletion (30-day grace, then cascade). */
   @Delete(':organizationId')
-  @RequireOrgRole({ roles: [OrganizationRole.ADMIN], idParam: 'organizationId' })
+  @RequireOrgRole({
+    roles: [OrganizationRole.ADMIN],
+    idParam: 'organizationId',
+  })
   async deleteOrganization(
     @CurrentUser() user: RequestUser,
     @Param('organizationId') organizationId: string,

@@ -24,14 +24,20 @@ export const youtubeManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 1,
+  // Streams the video live from YouTube — nothing to show offline.
+  requiresNetwork: true,
   icon: YOUTUBE_ICON,
   color: '#FF0000',
   configSchema: [
     {
       key: 'url',
       type: 'url',
-      label: 'YouTube video URL',
-      help: 'Paste a full YouTube link',
+      label: 'YouTube link',
+      // The old help ("Paste a full YouTube link") only repeated the label. This
+      // one says where to get the link, and names the limit up front — a playlist
+      // link fails the pattern, and the operator deserves to know why before the
+      // form rejects it.
+      help: "Copy it from YouTube's address bar, or from its Share button. One video per app — playlists aren't supported.",
       required: true,
       placeholder: 'https://www.youtube.com/watch?v=…',
       validation: { pattern: YOUTUBE_URL_PATTERN },

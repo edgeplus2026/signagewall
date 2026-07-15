@@ -1,103 +1,869 @@
+/* Chrome shared by every weather layout: the place, the readings, the week, the
+   hours, the sun, the clock — and the weather itself, drifting behind all of it.
+   A template arranges these; it shouldn't have to reinvent them.
+
+   The instance gets a SKY, not a palette. `main.ts` writes the sky's background
+   and text colour onto the app root, its accent into `--wx-accent`, and the icon
+   colours into the `--wx-*` properties `icons.ts` draws with. Everything below is
+   written in `currentColor` / `--wx-accent`, so it reads on a blue afternoon, a
+   slate downpour, a black night and the light theme without a second rule. */
+
+/* The one measurement everything else is written against.
+
+   Sizing off `vw` alone is what breaks a signage app: half these screens are
+   PORTRAIT, where the viewport is narrow and tall, and a temperature set in `vw`
+   shrinks to nothing on the very screen that has the most room for it. Mixing both
+   axes gives a size that tracks whatever space the screen actually has — ~19px on
+   a 1080p landscape panel, ~20px on the same panel turned on its side. Every
+   length in a template is then plain `em`, so the layout scales as one. */
 .wx {
-  box-sizing: border-box;
+  position: relative;
   width: 100%;
   height: 100%;
-  padding: 4vw 4.5vw;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  color: #fff;
-  /* Sky-blue theme with two soft cloud glows. */
-  background:
-    radial-gradient(40vw 30vw at 82% 8%, rgba(255, 255, 255, 0.2), transparent 60%),
-    radial-gradient(34vw 24vw at 8% 92%, rgba(255, 255, 255, 0.16), transparent 60%),
-    linear-gradient(160deg, #4a93c9 0%, #6fb2e0 55%, #8fc7ea 100%);
+  overflow: hidden;
+  font-size: calc(0.55vw + 0.75vh);
+  line-height: 1.25;
+
+  /* The margin for everything pinned to an edge. In vw/vh, NOT em: `right: 1.6em`
+     on an absolutely positioned element resolves against THAT element's own
+     font-size, so a clock set at 2.1em quietly sits twice as far from the edge as
+     the panel beside it. A viewport-relative length is the same length everywhere,
+     whatever the type is doing. */
+  --wx-edge: calc(0.88vw + 1.2vh);
 }
 
-.wx-loading {
-  align-items: center;
-  justify-content: center;
+/* Display type on a bright day sky sits on lower contrast than it would on black.
+   A soft shadow is what buys it back — and it is the reason the day gradients are
+   allowed to stay as saturated and as beautiful as they are. Off on the light
+   theme, where a shadow under dark text on white just looks like a printing
+   error. */
+.wx-sky-auto,
+.wx-sky-dark {
+  text-shadow: 0 0.06em 0.18em rgba(0, 0, 0, 0.18);
+}
+
+.wx-empty {
+  font-size: 2.2em;
   font-weight: 300;
+  opacity: 0.75;
 }
 
-/* ----- Top row: current temperature + location, hero icon + metrics ----- */
-.wx-top {
+/* ----- The clock -----
+   Chrome, not layout: it hangs off the app root rather than sitting inside a
+   template, so every layout gets it and none of them has to render one. `main.ts`
+   patches its text in place on a timer — re-rendering the weather once a minute
+   just to move a clock would restart every animation on the screen.
+
+   It shows the PLAYER's time, not the forecast place's: the people reading it are
+   standing in front of the screen, not in the city being forecast.
+
+   There is no plate behind it: the digits sit straight on the sky. So they INHERIT the
+   sky's text-shadow rather than cancelling it — with no backdrop to lift them off a
+   bright cloud, that shadow is the only thing keeping them legible.
+
+   `tabular-nums` matters more than it looks: without it the 1s are narrow and the
+   whole clock twitches sideways every time the minute rolls over. */
+.wx-clock {
+  position: absolute;
+  top: calc(var(--wx-edge) * 0.75);
+  right: var(--wx-edge);
+  z-index: 4;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 2vw;
+  align-items: baseline;
+  font-family:
+    ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
+    Menlo, Consolas, monospace;
+  font-size: 1.9em;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
-.wx-temp {
-  font-size: 13vw;
-  font-weight: 300;
-  line-height: 0.95;
+.wx-clock-sep {
+  margin: 0 0.05em;
+  color: var(--wx-accent);
+  animation: wx-pulse 2s ease-in-out infinite;
 }
 
-.wx-loc {
-  margin-top: 0.4vw;
-  max-width: 34vw;
-  font-size: 2.4vw;
-  font-weight: 300;
-  opacity: 0.92;
+@keyframes wx-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
 }
 
-.wx-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1vw;
+/* ----- The place ----- */
+
+.wx-place-name {
+  font-size: 2.6em;
+  font-weight: 600;
+  line-height: 1.1;
 }
 
-.wx-hero-icon {
-  width: 26vw;
-  height: 19vw;
+.wx-condition {
+  margin-top: 0.15em;
+  font-size: 1.6em;
+  font-weight: 400;
+  opacity: 0.85;
 }
+
+/* ----- The icons -----
+   Colours come from the `--wx-*` properties (see `sky.ts`), so the same markup
+   reads on a night sky and on the light theme. The drop shadow is what lifts a
+   white cloud off a bright blue afternoon. */
 
 .wx-svg {
   display: block;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0.6vw 1vw rgba(0, 0, 0, 0.12));
+  overflow: visible;
+  filter: drop-shadow(0 0.06em 0.12em rgba(0, 0, 0, 0.16));
 }
+
+.wx-sky-light .wx-svg {
+  filter: none;
+}
+
+/* Icon motion. Small, slow, and never asking to be looked at — a screen that
+   twitches is a screen people learn to ignore. */
+
+@keyframes wx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes wx-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+@keyframes wx-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+
+@keyframes wx-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes wx-strike {
+  0%,
+  92%,
+  100% {
+    opacity: 1;
+  }
+  94% {
+    opacity: 0.25;
+  }
+  96% {
+    opacity: 1;
+  }
+}
+
+.wx-ic-rays {
+  animation: wx-spin 40s linear infinite;
+}
+
+.wx-ic-cloud {
+  animation: wx-bob 6s ease-in-out infinite;
+}
+
+.wx-ic-drop,
+.wx-ic-flake {
+  animation: wx-fall 1.5s ease-in infinite;
+}
+
+.wx-ic-stars {
+  animation: wx-twinkle 4s ease-in-out infinite;
+}
+
+.wx-ic-bolt {
+  animation: wx-strike 5s ease-in-out infinite;
+}
+
+.wx-ic-haze {
+  animation: wx-bob 5s ease-in-out infinite;
+}
+
+/* ----- The readings ----- */
 
 .wx-metrics {
-  text-align: right;
-  font-size: 1.7vw;
-  font-weight: 300;
-  line-height: 1.55;
-  opacity: 0.92;
+  display: flex;
+  gap: 1.6em;
 }
 
-/* ----- Bottom row: six forecast cards ----- */
+.wx-metric-label {
+  font-size: 0.95em;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.62;
+  white-space: nowrap;
+}
+
+.wx-metric-value {
+  margin-top: 0.15em;
+  font-size: 1.7em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ----- The week, as a strip of cards ----- */
+
 .wx-days {
   display: flex;
-  gap: 1.4vw;
+  gap: 0.7em;
 }
 
-.wx-card {
+.wx-day {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6vw;
-  padding: 1.4vw 0.6vw;
-  border-radius: 1.4vw;
-  background: rgba(255, 255, 255, 0.16);
+  gap: 0.35em;
+  padding: 0.9em 0.4em;
+  border-radius: 0.9em;
+  background: color-mix(in srgb, currentColor 11%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent);
 }
 
-.wx-card-day {
-  font-size: 1.7vw;
+.wx-day-name {
+  font-size: 1.1em;
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.wx-day-icon {
+  width: 3.4em;
+  height: 3.4em;
+}
+
+.wx-day-temps {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45em;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-day-high {
+  font-size: 1.5em;
+  font-weight: 500;
+}
+
+.wx-day-low {
+  font-size: 1.1em;
   font-weight: 400;
+  opacity: 0.6;
+}
+
+/* ----- The week, as rows with range bars ----- */
+
+.wx-week {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  width: 100%;
+}
+
+.wx-week-row {
+  display: grid;
+  grid-template-columns: 4.6em 2.6em 2.6em minmax(0, 1fr) 2.6em 3.2em;
+  align-items: center;
+  gap: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-week-name {
+  font-size: 1.5em;
+  font-weight: 500;
   text-transform: capitalize;
 }
 
-.wx-card-icon {
-  width: 5.5vw;
-  height: 5.5vw;
+.wx-week-icon {
+  width: 2.4em;
+  height: 2.4em;
 }
 
-.wx-card-temp {
-  font-size: 2.3vw;
-  font-weight: 300;
+.wx-week-low,
+.wx-week-high {
+  font-size: 1.4em;
+  text-align: right;
+}
+
+.wx-week-low {
+  opacity: 0.55;
+}
+
+.wx-week-high {
+  font-weight: 600;
+}
+
+/* The shared scale lives in the TRACK: every row's track is the same width and
+   spans the same temperature range, so a bar's position means something across
+   rows. That is the whole reason this layout beats a grid of numbers. */
+.wx-week-track {
+  position: relative;
+  height: 0.55em;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.wx-week-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  /* Cold end to warm end. The gradient is the same across every bar, so a short
+     bar high on the scale still reads warm. */
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--wx-accent) 45%, #5eb0ef),
+    var(--wx-accent)
+  );
+  transform-origin: left center;
+  animation: wx-grow 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes wx-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.wx-week-rain {
+  font-size: 1.05em;
+  text-align: right;
+  opacity: 0.75;
+  color: var(--wx-rain);
+}
+
+/* ----- The hours ----- */
+
+.wx-hours {
+  display: flex;
+  gap: 0.6em;
+}
+
+.wx-hour {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.7em 0.3em;
+  border-radius: 0.8em;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+
+.wx-hour-time {
+  font-size: 1em;
+  font-weight: 500;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-hour-icon {
+  width: 2.6em;
+  height: 2.6em;
+}
+
+.wx-hour-temp {
+  font-size: 1.35em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----- The temperature curve ----- */
+
+.wx-curve {
+  position: relative;
+  width: 100%;
+  /* Room for the first and last labels, which are centred over points sitting ON the
+     plot's left and right edges — without this they would each be sliced in half. */
+  padding: 0 1.6em;
+}
+
+/* The plot: the stretched SVG and the HTML points, exactly on top of one another. The
+   SVG's viewBox is `width × 100`, so an SVG y-coordinate and a CSS `top: %` are the
+   same number — which is what keeps every dot on the line without a single line of
+   geometry shared between them. */
+.wx-curve-plot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.wx-curve-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The SVG is stretched to its container (`preserveAspectRatio: none`), which is what
+   lets one path fill a landscape wall and a portrait pillar with nothing recomputed.
+   But a non-uniform stretch distorts everything in the SVG's coordinate system — this
+   opts the STROKE out of it, so the line keeps an even weight on any screen.
+
+   It rescues the stroke and nothing else, which is exactly why the dots and the labels
+   are HTML: as SVG they came out as visible ellipses and squashed text. And note it
+   must never be combined with a computed `stroke-dasharray` — see the sun arc, where
+   doing so silently tiled the dash pattern down the whole path. */
+.wx-curve-line {
+  fill: none;
+  stroke: var(--wx-accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.wx-curve-area {
+  fill: color-mix(in srgb, var(--wx-accent) 18%, transparent);
+  stroke: none;
+}
+
+/* ----- The points -----
+   A zero-sized anchor sitting exactly on the point, with the dot and the label hung
+   off it — so the label centres itself over the point without anything needing to know
+   how wide it is. */
+
+.wx-curve-points {
+  position: absolute;
+  inset: 0;
+}
+
+.wx-curve-point {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.wx-curve-point::before {
+  content: '';
+  position: absolute;
+  left: -0.32em;
+  top: -0.32em;
+  width: 0.64em;
+  height: 0.64em;
+  border-radius: 50%;
+  background: var(--wx-accent);
+}
+
+.wx-curve-point b {
+  position: absolute;
+  left: 50%;
+  bottom: 0.75em;
+  transform: translateX(-50%);
+  font-size: 1.5em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The curve is WIPED IN from the left — line, fill and dots together, as one object.
+
+   The obvious alternative (animating `stroke-dashoffset` to draw the line on) is a trap
+   here: the line relies on `non-scaling-stroke`, which resolves the dash array in
+   DEVICE pixels, so how much of the line got drawn would depend on the physical size of
+   the screen. A clip is measured in the element's own box and cannot drift. */
+.wx-curve-plot {
+  animation: wx-wipe 1.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Both the left and right insets are NEGATIVE at rest, and that is not decoration.
+
+   The first and last points sit ON the plot's edges, and their labels are centred over
+   them — so half of each label hangs outside the box. Clipping at exactly 0 sliced
+   them down the middle, and the first hour of a twelve-hour forecast quietly rendered
+   as "2°" instead of "12°": a plausible number, wrong by ten degrees, with nothing on
+   screen to suggest anything had gone wrong.
+
+   Only the RIGHT inset animates (100% → -30%); the left overhang is exposed from the
+   first frame, which is correct — the wipe travels left-to-right and the leftmost
+   label should be there the moment the wipe reaches it. */
+@keyframes wx-wipe {
+  from {
+    clip-path: inset(0 100% 0 -10%);
+  }
+  to {
+    clip-path: inset(0 -30% 0 -10%);
+  }
+}
+
+.wx-axis {
+  display: flex;
+  margin-top: 0.5em;
+}
+
+.wx-axis-cell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25em;
+}
+
+.wx-axis-hour {
+  font-size: 1.1em;
+  font-weight: 500;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-axis-rain {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  min-height: 1.3em;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: var(--wx-rain);
+}
+
+.wx-axis-drop {
+  width: 0.45em;
+  height: 0.6em;
+  border-radius: 0 60% 60% 60%;
+  transform: rotate(-45deg);
+  background: currentColor;
+}
+
+/* ----- The sun ----- */
+
+.wx-sun {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+}
+
+.wx-sun-svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+/* NO `vector-effect: non-scaling-stroke` ON THE ARCS. It is the obvious thing to
+   reach for and it silently destroys them.
+
+   Under `non-scaling-stroke` the stroke — INCLUDING its dash pattern — is resolved in
+   device pixels rather than in the path's own user units. The dash array here is
+   computed in user units (a fraction of the arc's 314-unit length), so the browser
+   read "190px, gap 314px" and tiled that down an arc that is ~1700px long on a real
+   screen: the sun's path came out drawn in three disconnected yellow segments. The
+   dotted track had the same problem in reverse.
+
+   Without it, the stroke scales with the viewBox — which is what we want anyway,
+   since a bigger screen should get a proportionally heavier line. */
+
+.wx-sun-track {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-dasharray: 1 14;
+  stroke-linecap: round;
+  opacity: 0.35;
+}
+
+.wx-sun-elapsed {
+  fill: none;
+  stroke: var(--wx-accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.wx-sun-horizon {
+  stroke: currentColor;
+  stroke-width: 2;
+  opacity: 0.28;
+}
+
+.wx-sun-dot {
+  fill: var(--wx-accent);
+  /* The glow is the difference between a dot on a line and a sun in the sky. */
+  filter: drop-shadow(0 0 10px var(--wx-accent));
+}
+
+/* Below the horizon there is no sun to draw — only the arc it will take tomorrow. */
+.wx-sun:not(.is-up) .wx-sun-dot {
+  fill: currentColor;
+  opacity: 0.4;
+  filter: none;
+}
+
+.wx-sun-ends {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.wx-sun-label {
+  font-size: 1em;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.wx-sun-time {
+  font-size: 1.8em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-sun-left {
+  font-size: 1.3em;
+  opacity: 0.8;
+}
+
+.wx-sun-left b {
+  font-weight: 700;
+  color: var(--wx-accent);
+}
+
+/* ----- The weather, in the air -----
+   A field of particles behind the layout. Everything moves by `transform` only and
+   the field is promoted to its own layer, so the cheap Android sticks these run on
+   composite it without ever touching layout. `pointer-events: none` because it
+   covers the whole screen and must never eat a tap in the CMS preview. */
+
+.wx-ambience {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* On the light theme the weather has to whisper. The same rain that reads as rain
+   against a slate sky reads as SCRATCHES against white — hard blue lines ruled across
+   a clean page, which look like a broken panel rather than like weather. Pulling it
+   right back keeps the movement (a screen that moves is a screen that is alive) and
+   loses the damage. */
+.wx-sky-light .wx-ambience {
+  opacity: 0.3;
+}
+
+/* Everything a template renders sits ON TOP of the weather. */
+.wx-layout {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.wx-rain-drop {
+  position: absolute;
+  top: -12vh;
+  width: 1.5px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--wx-rain) 75%, transparent)
+  );
+  animation: wx-rain-fall linear infinite;
+}
+
+@keyframes wx-rain-fall {
+  to {
+    transform: translate3d(-6vh, 118vh, 0);
+  }
+}
+
+.wx-snow-flake {
+  position: absolute;
+  top: -4vh;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--wx-snow) 85%, transparent);
+  animation: wx-snow-fall linear infinite;
+}
+
+@keyframes wx-snow-fall {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(3vw, 55vh, 0);
+  }
+  90% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(-2vw, 108vh, 0);
+    opacity: 0;
+  }
+}
+
+.wx-cloud-drift {
+  position: absolute;
+  left: -30vw;
+  width: 26vw;
+  height: 9vw;
+  border-radius: 999px;
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 255, 255, 0.16),
+    transparent
+  );
+  animation: wx-cloud-cross linear infinite;
+}
+
+@keyframes wx-cloud-cross {
+  to {
+    /* Far enough to clear the widest screen plus the cloud's own width. */
+    transform: translate3d(160vw, 0, 0);
+  }
+}
+
+.wx-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    60vw 40vw at 70% 10%,
+    rgba(255, 255, 255, 0.55),
+    transparent 65%
+  );
+  opacity: 0;
+  animation: wx-lightning 11s linear infinite;
+}
+
+/* A storm doesn't flash on a metronome. Two strikes close together, then a long
+   wait — the irregularity is what makes it read as weather rather than as a fault
+   in the panel. */
+@keyframes wx-lightning {
+  0%,
+  4%,
+  100% {
+    opacity: 0;
+  }
+  1% {
+    opacity: 1;
+  }
+  2% {
+    opacity: 0.1;
+  }
+  3% {
+    opacity: 0.8;
+  }
+  3.5% {
+    opacity: 0;
+  }
+  46% {
+    opacity: 0;
+  }
+  47% {
+    opacity: 0.9;
+  }
+  48% {
+    opacity: 0;
+  }
+}
+
+.wx-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  animation: wx-twinkle 5s ease-in-out infinite;
+}
+
+/* ----- Time only runs on the screen that is on the wall -----
+   The player preloads the next item into a hidden slot. Rain that fell, a curve
+   that drew itself and a bar that grew in there would all be spent before anyone
+   ever saw them. */
+.wx:not(.is-active) .wx-ambience *,
+.wx:not(.is-active) .wx-curve-plot,
+.wx:not(.is-active) .wx-week-bar,
+.wx:not(.is-active) .wx-svg * {
+  animation-play-state: paused;
+}
+
+/* ----- Asked for no motion, given none -----
+   Not merely slowed: the whole point of the setting is that nothing on the screen
+   moves. The clock still ticks (it changes text, it doesn't animate) and every
+   layout still lands in its final state, because these are all `both`/`forwards`
+   fills — removing the animation leaves the end frame, never a blank screen. */
+@media (prefers-reduced-motion: reduce) {
+  .wx-ambience {
+    display: none;
+  }
+
+  .wx-clock-sep,
+  .wx-svg *,
+  .wx-week-bar {
+    animation: none;
+  }
+
+  /* Killing the wipe must leave the curve VISIBLE, not clipped to nothing. The
+     animation's `both` fill is what would otherwise hold the plot at its `from`
+     frame — `clip-path: inset(0 100% 0 0)`, i.e. an empty screen — so the clip has to
+     be reset explicitly here, not just the animation removed. */
+  .wx-curve-plot {
+    animation: none;
+    clip-path: none;
+  }
+}
+
+/* ----- Portrait -----
+   Half of all signage is portrait. The shared chrome adapts here; a layout that
+   needs to change SHAPE does it in its own file. */
+@media (max-aspect-ratio: 1/1) {
+  .wx-clock {
+    font-size: 1.75em;
+  }
+
+  .wx-week-row {
+    grid-template-columns: 4.2em 2.4em 2.4em minmax(0, 1fr) 2.4em;
+    gap: 0.7em;
+  }
+
+  /* The last column is the first thing to go: a portrait screen is narrow, and the
+     chance of rain is already in the icon. */
+  .wx-week-rain {
+    display: none;
+  }
+
+  .wx-day-icon {
+    width: 3em;
+    height: 3em;
+  }
 }

@@ -22,6 +22,9 @@ export const canvaManifest: AppManifest = {
   dataSource: 'connected',
   version: 2,
   refreshSeconds: 900,
+  // Renders the exported design straight from Canva's CDN — needs internet to
+  // fetch the asset, so hide it offline rather than show a broken frame.
+  requiresNetwork: true,
   icon: CANVA_ICON,
   color: '#00C4CC',
   configSchema: [
@@ -31,6 +34,7 @@ export const canvaManifest: AppManifest = {
       label: 'Canva account',
       required: true,
       provider: 'canva',
+      help: 'Sign in once — Edge then finds your designs for you.',
     },
     {
       key: 'design',
@@ -39,7 +43,9 @@ export const canvaManifest: AppManifest = {
       required: true,
       remoteSource: 'canva-designs',
       placeholder: 'Search your designs…',
-      help: 'Search your templates and designs in Canva. The selected design will be displayed on your screens.',
+      // The auto-refresh is the thing operators do not expect and most want to
+      // know: they can keep editing in Canva and the screen follows.
+      help: 'Start typing to find one of your Canva designs. Edit it in Canva later and the screen catches up on its own.',
     },
     {
       key: 'slideDuration',
@@ -47,15 +53,15 @@ export const canvaManifest: AppManifest = {
       label: 'Seconds per page',
       default: 8,
       validation: { min: 1 },
-      help: 'How long each page is shown in a multi-page slideshow. Videos play their own length.',
+      help: 'Multi-page designs only. Videos and presentations play at their own pace.',
     },
     {
       key: 'maxPages',
       type: 'number',
-      label: 'Max pages to show',
+      label: 'Pages to show',
       default: 0,
       validation: { min: 0 },
-      help: 'Limit how many pages of a multi-page design to show. Leave 0 to show all pages.',
+      help: 'Leave at 0 to show every page. Set a number to stop after that many.',
     },
   ],
 }

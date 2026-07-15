@@ -12,6 +12,6 @@ export class AcceptLegalDto {
   @IsOptional()
   @IsArray()
   @ArrayUnique()
-  @IsIn(LEGAL_DOC_TYPES as unknown as string[], { each: true })
+  @IsIn(LEGAL_DOC_TYPES, { each: true })
   docTypes?: LegalDocType[];
 }

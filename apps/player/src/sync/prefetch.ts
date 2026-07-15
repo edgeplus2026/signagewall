@@ -81,6 +81,9 @@ export class CacheWarmer {
   private abort: AbortController | null = null
   private running = false
   private lastKey: string | null = null
+  /** True once a pass warmed the whole set with no failure/abort/budget stop —
+   *  so a reconnect can skip re-scanning an already-fully-warmed set. */
+  private complete = false
   /** The in-flight pass, exposed so tests can await it. */
   private pass: Promise<void> = Promise.resolve()
   private readonly deps: PrefetchDeps
@@ -96,12 +99,18 @@ export class CacheWarmer {
       return
     }
     this.lastKey = key
+    this.complete = false // a new set is unwarmed
     this.restart(urls)
   }
 
-  /** Reconnected: re-attempt the current set unless a pass is already running. */
+  /**
+   * Reconnected: re-attempt the current set unless a pass is already running or
+   * the set is already fully warmed. The `complete` guard means a flapping link
+   * doesn't re-scan (a Cache lookup per URL) the whole playlist on every `online`
+   * event once everything is cached — only a genuinely incomplete set retries.
+   */
   onOnline(urls: string[]): void {
-    if (this.running || urls.length === 0) {
+    if (this.running || this.complete || urls.length === 0) {
       return
     }
     this.restart(urls)
@@ -127,10 +136,15 @@ export class CacheWarmer {
     const ctrl = new AbortController()
     this.abort = ctrl
     this.running = true
+    this.complete = false
     this.pass = (async () => {
+      // Cleared on any abort/budget-stop/fetch failure, so `complete` is only set
+      // when the whole set is genuinely warmed and a reconnect can safely skip it.
+      let allWarmed = true
       try {
         for (const url of urls) {
           if (ctrl.signal.aborted) {
+            allWarmed = false
             return
           }
           // Skip what the cache already holds so a reconnect resumes at the
@@ -139,23 +153,27 @@ export class CacheWarmer {
             continue
           }
           if (ctrl.signal.aborted) {
+            allWarmed = false
             return
           }
           // Stop once storage is near full: pushing more would make the
           // CacheFirst LRU evict what we already warmed (churn wasting egress).
           if (await this.deps.overBudget()) {
+            allWarmed = false
             return
           }
           try {
             await this.deps.fetch(url, ctrl.signal)
           } catch {
             // Offline or transient — leave it for the next reconnect.
+            allWarmed = false
           }
         }
       } finally {
         // Only the latest pass clears the flag; a restart already replaced it.
         if (this.abort === ctrl) {
           this.running = false
+          this.complete = allWarmed
         }
       }
     })()

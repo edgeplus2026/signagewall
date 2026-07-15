@@ -48,8 +48,14 @@ import {
     MongooseModule.forFeature([
       { name: PendingDeletion.name, schema: PendingDeletionSchema },
       { name: Organization.name, schema: OrganizationSchema },
-      { name: OrganizationMembership.name, schema: OrganizationMembershipSchema },
-      { name: OrganizationInvitation.name, schema: OrganizationInvitationSchema },
+      {
+        name: OrganizationMembership.name,
+        schema: OrganizationMembershipSchema,
+      },
+      {
+        name: OrganizationInvitation.name,
+        schema: OrganizationInvitationSchema,
+      },
       { name: Screen.name, schema: ScreenSchema },
       { name: Device.name, schema: DeviceSchema },
       { name: Playlist.name, schema: PlaylistSchema },

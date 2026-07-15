@@ -21,6 +21,7 @@ import { AppsController } from './apps.controller';
 import { AppsRepository } from './apps.repository';
 import { AppsService } from './apps.service';
 import { OrgAppsRepository } from './org-apps.repository';
+import { WebhooksController } from './webhooks.controller';
 import { SuperAdminGuard } from '../admin/guards/super-admin.guard';
 import { App, AppSchema } from './schemas/app.schema';
 import { AppCategory, AppCategorySchema } from './schemas/app-category.schema';
@@ -53,6 +54,7 @@ import { OrgApp, OrgAppSchema } from './schemas/org-app.schema';
     AppsAdminController,
     AppCategoriesAdminController,
     AppInstancesController,
+    WebhooksController,
   ],
   providers: [
     AppsService,

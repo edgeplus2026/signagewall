@@ -52,6 +52,19 @@ export interface ConnectorContext {
    * check it on the next tick instead of blocking. Undefined on the first fetch.
    */
   secrets?: Record<string, unknown>
+  /**
+   * The address a provider should POST change notifications to, when this
+   * deployment has a publicly reachable one. A connector that can subscribe to
+   * upstream changes (Google Calendar's `events.watch`) registers this as its
+   * callback and remembers the resulting channel in {@link secrets}.
+   *
+   * UNDEFINED IS THE NORMAL CASE, not an error: a laptop running the API on
+   * localhost has no address Google could reach, and a connector must simply skip
+   * the subscription and let the poll cadence carry it. Push is an accelerator on
+   * top of polling — never the only thing keeping a screen current, because a
+   * channel expires, a ping gets lost, and neither failure announces itself.
+   */
+  webhookUrl?: string
   /** Structured logger from the host. */
   logger: ConnectorLogger
   signal?: AbortSignal

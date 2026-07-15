@@ -1,0 +1,166 @@
+/* "Rolling list" — a departures board for the news.
+
+   The trick is entirely in the geometry: every row is EXACTLY the same height, so
+   the list can be slid up by exactly one row and land perfectly. Rows that size
+   themselves to their content would make the step a different distance every time
+   and the whole thing would judder. */
+
+.rl {
+  --rl-row: 6.2em;
+  --rl-gap: 0.9em;
+
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 4.6em 2.6em 2.6em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.4em;
+}
+
+.rl.has-qr {
+  padding-right: 11em;
+}
+
+.rl-masthead {
+  flex: none;
+  font-size: 1.2em;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--rs-accent, #f97316);
+}
+
+/* Clips the list while it steps up, so the arriving row rises INTO the frame
+   instead of being visible below it the whole time. */
+.rl-viewport {
+  flex: none;
+  overflow: hidden;
+}
+
+.rl-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rl-gap);
+}
+
+.rl-row {
+  height: var(--rl-row);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1.2em;
+  padding: 0 1em 0 0;
+  border-radius: 0.6em;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+/* The one that just arrived. It is worth marking: without it the list looks like
+   it reshuffled rather than moved on. */
+/* The bar goes on the RIGHT: on the left it sat underneath the thumbnail, which
+   is flush to the row's edge, and was never once visible. */
+.rl-row.is-new {
+  background: color-mix(in srgb, var(--rs-accent, #f97316) 14%, transparent);
+  box-shadow: inset -0.25em 0 0 var(--rs-accent, #f97316);
+}
+
+.rl-thumb {
+  height: var(--rl-row);
+  aspect-ratio: 4 / 3;
+  border-radius: 0.6em 0 0 0.6em;
+}
+
+.rl-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
+.rl-title {
+  font-size: 1.6em;
+  font-weight: 600;
+  line-height: 1.2;
+  /* Two lines is what fits in a fixed row; a third would break the geometry the
+     whole layout depends on. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rl-time {
+  font-size: 0.9em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+/* ----- Portrait ----- */
+
+@media (max-aspect-ratio: 1/1) {
+  .rl {
+    --rl-row: 7.4em;
+    padding: 4.6em 2em 2em;
+  }
+
+  .rl.has-qr {
+    padding-right: 2em;
+    padding-bottom: 11em;
+  }
+
+  .rl-title {
+    font-size: 1.5em;
+  }
+
+  .rl .rs-qr {
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: fit-content;
+  }
+}
+
+/* ----- Motion -----
+   One step up, the height of exactly one row plus its gap. The list starts a row
+   low and rises into place; the viewport's clip does the rest, so the new row
+   appears to come up from underneath the board. */
+
+@keyframes rl-step {
+  from {
+    transform: translateY(calc(var(--rl-row) + var(--rl-gap)));
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes rl-row-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.rl-list {
+  animation: rl-step 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The arriving row also fades up, so it reads as new rather than as a row that
+   was always there and merely moved. */
+.rl-row.is-new {
+  animation: rl-row-in 900ms cubic-bezier(0.16, 1, 0.3, 1) 240ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rl-list,
+  .rl-row.is-new {
+    animation: none;
+    transform: none;
+  }
+}

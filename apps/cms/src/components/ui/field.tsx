@@ -131,7 +131,10 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="field-description"
       className={cn(
-        "text-left text-sm leading-normal font-normal text-secondary group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5",
+        // A step down from the label (which is `text-sm`): help text set at the
+        // same size as the thing it explains reads as a second heading, not as
+        // support — and it costs the form a lot of height for the trouble.
+        "text-left text-xs leading-snug font-normal text-secondary group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5",
         "last:mt-0 nth-last-2:-mt-1",
         "[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-brand",
         className

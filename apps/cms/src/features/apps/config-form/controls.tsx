@@ -59,6 +59,10 @@ export function TextareaControl({ field, id, value, onChange, onBlur, invalid, d
         onChange(event.target.value)
       }}
       onBlur={onBlur}
+      // The base textarea grows with its content (`field-sizing-content`), which
+      // pushes the rest of the config form off-screen on a long value. Cap it and
+      // scroll instead; the floor stays ~3 rows.
+      className="max-h-40 min-h-18 overflow-y-auto"
     />
   )
 }

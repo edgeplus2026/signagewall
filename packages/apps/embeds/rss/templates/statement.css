@@ -1,0 +1,198 @@
+/* "Statement" — the headline, and nothing else.
+
+   Nothing to lay out except type, which means the only thing that can go wrong is
+   the type. The headline is set on a `clamp()` so a two-word headline goes big and
+   a twenty-word one comes down to meet it — a fixed size would leave the short ones
+   marooned in the middle of an empty screen, which is the failure mode of every
+   type-only layout ever made. */
+
+.st {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 6em 4em;
+  overflow: hidden;
+}
+
+.st.has-qr {
+  padding-bottom: 11em;
+}
+
+/* A single breath of accent behind the words, so the screen isn't a flat plate. */
+.st-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    70% 55% at 50% 42%,
+    color-mix(in srgb, var(--rs-accent, #f97316) 13%, transparent),
+    transparent 70%
+  );
+}
+
+/* Wide. The first cut of this set the block at 26em — which, against the ROOT
+   size and not the headline's own, is about 500px, so a 4em headline broke into
+   four words-per-line and then truncated itself on a screen that was two-thirds
+   empty. A centred type layout lives or dies on its measure. */
+.st-block {
+  position: relative;
+  z-index: 1;
+  max-width: 62em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.st-house {
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 0.44em;
+  /* Tracking pushes the last letter off its box; centre it back. */
+  text-indent: 0.44em;
+  text-transform: uppercase;
+  color: var(--rs-accent, #f97316);
+  margin-bottom: 1.2em;
+}
+
+.st-headline {
+  font-size: 4.2em;
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.st-rule {
+  width: 3.5em;
+  height: 3px;
+  margin: 1.2em 0;
+  background: var(--rs-accent, #f97316);
+  transform-origin: center;
+}
+
+.st-summary {
+  max-width: 34em;
+  font-size: 1.5em;
+  font-weight: 300;
+  line-height: 1.5;
+  opacity: 0.72;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.st-date {
+  margin-top: 1.4em;
+  font-size: 0.9em;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+/* ----- Portrait ----- */
+
+@media (max-aspect-ratio: 1/1) {
+  .st {
+    padding: 6em 2.4em;
+  }
+
+  .st-block {
+    max-width: none;
+  }
+
+  .st-headline {
+    font-size: 3.2em;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+  }
+
+  .st .rs-qr {
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: fit-content;
+  }
+}
+
+/* ----- Motion ----- */
+
+@keyframes st-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.7em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes st-open {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes st-breathe {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.st-glow {
+  animation: st-breathe 1400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.st-house {
+  animation: st-in 900ms cubic-bezier(0.16, 1, 0.3, 1) 100ms both;
+}
+
+.st-headline {
+  animation: st-in 1100ms cubic-bezier(0.16, 1, 0.3, 1) 220ms both;
+}
+
+.st-rule {
+  animation: st-open 800ms cubic-bezier(0.16, 1, 0.3, 1) 520ms both;
+}
+
+.st-summary {
+  animation: st-in 1000ms cubic-bezier(0.16, 1, 0.3, 1) 620ms both;
+}
+
+.st-date {
+  animation: st-in 1000ms cubic-bezier(0.16, 1, 0.3, 1) 720ms both;
+}
+
+.st .rs-qr {
+  animation: st-in 900ms cubic-bezier(0.16, 1, 0.3, 1) 820ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-glow,
+  .st-house,
+  .st-headline,
+  .st-rule,
+  .st-summary,
+  .st-date,
+  .st .rs-qr {
+    animation: none;
+    transform: none;
+  }
+}

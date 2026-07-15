@@ -1,5 +1,6 @@
 import type { PlayerSnapshot, Renderable } from '../types'
-import { Slot, type Surface } from './slot'
+import { itemRequiresNetwork } from './network-apps'
+import { Slot } from './slot'
 
 /**
  * The slice of {@link Slot} the controller drives. Extracted as an interface so
@@ -8,7 +9,7 @@ import { Slot, type Surface } from './slot'
  */
 export interface PlaybackSlot {
   readonly el: HTMLElement
-  prepare(item: Renderable, surface: Surface, volume: number): Promise<void>
+  prepare(item: Renderable, volume: number): Promise<void>
   activate(onEnded: () => void): void
   deactivate(): void
   release(): void
@@ -43,6 +44,13 @@ export interface ControllerOptions {
    * of running its own drifting clock.
    */
   follow?: boolean
+  /**
+   * Predicate for "this item needs live internet and must be skipped while
+   * offline" (network-only apps like YouTube/Web/Canva). Injectable so the loop
+   * can be unit-tested with a deterministic fake; production defaults to the
+   * manifest-derived {@link itemRequiresNetwork}.
+   */
+  requiresNetwork?: (item: Renderable) => boolean
 }
 
 /**
@@ -89,6 +97,12 @@ export class PlaybackController {
   /** Mirror mode — never auto-advances; driven only by {@link showItem}. */
   private readonly follow: boolean
 
+  /** Live internet availability; network-only apps are skipped while false. */
+  private online = true
+
+  /** "Item needs internet" predicate (injectable for tests). */
+  private readonly requiresNetwork: (item: Renderable) => boolean
+
   constructor(
     private readonly root: HTMLElement,
     private readonly callbacks: ControllerCallbacks = {},
@@ -96,6 +110,7 @@ export class PlaybackController {
     options: ControllerOptions = {},
   ) {
     this.follow = options.follow ?? false
+    this.requiresNetwork = options.requiresNetwork ?? itemRequiresNetwork
     this.slots = [createSlot(), createSlot()]
     this.root.append(this.slots[0].el, this.slots[1].el)
     if (typeof document !== 'undefined') {
@@ -154,8 +169,15 @@ export class PlaybackController {
     this.preload = null
     this.clearPreloadTimer()
 
-    if (this.items.length > 0) {
-      this.requestTransition(0)
+    // Follow mode mirrors the device 1:1 and starts at the head; otherwise begin
+    // at the first *playable* item, so an offline boot skips a leading network
+    // app instead of stalling on it. -1 ⇒ nothing playable (all network apps,
+    // offline) — don't transition; the shell shows the branded splash (see
+    // store `view`) until connectivity returns.
+    const first =
+      this.items.length === 0 ? -1 : this.follow ? 0 : this.firstPlayable()
+    if (first !== -1) {
+      this.requestTransition(first)
       // In follow mode the device owns advancement; we never auto-advance, so
       // there is no stall to watch for. (We still preload the head above via the
       // initial transition; SW-cache warming for offline safety is owned by the
@@ -164,6 +186,72 @@ export class PlaybackController {
         this.startWatchdog()
       }
     }
+  }
+
+  /**
+   * Reacts to internet availability changing at runtime. Network-only apps are
+   * skipped while offline and rejoin the rotation when back online — instantly,
+   * with no reload. If the item currently on screen is a network app and we just
+   * went offline, jump straight to the next playable item; if nothing is
+   * playable, the shell switches to the branded splash and unmounts us. A no-op
+   * in follow mode (the device drives advancement, we only mirror it).
+   */
+  setOnline(online: boolean): void {
+    if (this.destroyed || this.online === online) {
+      return
+    }
+    this.online = online
+    if (this.follow || this.items.length === 0) {
+      return
+    }
+    const current = this.items[this.cursor]
+    if (current && this.playable(current)) {
+      // The on-screen item survives; just re-warm the back buffer, since the
+      // neighbour in our direction of travel may now be a different item (a
+      // network app just dropped out of, or came back into, the rotation).
+      this.schedulePreload()
+      return
+    }
+    // The on-screen item just became unplayable (offline landed on a network
+    // app) — advance to the next playable item now. If none is playable we leave
+    // the last frame; `view` flips to the splash and unmounts us right after.
+    const target = this.nextPlayable(this.cursor, this.direction)
+    if (target !== -1 && target !== this.cursor) {
+      this.requestTransition(target)
+    }
+  }
+
+  /** True if `item` can play given the current connectivity. */
+  private playable(item: Renderable): boolean {
+    return this.online || !this.requiresNetwork(item)
+  }
+
+  /** First playable index scanning from 0, or -1 if every item needs network. */
+  private firstPlayable(): number {
+    for (let i = 0; i < this.items.length; i += 1) {
+      const item = this.items[i]
+      if (item && this.playable(item)) {
+        return i
+      }
+    }
+    return -1
+  }
+
+  /**
+   * Next playable index from `from` travelling in `dir` (wrapping), or -1 if no
+   * item is playable. With a single playable item it returns that item's index
+   * (including `from` itself), so a lone survivor loops on itself.
+   */
+  private nextPlayable(from: number, dir: 1 | -1): number {
+    const len = this.items.length
+    for (let step = 1; step <= len; step += 1) {
+      const idx = this.wrap(from + dir * step)
+      const item = this.items[idx]
+      if (item && this.playable(item)) {
+        return idx
+      }
+    }
+    return -1
   }
 
   /**
@@ -216,7 +304,10 @@ export class PlaybackController {
       return
     }
     this.direction = -1
-    this.requestTransition(this.wrap(this.cursor - 1))
+    const target = this.nextPlayable(this.cursor, -1)
+    if (target !== -1) {
+      this.requestTransition(target)
+    }
   }
 
   /** Records a new target and kicks (or re-kicks) the single-flight runner. */
@@ -260,7 +351,10 @@ export class PlaybackController {
       return
     }
     this.direction = 1
-    this.requestTransition(this.wrap(this.cursor + 1))
+    const target = this.nextPlayable(this.cursor, 1)
+    if (target !== -1) {
+      this.requestTransition(target)
+    }
   }
 
   private wrap(index: number): number {
@@ -284,7 +378,7 @@ export class PlaybackController {
     if (this.preload && this.preload.index === index) {
       prep = this.preload.promise
     } else {
-      prep = back.prepare(item, this.surface(), this.volume)
+      prep = back.prepare(item, this.volume)
     }
     this.preload = null
 
@@ -366,14 +460,16 @@ export class PlaybackController {
     }
     // Warm the neighbour in the current direction of travel, so back-stepping
     // benefits from the preload instead of always falling back to a JIT prepare.
-    const next = this.wrap(this.cursor + this.direction)
-    const item = this.items[next]
-    if (!item || this.preload?.index === next) {
+    // Skip any network-only apps that are currently hidden (offline), so we warm
+    // the item we'll actually show next rather than one that gets skipped.
+    const next = this.nextPlayable(this.cursor, this.direction)
+    const item = next === -1 ? undefined : this.items[next]
+    if (!item || next === this.cursor || this.preload?.index === next) {
       return
     }
 
     const back = this.slots[this.activeIndex ^ 1]
-    const promise = back.prepare(item, this.surface(), this.volume)
+    const promise = back.prepare(item, this.volume)
     this.preload = { index: next, promise }
     promise.catch((error: unknown) => {
       // Only report if this preload is still pending. If showAt already consumed
@@ -396,10 +492,14 @@ export class PlaybackController {
 
   private scheduleSkip(index: number): void {
     this.clearAdvanceTimer()
-    // Skip in the current direction of travel, so a failed item under manual
-    // `previous()` keeps stepping back instead of bouncing forward.
+    // Skip in the current direction of travel to the next *playable* item, so a
+    // failed item under manual `previous()` keeps stepping back instead of
+    // bouncing forward, and offline network apps aren't retried.
     const target =
-      this.items.length <= 1 ? index : this.wrap(index + this.direction)
+      this.items.length <= 1 ? index : this.nextPlayable(index, this.direction)
+    if (target === -1) {
+      return
+    }
     this.advanceTimer = window.setTimeout(() => {
       this.requestTransition(target)
     }, SKIP_DELAY_MS)
@@ -472,13 +572,6 @@ export class PlaybackController {
     if (this.preloadTimer !== undefined) {
       window.clearTimeout(this.preloadTimer)
       this.preloadTimer = undefined
-    }
-  }
-
-  private surface(): Surface {
-    return {
-      width: this.root.clientWidth,
-      height: this.root.clientHeight,
     }
   }
 }

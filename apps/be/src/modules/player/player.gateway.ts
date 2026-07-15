@@ -246,11 +246,24 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    // Only mark offline if no other socket for this device remains (guards
-    // against quick reconnects flapping the presence flag).
-    const remaining = await this.server.in(deviceRoom(deviceId)).fetchSockets();
-    if (remaining.length === 0) {
-      await this.playerService.markOffline(deviceId);
+    // This is a lifecycle hook, NOT a @SubscribeMessage, so Nest's
+    // WsExceptionsHandler does not wrap it — an unhandled rejection here crashes
+    // the whole process. Swallow + log so a transient DB/adapter outage (e.g. the
+    // Atlas connection dropping) can't take the gateway down for the whole fleet.
+    try {
+      // Only mark offline if no other socket for this device remains (guards
+      // against quick reconnects flapping the presence flag).
+      const remaining = await this.server
+        .in(deviceRoom(deviceId))
+        .fetchSockets();
+      if (remaining.length === 0) {
+        await this.playerService.markOffline(deviceId);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to handle disconnect for device ${deviceId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
     }
   }
 

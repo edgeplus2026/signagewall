@@ -1,0 +1,309 @@
+/* Chrome shared by every RSS layout: the clock, the progress tiles, the QR panel,
+   and the two bits of motion that belong to the rotation rather than to any one
+   layout. A template lays out a story; it shouldn't have to reinvent these.
+
+   The instance picks a theme, not a palette: `main.ts` writes the theme's
+   background and text colour onto the app root and the fixed accent into
+   `--rs-accent`. Everything below is in `currentColor` / `--rs-accent`, so it
+   reads on either theme without a second rule. */
+
+/* The one measurement everything else is written against.
+
+   Sizing off `vw` alone is what breaks a signage app: half these screens are
+   PORTRAIT, where the viewport is narrow and tall, and a headline set in `vw`
+   shrinks to nothing on the very screen that has the most room for it. Mixing
+   both axes gives a size that tracks whatever space the screen actually has —
+   ~19px on a 1080p landscape panel, ~20px on the same panel turned on its side.
+   Every length in a template is then plain `em`, so the layout scales as one. */
+.rss {
+  width: 100%;
+  height: 100%;
+  font-size: calc(0.55vw + 0.75vh);
+  line-height: 1.25;
+
+  /* The screen's margin, for everything pinned to a corner: the clock, the
+     progress tiles, the QR panel.
+
+     It is written in vw/vh — NOT em — on purpose. `right: 1.6em` on an absolutely
+     positioned element resolves against THAT ELEMENT's own font-size, so the
+     clock (set at 2.1em) was quietly sitting twice as far from the edge as the QR
+     code beside it, and no amount of staring at the two identical `1.6em`s
+     explained why they didn't line up. A viewport-relative length is the same
+     length everywhere, whatever the type is doing. Value = 1.6 × the root size. */
+  --rs-edge: calc(0.88vw + 1.2vh);
+}
+
+.rs-empty {
+  font-size: 2.2em;
+  font-weight: 300;
+  opacity: 0.7;
+}
+
+/* ----- The clock -----
+   Chrome, not layout: it hangs off the app root rather than sitting inside a
+   template, so every layout gets it and none of them has to render one. `main.ts`
+   patches its text in place on a timer — re-rendering the story once a minute
+   just to move a clock would restart every animation on the screen. */
+
+/* Bare digits, no plate. Monospaced, with the colon pulsing in the accent — the
+   one thing on the screen that proves the player is alive rather than a photo of
+   a player. All system faces: these run offline, so a web font is not on the
+   table.
+
+   Nothing sits behind the digits now, and FOUR of the layouts run a photograph
+   under this exact corner (cover, primetime, broadcast, kinetic) — the chip used
+   to be what held them up over one. The shadow below replaces it, and it is
+   keyed on the THEME rather than on those four layouts, because a list of modes
+   is a list that goes stale the first time someone writes a fifth full-bleed one.
+
+   It costs the flat layouts nothing, which is the point: a dark glow on a
+   near-black page and a white one on a white page are both invisible. It has to
+   flip with the theme for the same reason it is needed at all — dark digits on a
+   bright picture want a light halo, and a dark smudge under them would just read
+   as a printing error.
+
+   `tabular-nums` matters more than it looks: without it the 1s are narrow and
+   the whole clock twitches sideways every time the minute rolls over. */
+.rs-clock {
+  position: absolute;
+  /* Tucked up under the progress tiles, which are pinned across the top at
+     `0.85 × --rs-edge` in every layout. That rail is the floor the clock cannot go
+     above — the digits would land on it — and it is the whole reason this sits a
+     little lower than the same clock in Weather, which has no rail to clear.
+     Right edge shared with the QR code below, so the two read as one column of
+     chrome. */
+  top: calc(var(--rs-edge) * 1.35);
+  right: var(--rs-edge);
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  font-family:
+    ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
+    Menlo, Consolas, monospace;
+  font-size: 2.1em;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  /* Two layers, and both earn it: a TIGHT one that draws an edge around each glyph
+     (what actually saves white digits on a white sky — a soft glow alone just goes
+     grey against it) and a wide soft one that lifts them off a busy picture. */
+  text-shadow:
+    0 0 0.05em rgba(0, 0, 0, 0.75),
+    0 0.02em 0.3em rgba(0, 0, 0, 0.55);
+}
+
+.rs-theme-light .rs-clock {
+  text-shadow:
+    0 0 0.05em rgba(255, 255, 255, 0.9),
+    0 0.02em 0.3em rgba(255, 255, 255, 0.75);
+}
+
+.rs-clock-sep {
+  margin: 0 0.05em;
+  color: var(--rs-accent, #f97316);
+  animation: rs-clock-pulse 2s ease-in-out infinite;
+}
+
+@keyframes rs-clock-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .rs-clock {
+    font-size: 1.9em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-clock-sep {
+    animation: none;
+  }
+}
+
+/* ----- The picture frame -----
+   Shape and size belong to the layout; everything else is the same everywhere.
+   The placeholder is always drawn UNDERNEATH — a picture that never arrived and a
+   picture that died on the way both end up showing it, and neither one is allowed
+   to change the shape of the page. */
+
+.rs-media {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.rs-media-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* News pictures come in every aspect ratio there is. The frame picks one and
+     crops to it; the alternative is letterboxing, which looks like a mistake. */
+  object-fit: cover;
+  display: block;
+  z-index: 1;
+}
+
+.rs-media-ph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--rs-accent, #f97316) 18%, transparent),
+    transparent 72%
+  );
+}
+
+.rs-media-ph svg {
+  width: 24%;
+  height: 24%;
+  color: var(--rs-accent, #f97316);
+  opacity: 0.5;
+}
+
+.rs-media.is-broken .rs-media-img {
+  display: none;
+}
+
+/* ----- Progress tiles ----- */
+
+.rs-progress {
+  position: absolute;
+  top: calc(var(--rs-edge) * 0.85);
+  left: var(--rs-edge);
+  right: var(--rs-edge);
+  display: flex;
+  gap: 0.35em;
+  z-index: 3;
+}
+
+.rs-tile {
+  position: relative;
+  flex: 1;
+  height: 0.28em;
+  min-height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: currentColor;
+  opacity: 0.2;
+}
+
+.rs-tile.is-done {
+  background: var(--rs-accent, #f97316);
+  opacity: 1;
+}
+
+.rs-tile.is-current {
+  opacity: 1;
+  /* Keep the faint track visible behind the draining fill. */
+  background: color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.rs-tile-fill {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  background: var(--rs-accent, #f97316);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: rs-drain var(--rs-story-seconds, 8s) linear both;
+}
+
+@keyframes rs-drain {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ----- The single progress bar -----
+   For layouts where "which story are we on" is not a question anyone is asking.
+   Same clock as the tiles, one stroke instead of many. */
+
+.rs-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.22em;
+  min-height: 3px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  z-index: 3;
+}
+
+.rs-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--rs-accent, #f97316);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: rs-drain var(--rs-story-seconds, 8s) linear both;
+}
+
+/* ----- The QR panel -----
+   Pinned to the corner (`#app` is the positioned ancestor). Always black on
+   white: a scanner needs the contrast, and the label sits outside the code so its
+   quiet zone stays intact. A template moves or restyles it from its own CSS. */
+
+.rs-qr {
+  position: absolute;
+  right: var(--rs-edge);
+  bottom: var(--rs-edge);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  z-index: 3;
+}
+
+.rs-qr-img {
+  width: 7.4em;
+  height: 7.4em;
+  display: block;
+  border-radius: 0.4em;
+  box-shadow: 0 0 0 0.25em #fff;
+  background: #fff;
+}
+
+.rs-qr-label {
+  font-size: 0.8em;
+  font-weight: 500;
+  opacity: 0.65;
+  text-align: center;
+}
+
+/* ----- Motion that belongs to the rotation -----
+   A slow drift across the story's picture for exactly as long as the story is up.
+   Static images on a screen look like a frozen player; a barely-perceptible push
+   keeps the frame alive without ever asking to be looked at. */
+
+@keyframes rs-drift {
+  from {
+    transform: scale(1.015);
+  }
+  to {
+    transform: scale(1.075);
+  }
+}
+
+/* The player preloads the next item into a hidden slot. A bar that drained in
+   there — or a picture that drifted through its whole push — would be spent
+   before anyone ever saw it. Time only runs on the instance that is on the wall. */
+.rss:not(.is-active) .rs-tile-fill,
+.rss:not(.is-active) .rs-bar-fill,
+.rss:not(.is-active) [data-media] img {
+  animation-play-state: paused;
+}

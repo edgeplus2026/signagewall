@@ -1,0 +1,181 @@
+/* "Daylight" — the header, the arc, the readings. Three bands, generously spaced.
+
+   The arc is shared chrome (`style.css`); this file gives it the middle of the
+   screen and gets out of the way. The whitespace is the design: this is the layout
+   somebody has on the wall behind them all day, and a busy one would wear out. */
+
+.wx-solar {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 3.6em 3.4em 2.8em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.6em;
+  text-align: center;
+}
+
+/* ----- The header ----- */
+
+.wx-solar-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.wx-solar-place {
+  font-size: 3em;
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+.wx-solar-condition {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 1.5em;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.wx-solar-icon {
+  display: block;
+  width: 2em;
+  height: 2em;
+}
+
+.wx-solar-temp {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----- The arc -----
+   Capped, and centred rather than stretched. On a very wide screen an unbounded
+   arc would flatten into a shallow bow — the shape stops reading as the sun's path
+   and starts reading as a progress bar with a dot on it. */
+
+.wx-solar .wx-sun {
+  max-width: 62em;
+  margin: 0 auto;
+}
+
+.wx-solar .wx-sun-svg {
+  /* The arc is a half-circle: its height is half its width, plus room for the dot's
+     glow to clear the top. The viewBox already carries that padding. */
+  max-height: 42vh;
+}
+
+.wx-solar .wx-metrics {
+  gap: 2.6em;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.wx-solar .wx-metric {
+  text-align: center;
+}
+
+/* ----- No sun times (an old cached payload) -----
+   The middle band becomes the icon, large. The layout keeps its three-band shape,
+   so nothing jumps when a fresh payload finally lands and the arc reappears. */
+
+.wx-solar-bare {
+  width: 15em;
+  height: 15em;
+  max-height: 42vh;
+}
+
+/* ----- Portrait ----- */
+@media (max-aspect-ratio: 1/1) {
+  .wx-solar {
+    padding: 3.6em 1.8em 2.4em;
+  }
+
+  .wx-solar-place {
+    font-size: 2.6em;
+  }
+
+  .wx-solar .wx-metrics {
+    gap: 1.4em 2em;
+  }
+
+  .wx-solar .wx-sun-time {
+    font-size: 1.6em;
+  }
+}
+
+/* ----- Motion ----- */
+
+@keyframes wx-solar-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.8em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The sun rides out along the arc it has already travelled, rather than appearing
+   at its position — the one bit of motion in the app that is telling you something
+   (how much of the day is gone) rather than just easing something in. */
+@keyframes wx-solar-rise {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wx-solar > * {
+  animation: wx-solar-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.wx-solar > :nth-child(2) {
+  animation-delay: 100ms;
+}
+.wx-solar > :nth-child(3) {
+  animation-delay: 220ms;
+}
+
+.wx-solar .wx-sun-elapsed {
+  animation: wx-solar-draw 1.8s cubic-bezier(0.16, 1, 0.3, 1) 200ms both;
+}
+
+/* Grow the elapsed arc from nothing to however much of the day is gone.
+
+   The length is computed per render, so CSS can't name it — which is why `chrome.ts`
+   hands it over as `--wx-arc` alongside the dash array. Offsetting by exactly the
+   dash's own length parks it just off the start of the path; sliding the offset to
+   zero walks it back on. Hard-coding the half-circle's full length here instead
+   (~314) would "work", but the arc would then sit invisible for the first
+   (314 − elapsed)/314 of the animation — so a morning would draw almost at once and
+   a late afternoon would stare at nothing for a second first. */
+@keyframes wx-solar-draw {
+  from {
+    stroke-dashoffset: var(--wx-arc, 0);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.wx-solar .wx-sun-dot {
+  transform-origin: center;
+  animation: wx-solar-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 900ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wx-solar > *,
+  .wx-solar .wx-sun-elapsed,
+  .wx-solar .wx-sun-dot {
+    animation: none;
+  }
+}

@@ -277,7 +277,9 @@ export function RegisterForm() {
         <FieldSeparator>{t('common.orContinueWith')}</FieldSeparator>
         <Field>
           <GoogleLoginButton />
-          <FieldDescription className="text-center">
+          {/* A footer CTA, not help text — it keeps the body size the smaller
+              field-description default would otherwise take from it. */}
+          <FieldDescription className="text-center text-sm">
             {t('auth.register.hasAccount')}{' '}
             <Link to="/login" className="underline underline-offset-4">
               {t('auth.register.signIn')}

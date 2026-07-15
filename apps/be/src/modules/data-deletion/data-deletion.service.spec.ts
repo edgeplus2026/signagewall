@@ -4,7 +4,9 @@ import { BusinessException } from '../../common/exceptions/business.exception';
 import { DataDeletionService } from './data-deletion.service';
 
 /** Mongoose query stub: `.exec()` resolves to `result`. */
-const query = (result: unknown) => ({ exec: jest.fn().mockResolvedValue(result) });
+const query = (result: unknown) => ({
+  exec: jest.fn().mockResolvedValue(result),
+});
 
 interface Deps {
   membershipFind: unknown[];
@@ -132,7 +134,8 @@ describe('DataDeletionService.requestOrgDeletion', () => {
       { $set: { deletedAt: expect.any(Date) } },
     );
     expect(pendingModel.updateOne).toHaveBeenCalled();
-    const days = (new Date(result.scheduledFor).getTime() - before) / 86_400_000;
+    const days =
+      (new Date(result.scheduledFor).getTime() - before) / 86_400_000;
     expect(days).toBeGreaterThan(29);
     expect(days).toBeLessThan(31);
   });

@@ -1,16 +1,12 @@
 import QRCode from 'qrcode'
 
+import { pickColor } from '../_shared/color.js'
 import { connectToHost } from '../_shared/host-bridge.js'
+import { applyTextStyle } from '../_shared/text-style.js'
 import '../_shared/base.css'
 import './style.css'
 
 const root = document.getElementById('app')
-
-/** A hex color; anything else falls back to the default. */
-const HEX = /^#[0-9a-fA-F]{3,8}$/
-function pickColor(value: unknown, fallback: string): string {
-  return typeof value === 'string' && HEX.test(value) ? value : fallback
-}
 
 function str(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
@@ -80,6 +76,8 @@ async function render(config: Record<string, unknown>): Promise<void> {
   const light = pickColor(config.backgroundColor, '#ffffff')
 
   root.style.background = light
+  // Style Settings (font/size/line height/letter spacing) → CSS custom props.
+  applyTextStyle(root, config)
 
   if (!value) {
     root.innerHTML = '<div class="center"><p>Set a QR value</p></div>'
@@ -101,7 +99,8 @@ async function render(config: Record<string, unknown>): Promise<void> {
     img.style.background = light
 
     const wrap = document.createElement('div')
-    wrap.className = 'center'
+    // Row layout only when there is a caption; a lone code stays centered.
+    wrap.className = caption ? 'center qr-row' : 'center'
     wrap.appendChild(img)
     if (caption) {
       const cap = document.createElement('div')

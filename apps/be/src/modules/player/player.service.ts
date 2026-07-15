@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ReportedProfile } from '@edge/player-contract';
 import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -26,14 +27,10 @@ import {
   DeviceStatus,
 } from './schemas/device.schema';
 
-/** Profile fields the player reports on connect/heartbeat. */
-export interface ReportedProfile {
-  platform?: string;
-  userAgent?: string;
-  appVersion?: string;
-  screenWidth?: number;
-  screenHeight?: number;
-}
+// `ReportedProfile` (what the player reports on connect/heartbeat) is the shared
+// contract type from `@edge/player-contract` — imported above and re-exported so
+// existing importers (e.g. player.gateway) keep resolving it from here.
+export type { ReportedProfile };
 
 export type ConnectResult =
   | {
@@ -507,6 +504,16 @@ export class PlayerService {
     this.emitRevoked(device.deviceId);
   }
 
+  /**
+   * Signature of the last presence payload broadcast per device. A heartbeat
+   * repeats every 30s with identical data, so re-broadcasting it to every CMS
+   * socket watching the org is ~17 redundant events/second at 500 devices — for
+   * state (online/paired/versions) that almost never changes. We fan out only on
+   * an actual change; `lastSeenAt` alone is not a change worth waking every
+   * operator's browser for.
+   */
+  private readonly lastPresenceSignature = new Map<string, string>();
+
   async recordHeartbeat(
     deviceId: string,
     profile?: ReportedProfile,
@@ -521,6 +528,9 @@ export class PlayerService {
 
   async markOffline(deviceId: string): Promise<void> {
     const updated = await this.devicesRepository.setPresence(deviceId, false);
+    // An offline flip is always a real change — never let a stale signature
+    // suppress it.
+    this.lastPresenceSignature.delete(deviceId);
     this.emitPresence(updated, false);
   }
 
@@ -545,7 +555,7 @@ export class PlayerService {
       return;
     }
 
-    this.eventEmitter.emit(PlayerEvents.DevicePresenceChanged, {
+    const event = {
       organizationId,
       screenId,
       deviceId: device.deviceId,
@@ -555,7 +565,26 @@ export class PlayerService {
       ...(device.profile?.appVersion
         ? { appVersion: device.profile.appVersion }
         : {}),
-    } satisfies DevicePresenceChangedEvent);
+      ...(device.profile?.shellVersion
+        ? { shellVersion: device.profile.shellVersion }
+        : {}),
+      // Carried so an operator can spot a stuck/rolled-back device from the
+      // screens list, not only by opening each device tab one at a time.
+      ...(device.profile?.updateStatus?.lastResult
+        ? { updateResult: device.profile.updateStatus.lastResult }
+        : {}),
+    } satisfies DevicePresenceChangedEvent;
+
+    // Everything but `lastSeenAt` is what an operator actually reacts to. Only
+    // fan out when that changes — see `lastPresenceSignature`.
+    const { lastSeenAt: _lastSeenAt, ...meaningful } = event;
+    const signature = JSON.stringify(meaningful);
+    if (this.lastPresenceSignature.get(device.deviceId) === signature) {
+      return;
+    }
+    this.lastPresenceSignature.set(device.deviceId, signature);
+
+    this.eventEmitter.emit(PlayerEvents.DevicePresenceChanged, event);
   }
 
   /** Authenticates a REST player-token request; returns the bound device. */
@@ -625,6 +654,9 @@ export class PlayerService {
       ...(profile.screenHeight !== undefined
         ? { screenHeight: profile.screenHeight }
         : {}),
+      ...(profile.shellVersion ? { shellVersion: profile.shellVersion } : {}),
+      ...(profile.runtime ? { runtime: profile.runtime } : {}),
+      ...(profile.updateStatus ? { updateStatus: profile.updateStatus } : {}),
     };
   }
 
@@ -645,6 +677,9 @@ export class PlayerService {
       ...(profile.screenHeight !== undefined
         ? { screenHeight: profile.screenHeight }
         : {}),
+      ...(profile.shellVersion ? { shellVersion: profile.shellVersion } : {}),
+      ...(profile.runtime ? { runtime: profile.runtime } : {}),
+      ...(profile.updateStatus ? { updateStatus: profile.updateStatus } : {}),
     };
   }
 

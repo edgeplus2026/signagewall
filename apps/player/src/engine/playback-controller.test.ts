@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PlayerSnapshot, Renderable } from '../types'
-import { PlaybackController, type PlaybackSlot } from './playback-controller'
+import {
+  PlaybackController,
+  type ControllerOptions,
+  type PlaybackSlot,
+} from './playback-controller'
 
 function img(id: string, durationMs = 2000): Renderable {
   return { id, kind: 'image', url: `https://cdn.test/${id}.webp`, durationMs }
@@ -9,6 +13,11 @@ function img(id: string, durationMs = 2000): Renderable {
 
 function video(id: string, durationMs = 2000): Renderable {
   return { id, kind: 'video', url: `https://cdn.test/${id}.mp4`, durationMs }
+}
+
+/** A network-only app item (needs internet), per the injected test predicate. */
+function app(id: string, durationMs = 2000): Renderable {
+  return { id, kind: 'app', slug: 'net', config: {}, durationMs }
 }
 
 function snapshot(items: Renderable[], revision = 'r1'): PlayerSnapshot {
@@ -73,7 +82,7 @@ class FakeSlot implements PlaybackSlot {
   }
 }
 
-function build() {
+function build(options: ControllerOptions = {}) {
   const media = new FakeMedia()
   const slots: FakeSlot[] = []
   const onItemIds: string[] = []
@@ -95,6 +104,9 @@ function build() {
       slots.push(slot)
       return slot
     },
+    // Treat every `app` item as network-only, so tests drive offline gating
+    // deterministically without depending on the real manifest registry.
+    { requiresNetwork: (item) => item.kind === 'app', ...options },
   )
 
   return { controller, media, slots, onItemIds, errors }
@@ -274,5 +286,82 @@ describe('PlaybackController', () => {
     controller.destroy()
     await vi.advanceTimersByTimeAsync(10_000)
     expect(onItemIds).toEqual(['A'])
+  })
+
+  it('skips a leading network-only app when loaded offline', async () => {
+    const { controller, onItemIds } = build()
+    controller.setOnline(false)
+    controller.load(snapshot([app('Y'), img('A'), img('B')]))
+    await flush()
+    // Y needs internet and we're offline: start at the first playable item.
+    expect(onItemIds).toEqual(['A'])
+    await vi.advanceTimersByTimeAsync(2000) // A -> B (Y still skipped)
+    expect(onItemIds).toEqual(['A', 'B'])
+    controller.destroy()
+  })
+
+  it('auto-advance skips network apps while offline', async () => {
+    const { controller, onItemIds } = build()
+    controller.setOnline(false)
+    controller.load(snapshot([img('A'), app('Y'), img('B')]))
+    await flush()
+    await vi.advanceTimersByTimeAsync(2000) // A -> B (Y skipped, no dwell on it)
+    expect(onItemIds).toEqual(['A', 'B'])
+    controller.destroy()
+  })
+
+  it('jumps off the current item the instant it goes offline', async () => {
+    const { controller, onItemIds } = build()
+    controller.load(snapshot([img('A'), app('Y'), img('B')]))
+    await flush()
+    await vi.advanceTimersByTimeAsync(2000) // A -> Y (online, playable)
+    expect(onItemIds).toEqual(['A', 'Y'])
+    // Internet drops while the network app is on screen: jump to the next
+    // playable item immediately — no reload, no waiting for the dwell timer.
+    controller.setOnline(false)
+    await flush()
+    expect(onItemIds).toEqual(['A', 'Y', 'B'])
+    controller.destroy()
+  })
+
+  it('brings network apps back into rotation the instant internet returns', async () => {
+    const { controller, onItemIds } = build()
+    controller.setOnline(false)
+    controller.load(snapshot([img('A'), app('Y')]))
+    await flush()
+    expect(onItemIds).toEqual(['A']) // Y hidden while offline
+    await vi.advanceTimersByTimeAsync(2000) // only A is playable -> loops on A
+    expect(onItemIds).toEqual(['A', 'A'])
+    // Reconnect: Y rejoins and shows on the next advance (no reload).
+    controller.setOnline(true)
+    await flush()
+    await vi.advanceTimersByTimeAsync(2000) // A -> Y
+    expect(onItemIds.at(-1)).toBe('Y')
+    controller.destroy()
+  })
+
+  it('shows nothing when every item needs network and we are offline', async () => {
+    const { controller, onItemIds } = build()
+    controller.setOnline(false)
+    controller.load(snapshot([app('Y1'), app('Y2')]))
+    await flush()
+    await vi.advanceTimersByTimeAsync(10_000)
+    // Nothing is playable; the engine stays idle (the shell shows the splash).
+    expect(onItemIds).toEqual([])
+    controller.destroy()
+  })
+
+  it('does not auto-advance on connectivity changes in follow mode', async () => {
+    const { controller, onItemIds } = build({ follow: true })
+    controller.load(snapshot([img('A'), app('Y'), img('B')]))
+    await flush()
+    expect(onItemIds).toEqual(['A'])
+    // Follow mode mirrors the device 1:1; a local online flip must not move us.
+    controller.setOnline(false)
+    controller.setOnline(true)
+    await flush()
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(onItemIds).toEqual(['A'])
+    controller.destroy()
   })
 })

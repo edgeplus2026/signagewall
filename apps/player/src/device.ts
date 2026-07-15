@@ -7,11 +7,15 @@ import {
   isScale,
   normalizeDailyReload,
 } from './device-settings'
+import { getShellVersion, getUpdateStatus } from './native/runtime'
+import { isTauri } from './native/tauri'
+import { getUrlDeviceId } from './recovery'
 import type {
   DailyReloadSetting,
   DeviceOrientation,
   DeviceScale,
   PairingCodePayload,
+  ReportedProfile,
 } from './types'
 
 const DEVICE_ID_KEY = 'edge.player.deviceId'
@@ -33,8 +37,14 @@ let cachedDeviceId: string | undefined
 /**
  * Reads (or lazily creates) the stable device id. We persist it in both
  * localStorage and — best effort — keep an in-memory copy, so a transient
- * storage hiccup on a kiosk doesn't immediately mint a new identity. Clearing
- * storage intentionally yields a brand-new device that must be re-paired.
+ * storage hiccup on a kiosk doesn't immediately mint a new identity.
+ *
+ * When localStorage holds nothing (first boot, or storage was wiped) we fall back
+ * to a `deviceId` carried in the URL (`?device=<uuid>`, see `recovery.ts`) before
+ * minting a fresh one — this is what lets a cleared device re-adopt its old
+ * identity from a bookmarked/CMS link and slide back into its paired screen.
+ * localStorage always wins over the URL, so an existing local identity is never
+ * overridden by opening someone else's link.
  */
 export function getDeviceId(): string {
   if (cachedDeviceId) {
@@ -44,12 +54,32 @@ export function getDeviceId(): string {
   let deviceId = safeGet(DEVICE_ID_KEY)
 
   if (!deviceId) {
-    deviceId = crypto.randomUUID()
+    deviceId = getUrlDeviceId() ?? crypto.randomUUID()
     safeSet(DEVICE_ID_KEY, deviceId)
   }
 
   cachedDeviceId = deviceId
   return deviceId
+}
+
+/**
+ * The persisted device id from localStorage, or undefined — a raw read that
+ * never mints. Used by the native-shell boot bootstrap to decide whether to
+ * promote an existing local identity into the native store.
+ */
+export function readLocalDeviceId(): string | undefined {
+  return safeGet(DEVICE_ID_KEY) ?? undefined
+}
+
+/**
+ * Forces the device identity to `id`, writing it to BOTH the in-memory cache and
+ * localStorage so the synchronous {@link getDeviceId} ladder returns it no matter
+ * the call order. The native-shell bootstrap calls this with the id read from the
+ * native store, before anything else reads the identity.
+ */
+export function seedDeviceId(id: string): void {
+  cachedDeviceId = id
+  safeSet(DEVICE_ID_KEY, id)
 }
 
 export function getToken(): string | undefined {
@@ -177,11 +207,12 @@ export type PlayerPlatform =
 export function getPlatform(): PlayerPlatform {
   const ua = navigator.userAgent.toLowerCase()
   // Electron/Tauri expose themselves on the window; check those first since
-  // their userAgents otherwise look like a normal Chrome browser.
+  // their userAgents otherwise look like a normal Chrome browser. Reuse the
+  // single Tauri detector so the two never drift on a future globals change.
+  if (isTauri()) {
+    return 'tauri'
+  }
   if (typeof window !== 'undefined') {
-    if ('__TAURI__' in window || '__TAURI_INTERNALS__' in window) {
-      return 'tauri'
-    }
     if ('electronAPI' in window || ua.includes('electron')) {
       return 'electron'
     }
@@ -193,21 +224,23 @@ export function getPlatform(): PlayerPlatform {
   return 'browser'
 }
 
-export interface DeviceProfile {
-  platform: string
-  userAgent: string
-  appVersion: string
-  screenWidth: number
-  screenHeight: number
-}
-
-export function getProfile(): DeviceProfile {
+/**
+ * The device profile reported on connect + every heartbeat. The first five
+ * fields are the web-only profile; `runtime`/`shellVersion`/`updateStatus` are
+ * populated by the native shell (undefined in a browser). `appVersion` is the
+ * WEB bundle version — the distinct native `shellVersion` is never folded into it.
+ * The shape lives in `@edge/player-contract` (`ReportedProfile`).
+ */
+export function getProfile(): ReportedProfile {
   return {
     platform: navigator.platform || 'web',
     userAgent: navigator.userAgent,
     appVersion: config.appVersion,
     screenWidth: Math.round(window.screen.width * window.devicePixelRatio),
     screenHeight: Math.round(window.screen.height * window.devicePixelRatio),
+    runtime: getPlatform(),
+    shellVersion: getShellVersion(),
+    updateStatus: getUpdateStatus(),
   }
 }
 

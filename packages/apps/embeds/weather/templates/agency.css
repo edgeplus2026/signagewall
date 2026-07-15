@@ -1,0 +1,266 @@
+/* "Agency" — a stage, a lower third, and a ticker.
+
+   The one layout in the app that borrows a visual language wholesale rather than
+   inventing one. Broadcast weather has looked like this for forty years, and the
+   reason it still does is that it works from across a room with the sound off —
+   which is the exact problem signage has. */
+
+.wx-agency {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  /* The sky takes whatever is left. The ground takes only what it needs. */
+  grid-template-rows: minmax(0, 1fr) auto;
+
+  /* `minmax(0, 1fr)` — NOT the implicit `auto` column. The failure this prevents is
+     spectacular and completely silent.
+
+     A column left implicit is `auto`, whose MINIMUM is the max-content of its items.
+     The ticker's track is `width: max-content` (it has to be — a marquee that is only
+     as wide as the screen has nothing to scroll), so its max-content is the entire
+     doubled list of days: about 3800px. That became the column's minimum, the column
+     blew straight through the 1600px screen, and every grid item was laid out 3800px
+     wide. The stage centred its icon at 1900px — off the right-hand edge — and the
+     temperature landed at 3670px. The wall showed an empty sky and a bar with no
+     temperature on it, and the build was clean.
+
+     A floor of 0 lets the column be the screen's width and makes the ticker overflow
+     INSIDE it, which is what `overflow: hidden` on the ticker was always for. */
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ----- The stage -----
+   Empty, on purpose. On the news this is where the presenter stands; here it is
+   where the weather is — the gradient, the rain, the drifting cloud. */
+
+.wx-agency-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  min-width: 0;
+  padding: 3.4em 2em 0;
+}
+
+.wx-agency-icon {
+  width: 17em;
+  height: 17em;
+  max-height: 44vh;
+}
+
+/* ----- The lower third ----- */
+
+.wx-agency-lower {
+  display: flex;
+  flex-direction: column;
+  /* Same reason as the column above: this item holds the ticker, and without a floor
+     of 0 its max-content is the entire doubled day list. */
+  min-width: 0;
+}
+
+/* The kicker sits ON the bar's top edge, half in and half out, which is what makes
+   it read as a broadcast tag rather than as a heading. It is the accent's one
+   solid, saturated appearance in the whole app — everywhere else the accent is a
+   stroke or a fill at low opacity. */
+.wx-agency-kicker {
+  align-self: flex-start;
+  margin-left: 2.4em;
+  margin-bottom: -0.1em;
+  padding: 0.45em 1.1em;
+  border-radius: 0.4em 0.4em 0 0;
+  background: var(--wx-accent);
+  /* On a light theme the accent is dark and wants white on it; on a night sky the
+     accent is bright gold and wants black. `color-mix` against the page's own text
+     colour would only give us the same colour back, so this is one of the few
+     places that needs a real decision — and the sky tells us which way. */
+  color: #08111f;
+  font-size: 1.1em;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-shadow: none;
+}
+
+.wx-sky-light .wx-agency-kicker {
+  color: #fff;
+}
+
+.wx-agency-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.2em;
+  padding: 0.9em 2.4em;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, currentColor 18%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  min-width: 0;
+}
+
+.wx-agency-place {
+  font-size: 3.4em;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wx-agency-condition {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.6em;
+  font-weight: 400;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* A rule between the name and the condition, the way a lower third separates the
+     name from the title. */
+  padding-left: 1.2em;
+  border-left: 2px solid color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.wx-agency-temp {
+  flex: none;
+  font-size: 4.2em;
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----- The ticker ----- */
+
+.wx-agency-ticker {
+  overflow: hidden;
+  padding: 0.7em 0;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+/* `width: max-content` is what makes the marquee work: the track must be as wide as
+   its contents, not as wide as the screen, or translating it by -50% would move it
+   by half a SCREEN and the loop would stutter. The doubled list (see the template)
+   plus a -50% translate is a seamless cycle, and the only two numbers that have to
+   agree are those two. */
+.wx-agency-track {
+  display: flex;
+  width: max-content;
+  animation: wx-agency-scroll 34s linear infinite;
+}
+
+@keyframes wx-agency-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.wx-agency-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0 1.6em;
+  font-size: 1.5em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  border-right: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.wx-agency-day {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.wx-agency-item-icon {
+  display: block;
+  width: 1.8em;
+  height: 1.8em;
+}
+
+.wx-agency-high {
+  font-weight: 600;
+}
+
+.wx-agency-low {
+  opacity: 0.6;
+}
+
+.wx-agency-pop {
+  color: var(--wx-rain);
+  font-weight: 600;
+}
+
+/* ----- Portrait ----- */
+@media (max-aspect-ratio: 1/1) {
+  .wx-agency-bar {
+    /* Three things side by side don't fit. The temperature stays on the name's
+       line (they are the two that matter); the condition drops below. */
+    flex-wrap: wrap;
+    padding: 0.9em 1.6em;
+    gap: 0.4em 1em;
+  }
+
+  .wx-agency-place {
+    font-size: 2.8em;
+  }
+
+  .wx-agency-temp {
+    margin-left: auto;
+    font-size: 3.4em;
+  }
+
+  .wx-agency-condition {
+    flex-basis: 100%;
+    padding-left: 0;
+    border-left: none;
+    font-size: 1.4em;
+  }
+
+  .wx-agency-kicker {
+    margin-left: 1.6em;
+  }
+
+  .wx-agency-icon {
+    width: 14em;
+    height: 14em;
+  }
+}
+
+/* ----- Motion -----
+   The lower third slides up from the bottom edge, the way one does on air. */
+
+@keyframes wx-agency-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wx-agency-lower {
+  animation: wx-agency-up 900ms cubic-bezier(0.16, 1, 0.3, 1) 200ms both;
+}
+
+/* A scrolling ticker is motion by definition — there is no reduced-motion version
+   of it, so it simply stops and shows the first few days, which is what a static
+   strip would have shown anyway. */
+@media (prefers-reduced-motion: reduce) {
+  .wx-agency-lower {
+    animation: none;
+  }
+
+  .wx-agency-track {
+    animation: none;
+  }
+}

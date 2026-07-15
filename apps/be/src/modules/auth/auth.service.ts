@@ -271,7 +271,9 @@ export class AuthService {
 
     await this.usersRepository.reactivate(userId);
     await this.pendingDeletionModel.deleteOne({ _id: pending._id }).exec();
-    this.logger.log(`Account ${userId} reactivated by login within grace period`);
+    this.logger.log(
+      `Account ${userId} reactivated by login within grace period`,
+    );
     return true;
   }
 

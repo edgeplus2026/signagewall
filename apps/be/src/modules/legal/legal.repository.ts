@@ -16,7 +16,12 @@ export class LegalRepository {
   ) {}
 
   async create(
-    data: { userId: string; docType: LegalDocType; version: string; ip?: string },
+    data: {
+      userId: string;
+      docType: LegalDocType;
+      version: string;
+      ip?: string;
+    },
     session?: ClientSession,
   ): Promise<void> {
     await this.acceptanceModel.create(
@@ -64,12 +69,12 @@ export class LegalRepository {
       .exec();
   }
 
-  async deleteByUser(
-    userId: string,
-    session?: ClientSession,
-  ): Promise<void> {
+  async deleteByUser(userId: string, session?: ClientSession): Promise<void> {
     await this.acceptanceModel
-      .deleteMany({ userId: new Types.ObjectId(userId) }, session ? { session } : {})
+      .deleteMany(
+        { userId: new Types.ObjectId(userId) },
+        session ? { session } : {},
+      )
       .exec();
   }
 }

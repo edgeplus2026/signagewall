@@ -100,6 +100,22 @@ describe('CacheWarmer', () => {
     expect(fetched).toEqual(['a', 'b'])
   })
 
+  it('skips the reconnect rescan once the set is fully warmed', async () => {
+    const { deps, fetched } = makeDeps()
+    const warmer = new CacheWarmer(deps)
+
+    warmer.onContent(['a', 'b'])
+    await warmer.settle()
+    expect(fetched).toEqual(['a', 'b'])
+
+    // Everything is warmed; a flapping link's `online` events must not re-scan
+    // the whole set (a Cache lookup per URL) again.
+    warmer.onOnline(['a', 'b'])
+    await warmer.settle()
+    expect(fetched).toEqual(['a', 'b']) // no extra fetches
+    expect(deps.isCached).toHaveBeenCalledTimes(2) // scanned once, not twice
+  })
+
   it('does not stack a second pass while one is running', async () => {
     let release!: () => void
     const gate = new Promise<void>((resolve) => {

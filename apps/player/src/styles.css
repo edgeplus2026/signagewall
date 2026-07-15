@@ -356,6 +356,18 @@ body {
   opacity: 1;
 }
 
+/* Transparent capture layer over the app iframes (below the buttons). It always
+   takes pointer events — even while the controls are faded out — so moving the
+   mouse reveals them and clicks land on the parent (never the iframe), keeping
+   keyboard focus out of the iframe so the arrow keys reach us. See Stage.tsx. */
+.player-input-shield {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  outline: none;
+  background: transparent;
+}
+
 .player-control {
   position: absolute;
   top: 0;

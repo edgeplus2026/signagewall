@@ -1,3 +1,4 @@
+import { type DeviceUpdateStatus } from '@edge/player-contract'
 import { io, type Socket } from 'socket.io-client'
 
 import { useAuthStore } from '@/features/auth/store/authStore'
@@ -11,6 +12,14 @@ export interface DevicePresenceEvent {
   paired?: boolean
   lastSeenAt: string
   appVersion?: string
+  /** Native shell version, when the device runs inside the Tauri shell. */
+  shellVersion?: string
+  /**
+   * Latest OTA outcome, so a rollout can be watched from the screens list. A
+   * device that failed or rolled back an update still shows a green "online"
+   * dot — without this, nothing in the list says otherwise.
+   */
+  updateResult?: DeviceUpdateStatus['lastResult']
 }
 
 /** Payload the server sends when an AI content generation changes state. */

@@ -1,0 +1,196 @@
+/* "One story at a time" — picture beside the story, QR code in the corner.
+
+   The clock, the progress tiles and the QR panel are shared chrome (`style.css`);
+   this file is only the layout. Every length is `em`, against the fluid root size
+   on `.rss`, so the whole thing scales with the screen rather than with one axis
+   of it. The layout has exactly two shapes: side-by-side on a landscape screen,
+   stacked on a portrait one. It never changes shape for the CONTENT — the picture
+   frame is always there, at a fixed size, whether or not the story has a picture. */
+
+.rs-story {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  /* Top clears the progress tiles and the clock; bottom clears the QR code. */
+  padding: 4.5em 2.6em 3em;
+  display: grid;
+  grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+  grid-template-areas: 'media body';
+  align-items: center;
+  gap: 2.6em;
+}
+
+/* Reserve the corner the QR code sits in, so a long summary can never run under
+   it. Only when there is one — turning it off gives the story the width back. */
+.rs-story.has-qr {
+  padding-right: 11em;
+}
+
+/* ----- The picture -----
+   The frame itself is shared (`style.css`); this only gives it a size and shape. */
+
+.rs-story-media {
+  grid-area: media;
+  /* Fixed, and squarish. Fixed is the point: it is the same box whether or not
+     the story has a picture, so the page never changes shape as stories rotate. */
+  aspect-ratio: 4 / 3;
+  max-height: 70vh;
+  width: 100%;
+  justify-self: center;
+  border-radius: 0.8em;
+}
+
+.rs-story-media .rs-media-img {
+  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
+}
+
+/* ----- The story ----- */
+
+.rs-body {
+  grid-area: body;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+  min-width: 0;
+}
+
+.rs-source {
+  font-size: 1.15em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rs-accent, #f97316);
+}
+
+.rs-headline {
+  font-size: 3.4em;
+  font-weight: 700;
+  line-height: 1.12;
+  /* Three lines. A fourth is a headline nobody standing up is going to finish. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rs-summary {
+  font-size: 1.25em;
+  font-weight: 300;
+  line-height: 1.5;
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rs-date {
+  margin-top: 0.3em;
+  font-size: 1em;
+  font-weight: 400;
+  opacity: 0.55;
+}
+
+/* ----- Portrait -----
+   Half of all signage is portrait. Side-by-side becomes stacked: the picture
+   takes the top, the story sits under it, and the QR code moves out of the
+   story's way by taking a bottom gutter instead of a side one. */
+
+@media (max-aspect-ratio: 1/1) {
+  .rs-story {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'media'
+      'body';
+    align-content: center;
+    gap: 2em;
+    padding: 4.5em 2.2em 3em;
+  }
+
+  .rs-story.has-qr {
+    /* The code goes below the story, not beside it. */
+    padding-right: 2.2em;
+    padding-bottom: 10.5em;
+  }
+
+  .rs-story-media {
+    aspect-ratio: 16 / 10;
+    max-height: 38vh;
+  }
+
+  .rs-headline {
+    font-size: 2.9em;
+  }
+
+  .rs-story .rs-qr {
+    left: 0;
+    right: 0;
+    bottom: var(--rs-edge);
+    margin: 0 auto;
+    width: fit-content;
+  }
+}
+
+/* ----- Motion -----
+   Each story is a fresh DOM subtree, so an entrance is all that's needed — the
+   outgoing one is already gone. Everything eases on the same expo-out curve and
+   arrives in reading order: the picture, then the source, the headline, the
+   summary, the date. The stagger is what makes it read as composed rather than
+   as a page that flickered. */
+
+@keyframes rs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.1em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rs-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.rs-story-media {
+  animation: rs-fade 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.rs-body > * {
+  animation: rs-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.rs-body > :nth-child(1) {
+  animation-delay: 120ms;
+}
+.rs-body > :nth-child(2) {
+  animation-delay: 200ms;
+}
+.rs-body > :nth-child(3) {
+  animation-delay: 290ms;
+}
+.rs-body > :nth-child(4) {
+  animation-delay: 380ms;
+}
+
+.rs-story .rs-qr {
+  animation: rs-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 460ms both;
+}
+
+/* Asked for no motion, given none. The rotation still turns; it just cuts. */
+@media (prefers-reduced-motion: reduce) {
+  .rs-story-media,
+  .rs-story-media .rs-media-img,
+  .rs-body > *,
+  .rs-story .rs-qr {
+    animation: none;
+  }
+}

@@ -122,6 +122,12 @@ export class CmsGateway {
         paired: event.paired ?? true,
         lastSeenAt: event.lastSeenAt,
         ...(event.appVersion ? { appVersion: event.appVersion } : {}),
+        ...(event.shellVersion ? { shellVersion: event.shellVersion } : {}),
+        // Relay the OTA outcome too, or a rolled-back device stays invisible on
+        // the live channel: emitPresence populates it and the CMS badge reads it,
+        // but dropping it here meant the amber attention dot only ever appeared on
+        // a full page re-seed, never during a rollout.
+        ...(event.updateResult ? { updateResult: event.updateResult } : {}),
       });
   }
 

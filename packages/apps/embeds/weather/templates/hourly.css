@@ -1,0 +1,167 @@
+/* "Hour by hour" — a compact header, and the curve gets everything else.
+
+   The curve is the layout. It gets the whole lower half of the screen because a
+   temperature curve read from across a room needs AMPLITUDE — squeeze it into a
+   strip and every day looks flat, which is exactly the information it exists to
+   carry. */
+
+.wx-hourly {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 3.4em 2.8em 2.4em;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  /* A floor of 0 on the column: an implicit `auto` column would take its minimum from
+     its items' max-content, and a long place name would push the whole layout off the
+     right-hand edge of the screen. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.6em;
+}
+
+/* ----- The header ----- */
+
+.wx-hourly-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2em;
+  min-width: 0;
+}
+
+.wx-hourly-now {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  min-width: 0;
+}
+
+.wx-hourly-icon {
+  flex: none;
+  width: 5.6em;
+  height: 5.6em;
+}
+
+.wx-hourly-temp {
+  font-size: 5em;
+  font-weight: 200;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-hourly-place {
+  margin-top: 0.1em;
+  font-size: 1.4em;
+  font-weight: 400;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ----- The curve ----- */
+
+.wx-hourly-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  min-height: 0;
+}
+
+.wx-hourly-heading {
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* The curve stretches to whatever box it is given (see `style.css` — the stroke is
+   `non-scaling-stroke` precisely so it can). This is that box: all the height that is
+   left over once the header and the axis have taken theirs. */
+.wx-hourly .wx-curve {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.wx-hourly .wx-curve-plot {
+  flex: 1;
+  min-height: 0;
+}
+
+/* The fallback (no hourly data) is a strip of day cards. They can't stretch into the
+   curve's box the way the curve does, so they CENTRE in it — left at the top, they sit
+   under the header with two thirds of the screen empty below them, which reads as a
+   layout that failed to load rather than one that adapted. */
+.wx-hourly-body.is-fallback {
+  justify-content: center;
+}
+
+/* ----- Portrait -----
+   Twelve hours across a narrow screen puts the labels on top of each other. The
+   header stacks to buy the curve its height back, and the curve itself keeps all
+   twelve points — the SVG scales, so the LINE stays readable even where the
+   individual numbers get tight. */
+@media (max-aspect-ratio: 1/1) {
+  .wx-hourly {
+    padding: 3.4em 1.6em 2em;
+  }
+
+  .wx-hourly-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1em;
+  }
+
+  .wx-hourly-temp {
+    font-size: 4.4em;
+  }
+
+  .wx-hourly .wx-curve-point b {
+    /* Twelve labels across a narrow screen: smaller, or they touch. */
+    font-size: 1.2em;
+  }
+
+  .wx-hourly .wx-axis-rain {
+    /* No room for both a drop and a number under a narrow column. */
+    display: none;
+  }
+}
+
+/* ----- Motion -----
+   The curve draws itself (`style.css`); everything else just arrives. */
+
+@keyframes wx-hourly-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.7em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wx-hourly-head,
+.wx-hourly-heading {
+  animation: wx-hourly-in 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.wx-hourly-heading {
+  animation-delay: 120ms;
+}
+
+.wx-hourly .wx-axis {
+  animation: wx-hourly-in 800ms cubic-bezier(0.16, 1, 0.3, 1) 300ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wx-hourly-head,
+  .wx-hourly-heading,
+  .wx-hourly .wx-axis {
+    animation: none;
+  }
+}

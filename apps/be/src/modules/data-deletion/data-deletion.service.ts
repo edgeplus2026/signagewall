@@ -262,7 +262,9 @@ export class DataDeletionService {
 
     const blockers: DeletionBlocker[] = [];
     for (const membership of memberships) {
-      if (normalizeOrganizationRole(membership.role) !== OrganizationRole.ADMIN) {
+      if (
+        normalizeOrganizationRole(membership.role) !== OrganizationRole.ADMIN
+      ) {
         continue;
       }
       const orgId = membership.organizationId;

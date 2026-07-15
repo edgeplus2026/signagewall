@@ -1,23 +1,108 @@
-.clock-time {
-  font-size: 12.6vw;
-  font-weight: 300;
+/* Chrome shared by every clock face: the root sizing, and the date line.
+
+   The instance's colours are written onto the app root by `main.ts` — the
+   background and text directly, the accent into `--ck-accent`. Every face below is
+   written in `currentColor` and `var(--ck-accent)`, which is the only reason five
+   faces recolour from three colour fields without any of them owning a colour. */
+
+/* The one measurement everything else is written against.
+
+   Sizing off `vw` alone is what breaks a signage app: half these screens are
+   PORTRAIT, where the viewport is narrow and tall, and a clock set in `vw` shrinks
+   to nothing on the very screen that has the most room for it. Mixing both axes
+   gives a size that tracks whatever space the screen actually has. Every length in
+   a face is then plain `em`, so the whole thing scales as one. */
+.ck {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+  font-size: calc(0.55vw + 0.75vh);
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+/* Digits must not move.
+
+   Every face that shows numbers uses a monospaced face with tabular figures, and it
+   is not an aesthetic choice: in a proportional face the `1` is narrower than the
+   `8`, so the whole clock shifts sideways every time a 1 rolls past — twice a minute
+   on the seconds, and you cannot un-see it once you have noticed. */
+.ck-digits {
+  font-family:
+    ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
+    Menlo, Consolas, monospace;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.12em;
+  letter-spacing: -0.01em;
 }
 
-/* AM/PM marker: smaller than the time, sits on its baseline. */
-.clock-period {
-  font-size: 0.4em;
+/* ----- The date -----
+   Shared: four of the five faces put it in the same place, at the same size, and
+   the one that doesn't (Words) overrides it in its own file. */
+
+.ck-date {
+  font-size: 1.9em;
   font-weight: 300;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  opacity: 0.62;
+  text-align: center;
+  text-transform: capitalize;
 }
 
-.clock-date {
-  /* Same colour as the clock (inherits) and light weight. */
-  font-size: 4vw;
-  font-weight: 300;
-  margin-top: 0.3em;
+/* The separator between hours and minutes. It pulses, and that pulse is the only
+   proof a passer-by has that the screen is a live clock rather than a photograph of
+   one — which, on a signage player that has silently died, is the single most useful
+   thing on the wall. */
+.ck-sep {
+  color: var(--ck-accent, #f97316);
+  animation: ck-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ck-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.18;
+  }
+}
+
+/* ----- Entrance -----
+   Once, on mount. A clock that re-animated on every tick would be unbearable — and
+   it can't, because `render()` only ever runs on a config change. `paint()` never
+   touches these elements' classes, so this fires when the app appears and never
+   again. */
+
+@keyframes ck-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ck > * {
+  animation: ck-in 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ck > :nth-child(2) {
+  animation-delay: 140ms;
+}
+
+/* Asked for no motion, given none — including the pulse, which is the one piece of
+   motion in this app that carries information. That is the trade the setting asks
+   for, and the clock still tells the time. */
+@media (prefers-reduced-motion: reduce) {
+  .ck > *,
+  .ck-sep {
+    animation: none;
+  }
 }
