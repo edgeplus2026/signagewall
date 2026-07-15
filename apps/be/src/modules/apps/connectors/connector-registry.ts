@@ -5,6 +5,8 @@ import { canvaConnector } from './canva.connector';
 import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
 import { gcalConnector } from './gcal.connector';
+import { holidaysConnector } from './holidays.connector';
+import { onthisdayConnector } from './onthisday.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { weatherConnector } from './weather.connector';
@@ -26,6 +28,8 @@ const CONNECTORS: Record<string, AppConnector> = {
   gcal: gcalConnector,
   canva: canvaConnector,
   rss: rssConnector,
+  holidays: holidaysConnector,
+  onthisday: onthisdayConnector,
   wisdom: wisdomConnector,
 };
 

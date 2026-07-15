@@ -10,11 +10,12 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**21 apps ship today** (all `runtimeKind: 'embed'`):
+**24 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
 - `server` (backend connector, public API): `weather` (Open-Meteo), `airquality` (Open-Meteo),
-  `currency` (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `rss`
+  `currency` (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays`
+  (Nager.Date), `onthisday` (Wikipedia), `wisdom` (quotes), `rss`
 - `connected` (OAuth account): `gcal` (Google Calendar), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
@@ -157,6 +158,10 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 14 | Sports scores | `sports` | server | Information | L | E5 |
 | 15 | Transit departures | `transit` | server | Information | L | E5 (region-specific) |
 | 16 | News headlines | `news` | server | Information | S–M | (RSS-preset variant) |
+| **Added since — keyless server apps (shipped)** ||||||
+| 30 | Public holidays ✅ | `holidays` | server | Information | M | — |
+| 31 | On this day ✅ | `onthisday` | server | Information | M | — |
+| 32 | Quotes / wisdom ✅ | `wisdom` | server | Information | M | — |
 | **Tier 3 — connected, reuse Google provider** ||||||
 | 17 | Google Sheets (KPI/table) | `gsheets` | connected | Data & Dashboards | M | — |
 | 18 | Google Slides (private) | `gslides` | connected | Productivity | M–L | — |
@@ -252,6 +257,26 @@ departures with delays.
 **16. News headlines** (`news`, server) — **recommended as an RSS enhancement first**: curated
 feed presets (a `select` of known feeds) + category, reusing the existing RSS connector/embed — near-zero
 cost. A keyed variant (NewsAPI/GNews) is an alternative if editorial control is needed.
+
+### Added since — keyless server apps (shipped ✅)
+
+**30. Public holidays** (`holidays`, server) — ✅ shipped. **Nager.Date** (`NextPublicHolidays/{country}`,
+no key). `cacheKey` `holidays:<country>`. `refreshSeconds` 21600. **Config:** `country` (select),
+`count` (display-only), theme + `styleFields`. **Payload:** upcoming holidays `{date, name, localName}`,
+soonest-first. **Embed:** list with formatted date + relative "in N days", local name primary.
+
+**31. On this day** (`onthisday`, server) — ✅ shipped. **Wikipedia On This Day feed**
+(`/{lang}.wikipedia.org/api/rest_v1/feed/onthisday/events/{MM}/{DD}`, no key; sends a `User-Agent`).
+"Today" is resolved server-side, so `cacheKey` is `onthisday:<lang>` (count display-only).
+`refreshSeconds` 21600 → rolls to the new day on its own. **Config:** `language` (en/de/es/fr), `count`,
+theme + `styleFields`. **Payload:** `{monthDay, events:[{year, text}]}`, most-recent-first.
+
+**32. Daily Wisdom** (`wisdom`, server) — ✅ shipped. A category-driven quote board, **keyless and
+offline**: the connector selects from a vendored ~4,900-quote corpus (`connectors/wisdom/quotes.json`,
+copied via `nest-cli.json` assets) per category set under one cache key, with a **date-seeded** pick so
+the batch is stable within a day and turns over daily (`refreshSeconds` 86400). `cacheKey`
+`wisdom:v2:<sorted categories>`; `quoteCount` / `secondsPerQuote` are display-only. The embed rotates
+quotes through a set of designs. See `src/wisdom/` + `embeds/wisdom/`.
 
 ### Tier 3 — connected (reuse Google provider)
 

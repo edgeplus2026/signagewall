@@ -152,8 +152,11 @@ export function poolFor(rows: CorpusRow[], categories: string[]): CorpusRow[] {
 
 interface WisdomConfig {
   categories?: unknown;
-  // `quoteCount` / `secondsPerQuote` are display-only (the bundle applies them);
-  // they are deliberately absent from the cache key.
+  // Part of the saved instance config, but display-only: the bundle applies them
+  // and the connector ignores them, so they are deliberately absent from the
+  // cache key. Typed here so the full config shape is accurate.
+  quoteCount?: number;
+  secondsPerQuote?: number;
 }
 
 export const wisdomConnector: AppConnector<WisdomConfig, WisdomPayload> = {

@@ -9,7 +9,9 @@ import { currencyManifest } from './currency/manifest.js'
 import { dashboardManifest } from './dashboard/manifest.js'
 import { gcalManifest } from './gcal/manifest.js'
 import { gslidesPublicManifest } from './gslides-public/manifest.js'
+import { holidaysManifest } from './holidays/manifest.js'
 import { menuManifest } from './menu/manifest.js'
+import { onthisdayManifest } from './onthisday/manifest.js'
 import { powerPricesManifest } from './power-prices/manifest.js'
 import { qrManifest } from './qr/manifest.js'
 import { rssManifest } from './rss/manifest.js'
@@ -52,6 +54,8 @@ export const APP_MANIFESTS: AppManifest[] = [
   canvaManifest,
   rssManifest,
   wisdomManifest,
+  holidaysManifest,
+  onthisdayManifest,
 ]
 
 export {
@@ -77,6 +81,8 @@ export {
   canvaManifest,
   rssManifest,
   wisdomManifest,
+  holidaysManifest,
+  onthisdayManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'
@@ -126,6 +132,7 @@ export {
   SECONDS_PER_QUOTE,
   UPSTREAM_QUOTES,
 } from './wisdom/limits.js'
+export type { WisdomPayload, WisdomQuote } from './wisdom/payload.js'
 
 export type {
   WeatherPayload,
@@ -145,3 +152,5 @@ export type {
 export { COIN_LIST, COINS_BY_ID, coinOptions } from './crypto/coins.js'
 export type { Coin } from './crypto/coins.js'
 export type { CryptoPayload, CryptoCoin } from './crypto/payload.js'
+export type { HolidaysPayload, Holiday } from './holidays/payload.js'
+export type { OnThisDayPayload, OnThisDayEvent } from './onthisday/payload.js'

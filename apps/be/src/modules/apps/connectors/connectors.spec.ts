@@ -6,6 +6,8 @@ import { canvaConnector } from './canva.connector';
 import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
 import { gcalConnector } from './gcal.connector';
+import { holidaysConnector } from './holidays.connector';
+import { onthisdayConnector } from './onthisday.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { safeFetchText } from './safe-fetch.util';
@@ -1219,5 +1221,77 @@ describe('power-prices connector (server)', () => {
     // The current hour is resolved from UTC; it always points inside the series.
     expect(payload.currentIndex).toBeGreaterThanOrEqual(-1);
     expect(payload.currentIndex).toBeLessThan(payload.hours.length);
+  });
+});
+
+describe('holidays connector (server)', () => {
+  it('cacheKey is the country only (count is display-only)', () => {
+    expect(holidaysConnector.cacheKey!({ country: 'dk', count: 5 })).toBe(
+      'holidays:DK',
+    );
+    expect(holidaysConnector.cacheKey!({ country: 'DK', count: 12 })).toBe(
+      'holidays:DK',
+    );
+  });
+
+  it('normalizes upcoming holidays, soonest-first', async () => {
+    mockFetchSequence([
+      {
+        body: [
+          {
+            date: '2026-12-25',
+            localName: 'Juledag',
+            name: 'Christmas Day',
+            countryCode: 'DK',
+          },
+          {
+            date: '2027-01-01',
+            localName: 'Nytårsdag',
+            name: "New Year's Day",
+            countryCode: 'DK',
+          },
+        ],
+      },
+    ]);
+    const result = await holidaysConnector.fetchData({ country: 'DK' }, ctx);
+    expect(result.playerPayload).toEqual({
+      country: 'DK',
+      holidays: [
+        { date: '2026-12-25', name: 'Christmas Day', localName: 'Juledag' },
+        { date: '2027-01-01', name: "New Year's Day", localName: 'Nytårsdag' },
+      ],
+    });
+  });
+});
+
+describe('onthisday connector (server)', () => {
+  it('cacheKey is the language only; unknown languages fall back to en', () => {
+    expect(onthisdayConnector.cacheKey!({ language: 'DE', count: 6 })).toBe(
+      'onthisday:de',
+    );
+    expect(onthisdayConnector.cacheKey!({ language: 'xx' })).toBe(
+      'onthisday:en',
+    );
+  });
+
+  it('sorts events most-recent-first and stamps today as MM-DD', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          events: [
+            { year: 1492, text: 'Columbus reaches the Americas.' },
+            { year: 1969, text: 'Apollo 11 launches.' },
+            { year: null, text: 'ignored — no year' },
+          ],
+        },
+      },
+    ]);
+    const result = await onthisdayConnector.fetchData({ language: 'en' }, ctx);
+    const payload = result.playerPayload!;
+    expect(payload.monthDay).toMatch(/^\d{2}-\d{2}$/);
+    expect(payload.events).toEqual([
+      { year: 1969, text: 'Apollo 11 launches.' },
+      { year: 1492, text: 'Columbus reaches the Americas.' },
+    ]);
   });
 });
