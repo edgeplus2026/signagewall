@@ -15,9 +15,22 @@ function str(value: unknown): string {
   return typeof value === 'string' ? value : ''
 }
 
-/** Non-empty, trimmed messages, one per line. */
+/**
+ * Non-empty, trimmed messages. New configs store an array of `{message}` rows
+ * (the repeater field); older ones stored one message per textarea line — both
+ * are accepted so a saved instance never breaks.
+ */
 function messagesOf(config: Record<string, unknown>): string[] {
-  return str(config.messages)
+  const value = config.messages
+  if (Array.isArray(value)) {
+    return value
+      .map((row) => {
+        const r = (row ?? {}) as Record<string, unknown>
+        return typeof r.message === 'string' ? r.message.trim() : ''
+      })
+      .filter((message) => message.length > 0)
+  }
+  return (typeof value === 'string' ? value : '')
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0)

@@ -31,11 +31,20 @@ export const stocksManifest: AppManifest = {
   configSchema: [
     {
       key: 'symbols',
-      type: 'textarea',
+      type: 'repeater',
       label: 'Tickers',
-      help: 'One ticker per line, e.g. AAPL, MSFT, TSLA. Shown in a consistent order.',
+      help: 'Add a ticker per row, e.g. AAPL, MSFT, TSLA. Shown in a consistent order.',
       required: true,
-      placeholder: 'AAPL\nMSFT\nNVDA',
+      validation: { min: 1 },
+      fields: [
+        {
+          key: 'symbol',
+          type: 'text',
+          label: 'Ticker',
+          required: true,
+          placeholder: 'AAPL',
+        },
+      ],
     },
     {
       key: 'showChange',

@@ -1341,10 +1341,13 @@ describe('stocks connector (server, keyed)', () => {
     else process.env[KEY] = original;
   });
 
-  it('cacheKey is the sorted ticker set (no key needed)', () => {
+  it('cacheKey is the sorted ticker set — from a legacy string or repeater rows', () => {
     expect(stocksConnector.cacheKey!({ symbols: 'msft\naapl\nAAPL' })).toBe(
       'stocks:AAPL,MSFT',
     );
+    expect(
+      stocksConnector.cacheKey!({ symbols: [{ symbol: 'msft' }, { symbol: 'AAPL' }] }),
+    ).toBe('stocks:AAPL,MSFT');
   });
 
   it('throws a clear error when the API key is missing', async () => {

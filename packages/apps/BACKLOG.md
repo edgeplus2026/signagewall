@@ -126,7 +126,7 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 | **E2** | **Meta (Facebook/Instagram Graph) OAuth provider** + create a Meta app + app review/business verification. | L (external approval) | Instagram, Facebook Page |
 | **E3** | **Slack OAuth provider** (`conversations.history` scope). | M | Slack channel app |
 | **E4a** ✅ | **`datetime` field type** — native date/time picker, stored as a local `YYYY-MM-DDTHH:MM` string. Shipped: contract union + zod (string-like) + CMS `DateTimeControl`; used by the Countdown `target`. | S | Countdown (done) |
-| **E4b** | **`repeater`/`list` field type** — an add/remove/reorder row editor (each row a small set of typed sub-fields). Each = union + zod + CMS control. Menu / Ticker / World clocks currently ship the `textarea` MVP; this is the editing-UX upgrade (and a searchable time-zone picker for World clocks). | M | Menu, Ticker, World clocks (richer editing) |
+| **E4b** ✅ | **`repeater` field type** — an add/remove/reorder row editor (each row a set of typed sub-fields via `field.fields`). Shipped: contract union + zod + CMS `RepeaterControl`. Adopted by Menu, Ticker, World clocks and Stocks (each keeps a legacy string/textarea fallback so saved configs don't break). | M | Menu, Ticker, World clocks, Stocks (done) |
 | **E5** ✅ | **Keyed-connector convention** — `requireConnectorKey(name)` in `connectors/env.util.ts` reads a key from the backend env and throws cleanly when it's missing (the host then keeps last-known-good). Keys live in `.env` / `.env.example`. Shipped; used by Stocks. | S–M | sports, transit (keyed) now unblocked |
 | **E6** | Refresh [`README.md`](./README.md) — its `player.tsx` / `runtimeKind: 'native'` note is stale; reality is `embeds/<slug>/` bundles. | S | docs accuracy |
 
@@ -147,9 +147,9 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 3 | Google Slides (published) ✅ | `gslides-public` | static | Productivity | S | — |
 | 4 | Dashboard embed (public) ✅ | `dashboard` | static | Data & Dashboards | S | — |
 | 5 | Live stream (HLS) ✅ | `stream` | static | Media | S–M | — |
-| 6 | Menu board / price list ✅ | `menu` | static | Utilities | M | E4b (MVP w/ textarea) |
-| 7 | Announcement ticker ✅ | `ticker` | static | Information | S–M | E4b (MVP w/ textarea) |
-| 8 | World clocks ✅ | `worldclock` | static | Utilities | S–M | E4b (MVP w/ fixed slots) |
+| 6 | Menu board / price list ✅ | `menu` | static | Utilities | M | E4b ✅ |
+| 7 | Announcement ticker ✅ | `ticker` | static | Information | S–M | E4b ✅ |
+| 8 | World clocks ✅ | `worldclock` | static | Utilities | S–M | E4b ✅ |
 | **Tier 2 — server connectors, public/keyless APIs** ||||||
 | 9 | Air quality ✅ | `airquality` | server | Information | M | — |
 | 10 | Currency / FX ✅ | `currency` | server | Finance | M | — |
@@ -340,8 +340,8 @@ committing. Latest tweets from a handle.
 ## 5. Suggested sequencing (milestones)
 
 - **M1 — Fast value, no auth ✅ done:** all Tier 1 statics + keyless Tier 2 (air quality, currency,
-  crypto, power-prices) shipped, plus the `datetime` field (E4a). Still open in this band: **E0** (seed
-  categories), **E6** (README refresh), and **E4b** (repeater editor for menu / ticker / world-clocks).
+  crypto, power-prices) shipped, plus the `datetime` field (E4a) and the `repeater` field (E4b ✅).
+  Still open in this band: **E0** (seed categories) and **E6** (README refresh).
 - **M2 — Google reuse (next up):** Google Sheets, Google Slides (private), Google Photos. No new OAuth
   provider — extend the existing `google` connection with scopes + a `remote-select` browse endpoint.
 - **M3 — Microsoft (E1):** Outlook Calendar (reuse gcal embed), then Power BI / SharePoint / Teams.
@@ -350,9 +350,9 @@ committing. Latest tweets from a handle.
 - **M5 — Social (E2/E3):** Slack, Instagram, Facebook; X/TikTok/LinkedIn only if the API cost/approval
   is acceptable.
 
-**Recommended next:** **E4b** (repeater field type) — cheap, and it lifts three shipped apps from the
-textarea MVP to a real row editor — then **M2 / Google Sheets**, the highest-value data app and the
-first exercise of the `connected` (OAuth-reuse) recipe.
+**Recommended next:** **M2 / Google Sheets** — the highest-value data app and the first exercise of the
+`connected` (OAuth-reuse) recipe. (E4b ✅ and E5 ✅ are done, so the remaining new-app value is now in
+the `connected` tiers rather than more `server` feeds.)
 
 ## 6. Known caveats to carry into implementation
 

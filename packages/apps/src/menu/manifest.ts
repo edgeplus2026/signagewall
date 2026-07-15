@@ -34,14 +34,21 @@ export const menuManifest: AppManifest = {
     },
     {
       key: 'items',
-      type: 'textarea',
+      type: 'repeater',
       label: 'Items',
-      // The format is the whole trick of the MVP, so it's spelled out with an
-      // example and the rule that the price/description are optional.
-      help: 'One item per line, as "Name | Price | Description". The price and description are optional, e.g. "Espresso | 25 kr" or just "Soup of the day".',
+      help: 'The items on the board. Add a row for each; price and description are optional.',
       required: true,
-      placeholder:
-        'Espresso | 25 kr\nCappuccino | 35 kr | Oat milk on request\nCarrot cake | 40 kr',
+      validation: { min: 1 },
+      fields: [
+        { key: 'name', type: 'text', label: 'Name', required: true, placeholder: 'Espresso' },
+        { key: 'price', type: 'text', label: 'Price', placeholder: '25 kr' },
+        {
+          key: 'description',
+          type: 'text',
+          label: 'Description',
+          placeholder: 'Oat milk on request',
+        },
+      ],
     },
     {
       key: 'columns',

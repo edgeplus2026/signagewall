@@ -29,11 +29,20 @@ export const tickerManifest: AppManifest = {
   configSchema: [
     {
       key: 'messages',
-      type: 'textarea',
+      type: 'repeater',
       label: 'Messages',
-      help: 'One message per line. They scroll one after another, then repeat.',
+      help: 'The messages to scroll, one per row. They repeat in order.',
       required: true,
-      placeholder: 'Welcome!\nOpen 9–5, Mon–Fri\nFree Wi-Fi: guest / welcome',
+      validation: { min: 1 },
+      fields: [
+        {
+          key: 'message',
+          type: 'text',
+          label: 'Message',
+          required: true,
+          placeholder: 'Welcome!',
+        },
+      ],
     },
     {
       key: 'speed',

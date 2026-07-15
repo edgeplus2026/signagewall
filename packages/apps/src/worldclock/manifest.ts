@@ -30,14 +30,22 @@ export const worldclockManifest: AppManifest = {
   configSchema: [
     {
       key: 'clocks',
-      type: 'textarea',
+      type: 'repeater',
       label: 'Places',
-      // The IANA-name requirement is the sharp edge of the MVP; give real examples
-      // and say where the names come from.
-      help: 'One place per line as "Label | Zone". Zone is an IANA name, e.g. "London | Europe/London", "New York | America/New_York", "Tokyo | Asia/Tokyo".',
+      // The IANA-name requirement is the sharp edge; give real examples.
+      help: 'Add a place per row. The zone is an IANA name, e.g. Europe/London, America/New_York, Asia/Tokyo.',
       required: true,
-      placeholder:
-        'Copenhagen | Europe/Copenhagen\nNew York | America/New_York\nTokyo | Asia/Tokyo',
+      validation: { min: 1 },
+      fields: [
+        { key: 'label', type: 'text', label: 'Label', placeholder: 'London' },
+        {
+          key: 'zone',
+          type: 'text',
+          label: 'Time zone',
+          required: true,
+          placeholder: 'Europe/London',
+        },
+      ],
     },
     {
       key: 'format',

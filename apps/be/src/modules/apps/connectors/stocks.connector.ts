@@ -8,7 +8,9 @@ import type { StockQuote, StocksPayload } from '@edge/apps';
 import { requireConnectorKey } from './env.util';
 
 interface StocksConfig {
-  symbols?: string;
+  // Repeater rows (`{symbol}[]`) from the current form, or a legacy newline
+  // string from an older config; `normalizeSymbols` accepts both.
+  symbols?: unknown;
   // `showChange` is display-only (the bundle applies it); not in the cacheKey.
   showChange?: boolean;
 }
@@ -19,12 +21,21 @@ const QUOTE_API = 'https://finnhub.io/api/v1/quote';
 /** Cap the ticker set — one upstream call per ticker, and a wall shows a handful. */
 const MAX_SYMBOLS = 15;
 
-/** Uppercased, de-duplicated, sorted tickers, one per line. */
-function normalizeSymbols(raw: string | undefined): string[] {
+/** Uppercased, de-duplicated, sorted tickers — from repeater rows or a legacy string. */
+function normalizeSymbols(raw: unknown): string[] {
   const seen = new Set<string>();
-  for (const line of (raw ?? '').split('\n')) {
-    const symbol = line.trim().toUpperCase();
-    if (symbol) seen.add(symbol);
+  const add = (value: unknown): void => {
+    if (typeof value === 'string') {
+      const symbol = value.trim().toUpperCase();
+      if (symbol) seen.add(symbol);
+    }
+  };
+  if (Array.isArray(raw)) {
+    for (const row of raw) {
+      add((row as Record<string, unknown> | null)?.symbol);
+    }
+  } else if (typeof raw === 'string') {
+    for (const line of raw.split('\n')) add(line);
   }
   return [...seen].sort().slice(0, MAX_SYMBOLS);
 }

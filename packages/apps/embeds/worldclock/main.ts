@@ -44,9 +44,24 @@ interface Place {
   zone: string
 }
 
-/** Parse "Label | Zone" (or a bare "Zone") lines, dropping unknown zones. */
-function parsePlaces(text: string): Place[] {
+/**
+ * Parse the places. New configs store an array of `{label, zone}` rows (the
+ * repeater field); older ones stored `Label | Zone` (or a bare `Zone`) per
+ * textarea line — both are accepted. Unknown zones are dropped either way.
+ */
+function parsePlaces(value: unknown): Place[] {
   const places: Place[] = []
+  if (Array.isArray(value)) {
+    for (const row of value) {
+      const r = (row ?? {}) as Record<string, unknown>
+      const zone = typeof r.zone === 'string' ? r.zone.trim() : ''
+      if (!zone || !validZone(zone)) continue
+      const label = typeof r.label === 'string' ? r.label.trim() : ''
+      places.push({ label: label || labelFromZone(zone), zone })
+    }
+    return places
+  }
+  const text = typeof value === 'string' ? value : ''
   for (const line of text.split('\n')) {
     const parts = line.split('|').map((part) => part.trim())
     let label: string
@@ -83,7 +98,7 @@ function render(config: Record<string, unknown>): void {
   )
   applyTextStyle(root, config)
 
-  const places = parsePlaces(str(config.clocks))
+  const places = parsePlaces(config.clocks)
   cells = []
 
   if (places.length === 0) {
