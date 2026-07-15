@@ -17,6 +17,10 @@
       {
         "include": "i18n/**/*",
         "watchAssets": true
+      },
+      {
+        "include": "modules/apps/connectors/wisdom/*.json",
+        "watchAssets": true
       }
     ]
   }

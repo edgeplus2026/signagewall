@@ -1,0 +1,84 @@
+/*
+ * The skeleton every design shares.
+ *
+ * All ten render the same DOM (see `factory.ts`) — a backdrop layer, a quote, an
+ * author — and differ only in what they paint on it. That is what makes ten
+ * designs a tractable amount of code rather than ten copies of the same layout
+ * bugs, and it is why the type tiers live HERE, once, instead of being restated
+ * in ten stylesheets.
+ *
+ * A design overrides what it needs by prefixing: `.ds-neon .ds-quote { … }`.
+ */
+
+.ds {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* The default; most designs re-declare it. */
+  background: #0b0b0f;
+  color: #ffffff;
+}
+
+/* Everything readable sits above the backdrop, and is centred by default. */
+.ds-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3.2vh;
+  width: 100%;
+  max-width: 78%;
+  text-align: center;
+}
+
+.ds-quote {
+  /* Overridden by every design; this is only the fallback. */
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  line-height: 1.3;
+}
+
+.ds-author {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 2vh;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+/*
+ * The type tiers, in one place.
+ *
+ * Set from the quote's LENGTH in JS (`lengthTier`), never measured in the DOM: an
+ * auto-fit loop that measures and re-measures is a reflow storm on a Pi-class
+ * player, and it would run on every rotation tick. One class, four sizes, and each
+ * design may override any of them when its own layout disagrees.
+ *
+ * `vw + vh` rather than either alone, because a signage screen may be portrait:
+ * `vh` alone blows the type out on a tall screen, `vw` alone on a wide one.
+ */
+.ds.is-xs .ds-quote {
+  font-size: calc(2.6vw + 3.5vh);
+}
+.ds.is-sm .ds-quote {
+  font-size: calc(2vw + 2.8vh);
+}
+.ds.is-md .ds-quote {
+  font-size: calc(1.55vw + 2.1vh);
+}
+.ds.is-lg .ds-quote {
+  font-size: calc(1.25vw + 1.7vh);
+}
+
+/* A long quote needs its measure narrowed or the eye loses the line. */
+.ds.is-md .ds-content,
+.ds.is-lg .ds-content {
+  max-width: 68%;
+}

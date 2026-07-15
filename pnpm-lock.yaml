@@ -513,6 +513,24 @@ importers:
         specifier: workspace:*
         version: link:../apps-contract
     devDependencies:
+      '@fontsource/anton':
+        specifier: ^5.2.7
+        version: 5.2.7
+      '@fontsource/archivo-black':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource/bebas-neue':
+        specifier: ^5.2.7
+        version: 5.2.7
+      '@fontsource/cormorant-garamond':
+        specifier: ^5.2.11
+        version: 5.2.11
+      '@fontsource/inter':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource/playfair-display':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@types/qrcode':
         specifier: ^1.5.5
         version: 1.5.6
@@ -521,7 +539,7 @@ importers:
         version: 1.5.4
       tsup:
         specifier: ^8.3.5
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(supports-color@10.2.2)(typescript@6.0.3)(yaml@2.9.0)
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@6.0.3)(yaml@2.9.0)
       typescript:
         specifier: ~6.0.2
         version: 6.0.3
@@ -537,7 +555,7 @@ importers:
     devDependencies:
       tsup:
         specifier: ^8.3.5
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(supports-color@10.2.2)(typescript@6.0.3)(yaml@2.9.0)
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@6.0.3)(yaml@2.9.0)
       typescript:
         specifier: ~6.0.2
         version: 6.0.3
@@ -546,7 +564,7 @@ importers:
     devDependencies:
       tsup:
         specifier: ^8.3.5
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(supports-color@10.2.2)(typescript@6.0.3)(yaml@2.9.0)
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@6.0.3)(yaml@2.9.0)
       typescript:
         specifier: ~6.0.2
         version: 6.0.3
@@ -1622,6 +1640,24 @@ packages:
 
   '@fontsource-variable/geist@5.2.9':
     resolution: {integrity: sha512-TP+QSBG3wxKGPE33CbMy/L0Nu3qvJ6Fy81Yc4LnQ95xH+i+cfEp8fyU8/kfV14YwszxIFPhnoMTbjL71waVpyQ==}
+
+  '@fontsource/anton@5.2.7':
+    resolution: {integrity: sha512-fiPl7Kx0HC50Ws2uRkNC+QLVK8xPFUB9E+IxFdSA6tbNTZWe7HOq8IxYqkERIzsIBvYj6nrU+7uNMUM9vNLxig==}
+
+  '@fontsource/archivo-black@5.2.8':
+    resolution: {integrity: sha512-3zNj/o9LzWyDl/UEpY5IOHpAQyUtFr3hQaFS7NSKwCLLkXOfH/CMCt1L2b2Z+OF25OURtOYenCadgAebALz7/A==}
+
+  '@fontsource/bebas-neue@5.2.7':
+    resolution: {integrity: sha512-DsmBrmq55d9BCU0mt4DT4RZDdH8vhWRKEUOfbuNB1EEjMuwbtFvM8N+3gIlkYSFbsb10P8Q19BV5OdpMu2h0fA==}
+
+  '@fontsource/cormorant-garamond@5.2.11':
+    resolution: {integrity: sha512-5JjpN023lhA5soijgVT0BdRGzmlijm402ppjccMd6h+vRE0mX2lJnE+41UPfnlidrkV9/rCo1mf58WZlHnB0CA==}
+
+  '@fontsource/inter@5.2.8':
+    resolution: {integrity: sha512-P6r5WnJoKiNVV+zvW2xM13gNdFhAEpQ9dQJHt3naLvfg+LkF2ldgSLiF4T41lf1SQCM9QmkqPTn4TH568IRagg==}
+
+  '@fontsource/playfair-display@5.2.8':
+    resolution: {integrity: sha512-fUEhib70SszNhQVsGbUMSsWJhr7Je0rdeuZdtGpDNu0GKF1xJM8QhpI/y0pckU25GcChXm9TLOmeZupkvvZo2g==}
 
   '@hapi/address@5.1.1':
     resolution: {integrity: sha512-A+po2d/dVoY7cYajycYI43ZbYMXukuopIsqCjh5QzsBCipDtdofHntljDlpccMjIfTy6UOkg+5KPriwYch2bXA==}
@@ -10086,6 +10122,18 @@ snapshots:
 
   '@fontsource-variable/geist@5.2.9': {}
 
+  '@fontsource/anton@5.2.7': {}
+
+  '@fontsource/archivo-black@5.2.8': {}
+
+  '@fontsource/bebas-neue@5.2.7': {}
+
+  '@fontsource/cormorant-garamond@5.2.11': {}
+
+  '@fontsource/inter@5.2.8': {}
+
+  '@fontsource/playfair-display@5.2.8': {}
+
   '@hapi/address@5.1.1':
     dependencies:
       '@hapi/hoek': 11.0.7
@@ -17176,7 +17224,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  tsup@8.5.1(jiti@2.7.0)(postcss@8.5.15)(supports-color@10.2.2)(typescript@6.0.3)(yaml@2.9.0):
+  tsup@8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@6.0.3)(yaml@2.9.0):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.27.7)
       cac: 6.7.14

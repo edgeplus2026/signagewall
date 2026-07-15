@@ -8,6 +8,7 @@ import { rssManifest } from './rss/manifest.js'
 import { textManifest } from './text/manifest.js'
 import { weatherManifest } from './weather/manifest.js'
 import { webManifest } from './web/manifest.js'
+import { wisdomManifest } from './wisdom/manifest.js'
 import { youtubeManifest } from './youtube/manifest.js'
 
 /**
@@ -26,6 +27,7 @@ export const APP_MANIFESTS: AppManifest[] = [
   gcalManifest,
   canvaManifest,
   rssManifest,
+  wisdomManifest,
 ]
 
 export {
@@ -38,6 +40,7 @@ export {
   gcalManifest,
   canvaManifest,
   rssManifest,
+  wisdomManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export {
@@ -70,6 +73,22 @@ export {
 } from './clock/faces.js'
 export type { ClockFace } from './clock/faces.js'
 
+export {
+  DEFAULT_CATEGORIES,
+  WISDOM_CATEGORIES,
+  categoryOptions,
+  normalizeCategories,
+} from './wisdom/categories.js'
+export type { WisdomCategory } from './wisdom/categories.js'
+export { WISDOM_DESIGNS } from './wisdom/designs.js'
+export type { WisdomDesign } from './wisdom/designs.js'
+export {
+  MAX_QUOTE_LENGTH,
+  QUOTE_COUNT,
+  SECONDS_PER_QUOTE,
+  UPSTREAM_QUOTES,
+} from './wisdom/limits.js'
+
 export type {
   WeatherPayload,
   WeatherDaily,
@@ -78,3 +97,4 @@ export type {
 export type { GcalPayload, GcalEvent } from './gcal/payload.js'
 export type { CanvaPayload } from './canva/payload.js'
 export type { RssPayload, RssItem } from './rss/payload.js'
+export type { WisdomPayload, WisdomQuote } from './wisdom/payload.js'

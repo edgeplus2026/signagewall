@@ -1,0 +1,46 @@
+/* GLASS — a translucent pane over moving colour.
+   Deliberately NOT `backdrop-filter`: the gradient underneath drifts, so a real
+   backdrop blur would re-blur the pane every single frame — the exact per-frame
+   repaint the motion rule forbids. A translucent fill, a hairline border and an
+   inset highlight read as glass and cost nothing to composite. */
+.ds-glass {
+  background: #0d1030;
+  color: #ffffff;
+}
+.ds-glass .ds-bg {
+  inset: -20%;
+}
+.gl-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(10vh); /* static */
+}
+.gl-blob-1 {
+  top: -4%;
+  left: 2%;
+  width: 66%;
+  height: 70%;
+  background: radial-gradient(circle, #6366f1 0%, transparent 68%);
+}
+.gl-blob-2 {
+  right: -4%;
+  bottom: -6%;
+  width: 70%;
+  height: 74%;
+  background: radial-gradient(circle, #ec4899 0%, transparent 66%);
+}
+.gl-pane {
+  padding: 7% 7.5%;
+  border: 0.16vh solid rgba(255, 255, 255, 0.28);
+  border-radius: 2.4vh;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 0.2vh 0 rgba(255, 255, 255, 0.35),
+    0 3vh 8vh rgba(0, 0, 0, 0.3);
+}
+.ds-glass .ds-quote {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.32;
+}

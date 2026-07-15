@@ -1,0 +1,162 @@
+/*
+ * The motion and gradient primitives every design draws on.
+ *
+ * ONE RULE, AND IT IS NOT NEGOTIABLE: an ambient animation may only ever touch
+ * `transform` and `opacity`.
+ *
+ * Those two are the only properties a browser can animate on the compositor — it
+ * hands the layer to the GPU once and moves it, touching neither layout nor paint
+ * on the main thread. Everything else that looks tempting here is a per-frame
+ * repaint:
+ *
+ *   - `filter: blur()` — re-blurs the whole layer every frame. On a Pi-class
+ *     player this alone will drop a 60fps loop into the teens.
+ *   - `background-position` / `background-size` — repaints the gradient each frame.
+ *     This is why the drifting backdrops below are a SCALED, TRANSLATED layer that
+ *     is larger than the frame, rather than a moving background-position.
+ *   - `box-shadow`, `border-radius`, `width`/`height`/`top`/`left` — layout or paint.
+ *
+ * A static `filter` or `box-shadow` is fine: it is painted once and cached. It is
+ * only animating them that kills the frame rate. Several designs below lean on
+ * exactly that — a glow that sits still costs nothing.
+ *
+ * Every ambient loop is also gated behind `.is-active` at the app root (see
+ * `style.css`), because the player preloads an app iframe HIDDEN — an animation
+ * left running there burns CPU on a screen nobody is looking at, and on a player
+ * cycling a long playlist that is most of them.
+ */
+
+/* ---- Ambient loops (transform/opacity only) ---- */
+
+/* A slow parallax drift. The layer is oversized so it can move without exposing
+   an edge; the scale never drops below 1 for the same reason. */
+@keyframes wis-drift {
+  0% {
+    transform: scale(1.18) translate3d(-2%, -1.5%, 0);
+  }
+  50% {
+    transform: scale(1.26) translate3d(2.5%, 2%, 0);
+  }
+  100% {
+    transform: scale(1.18) translate3d(-2%, -1.5%, 0);
+  }
+}
+
+/* Ken Burns — the slow cinematic push. */
+@keyframes wis-kenburns {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1.16);
+  }
+}
+
+/* A lazy rotation, for orbiting ornament. */
+@keyframes wis-orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A breathing opacity, for glows and haze. */
+@keyframes wis-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* ---- Entrance (runs once per quote) ---- */
+
+/* Type rises into place. Designs stagger `animation-delay` across their parts to
+   get the "assembled, not cut to" feel. */
+@keyframes wis-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.8vh, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A rule or bar drawing itself out from the centre. */
+@keyframes wis-sweep {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* ---- Shared helpers ---- */
+
+/* The oversized backdrop layer the gradients live on. Sits behind everything,
+   never interactive, and is the ONLY thing that moves in most designs. */
+.wis-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Its own compositor layer, so its motion never repaints the type above it. */
+  will-change: transform;
+}
+
+/* Ambient motion only while we are the item on the wall. */
+.wis.is-active .wis-anim-drift {
+  animation: wis-drift 34s ease-in-out infinite;
+}
+
+.wis.is-active .wis-anim-kenburns {
+  animation: wis-kenburns 30s ease-in-out infinite alternate;
+}
+
+.wis.is-active .wis-anim-orbit {
+  animation: wis-orbit 90s linear infinite;
+}
+
+.wis.is-active .wis-anim-pulse {
+  animation: wis-pulse 9s ease-in-out infinite;
+}
+
+/* Entrance, staggered. The quote lands first and the author follows it. */
+.wis.is-active .wis-in {
+  animation: wis-rise 900ms cubic-bezier(0.2, 0.7, 0.25, 1) both;
+}
+
+.wis.is-active .wis-in-1 {
+  animation-delay: 120ms;
+}
+.wis.is-active .wis-in-2 {
+  animation-delay: 320ms;
+}
+.wis.is-active .wis-in-3 {
+  animation-delay: 520ms;
+}
+
+.wis.is-active .wis-sweep {
+  animation: wis-sweep 900ms cubic-bezier(0.2, 0.7, 0.25, 1) both;
+  animation-delay: 240ms;
+}
+
+/* A screen in a hospital or a quiet office may be configured to stop moving. */
+@media (prefers-reduced-motion: reduce) {
+  .wis.is-active .wis-anim-drift,
+  .wis.is-active .wis-anim-kenburns,
+  .wis.is-active .wis-anim-orbit,
+  .wis.is-active .wis-anim-pulse,
+  .wis.is-active .wis-in,
+  .wis.is-active .wis-sweep {
+    animation: none;
+  }
+}

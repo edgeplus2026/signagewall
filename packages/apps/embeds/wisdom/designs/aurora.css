@@ -1,0 +1,51 @@
+/* AURORA — a slow mesh of coloured light. Three oversized radial blobs on a
+   drifting layer; the "mesh gradient" look without a mesh-gradient library. */
+.ds-aurora {
+  background: #0a0a14;
+  color: #f6f4ff;
+}
+.ds-aurora .ds-bg {
+  /* Oversized so the drift never exposes an edge. */
+  inset: -22%;
+}
+.au-blob {
+  position: absolute;
+  border-radius: 50%;
+  /* A STATIC blur — painted once, cached. Animating it would repaint every frame;
+     the movement is on the parent's transform instead. */
+  filter: blur(9vh);
+}
+.au-blob-1 {
+  top: 4%;
+  left: 6%;
+  width: 58%;
+  height: 62%;
+  background: radial-gradient(circle, #7c3aed 0%, transparent 68%);
+  opacity: 0.85;
+}
+.au-blob-2 {
+  right: 2%;
+  bottom: 2%;
+  width: 62%;
+  height: 66%;
+  background: radial-gradient(circle, #0ea5e9 0%, transparent 66%);
+  opacity: 0.8;
+}
+.au-blob-3 {
+  top: 28%;
+  left: 34%;
+  width: 46%;
+  height: 50%;
+  background: radial-gradient(circle, #f43f5e 0%, transparent 70%);
+  opacity: 0.55;
+}
+.ds-aurora .ds-quote {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.28;
+  text-shadow: 0 0.4vh 4vh rgba(0, 0, 0, 0.35);
+}
+.ds-aurora .ds-author {
+  color: #d9d2ff;
+}

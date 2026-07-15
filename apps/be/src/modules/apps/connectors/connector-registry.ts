@@ -4,6 +4,7 @@ import { canvaConnector } from './canva.connector';
 import { gcalConnector } from './gcal.connector';
 import { rssConnector } from './rss.connector';
 import { weatherConnector } from './weather.connector';
+import { wisdomConnector } from './wisdom.connector';
 
 /**
  * Backend connector implementations, keyed by app slug. A `server` app has a
@@ -17,6 +18,7 @@ const CONNECTORS: Record<string, AppConnector> = {
   gcal: gcalConnector,
   canva: canvaConnector,
   rss: rssConnector,
+  wisdom: wisdomConnector,
 };
 
 /** The connector for `slug`, or undefined for `static` apps / unknown slugs. */

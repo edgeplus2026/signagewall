@@ -1,0 +1,56 @@
+/* ORBIT — thin rings and points turning slowly behind the type. The whole field
+   rotates as ONE layer (a single transform), so ten ornaments cost one composite. */
+.ds-orbit {
+  background: #070b16;
+  color: #e8edf7;
+}
+.or-field {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 108vh;
+  height: 108vh;
+  margin: -54vh 0 0 -54vh;
+  will-change: transform;
+}
+.or-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 0.14vh solid rgba(148, 163, 184, 0.22);
+}
+.or-ring-1 { inset: 4%; border-color: rgba(148, 163, 184, 0.3); }
+.or-ring-2 { inset: 19%; border-color: rgba(56, 189, 248, 0.26); }
+.or-ring-3 { inset: 34%; border-color: rgba(148, 163, 184, 0.16); }
+.or-dot {
+  position: absolute;
+  border-radius: 50%;
+}
+.or-dot-1 {
+  top: 4%;
+  left: 50%;
+  width: 1.6vh;
+  height: 1.6vh;
+  background: #38bdf8;
+  box-shadow: 0 0 3vh rgba(56, 189, 248, 0.9); /* static glow */
+}
+.or-dot-2 {
+  top: 19%;
+  left: 81%;
+  width: 1vh;
+  height: 1vh;
+  background: #f472b6;
+  box-shadow: 0 0 2.4vh rgba(244, 114, 182, 0.9);
+}
+.ds-orbit::after {
+  /* A soft core so the type never sits on a bare ring. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 46% 34% at 50% 50%, rgba(7, 11, 22, 0.94) 35%, transparent 78%);
+}
+.ds-orbit .ds-quote {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  line-height: 1.32;
+}
+.ds-orbit .ds-author { color: #7dd3fc; }

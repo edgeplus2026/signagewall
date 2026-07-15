@@ -1,0 +1,54 @@
+/* STACK — the poster. Huge condensed caps set line by line, every other line
+   struck through with an accent bar.
+
+   The bars are why this design breaks its own lines (see `index.ts`): a background
+   on the whole block would paint the full rectangle, ragged right edge and all, so
+   each line is its own inline-block and each bar ends where its words end. */
+.ds-stack {
+  background: #0b0b0d;
+  color: #ffffff;
+}
+.st-wash {
+  position: absolute;
+  inset: -6%;
+  background: radial-gradient(ellipse 70% 60% at 22% 28%, #1d1d24 0%, #0b0b0d 68%);
+  will-change: transform;
+}
+.ds-stack .ds-content {
+  align-items: flex-start;
+  max-width: 84%;
+  text-align: left;
+  gap: 2.4vh;
+}
+.ds-stack.is-md .ds-content,
+.ds-stack.is-lg .ds-content {
+  max-width: 84%;
+}
+.sk-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1em;
+  font-family: 'Anton', Impact, 'Arial Narrow', sans-serif;
+  font-weight: 400;
+  line-height: 1.02;
+  text-transform: uppercase;
+}
+.sk-line {
+  display: inline-block;
+  /* The unmarked lines carry the same inset so every left edge sits on one rail. */
+  padding: 0.05em 0.16em;
+}
+.sk-mark {
+  background: #f0b429;
+  color: #0b0b0d;
+}
+.ds-stack.is-xs .ds-quote { font-size: calc(3.8vw + 5.2vh); }
+.ds-stack.is-sm .ds-quote { font-size: calc(2.9vw + 4.1vh); }
+.ds-stack.is-md .ds-quote { font-size: calc(2.1vw + 3vh); }
+.ds-stack.is-lg .ds-quote { font-size: calc(1.65vw + 2.3vh); }
+.ds-stack .ds-author {
+  padding-left: 0.9vh;
+  color: #f0b429;
+  opacity: 1;
+}

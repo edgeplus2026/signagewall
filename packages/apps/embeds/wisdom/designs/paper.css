@@ -1,0 +1,33 @@
+/* PAPER — the quiet one. Warm white, a hairline rule, restrained type. Every set
+   needs one design that does not perform: five quotes that all arrive with a
+   flourish is exhausting to sit under. */
+.ds-paper {
+  background: #f7f5f1;
+  color: #2c2a26;
+}
+.pa-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, #ffffff 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, #ebe6dd 0%, transparent 65%);
+}
+.ds-paper .ds-content {
+  gap: 3.4vh;
+}
+.ds-paper .ds-quote {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.44;
+  letter-spacing: -0.01em;
+}
+.ds-paper.is-xs .ds-quote { font-size: calc(1.9vw + 2.6vh); }
+.ds-paper.is-sm .ds-quote { font-size: calc(1.5vw + 2.1vh); }
+.ds-paper.is-md .ds-quote { font-size: calc(1.2vw + 1.7vh); }
+.ds-paper.is-lg .ds-quote { font-size: calc(1vw + 1.4vh); }
+.ds-paper .ds-author { color: #8a8375; }
+.pa-rule {
+  width: 7vh;
+  height: 0.2vh;
+  background: #c9c2b4;
+}

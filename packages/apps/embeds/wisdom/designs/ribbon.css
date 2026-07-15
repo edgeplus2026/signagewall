@@ -1,0 +1,44 @@
+/* RIBBON — the quote carried on a slanted band across a warm field. The band
+   sweeps out from the centre on entry (a scaleX, not a width — width is layout). */
+.ds-ribbon {
+  background: #1b1436;
+  color: #fff8ec;
+}
+.ds-ribbon .ds-bg {
+  inset: -20%;
+}
+.ri-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 60% at 18% 20%, #f97316 0%, transparent 62%),
+    radial-gradient(ellipse 70% 60% at 82% 80%, #7c3aed 0%, transparent 64%),
+    #1b1436;
+  filter: blur(6vh); /* static */
+}
+.ds-ribbon .ds-content {
+  max-width: 88%;
+}
+.ri-band {
+  padding: 4.5vh 5vh;
+  background: #fff8ec;
+  color: #1b1436;
+  transform: rotate(-2.2deg);
+  box-shadow: 0 3vh 8vh rgba(0, 0, 0, 0.35);
+  /* The sweep grows from the middle outward. */
+  transform-origin: center;
+}
+/* The band and the type counter-rotate, so the text sits straight on a tilted
+   band rather than the whole thing leaning. */
+.ri-band .ds-quote {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.26;
+  transform: rotate(2.2deg);
+}
+.ds-ribbon .ds-author {
+  margin-top: 1vh;
+  color: #fdba74;
+  opacity: 1;
+}

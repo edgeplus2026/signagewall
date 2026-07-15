@@ -1,0 +1,47 @@
+/* DUOTONE — two colours, one hard diagonal. The most graphic design in the set and
+   the one that reads from furthest away.
+
+   The type sits ENTIRELY in the light field, and the wedge is cut low enough that
+   even a five-line quote clears it. The first version centred the text and let the
+   diagonal pass behind it: dark ink on the dark half, and half the quote vanished.
+   A design where the readability depends on the length of the sentence is a design
+   that will fail on a wall one day and not on the desk you built it at. */
+.ds-duotone {
+  background: #14b8a6;
+  color: #04241f;
+  align-items: flex-start;
+}
+.du-half {
+  position: absolute;
+  inset: 0;
+  background: #04241f;
+  /* The wedge lives in the bottom third; the type never reaches it. */
+  clip-path: polygon(0 82%, 100% 58%, 100% 100%, 0 100%);
+}
+.ds-duotone .ds-content {
+  align-items: flex-start;
+  justify-content: flex-start;
+  max-width: 82%;
+  padding: 7% 0 0 7%;
+  text-align: left;
+  gap: 2.4vh;
+}
+.ds-duotone.is-md .ds-content,
+.ds-duotone.is-lg .ds-content {
+  max-width: 82%;
+}
+.ds-duotone .ds-quote {
+  font-family: 'Archivo Black', Arial, sans-serif;
+  font-weight: 400;
+  line-height: 1.14;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+}
+.ds-duotone.is-xs .ds-quote { font-size: calc(2.3vw + 3.1vh); }
+.ds-duotone.is-sm .ds-quote { font-size: calc(1.8vw + 2.5vh); }
+.ds-duotone.is-md .ds-quote { font-size: calc(1.35vw + 1.9vh); }
+.ds-duotone.is-lg .ds-quote { font-size: calc(1.1vw + 1.5vh); }
+.ds-duotone .ds-author {
+  color: #04241f;
+  opacity: 0.62;
+}

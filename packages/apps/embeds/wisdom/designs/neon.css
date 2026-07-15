@@ -1,0 +1,44 @@
+/* NEON — glow on black. The glow is a STATIC text-shadow (painted once); only the
+   haze behind it breathes, and it breathes on opacity. */
+.ds-neon {
+  background: #05060d;
+  color: #eafcff;
+}
+.ne-grid {
+  position: absolute;
+  inset: 0;
+  /* A perspective floor grid, drawn in gradients — no image, no SVG. */
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.14) 1px, transparent 1px);
+  background-size: 6vh 6vh;
+  mask-image: linear-gradient(to top, #000 0%, transparent 48%);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 48%);
+  opacity: 0.7;
+}
+.ne-haze {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 62% 50% at 50% 48%, rgba(34, 211, 238, 0.3) 0%, transparent 70%);
+}
+.ds-neon .ds-quote {
+  font-family: 'Anton', Impact, sans-serif;
+  font-weight: 400;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow:
+    0 0 1.2vh rgba(255, 255, 255, 0.7),
+    0 0 3vh rgba(34, 211, 238, 0.85),
+    0 0 7vh rgba(14, 165, 233, 0.6);
+}
+.ds-neon.is-xs .ds-quote { font-size: calc(3.4vw + 4.6vh); }
+.ds-neon.is-sm .ds-quote { font-size: calc(2.6vw + 3.6vh); }
+.ds-neon.is-md .ds-quote { font-size: calc(1.95vw + 2.7vh); }
+.ds-neon.is-lg .ds-quote { font-size: calc(1.5vw + 2.1vh); }
+
+.ds-neon .ds-author {
+  color: #67e8f9;
+  text-shadow: 0 0 2vh rgba(34, 211, 238, 0.8);
+  opacity: 1;
+}
