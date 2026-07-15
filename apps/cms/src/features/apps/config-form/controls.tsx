@@ -67,6 +67,24 @@ export function TextareaControl({ field, id, value, onChange, onBlur, invalid, d
   )
 }
 
+export function DateTimeControl({ field, id, value, onChange, onBlur, invalid, disabled }: FieldControlProps) {
+  return (
+    <Input
+      id={id}
+      type="datetime-local"
+      value={asString(value)}
+      placeholder={field.placeholder}
+      aria-invalid={invalid}
+      disabled={disabled}
+      onChange={(event) => {
+        // The native picker yields a local `YYYY-MM-DDTHH:MM` string — stored as-is.
+        onChange(event.target.value)
+      }}
+      onBlur={onBlur}
+    />
+  )
+}
+
 export function NumberControl({ field, id, value, onChange, onBlur, invalid, disabled }: FieldControlProps) {
   return (
     <Input

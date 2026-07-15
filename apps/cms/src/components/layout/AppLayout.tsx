@@ -14,12 +14,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { AiGeneratorSheet } from '@/features/ai-generator/components/AiGeneratorSheet'
+import { useAiGenerationNotifications } from '@/features/ai-generator/hooks'
 import { UploadManager } from '@/features/media/components/UploadManager'
 import { NotificationBell } from '@/features/notifications/components/NotificationBell'
 import { OrganizationGate } from '@/features/organizations/components/OrganizationGate'
 import { ImpersonationBanner } from '@/features/super-admin/components/ImpersonationBanner'
 
 export default function AppLayout() {
+  // App-wide: keeps the generation history live and toasts the initiator when
+  // their generation finishes, even if the drawer is closed.
+  useAiGenerationNotifications()
+
   return (
     <OrganizationGate>
     <SidebarProvider>
@@ -48,6 +54,7 @@ export default function AppLayout() {
             <Outlet />
           </main>
           <UploadManager />
+          <AiGeneratorSheet />
         </PageHeaderProvider>
       </SidebarInset>
     </SidebarProvider>

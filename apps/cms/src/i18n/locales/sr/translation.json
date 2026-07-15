@@ -408,6 +408,133 @@
       "error": "Uklanjanje korisnika nije uspelo. Pokušajte ponovo."
     }
   },
+  "aiGenerator": {
+    "button": "AI generator",
+    "title": "AI generator sadržaja",
+    "description": "Odgovorite na nekoliko pitanja i pripremićemo slajdove za ekrane.",
+    "cancel": "Otkaži",
+    "back": "Nazad",
+    "next": "Dalje",
+    "generate": "Generiši",
+    "stepCount": "Korak {{current}} od {{total}}",
+    "steps": {
+      "business": "Delatnost",
+      "audience": "Publika i cilj",
+      "voice": "Ton",
+      "review": "Pregled"
+    },
+    "fields": {
+      "industry": "Delatnost",
+      "industryPlaceholder": "Izaberite delatnost",
+      "businessName": "Naziv firme",
+      "businessNamePlaceholder": "npr. Italian Coffee",
+      "targetAudience": "Ciljna publika",
+      "targetAudiencePlaceholder": "npr. Mladi profesionalci, porodice",
+      "primaryGoal": "Glavni cilj",
+      "primaryGoalPlaceholder": "Izaberite cilj",
+      "tone": "Ton",
+      "tonePlaceholder": "Izaberite ton",
+      "language": "Jezik",
+      "languagePlaceholder": "Izaberite jezik",
+      "keyPoints": "Ključne poruke",
+      "keyPointsPlaceholder": "Jedna ideja po redu (opciono)",
+      "keyPointsHelp": "Opciono. Do 10 poruka koje želite da se nađu u sadržaju."
+    },
+    "industries": {
+      "retail": "Maloprodaja",
+      "hospitality": "Ugostiteljstvo",
+      "restaurant": "Restoran",
+      "cafe": "Kafić",
+      "healthcare": "Zdravstvo",
+      "fitness": "Fitnes",
+      "beauty": "Lepota i nega",
+      "realEstate": "Nekretnine",
+      "automotive": "Automobilizam",
+      "education": "Obrazovanje",
+      "technology": "Tehnologija",
+      "finance": "Finansije",
+      "events": "Događaji",
+      "nonprofit": "Neprofitne organizacije",
+      "other": "Ostalo"
+    },
+    "goals": {
+      "promotion": "Promocija / ponuda",
+      "announcement": "Obaveštenje",
+      "event": "Događaj",
+      "awareness": "Prepoznatljivost brenda",
+      "welcome": "Poruka dobrodošlice",
+      "info": "Opšte informacije"
+    },
+    "tones": {
+      "professional": "Profesionalan",
+      "friendly": "Prijateljski",
+      "energetic": "Energičan",
+      "playful": "Razigran",
+      "luxurious": "Luksuzan",
+      "minimal": "Minimalan"
+    },
+    "languages": {
+      "en": "Engleski",
+      "sr": "Srpski"
+    },
+    "review": {
+      "notProvided": "Nije uneto"
+    },
+    "generating": {
+      "title": "Generišemo vaš sadržaj",
+      "description": "Ovo može potrajati nekoliko trenutaka. Možete ostaviti otvoreno."
+    },
+    "result": {
+      "description": "Pregledajte slajdove, zatim kreirajte nacrt plejliste.",
+      "slide": "Slajd {{number}}",
+      "playlistName": "Naziv plejliste",
+      "playlistNamePlaceholder": "Nazovite plejlistu",
+      "create": "Kreiraj plejlistu",
+      "regenerate": "Počni ispočetka"
+    },
+    "failed": {
+      "title": "Generisanje nije uspelo",
+      "description": "Došlo je do greške tokom generisanja. Pokušajte ponovo.",
+      "retry": "Pokušaj ponovo"
+    },
+    "validation": {
+      "industryRequired": "Izaberite delatnost.",
+      "goalRequired": "Izaberite cilj.",
+      "toneRequired": "Izaberite ton.",
+      "languageRequired": "Izaberite jezik.",
+      "businessNameMax": "Naziv firme sme imati najviše 120 karaktera.",
+      "targetAudienceMax": "Ciljna publika sme imati najviše 200 karaktera.",
+      "keyPointsMax": "Ključne poruke smeju imati najviše 2000 karaktera."
+    },
+    "toast": {
+      "createSuccess": "Nacrt plejliste je kreiran",
+      "createError": "Kreiranje plejliste nije uspelo. Pokušajte ponovo.",
+      "generateError": "Pokretanje generisanja nije uspelo. Pokušajte ponovo."
+    },
+    "history": {
+      "description": "Kreirajte AI sadržaj ili pogledajte prethodno generisanje.",
+      "new": "Novo generisanje",
+      "empty": "Još nema generisanja",
+      "emptyDescription": "Pokrenite novo generisanje da kreirate sadržaj za ekrane.",
+      "delete": "Obriši",
+      "deleteSuccess": "Generisanje je obrisano",
+      "deleteError": "Brisanje generisanja nije uspelo. Pokušajte ponovo."
+    },
+    "status": {
+      "queued": "Na čekanju",
+      "processing": "Generisanje",
+      "succeeded": "Spremno",
+      "failed": "Neuspešno"
+    },
+    "detail": {
+      "back": "Nazad na istoriju"
+    },
+    "notify": {
+      "ready": "Vaš AI sadržaj je spreman",
+      "view": "Pogledaj",
+      "failed": "Generisanje AI sadržaja nije uspelo"
+    }
+  },
   "playlists": {
     "title": "Plejliste",
     "playlistCount": "{{count}} plejlista",
@@ -520,10 +647,20 @@
         "addToScreen": "Dodaj na ekran",
         "clearAllContent": "Obriši sav sadržaj",
         "moveToTrash": "Premesti u otpad",
-        "previewComingSoon": "Pregled još nije dostupan.",
         "addComingSoon": "Dodavanje medija još nije dostupno.",
         "editComingSoon": "Izmena još nije dostupna."
       }
+    },
+    "preview": {
+      "title": "Pregled: {{name}}",
+      "description": "Pregled sadržaja plejliste u vidu slajdšoua.",
+      "empty": "Dodajte sadržaj u ovu plejlistu da biste je pregledali.",
+      "previous": "Prethodna stavka",
+      "next": "Sledeća stavka",
+      "play": "Pusti",
+      "pause": "Pauziraj",
+      "close": "Zatvori pregled",
+      "counter": "{{current}} / {{total}}"
     },
     "content": {
       "totalDuration": "Ukupno trajanje",

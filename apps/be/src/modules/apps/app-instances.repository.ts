@@ -109,6 +109,30 @@ export class AppInstancesRepository {
     return instance;
   }
 
+  /**
+   * Create several instances at once, optionally within a transaction. Used by
+   * the AI content materializer to create one `text` instance per generated
+   * slide atomically with the playlist that references them.
+   */
+  async createMany(
+    data: CreateInstanceData[],
+    session?: ClientSession,
+  ): Promise<AppInstanceDocument[]> {
+    if (data.length === 0) {
+      return [];
+    }
+    const docs = data.map((d) => ({
+      organizationId: new Types.ObjectId(d.organizationId),
+      appId: new Types.ObjectId(d.appId),
+      appSlug: d.appSlug,
+      name: d.name,
+      config: d.config,
+      configVersion: d.configVersion,
+    }));
+    // Mongoose requires `ordered: true` when creating multiple docs in a session.
+    return this.model.create(docs, session ? { session, ordered: true } : {});
+  }
+
   async updateById(
     organizationId: string,
     id: string,

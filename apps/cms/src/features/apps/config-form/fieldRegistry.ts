@@ -8,6 +8,7 @@ import { RichTextControl } from '@/features/apps/config-form/RichTextControl'
 import {
   CheckboxControl,
   ColorControl,
+  DateTimeControl,
   type FieldControlProps,
   ImageControl,
   MultiSelectControl,
@@ -30,6 +31,8 @@ export const FIELD_CONTROLS: Record<FieldType, (props: FieldControlProps) => Rea
   switch: SwitchControl,
   color: ColorControl,
   image: ImageControl,
+  // Native date-and-time picker; stores a local `YYYY-MM-DDTHH:MM` string.
+  datetime: DateTimeControl,
   // Connect a third-party account (Google/Canva) and store the chosen
   // connection id; used by `connected` apps (Calendar, Canva).
   oauth: OAuthControl,

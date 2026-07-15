@@ -24,6 +24,7 @@ import { HealthModule } from './modules/health/health.module';
 import { LegalModule } from './modules/legal/legal.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { AiContentModule } from './modules/ai-content/ai-content.module';
 import { AppsModule } from './modules/apps/apps.module';
 import { ConnectionsModule } from './modules/connections/connections.module';
 import { DataDeletionModule } from './modules/data-deletion/data-deletion.module';
@@ -83,6 +84,7 @@ import { UsersModule } from './modules/users/users.module';
     ScreensModule,
     AdminModule,
     AppsModule,
+    AiContentModule,
     ConnectionsModule,
     PlayerModule,
     NotificationsModule,

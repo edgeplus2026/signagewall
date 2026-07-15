@@ -21,5 +21,8 @@ import { StockMediaService } from './stock-media.service';
     // implementation (or choose dynamically) without touching the service.
     { provide: STOCK_MEDIA_PROVIDER, useClass: PexelsProvider },
   ],
+  // Exported so other modules (e.g. AI content generation) can reuse stock
+  // search without re-implementing a provider client.
+  exports: [STOCK_MEDIA_PROVIDER],
 })
 export class StockMediaModule {}

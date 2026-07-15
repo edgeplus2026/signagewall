@@ -32,6 +32,7 @@ import { MediaDetailSheet } from '@/features/media/components/MediaDetailSheet'
 import type { MediaItem } from '@/features/media/types/media.types'
 import { DeletePlaylistDialog } from '@/features/playlists/components/DeletePlaylistDialog'
 import { PlaylistManageSidebar } from '@/features/playlists/components/PlaylistManageSidebar'
+import { PlaylistPreviewDialog } from '@/features/playlists/components/PlaylistPreviewDialog'
 import {
   useDuplicatePlaylist,
   useReplacePlaylistItems,
@@ -55,6 +56,7 @@ export function PlaylistManageTab({ playlist }: PlaylistManageTabProps) {
   const replacePlaylistItems = useReplacePlaylistItems()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [addToScreenOpen, setAddToScreenOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [mediaToEdit, setMediaToEdit] = useState<MediaItem | null>(null)
 
   const { baseline, draftItems, setDraftItems, buildSavePayload } =
@@ -144,8 +146,8 @@ export function PlaylistManageTab({ playlist }: PlaylistManageTabProps) {
   }, [buildSavePayload, playlist.id, playlist.updatedAt, replacePlaylistItems, setDraftItems, t])
 
   const handlePreview = useCallback(() => {
-    toast.message(t('playlists.manage.actions.previewComingSoon'))
-  }, [t])
+    setPreviewOpen(true)
+  }, [])
 
   const handleDuplicate = useCallback(async () => {
     try {
@@ -258,6 +260,13 @@ export function PlaylistManageTab({ playlist }: PlaylistManageTabProps) {
         onOpenChange={setAddToScreenOpen}
         mode="playlists"
         playlistIds={[playlist.id]}
+      />
+
+      <PlaylistPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        draftItems={draftItems}
+        playlistName={playlist.name}
       />
     </>
   )

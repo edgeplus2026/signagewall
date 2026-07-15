@@ -1,0 +1,10 @@
+{
+  "notConfigured": "AI content generation is not available right now.",
+  "dailyLimit": "You've reached today's AI generation limit. Please try again tomorrow.",
+  "queueUnavailable": "AI content generation is temporarily unavailable. Please try again shortly.",
+  "notFound": "Generation not found.",
+  "notReady": "This generation isn't ready yet.",
+  "invalidOutput": "The generated content couldn't be used. Please try generating again.",
+  "textAppMissing": "The Text app must be enabled before AI content can be added to a playlist.",
+  "defaultPlaylistName": "AI generated playlist"
+}

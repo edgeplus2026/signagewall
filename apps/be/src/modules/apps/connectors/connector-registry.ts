@@ -1,7 +1,11 @@
 import type { AppConnector } from '@edge/apps-contract';
 
+import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';
+import { cryptoConnector } from './crypto.connector';
+import { currencyConnector } from './currency.connector';
 import { gcalConnector } from './gcal.connector';
+import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { weatherConnector } from './weather.connector';
 import { wisdomConnector } from './wisdom.connector';
@@ -15,6 +19,10 @@ import { wisdomConnector } from './wisdom.connector';
  */
 const CONNECTORS: Record<string, AppConnector> = {
   weather: weatherConnector,
+  airquality: airqualityConnector,
+  currency: currencyConnector,
+  crypto: cryptoConnector,
+  'power-prices': powerPricesConnector,
   gcal: gcalConnector,
   canva: canvaConnector,
   rss: rssConnector,
