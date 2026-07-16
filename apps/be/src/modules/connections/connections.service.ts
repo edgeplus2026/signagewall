@@ -15,8 +15,10 @@ import {
   listGooglePresentations,
   listGoogleSpreadsheets,
 } from './providers/google-api';
+import { listMicrosoftCalendars } from './providers/microsoft-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
+import { microsoftOAuthProvider } from './providers/microsoft.oauth';
 import type { OAuthProvider } from './providers/oauth-provider';
 import {
   AppConnectionDocument,
@@ -72,6 +74,7 @@ const STATE_TTL = '10m';
 const PROVIDER_CONFIG_NS: Record<ConnectionProvider, string> = {
   [ConnectionProvider.GOOGLE]: 'google',
   [ConnectionProvider.CANVA]: 'canva',
+  [ConnectionProvider.MICROSOFT]: 'microsoft',
 };
 
 @Injectable()
@@ -329,6 +332,9 @@ export class ConnectionsService {
       case 'google-presentations':
         this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
         return listGooglePresentations(connection.accessToken, query);
+      case 'ms-calendars':
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        return listMicrosoftCalendars(connection.accessToken, query);
       default:
         throw BusinessException.badRequest(
           `Unknown browse source "${source}".`,
@@ -397,9 +403,9 @@ export class ConnectionsService {
   }
 
   private getProvider(provider: ConnectionProvider): OAuthProvider {
-    return provider === ConnectionProvider.GOOGLE
-      ? googleOAuthProvider
-      : canvaOAuthProvider;
+    if (provider === ConnectionProvider.GOOGLE) return googleOAuthProvider;
+    if (provider === ConnectionProvider.MICROSOFT) return microsoftOAuthProvider;
+    return canvaOAuthProvider;
   }
 
   private getCredentials(provider: ConnectionProvider): {

@@ -14,6 +14,7 @@ import { gslidesPublicManifest } from './gslides-public/manifest.js'
 import { holidaysManifest } from './holidays/manifest.js'
 import { menuManifest } from './menu/manifest.js'
 import { onthisdayManifest } from './onthisday/manifest.js'
+import { outlookManifest } from './outlook/manifest.js'
 import { powerPricesManifest } from './power-prices/manifest.js'
 import { qrManifest } from './qr/manifest.js'
 import { rssManifest } from './rss/manifest.js'
@@ -66,6 +67,7 @@ export const APP_MANIFESTS: AppManifest[] = [
   sportsManifest,
   gsheetsManifest,
   gslidesManifest,
+  outlookManifest,
 ]
 
 export {
@@ -98,6 +100,7 @@ export {
   sportsManifest,
   gsheetsManifest,
   gslidesManifest,
+  outlookManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'

@@ -10,6 +10,7 @@ import { gsheetsConnector } from './gsheets.connector';
 import { gslidesConnector } from './gslides.connector';
 import { holidaysConnector } from './holidays.connector';
 import { onthisdayConnector } from './onthisday.connector';
+import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { safeFetchText } from './safe-fetch.util';
@@ -1575,5 +1576,58 @@ describe('gslides connector (connected)', () => {
     // No `version`: rotating thumbnail URLs must fan out each refresh so they
     // reach the screen before they expire.
     expect(result.version).toBeUndefined();
+  });
+});
+
+describe('outlook connector (connected, microsoft)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'microsoft',
+      accountLabel: 'me@example.com',
+      accessToken: 'tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + calendar', () => {
+    expect(
+      outlookConnector.cacheKey!({ connectionId: 'c1', calendar: { id: 'cal1' } }),
+    ).toBe('outlook:c1:cal1');
+  });
+
+  it('normalizes Graph events to the shared calendar payload', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          value: [
+            {
+              subject: 'Standup',
+              start: { dateTime: '2026-07-16T09:00:00.0000000' },
+              end: { dateTime: '2026-07-16T09:15:00.0000000' },
+              isAllDay: false,
+              location: { displayName: 'Room 1' },
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await outlookConnector.fetchData(
+      { connectionId: 'c1', calendar: { id: 'cal1', label: 'Team' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      calendarLabel: 'Team',
+      events: [
+        {
+          title: 'Standup',
+          start: '2026-07-16T09:00:00.000Z',
+          end: '2026-07-16T09:15:00.000Z',
+          allDay: false,
+          location: 'Room 1',
+        },
+      ],
+    });
   });
 });

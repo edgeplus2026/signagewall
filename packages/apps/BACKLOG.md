@@ -10,7 +10,7 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**29 apps ship today** (all `runtimeKind: 'embed'`):
+**30 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
@@ -18,7 +18,7 @@ CMS and player contain **zero per-app code**. Adding an app is done almost entir
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, and
   `stocks` (Alpaca — needs `ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`)
 - `connected` (OAuth account): `gcal` (Google Calendar), `gsheets` (Google Sheets), `gslides` (Google
-  Slides, private), `canva`
+  Slides, private), `outlook` (Outlook Calendar), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
 `datetime` config field type (enabler E4a). Remaining work is marked below — ✅ = shipped.
@@ -123,7 +123,7 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 | ID | Task | Effort | Unblocks |
 |---|---|---|---|
 | **E0** | Seed a base set of `AppCategory` records (none exist today): *Information, Finance, Productivity, Data & Dashboards, Media, Social, Utilities*. Super-admin via `POST /admin/app-categories`. | S | catalog organization |
-| **E1** | **Microsoft (Azure AD / MS Graph) OAuth provider**: extend `ConnectionProvider` enum (be `schemas/app-connection.schema.ts` + cms `features/apps/types/connection.types.ts`), add `providers/microsoft.oauth.ts` (`OAuthProvider`), register in `ConnectionsService.getProvider` + `PROVIDER_CONFIG_NS`, add `microsoft-api.ts`, add client-id/secret env. | L | Outlook Calendar, Teams, SharePoint/PowerPoint, Power BI |
+| **E1** ✅ | **Microsoft (Azure AD / MS Graph) OAuth provider** — shipped: `ConnectionProvider.MICROSOFT`, `microsoft.oauth.ts` (v2 `common` authority, `offline_access`), `microsoft-api.ts`, `ConnectionsService` wiring (`getProvider` + `PROVIDER_CONFIG_NS` + `ms-calendars` browse), `MICROSOFT_CLIENT_ID`/`SECRET`, CMS provider union. | L | Outlook ✅; Teams, SharePoint/PowerPoint, Power BI now unblocked |
 | **E2** | **Meta (Facebook/Instagram Graph) OAuth provider** + create a Meta app + app review/business verification. | L (external approval) | Instagram, Facebook Page |
 | **E3** | **Slack OAuth provider** (`conversations.history` scope). | M | Slack channel app |
 | **E4a** ✅ | **`datetime` field type** — native date/time picker, stored as a local `YYYY-MM-DDTHH:MM` string. Shipped: contract union + zod (string-like) + CMS `DateTimeControl`; used by the Countdown `target`. | S | Countdown (done) |
@@ -168,9 +168,9 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | **Tier 3 — connected, reuse Google provider** ||||||
 | 17 | Google Sheets (KPI/table) ✅ | `gsheets` | connected | Data & Dashboards | M | — |
 | 18 | Google Slides (private) ✅ | `gslides` | connected | Productivity | M–L | — |
-| 19 | Google Photos album | `gphotos` | connected | Media | M | — |
+| 19 | Google Photos album ⛔ | `gphotos` | connected | Media | — | blocked (API) |
 | **Tier 4 — connected, new providers** ||||||
-| 20 | Outlook / M365 Calendar | `outlook` | connected | Productivity | M | E1 |
+| 20 | Outlook / M365 Calendar ✅ | `outlook` | connected | Productivity | M | E1 ✅ |
 | 21 | Power BI | `powerbi` | connected | Data & Dashboards | L | E1 |
 | 22 | SharePoint / PowerPoint | `sharepoint` | connected | Productivity | L | E1 |
 | 23 | Microsoft Teams | `teams` | connected | Productivity | L | E1 |
@@ -310,15 +310,18 @@ them. `cacheKey gslides:<connId>:<presentationId>`. Thumbnail URLs are temporary
 Distinct from the keyless `gslides-public` (published decks, no login). Needs `GOOGLE_CLIENT_ID`/`SECRET`
 + `ENCRYPTION_KEY`.
 
-**19. Google Photos album** (`gphotos`, connected) — google + `photoslibrary.readonly`. `remote-select`
-album → photo slideshow. `cacheKey` `gphotos:<connId>:<albumId>`. **Config:** album, `slideSeconds`,
-`shuffle`. *(Optional / lower priority.)*
+**19. Google Photos album** (`gphotos`, connected) — ⛔ **blocked, not viable.** Google restricted the
+Photos Library API on 2025-03-31: `photoslibrary.readonly` now returns 403 and apps can only read
+*app-created* media, not a user's own albums. Accessing a user's library requires the interactive
+**Picker API**, which doesn't fit a background-refreshing signage app. Revisit only if Google restores
+library read access. (Docs: developers.google.com/photos/support/updates.)
 
 ### Tier 4 — connected (new providers)
 
-**20. Outlook / M365 Calendar** (`outlook`, connected) — **Depends E1**. MS Graph `Calendars.Read`.
-`remote-select` `ms-calendars`. **Reuse the gcal embed + `GcalPayload`** — near-parity with Google
-Calendar. `cacheKey` `outlook:<connId>:<calId>`. Highest-value connected app after the enabler lands.
+**20. Outlook / M365 Calendar** (`outlook`, connected) — ✅ shipped (on E1 ✅). Microsoft Graph
+`calendarView` (scope `Calendars.Read`), `remote-select` `ms-calendars`. Normalizes Graph events to the
+shared `GcalPayload`, so `embeds/outlook` **reuses the gcal embed** wholesale (its config keys mirror
+gcal's). `cacheKey outlook:<connId>:<calId>`. Needs `MICROSOFT_CLIENT_ID`/`SECRET` + `ENCRYPTION_KEY`.
 
 **21. Power BI** (`powerbi`, connected) — **Depends E1**. Embed token via Power BI REST; pick
 report/dashboard. `cacheKey` `powerbi:<connId>:<reportId>`. (Public reports → use #4 instead.)
@@ -352,17 +355,19 @@ committing. Latest tweets from a handle.
 - **M1 — Fast value, no auth ✅ done:** all Tier 1 statics + keyless Tier 2 (air quality, currency,
   crypto, power-prices) shipped, plus the `datetime` field (E4a) and the `repeater` field (E4b ✅).
   Still open in this band: **E0** (seed categories). (E6 README refresh ✅.)
-- **M2 — Google reuse:** Google Sheets ✅, Google Slides (private) ✅; Google Photos next — same
-  pattern (existing `google` connection + connector scopes + a `remote-select` browse endpoint).
-- **M3 — Microsoft (E1):** Outlook Calendar (reuse gcal embed), then Power BI / SharePoint / Teams.
+- **M2 — Google reuse:** Google Sheets ✅, Google Slides (private) ✅. Google Photos ⛔ blocked (Photos
+  Library API restricted to app-created media since 2025; a user's library needs the Picker API).
+- **M3 — Microsoft (E1 ✅):** Outlook Calendar ✅ (reuses the gcal embed); Power BI / SharePoint /
+  Teams next — same provider, new connectors.
 - **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Alpaca), sports ✅ (TheSportsDB, free-key default); transit
   next (same keyed pattern); news presets.
 - **M5 — Social (E2/E3):** Slack, Instagram, Facebook; X/TikTok/LinkedIn only if the API cost/approval
   is acceptable.
 
-**Recommended next:** **Google Photos** (last of the Google-reuse trio), or **E1 (Microsoft provider)**
-to unlock Outlook / Teams / Power BI. Google Sheets ✅ and Slides ✅ have proven both connected shapes —
-data-read (Sheets range) and image-export (Slides thumbnails).
+**Recommended next:** more Microsoft apps on the now-shipped provider — **Teams** (channel messages),
+**SharePoint / PowerPoint**, **Power BI**. The connected recipe is proven across data-read (Sheets),
+image-export (Slides), and a second OAuth provider (Outlook, which reuses the gcal embed via a
+normalized payload). Remaining tiers: **Social** (needs the Meta provider, E2) and **Slack** (E3).
 
 ## 6. Known caveats to carry into implementation
 

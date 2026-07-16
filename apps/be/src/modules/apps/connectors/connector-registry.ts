@@ -9,6 +9,7 @@ import { gsheetsConnector } from './gsheets.connector';
 import { gslidesConnector } from './gslides.connector';
 import { holidaysConnector } from './holidays.connector';
 import { onthisdayConnector } from './onthisday.connector';
+import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { sportsConnector } from './sports.connector';
@@ -37,6 +38,7 @@ const CONNECTORS: Record<string, AppConnector> = {
   rss: rssConnector,
   holidays: holidaysConnector,
   onthisday: onthisdayConnector,
+  outlook: outlookConnector,
   sports: sportsConnector,
   stocks: stocksConnector,
   sunmoon: sunmoonConnector,

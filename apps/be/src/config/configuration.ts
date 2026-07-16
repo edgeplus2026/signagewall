@@ -24,6 +24,10 @@ export default () => ({
     clientId: process.env.CANVA_CLIENT_ID,
     clientSecret: process.env.CANVA_CLIENT_SECRET,
   },
+  microsoft: {
+    clientId: process.env.MICROSOFT_CLIENT_ID,
+    clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+  },
   // AES-256-GCM key for encrypting third-party OAuth tokens at rest.
   encryptionKey: process.env.ENCRYPTION_KEY,
   // Publicly reachable HTTPS base URL of this API (connection OAuth callbacks).
