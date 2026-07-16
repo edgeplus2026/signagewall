@@ -1,7 +1,9 @@
 # Edge Apps — Integration Backlog
 
 > How to add new signage "apps", plus a prioritized catalog of apps to build.
-> Companion to [`README.md`](./README.md) (the package layout) — this file is the *roadmap*.
+> Companion to [`README.md`](./README.md) (the package layout) and
+> [`OPERATOR.md`](./OPERATOR.md) (what an operator must set up per app — env, keys, OAuth,
+> approvals) — this file is the *roadmap*.
 
 ## 0. Current state
 
