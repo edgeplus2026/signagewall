@@ -10,14 +10,14 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**27 apps ship today** (all `runtimeKind: 'embed'`):
+**28 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
   (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays` (Nager.Date),
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, and
   `stocks` (Alpaca — needs `ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`)
-- `connected` (OAuth account): `gcal` (Google Calendar), `canva`
+- `connected` (OAuth account): `gcal` (Google Calendar), `gsheets` (Google Sheets), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
 `datetime` config field type (enabler E4a). Remaining work is marked below — ✅ = shipped.
@@ -128,7 +128,7 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 | **E4a** ✅ | **`datetime` field type** — native date/time picker, stored as a local `YYYY-MM-DDTHH:MM` string. Shipped: contract union + zod (string-like) + CMS `DateTimeControl`; used by the Countdown `target`. | S | Countdown (done) |
 | **E4b** ✅ | **`repeater` field type** — an add/remove/reorder row editor (each row a set of typed sub-fields via `field.fields`). Shipped: contract union + zod + CMS `RepeaterControl`. Adopted by Menu, Ticker, World clocks and Stocks (each keeps a legacy string/textarea fallback so saved configs don't break). | M | Menu, Ticker, World clocks, Stocks (done) |
 | **E5** ✅ | **Keyed-connector convention** — `requireConnectorKey(name)` in `connectors/env.util.ts` reads a key from the backend env and throws cleanly when it's missing (the host then keeps last-known-good). Keys live in `.env` / `.env.example`. Shipped; used by Stocks. | S–M | sports, transit (keyed) now unblocked |
-| **E6** | Refresh [`README.md`](./README.md) — its `player.tsx` / `runtimeKind: 'native'` note is stale; reality is `embeds/<slug>/` bundles. | S | docs accuracy |
+| **E6** ✅ | Refreshed [`README.md`](./README.md) to current reality (`embeds/<slug>/` bundles, the three app kinds, the build/preview pipeline, a BACKLOG pointer). | S | docs accuracy |
 
 ## 4. App catalog (prioritized)
 
@@ -165,7 +165,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 32 | Quotes / wisdom ✅ | `wisdom` | server | Information | M | — |
 | 33 | Sun & Moon ✅ | `sunmoon` | server | Information | M | — |
 | **Tier 3 — connected, reuse Google provider** ||||||
-| 17 | Google Sheets (KPI/table) | `gsheets` | connected | Data & Dashboards | M | — |
+| 17 | Google Sheets (KPI/table) ✅ | `gsheets` | connected | Data & Dashboards | M | — |
 | 18 | Google Slides (private) | `gslides` | connected | Productivity | M–L | — |
 | 19 | Google Photos album | `gphotos` | connected | Media | M | — |
 | **Tier 4 — connected, new providers** ||||||
@@ -293,10 +293,13 @@ client-side (location-independent, so it isn't in the payload). No fetch timesta
 
 ### Tier 3 — connected (reuse Google provider)
 
-**17. Google Sheets (KPI / table)** (`gsheets`, connected) — google + `spreadsheets.readonly`. Browse
-via `remote-select` `google-sheets` (add `browseRemoteOptions` case + `google-api.ts` helper) + a
-`range` field. `cacheKey` `gsheets:<connId>:<sheetId>:<range>`. **Config:** sheet, range, `layout`
-(table / single KPI / bar), `hasHeader` (switch). **Payload:** rows. High value for dashboards/menus.
+**17. Google Sheets (KPI / table)** (`gsheets`, connected) — ✅ shipped. Reuses the Google OAuth;
+connector scopes `drive.metadata.readonly` + `spreadsheets.readonly`. Browse via `remote-select`
+`google-sheets` (a `browseRemoteOptions` case → `listGoogleSpreadsheets` in `google-api.ts`, a Drive
+list); reads a range via the Sheets API. `cacheKey gsheets:<connId>:<sheetId>:<range>` (per-connection;
+`layout`/`hasHeader` display-only). **Config:** account, spreadsheet, range, `layout` (table / KPI),
+`hasHeader`, theme. **Needs** `GOOGLE_CLIENT_ID`/`SECRET` + `ENCRYPTION_KEY` on the backend (same
+prerequisite as Calendar).
 
 **18. Google Slides (private)** (`gslides`, connected) — google + `presentations.readonly` /
 `drive.readonly`. `remote-select` `google-presentations`. Connector exports slide images (or embeds).
@@ -343,18 +346,18 @@ committing. Latest tweets from a handle.
 
 - **M1 — Fast value, no auth ✅ done:** all Tier 1 statics + keyless Tier 2 (air quality, currency,
   crypto, power-prices) shipped, plus the `datetime` field (E4a) and the `repeater` field (E4b ✅).
-  Still open in this band: **E0** (seed categories) and **E6** (README refresh).
-- **M2 — Google reuse (next up):** Google Sheets, Google Slides (private), Google Photos. No new OAuth
-  provider — extend the existing `google` connection with scopes + a `remote-select` browse endpoint.
+  Still open in this band: **E0** (seed categories). (E6 README refresh ✅.)
+- **M2 — Google reuse:** Google Sheets ✅ (shipped); Google Slides (private) and Google Photos next —
+  same pattern (existing `google` connection + connector scopes + a `remote-select` browse endpoint).
 - **M3 — Microsoft (E1):** Outlook Calendar (reuse gcal embed), then Power BI / SharePoint / Teams.
 - **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Alpaca), sports ✅ (TheSportsDB, free-key default); transit
   next (same keyed pattern); news presets.
 - **M5 — Social (E2/E3):** Slack, Instagram, Facebook; X/TikTok/LinkedIn only if the API cost/approval
   is acceptable.
 
-**Recommended next:** **M2 / Google Sheets** — the highest-value data app and the first exercise of the
-`connected` (OAuth-reuse) recipe. (E4b ✅ and E5 ✅ are done, so the remaining new-app value is now in
-the `connected` tiers rather than more `server` feeds.)
+**Recommended next:** more `connected` reuse — **Google Slides** / **Google Photos** (same Google OAuth
++ a browse endpoint), then **E1 (Microsoft provider)** to unlock Outlook / Teams / Power BI. Google
+Sheets ✅ has proved the connected recipe end to end (OAuth field → browse endpoint → per-connection fetch).
 
 ## 6. Known caveats to carry into implementation
 

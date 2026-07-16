@@ -8,6 +8,7 @@ import { cryptoManifest } from './crypto/manifest.js'
 import { currencyManifest } from './currency/manifest.js'
 import { dashboardManifest } from './dashboard/manifest.js'
 import { gcalManifest } from './gcal/manifest.js'
+import { gsheetsManifest } from './gsheets/manifest.js'
 import { gslidesPublicManifest } from './gslides-public/manifest.js'
 import { holidaysManifest } from './holidays/manifest.js'
 import { menuManifest } from './menu/manifest.js'
@@ -62,6 +63,7 @@ export const APP_MANIFESTS: AppManifest[] = [
   sunmoonManifest,
   stocksManifest,
   sportsManifest,
+  gsheetsManifest,
 ]
 
 export {
@@ -92,6 +94,7 @@ export {
   sunmoonManifest,
   stocksManifest,
   sportsManifest,
+  gsheetsManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'
@@ -166,3 +169,4 @@ export type { OnThisDayPayload, OnThisDayEvent } from './onthisday/payload.js'
 export type { SunMoonPayload } from './sunmoon/payload.js'
 export type { StocksPayload, StockQuote } from './stocks/payload.js'
 export type { SportsPayload, SportsEvent } from './sports/payload.js'
+export type { GsheetsPayload } from './gsheets/payload.js'

@@ -10,7 +10,10 @@ import { EncryptionService } from '../../common/services/encryption.service';
 import { getConnector } from '../apps/connectors/connector-registry';
 import { ConnectionsRepository } from './connections.repository';
 import { searchCanvaDesigns } from './providers/canva-api';
-import { listGoogleCalendars } from './providers/google-api';
+import {
+  listGoogleCalendars,
+  listGoogleSpreadsheets,
+} from './providers/google-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
 import type { OAuthProvider } from './providers/oauth-provider';
@@ -319,6 +322,9 @@ export class ConnectionsService {
       case 'google-calendars':
         this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
         return listGoogleCalendars(connection.accessToken, query);
+      case 'google-sheets':
+        this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
+        return listGoogleSpreadsheets(connection.accessToken, query);
       default:
         throw BusinessException.badRequest(
           `Unknown browse source "${source}".`,

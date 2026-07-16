@@ -6,6 +6,7 @@
  */
 
 const CALENDAR_API = 'https://www.googleapis.com/calendar/v3';
+const DRIVE_API = 'https://www.googleapis.com/drive/v3';
 
 /** A calendar as surfaced to the CMS picker (token-free). */
 export interface GoogleCalendarSummary {
@@ -59,4 +60,52 @@ export async function listGoogleCalendars(
     if (a.primary !== b.primary) return a.primary ? -1 : 1;
     return a.title.localeCompare(b.title);
   });
+}
+
+/** A spreadsheet as surfaced to the CMS picker (token-free). */
+export interface GoogleSpreadsheetSummary {
+  id: string;
+  title: string;
+}
+
+interface DriveFile {
+  id: string;
+  name?: string;
+}
+
+/**
+ * List the Google Sheets in the connected account's Drive (most-recently-modified
+ * first) for the config-form picker. Drive's list has a server-side query, but we
+ * fetch the recent spreadsheets and filter by title client-side — the same simple,
+ * injection-free approach as the calendar picker.
+ */
+export async function listGoogleSpreadsheets(
+  accessToken: string,
+  query: string,
+  signal?: AbortSignal,
+): Promise<GoogleSpreadsheetSummary[]> {
+  const params = new URLSearchParams({
+    q: "mimeType='application/vnd.google-apps.spreadsheet' and trashed=false",
+    fields: 'files(id,name)',
+    orderBy: 'modifiedTime desc',
+    pageSize: '100',
+  });
+  const response = await fetch(`${DRIVE_API}/files?${params.toString()}`, {
+    headers: { authorization: `Bearer ${accessToken}` },
+    ...(signal ? { signal } : {}),
+  });
+  if (!response.ok) {
+    throw new Error(`google drive upstream ${response.status}`);
+  }
+  const body = (await response.json()) as { files?: DriveFile[] };
+
+  const sheets: GoogleSpreadsheetSummary[] = (body.files ?? []).map((file) => ({
+    id: file.id,
+    title: file.name ?? file.id,
+  }));
+
+  const trimmed = query.trim().toLowerCase();
+  return trimmed
+    ? sheets.filter((sheet) => sheet.title.toLowerCase().includes(trimmed))
+    : sheets;
 }

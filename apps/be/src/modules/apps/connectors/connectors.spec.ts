@@ -6,6 +6,7 @@ import { canvaConnector } from './canva.connector';
 import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
 import { gcalConnector } from './gcal.connector';
+import { gsheetsConnector } from './gsheets.connector';
 import { holidaysConnector } from './holidays.connector';
 import { onthisdayConnector } from './onthisday.connector';
 import { powerPricesConnector } from './power-prices.connector';
@@ -1453,6 +1454,76 @@ describe('sports connector (server)', () => {
           homeScore: 2,
           awayScore: 1,
         },
+      ],
+    });
+  });
+});
+
+describe('gsheets connector (connected)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'google',
+      accountLabel: 'me@example.com',
+      accessToken: 'tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + spreadsheet + range (layout is display-only)', () => {
+    const a = gsheetsConnector.cacheKey!({
+      connectionId: 'c1',
+      spreadsheet: { id: 'S1' },
+      range: 'A1:B2',
+      layout: 'table',
+    });
+    const b = gsheetsConnector.cacheKey!({
+      connectionId: 'c1',
+      spreadsheet: { id: 'S1' },
+      range: 'A1:B2',
+      layout: 'kpi',
+      hasHeader: false,
+    });
+    expect(a).toBe('gsheets:c1:S1:A1:B2');
+    expect(a).toBe(b);
+  });
+
+  it('throws without a resolved connection', async () => {
+    await expect(
+      gsheetsConnector.fetchData(
+        { connectionId: 'c1', spreadsheet: { id: 'S1' }, range: 'A1:B2' },
+        ctx,
+      ),
+    ).rejects.toThrow(/no connection/);
+  });
+
+  it('normalizes the range values to strings, keeping the picked title', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          values: [
+            ['Name', 'Sales'],
+            ['Q1', 100],
+            ['Q2', 200],
+          ],
+        },
+      },
+    ]);
+    const result = await gsheetsConnector.fetchData(
+      {
+        connectionId: 'c1',
+        spreadsheet: { id: 'S1', label: 'KPIs' },
+        range: 'A1:B3',
+      },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      title: 'KPIs',
+      values: [
+        ['Name', 'Sales'],
+        ['Q1', '100'],
+        ['Q2', '200'],
       ],
     });
   });
