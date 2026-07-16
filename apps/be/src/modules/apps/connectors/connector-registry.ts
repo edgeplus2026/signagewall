@@ -4,10 +4,12 @@ import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';
 import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
+import { facebookConnector } from './facebook.connector';
 import { gcalConnector } from './gcal.connector';
 import { gsheetsConnector } from './gsheets.connector';
 import { gslidesConnector } from './gslides.connector';
 import { holidaysConnector } from './holidays.connector';
+import { instagramConnector } from './instagram.connector';
 import { onthisdayConnector } from './onthisday.connector';
 import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
@@ -39,6 +41,8 @@ const CONNECTORS: Record<string, AppConnector> = {
   holidays: holidaysConnector,
   onthisday: onthisdayConnector,
   outlook: outlookConnector,
+  instagram: instagramConnector,
+  facebook: facebookConnector,
   sports: sportsConnector,
   stocks: stocksConnector,
   sunmoon: sunmoonConnector,

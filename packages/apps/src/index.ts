@@ -7,11 +7,13 @@ import { countdownManifest } from './countdown/manifest.js'
 import { cryptoManifest } from './crypto/manifest.js'
 import { currencyManifest } from './currency/manifest.js'
 import { dashboardManifest } from './dashboard/manifest.js'
+import { facebookManifest } from './facebook/manifest.js'
 import { gcalManifest } from './gcal/manifest.js'
 import { gsheetsManifest } from './gsheets/manifest.js'
 import { gslidesManifest } from './gslides/manifest.js'
 import { gslidesPublicManifest } from './gslides-public/manifest.js'
 import { holidaysManifest } from './holidays/manifest.js'
+import { instagramManifest } from './instagram/manifest.js'
 import { menuManifest } from './menu/manifest.js'
 import { onthisdayManifest } from './onthisday/manifest.js'
 import { outlookManifest } from './outlook/manifest.js'
@@ -68,6 +70,8 @@ export const APP_MANIFESTS: AppManifest[] = [
   gsheetsManifest,
   gslidesManifest,
   outlookManifest,
+  instagramManifest,
+  facebookManifest,
 ]
 
 export {
@@ -101,6 +105,8 @@ export {
   gsheetsManifest,
   gslidesManifest,
   outlookManifest,
+  instagramManifest,
+  facebookManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'
@@ -177,3 +183,4 @@ export type { StocksPayload, StockQuote } from './stocks/payload.js'
 export type { SportsPayload, SportsEvent } from './sports/payload.js'
 export type { GsheetsPayload } from './gsheets/payload.js'
 export type { GslidesPayload } from './gslides/payload.js'
+export type { SocialPayload, SocialPost } from './social/payload.js'

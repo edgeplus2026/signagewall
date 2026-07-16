@@ -10,7 +10,7 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**30 apps ship today** (all `runtimeKind: 'embed'`):
+**32 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
@@ -18,10 +18,17 @@ CMS and player contain **zero per-app code**. Adding an app is done almost entir
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, and
   `stocks` (Alpaca — needs `ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`)
 - `connected` (OAuth account): `gcal` (Google Calendar), `gsheets` (Google Sheets), `gslides` (Google
-  Slides, private), `outlook` (Outlook Calendar), `canva`
+  Slides, private), `outlook` (Outlook Calendar), `instagram` + `facebook` (Meta), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
 `datetime` config field type (enabler E4a). Remaining work is marked below — ✅ = shipped.
+
+**Latest addition — Social tier (E2):** the **Meta OAuth provider** (Facebook Login → long-lived token,
+no refresh token — re-extended proactively) plus the first two social apps, **Instagram** and
+**Facebook Page**. Both normalize to a shared `SocialPayload` and share one spotlight/grid embed
+renderer (`embeds/_shared/social-feed.ts`). Code + mocked tests ship now; using them against accounts
+you don't own still requires the operator to clear Meta **App Review + Business verification** (external,
+weeks) and set `META_CLIENT_ID`/`SECRET`.
 
 ## 1. How the app system works (read once)
 
@@ -124,7 +131,7 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 |---|---|---|---|
 | **E0** | Seed a base set of `AppCategory` records (none exist today): *Information, Finance, Productivity, Data & Dashboards, Media, Social, Utilities*. Super-admin via `POST /admin/app-categories`. | S | catalog organization |
 | **E1** ✅ | **Microsoft (Azure AD / MS Graph) OAuth provider** — shipped: `ConnectionProvider.MICROSOFT`, `microsoft.oauth.ts` (v2 `common` authority, `offline_access`), `microsoft-api.ts`, `ConnectionsService` wiring (`getProvider` + `PROVIDER_CONFIG_NS` + `ms-calendars` browse), `MICROSOFT_CLIENT_ID`/`SECRET`, CMS provider union. | L | Outlook ✅; Teams, SharePoint/PowerPoint, Power BI now unblocked |
-| **E2** | **Meta (Facebook/Instagram Graph) OAuth provider** + create a Meta app + app review/business verification. | L (external approval) | Instagram, Facebook Page |
+| **E2** ✅ (code) | **Meta (Facebook/Instagram Graph) OAuth provider** — shipped: `ConnectionProvider.META`, `meta.oauth.ts` (Facebook Login; code→short→long-lived token, **no refresh token** so the long-lived token is re-extended proactively), `meta-api.ts` (`me/accounts` page + linked-IG pickers, page-token resolver), `ConnectionsService` wiring (`getProvider` + `PROVIDER_CONFIG_NS` + `meta-pages`/`meta-ig-accounts` browse), `META_CLIENT_ID`/`SECRET`, CMS provider union. **Still needs the operator** to create a Meta app + clear App Review / Business verification (external, weeks). | L (external approval) | Instagram ✅, Facebook Page ✅ |
 | **E3** | **Slack OAuth provider** (`conversations.history` scope). | M | Slack channel app |
 | **E4a** ✅ | **`datetime` field type** — native date/time picker, stored as a local `YYYY-MM-DDTHH:MM` string. Shipped: contract union + zod (string-like) + CMS `DateTimeControl`; used by the Countdown `target`. | S | Countdown (done) |
 | **E4b** ✅ | **`repeater` field type** — an add/remove/reorder row editor (each row a set of typed sub-fields via `field.fields`). Shipped: contract union + zod + CMS `RepeaterControl`. Adopted by Menu, Ticker, World clocks and Stocks (each keeps a legacy string/textarea fallback so saved configs don't break). | M | Menu, Ticker, World clocks, Stocks (done) |
@@ -176,8 +183,8 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 23 | Microsoft Teams | `teams` | connected | Productivity | L | E1 |
 | 24 | Slack channel | `slack` | connected | Productivity | M–L | E3 |
 | **Tier 5 — social (approval / cost gated)** ||||||
-| 25 | Instagram | `instagram` | connected | Social | L | E2 |
-| 26 | Facebook Page | `facebook` | connected | Social | L | E2 |
+| 25 | Instagram | `instagram` | connected | Social | L | E2 ✅ (code) |
+| 26 | Facebook Page | `facebook` | connected | Social | L | E2 ✅ (code) |
 | 27 | LinkedIn company page | `linkedin` | connected | Social | L | new provider |
 | 28 | X / Twitter | `twitter` | connected | Social | L | new provider (**paid API**) |
 | 29 | TikTok | `tiktok` | connected | Social | L | new provider |
@@ -337,10 +344,18 @@ channel messages/announcements. `cacheKey` `slack:<connId>:<channelId>`. `refres
 
 ### Tier 5 — social (approval / cost gated — schedule opportunistically)
 
-**25. Instagram** (`instagram`, connected) — **Depends E2**. Instagram Graph API (Business/Creator
-linked to an FB Page); latest posts. Requires Meta app review + business verification.
+**25. Instagram** (`instagram`, connected) ✅ (code) — Meta provider. Reads a professional (Business/
+Creator) IG account's recent media via Graph `/{ig-user-id}/media` (scopes `instagram_basic`,
+`pages_show_list`). Picker `remote-select` `meta-ig-accounts`. `cacheKey` `instagram:<connId>:<igId>`,
+`refreshSeconds` 900. **No `version`** — `media_url` is a rotating CDN link, so the payload fans out to
+keep images live (same deliberate call as `gslides`). Renders via the shared spotlight/grid embed.
+Using it against accounts you don't own needs Meta App Review (`instagram_basic`) + Business verification.
 
-**26. Facebook Page** (`facebook`, connected) — **Depends E2**. `pages_read_engagement`; latest posts/events.
+**26. Facebook Page** (`facebook`, connected) ✅ (code) — Meta provider. Reads a Page's recent posts via
+Graph `/{page-id}/posts` (scopes `pages_show_list`, `pages_read_engagement`). A Page feed needs a **Page
+access token**, so the connector resolves it from the long-lived user token each run. Picker
+`remote-select` `meta-pages`. `cacheKey` `facebook:<connId>:<pageId>`, `refreshSeconds` 900. Same shared
+embed as Instagram (text-only posts render as a text hero). Needs Meta App Review + Business verification.
 
 **27. LinkedIn company page** (`linkedin`, connected) — LinkedIn OAuth is **partner-gated**; latest company
 posts. Mark risky.
@@ -361,13 +376,16 @@ committing. Latest tweets from a handle.
   Teams next — same provider, new connectors.
 - **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Alpaca), sports ✅ (TheSportsDB, free-key default); transit
   next (same keyed pattern); news presets.
-- **M5 — Social (E2/E3):** Slack, Instagram, Facebook; X/TikTok/LinkedIn only if the API cost/approval
-  is acceptable.
+- **M5 — Social (E2 ✅ code / E3):** Instagram ✅ + Facebook ✅ ship on the Meta provider (operator still
+  clears Meta App Review + Business verification to go live). Slack next (E3). X/TikTok/LinkedIn only if
+  the API cost/approval is acceptable.
 
-**Recommended next:** more Microsoft apps on the now-shipped provider — **Teams** (channel messages),
-**SharePoint / PowerPoint**, **Power BI**. The connected recipe is proven across data-read (Sheets),
-image-export (Slides), and a second OAuth provider (Outlook, which reuses the gcal embed via a
-normalized payload). Remaining tiers: **Social** (needs the Meta provider, E2) and **Slack** (E3).
+**Recommended next:** the Meta provider (E2) supports one more social app cheaply — a **LinkedIn**-style
+company feed would need a new provider, but **more Microsoft apps** on the shipped E1 provider are the
+lowest-friction wins: **Teams** (channel messages), **SharePoint / PowerPoint**, **Power BI**. The
+connected recipe is now proven across data-read (Sheets), image-export (Slides), a normalized-payload
+provider reuse (Outlook → gcal embed) and a **third OAuth provider with a shared multi-app renderer**
+(Meta → Instagram + Facebook). Remaining: **Slack** (E3), and the approval/cost-gated social platforms.
 
 ## 6. Known caveats to carry into implementation
 

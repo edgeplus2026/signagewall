@@ -5,10 +5,12 @@ import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';
 import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
+import { facebookConnector } from './facebook.connector';
 import { gcalConnector } from './gcal.connector';
 import { gsheetsConnector } from './gsheets.connector';
 import { gslidesConnector } from './gslides.connector';
 import { holidaysConnector } from './holidays.connector';
+import { instagramConnector } from './instagram.connector';
 import { onthisdayConnector } from './onthisday.connector';
 import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
@@ -1629,5 +1631,143 @@ describe('outlook connector (connected, microsoft)', () => {
         },
       ],
     });
+  });
+});
+
+describe('instagram connector (connected, meta)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'meta',
+      accountLabel: 'Acme',
+      accessToken: 'user-tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + account', () => {
+    expect(
+      instagramConnector.cacheKey!({
+        connectionId: 'c1',
+        account: { id: 'ig-1' },
+      }),
+    ).toBe('instagram:c1:ig-1');
+  });
+
+  it('normalizes media (video → thumbnail) and labels by @handle', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          data: [
+            {
+              id: 'm1',
+              caption: 'Hello',
+              media_type: 'IMAGE',
+              media_url: 'https://cdn/img1.jpg',
+              permalink: 'https://instagram.com/p/1',
+              timestamp: '2026-07-16T10:00:00+0000',
+              username: 'acme',
+            },
+            {
+              id: 'm2',
+              media_type: 'VIDEO',
+              media_url: 'https://cdn/vid.mp4',
+              thumbnail_url: 'https://cdn/vid-thumb.jpg',
+              username: 'acme',
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await instagramConnector.fetchData(
+      { connectionId: 'c1', account: { id: 'ig-1' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      accountLabel: '@acme',
+      posts: [
+        {
+          id: 'm1',
+          text: 'Hello',
+          imageUrl: 'https://cdn/img1.jpg',
+          permalink: 'https://instagram.com/p/1',
+          timestamp: '2026-07-16T10:00:00+0000',
+          mediaType: 'image',
+        },
+        {
+          id: 'm2',
+          imageUrl: 'https://cdn/vid-thumb.jpg',
+          mediaType: 'video',
+        },
+      ],
+    });
+    // No `version`: rotating CDN URLs are meant to fan out (see SocialPayload).
+    expect(result.version).toBeUndefined();
+  });
+});
+
+describe('facebook connector (connected, meta)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'meta',
+      accountLabel: 'Acme',
+      accessToken: 'user-tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + page', () => {
+    expect(
+      facebookConnector.cacheKey!({
+        connectionId: 'c1',
+        page: { id: 'pg-1' },
+      }),
+    ).toBe('facebook:c1:pg-1');
+  });
+
+  it('resolves a page token then normalizes the feed', async () => {
+    const fetchMock = mockFetchSequence([
+      // 1. resolve the Page access token from the user token
+      { body: { access_token: 'page-tok' } },
+      // 2. read the Page feed with that Page token
+      {
+        body: {
+          data: [
+            {
+              id: 'p1',
+              message: 'Big news',
+              created_time: '2026-07-16T08:00:00+0000',
+              full_picture: 'https://cdn/fb1.jpg',
+              permalink_url: 'https://facebook.com/p1',
+            },
+            { id: 'p2', story: 'Acme updated their cover photo' },
+          ],
+        },
+      },
+    ]);
+    const result = await facebookConnector.fetchData(
+      { connectionId: 'c1', page: { id: 'pg-1', label: 'Acme Page' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      accountLabel: 'Acme Page',
+      posts: [
+        {
+          id: 'p1',
+          text: 'Big news',
+          imageUrl: 'https://cdn/fb1.jpg',
+          permalink: 'https://facebook.com/p1',
+          timestamp: '2026-07-16T08:00:00+0000',
+          mediaType: 'image',
+        },
+        { id: 'p2', text: 'Acme updated their cover photo', mediaType: 'text' },
+      ],
+    });
+    // The feed read must use the resolved Page token, not the user token.
+    const feedCall = fetchMock.mock.calls[1]!;
+    expect(feedCall[1].headers.authorization).toBe('Bearer page-tok');
   });
 });

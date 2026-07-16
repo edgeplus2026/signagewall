@@ -16,8 +16,13 @@ import {
   listGoogleSpreadsheets,
 } from './providers/google-api';
 import { listMicrosoftCalendars } from './providers/microsoft-api';
+import {
+  listFacebookPages,
+  listInstagramAccounts,
+} from './providers/meta-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
+import { metaOAuthProvider } from './providers/meta.oauth';
 import { microsoftOAuthProvider } from './providers/microsoft.oauth';
 import type { OAuthProvider } from './providers/oauth-provider';
 import {
@@ -75,6 +80,7 @@ const PROVIDER_CONFIG_NS: Record<ConnectionProvider, string> = {
   [ConnectionProvider.GOOGLE]: 'google',
   [ConnectionProvider.CANVA]: 'canva',
   [ConnectionProvider.MICROSOFT]: 'microsoft',
+  [ConnectionProvider.META]: 'meta',
 };
 
 @Injectable()
@@ -335,6 +341,12 @@ export class ConnectionsService {
       case 'ms-calendars':
         this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
         return listMicrosoftCalendars(connection.accessToken, query);
+      case 'meta-pages':
+        this.assertProvider(connection.provider, ConnectionProvider.META);
+        return listFacebookPages(connection.accessToken, query);
+      case 'meta-ig-accounts':
+        this.assertProvider(connection.provider, ConnectionProvider.META);
+        return listInstagramAccounts(connection.accessToken, query);
       default:
         throw BusinessException.badRequest(
           `Unknown browse source "${source}".`,
@@ -405,6 +417,7 @@ export class ConnectionsService {
   private getProvider(provider: ConnectionProvider): OAuthProvider {
     if (provider === ConnectionProvider.GOOGLE) return googleOAuthProvider;
     if (provider === ConnectionProvider.MICROSOFT) return microsoftOAuthProvider;
+    if (provider === ConnectionProvider.META) return metaOAuthProvider;
     return canvaOAuthProvider;
   }
 
