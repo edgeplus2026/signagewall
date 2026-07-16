@@ -7,10 +7,11 @@ const STOCKS_ICON =
 
 /**
  * Stocks — a `server` app showing live quotes for a set of tickers via Finnhub.
- * Unlike the keyless apps, this one needs a market-data API key configured in the
- * backend (`FINNHUB_API_KEY`; free tier at finnhub.io) — see enabler E5. Without
- * it the connector fails cleanly and the screen holds its last quotes rather than
- * going blank.
+ * Unlike the keyless apps, this one needs Alpaca market-data credentials in the
+ * backend (`ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`) — see enabler E5.
+ * Alpaca is chosen for its commercial-friendly terms (its free tier serves IEX
+ * data). Without the credentials the connector fails cleanly and the screen holds
+ * its last quotes rather than going blank.
  *
  * Tickers are one-per-line for now (a `textarea`); a proper repeater field is the
  * follow-up (BACKLOG.md E4b). The connector fetches once per ticker set under a
@@ -21,7 +22,7 @@ export const stocksManifest: AppManifest = {
   name: 'Stocks',
   tagline: 'Live stock prices on your screens',
   description:
-    'Show live prices and daily change for the stock tickers you choose. Requires a market-data key configured by your administrator.',
+    'Show live prices and daily change for the stock tickers you choose. Requires Alpaca market-data credentials configured by your administrator.',
   runtimeKind: 'embed',
   dataSource: 'server',
   version: 1,

@@ -1333,12 +1333,17 @@ describe('sunmoon connector (server)', () => {
   });
 });
 
-describe('stocks connector (server, keyed)', () => {
-  const KEY = 'FINNHUB_API_KEY';
-  const original = process.env[KEY];
+describe('stocks connector (server, keyed via Alpaca)', () => {
+  const KEYS = ['ALPACA_API_KEY_ID', 'ALPACA_API_SECRET_KEY'] as const;
+  const original: Record<string, string | undefined> = {
+    ALPACA_API_KEY_ID: process.env.ALPACA_API_KEY_ID,
+    ALPACA_API_SECRET_KEY: process.env.ALPACA_API_SECRET_KEY,
+  };
   afterAll(() => {
-    if (original === undefined) delete process.env[KEY];
-    else process.env[KEY] = original;
+    for (const key of KEYS) {
+      if (original[key] === undefined) delete process.env[key];
+      else process.env[key] = original[key];
+    }
   });
 
   it('cacheKey is the sorted ticker set — from a legacy string or repeater rows', () => {
@@ -1350,19 +1355,26 @@ describe('stocks connector (server, keyed)', () => {
     ).toBe('stocks:AAPL,MSFT');
   });
 
-  it('throws a clear error when the API key is missing', async () => {
-    delete process.env[KEY];
+  it('throws a clear error when the Alpaca credentials are missing', async () => {
+    delete process.env.ALPACA_API_KEY_ID;
+    delete process.env.ALPACA_API_SECRET_KEY;
     await expect(
       stocksConnector.fetchData({ symbols: 'AAPL' }, ctx),
-    ).rejects.toThrow(/FINNHUB_API_KEY/);
+    ).rejects.toThrow(/ALPACA/);
   });
 
-  it('normalizes Finnhub quotes, sorted, dropping unknown tickers', async () => {
-    process.env[KEY] = 'test-key';
+  it('maps Alpaca snapshots (change vs prev close), sorted, dropping unknown tickers', async () => {
+    process.env.ALPACA_API_KEY_ID = 'test-id';
+    process.env.ALPACA_API_SECRET_KEY = 'test-secret';
+    // One call returns every symbol, keyed by ticker.
     mockFetchSequence([
-      { body: { c: 210, d: 2, dp: 0.96, pc: 208 } }, // AAPL
-      { body: { c: 420, d: -3, dp: -0.71, pc: 423 } }, // MSFT
-      { body: { c: 0, d: null, dp: null, pc: 0 } }, // ZZZZ — unknown ticker
+      {
+        body: {
+          AAPL: { latestTrade: { p: 211.3 }, prevDailyBar: { c: 209 } },
+          MSFT: { latestTrade: { p: 417 }, prevDailyBar: { c: 423 } },
+          ZZZZ: {}, // unknown ticker — no price, dropped
+        },
+      },
     ]);
     const result = await stocksConnector.fetchData(
       { symbols: 'MSFT\nAAPL\nZZZZ' },
@@ -1370,8 +1382,8 @@ describe('stocks connector (server, keyed)', () => {
     );
     expect(result.playerPayload).toEqual({
       quotes: [
-        { symbol: 'AAPL', price: 210, change: 2, changePercent: 0.96 },
-        { symbol: 'MSFT', price: 420, change: -3, changePercent: -0.71 },
+        { symbol: 'AAPL', price: 211.3, change: 2.3, changePercent: 1.1 },
+        { symbol: 'MSFT', price: 417, change: -6, changePercent: -1.42 },
       ],
     });
   });

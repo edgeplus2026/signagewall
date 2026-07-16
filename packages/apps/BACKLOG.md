@@ -16,7 +16,7 @@ CMS and player contain **zero per-app code**. Adding an app is done almost entir
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
   (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays` (Nager.Date),
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, and
-  `stocks` (Finnhub — needs `FINNHUB_API_KEY`)
+  `stocks` (Alpaca — needs `ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`)
 - `connected` (OAuth account): `gcal` (Google Calendar), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
@@ -242,11 +242,13 @@ price + 24h %.
 `currency` (select), `includeVat`/`includeTariffs` (switch), `layout` (now + today's hourly curve).
 **Payload:** current price + hourly series + unit.
 
-**13. Stocks** (`stocks`, server) — ✅ shipped. **Finnhub** `/quote` (free tier; needs `FINNHUB_API_KEY`
-via enabler E5). `cacheKey stocks:<sorted tickers>`, `refreshSeconds` 300; one call per ticker (capped
-at 15), unknown tickers dropped, a 401 surfaced. **Config:** `symbols` (textarea MVP), `showChange`,
-theme. A missing key makes the connector throw, so the screen holds its last quotes. (A keyless CSV
-source, Stooq, was tried first but returned 404 — not reliable enough for a backend.)
+**13. Stocks** (`stocks`, server) — ✅ shipped. **Alpaca** market data (`/v2/stocks/snapshots`;
+commercial-friendly, free tier = IEX) via enabler E5 — needs `ALPACA_API_KEY_ID` +
+`ALPACA_API_SECRET_KEY`. `cacheKey stocks:<sorted tickers>`, `refreshSeconds` 300; ONE call for all
+tickers (capped at 15), change computed vs the previous close, unknown tickers dropped, 401/403
+surfaced. **Config:** `symbols` (repeater, E4b), `showChange`, theme. Missing credentials → the
+connector throws and the screen holds its last quotes. (Finnhub was dropped — its free tier forbids
+commercial use; a keyless CSV source, Stooq, 404'd — hence Alpaca.)
 
 **14. Sports** (`sports`, server) — ✅ shipped. **TheSportsDB** (`THESPORTSDB_API_KEY`, defaults to the
 free public test key — works out of the box, upgradeable via E5). Resolves a team by name, then fetches
@@ -345,7 +347,7 @@ committing. Latest tweets from a handle.
 - **M2 — Google reuse (next up):** Google Sheets, Google Slides (private), Google Photos. No new OAuth
   provider — extend the existing `google` connection with scopes + a `remote-select` browse endpoint.
 - **M3 — Microsoft (E1):** Outlook Calendar (reuse gcal embed), then Power BI / SharePoint / Teams.
-- **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Finnhub), sports ✅ (TheSportsDB, free-key default); transit
+- **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Alpaca), sports ✅ (TheSportsDB, free-key default); transit
   next (same keyed pattern); news presets.
 - **M5 — Social (E2/E3):** Slack, Instagram, Facebook; X/TikTok/LinkedIn only if the API cost/approval
   is acceptable.
