@@ -7,6 +7,7 @@ import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
 import { gcalConnector } from './gcal.connector';
 import { gsheetsConnector } from './gsheets.connector';
+import { gslidesConnector } from './gslides.connector';
 import { holidaysConnector } from './holidays.connector';
 import { onthisdayConnector } from './onthisday.connector';
 import { powerPricesConnector } from './power-prices.connector';
@@ -1526,5 +1527,53 @@ describe('gsheets connector (connected)', () => {
         ['Q2', '200'],
       ],
     });
+  });
+});
+
+describe('gslides connector (connected)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'google',
+      accountLabel: 'me@example.com',
+      accessToken: 'tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + presentation (slideSeconds/maxSlides display-only)', () => {
+    const a = gslidesConnector.cacheKey!({
+      connectionId: 'c1',
+      presentation: { id: 'P1' },
+      slideSeconds: 8,
+    });
+    const b = gslidesConnector.cacheKey!({
+      connectionId: 'c1',
+      presentation: { id: 'P1' },
+      maxSlides: 3,
+    });
+    expect(a).toBe('gslides:c1:P1');
+    expect(a).toBe(b);
+  });
+
+  it('exports each slide as a thumbnail and carries no volatile version', async () => {
+    // 1st call: the presentation metadata; then one thumbnail per page.
+    mockFetchSequence([
+      { body: { title: 'Deck', slides: [{ objectId: 'p1' }, { objectId: 'p2' }] } },
+      { body: { contentUrl: 'https://img/1' } },
+      { body: { contentUrl: 'https://img/2' } },
+    ]);
+    const result = await gslidesConnector.fetchData(
+      { connectionId: 'c1', presentation: { id: 'P1', label: 'Deck' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      title: 'Deck',
+      slides: ['https://img/1', 'https://img/2'],
+    });
+    // No `version`: rotating thumbnail URLs must fan out each refresh so they
+    // reach the screen before they expire.
+    expect(result.version).toBeUndefined();
   });
 });

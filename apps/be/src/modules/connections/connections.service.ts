@@ -12,6 +12,7 @@ import { ConnectionsRepository } from './connections.repository';
 import { searchCanvaDesigns } from './providers/canva-api';
 import {
   listGoogleCalendars,
+  listGooglePresentations,
   listGoogleSpreadsheets,
 } from './providers/google-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
@@ -325,6 +326,9 @@ export class ConnectionsService {
       case 'google-sheets':
         this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
         return listGoogleSpreadsheets(connection.accessToken, query);
+      case 'google-presentations':
+        this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
+        return listGooglePresentations(connection.accessToken, query);
       default:
         throw BusinessException.badRequest(
           `Unknown browse source "${source}".`,

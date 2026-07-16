@@ -6,6 +6,7 @@ import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
 import { gcalConnector } from './gcal.connector';
 import { gsheetsConnector } from './gsheets.connector';
+import { gslidesConnector } from './gslides.connector';
 import { holidaysConnector } from './holidays.connector';
 import { onthisdayConnector } from './onthisday.connector';
 import { powerPricesConnector } from './power-prices.connector';
@@ -31,6 +32,7 @@ const CONNECTORS: Record<string, AppConnector> = {
   'power-prices': powerPricesConnector,
   gcal: gcalConnector,
   gsheets: gsheetsConnector,
+  gslides: gslidesConnector,
   canva: canvaConnector,
   rss: rssConnector,
   holidays: holidaysConnector,

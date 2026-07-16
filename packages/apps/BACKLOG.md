@@ -10,14 +10,15 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**28 apps ship today** (all `runtimeKind: 'embed'`):
+**29 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
   (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays` (Nager.Date),
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, and
   `stocks` (Alpaca — needs `ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`)
-- `connected` (OAuth account): `gcal` (Google Calendar), `gsheets` (Google Sheets), `canva`
+- `connected` (OAuth account): `gcal` (Google Calendar), `gsheets` (Google Sheets), `gslides` (Google
+  Slides, private), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
 `datetime` config field type (enabler E4a). Remaining work is marked below — ✅ = shipped.
@@ -166,7 +167,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 33 | Sun & Moon ✅ | `sunmoon` | server | Information | M | — |
 | **Tier 3 — connected, reuse Google provider** ||||||
 | 17 | Google Sheets (KPI/table) ✅ | `gsheets` | connected | Data & Dashboards | M | — |
-| 18 | Google Slides (private) | `gslides` | connected | Productivity | M–L | — |
+| 18 | Google Slides (private) ✅ | `gslides` | connected | Productivity | M–L | — |
 | 19 | Google Photos album | `gphotos` | connected | Media | M | — |
 | **Tier 4 — connected, new providers** ||||||
 | 20 | Outlook / M365 Calendar | `outlook` | connected | Productivity | M | E1 |
@@ -301,9 +302,13 @@ list); reads a range via the Sheets API. `cacheKey gsheets:<connId>:<sheetId>:<r
 `hasHeader`, theme. **Needs** `GOOGLE_CLIENT_ID`/`SECRET` + `ENCRYPTION_KEY` on the backend (same
 prerequisite as Calendar).
 
-**18. Google Slides (private)** (`gslides`, connected) — google + `presentations.readonly` /
-`drive.readonly`. `remote-select` `google-presentations`. Connector exports slide images (or embeds).
-`cacheKey` `gslides:<connId>:<fileId>`. Async export → `pending` state machine (like canva).
+**18. Google Slides (private)** (`gslides`, connected) — ✅ shipped. Google OAuth; connector scopes
+`presentations.readonly` + `drive.metadata.readonly`. `remote-select` `google-presentations` (Drive
+list). Reads the deck's page ids, then exports each as a thumbnail via the Slides API; the embed loops
+them. `cacheKey gslides:<connId>:<presentationId>`. Thumbnail URLs are temporary, so it carries **no
+`version`** — the rotating URLs fan out each 15-min refresh, keeping them fresh before they expire.
+Distinct from the keyless `gslides-public` (published decks, no login). Needs `GOOGLE_CLIENT_ID`/`SECRET`
++ `ENCRYPTION_KEY`.
 
 **19. Google Photos album** (`gphotos`, connected) — google + `photoslibrary.readonly`. `remote-select`
 album → photo slideshow. `cacheKey` `gphotos:<connId>:<albumId>`. **Config:** album, `slideSeconds`,
@@ -347,17 +352,17 @@ committing. Latest tweets from a handle.
 - **M1 — Fast value, no auth ✅ done:** all Tier 1 statics + keyless Tier 2 (air quality, currency,
   crypto, power-prices) shipped, plus the `datetime` field (E4a) and the `repeater` field (E4b ✅).
   Still open in this band: **E0** (seed categories). (E6 README refresh ✅.)
-- **M2 — Google reuse:** Google Sheets ✅ (shipped); Google Slides (private) and Google Photos next —
-  same pattern (existing `google` connection + connector scopes + a `remote-select` browse endpoint).
+- **M2 — Google reuse:** Google Sheets ✅, Google Slides (private) ✅; Google Photos next — same
+  pattern (existing `google` connection + connector scopes + a `remote-select` browse endpoint).
 - **M3 — Microsoft (E1):** Outlook Calendar (reuse gcal embed), then Power BI / SharePoint / Teams.
 - **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Alpaca), sports ✅ (TheSportsDB, free-key default); transit
   next (same keyed pattern); news presets.
 - **M5 — Social (E2/E3):** Slack, Instagram, Facebook; X/TikTok/LinkedIn only if the API cost/approval
   is acceptable.
 
-**Recommended next:** more `connected` reuse — **Google Slides** / **Google Photos** (same Google OAuth
-+ a browse endpoint), then **E1 (Microsoft provider)** to unlock Outlook / Teams / Power BI. Google
-Sheets ✅ has proved the connected recipe end to end (OAuth field → browse endpoint → per-connection fetch).
+**Recommended next:** **Google Photos** (last of the Google-reuse trio), or **E1 (Microsoft provider)**
+to unlock Outlook / Teams / Power BI. Google Sheets ✅ and Slides ✅ have proven both connected shapes —
+data-read (Sheets range) and image-export (Slides thumbnails).
 
 ## 6. Known caveats to carry into implementation
 

@@ -62,8 +62,8 @@ export async function listGoogleCalendars(
   });
 }
 
-/** A spreadsheet as surfaced to the CMS picker (token-free). */
-export interface GoogleSpreadsheetSummary {
+/** A Drive file (spreadsheet, presentation, …) as surfaced to a CMS picker. */
+export interface GoogleDriveFileSummary {
   id: string;
   title: string;
 }
@@ -74,18 +74,20 @@ interface DriveFile {
 }
 
 /**
- * List the Google Sheets in the connected account's Drive (most-recently-modified
- * first) for the config-form picker. Drive's list has a server-side query, but we
- * fetch the recent spreadsheets and filter by title client-side — the same simple,
- * injection-free approach as the calendar picker.
+ * List the connected account's Drive files of one MIME type (most-recently-
+ * modified first) for a config-form picker. Drive has a server-side query, but we
+ * fetch the recent files and filter by title client-side — the same simple,
+ * injection-free approach as the calendar picker. `mimeType` is a fixed constant
+ * per caller, never user input.
  */
-export async function listGoogleSpreadsheets(
+async function listDriveFilesByType(
   accessToken: string,
+  mimeType: string,
   query: string,
   signal?: AbortSignal,
-): Promise<GoogleSpreadsheetSummary[]> {
+): Promise<GoogleDriveFileSummary[]> {
   const params = new URLSearchParams({
-    q: "mimeType='application/vnd.google-apps.spreadsheet' and trashed=false",
+    q: `mimeType='${mimeType}' and trashed=false`,
     fields: 'files(id,name)',
     orderBy: 'modifiedTime desc',
     pageSize: '100',
@@ -99,13 +101,40 @@ export async function listGoogleSpreadsheets(
   }
   const body = (await response.json()) as { files?: DriveFile[] };
 
-  const sheets: GoogleSpreadsheetSummary[] = (body.files ?? []).map((file) => ({
+  const files: GoogleDriveFileSummary[] = (body.files ?? []).map((file) => ({
     id: file.id,
     title: file.name ?? file.id,
   }));
-
   const trimmed = query.trim().toLowerCase();
   return trimmed
-    ? sheets.filter((sheet) => sheet.title.toLowerCase().includes(trimmed))
-    : sheets;
+    ? files.filter((file) => file.title.toLowerCase().includes(trimmed))
+    : files;
+}
+
+/** List the account's Google Sheets for the spreadsheet picker. */
+export function listGoogleSpreadsheets(
+  accessToken: string,
+  query: string,
+  signal?: AbortSignal,
+): Promise<GoogleDriveFileSummary[]> {
+  return listDriveFilesByType(
+    accessToken,
+    'application/vnd.google-apps.spreadsheet',
+    query,
+    signal,
+  );
+}
+
+/** List the account's Google Slides decks for the presentation picker. */
+export function listGooglePresentations(
+  accessToken: string,
+  query: string,
+  signal?: AbortSignal,
+): Promise<GoogleDriveFileSummary[]> {
+  return listDriveFilesByType(
+    accessToken,
+    'application/vnd.google-apps.presentation',
+    query,
+    signal,
+  );
 }

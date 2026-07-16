@@ -1,0 +1,23 @@
+/* Google Slides (private) — a full-bleed image slideshow of the exported deck. */
+
+.gsl {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gsl-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.gsl-empty {
+  color: #fff;
+  opacity: 0.6;
+  font-size: 3vh;
+}
