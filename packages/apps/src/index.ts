@@ -18,6 +18,7 @@ import { menuManifest } from './menu/manifest.js'
 import { newsManifest } from './news/manifest.js'
 import { onthisdayManifest } from './onthisday/manifest.js'
 import { outlookManifest } from './outlook/manifest.js'
+import { powerbiManifest } from './powerbi/manifest.js'
 import { powerPricesManifest } from './power-prices/manifest.js'
 import { qrManifest } from './qr/manifest.js'
 import { rssManifest } from './rss/manifest.js'
@@ -51,6 +52,7 @@ export const APP_MANIFESTS: AppManifest[] = [
   menuManifest,
   webManifest,
   dashboardManifest,
+  powerbiManifest,
   youtubeManifest,
   vimeoManifest,
   streamManifest,
@@ -88,6 +90,7 @@ export {
   menuManifest,
   webManifest,
   dashboardManifest,
+  powerbiManifest,
   youtubeManifest,
   vimeoManifest,
   streamManifest,

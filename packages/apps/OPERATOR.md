@@ -1,6 +1,6 @@
 # Edge Digital Signage — Operator Setup Guide (Apps)
 
-This guide tells an operator EXACTLY what to do to make each of the 34 signage apps work: which environment variables to set, which OAuth apps/API keys to register externally, which approvals to obtain, and the per-instance steps done in the CMS. Most apps need **zero** backend setup — they are configured entirely per-instance. A small number need an **API key**, and the "connected" apps each need an **OAuth application** registered with the provider plus `ENCRYPTION_KEY` set on the server. Where a fact is not established here, it says **see manifest** rather than guessing.
+This guide tells an operator EXACTLY what to do to make each of the 35 signage apps work: which environment variables to set, which OAuth apps/API keys to register externally, which approvals to obtain, and the per-instance steps done in the CMS. Most apps need **zero** backend setup — they are configured entirely per-instance. A small number need an **API key**, and the "connected" apps each need an **OAuth application** registered with the provider plus `ENCRYPTION_KEY` set on the server. Where a fact is not established here, it says **see manifest** rather than guessing.
 
 ---
 
@@ -56,7 +56,7 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 
 ---
 
-## 1. At-a-glance (all 34 apps)
+## 1. At-a-glance (all 35 apps)
 
 | App | Type | Operator setup needed | Env / keys | External approval |
 |---|---|---|---|---|
@@ -69,6 +69,7 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 | Menu board | Static | None — per-instance only | None | None |
 | Web page | Static (network) | Need an iframe-embeddable public URL | None | None |
 | Dashboard | Static (network) | Need a public/embed/anonymous dashboard URL | None | None |
+| Power BI | Static (network) | "Publish to web" the report, paste the app.powerbi.com link | None | None (public report only) |
 | YouTube | Static (network) | Need a single YouTube video link | None | None |
 | Vimeo | Static (network) | Need a single Vimeo video link | None | None |
 | Live stream | Static (network) | Need an HLS `.m3u8` source URL | None | None |
@@ -157,6 +158,10 @@ These render entirely on the player from operator-typed content. No env vars, no
 - **Dashboard** — `requiresNetwork: true`, refreshes every 300s. Web-style live embed for **public/anonymous** dashboards; authenticated dashboards are separate connected apps in the backlog. **Prerequisite:** the dashboard's public, embeddable/anonymous link — Grafana share/snapshot, Looker Studio embed, Power BI "publish to web", or a Metabase public dashboard. A private/login/edit URL will not load.
   1. Enter **Dashboard link** (url, required, must match `^https?://.+`).
   2. Set **Reload every (minutes)** (default 5, range 0–1440; 0 = never reload).
+
+- **Power BI** — `requiresNetwork: true`. Embeds a Power BI report **published to the web**; no account, no OAuth, no Power BI capacity. The URL is validated to a real `*.powerbi.com` host. **Prerequisite:** in Power BI open the report → **File → Embed report → Publish to web (public)** and copy the `app.powerbi.com/view?r=…` link. A normal report link (which needs a login) will not load on a screen. Embedding a *private* report is not this app — it requires a Power BI capacity (see BACKLOG.md 21b).
+  1. Enter **Power BI embed link** (url, required, must be a `https://…powerbi.com/…` URL).
+  2. Set **Reload every (minutes)** (default 0 = never; Power BI refreshes published data on its own, so set this only to force a periodic reload).
 
 - **YouTube** — `requiresNetwork: true`. Streams live from YouTube; nothing offline. One video per app. **Prerequisite:** a single YouTube link (watch, `youtu.be`, shorts, or embed form). Playlists are not supported.
   1. Enter **YouTube link** (url, required, must match the YouTube URL pattern for watch/embed/shorts/v or `youtu.be`).

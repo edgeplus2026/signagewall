@@ -12,9 +12,9 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**34 apps ship today** (all `runtimeKind: 'embed'`):
+**35 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
-  `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
+  `menu`, `web`, `dashboard`, `powerbi`, `youtube`, `vimeo`, `stream`, `gslides-public`
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
   (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays` (Nager.Date),
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, `news`
@@ -146,6 +146,7 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 | **E4b** ✅ | **`repeater` field type** — an add/remove/reorder row editor (each row a set of typed sub-fields via `field.fields`). Shipped: contract union + zod + CMS `RepeaterControl`. Adopted by Menu, Ticker, World clocks and Stocks (each keeps a legacy string/textarea fallback so saved configs don't break). | M | Menu, Ticker, World clocks, Stocks (done) |
 | **E5** ✅ | **Keyed-connector convention** — `requireConnectorKey(name)` in `connectors/env.util.ts` reads a key from the backend env and throws cleanly when it's missing (the host then keeps last-known-good). Keys live in `.env` / `.env.example`. Shipped; used by Stocks. | S–M | sports, transit (keyed) now unblocked |
 | **E6** ✅ | Refreshed [`README.md`](./README.md) to current reality (`embeds/<slug>/` bundles, the three app kinds, the build/preview pipeline, a BACKLOG pointer). | S | docs accuracy |
+| **E7** | **Connector→R2 asset persistence** — a way for a connector to save a binary it fetched (with a server-side token) to R2 and return a public URL the player can load, extending `ConnectorContext`. Google Slides sidestepped this with Google's own thumbnail URLs, but providers that only hand back an *authenticated* file (Power BI Export-to-file, SharePoint/PowerPoint export) need it. This is the gating item for the whole "export a private document/report to an image" family. | M | private Power BI (21b), SharePoint/PowerPoint (22) |
 
 ## 4. App catalog (prioritized)
 
@@ -187,7 +188,8 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 19 | Google Photos album ⛔ | `gphotos` | connected | Media | — | blocked (API) |
 | **Tier 4 — connected, new providers** ||||||
 | 20 | Outlook / M365 Calendar ✅ | `outlook` | connected | Productivity | M | E1 ✅ |
-| 21 | Power BI | `powerbi` | connected | Data & Dashboards | L | E1 |
+| 21 | Power BI (publish-to-web) ✅ | `powerbi` | static | Data & Dashboards | S | — |
+| 21b | Power BI (private, capacity) | `powerbi-embed` | connected | Data & Dashboards | L | E1 + capacity + R2-from-connector enabler |
 | 22 | SharePoint / PowerPoint | `sharepoint` | connected | Productivity | L | E1 |
 | 23 | Microsoft Teams ✅ | `teams` | connected | Productivity | L | E1 ✅ |
 | 24 | Slack channel | `slack` | connected | Productivity | M–L | E3 |
@@ -344,11 +346,25 @@ library read access. (Docs: developers.google.com/photos/support/updates.)
 shared `GcalPayload`, so `embeds/outlook` **reuses the gcal embed** wholesale (its config keys mirror
 gcal's). `cacheKey outlook:<connId>:<calId>`. Needs `MICROSOFT_CLIENT_ID`/`SECRET` + `ENCRYPTION_KEY`.
 
-**21. Power BI** (`powerbi`, connected) — **Depends E1**. Embed token via Power BI REST; pick
-report/dashboard. `cacheKey` `powerbi:<connId>:<reportId>`. (Public reports → use #4 instead.)
+**21. Power BI** (`powerbi`, **static**) — ✅ shipped as a **publish-to-web wrapper**, the Power BI
+analogue of `gslides-public`. The operator uses Power BI's "Publish to web", pastes the
+`app.powerbi.com/view?r=…` link; the embed validates the `*.powerbi.com` host and renders it in a
+sandboxed iframe with an optional reload cadence. No OAuth, no capacity. `url` (pattern-validated) +
+`refreshMinutes`. Chosen deliberately (see below): private-report embedding is impossible without a
+capacity, and this ships real value today.
 
-**22. SharePoint / PowerPoint** (`sharepoint`, connected) — **Depends E1**. Graph `Files.Read`; show a
-PPT/PDF from OneDrive/SharePoint (export to images). `cacheKey` `sharepoint:<connId>:<fileId>`.
+**21b. Power BI — private (`powerbi-embed`, connected)** — **not built; deferred.** Embedding a
+*private* report needs a Power BI **capacity** (Premium P/EM, Fabric F, or Embedded A SKU) no matter the
+route: Export-to-file (`POST /reports/{id}/ExportTo` → PNG, scopes `Report.Read.All` + `Dataset.Read.All`)
+is capacity-gated AND needs a new enabler (connectors can't persist a binary to R2 today — Google Slides
+sidestepped this with Google's own thumbnail URLs, which Power BI has no equivalent of); the live-embed
+route needs a capacity + a service principal and puts a token in the snapshot. Build only for an org that
+has a capacity. Until then, `powerbi` (public) + the `dashboard` app cover the no-capacity case.
+
+**22. SharePoint / PowerPoint** (`sharepoint`, connected) — **Depends E1 + E7**. Graph `Files.Read`; show a
+PPT/PDF from OneDrive/SharePoint. The file comes back as an *authenticated* download, so — like private
+Power BI — it needs the **connector→R2 enabler (E7)** to re-host page images the player can load.
+`cacheKey` `sharepoint:<connId>:<fileId>`.
 
 **23. Microsoft Teams** (`teams`, connected) ✅ — Microsoft provider (E1). Reads a channel's recent
 messages via Graph `/teams/{team}/channels/{channel}/messages` (scopes `Team.ReadBasic.All`,
@@ -400,9 +416,11 @@ committing. Latest tweets from a handle.
   clears Meta App Review + Business verification to go live). Slack next (E3). X/TikTok/LinkedIn only if
   the API cost/approval is acceptable.
 
-**Recommended next:** keep mining the shipped Microsoft provider (E1) — **SharePoint / PowerPoint** (show a
-deck/PDF from OneDrive/SharePoint, an image-export pipeline like `gslides`) and **Power BI** (embed a
-report) are the remaining lowest-friction wins. The connected recipe is now proven across data-read
+**Recommended next:** **Power BI (public)** ✅ shipped as a static publish-to-web wrapper. The remaining
+Microsoft win is **SharePoint / PowerPoint** — but note it hits the SAME wall as private Power BI: showing
+a PPT/PDF means server-side export → an image the player can load, which needs the **connector→R2
+enabler** (E7, below). That enabler is now the gating item for the whole "export a document/report to an
+image" family (private Power BI, SharePoint/PowerPoint). The connected recipe is proven across data-read
 (Sheets), image-export (Slides), normalized-payload embed reuse across providers (Outlook → gcal embed;
 Teams → social-feed embed) and a shared multi-app renderer (Meta → Instagram + Facebook; +Teams). After
 that: **Slack** (E3, new provider) and the approval/cost-gated social platforms (LinkedIn/X/TikTok).
