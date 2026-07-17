@@ -1,6 +1,6 @@
 # Edge Digital Signage — Operator Setup Guide (Apps)
 
-This guide tells an operator EXACTLY what to do to make each of the 35 signage apps work: which environment variables to set, which OAuth apps/API keys to register externally, which approvals to obtain, and the per-instance steps done in the CMS. Most apps need **zero** backend setup — they are configured entirely per-instance. A small number need an **API key**, and the "connected" apps each need an **OAuth application** registered with the provider plus `ENCRYPTION_KEY` set on the server. Where a fact is not established here, it says **see manifest** rather than guessing.
+This guide tells an operator EXACTLY what to do to make each of the 37 signage apps work: which environment variables to set, which OAuth apps/API keys to register externally, which approvals to obtain, and the per-instance steps done in the CMS. Most apps need **zero** backend setup — they are configured entirely per-instance. A small number need an **API key**, and the "connected" apps each need an **OAuth application** registered with the provider plus `ENCRYPTION_KEY` set on the server. Where a fact is not established here, it says **see manifest** rather than guessing.
 
 ---
 
@@ -56,7 +56,7 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 
 ---
 
-## 1. At-a-glance (all 35 apps)
+## 1. At-a-glance (all 37 apps)
 
 | App | Type | Operator setup needed | Env / keys | External approval |
 |---|---|---|---|---|
@@ -67,12 +67,14 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 | QR code | Static | None — per-instance only (Google review type needs a Place ID) | None | None |
 | Countdown | Static | None — per-instance only | None | None |
 | Menu board | Static | None — per-instance only | None | None |
+| Emergency Alert | Static | None — per-instance only (works offline) | None | None |
 | Web page | Static (network) | Need an iframe-embeddable public URL | None | None |
 | Dashboard | Static (network) | Need a public/embed/anonymous dashboard URL | None | None |
 | Power BI | Static (network) | "Publish to web" the report, paste the app.powerbi.com link | None | None (public report only) |
 | YouTube | Static (network) | Need a single YouTube video link | None | None |
 | Vimeo | Static (network) | Need a single Vimeo video link | None | None |
 | Live stream | Static (network) | Need an HLS `.m3u8` source URL | None | None |
+| Live channel | Static (network) | Enter a Twitch/Kick channel name | None | Twitch needs the player served from a real domain (not a bare IP) |
 | Google Slides (public) | Static (network) | Publish deck to web, use `/pub` link | None | None |
 | Weather | Keyless | None — per-instance only | None | None |
 | Air quality | Keyless | None — per-instance only | None | None |
@@ -150,6 +152,13 @@ These render entirely on the player from operator-typed content. No env vars, no
   3. Choose **Columns** (One / Two; default 1).
   4. Pick **Theme** (Light / Dark); optionally override Background / Text / Accent (accent = heading + prices). Adjust Style Settings.
 
+- **Emergency Alert** — `requiresNetwork` deliberately omitted (**works offline** — the point of an alert). A full-screen, high-visibility message.
+  1. Enter a **Headline** (required) — keep it short; it's set in huge type.
+  2. Optionally add **Details** (supporting text under the headline).
+  3. Pick **Severity** (Critical = red / Warning = amber / Information = blue; default Critical) — sets the colour and icon.
+  4. Toggle **Show icon** (default on) and **Pulsing edge** (default on; a slow edge fade, no rapid flashing, and off under reduced-motion).
+  > This is a playlist item, not an instant screen takeover — overriding whatever is currently playing on every screen is a separate platform feature (see BACKLOG.md).
+
 ### 2.2 Network-dependent (blank/error without internet)
 
 - **Web page** — `requiresNetwork: true`. Loads a live remote page in an iframe. **Prerequisite:** a public URL that permits iframe embedding — a page you own or a dashboard's public share link. Sites that refuse framing (Google, social networks, most banking sites) come up blank.
@@ -173,6 +182,11 @@ These render entirely on the player from operator-typed content. No env vars, no
   1. Enter **Stream link** (url, required, must match `^https?://.+`).
   2. Choose **Fit** (Contain = whole picture with bars / Cover = fill and may crop; default contain).
   3. Toggle **Play audio** (default off; when on, follows the screen's own volume).
+
+- **Live channel** — `requiresNetwork: true`. Embeds a live **Twitch or Kick** channel (the `stream` app is for raw HLS `.m3u8`; these platforms only expose their own players). Torn down off-screen, mounted on activation. **Prerequisite (Twitch):** Twitch's player only runs when embedded on a real domain — it rejects a bare IP — so the player must be served from a hostname. No prerequisite for Kick.
+  1. Pick **Platform** (Twitch / Kick; default Twitch).
+  2. Enter **Channel** (required) — the channel name (last part of its URL, e.g. `twitch.tv/shroud` → `shroud`); pasting the full link works too.
+  3. Toggle **Play audio** (default off — channels autoplay muted; when on, follows the screen's own volume).
 
 - **Google Slides (public)** — `requiresNetwork: true`. Embeds the deck's `/embed` view straight from Google; advances on its own and picks up edits. **No account/OAuth used.** **Prerequisite:** in Google Slides, **File → Share → Publish to web** (or share as "anyone with the link"), then copy the `/pub` link. A plain edit link needs a login and shows nothing.
   1. Enter **Presentation link** (url, required, must match `^https?://docs.google.com/presentation/.+`).

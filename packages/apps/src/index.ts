@@ -1,6 +1,7 @@
 import type { AppManifest } from '@edge/apps-contract'
 
 import { airqualityManifest } from './airquality/manifest.js'
+import { alertManifest } from './alert/manifest.js'
 import { canvaManifest } from './canva/manifest.js'
 import { clockManifest } from './clock/manifest.js'
 import { countdownManifest } from './countdown/manifest.js'
@@ -14,6 +15,7 @@ import { gslidesManifest } from './gslides/manifest.js'
 import { gslidesPublicManifest } from './gslides-public/manifest.js'
 import { holidaysManifest } from './holidays/manifest.js'
 import { instagramManifest } from './instagram/manifest.js'
+import { livechannelManifest } from './livechannel/manifest.js'
 import { menuManifest } from './menu/manifest.js'
 import { newsManifest } from './news/manifest.js'
 import { onthisdayManifest } from './onthisday/manifest.js'
@@ -50,12 +52,14 @@ export const APP_MANIFESTS: AppManifest[] = [
   qrManifest,
   countdownManifest,
   menuManifest,
+  alertManifest,
   webManifest,
   dashboardManifest,
   powerbiManifest,
   youtubeManifest,
   vimeoManifest,
   streamManifest,
+  livechannelManifest,
   gslidesPublicManifest,
   weatherManifest,
   airqualityManifest,
@@ -88,12 +92,14 @@ export {
   qrManifest,
   countdownManifest,
   menuManifest,
+  alertManifest,
   webManifest,
   dashboardManifest,
   powerbiManifest,
   youtubeManifest,
   vimeoManifest,
   streamManifest,
+  livechannelManifest,
   gslidesPublicManifest,
   weatherManifest,
   airqualityManifest,
@@ -119,6 +125,11 @@ export {
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'
+export {
+  parseChannel,
+  toLiveChannelEmbedUrl,
+} from './livechannel/embed.js'
+export type { LivePlatform } from './livechannel/embed.js'
 export { toGoogleSlidesEmbedUrl } from './gslides-public/embed.js'
 export {
   FONT_OPTIONS,

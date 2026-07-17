@@ -12,9 +12,10 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**35 apps ship today** (all `runtimeKind: 'embed'`):
+**37 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
-  `menu`, `web`, `dashboard`, `powerbi`, `youtube`, `vimeo`, `stream`, `gslides-public`
+  `menu`, `alert` (Emergency Alert), `web`, `dashboard`, `powerbi`, `youtube`, `vimeo`, `stream`,
+  `livechannel` (Twitch/Kick), `gslides-public`
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
   (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays` (Nager.Date),
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, `news`
@@ -400,6 +401,36 @@ posts. Mark risky.
 committing. Latest tweets from a handle.
 
 **29. TikTok** (`tiktok`, connected) — TikTok Display API (OAuth + review); latest videos.
+
+### Added since — more static apps (shipped ✅)
+
+**Emergency Alert** (`alert`, static) ✅ — a full-screen, high-visibility message for evacuations,
+closures and warnings. `headline` + optional `message`, a `severity` (critical/warning/info → colour +
+icon), `showIcon`, and a `pulse` (a slow ~0.6 Hz edge fade, under any photosensitivity threshold and off
+under `prefers-reduced-motion`). Deliberately **not** `requiresNetwork` — an alert must keep showing on a
+screen that's offline. (A true instant *takeover* that overrides whatever is playing on every screen is a
+platform feature, not this app — see below.)
+
+**Live channel** (`livechannel`, static, `requiresNetwork: true`) ✅ — embeds a live **Twitch or Kick**
+channel from just a channel name (`platform` + `channel` + `audio`). Where `stream` plays a raw HLS
+`.m3u8`, Twitch/Kick only expose their own iframe players, so this builds the right embed URL per
+platform. Twitch's player requires a `parent` naming the embedding host; the bundle supplies the player's
+own `window.location.hostname` at runtime (URL logic in `src/livechannel/embed.ts`, unit-tested).
+Torn down off-screen and mounted on activation, like YouTube/Stream. Twitch needs the player served from a
+real domain (it rejects bare IPs).
+
+### Requested but NOT apps — platform features
+
+**Split Screen / multi-zone layout** — showing several apps at once (e.g. a dashboard beside a ticker) is
+a **screen/player layout feature, not an app**: today a screen plays ONE item at a time
+(`screens/schemas/screen.schema.ts` has no zones/regions, and the player renders a single app iframe). It
+needs: a zoned layout model on the screen (regions with per-region playlists), a player **compositor** that
+runs N app iframes positioned in those regions, and CMS layout editing. Substantial — spec separately from
+the app catalog.
+
+**Emergency takeover** — a companion to the `alert` app: a broadcast that instantly overrides whatever is
+playing on selected screens with an alert, then restores. Also a screens/player feature (priority
+override + push), distinct from the `alert` app which is just a playlist item.
 
 ## 5. Suggested sequencing (milestones)
 
