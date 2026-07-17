@@ -138,7 +138,7 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 
 | ID | Task | Effort | Unblocks |
 |---|---|---|---|
-| **E0** | Seed a base set of `AppCategory` records (none exist today): *Information, Finance, Productivity, Data & Dashboards, Media, Social, Utilities*. Super-admin via `POST /admin/app-categories`. | S | catalog organization |
+| **E0** ✅ | **Base categories seeded on boot** — `AppCategoriesService.onModuleInit` → `seedBaseCategories()` ensures *Information, Finance, Productivity, Data & Dashboards, Media, Social, Utilities* exist (idempotent by slug, additive, duplicate-key-safe; never overwrites a super-admin's rename/reorder). Assigning apps to categories stays a curation step (`PATCH /admin/apps/:id`) — categories are catalog presentation, not part of a manifest. | S | catalog organization |
 | **E1** ✅ | **Microsoft (Azure AD / MS Graph) OAuth provider** — shipped: `ConnectionProvider.MICROSOFT`, `microsoft.oauth.ts` (v2 `common` authority, `offline_access`), `microsoft-api.ts`, `ConnectionsService` wiring (`getProvider` + `PROVIDER_CONFIG_NS` + `ms-calendars` browse), `MICROSOFT_CLIENT_ID`/`SECRET`, CMS provider union. | L | Outlook ✅; Teams, SharePoint/PowerPoint, Power BI now unblocked |
 | **E2** ✅ (code) | **Meta (Facebook/Instagram Graph) OAuth provider** — shipped: `ConnectionProvider.META`, `meta.oauth.ts` (Facebook Login; code→short→long-lived token, **no refresh token** so the long-lived token is re-extended proactively), `meta-api.ts` (`me/accounts` page + linked-IG pickers, page-token resolver), `ConnectionsService` wiring (`getProvider` + `PROVIDER_CONFIG_NS` + `meta-pages`/`meta-ig-accounts` browse), `META_CLIENT_ID`/`SECRET`, CMS provider union. **Still needs the operator** to create a Meta app + clear App Review / Business verification (external, weeks). | L (external approval) | Instagram ✅, Facebook Page ✅ |
 | **E3** | **Slack OAuth provider** (`conversations.history` scope). | M | Slack channel app |
@@ -405,7 +405,7 @@ committing. Latest tweets from a handle.
 
 - **M1 — Fast value, no auth ✅ done:** all Tier 1 statics + keyless Tier 2 (air quality, currency,
   crypto, power-prices) shipped, plus the `datetime` field (E4a) and the `repeater` field (E4b ✅).
-  Still open in this band: **E0** (seed categories). (E6 README refresh ✅.)
+  E0 (base categories, seeded on boot) ✅ and E6 (README refresh) ✅ — this band is now complete.
 - **M2 — Google reuse:** Google Sheets ✅, Google Slides (private) ✅. Google Photos ⛔ blocked (Photos
   Library API restricted to app-created media since 2025; a user's library needs the Picker API).
 - **M3 — Microsoft (E1 ✅):** Outlook Calendar ✅ (reuses the gcal embed), Microsoft Teams ✅ (reuses the
