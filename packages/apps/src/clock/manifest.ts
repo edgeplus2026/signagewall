@@ -21,7 +21,7 @@ export const clockManifest: AppManifest = {
   name: 'Clock',
   tagline: 'Show the current time on your screens',
   description:
-    'Display a live clock — digital, analogue, split-flap, or spelled out in words.',
+    'Display a live clock — digital, analogue, split-flap, orbit, or spelled out in words.',
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 4,

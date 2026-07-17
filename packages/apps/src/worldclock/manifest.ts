@@ -12,16 +12,16 @@ const WORLDCLOCK_ICON =
  * player's own clock and each zone is computed with `Intl`, so it keeps perfect
  * time offline.
  *
- * Zones are one-per-line (`Label | Zone`) for now — a `textarea` — because there
- * is no repeater field yet. The follow-up (BACKLOG.md E4) is a row editor with a
- * searchable time-zone picker, so operators don't have to know IANA names.
+ * Zones are entered as repeater rows (a label + an IANA time-zone per row). The
+ * embed also accepts the legacy one-per-line `Label | Zone` string so configs
+ * saved before the repeater shipped keep working.
  */
 export const worldclockManifest: AppManifest = {
   slug: 'worldclock',
   name: 'World clocks',
   tagline: 'The time in several places at once',
   description:
-    'Show the current time in multiple cities. One place per line as "Label | Zone".',
+    'Show the current time in multiple cities — add a row per place with its time zone.',
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 1,

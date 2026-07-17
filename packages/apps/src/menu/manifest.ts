@@ -8,17 +8,16 @@ const MENU_ICON =
 
 /**
  * Menu board / price list — a styled list of items and prices for cafés, canteens
- * and retail. Pure client-side (`static`). Items are one-per-line for now, in a
- * `Name | Price | Description` format (a `textarea`); a proper repeater field
- * (a row editor with separate name/price/description inputs) is the follow-up in
- * BACKLOG.md (E4).
+ * and retail. Pure client-side (`static`). Items are entered as repeater rows
+ * (separate name / price / description inputs); the embed also accepts the legacy
+ * one-item-per-line `Name | Price | Description` string for older configs.
  */
 export const menuManifest: AppManifest = {
   slug: 'menu',
   name: 'Menu board',
   tagline: 'Show a menu or price list',
   description:
-    'A clean board of items and prices — for cafés, canteens and shops. One item per line.',
+    'A clean board of items and prices — for cafés, canteens and shops. Add a row per item.',
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 1,

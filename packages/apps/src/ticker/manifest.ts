@@ -8,8 +8,8 @@ const TICKER_ICON =
 
 /**
  * Announcement ticker — a scrolling band of messages. Pure client-side
- * (`static`). Messages are one-per-line for now (a `textarea`); a proper
- * repeater field (add/remove/reorder rows) is the follow-up in BACKLOG.md (E4).
+ * (`static`). Messages are entered as repeater rows (add/remove/reorder); the
+ * embed also accepts the legacy one-message-per-line string for older configs.
  *
  * Deliberately few knobs: the messages, how fast they move, which way, and where
  * the band sits. The look follows the theme + the shared Style Settings, so the
@@ -20,7 +20,7 @@ export const tickerManifest: AppManifest = {
   name: 'Ticker',
   tagline: 'Scroll announcements across the screen',
   description:
-    'A moving band of short messages — news, notices, opening hours. Type one message per line.',
+    'A moving band of short messages — news, notices, opening hours. Add a row per message.',
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 1,

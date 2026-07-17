@@ -1,5 +1,6 @@
 import type { ConnectorContext, ResolvedConnection } from '@edge/apps-contract';
 import type { RssPayload } from '@edge/apps';
+import { NEWS_SOURCES } from '@edge/apps';
 
 import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';
@@ -1770,6 +1771,29 @@ describe('facebook connector (connected, meta)', () => {
     // The feed read must use the resolved Page token, not the user token.
     const feedCall = fetchMock.mock.calls[1]!;
     expect(feedCall[1].headers.authorization).toBe('Bearer page-tok');
+  });
+});
+
+describe('news sources (curated RSS presets)', () => {
+  it('every source is a unique https feed URL with a label', () => {
+    const urls = new Set<string>();
+    const labels = new Set<string>();
+    for (const source of NEWS_SOURCES) {
+      expect(source.label.length).toBeGreaterThan(0);
+      expect(new URL(source.url).protocol).toBe('https:');
+      urls.add(source.url);
+      labels.add(source.label);
+    }
+    expect(urls.size).toBe(NEWS_SOURCES.length);
+    expect(labels.size).toBe(NEWS_SOURCES.length);
+  });
+
+  it('each source resolves to an rss cache key (shared with the rss app)', () => {
+    for (const source of NEWS_SOURCES) {
+      expect(rssConnector.cacheKey!({ url: source.url })).toMatch(
+        /^rss:[0-9a-f]{40}$/,
+      );
+    }
   });
 });
 

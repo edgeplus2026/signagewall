@@ -12,13 +12,13 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**33 apps ship today** (all `runtimeKind: 'embed'`):
+**34 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
   (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays` (Nager.Date),
-  `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, and
-  `stocks` (Alpaca — needs `ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`)
+  `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, `news`
+  (curated RSS presets), and `stocks` (Alpaca — needs `ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`)
 - `connected` (OAuth account): `gcal` (Google Calendar), `gsheets` (Google Sheets), `gslides` (Google
   Slides, private), `outlook` (Outlook Calendar), `teams` (Microsoft Teams), `instagram` + `facebook`
   (Meta), `canva`
@@ -175,7 +175,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 13 | Stocks ✅ | `stocks` | server | Finance | M–L | E5 ✅ |
 | 14 | Sports ✅ | `sports` | server | Information | L | E5 ✅ (free-key default) |
 | 15 | Transit departures | `transit` | server | Information | L | E5 (region-specific) |
-| 16 | News headlines | `news` | server | Information | S–M | (RSS-preset variant) |
+| 16 | News headlines ✅ | `news` | server | Information | S–M | (RSS-preset variant) |
 | **Added since — keyless server apps (shipped)** ||||||
 | 30 | Public holidays ✅ | `holidays` | server | Information | M | — |
 | 31 | On this day ✅ | `onthisday` | server | Information | M | — |
@@ -278,9 +278,14 @@ Nordic transit APIs; some keyed). **Depends E5; advanced.** `cacheKey` `transit:
 `refreshSeconds` 30–60. **Config:** stop/station pick, line filter, count. **Payload:** next
 departures with delays.
 
-**16. News headlines** (`news`, server) — **recommended as an RSS enhancement first**: curated
-feed presets (a `select` of known feeds) + category, reusing the existing RSS connector/embed — near-zero
-cost. A keyed variant (NewsAPI/GNews) is an alternative if editorial control is needed.
+**16. News headlines** (`news`, server) ✅ — the RSS-enhancement route, shipped. A curated `select` of
+known publishers (BBC top/world/business/tech/sport, Sky, NPR, Al Jazeera, Fox, CNBC, ESPN, TechCrunch,
+The Verge, Hacker News, Guardian) whose option VALUE is the feed URL, stored under the `url` key — so it
+rides the **existing `rss` connector unchanged** (registered under the `news` slug) and reuses the `rss`
+embed wholesale (`embeds/news/main.ts` = `import '../rss/main.js'`). Same `rss:<hash(url)>` cache key, so
+a `news` and an `rss` instance on the same feed share one fetch. Feeds live in `src/news/sources.ts`
+(add/retire there; a test asserts they're unique https URLs). A keyed variant (NewsAPI/GNews) remains an
+alternative if editorial control is ever needed.
 
 ### Added since — keyless server apps (shipped ✅)
 
@@ -389,8 +394,8 @@ committing. Latest tweets from a handle.
   Library API restricted to app-created media since 2025; a user's library needs the Picker API).
 - **M3 — Microsoft (E1 ✅):** Outlook Calendar ✅ (reuses the gcal embed), Microsoft Teams ✅ (reuses the
   social-feed embed); Power BI / SharePoint next — same provider, new connectors.
-- **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Alpaca), sports ✅ (TheSportsDB, free-key default); transit
-  next (same keyed pattern); news presets.
+- **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Alpaca), sports ✅ (TheSportsDB, free-key default), news presets
+  ✅ (curated RSS, no key); transit next (same keyed pattern).
 - **M5 — Social (E2 ✅ code / E3):** Instagram ✅ + Facebook ✅ ship on the Meta provider (operator still
   clears Meta App Review + Business verification to go live). Slack next (E3). X/TikTok/LinkedIn only if
   the API cost/approval is acceptable.

@@ -39,6 +39,10 @@ const CONNECTORS: Record<string, AppConnector> = {
   gslides: gslidesConnector,
   canva: canvaConnector,
   rss: rssConnector,
+  // News is a curated front-end to RSS: same connector, its `url` comes from a
+  // preset picker instead of free text. Shares the `rss:<hash(url)>` cache with
+  // any RSS instance pointed at the same feed.
+  news: rssConnector,
   holidays: holidaysConnector,
   onthisday: onthisdayConnector,
   outlook: outlookConnector,

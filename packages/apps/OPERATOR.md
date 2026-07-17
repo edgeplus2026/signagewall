@@ -1,6 +1,6 @@
 # Edge Digital Signage — Operator Setup Guide (Apps)
 
-This guide tells an operator EXACTLY what to do to make each of the 33 signage apps work: which environment variables to set, which OAuth apps/API keys to register externally, which approvals to obtain, and the per-instance steps done in the CMS. Most apps need **zero** backend setup — they are configured entirely per-instance. A small number need an **API key**, and the "connected" apps each need an **OAuth application** registered with the provider plus `ENCRYPTION_KEY` set on the server. Where a fact is not established here, it says **see manifest** rather than guessing.
+This guide tells an operator EXACTLY what to do to make each of the 34 signage apps work: which environment variables to set, which OAuth apps/API keys to register externally, which approvals to obtain, and the per-instance steps done in the CMS. Most apps need **zero** backend setup — they are configured entirely per-instance. A small number need an **API key**, and the "connected" apps each need an **OAuth application** registered with the provider plus `ENCRYPTION_KEY` set on the server. Where a fact is not established here, it says **see manifest** rather than guessing.
 
 ---
 
@@ -56,7 +56,7 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 
 ---
 
-## 1. At-a-glance (all 33 apps)
+## 1. At-a-glance (all 34 apps)
 
 | App | Type | Operator setup needed | Env / keys | External approval |
 |---|---|---|---|---|
@@ -83,6 +83,7 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 | On this day | Keyless | None — per-instance only | None | None |
 | Daily Wisdom | Keyless (offline) | None — per-instance only | None | None |
 | RSS feed | Keyless | None — per-instance only (supply feed URL) | None | None |
+| News headlines | Keyless | None — per-instance only (pick a publisher) | None | None |
 | Stocks | Keyed | Set two Alpaca keys once (server) | `ALPACA_API_KEY_ID`, `ALPACA_API_SECRET_KEY` (**both required**) | Alpaca account (commercial-friendly) |
 | Sports | Keyed (optional) | Works out of the box; optional key for higher limits | `THESPORTSDB_API_KEY` (**optional**, defaults to test key `3`) | None (optional TheSportsDB key) |
 | Google Calendar | Connected (OAuth) | Google OAuth app + `ENCRYPTION_KEY`; per-instance connect + pick calendar | `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth verification for non-test accounts (sensitive scope) |
@@ -193,6 +194,7 @@ These fetch from public upstream providers on the server. **No API key is requir
 | On this day | Wikipedia "On This Day" REST feed (`<lang>.wikipedia.org/api/rest_v1/feed/onthisday/events`) | 21600s |
 | Daily Wisdom | **None — no network.** Vendored local corpus (~4,900 quotes in `wisdom/quotes.json`) | 86400s |
 | RSS feed | The operator-supplied feed URL itself (RSS 2.0 / Atom / RSS 1.0-RDF) | 300s |
+| News headlines | A curated publisher feed the operator picks from a dropdown (rides the RSS connector) | 300s |
 
 Per-instance config:
 
@@ -258,6 +260,11 @@ Per-instance config:
   4. **Show QR code** (switch, default on) — scannable code beside each story.
   5. **How many stories / itemCount** (number, Feed Settings section).
   6. **Seconds per story / secondsPerStory** (number, Feed Settings section).
+
+- **News headlines** — `requiresNetwork: true`, refresh 300s. A curated front-end to RSS: same connector, same layouts, no key. The operator picks a publisher instead of typing a feed URL. Cache is shared with any RSS instance on the same feed.
+  1. **News source / url** (required select): pick a publisher (BBC top/world/business/tech/sport, Sky News, NPR, Al Jazeera, Fox, CNBC, ESPN, TechCrunch, The Verge, Hacker News, The Guardian). For any other feed, use the RSS app.
+  2. **Layout / displayMode**, **Theme**, **Show QR code**, **How many stories / itemCount**, **Seconds per story / secondsPerStory** — identical to the RSS app.
+  > To add or retire a publisher, edit `packages/apps/src/news/sources.ts` (a test enforces unique https feed URLs); nothing else changes.
 
 ---
 
