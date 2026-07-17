@@ -432,8 +432,12 @@ main zone fullscreen. The player runs **one `PlaybackController` per zone** (the
 CSS-positioned `.player-zone` containers — geometry is pure CSS keyed on `data-layout`, secondary zones
 are always muted (audio belongs to the main zone), prefetch warms all zones, and empty zones degrade the
 layout (`main-sidebar-ticker` with an empty sidebar plays as `main-ticker`).
-**Remaining: the CMS zone editor** — a layout picker + per-zone item lists in `ScreenContentTab`
-(the API + response DTOs already expose `layout`/`zones`).
+**CMS zone editor ✅ shipped** — `ScreenContentTab` gains a layout picker (the four presets) and
+Main / Sidebar / Ticker region tabs; each region edits its own rotation through the same content editor
+and saves via the zone-aware `PUT /screens/:id/items`. Switching regions or presets is blocked while the
+draft is dirty (the draft machinery deliberately preserves unsaved edits across baseline changes, so a
+mid-edit switch would leak one region's items into another). Split screen is now end-to-end:
+schema → API → snapshot → player compositor → CMS editing.
 
 **Emergency takeover** — a companion to the `alert` app: a broadcast that instantly overrides whatever is
 playing on selected screens with an alert, then restores. Also a screens/player feature (priority

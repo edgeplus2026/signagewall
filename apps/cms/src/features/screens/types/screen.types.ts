@@ -126,6 +126,22 @@ export interface ScreenItem {
   disabled?: boolean
 }
 
+/** Split-screen layout presets; `fullscreen` is the classic single region. */
+export type ScreenLayout =
+  | 'fullscreen'
+  | 'main-sidebar'
+  | 'main-ticker'
+  | 'main-sidebar-ticker'
+
+/** The secondary regions a preset can define; `main` is the screen's `items`. */
+export type ScreenZoneKey = 'sidebar' | 'ticker'
+
+/** A secondary region's own rotation (same item shape as the main list). */
+export interface ScreenZone {
+  key: ScreenZoneKey
+  items: ScreenItem[]
+}
+
 export interface ScreenSummary {
   id: string
   name: string
@@ -142,6 +158,10 @@ export interface ScreenDetail extends ScreenSummary {
 
 export type Screen = ScreenDetail & {
   items: ScreenItem[]
+  /** Split-screen preset; absent ⇒ fullscreen (legacy screens). */
+  layout?: ScreenLayout
+  /** Secondary regions' rotations; absent until a zone is first edited. */
+  zones?: ScreenZone[]
 }
 
 export interface CreateScreenRequest {
@@ -168,6 +188,12 @@ export interface ReplaceScreenItemsRequest {
   items: ReplaceScreenItemInput[]
   /** The `updatedAt` last observed by the client, for lost-update protection. */
   expectedUpdatedAt?: string
+  /** Split-screen: the region the list replaces. Absent ⇒ the MAIN zone. */
+  zone?: ScreenZoneKey
+}
+
+export interface SetScreenLayoutRequest {
+  layout: ScreenLayout
 }
 
 export interface AddMediaToScreensRequest {

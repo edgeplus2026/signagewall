@@ -979,6 +979,20 @@
       },
       "conflict": "This screen was changed elsewhere. Your unsaved changes were discarded and the latest version was loaded."
     },
+    "layout": {
+      "fullscreen": "Fullscreen",
+      "main-sidebar": "Main + sidebar",
+      "main-ticker": "Main + ticker",
+      "main-sidebar-ticker": "Main + sidebar + ticker",
+      "saveSuccess": "Layout updated",
+      "saveError": "Could not update the layout. Please try again."
+    },
+    "zones": {
+      "main": "Main",
+      "sidebar": "Sidebar",
+      "ticker": "Ticker",
+      "saveFirst": "Save or discard your changes first"
+    },
     "availability": {
       "title": "Working hours",
       "warning": "Screens will be turned off outside of working hours.",

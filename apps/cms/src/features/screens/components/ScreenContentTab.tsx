@@ -1,4 +1,9 @@
-import { ListXIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react"
+import {
+  LayoutTemplateIcon,
+  ListXIcon,
+  MoreHorizontalIcon,
+  Trash2Icon,
+} from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -21,6 +26,7 @@ import {
   createAppDraftItem,
   createMediaDraftItem,
   createPlaylistDraftItem,
+  isDraftDirty,
 } from "@/features/content/lib/contentDraft"
 import type { NormalizedSavedItem } from "@/features/content/registry"
 import { MediaDetailSheet } from "@/features/media/components/MediaDetailSheet"
@@ -28,19 +34,45 @@ import type { MediaItem } from "@/features/media/types/media.types"
 import { PlaylistManageSidebar } from "@/features/playlists/components/PlaylistManageSidebar"
 import type { PlaylistSummary } from "@/features/playlists/types/playlist.types"
 import { DeleteScreenDialog } from "@/features/screens/components/DeleteScreenDialog"
-import { useReplaceScreenItems } from "@/features/screens/hooks/useScreens"
+import {
+  useReplaceScreenItems,
+  useSetScreenLayout,
+} from "@/features/screens/hooks/useScreens"
 import {
   screenItemsToDraftItems,
-  screenToDraftItems,
+  screenZoneToDraftItems,
 } from "@/features/screens/lib/screenContentDraft"
 import type {
   ReplaceScreenItemInput,
   Screen,
+  ScreenLayout,
+  ScreenZoneKey,
 } from "@/features/screens/types/screen.types"
 import { ApiError, getApiErrorMessage } from "@/lib/api-error"
 
 interface ScreenContentTabProps {
   screen: Screen
+}
+
+const SCREEN_LAYOUTS: ScreenLayout[] = [
+  "fullscreen",
+  "main-sidebar",
+  "main-ticker",
+  "main-sidebar-ticker",
+]
+
+/** The regions a preset defines, in editing order (main first). */
+function zonesForLayout(layout: ScreenLayout): Array<"main" | ScreenZoneKey> {
+  switch (layout) {
+    case "main-sidebar":
+      return ["main", "sidebar"]
+    case "main-ticker":
+      return ["main", "ticker"]
+    case "main-sidebar-ticker":
+      return ["main", "sidebar", "ticker"]
+    default:
+      return ["main"]
+  }
 }
 
 /** Narrow the registry's normalized entry to the screen API shape. */
@@ -77,15 +109,35 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const replaceScreenItems = useReplaceScreenItems()
+  const setScreenLayout = useSetScreenLayout()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [mediaToEdit, setMediaToEdit] = useState<MediaItem | null>(null)
+
+  // Split-screen: which region is being edited. Falls back to main whenever the
+  // chosen zone stops existing under the current preset.
+  const [zoneChoice, setZoneChoice] = useState<"main" | ScreenZoneKey>("main")
+  const layout = screen.layout ?? "fullscreen"
+  const zones = zonesForLayout(layout)
+  const zone = zones.includes(zoneChoice) ? zoneChoice : "main"
+
+  const toBaseline = useCallback(
+    (entity: Screen) => screenZoneToDraftItems(entity, zone),
+    [zone],
+  )
 
   const { baseline, draftItems, setDraftItems, buildSavePayload } =
     useContentContainer({
       entity: screen,
-      entityKey: `${screen.id}:${screen.updatedAt}`,
-      toBaseline: screenToDraftItems,
+      // The zone is part of the identity: switching regions re-baselines the
+      // draft to that region's items.
+      entityKey: `${screen.id}:${screen.updatedAt}:${zone}`,
+      toBaseline,
     })
+
+  // Zone/layout switching is blocked while the draft is dirty — the container
+  // deliberately preserves a dirty draft across baseline changes, so switching
+  // mid-edit would carry one region's unsaved items into another.
+  const dirty = isDraftDirty(draftItems, baseline)
 
   const labels = useMemo<ContentEditorLabels>(
     () => ({
@@ -128,9 +180,14 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
         payload: {
           expectedUpdatedAt: screen.updatedAt,
           items: buildSavePayload().map(toReplaceScreenItem),
+          ...(zone !== "main" ? { zone } : {}),
         },
       })
-      setDraftItems(screenItemsToDraftItems(saved.items))
+      const savedItems =
+        zone === "main"
+          ? saved.items
+          : (saved.zones?.find((entry) => entry.key === zone)?.items ?? [])
+      setDraftItems(screenItemsToDraftItems(savedItems))
       toast.success(t("screens.content.saveSuccess"))
     } catch (error) {
       if (error instanceof ApiError && error.code === "CONFLICT") {
@@ -139,7 +196,26 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
       }
       toast.error(getApiErrorMessage(error, t("screens.content.saveError")))
     }
-  }, [buildSavePayload, replaceScreenItems, screen.id, screen.updatedAt, setDraftItems, t])
+  }, [buildSavePayload, replaceScreenItems, screen.id, screen.updatedAt, setDraftItems, t, zone])
+
+  const handleSetLayout = useCallback(
+    async (next: ScreenLayout) => {
+      if (next === layout) {
+        return
+      }
+      try {
+        await setScreenLayout.mutateAsync({ id: screen.id, layout: next })
+        // The edited region may not exist under the new preset; re-anchor.
+        if (!zonesForLayout(next).includes(zone)) {
+          setZoneChoice("main")
+        }
+        toast.success(t("screens.layout.saveSuccess"))
+      } catch (error) {
+        toast.error(getApiErrorMessage(error, t("screens.layout.saveError")))
+      }
+    },
+    [layout, screen.id, setScreenLayout, t, zone],
+  )
 
   const handleClearContent = useCallback(() => {
     setDraftItems([])
@@ -220,29 +296,84 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
 
   return (
     <>
-      <ContentEditor
-        draftItems={draftItems}
-        baseline={baseline}
-        onDraftItemsChange={setDraftItems}
-        onSave={handleSave}
-        isSaving={replaceScreenItems.isPending}
-        labels={labels}
-        footerActions={footerActions}
-        onContentMediaUpdate={handleEditMedia}
-        sidebar={
-          <PlaylistManageSidebar
-            allowedTypes={["media", "playlist", "app"]}
-            labels={sidebarLabels}
-            onAddToContent={handleAddMediaToContent}
-            onAddPlaylistToContent={handleAddPlaylistToContent}
-            onAddApp={handleAddAppToContent}
-            onEditMedia={handleEditMedia}
-            onUpdatePlaylist={(playlistId) => {
-              void navigate(`/playlists/${playlistId}`)
-            }}
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="flex items-center justify-between gap-2 border-b px-4 py-2">
+          <div className="flex items-center gap-1">
+            {zones.length > 1
+              ? zones.map((key) => (
+                  <Button
+                    key={key}
+                    type="button"
+                    size="sm"
+                    variant={zone === key ? "secondary" : "ghost"}
+                    disabled={dirty && zone !== key}
+                    title={
+                      dirty && zone !== key
+                        ? t("screens.zones.saveFirst")
+                        : undefined
+                    }
+                    onClick={() => {
+                      setZoneChoice(key)
+                    }}
+                  >
+                    {t(`screens.zones.${key}`)}
+                  </Button>
+                ))
+              : null}
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={dirty || setScreenLayout.isPending}
+                title={dirty ? t("screens.zones.saveFirst") : undefined}
+              >
+                <LayoutTemplateIcon />
+                {t(`screens.layout.${layout}`)}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-auto min-w-52">
+              {SCREEN_LAYOUTS.map((preset) => (
+                <DropdownMenuItem
+                  key={preset}
+                  onClick={() => {
+                    void handleSetLayout(preset)
+                  }}
+                >
+                  {t(`screens.layout.${preset}`)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="min-h-0 flex-1">
+          <ContentEditor
+            draftItems={draftItems}
+            baseline={baseline}
+            onDraftItemsChange={setDraftItems}
+            onSave={handleSave}
+            isSaving={replaceScreenItems.isPending}
+            labels={labels}
+            footerActions={footerActions}
+            onContentMediaUpdate={handleEditMedia}
+            sidebar={
+              <PlaylistManageSidebar
+                allowedTypes={["media", "playlist", "app"]}
+                labels={sidebarLabels}
+                onAddToContent={handleAddMediaToContent}
+                onAddPlaylistToContent={handleAddPlaylistToContent}
+                onAddApp={handleAddAppToContent}
+                onEditMedia={handleEditMedia}
+                onUpdatePlaylist={(playlistId) => {
+                  void navigate(`/playlists/${playlistId}`)
+                }}
+              />
+            }
           />
-        }
-      />
+        </div>
+      </div>
 
       <DeleteScreenDialog
         open={deleteOpen}

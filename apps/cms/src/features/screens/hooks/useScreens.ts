@@ -23,6 +23,7 @@ import {
   type ScreenDeviceOrientation,
   type ScreenDeviceScale,
   type ScreenDeviceSettings,
+  type ScreenLayout,
   type SetDeviceDailyReloadRequest,
   type UpdateScreenAvailabilityRequest,
   type UpdateScreenRequest,
@@ -371,6 +372,27 @@ export function useReplaceScreenItems() {
           queryKey: screenDetailQueryKey(organizationId, variables.id),
         })
       }
+    },
+  })
+}
+
+export function useSetScreenLayout() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, layout }: { id: string; layout: ScreenLayout }) =>
+      screensApi.setLayout(id, { layout }),
+    onSuccess: (saved, variables) => {
+      const organizationId = useOrganizationStore.getState().activeOrganizationId
+      // Same shape as replaceItems: the server returns the canonical screen.
+      queryClient.setQueryData<Screen | null>(
+        screenDetailQueryKey(organizationId, variables.id),
+        saved,
+      )
+      void queryClient.invalidateQueries({
+        queryKey: screensQueryKey(organizationId),
+        exact: true,
+      })
     },
   })
 }
