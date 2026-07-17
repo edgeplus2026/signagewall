@@ -7,6 +7,7 @@ import type {
   ImageRenderable,
   PlayerSnapshot,
   Renderable,
+  SnapshotZone,
   VideoRenderable,
 } from '@edge/player-contract';
 
@@ -33,6 +34,8 @@ import {
   ScreenAvailabilityMode,
   ScreenItemDocument,
   ScreenItemType,
+  ScreenLayout,
+  ScreenZoneKey,
 } from '../screens/schemas/screen.schema';
 
 const DEFAULT_DURATION_SECONDS = 15;
@@ -61,6 +64,19 @@ interface PendingAppEntry {
 }
 
 type PendingEntry = PendingMediaEntry | PendingAppEntry;
+
+/** Everything {@link PlayerContentService.buildRenderables} needs, batched once. */
+interface RenderableContext {
+  mediaById: Map<string, MediaItemDocument>;
+  appById: Map<string, AppInstanceDocument>;
+  cacheKeyByInstanceId: Map<string, string>;
+  cacheByKey: Map<
+    string,
+    { payload: unknown; fetchedAt?: Date; stale: boolean }
+  >;
+  publicBaseUrl: string | undefined;
+  revisionParts: string[];
+}
 
 @Injectable()
 export class PlayerContentService {
@@ -117,16 +133,39 @@ export class PlayerContentService {
       screen.items,
     );
 
+    // Split-screen: resolve each zone the layout defines with the same
+    // machinery as the main items. Zones with no items are dropped here — the
+    // player degrades its layout to the zones that actually arrive.
+    const zoneKeys = this.zonesForLayout(screen.layout);
+    const pendingZones: Array<{
+      key: ScreenZoneKey;
+      pending: PendingEntry[];
+    }> = [];
+    for (const key of zoneKeys) {
+      const zoneItems =
+        screen.zones?.find((zone) => zone.key === key)?.items ?? [];
+      if (zoneItems.length === 0) {
+        continue;
+      }
+      pendingZones.push({
+        key,
+        pending: await this.collectPendingItems(organizationId, zoneItems),
+      });
+    }
+
+    // One batched load across the main items AND every zone, so a split screen
+    // still costs the same two queries as a fullscreen one.
+    const allPending = [...pending, ...pendingZones.flatMap((z) => z.pending)];
     const [mediaById, appById] = await Promise.all([
       this.loadMediaMap(
         organizationId,
-        pending.flatMap((entry) =>
+        allPending.flatMap((entry) =>
           entry.kind === 'media' ? [entry.mediaId] : [],
         ),
       ),
       this.loadAppMap(
         organizationId,
-        pending.flatMap((entry) =>
+        allPending.flatMap((entry) =>
           entry.kind === 'app' ? [entry.appInstanceId] : [],
         ),
       ),
@@ -161,33 +200,92 @@ export class PlayerContentService {
     }
 
     const publicBaseUrl = getPublicBaseUrl(this.configService);
-    const items: PlayerRenderable[] = [];
     const revisionParts: string[] = [];
+    const context: RenderableContext = {
+      mediaById,
+      appById,
+      cacheKeyByInstanceId,
+      cacheByKey,
+      publicBaseUrl,
+      revisionParts,
+    };
 
+    const items = this.buildRenderables(pending, context, '');
+    const zones: SnapshotZone[] = [];
+    for (const zone of pendingZones) {
+      const zoneItems = this.buildRenderables(
+        zone.pending,
+        context,
+        `${zone.key}:`,
+      );
+      if (zoneItems.length > 0) {
+        zones.push({ key: zone.key, items: zoneItems });
+      }
+    }
+    // Only ship a layout when a defined zone actually resolved content; a split
+    // preset with empty zones plays exactly like a fullscreen screen.
+    const layout =
+      screen.layout && screen.layout !== ScreenLayout.FULLSCREEN && zones.length > 0
+        ? screen.layout
+        : undefined;
+    revisionParts.push(`layout:${layout ?? 'fullscreen'}`);
+
+    // The availability rule rides in the snapshot AND in the revision: the
+    // gateway only re-pushes on reconnect when revisions differ, so without
+    // this an availability change made while a device was offline would never
+    // reach it.
+    const availability = this.toAvailabilityRule(screen.availability);
+    revisionParts.push(`availability:${JSON.stringify(availability ?? null)}`);
+
+    return {
+      screenId: screen._id.toString(),
+      name: screen.name,
+      revision: this.hashRevision(revisionParts),
+      items,
+      ...(layout ? { layout, zones } : {}),
+      ...(availability ? { availability } : {}),
+    };
+  }
+
+  /**
+   * Resolves one ordered pending list into renderables, appending each item's
+   * revision fingerprint (prefixed with its zone, so identical content in two
+   * zones still hashes apart) to the shared revision parts.
+   */
+  private buildRenderables(
+    pending: PendingEntry[],
+    context: RenderableContext,
+    revPrefix: string,
+  ): PlayerRenderable[] {
+    const items: PlayerRenderable[] = [];
     for (const entry of pending) {
       if (entry.kind === 'media') {
-        const media = mediaById.get(entry.mediaId);
-        const renderable = this.toMediaRenderable(entry, media, publicBaseUrl);
+        const media = context.mediaById.get(entry.mediaId);
+        const renderable = this.toMediaRenderable(
+          entry,
+          media,
+          context.publicBaseUrl,
+        );
         if (!renderable) {
           continue;
         }
         items.push(renderable);
         // Include the media's updatedAt so replacing a file (same id) or editing
         // a playlist changes the revision even when screen.updatedAt is untouched.
-        revisionParts.push(
-          `${renderable.id}:${renderable.kind}:${renderable.url}:${renderable.durationMs}:${media?.updatedAt.getTime() ?? 0}`,
+        context.revisionParts.push(
+          `${revPrefix}${renderable.id}:${renderable.kind}:${renderable.url}:${renderable.durationMs}:${media?.updatedAt.getTime() ?? 0}`,
         );
         continue;
       }
 
-      const instance = appById.get(entry.appInstanceId);
+      const instance = context.appById.get(entry.appInstanceId);
       if (!instance) {
         continue;
       }
       const durationMs =
         (entry.durationSeconds ?? DEFAULT_DURATION_SECONDS) * 1000;
-      const cacheKey = cacheKeyByInstanceId.get(entry.appInstanceId);
-      const cached = cacheKey ? cacheByKey.get(cacheKey) : undefined;
+      const cacheKey = context.cacheKeyByInstanceId.get(entry.appInstanceId);
+      const cached = cacheKey ? context.cacheByKey.get(cacheKey) : undefined;
       items.push({
         id: entry.id,
         kind: 'app',
@@ -208,27 +306,27 @@ export class PlayerContentService {
             }
           : {}),
       });
-      revisionParts.push(
+      context.revisionParts.push(
         // Include the payload's fetch time AND staleness so both a refresh and a
         // healthy↔stale transition change the revision and re-push the snapshot.
-        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
+        `${revPrefix}${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
       );
     }
+    return items;
+  }
 
-    // The availability rule rides in the snapshot AND in the revision: the
-    // gateway only re-pushes on reconnect when revisions differ, so without
-    // this an availability change made while a device was offline would never
-    // reach it.
-    const availability = this.toAvailabilityRule(screen.availability);
-    revisionParts.push(`availability:${JSON.stringify(availability ?? null)}`);
-
-    return {
-      screenId: screen._id.toString(),
-      name: screen.name,
-      revision: this.hashRevision(revisionParts),
-      items,
-      ...(availability ? { availability } : {}),
-    };
+  /** The secondary zones a layout preset defines (empty for fullscreen/legacy). */
+  private zonesForLayout(layout: ScreenLayout | undefined): ScreenZoneKey[] {
+    switch (layout) {
+      case ScreenLayout.MAIN_SIDEBAR:
+        return [ScreenZoneKey.SIDEBAR];
+      case ScreenLayout.MAIN_TICKER:
+        return [ScreenZoneKey.TICKER];
+      case ScreenLayout.MAIN_SIDEBAR_TICKER:
+        return [ScreenZoneKey.SIDEBAR, ScreenZoneKey.TICKER];
+      default:
+        return [];
+    }
   }
 
   /**

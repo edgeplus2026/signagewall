@@ -5,6 +5,8 @@ import {
   ScreenDocument,
   ScreenItemDocument,
   ScreenItemType,
+  ScreenLayout,
+  ScreenZoneKey,
 } from '../schemas/screen.schema';
 
 export interface WeeklyDayHoursResponseDto {
@@ -61,8 +63,17 @@ export interface ScreenItemResponseDto {
   disabled?: boolean;
 }
 
+export interface ScreenZoneResponseDto {
+  key: ScreenZoneKey;
+  items: ScreenItemResponseDto[];
+}
+
 export interface ScreenDetailWithItemsResponseDto extends ScreenDetailResponseDto {
   items: ScreenItemResponseDto[];
+  /** Split-screen preset; absent ⇒ fullscreen (legacy screens). */
+  layout?: ScreenLayout;
+  /** Secondary regions' rotations; absent when none have been edited yet. */
+  zones?: ScreenZoneResponseDto[];
 }
 
 export const toScreenSummaryResponse = (
@@ -161,4 +172,15 @@ export const toScreenDetailWithItemsResponse = (
 ): ScreenDetailWithItemsResponseDto => ({
   ...toScreenDetailResponse(screen, thumbnailUrl),
   items: toScreenItemsResponse(screen),
+  ...(screen.layout ? { layout: screen.layout } : {}),
+  ...(screen.zones && screen.zones.length > 0
+    ? {
+        zones: screen.zones.map((zone) => ({
+          key: zone.key,
+          items: [...zone.items]
+            .sort((a, b) => a.order - b.order)
+            .map((item) => toScreenItemResponse(item)),
+        })),
+      }
+    : {}),
 });

@@ -31,6 +31,46 @@ body {
   background: #000;
 }
 
+/* Split-screen regions. Each zone hosts its own playback engine (its own A/B
+   slots); geometry is pure CSS keyed on the stage's data-layout, so the wire
+   carries a preset name, not rectangles. Fullscreen (the default) is just the
+   main zone at inset:0 with no siblings. */
+.player-zone {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+/* main-sidebar: main fills the left 70%, sidebar the right 30%. */
+.player-stage[data-layout='main-sidebar'] .player-zone--main {
+  right: 30%;
+}
+.player-stage[data-layout='main-sidebar'] .player-zone--sidebar {
+  left: 70%;
+}
+
+/* main-ticker: main on top, a full-width 12% band at the foot. */
+.player-stage[data-layout='main-ticker'] .player-zone--main {
+  bottom: 12%;
+}
+.player-stage[data-layout='main-ticker'] .player-zone--ticker {
+  top: 88%;
+}
+
+/* main-sidebar-ticker: sidebar right, ticker band under both. */
+.player-stage[data-layout='main-sidebar-ticker'] .player-zone--main {
+  right: 30%;
+  bottom: 12%;
+}
+.player-stage[data-layout='main-sidebar-ticker'] .player-zone--sidebar {
+  left: 70%;
+  bottom: 12%;
+}
+.player-stage[data-layout='main-sidebar-ticker'] .player-zone--ticker {
+  top: 88%;
+}
+
 /* A/B double-buffer layers. The incoming slot cross-fades in while the outgoing
    one fades out — a smooth swap with no black flash. Transition duration is
    mirrored by TRANSITION_MS in the engine. */

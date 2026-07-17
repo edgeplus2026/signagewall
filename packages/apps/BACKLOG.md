@@ -421,12 +421,19 @@ real domain (it rejects bare IPs).
 
 ### Requested but NOT apps — platform features
 
-**Split Screen / multi-zone layout** — showing several apps at once (e.g. a dashboard beside a ticker) is
-a **screen/player layout feature, not an app**: today a screen plays ONE item at a time
-(`screens/schemas/screen.schema.ts` has no zones/regions, and the player renders a single app iframe). It
-needs: a zoned layout model on the screen (regions with per-region playlists), a player **compositor** that
-runs N app iframes positioned in those regions, and CMS layout editing. Substantial — spec separately from
-the app catalog.
+**Split Screen / multi-zone layout** — ✅ **platform core shipped** (backend + wire + player).
+A screen now has a `layout` preset (`fullscreen` default, `main-sidebar` 70/30, `main-ticker` 88/12,
+`main-sidebar-ticker`) and per-zone rotations: `screen.items` stays the MAIN zone (full backward compat),
+secondary zones live in `screen.zones[]` (same item shape — media/playlist/app). Edit a zone with the
+existing `PUT /screens/:id/items` + a `zone` field (same validation + optimistic concurrency); set the
+preset with `PATCH /screens/:id/layout`. The snapshot carries `layout` + resolved `zones[]` (one batched
+DB load for all regions; zone edits change the revision); old players ignore the new fields and play the
+main zone fullscreen. The player runs **one `PlaybackController` per zone** (they're instance-scoped) in
+CSS-positioned `.player-zone` containers — geometry is pure CSS keyed on `data-layout`, secondary zones
+are always muted (audio belongs to the main zone), prefetch warms all zones, and empty zones degrade the
+layout (`main-sidebar-ticker` with an empty sidebar plays as `main-ticker`).
+**Remaining: the CMS zone editor** — a layout picker + per-zone item lists in `ScreenContentTab`
+(the API + response DTOs already expose `layout`/`zones`).
 
 **Emergency takeover** — a companion to the `alert` app: a broadcast that instantly overrides whatever is
 playing on selected screens with an alert, then restores. Also a screens/player feature (priority

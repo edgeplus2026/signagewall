@@ -14,9 +14,86 @@ import {
   snapshot,
   volume,
 } from '../store'
+import type { PlayerSnapshot, ScreenZoneKey } from '../types'
 
 /** Hide the back/next controls after this long without user activity. */
 const CONTROLS_HIDE_MS = 3_000
+
+/**
+ * The split-screen regions to actually draw, degraded to the zones that arrived
+ * with content: a `main-sidebar-ticker` snapshot whose sidebar resolved empty
+ * plays as `main-ticker`, and a split snapshot with no populated zones at all
+ * plays exactly like a classic fullscreen one. Geometry itself is pure CSS,
+ * keyed on the `data-layout` this computes.
+ */
+function effectiveZones(snap: PlayerSnapshot | null): {
+  layout: string
+  zoneKeys: ScreenZoneKey[]
+} {
+  if (!snap?.layout || snap.layout === 'fullscreen' || !snap.zones?.length) {
+    return { layout: 'fullscreen', zoneKeys: [] }
+  }
+  const has = (key: ScreenZoneKey): boolean =>
+    snap.layout !== undefined &&
+    snap.layout.includes(key) &&
+    (snap.zones ?? []).some((zone) => zone.key === key && zone.items.length > 0)
+  const zoneKeys: ScreenZoneKey[] = []
+  if (has('sidebar')) zoneKeys.push('sidebar')
+  if (has('ticker')) zoneKeys.push('ticker')
+  if (zoneKeys.length === 0) {
+    return { layout: 'fullscreen', zoneKeys: [] }
+  }
+  return { layout: `main-${zoneKeys.join('-')}`, zoneKeys }
+}
+
+/**
+ * A secondary split-screen region: its own playback loop over the zone's items,
+ * inside its own CSS-positioned container. Deliberately mute (audio belongs to
+ * the main zone alone), never reported as "now playing", and free-running even
+ * in the CMS preview — the device only mirrors the main zone.
+ */
+function ZoneRegion({ zone }: { zone: ScreenZoneKey }) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const root = ref.current
+    if (!root) {
+      return undefined
+    }
+    const controller = new PlaybackController(root, {
+      onError: (error) => {
+        // Same policy as the main loop: offline load failures are expected.
+        if (navigator.onLine) {
+          reportError(error)
+        }
+      },
+    })
+    controller.setVolume(0)
+
+    const stop = effect(() => {
+      controller.setOnline(online.value)
+      const snap = snapshot.value
+      const entry = snap?.zones?.find((candidate) => candidate.key === zone)
+      if (snap && entry && entry.items.length > 0) {
+        controller.load({
+          screenId: snap.screenId,
+          name: snap.name,
+          // Zone-scoped revision, so a zone edit reloads this loop while an
+          // untouched zone's controller dedupes and keeps its place.
+          revision: `${snap.revision}:${zone}`,
+          items: entry.items,
+        })
+      }
+    })
+
+    return () => {
+      stop()
+      controller.destroy()
+    }
+  }, [zone])
+
+  return <div ref={ref} class={`player-zone player-zone--${zone}`} />
+}
 
 /**
  * Hosts the imperative playback engine inside Preact. Preact only owns the
@@ -29,10 +106,15 @@ const CONTROLS_HIDE_MS = 3_000
  */
 export function Stage() {
   const rootRef = useRef<HTMLDivElement>(null)
+  const mainRef = useRef<HTMLDivElement>(null)
   const controllerRef = useRef<PlaybackController | null>(null)
   const hideTimerRef = useRef<number | undefined>(undefined)
   const shieldRef = useRef<HTMLDivElement>(null)
   const [controlsVisible, setControlsVisible] = useState(false)
+  // Which secondary regions to draw; changes only when the layout genuinely
+  // changes (guarded below), so zone edits never churn the main engine's DOM.
+  const [zoneKeys, setZoneKeys] = useState<ScreenZoneKey[]>([])
+  const layoutSigRef = useRef('fullscreen:')
 
   // Pull keyboard focus back to the parent (our transparent shield) and off any
   // app iframe. An iframe with focus swallows the arrow keys, so without this
@@ -64,12 +146,13 @@ export function Stage() {
 
   useEffect(() => {
     const root = rootRef.current
-    if (!root) {
+    const mainRoot = mainRef.current
+    if (!root || !mainRoot) {
       return undefined
     }
 
     const controller = new PlaybackController(
-      root,
+      mainRoot,
       {
         onItem: (item) => {
           playingItemId.value = item.id
@@ -117,6 +200,16 @@ export function Stage() {
       // rotation instantly without a reload (setOnline is a no-op if unchanged).
       controller.setOnline(online.value)
       const snap = snapshot.value
+      // Split-screen: reflect the effective layout as a data-attribute (CSS owns
+      // the region geometry) and mount/unmount the secondary regions. Guarded by
+      // a signature so only a real layout change re-renders the zone list.
+      const zones = effectiveZones(snap)
+      root.dataset.layout = zones.layout
+      const signature = `${zones.layout}:${zones.zoneKeys.join(',')}`
+      if (signature !== layoutSigRef.current) {
+        layoutSigRef.current = signature
+        setZoneKeys(zones.zoneKeys)
+      }
       if (snap) {
         controller.load(snap)
       }
@@ -173,19 +266,28 @@ export function Stage() {
     }
   }, [reveal, goPrevious, goNext, focusShield])
 
-  // The controls are a *sibling* of the engine root, not a child: the engine
-  // appends its slot elements directly into `player-stage`, so keeping any JSX
-  // out of that node guarantees Preact never reconciles (and risks reordering)
-  // the imperatively-managed media layers. The overlay is fixed/full-screen, so
-  // it covers the stage regardless of DOM parent.
+  // The engine roots are the ZONE containers, not the stage: each controller
+  // appends its slot elements directly into its own `.player-zone`, and those
+  // zone divs are all keyed so Preact never recreates (or reorders) a container
+  // whose children an engine manages imperatively. The controls overlay stays a
+  // sibling of the stage; it is fixed/full-screen, so it covers everything.
   // No back/next overlay in preview — see the effect above.
+  const stage = (
+    <div ref={rootRef} class="player-stage">
+      <div key="main" ref={mainRef} class="player-zone player-zone--main" />
+      {zoneKeys.map((zone) => (
+        <ZoneRegion key={zone} zone={zone} />
+      ))}
+    </div>
+  )
+
   if (isPreview) {
-    return <div ref={rootRef} class="player-stage" />
+    return stage
   }
 
   return (
     <>
-      <div ref={rootRef} class="player-stage" />
+      {stage}
       <div class="player-controls" data-visible={controlsVisible ? 'true' : 'false'}>
         {/* Transparent, focusable capture layer sitting above the app iframes
             but below the buttons. Without it an on-screen app iframe swallows

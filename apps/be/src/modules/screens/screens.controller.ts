@@ -26,6 +26,7 @@ import { AddScreenPlaylistsDto } from './dto/add-screen-playlists.dto';
 import { CreateScreenDto } from './dto/create-screen.dto';
 import { DeleteScreensDto } from './dto/delete-screens.dto';
 import { ReplaceScreenItemsDto } from './dto/replace-screen-items.dto';
+import { SetScreenLayoutDto } from './dto/set-screen-layout.dto';
 import { UpdateScreenAvailabilityDto } from './dto/update-screen-availability.dto';
 import { UpdateScreenDto } from './dto/update-screen.dto';
 import { ScreensService } from './screens.service';
@@ -118,6 +119,17 @@ export class ScreensController {
     @Body() dto: ReplaceScreenItemsDto,
   ) {
     return this.screensService.replaceItems(organizationId, id, dto);
+  }
+
+  @Patch(':id/layout')
+  @RequireOrgRole()
+  @ApiSuccessResponse(Object)
+  setLayout(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('id', ParseObjectIdPipe) id: string,
+    @Body() dto: SetScreenLayoutDto,
+  ) {
+    return this.screensService.setLayout(organizationId, id, dto.layout);
   }
 
   @Get(':id/availability')
