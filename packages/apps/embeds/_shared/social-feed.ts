@@ -3,17 +3,19 @@ import { type AppDataMeta, connectToHost } from './host-bridge.js'
 import { freshnessFooterHtml } from './freshness.js'
 
 /**
- * Shared renderer for the social-feed apps (Instagram, Facebook). Both platforms
- * reduce to "an account and a list of recent posts", so one renderer serves both
- * over the {@link SocialPayload} contract — the calling bundle only supplies its
- * brand (accent, name, glyph). Two layouts:
+ * Shared renderer for the social-feed apps (Instagram, Facebook, Teams). Each
+ * reduces to "a source and a list of recent posts", so one renderer serves all
+ * three over the {@link SocialPayload} contract — the calling bundle only
+ * supplies its brand (accent, name, glyph). Two layouts:
  *
  *  - `spotlight` (default): one post at a time, big image with the caption over
  *    it, auto-rotating every `slideSeconds`. The signage-friendly default.
  *  - `grid`: a tiled wall of the most recent posts.
  *
- * The rotation is visual only (no audio), so it does not gate on `onActive`; it
- * is re-armed idempotently on every config/data message.
+ * A post with no image (a Facebook text status, a Teams channel message) renders
+ * its text as the hero itself; a post with an `author` (Teams messages) shows a
+ * byline. The rotation is visual only (no audio), so it does not gate on
+ * `onActive`; it is re-armed idempotently on every config/data message.
  */
 
 export interface SocialFeedBrand {
@@ -80,7 +82,14 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
     )
   }
 
-  function mediaHtml(post: SocialPost, large: boolean): string {
+  /** A post's author byline, when the source attaches one (Teams messages). */
+  function bylineHtml(post: SocialPost, show: boolean): string {
+    return show && post.author
+      ? `<span class="sf-by">${escapeHtml(post.author)}</span>`
+      : ''
+  }
+
+  function mediaHtml(post: SocialPost, large: boolean, showByline: boolean): string {
     if (post.imageUrl) {
       const badge =
         post.mediaType === 'video'
@@ -93,9 +102,14 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
         `</div>`
       )
     }
-    // Text-only post (common on Facebook): show the text as the hero itself.
+    // No image (a Facebook text status, a Teams channel message): the text IS
+    // the hero. Show the byline above it when the source carries one.
     const text = post.text ? escapeHtml(clampText(post.text, large ? 320 : 140)) : ''
-    return `<div class="sf-media sf-media-text"><p>${text}</p></div>`
+    return (
+      `<div class="sf-media sf-media-text"><div class="sf-text">` +
+      bylineHtml(post, showByline) +
+      `<p>${text}</p></div></div>`
+    )
   }
 
   function renderSpotlight(
@@ -104,13 +118,15 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
     showCaption: boolean,
   ): void {
     const post = data.posts[index % data.posts.length]!
+    // The caption overlay is only for image posts (a text post is already the
+    // hero, drawn by mediaHtml).
     const caption =
       showCaption && post.text && post.imageUrl
-        ? `<div class="sf-caption"><p>${escapeHtml(clampText(post.text, 220))}</p></div>`
+        ? `<div class="sf-caption">${bylineHtml(post, true)}<p>${escapeHtml(clampText(post.text, 220))}</p></div>`
         : ''
     root.innerHTML =
       header(data.accountLabel) +
-      `<div class="sf-spot">${mediaHtml(post, true)}${caption}</div>`
+      `<div class="sf-spot">${mediaHtml(post, true, showCaption)}${caption}</div>`
   }
 
   function renderGrid(
@@ -121,11 +137,13 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
     const cells = data.posts
       .slice(0, 9)
       .map((post) => {
+        // Overlay caption only for image posts; text posts show their text via
+        // mediaHtml, so a cap would double it.
         const cap =
-          showCaption && post.text
-            ? `<div class="sf-cell-cap">${escapeHtml(clampText(post.text, 90))}</div>`
+          showCaption && post.text && post.imageUrl
+            ? `<div class="sf-cell-cap">${bylineHtml(post, true)}${escapeHtml(clampText(post.text, 90))}</div>`
             : ''
-        return `<div class="sf-cell">${mediaHtml(post, false)}${cap}</div>`
+        return `<div class="sf-cell">${mediaHtml(post, false, showCaption)}${cap}</div>`
       })
       .join('')
     root.innerHTML =

@@ -15,7 +15,10 @@ import {
   listGooglePresentations,
   listGoogleSpreadsheets,
 } from './providers/google-api';
-import { listMicrosoftCalendars } from './providers/microsoft-api';
+import {
+  listMicrosoftCalendars,
+  listTeamsChannels,
+} from './providers/microsoft-api';
 import {
   listFacebookPages,
   listInstagramAccounts,
@@ -341,6 +344,9 @@ export class ConnectionsService {
       case 'ms-calendars':
         this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
         return listMicrosoftCalendars(connection.accessToken, query);
+      case 'ms-teams-channels':
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        return listTeamsChannels(connection.accessToken, query);
       case 'meta-pages':
         this.assertProvider(connection.provider, ConnectionProvider.META);
         return listFacebookPages(connection.accessToken, query);

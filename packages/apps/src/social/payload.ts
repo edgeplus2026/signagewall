@@ -1,10 +1,11 @@
 /**
  * Normalized social-feed payload — the shared contract between the backend
- * `instagram` / `facebook` connectors and their embed bundles. Both platforms
- * reduce to "an account and a list of recent posts", so one shape and one
- * renderer serve both (Facebook fills in what it has; Instagram is image-first).
- * Fetched per-connection (a feed is tied to a specific account), so the cacheKey
- * includes the connection id.
+ * `instagram` / `facebook` / `teams` connectors and their embed bundles. Each
+ * reduces to "an account/source and a list of recent posts", so one shape and
+ * one renderer serve all three (Facebook fills in what it has; Instagram is
+ * image-first; Teams channel messages are authored text). Fetched per-connection
+ * (a feed is tied to a specific account/channel), so the cacheKey includes the
+ * connection id.
  *
  * NOTE — this payload is intentionally allowed to FAN OUT. A post's `imageUrl`
  * is a CDN URL that Meta rotates/expires (a signed `scontent…` link), so the
@@ -23,6 +24,12 @@ export interface SocialPayload {
 export interface SocialPost {
   /** Stable post id (used as a render key). */
   id: string
+  /**
+   * The individual who posted, shown as a byline. Set for sources where posts
+   * have distinct authors (Teams channel messages); left unset where every post
+   * is from the account itself (Instagram, Facebook Page).
+   */
+  author?: string
   /** Post text / caption; empty for image-only posts. */
   text?: string
   /** Primary image URL, when the post has one. */

@@ -1,6 +1,6 @@
 # Edge Digital Signage — Operator Setup Guide (Apps)
 
-This guide tells an operator EXACTLY what to do to make each of the 32 signage apps work: which environment variables to set, which OAuth apps/API keys to register externally, which approvals to obtain, and the per-instance steps done in the CMS. Most apps need **zero** backend setup — they are configured entirely per-instance. A small number need an **API key**, and the "connected" apps each need an **OAuth application** registered with the provider plus `ENCRYPTION_KEY` set on the server. Where a fact is not established here, it says **see manifest** rather than guessing.
+This guide tells an operator EXACTLY what to do to make each of the 33 signage apps work: which environment variables to set, which OAuth apps/API keys to register externally, which approvals to obtain, and the per-instance steps done in the CMS. Most apps need **zero** backend setup — they are configured entirely per-instance. A small number need an **API key**, and the "connected" apps each need an **OAuth application** registered with the provider plus `ENCRYPTION_KEY` set on the server. Where a fact is not established here, it says **see manifest** rather than guessing.
 
 ---
 
@@ -56,7 +56,7 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 
 ---
 
-## 1. At-a-glance (all 32 apps)
+## 1. At-a-glance (all 33 apps)
 
 | App | Type | Operator setup needed | Env / keys | External approval |
 |---|---|---|---|---|
@@ -89,6 +89,7 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 | Google Sheets | Connected (OAuth) | Reuses Google OAuth app; per-instance connect + pick sheet + range | `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth verification (2 sensitive scopes) |
 | Google Slides (private) | Connected (OAuth) | Reuses Google OAuth app; per-instance connect + pick deck | `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth verification (2 sensitive scopes) |
 | Outlook Calendar | Connected (OAuth) | Entra app + `ENCRYPTION_KEY`; per-instance connect + pick calendar | `ENCRYPTION_KEY`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | Possible tenant admin consent; publisher verification recommended |
+| Microsoft Teams | Connected (OAuth) | Same Entra app; per-instance connect + pick channel | `ENCRYPTION_KEY`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | **Azure AD admin consent** for `ChannelMessage.Read.All`; no personal accounts |
 | Instagram | Connected (OAuth) | Meta app + `ENCRYPTION_KEY`; per-instance connect + pick IG account | `ENCRYPTION_KEY`, `META_CLIENT_ID`, `META_CLIENT_SECRET` | **Meta App Review + Business verification** for non-owned accounts |
 | Facebook Page | Connected (OAuth) | Same Meta app; per-instance connect + pick Page | `ENCRYPTION_KEY`, `META_CLIENT_ID`, `META_CLIENT_SECRET` | **Meta App Review + Business verification** for non-owned Pages |
 | Canva | Connected (OAuth) | Canva Connect app + `ENCRYPTION_KEY`; per-instance connect + pick design | `ENCRYPTION_KEY`, `CANVA_CLIENT_ID`, `CANVA_CLIENT_SECRET` | Canva review/approval to publish beyond your own team |
@@ -392,6 +393,14 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   1. Connect a Microsoft account via the **Microsoft account** OAuth field — read-only.
   2. Pick the **Calendar** (`remoteSource: ms-calendars`); an unset calendar falls back to the account's default calendar view.
   3. Display-only (config keys mirror gcal, reusing the Google Calendar embed): Calendar view, "Only show upcoming events", Auto scroll, Language, Theme.
+
+- **Microsoft Teams** (`teams`, provider microsoft) — refresh 300s, `requiresNetwork: false`.
+  - **Scopes:** `https://graph.microsoft.com/Team.ReadBasic.All`, `https://graph.microsoft.com/Channel.ReadBasic.All`, `https://graph.microsoft.com/ChannelMessage.Read.All`
+  - **Env:** `ENCRYPTION_KEY`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` (same Entra app as Outlook)
+  - **Approval — REQUIRED:** `ChannelMessage.Read.All` requires **Azure AD admin consent** (an admin must approve it once for the tenant). `Team.ReadBasic.All` / `Channel.ReadBasic.All` (the picker) do not. **Personal Microsoft accounts are not supported** — only work/school accounts.
+  1. Connect a work/school Microsoft account via the **Microsoft account** OAuth field — read-only, never posts.
+  2. Pick the **Channel** (`remoteSource: ms-teams-channels` — one flat "Team · Channel" list built from your joined teams and their channels).
+  3. Display-only (reuses the social-feed embed, same as Instagram/Facebook): Layout (Spotlight / Grid), Seconds per message (spotlight only, 2–120), "Show author names", Theme. Messages show the sender as a byline; system/deleted messages are dropped; image-only messages (hosted content needs a token) are skipped.
 
 - **Instagram** (`instagram`, provider meta) — refresh 900s, `requiresNetwork: true` (streams images from Meta's CDN). Graph v22.0.
   - **Scopes:** `instagram_basic`, `pages_show_list`

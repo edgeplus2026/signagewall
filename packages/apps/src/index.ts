@@ -24,6 +24,7 @@ import { sportsManifest } from './sports/manifest.js'
 import { stocksManifest } from './stocks/manifest.js'
 import { streamManifest } from './stream/manifest.js'
 import { sunmoonManifest } from './sunmoon/manifest.js'
+import { teamsManifest } from './teams/manifest.js'
 import { textManifest } from './text/manifest.js'
 import { tickerManifest } from './ticker/manifest.js'
 import { vimeoManifest } from './vimeo/manifest.js'
@@ -72,6 +73,7 @@ export const APP_MANIFESTS: AppManifest[] = [
   outlookManifest,
   instagramManifest,
   facebookManifest,
+  teamsManifest,
 ]
 
 export {
@@ -107,6 +109,7 @@ export {
   outlookManifest,
   instagramManifest,
   facebookManifest,
+  teamsManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'

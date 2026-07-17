@@ -60,3 +60,75 @@ export async function listMicrosoftCalendars(
     return a.title.localeCompare(b.title);
   });
 }
+
+/** A "Team · Channel" pair surfaced to the CMS picker (token-free). */
+export interface MicrosoftChannelSummary {
+  /** Composite `<teamId>::<channelId>` — the connector splits it apart. */
+  id: string;
+  title: string;
+}
+
+interface JoinedTeam {
+  id: string;
+  displayName?: string;
+}
+
+interface GraphChannel {
+  id: string;
+  displayName?: string;
+}
+
+/** Cap the teams we expand so the picker can't fan out into hundreds of calls. */
+const MAX_TEAMS = 20;
+
+/**
+ * List the channels the connected account can read, as flat "Team · Channel"
+ * options. Teams has no single "all my channels" endpoint, so we read the user's
+ * joined teams (`Team.ReadBasic.All`) and then each team's channels
+ * (`Channel.ReadBasic.All`) in parallel, and flatten. The option id is a
+ * composite `<teamId>::<channelId>` (a channel is only addressable together with
+ * its team). A team whose channels can't be read is skipped rather than failing
+ * the whole picker.
+ */
+export async function listTeamsChannels(
+  accessToken: string,
+  query: string,
+  signal?: AbortSignal,
+): Promise<MicrosoftChannelSummary[]> {
+  const headers = { authorization: `Bearer ${accessToken}` };
+
+  const teamsResponse = await fetch(
+    `${GRAPH_API}/me/joinedTeams?$select=id,displayName`,
+    { headers, ...(signal ? { signal } : {}) },
+  );
+  if (!teamsResponse.ok) {
+    throw new Error(`microsoft graph upstream ${teamsResponse.status}`);
+  }
+  const teamsBody = (await teamsResponse.json()) as { value?: JoinedTeam[] };
+  const teams = (teamsBody.value ?? []).slice(0, MAX_TEAMS);
+
+  const perTeam = await Promise.all(
+    teams.map(async (team) => {
+      const response = await fetch(
+        `${GRAPH_API}/teams/${encodeURIComponent(team.id)}/channels?$select=id,displayName`,
+        { headers, ...(signal ? { signal } : {}) },
+      );
+      if (!response.ok) {
+        return [] as MicrosoftChannelSummary[];
+      }
+      const body = (await response.json()) as { value?: GraphChannel[] };
+      const teamName = team.displayName ?? 'Team';
+      return (body.value ?? []).map((channel) => ({
+        id: `${team.id}::${channel.id}`,
+        title: `${teamName} · ${channel.displayName ?? 'Channel'}`,
+      }));
+    }),
+  );
+
+  const channels = perTeam.flat();
+  const trimmed = query.trim().toLowerCase();
+  const filtered = trimmed
+    ? channels.filter((c) => c.title.toLowerCase().includes(trimmed))
+    : channels;
+  return filtered.sort((a, b) => a.title.localeCompare(b.title));
+}

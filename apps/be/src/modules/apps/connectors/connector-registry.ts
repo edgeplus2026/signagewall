@@ -17,6 +17,7 @@ import { rssConnector } from './rss.connector';
 import { sportsConnector } from './sports.connector';
 import { stocksConnector } from './stocks.connector';
 import { sunmoonConnector } from './sunmoon.connector';
+import { teamsConnector } from './teams.connector';
 import { weatherConnector } from './weather.connector';
 import { wisdomConnector } from './wisdom.connector';
 
@@ -46,6 +47,7 @@ const CONNECTORS: Record<string, AppConnector> = {
   sports: sportsConnector,
   stocks: stocksConnector,
   sunmoon: sunmoonConnector,
+  teams: teamsConnector,
   wisdom: wisdomConnector,
 };
 

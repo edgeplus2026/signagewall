@@ -19,6 +19,7 @@ import { safeFetchText } from './safe-fetch.util';
 import { sportsConnector } from './sports.connector';
 import { stocksConnector } from './stocks.connector';
 import { sunmoonConnector } from './sunmoon.connector';
+import { teamsConnector } from './teams.connector';
 import { weatherConnector } from './weather.connector';
 
 // The RSS connector fetches through the SSRF guard, which resolves the host over
@@ -1769,5 +1770,79 @@ describe('facebook connector (connected, meta)', () => {
     // The feed read must use the resolved Page token, not the user token.
     const feedCall = fetchMock.mock.calls[1]!;
     expect(feedCall[1].headers.authorization).toBe('Bearer page-tok');
+  });
+});
+
+describe('teams connector (connected, microsoft)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'microsoft',
+      accountLabel: 'me@example.com',
+      accessToken: 'tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey splits the composite team::channel id', () => {
+    expect(
+      teamsConnector.cacheKey!({
+        connectionId: 'c1',
+        channel: { id: 'team-1::19:abc@thread.tacv2' },
+      }),
+    ).toBe('teams:c1:team-1:19:abc@thread.tacv2');
+  });
+
+  it('normalizes messages: strips HTML, folds in subject, drops system/deleted', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          value: [
+            {
+              id: 'm1',
+              messageType: 'message',
+              subject: 'Heads up',
+              createdDateTime: '2026-07-16T09:00:00Z',
+              webUrl: 'https://teams.microsoft.com/l/message/1',
+              body: { contentType: 'html', content: '<p>Office closed <b>Friday</b></p>' },
+              from: { user: { displayName: 'Robin Kline' } },
+            },
+            // System event — must be skipped.
+            {
+              id: 'm2',
+              messageType: 'systemEventMessage',
+              body: { contentType: 'html', content: '<systemEventMessage/>' },
+            },
+            // Deleted — must be skipped.
+            {
+              id: 'm3',
+              messageType: 'message',
+              deletedDateTime: '2026-07-16T10:00:00Z',
+              body: { contentType: 'text', content: 'gone' },
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await teamsConnector.fetchData(
+      { connectionId: 'c1', channel: { id: 'team-1::chan-1', label: 'Ops · General' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      accountLabel: 'Ops · General',
+      posts: [
+        {
+          id: 'm1',
+          author: 'Robin Kline',
+          text: 'Heads up — Office closed Friday',
+          permalink: 'https://teams.microsoft.com/l/message/1',
+          timestamp: '2026-07-16T09:00:00Z',
+          mediaType: 'text',
+        },
+      ],
+    });
+    // Stable payload (no rotating URLs) → no version, no fan-out.
+    expect(result.version).toBeUndefined();
   });
 });

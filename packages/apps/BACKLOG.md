@@ -12,7 +12,7 @@ Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.
 
-**32 apps ship today** (all `runtimeKind: 'embed'`):
+**33 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `web`, `dashboard`, `youtube`, `vimeo`, `stream`, `gslides-public`
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
@@ -20,7 +20,8 @@ CMS and player contain **zero per-app code**. Adding an app is done almost entir
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, and
   `stocks` (Alpaca — needs `ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`)
 - `connected` (OAuth account): `gcal` (Google Calendar), `gsheets` (Google Sheets), `gslides` (Google
-  Slides, private), `outlook` (Outlook Calendar), `instagram` + `facebook` (Meta), `canva`
+  Slides, private), `outlook` (Outlook Calendar), `teams` (Microsoft Teams), `instagram` + `facebook`
+  (Meta), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
 `datetime` config field type (enabler E4a). Remaining work is marked below — ✅ = shipped.
@@ -31,6 +32,12 @@ no refresh token — re-extended proactively) plus the first two social apps, **
 renderer (`embeds/_shared/social-feed.ts`). Code + mocked tests ship now; using them against accounts
 you don't own still requires the operator to clear Meta **App Review + Business verification** (external,
 weeks) and set `META_CLIENT_ID`/`SECRET`.
+
+**Also shipped — Microsoft Teams (`teams`):** a channel-messages feed on the already-shipped Microsoft
+provider (E1). A channel is a feed of authored posts, so it reuses the same `SocialPayload` + social-feed
+renderer (`SocialPost` gained an optional `author` byline). The picker flattens the user's joined teams ×
+channels into one "Team · Channel" dropdown. Reading messages needs the `ChannelMessage.Read.All` scope,
+which requires **Azure AD admin consent** (documented); no new backend enabler.
 
 ## 1. How the app system works (read once)
 
@@ -182,7 +189,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 20 | Outlook / M365 Calendar ✅ | `outlook` | connected | Productivity | M | E1 ✅ |
 | 21 | Power BI | `powerbi` | connected | Data & Dashboards | L | E1 |
 | 22 | SharePoint / PowerPoint | `sharepoint` | connected | Productivity | L | E1 |
-| 23 | Microsoft Teams | `teams` | connected | Productivity | L | E1 |
+| 23 | Microsoft Teams ✅ | `teams` | connected | Productivity | L | E1 ✅ |
 | 24 | Slack channel | `slack` | connected | Productivity | M–L | E3 |
 | **Tier 5 — social (approval / cost gated)** ||||||
 | 25 | Instagram | `instagram` | connected | Social | L | E2 ✅ (code) |
@@ -338,8 +345,14 @@ report/dashboard. `cacheKey` `powerbi:<connId>:<reportId>`. (Public reports → 
 **22. SharePoint / PowerPoint** (`sharepoint`, connected) — **Depends E1**. Graph `Files.Read`; show a
 PPT/PDF from OneDrive/SharePoint (export to images). `cacheKey` `sharepoint:<connId>:<fileId>`.
 
-**23. Microsoft Teams** (`teams`, connected) — **Depends E1**. Graph `ChannelMessage.Read.All` (admin
-consent — heavy). Show channel announcements. `cacheKey` `teams:<connId>:<teamId>:<channelId>`.
+**23. Microsoft Teams** (`teams`, connected) ✅ — Microsoft provider (E1). Reads a channel's recent
+messages via Graph `/teams/{team}/channels/{channel}/messages` (scopes `Team.ReadBasic.All`,
+`Channel.ReadBasic.All`, `ChannelMessage.Read.All` — the last needs **Azure AD admin consent**; no
+personal accounts). The picker (`remote-select` `ms-teams-channels`) flattens joined teams × channels
+into one "Team · Channel" list; the composite id is split in the connector. Messages normalize to the
+shared `SocialPayload` (HTML stripped, subject folded in, `author` byline; system/deleted messages
+dropped) and render through the social-feed embed. `cacheKey` `teams:<connId>:<teamId>:<channelId>`,
+`refreshSeconds` 300. Stable payload (no rotating URLs) → no `version`, no fan-out.
 
 **24. Slack channel** (`slack`, connected) — **Depends E3**. `conversations.history`. Show latest
 channel messages/announcements. `cacheKey` `slack:<connId>:<channelId>`. `refreshSeconds` 60–300.
@@ -374,20 +387,20 @@ committing. Latest tweets from a handle.
   Still open in this band: **E0** (seed categories). (E6 README refresh ✅.)
 - **M2 — Google reuse:** Google Sheets ✅, Google Slides (private) ✅. Google Photos ⛔ blocked (Photos
   Library API restricted to app-created media since 2025; a user's library needs the Picker API).
-- **M3 — Microsoft (E1 ✅):** Outlook Calendar ✅ (reuses the gcal embed); Power BI / SharePoint /
-  Teams next — same provider, new connectors.
+- **M3 — Microsoft (E1 ✅):** Outlook Calendar ✅ (reuses the gcal embed), Microsoft Teams ✅ (reuses the
+  social-feed embed); Power BI / SharePoint next — same provider, new connectors.
 - **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Alpaca), sports ✅ (TheSportsDB, free-key default); transit
   next (same keyed pattern); news presets.
 - **M5 — Social (E2 ✅ code / E3):** Instagram ✅ + Facebook ✅ ship on the Meta provider (operator still
   clears Meta App Review + Business verification to go live). Slack next (E3). X/TikTok/LinkedIn only if
   the API cost/approval is acceptable.
 
-**Recommended next:** the Meta provider (E2) supports one more social app cheaply — a **LinkedIn**-style
-company feed would need a new provider, but **more Microsoft apps** on the shipped E1 provider are the
-lowest-friction wins: **Teams** (channel messages), **SharePoint / PowerPoint**, **Power BI**. The
-connected recipe is now proven across data-read (Sheets), image-export (Slides), a normalized-payload
-provider reuse (Outlook → gcal embed) and a **third OAuth provider with a shared multi-app renderer**
-(Meta → Instagram + Facebook). Remaining: **Slack** (E3), and the approval/cost-gated social platforms.
+**Recommended next:** keep mining the shipped Microsoft provider (E1) — **SharePoint / PowerPoint** (show a
+deck/PDF from OneDrive/SharePoint, an image-export pipeline like `gslides`) and **Power BI** (embed a
+report) are the remaining lowest-friction wins. The connected recipe is now proven across data-read
+(Sheets), image-export (Slides), normalized-payload embed reuse across providers (Outlook → gcal embed;
+Teams → social-feed embed) and a shared multi-app renderer (Meta → Instagram + Facebook; +Teams). After
+that: **Slack** (E3, new provider) and the approval/cost-gated social platforms (LinkedIn/X/TikTok).
 
 ## 6. Known caveats to carry into implementation
 
