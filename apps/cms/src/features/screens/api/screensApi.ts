@@ -15,6 +15,7 @@ import type {
   ScreenItem,
   ScreenSummary,
   SetDeviceDailyReloadRequest,
+  SetScreenLayoutRequest,
   UpdateScreenAvailabilityRequest,
   UpdateScreenRequest,
 } from '@/features/screens/types/screen.types'
@@ -87,6 +88,11 @@ export const screensApi = {
 
   replaceItems: async (id: string, payload: ReplaceScreenItemsRequest): Promise<Screen> => {
     const { data } = await api.put<Screen>(`${SCREENS_BASE}/${id}/items`, payload)
+    return data
+  },
+
+  setLayout: async (id: string, payload: SetScreenLayoutRequest): Promise<Screen> => {
+    const { data } = await api.patch<Screen>(`${SCREENS_BASE}/${id}/layout`, payload)
     return data
   },
 

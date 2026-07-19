@@ -62,6 +62,9 @@ function buildService(options: {
   >;
   /** Stored `screen.availability` subdocument, when the screen has one. */
   availability?: unknown;
+  /** Split-screen preset + zone rotations, when the screen has them. */
+  layout?: string;
+  zones?: Array<{ key: string; items: unknown[] }>;
 }) {
   const screensRepository = {
     findById: jest.fn().mockResolvedValue({
@@ -70,6 +73,8 @@ function buildService(options: {
       organizationId: new Types.ObjectId(),
       items: options.screenItems,
       ...(options.availability ? { availability: options.availability } : {}),
+      ...(options.layout ? { layout: options.layout } : {}),
+      ...(options.zones ? { zones: options.zones } : {}),
     }),
   };
   const playlistsRepository = {
@@ -181,6 +186,77 @@ describe('PlayerContentService', () => {
       durationMs: 20_000,
       mimeType: 'video/mp4',
     });
+  });
+
+  it('resolves split-screen zones alongside the main items', async () => {
+    const mainImage = media({ id: 'main', type: MediaItemType.IMAGE });
+    const sideImage = media({ id: 'side', type: MediaItemType.IMAGE });
+
+    const service = buildService({
+      mediaById: {
+        [mainImage._id.toString()]: mainImage,
+        [sideImage._id.toString()]: sideImage,
+      },
+      screenItems: [screenMediaItem(mainImage, 0, { duration: 10 })],
+      layout: 'main-sidebar',
+      zones: [
+        { key: 'sidebar', items: [screenMediaItem(sideImage, 0, { duration: 8 })] },
+      ],
+    });
+
+    const snapshot = await service.resolveByScreenId('org', 'screen');
+
+    expect(snapshot?.layout).toBe('main-sidebar');
+    expect(snapshot?.items).toHaveLength(1);
+    expect(snapshot?.zones).toHaveLength(1);
+    expect(snapshot?.zones?.[0]).toMatchObject({ key: 'sidebar' });
+    expect(snapshot?.zones?.[0]?.items[0]).toMatchObject({
+      kind: 'image',
+      durationMs: 8_000,
+      url: 'https://cdn.test/side.jpg',
+    });
+  });
+
+  it('omits the layout when every defined zone resolves empty', async () => {
+    const mainImage = media({ id: 'main', type: MediaItemType.IMAGE });
+
+    const service = buildService({
+      mediaById: { [mainImage._id.toString()]: mainImage },
+      screenItems: [screenMediaItem(mainImage, 0, { duration: 10 })],
+      layout: 'main-ticker',
+      zones: [{ key: 'ticker', items: [] }],
+    });
+
+    const snapshot = await service.resolveByScreenId('org', 'screen');
+
+    expect(snapshot?.layout).toBeUndefined();
+    expect(snapshot?.zones).toBeUndefined();
+    expect(snapshot?.items).toHaveLength(1);
+  });
+
+  it('a zone edit changes the revision (so devices are re-pushed)', async () => {
+    const mainImage = media({ id: 'main', type: MediaItemType.IMAGE });
+    const sideImage = media({ id: 'side', type: MediaItemType.IMAGE });
+    const mediaById = {
+      [mainImage._id.toString()]: mainImage,
+      [sideImage._id.toString()]: sideImage,
+    };
+    const base = {
+      mediaById,
+      screenItems: [screenMediaItem(mainImage, 0, { duration: 10 })],
+      layout: 'main-sidebar',
+    };
+
+    const without = await buildService({ ...base, zones: [] })
+      .resolveByScreenId('org', 'screen');
+    const withZone = await buildService({
+      ...base,
+      zones: [
+        { key: 'sidebar', items: [screenMediaItem(sideImage, 0, { duration: 8 })] },
+      ],
+    }).resolveByScreenId('org', 'screen');
+
+    expect(without?.revision).not.toBe(withZone?.revision);
   });
 
   it('serves the 1280px image variant, falling back to the original', async () => {

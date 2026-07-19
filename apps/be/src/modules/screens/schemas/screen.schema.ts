@@ -7,6 +7,23 @@ export enum ScreenItemType {
   APP = 'app',
 }
 
+/**
+ * Split-screen layout presets. Region geometry is owned by the player (CSS per
+ * preset); the backend only stores the preset name and each zone's rotation.
+ */
+export enum ScreenLayout {
+  FULLSCREEN = 'fullscreen',
+  MAIN_SIDEBAR = 'main-sidebar',
+  MAIN_TICKER = 'main-ticker',
+  MAIN_SIDEBAR_TICKER = 'main-sidebar-ticker',
+}
+
+/** The additional regions a preset can have; `main` is the screen's `items`. */
+export enum ScreenZoneKey {
+  SIDEBAR = 'sidebar',
+  TICKER = 'ticker',
+}
+
 export enum ScreenAvailabilityMode {
   ALWAYS = 'always',
   WEEKLY = 'weekly',
@@ -128,6 +145,31 @@ export const ScreenItemSubdocumentSchema = SchemaFactory.createForClass(
   ScreenItemSubdocument,
 );
 
+/**
+ * A secondary split-screen region's own ordered rotation. Same item shape as the
+ * main `items` (media / playlist / app), stored per zone key. Only meaningful
+ * when the screen's `layout` includes that zone; a zone kept while switching
+ * presets retains its items (switching back loses nothing).
+ */
+@Schema({ _id: false })
+export class ScreenZoneSubdocument {
+  @Prop({ type: String, enum: ScreenZoneKey, required: true })
+  key!: ScreenZoneKey;
+
+  @Prop({ type: [ScreenItemSubdocumentSchema], default: [] })
+  items!: ScreenItemDocument[];
+}
+
+export const ScreenZoneSubdocumentSchema = SchemaFactory.createForClass(
+  ScreenZoneSubdocument,
+);
+
+/** Plain zone shape used when building zones to persist (cast on write). */
+export interface ScreenZoneValue {
+  key: ScreenZoneKey;
+  items: ScreenItemValue[];
+}
+
 @Schema({ timestamps: true, collection: 'screens' })
 export class Screen {
   @Prop({
@@ -146,6 +188,18 @@ export class Screen {
 
   @Prop({ type: [ScreenItemSubdocumentSchema], default: [] })
   items!: ScreenItemDocument[];
+
+  /**
+   * Split-screen preset. Absent ⇒ fullscreen (every screen that predates the
+   * feature). `items` is always the MAIN zone; secondary regions live in
+   * {@link zones}.
+   */
+  @Prop({ type: String, enum: ScreenLayout })
+  layout?: ScreenLayout;
+
+  /** Secondary regions' rotations (sidebar / ticker), keyed by zone. */
+  @Prop({ type: [ScreenZoneSubdocumentSchema], default: undefined })
+  zones?: ScreenZoneSubdocument[];
 
   @Prop({ required: true, default: 0, min: 0 })
   itemCount!: number;

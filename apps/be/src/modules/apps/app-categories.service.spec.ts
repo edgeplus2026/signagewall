@@ -77,6 +77,79 @@ describe('AppCategoriesService', () => {
     });
   });
 
+  describe('seedBaseCategories', () => {
+    const BASE_SLUGS = [
+      'information',
+      'finance',
+      'productivity',
+      'data-dashboards',
+      'media',
+      'social',
+      'utilities',
+    ];
+
+    it('creates all seven base categories when none exist', async () => {
+      const { service, categoriesRepo } = makeService();
+      categoriesRepo.findBySlug.mockResolvedValue(null);
+      categoriesRepo.create.mockResolvedValue({} as never);
+
+      await service.seedBaseCategories();
+
+      expect(categoriesRepo.create).toHaveBeenCalledTimes(7);
+      const createdSlugs = categoriesRepo.create.mock.calls.map(
+        ([data]) => data.slug,
+      );
+      expect(createdSlugs).toEqual(BASE_SLUGS);
+      // Orders are the declared 1..7 in list order.
+      expect(categoriesRepo.create.mock.calls.map(([d]) => d.order)).toEqual([
+        1, 2, 3, 4, 5, 6, 7,
+      ]);
+    });
+
+    it('is idempotent — creates nothing when they all exist', async () => {
+      const { service, categoriesRepo } = makeService();
+      categoriesRepo.findBySlug.mockResolvedValue({ _id: {} } as never);
+
+      await service.seedBaseCategories();
+
+      expect(categoriesRepo.create).not.toHaveBeenCalled();
+    });
+
+    it('only creates the missing ones (leaves existing untouched)', async () => {
+      const { service, categoriesRepo } = makeService();
+      categoriesRepo.findBySlug.mockImplementation((slug: string) =>
+        Promise.resolve(
+          slug === 'finance' ? ({ _id: {} } as never) : null,
+        ),
+      );
+      categoriesRepo.create.mockResolvedValue({} as never);
+
+      await service.seedBaseCategories();
+
+      expect(categoriesRepo.create).toHaveBeenCalledTimes(6);
+      const createdSlugs = categoriesRepo.create.mock.calls.map(
+        ([data]) => data.slug,
+      );
+      expect(createdSlugs).not.toContain('finance');
+    });
+
+    it('tolerates a concurrent-boot duplicate-key error', async () => {
+      const { service, categoriesRepo } = makeService();
+      categoriesRepo.findBySlug.mockResolvedValue(null);
+      categoriesRepo.create.mockRejectedValue({ code: 11000 });
+
+      await expect(service.seedBaseCategories()).resolves.toBeUndefined();
+    });
+
+    it('rethrows a non-duplicate error', async () => {
+      const { service, categoriesRepo } = makeService();
+      categoriesRepo.findBySlug.mockResolvedValue(null);
+      categoriesRepo.create.mockRejectedValue(new Error('db down'));
+
+      await expect(service.seedBaseCategories()).rejects.toThrow('db down');
+    });
+  });
+
   describe('remove', () => {
     it('pulls the category reference from every app after deleting', async () => {
       const { service, categoriesRepo, appsRepo } = makeService();

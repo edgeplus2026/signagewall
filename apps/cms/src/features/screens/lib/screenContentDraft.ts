@@ -4,7 +4,11 @@ import { useOrganizationStore } from "@/features/organizations/store/organizatio
 import { playlistsQueryKey } from "@/features/playlists/lib/playlistQueryKeys"
 import { getPlaylistTotalDuration } from "@/features/playlists/lib/playlistUtils"
 import type { PlaylistSummary } from "@/features/playlists/types/playlist.types"
-import type { Screen, ScreenItem } from "@/features/screens/types/screen.types"
+import type {
+  Screen,
+  ScreenItem,
+  ScreenZoneKey,
+} from "@/features/screens/types/screen.types"
 import { queryClient } from "@/providers/QueryProvider"
 
 function getItemDuration(item: ScreenItem) {
@@ -58,4 +62,19 @@ export function screenItemsToDraftItems(
 
 export function screenToDraftItems(screen: Screen): ContentDraftItem[] {
   return screenItemsToDraftItems(screen.items)
+}
+
+/**
+ * The baseline for one split-screen region: the main items, or a secondary
+ * zone's rotation (empty until that zone is first edited).
+ */
+export function screenZoneToDraftItems(
+  screen: Screen,
+  zone: 'main' | ScreenZoneKey,
+): ContentDraftItem[] {
+  if (zone === 'main') {
+    return screenToDraftItems(screen)
+  }
+  const entry = screen.zones?.find((candidate) => candidate.key === zone)
+  return screenItemsToDraftItems(entry?.items ?? [])
 }

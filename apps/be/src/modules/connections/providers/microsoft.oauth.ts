@@ -16,8 +16,13 @@ function authBase(tenant: string): string {
 }
 
 /**
- * Microsoft (Entra ID / Graph) OAuth for app connections. Uses the configured
- * tenant ('common' by default). `offline_access` yields a refresh token.
+ * Microsoft (Entra ID / Graph) OAuth for app connections (Outlook calendar,
+ * Teams, PowerPoint on OneDrive/SharePoint). Uses the configured tenant
+ * ('common' by default: work/school AND personal accounts; set a tenant id for
+ * single-tenant). A confidential client (client secret), so no PKCE — like
+ * Google. `offline_access` is what makes Microsoft return a refresh token;
+ * `openid email` give the account label. The data scopes (e.g. Calendars.Read)
+ * come from the connected app's connector descriptor.
  */
 export function createMicrosoftOAuthProvider(tenant: string): OAuthProvider {
   const AUTH_URL = `${authBase(tenant)}/authorize`;
@@ -33,6 +38,7 @@ export function createMicrosoftOAuthProvider(tenant: string): OAuthProvider {
         response_type: 'code',
         response_mode: 'query',
         state: params.state,
+        // Reserved scopes (refresh token + identity) plus the app's data scopes.
         scope: ['openid', 'email', 'offline_access', ...params.scopes].join(
           ' ',
         ),

@@ -4,10 +4,21 @@ import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';
 import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
+import { facebookConnector } from './facebook.connector';
 import { gcalConnector } from './gcal.connector';
+import { gsheetsConnector } from './gsheets.connector';
+import { gslidesConnector } from './gslides.connector';
+import { holidaysConnector } from './holidays.connector';
+import { instagramConnector } from './instagram.connector';
+import { onthisdayConnector } from './onthisday.connector';
+import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { powerpointConnector } from './powerpoint.connector';
 import { rssConnector } from './rss.connector';
+import { sportsConnector } from './sports.connector';
+import { stocksConnector } from './stocks.connector';
+import { sunmoonConnector } from './sunmoon.connector';
+import { teamsConnector } from './teams.connector';
 import { weatherConnector } from './weather.connector';
 import { wisdomConnector } from './wisdom.connector';
 
@@ -25,8 +36,23 @@ const CONNECTORS: Record<string, AppConnector> = {
   crypto: cryptoConnector,
   'power-prices': powerPricesConnector,
   gcal: gcalConnector,
+  gsheets: gsheetsConnector,
+  gslides: gslidesConnector,
   canva: canvaConnector,
   rss: rssConnector,
+  // News is a curated front-end to RSS: same connector, its `url` comes from a
+  // preset picker instead of free text. Shares the `rss:<hash(url)>` cache with
+  // any RSS instance pointed at the same feed.
+  news: rssConnector,
+  holidays: holidaysConnector,
+  onthisday: onthisdayConnector,
+  outlook: outlookConnector,
+  instagram: instagramConnector,
+  facebook: facebookConnector,
+  sports: sportsConnector,
+  stocks: stocksConnector,
+  sunmoon: sunmoonConnector,
+  teams: teamsConnector,
   wisdom: wisdomConnector,
   powerpoint: powerpointConnector,
 };

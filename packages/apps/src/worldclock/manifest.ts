@@ -12,16 +12,16 @@ const WORLDCLOCK_ICON =
  * player's own clock and each zone is computed with `Intl`, so it keeps perfect
  * time offline.
  *
- * Zones are one-per-line (`Label | Zone`) for now — a `textarea` — because there
- * is no repeater field yet. The follow-up (BACKLOG.md E4) is a row editor with a
- * searchable time-zone picker, so operators don't have to know IANA names.
+ * Zones are entered as repeater rows (a label + an IANA time-zone per row). The
+ * embed also accepts the legacy one-per-line `Label | Zone` string so configs
+ * saved before the repeater shipped keep working.
  */
 export const worldclockManifest: AppManifest = {
   slug: 'worldclock',
   name: 'World clocks',
   tagline: 'The time in several places at once',
   description:
-    'Show the current time in multiple cities. One place per line as "Label | Zone".',
+    'Show the current time in multiple cities — add a row per place with its time zone.',
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 1,
@@ -30,14 +30,22 @@ export const worldclockManifest: AppManifest = {
   configSchema: [
     {
       key: 'clocks',
-      type: 'textarea',
+      type: 'repeater',
       label: 'Places',
-      // The IANA-name requirement is the sharp edge of the MVP; give real examples
-      // and say where the names come from.
-      help: 'One place per line as "Label | Zone". Zone is an IANA name, e.g. "London | Europe/London", "New York | America/New_York", "Tokyo | Asia/Tokyo".',
+      // The IANA-name requirement is the sharp edge; give real examples.
+      help: 'Add a place per row. The zone is an IANA name, e.g. Europe/London, America/New_York, Asia/Tokyo.',
       required: true,
-      placeholder:
-        'Copenhagen | Europe/Copenhagen\nNew York | America/New_York\nTokyo | Asia/Tokyo',
+      validation: { min: 1 },
+      fields: [
+        { key: 'label', type: 'text', label: 'Label', placeholder: 'London' },
+        {
+          key: 'zone',
+          type: 'text',
+          label: 'Time zone',
+          required: true,
+          placeholder: 'Europe/London',
+        },
+      ],
     },
     {
       key: 'format',

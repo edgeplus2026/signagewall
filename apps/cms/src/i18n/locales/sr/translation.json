@@ -958,6 +958,20 @@
       },
       "conflict": "Ovaj ekran je izmenjen na drugom mestu. Vaše nesačuvane izmene su odbačene i učitana je najnovija verzija."
     },
+    "layout": {
+      "fullscreen": "Ceo ekran",
+      "main-sidebar": "Glavni + bočna traka",
+      "main-ticker": "Glavni + traka sa vestima",
+      "main-sidebar-ticker": "Glavni + bočna traka + traka sa vestima",
+      "saveSuccess": "Raspored je ažuriran",
+      "saveError": "Nije moguće ažurirati raspored. Pokušajte ponovo."
+    },
+    "zones": {
+      "main": "Glavni",
+      "sidebar": "Bočna traka",
+      "ticker": "Traka",
+      "saveFirst": "Prvo sačuvajte ili odbacite izmene"
+    },
     "availability": {
       "title": "Radno vreme",
       "warning": "Ekrani će biti isključeni van radnog vremena.",

@@ -1,0 +1,72 @@
+/* Emergency Alert — a full-bleed, high-contrast message. The background colour
+   and text colour are set on #app by the bundle from the severity. */
+
+.al {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 6vh 8vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 3vh;
+}
+
+.al-icon {
+  width: min(18vw, 26vh);
+  height: min(18vw, 26vh);
+  flex: 0 0 auto;
+}
+.al-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.al-headline {
+  margin: 0;
+  font-size: calc(min(9vw, 17vh));
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.al-msg {
+  margin: 0;
+  font-size: calc(min(3.4vw, 6vh));
+  line-height: 1.25;
+  font-weight: 500;
+  max-width: 26ch;
+  opacity: 0.95;
+}
+
+/* A slow pulsing edge — a fade, not a flash. ~0.6 Hz, well under any
+   photosensitivity threshold; disabled under reduced-motion. */
+.al-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1.4vh solid #fff;
+  opacity: 0.6;
+  animation: al-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes al-pulse {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .al-ring {
+    animation: none;
+    opacity: 0.55;
+  }
+}

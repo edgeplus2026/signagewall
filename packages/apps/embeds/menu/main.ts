@@ -18,21 +18,33 @@ function str(value: unknown): string {
   return typeof value === 'string' ? value : ''
 }
 
+function cell(row: Record<string, unknown>, key: string): string {
+  const value = row[key]
+  return typeof value === 'string' ? value.trim() : ''
+}
+
 /**
- * Parse the `Name | Price | Description` lines. Price and description are
- * optional; a line with no name is skipped (a stray blank line or a lone `|`).
+ * The menu items. New configs store an array of `{name, price, description}`
+ * rows (the repeater field); older ones stored a `Name | Price | Description`
+ * textarea, one per line — both are accepted so a saved instance never breaks.
+ * Rows/lines with no name are skipped.
  */
-function parseItems(text: string): MenuItem[] {
+function parseItems(value: unknown): MenuItem[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((row) => {
+        const r = (row ?? {}) as Record<string, unknown>
+        return { name: cell(r, 'name'), price: cell(r, 'price'), description: cell(r, 'description') }
+      })
+      .filter((item) => item.name)
+  }
+  const text = typeof value === 'string' ? value : ''
   const items: MenuItem[] = []
   for (const line of text.split('\n')) {
     const parts = line.split('|').map((part) => part.trim())
     const name = parts[0] ?? ''
     if (!name) continue
-    items.push({
-      name,
-      price: parts[1] ?? '',
-      description: parts[2] ?? '',
-    })
+    items.push({ name, price: parts[1] ?? '', description: parts[2] ?? '' })
   }
   return items
 }
@@ -78,7 +90,7 @@ function render(config: Record<string, unknown>): void {
   )
   applyTextStyle(root, config)
 
-  const items = parseItems(str(config.items))
+  const items = parseItems(config.items)
   const columns = str(config.columns) === '2' ? 2 : 1
 
   const wrap = document.createElement('div')

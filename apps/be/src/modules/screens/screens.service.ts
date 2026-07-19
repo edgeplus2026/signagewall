@@ -56,6 +56,8 @@ import {
   ScreenItemDocument,
   ScreenItemType,
   ScreenItemValue,
+  ScreenLayout,
+  ScreenZoneValue,
 } from './schemas/screen.schema';
 
 const MAX_SCREEN_ITEMS = 500;
@@ -703,8 +705,13 @@ export class ScreensService {
         .map((item) => item.appInstanceId as string),
     );
 
+    // Existing-item ids must belong to the list being replaced: the zone's own
+    // items in zone mode, the main items otherwise.
+    const currentList = dto.zone
+      ? (screen.zones?.find((zone) => zone.key === dto.zone)?.items ?? [])
+      : screen.items;
     const existingIds = new Set(
-      screen.items.map((item) => item._id.toString()),
+      currentList.map((item) => item._id.toString()),
     );
 
     for (const item of dto.items) {
@@ -721,14 +728,33 @@ export class ScreensService {
       disabled: item.disabled ?? false,
     }));
 
-    const derived = await this.buildDerivedItemFields(organizationId, items);
-
-    const saved = await this.screensRepository.replaceItems(
-      organizationId,
-      id,
-      screen.updatedAt,
-      derived,
-    );
+    let saved: ScreenDocument | null;
+    if (dto.zone) {
+      // Zone mode: merge the edited zone into the zones loaded under the same
+      // concurrency guard, leaving the other zones (and the main items — with
+      // their derived counters/cover) untouched.
+      const zones: ScreenZoneValue[] = (screen.zones ?? [])
+        .filter((zone) => zone.key !== dto.zone)
+        .map((zone) => ({
+          key: zone.key,
+          items: this.toItemValues(zone.items),
+        }));
+      zones.push({ key: dto.zone, items });
+      saved = await this.screensRepository.setZones(
+        organizationId,
+        id,
+        screen.updatedAt,
+        zones,
+      );
+    } else {
+      const derived = await this.buildDerivedItemFields(organizationId, items);
+      saved = await this.screensRepository.replaceItems(
+        organizationId,
+        id,
+        screen.updatedAt,
+        derived,
+      );
+    }
 
     if (!saved) {
       throw BusinessException.conflict(this.i18n.t('screens.conflict'));
@@ -741,6 +767,35 @@ export class ScreensService {
       saved.coverMediaId,
     );
 
+    return toScreenDetailWithItemsResponse(saved, thumbnailUrl);
+  }
+
+  /**
+   * Sets the split-screen layout preset. Zone rotations are edited separately
+   * (`replaceItems` with a `zone`) and survive preset switches, so flipping to
+   * fullscreen and back loses nothing — the player simply stops drawing zones
+   * the preset doesn't define.
+   */
+  async setLayout(
+    organizationId: string,
+    id: string,
+    layout: ScreenLayout,
+  ): Promise<ScreenDetailWithItemsResponseDto> {
+    const saved = await this.screensRepository.setLayout(
+      organizationId,
+      id,
+      layout,
+    );
+    if (!saved) {
+      throw BusinessException.notFound(this.i18n.t('screens.notFound'));
+    }
+
+    this.emitContentChanged(organizationId, id);
+
+    const thumbnailUrl = await this.resolveThumbnailUrl(
+      organizationId,
+      saved.coverMediaId,
+    );
     return toScreenDetailWithItemsResponse(saved, thumbnailUrl);
   }
 

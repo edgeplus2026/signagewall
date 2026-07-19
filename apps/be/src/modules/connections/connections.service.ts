@@ -10,10 +10,23 @@ import { EncryptionService } from '../../common/services/encryption.service';
 import { getConnector } from '../apps/connectors/connector-registry';
 import { ConnectionsRepository } from './connections.repository';
 import { searchCanvaDesigns } from './providers/canva-api';
-import { listGoogleCalendars } from './providers/google-api';
+import {
+  listGoogleCalendars,
+  listGooglePresentations,
+  listGoogleSpreadsheets,
+} from './providers/google-api';
 import { searchDrivePptx } from './providers/graph-api';
+import {
+  listMicrosoftCalendars,
+  listTeamsChannels,
+} from './providers/microsoft-api';
+import {
+  listFacebookPages,
+  listInstagramAccounts,
+} from './providers/meta-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
+import { metaOAuthProvider } from './providers/meta.oauth';
 import { createMicrosoftOAuthProvider } from './providers/microsoft.oauth';
 import type { OAuthProvider } from './providers/oauth-provider';
 import {
@@ -71,6 +84,7 @@ const PROVIDER_CONFIG_NS: Record<ConnectionProvider, string> = {
   [ConnectionProvider.GOOGLE]: 'google',
   [ConnectionProvider.MICROSOFT]: 'microsoft',
   [ConnectionProvider.CANVA]: 'canva',
+  [ConnectionProvider.META]: 'meta',
 };
 
 @Injectable()
@@ -325,6 +339,24 @@ export class ConnectionsService {
       case 'powerpoint-files':
         this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
         return searchDrivePptx(connection.accessToken, query);
+      case 'google-sheets':
+        this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
+        return listGoogleSpreadsheets(connection.accessToken, query);
+      case 'google-presentations':
+        this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
+        return listGooglePresentations(connection.accessToken, query);
+      case 'ms-calendars':
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        return listMicrosoftCalendars(connection.accessToken, query);
+      case 'ms-teams-channels':
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        return listTeamsChannels(connection.accessToken, query);
+      case 'meta-pages':
+        this.assertProvider(connection.provider, ConnectionProvider.META);
+        return listFacebookPages(connection.accessToken, query);
+      case 'meta-ig-accounts':
+        this.assertProvider(connection.provider, ConnectionProvider.META);
+        return listInstagramAccounts(connection.accessToken, query);
       default:
         throw BusinessException.badRequest(
           `Unknown browse source "${source}".`,
@@ -404,6 +436,8 @@ export class ConnectionsService {
           this.configService.get<string>('microsoft.tenant') ?? 'common',
         );
         return this.microsoftProvider;
+      case ConnectionProvider.META:
+        return metaOAuthProvider;
       default:
         return canvaOAuthProvider;
     }

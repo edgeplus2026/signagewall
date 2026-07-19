@@ -33,6 +33,14 @@ export type FieldType =
    */
   | 'datetime'
   /**
+   * A repeating list of rows, each row a small set of typed sub-fields declared
+   * in {@link Field.fields}. Stored as an array of objects (`Array<Record<string,
+   * unknown>>`). The CMS renders an add/remove/reorder editor; the backend
+   * validates every row against `fields`. Replaces the "one item per line"
+   * textarea MVP used by list apps (menu, ticker, world clocks, stocks).
+   */
+  | 'repeater'
+  /**
    * A resource picked from a connected account via an async, searchable
    * dropdown (the CMS queries a backend "browse" endpoint as the user types).
    * Stored as {@link RemoteSelectValue}. Which endpoint to query is named by the
@@ -114,6 +122,12 @@ export interface Field {
   placeholder?: string
   /** For `select` / `multiselect`. */
   options?: FieldOption[]
+  /**
+   * For `repeater`: the sub-fields of one row. Each row's value is an object
+   * keyed by these fields' `key`s. Keep them simple (text / number / select /
+   * switch) — they render inline as columns.
+   */
+  fields?: Field[]
   /**
    * For `remote-select`: names the backend browse endpoint the CMS queries as
    * the user types (e.g. `'canva-designs'`). The backend ignores it on validate.
@@ -207,6 +221,14 @@ function buildFieldZod(field: Field): z.ZodTypeAny {
       label: z.string().optional(),
     })
     schema = field.required ? resource : resource.optional()
+  } else if (field.type === 'repeater') {
+    // A list of rows, each validated against the sub-field schema. `buildConfigZod`
+    // is hoisted, so the mutual recursion (repeater → row schema) is fine.
+    let arr = z.array(buildConfigZod(field.fields ?? []))
+    const min = field.validation?.min ?? (field.required ? 1 : undefined)
+    if (min !== undefined) arr = arr.min(min)
+    if (field.validation?.max !== undefined) arr = arr.max(field.validation.max)
+    schema = arr
   } else {
     // multiselect
     const values = (field.options ?? []).map((option) => option.value)
@@ -260,7 +282,7 @@ export function buildDefaultConfig(schema: ConfigSchema): Record<string, unknown
   for (const field of schema) {
     if (field.default !== undefined) {
       config[field.key] = field.default
-    } else if (field.type === 'multiselect') {
+    } else if (field.type === 'multiselect' || field.type === 'repeater') {
       config[field.key] = []
     } else if (field.type === 'checkbox' || field.type === 'switch') {
       config[field.key] = false

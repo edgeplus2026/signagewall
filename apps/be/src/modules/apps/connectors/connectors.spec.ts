@@ -1,14 +1,26 @@
 import type { ConnectorContext, ResolvedConnection } from '@edge/apps-contract';
 import type { RssPayload } from '@edge/apps';
+import { NEWS_SOURCES } from '@edge/apps';
 
 import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';
 import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
+import { facebookConnector } from './facebook.connector';
 import { gcalConnector } from './gcal.connector';
+import { gsheetsConnector } from './gsheets.connector';
+import { gslidesConnector } from './gslides.connector';
+import { holidaysConnector } from './holidays.connector';
+import { instagramConnector } from './instagram.connector';
+import { onthisdayConnector } from './onthisday.connector';
+import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { safeFetchText } from './safe-fetch.util';
+import { sportsConnector } from './sports.connector';
+import { stocksConnector } from './stocks.connector';
+import { sunmoonConnector } from './sunmoon.connector';
+import { teamsConnector } from './teams.connector';
 import { weatherConnector } from './weather.connector';
 
 // The RSS connector fetches through the SSRF guard, which resolves the host over
@@ -1230,5 +1242,642 @@ describe('power-prices connector (server)', () => {
     // The current hour is resolved from UTC; it always points inside the series.
     expect(payload.currentIndex).toBeGreaterThanOrEqual(-1);
     expect(payload.currentIndex).toBeLessThan(payload.hours.length);
+  });
+});
+
+describe('holidays connector (server)', () => {
+  it('cacheKey is the country only (count is display-only)', () => {
+    expect(holidaysConnector.cacheKey!({ country: 'dk', count: 5 })).toBe(
+      'holidays:DK',
+    );
+    expect(holidaysConnector.cacheKey!({ country: 'DK', count: 12 })).toBe(
+      'holidays:DK',
+    );
+  });
+
+  it('normalizes upcoming holidays, soonest-first', async () => {
+    mockFetchSequence([
+      {
+        body: [
+          {
+            date: '2026-12-25',
+            localName: 'Juledag',
+            name: 'Christmas Day',
+            countryCode: 'DK',
+          },
+          {
+            date: '2027-01-01',
+            localName: 'Nytårsdag',
+            name: "New Year's Day",
+            countryCode: 'DK',
+          },
+        ],
+      },
+    ]);
+    const result = await holidaysConnector.fetchData({ country: 'DK' }, ctx);
+    expect(result.playerPayload).toEqual({
+      country: 'DK',
+      holidays: [
+        { date: '2026-12-25', name: 'Christmas Day', localName: 'Juledag' },
+        { date: '2027-01-01', name: "New Year's Day", localName: 'Nytårsdag' },
+      ],
+    });
+  });
+});
+
+describe('onthisday connector (server)', () => {
+  it('cacheKey is the language only; unknown languages fall back to en', () => {
+    expect(onthisdayConnector.cacheKey!({ language: 'DE', count: 6 })).toBe(
+      'onthisday:de',
+    );
+    expect(onthisdayConnector.cacheKey!({ language: 'xx' })).toBe(
+      'onthisday:en',
+    );
+  });
+
+  it('sorts events most-recent-first and stamps today as MM-DD', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          events: [
+            { year: 1492, text: 'Columbus reaches the Americas.' },
+            { year: 1969, text: 'Apollo 11 launches.' },
+            { year: null, text: 'ignored — no year' },
+          ],
+        },
+      },
+    ]);
+    const result = await onthisdayConnector.fetchData({ language: 'en' }, ctx);
+    const payload = result.playerPayload!;
+    expect(payload.monthDay).toMatch(/^\d{2}-\d{2}$/);
+    expect(payload.events).toEqual([
+      { year: 1969, text: 'Apollo 11 launches.' },
+      { year: 1492, text: 'Columbus reaches the Americas.' },
+    ]);
+  });
+});
+
+describe('sunmoon connector (server)', () => {
+  it('cacheKey is coarse coordinates', () => {
+    expect(
+      sunmoonConnector.cacheKey!({ location: { lat: 55.681, lng: 12.571 } }),
+    ).toBe('sun:55.68,12.57');
+  });
+
+  it('normalizes today\'s sun times and daylight length', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          daily: {
+            time: ['2026-07-16'],
+            sunrise: ['2026-07-16T04:48'],
+            sunset: ['2026-07-16T21:43'],
+            daylight_duration: [60922.21],
+          },
+        },
+      },
+    ]);
+    const result = await sunmoonConnector.fetchData(
+      { location: { lat: 55.68, lng: 12.57, label: 'Copenhagen' } },
+      ctx,
+    );
+    expect(result.playerPayload).toEqual({
+      location: 'Copenhagen',
+      sunrise: '2026-07-16T04:48',
+      sunset: '2026-07-16T21:43',
+      daylightSeconds: 60922.21,
+      observedAt: '2026-07-16',
+    });
+  });
+});
+
+describe('stocks connector (server, keyed via Alpaca)', () => {
+  const KEYS = ['ALPACA_API_KEY_ID', 'ALPACA_API_SECRET_KEY'] as const;
+  const original: Record<string, string | undefined> = {
+    ALPACA_API_KEY_ID: process.env.ALPACA_API_KEY_ID,
+    ALPACA_API_SECRET_KEY: process.env.ALPACA_API_SECRET_KEY,
+  };
+  afterAll(() => {
+    for (const key of KEYS) {
+      if (original[key] === undefined) delete process.env[key];
+      else process.env[key] = original[key];
+    }
+  });
+
+  it('cacheKey is the sorted ticker set — from a legacy string or repeater rows', () => {
+    expect(stocksConnector.cacheKey!({ symbols: 'msft\naapl\nAAPL' })).toBe(
+      'stocks:AAPL,MSFT',
+    );
+    expect(
+      stocksConnector.cacheKey!({ symbols: [{ symbol: 'msft' }, { symbol: 'AAPL' }] }),
+    ).toBe('stocks:AAPL,MSFT');
+  });
+
+  it('throws a clear error when the Alpaca credentials are missing', async () => {
+    delete process.env.ALPACA_API_KEY_ID;
+    delete process.env.ALPACA_API_SECRET_KEY;
+    await expect(
+      stocksConnector.fetchData({ symbols: 'AAPL' }, ctx),
+    ).rejects.toThrow(/ALPACA/);
+  });
+
+  it('maps Alpaca snapshots (change vs prev close), sorted, dropping unknown tickers', async () => {
+    process.env.ALPACA_API_KEY_ID = 'test-id';
+    process.env.ALPACA_API_SECRET_KEY = 'test-secret';
+    // One call returns every symbol, keyed by ticker.
+    mockFetchSequence([
+      {
+        body: {
+          AAPL: { latestTrade: { p: 211.3 }, prevDailyBar: { c: 209 } },
+          MSFT: { latestTrade: { p: 417 }, prevDailyBar: { c: 423 } },
+          ZZZZ: {}, // unknown ticker — no price, dropped
+        },
+      },
+    ]);
+    const result = await stocksConnector.fetchData(
+      { symbols: 'MSFT\nAAPL\nZZZZ' },
+      ctx,
+    );
+    expect(result.playerPayload).toEqual({
+      quotes: [
+        { symbol: 'AAPL', price: 211.3, change: 2.3, changePercent: 1.1 },
+        { symbol: 'MSFT', price: 417, change: -6, changePercent: -1.42 },
+      ],
+    });
+  });
+});
+
+describe('sports connector (server)', () => {
+  it('cacheKey is the team only (mode/count are display-only)', () => {
+    expect(sportsConnector.cacheKey!({ team: '  Arsenal ' })).toBe(
+      'sports:arsenal',
+    );
+    expect(
+      sportsConnector.cacheKey!({ team: 'Arsenal', mode: 'both', count: 10 }),
+    ).toBe('sports:arsenal');
+  });
+
+  it('resolves the team then normalizes fixtures and results', async () => {
+    mockFetchSequence([
+      { body: { teams: [{ idTeam: '133604', strTeam: 'Arsenal' }] } },
+      {
+        body: {
+          events: [
+            {
+              strHomeTeam: 'Girona',
+              strAwayTeam: 'Arsenal',
+              dateEvent: '2026-08-01',
+              strTime: '18:00:00',
+              strLeague: 'Club Friendlies',
+            },
+          ],
+        },
+      },
+      {
+        body: {
+          results: [
+            {
+              strHomeTeam: 'Arsenal',
+              strAwayTeam: 'Spurs',
+              dateEvent: '2026-05-20',
+              strTime: '16:30:00',
+              strLeague: 'Premier League',
+              intHomeScore: '2',
+              intAwayScore: '1',
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await sportsConnector.fetchData({ team: 'Arsenal' }, ctx);
+    expect(result.playerPayload).toEqual({
+      team: 'Arsenal',
+      upcoming: [
+        {
+          home: 'Girona',
+          away: 'Arsenal',
+          date: '2026-08-01',
+          time: '18:00',
+          league: 'Club Friendlies',
+        },
+      ],
+      results: [
+        {
+          home: 'Arsenal',
+          away: 'Spurs',
+          date: '2026-05-20',
+          time: '16:30',
+          league: 'Premier League',
+          homeScore: 2,
+          awayScore: 1,
+        },
+      ],
+    });
+  });
+});
+
+describe('gsheets connector (connected)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'google',
+      accountLabel: 'me@example.com',
+      accessToken: 'tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + spreadsheet + range (layout is display-only)', () => {
+    const a = gsheetsConnector.cacheKey!({
+      connectionId: 'c1',
+      spreadsheet: { id: 'S1' },
+      range: 'A1:B2',
+      layout: 'table',
+    });
+    const b = gsheetsConnector.cacheKey!({
+      connectionId: 'c1',
+      spreadsheet: { id: 'S1' },
+      range: 'A1:B2',
+      layout: 'kpi',
+      hasHeader: false,
+    });
+    expect(a).toBe('gsheets:c1:S1:A1:B2');
+    expect(a).toBe(b);
+  });
+
+  it('throws without a resolved connection', async () => {
+    await expect(
+      gsheetsConnector.fetchData(
+        { connectionId: 'c1', spreadsheet: { id: 'S1' }, range: 'A1:B2' },
+        ctx,
+      ),
+    ).rejects.toThrow(/no connection/);
+  });
+
+  it('normalizes the range values to strings, keeping the picked title', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          values: [
+            ['Name', 'Sales'],
+            ['Q1', 100],
+            ['Q2', 200],
+          ],
+        },
+      },
+    ]);
+    const result = await gsheetsConnector.fetchData(
+      {
+        connectionId: 'c1',
+        spreadsheet: { id: 'S1', label: 'KPIs' },
+        range: 'A1:B3',
+      },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      title: 'KPIs',
+      values: [
+        ['Name', 'Sales'],
+        ['Q1', '100'],
+        ['Q2', '200'],
+      ],
+    });
+  });
+});
+
+describe('gslides connector (connected)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'google',
+      accountLabel: 'me@example.com',
+      accessToken: 'tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + presentation (slideSeconds/maxSlides display-only)', () => {
+    const a = gslidesConnector.cacheKey!({
+      connectionId: 'c1',
+      presentation: { id: 'P1' },
+      slideSeconds: 8,
+    });
+    const b = gslidesConnector.cacheKey!({
+      connectionId: 'c1',
+      presentation: { id: 'P1' },
+      maxSlides: 3,
+    });
+    expect(a).toBe('gslides:c1:P1');
+    expect(a).toBe(b);
+  });
+
+  it('exports each slide as a thumbnail and carries no volatile version', async () => {
+    // 1st call: the presentation metadata; then one thumbnail per page.
+    mockFetchSequence([
+      { body: { title: 'Deck', slides: [{ objectId: 'p1' }, { objectId: 'p2' }] } },
+      { body: { contentUrl: 'https://img/1' } },
+      { body: { contentUrl: 'https://img/2' } },
+    ]);
+    const result = await gslidesConnector.fetchData(
+      { connectionId: 'c1', presentation: { id: 'P1', label: 'Deck' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      title: 'Deck',
+      slides: ['https://img/1', 'https://img/2'],
+    });
+    // No `version`: rotating thumbnail URLs must fan out each refresh so they
+    // reach the screen before they expire.
+    expect(result.version).toBeUndefined();
+  });
+});
+
+describe('outlook connector (connected, microsoft)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'microsoft',
+      accountLabel: 'me@example.com',
+      accessToken: 'tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + calendar', () => {
+    expect(
+      outlookConnector.cacheKey!({ connectionId: 'c1', calendar: { id: 'cal1' } }),
+    ).toBe('outlook:c1:cal1');
+  });
+
+  it('normalizes Graph events to the shared calendar payload', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          value: [
+            {
+              subject: 'Standup',
+              start: { dateTime: '2026-07-16T09:00:00.0000000' },
+              end: { dateTime: '2026-07-16T09:15:00.0000000' },
+              isAllDay: false,
+              location: { displayName: 'Room 1' },
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await outlookConnector.fetchData(
+      { connectionId: 'c1', calendar: { id: 'cal1', label: 'Team' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      calendarLabel: 'Team',
+      events: [
+        {
+          title: 'Standup',
+          start: '2026-07-16T09:00:00.000Z',
+          end: '2026-07-16T09:15:00.000Z',
+          allDay: false,
+          location: 'Room 1',
+        },
+      ],
+    });
+  });
+});
+
+describe('instagram connector (connected, meta)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'meta',
+      accountLabel: 'Acme',
+      accessToken: 'user-tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + account', () => {
+    expect(
+      instagramConnector.cacheKey!({
+        connectionId: 'c1',
+        account: { id: 'ig-1' },
+      }),
+    ).toBe('instagram:c1:ig-1');
+  });
+
+  it('normalizes media (video → thumbnail) and labels by @handle', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          data: [
+            {
+              id: 'm1',
+              caption: 'Hello',
+              media_type: 'IMAGE',
+              media_url: 'https://cdn/img1.jpg',
+              permalink: 'https://instagram.com/p/1',
+              timestamp: '2026-07-16T10:00:00+0000',
+              username: 'acme',
+            },
+            {
+              id: 'm2',
+              media_type: 'VIDEO',
+              media_url: 'https://cdn/vid.mp4',
+              thumbnail_url: 'https://cdn/vid-thumb.jpg',
+              username: 'acme',
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await instagramConnector.fetchData(
+      { connectionId: 'c1', account: { id: 'ig-1' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      accountLabel: '@acme',
+      posts: [
+        {
+          id: 'm1',
+          text: 'Hello',
+          imageUrl: 'https://cdn/img1.jpg',
+          permalink: 'https://instagram.com/p/1',
+          timestamp: '2026-07-16T10:00:00+0000',
+          mediaType: 'image',
+        },
+        {
+          id: 'm2',
+          imageUrl: 'https://cdn/vid-thumb.jpg',
+          mediaType: 'video',
+        },
+      ],
+    });
+    // No `version`: rotating CDN URLs are meant to fan out (see SocialPayload).
+    expect(result.version).toBeUndefined();
+  });
+});
+
+describe('facebook connector (connected, meta)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'meta',
+      accountLabel: 'Acme',
+      accessToken: 'user-tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + page', () => {
+    expect(
+      facebookConnector.cacheKey!({
+        connectionId: 'c1',
+        page: { id: 'pg-1' },
+      }),
+    ).toBe('facebook:c1:pg-1');
+  });
+
+  it('resolves a page token then normalizes the feed', async () => {
+    const fetchMock = mockFetchSequence([
+      // 1. resolve the Page access token from the user token
+      { body: { access_token: 'page-tok' } },
+      // 2. read the Page feed with that Page token
+      {
+        body: {
+          data: [
+            {
+              id: 'p1',
+              message: 'Big news',
+              created_time: '2026-07-16T08:00:00+0000',
+              full_picture: 'https://cdn/fb1.jpg',
+              permalink_url: 'https://facebook.com/p1',
+            },
+            { id: 'p2', story: 'Acme updated their cover photo' },
+          ],
+        },
+      },
+    ]);
+    const result = await facebookConnector.fetchData(
+      { connectionId: 'c1', page: { id: 'pg-1', label: 'Acme Page' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      accountLabel: 'Acme Page',
+      posts: [
+        {
+          id: 'p1',
+          text: 'Big news',
+          imageUrl: 'https://cdn/fb1.jpg',
+          permalink: 'https://facebook.com/p1',
+          timestamp: '2026-07-16T08:00:00+0000',
+          mediaType: 'image',
+        },
+        { id: 'p2', text: 'Acme updated their cover photo', mediaType: 'text' },
+      ],
+    });
+    // The feed read must use the resolved Page token, not the user token.
+    const feedCall = fetchMock.mock.calls[1]!;
+    expect(feedCall[1].headers.authorization).toBe('Bearer page-tok');
+  });
+});
+
+describe('news sources (curated RSS presets)', () => {
+  it('every source is a unique https feed URL with a label', () => {
+    const urls = new Set<string>();
+    const labels = new Set<string>();
+    for (const source of NEWS_SOURCES) {
+      expect(source.label.length).toBeGreaterThan(0);
+      expect(new URL(source.url).protocol).toBe('https:');
+      urls.add(source.url);
+      labels.add(source.label);
+    }
+    expect(urls.size).toBe(NEWS_SOURCES.length);
+    expect(labels.size).toBe(NEWS_SOURCES.length);
+  });
+
+  it('each source resolves to an rss cache key (shared with the rss app)', () => {
+    for (const source of NEWS_SOURCES) {
+      expect(rssConnector.cacheKey!({ url: source.url })).toMatch(
+        /^rss:[0-9a-f]{40}$/,
+      );
+    }
+  });
+});
+
+describe('teams connector (connected, microsoft)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'microsoft',
+      accountLabel: 'me@example.com',
+      accessToken: 'tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey splits the composite team::channel id', () => {
+    expect(
+      teamsConnector.cacheKey!({
+        connectionId: 'c1',
+        channel: { id: 'team-1::19:abc@thread.tacv2' },
+      }),
+    ).toBe('teams:c1:team-1:19:abc@thread.tacv2');
+  });
+
+  it('normalizes messages: strips HTML, folds in subject, drops system/deleted', async () => {
+    mockFetchSequence([
+      {
+        body: {
+          value: [
+            {
+              id: 'm1',
+              messageType: 'message',
+              subject: 'Heads up',
+              createdDateTime: '2026-07-16T09:00:00Z',
+              webUrl: 'https://teams.microsoft.com/l/message/1',
+              body: { contentType: 'html', content: '<p>Office closed <b>Friday</b></p>' },
+              from: { user: { displayName: 'Robin Kline' } },
+            },
+            // System event — must be skipped.
+            {
+              id: 'm2',
+              messageType: 'systemEventMessage',
+              body: { contentType: 'html', content: '<systemEventMessage/>' },
+            },
+            // Deleted — must be skipped.
+            {
+              id: 'm3',
+              messageType: 'message',
+              deletedDateTime: '2026-07-16T10:00:00Z',
+              body: { contentType: 'text', content: 'gone' },
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await teamsConnector.fetchData(
+      { connectionId: 'c1', channel: { id: 'team-1::chan-1', label: 'Ops · General' } },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      accountLabel: 'Ops · General',
+      posts: [
+        {
+          id: 'm1',
+          author: 'Robin Kline',
+          text: 'Heads up — Office closed Friday',
+          permalink: 'https://teams.microsoft.com/l/message/1',
+          timestamp: '2026-07-16T09:00:00Z',
+          mediaType: 'text',
+        },
+      ],
+    });
+    // Stable payload (no rotating URLs) → no version, no fan-out.
+    expect(result.version).toBeUndefined();
   });
 });

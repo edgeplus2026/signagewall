@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { LocationControl } from '@/features/apps/config-form/LocationControl'
 import { OAuthControl } from '@/features/apps/config-form/OAuthControl'
 import { RemoteSelectControl } from '@/features/apps/config-form/RemoteSelectControl'
+import { RepeaterControl } from '@/features/apps/config-form/RepeaterControl'
 import { RichTextControl } from '@/features/apps/config-form/RichTextControl'
 import {
   CheckboxControl,
@@ -36,6 +37,8 @@ export const FIELD_CONTROLS: Record<FieldType, (props: FieldControlProps) => Rea
   file: FileControl,
   // Native date-and-time picker; stores a local `YYYY-MM-DDTHH:MM` string.
   datetime: DateTimeControl,
+  // Add/remove/reorder rows, each a small set of typed sub-fields (`field.fields`).
+  repeater: RepeaterControl,
   // Connect a third-party account (Google/Canva) and store the chosen
   // connection id; used by `connected` apps (Calendar, Canva).
   oauth: OAuthControl,

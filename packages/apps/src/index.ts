@@ -1,21 +1,36 @@
 import type { AppManifest } from '@edge/apps-contract'
 
 import { airqualityManifest } from './airquality/manifest.js'
+import { alertManifest } from './alert/manifest.js'
 import { canvaManifest } from './canva/manifest.js'
 import { clockManifest } from './clock/manifest.js'
 import { countdownManifest } from './countdown/manifest.js'
 import { cryptoManifest } from './crypto/manifest.js'
 import { currencyManifest } from './currency/manifest.js'
 import { dashboardManifest } from './dashboard/manifest.js'
+import { facebookManifest } from './facebook/manifest.js'
 import { gcalManifest } from './gcal/manifest.js'
+import { gsheetsManifest } from './gsheets/manifest.js'
+import { gslidesManifest } from './gslides/manifest.js'
 import { gslidesPublicManifest } from './gslides-public/manifest.js'
+import { holidaysManifest } from './holidays/manifest.js'
+import { instagramManifest } from './instagram/manifest.js'
+import { livechannelManifest } from './livechannel/manifest.js'
 import { menuManifest } from './menu/manifest.js'
+import { newsManifest } from './news/manifest.js'
+import { onthisdayManifest } from './onthisday/manifest.js'
+import { outlookManifest } from './outlook/manifest.js'
 import { pdfManifest } from './pdf/manifest.js'
+import { powerbiManifest } from './powerbi/manifest.js'
 import { powerPricesManifest } from './power-prices/manifest.js'
 import { powerpointManifest } from './powerpoint/manifest.js'
 import { qrManifest } from './qr/manifest.js'
 import { rssManifest } from './rss/manifest.js'
+import { sportsManifest } from './sports/manifest.js'
+import { stocksManifest } from './stocks/manifest.js'
 import { streamManifest } from './stream/manifest.js'
+import { sunmoonManifest } from './sunmoon/manifest.js'
+import { teamsManifest } from './teams/manifest.js'
 import { textManifest } from './text/manifest.js'
 import { tickerManifest } from './ticker/manifest.js'
 import { vimeoManifest } from './vimeo/manifest.js'
@@ -39,11 +54,14 @@ export const APP_MANIFESTS: AppManifest[] = [
   qrManifest,
   countdownManifest,
   menuManifest,
+  alertManifest,
   webManifest,
   dashboardManifest,
+  powerbiManifest,
   youtubeManifest,
   vimeoManifest,
   streamManifest,
+  livechannelManifest,
   gslidesPublicManifest,
   weatherManifest,
   airqualityManifest,
@@ -53,9 +71,21 @@ export const APP_MANIFESTS: AppManifest[] = [
   gcalManifest,
   canvaManifest,
   rssManifest,
+  newsManifest,
   wisdomManifest,
   pdfManifest,
   powerpointManifest,
+  holidaysManifest,
+  onthisdayManifest,
+  sunmoonManifest,
+  stocksManifest,
+  sportsManifest,
+  gsheetsManifest,
+  gslidesManifest,
+  outlookManifest,
+  instagramManifest,
+  facebookManifest,
+  teamsManifest,
 ]
 
 export {
@@ -66,11 +96,14 @@ export {
   qrManifest,
   countdownManifest,
   menuManifest,
+  alertManifest,
   webManifest,
   dashboardManifest,
+  powerbiManifest,
   youtubeManifest,
   vimeoManifest,
   streamManifest,
+  livechannelManifest,
   gslidesPublicManifest,
   weatherManifest,
   airqualityManifest,
@@ -80,12 +113,29 @@ export {
   gcalManifest,
   canvaManifest,
   rssManifest,
+  newsManifest,
   wisdomManifest,
   pdfManifest,
   powerpointManifest,
+  holidaysManifest,
+  onthisdayManifest,
+  sunmoonManifest,
+  stocksManifest,
+  sportsManifest,
+  gsheetsManifest,
+  gslidesManifest,
+  outlookManifest,
+  instagramManifest,
+  facebookManifest,
+  teamsManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'
+export {
+  parseChannel,
+  toLiveChannelEmbedUrl,
+} from './livechannel/embed.js'
+export type { LivePlatform } from './livechannel/embed.js'
 export { toGoogleSlidesEmbedUrl } from './gslides-public/embed.js'
 export {
   FONT_OPTIONS,
@@ -102,6 +152,13 @@ export {
   displayModeOptions,
 } from './rss/display-modes.js'
 export type { RssDisplayMode } from './rss/display-modes.js'
+
+export {
+  NEWS_SOURCES,
+  DEFAULT_NEWS_SOURCE,
+  newsSourceOptions,
+} from './news/sources.js'
+export type { NewsSource } from './news/sources.js'
 
 export {
   DEFAULT_WEATHER_MODE,
@@ -132,6 +189,7 @@ export {
   SECONDS_PER_QUOTE,
   UPSTREAM_QUOTES,
 } from './wisdom/limits.js'
+export type { WisdomPayload, WisdomQuote } from './wisdom/payload.js'
 
 export type {
   WeatherPayload,
@@ -141,7 +199,6 @@ export type {
 export type { GcalPayload, GcalEvent } from './gcal/payload.js'
 export type { CanvaPayload } from './canva/payload.js'
 export type { PowerPointPayload } from './powerpoint/payload.js'
-export type { WisdomPayload, WisdomQuote } from './wisdom/payload.js'
 export type { RssPayload, RssItem } from './rss/payload.js'
 export type { FxPayload, FxRate } from './currency/payload.js'
 export type { AirQualityPayload } from './airquality/payload.js'
@@ -153,3 +210,11 @@ export type {
 export { COIN_LIST, COINS_BY_ID, coinOptions } from './crypto/coins.js'
 export type { Coin } from './crypto/coins.js'
 export type { CryptoPayload, CryptoCoin } from './crypto/payload.js'
+export type { HolidaysPayload, Holiday } from './holidays/payload.js'
+export type { OnThisDayPayload, OnThisDayEvent } from './onthisday/payload.js'
+export type { SunMoonPayload } from './sunmoon/payload.js'
+export type { StocksPayload, StockQuote } from './stocks/payload.js'
+export type { SportsPayload, SportsEvent } from './sports/payload.js'
+export type { GsheetsPayload } from './gsheets/payload.js'
+export type { GslidesPayload } from './gslides/payload.js'
+export type { SocialPayload, SocialPost } from './social/payload.js'
