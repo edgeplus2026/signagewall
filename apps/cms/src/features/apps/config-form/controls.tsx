@@ -1,6 +1,7 @@
 import type { Field } from '@edge/apps-contract'
 
 import { Checkbox } from '@/components/ui/checkbox'
+import { FileUploader } from '@/components/ui/file-uploader'
 import { ImageUploader } from '@/components/ui/image-uploader'
 import { Input } from '@/components/ui/input'
 import { MultiSelect } from '@/components/ui/multi-select'
@@ -211,6 +212,25 @@ export function ImageControl({ id, value, onChange, onBlur, invalid, disabled }:
       disabled={disabled}
       onChange={onChange}
       onBlur={onBlur}
+    />
+  )
+}
+
+export function FileControl({ field, id, value, onChange, onBlur, invalid, disabled }: FieldControlProps) {
+  return (
+    <FileUploader
+      id={id}
+      value={asString(value)}
+      accept={field.accept}
+      maxSizeMb={field.maxSizeMb}
+      aria-invalid={invalid}
+      disabled={disabled}
+      onChange={onChange}
+      onBlur={onBlur}
+      labels={{
+        cta: field.placeholder ?? 'Upload a file',
+        ...(field.maxSizeMb ? { hint: `Up to ${String(field.maxSizeMb)}MB` } : {}),
+      }}
     />
   )
 }

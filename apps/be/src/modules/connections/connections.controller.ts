@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Inject,
+  Logger,
   Param,
   Query,
   Res,
@@ -31,6 +32,8 @@ import { ConnectionProvider } from './schemas/app-connection.schema';
 @ApiCommonErrorResponses()
 @Controller('connections')
 export class ConnectionsController {
+  private readonly logger = new Logger(ConnectionsController.name);
+
   constructor(
     private readonly connectionsService: ConnectionsService,
     private readonly configService: ConfigService,
@@ -136,8 +139,12 @@ export class ConnectionsController {
       target.searchParams.set('connected', '1');
       target.searchParams.set('account', connection.accountLabel);
       res.redirect(target.toString());
-    } catch {
-      // Never leak details to the browser redirect; the CMS shows a generic error.
+    } catch (error) {
+      // Log server-side (with the provider) so a failed connect is diagnosable;
+      // never leak details to the browser redirect — the CMS shows a generic error.
+      this.logger.warn(
+        `OAuth callback failed for provider "${provider}": ${String(error)}`,
+      );
       const target = new URL('/apps', frontendUrl);
       target.searchParams.set('connect_error', '1');
       res.redirect(target.toString());

@@ -13,6 +13,14 @@ import {
   AppConnection,
   AppConnectionSchema,
 } from './schemas/app-connection.schema';
+import {
+  GraphSubscription,
+  GraphSubscriptionSchema,
+} from './schemas/graph-subscription.schema';
+import { GraphSubscriptionScheduler } from './webhooks/graph-subscription.scheduler';
+import { GraphSubscriptionsRepository } from './webhooks/graph-subscriptions.repository';
+import { GraphWebhookController } from './webhooks/graph-webhook.controller';
+import { GraphWebhookService } from './webhooks/graph-webhook.service';
 
 @Module({
   imports: [
@@ -20,14 +28,22 @@ import {
     JwtModule.register({}),
     MongooseModule.forFeature([
       { name: AppConnection.name, schema: AppConnectionSchema },
+      { name: GraphSubscription.name, schema: GraphSubscriptionSchema },
     ]),
     OrganizationsModule,
     // forwardRef: AppsModule imports ConnectionsModule (scheduler resolves
-    // connections).
+    // connections), and the webhook here calls back into AppDataService.
     forwardRef(() => AppsModule),
   ],
-  controllers: [ConnectionsController],
-  providers: [ConnectionsService, ConnectionsRepository, OrgMembershipGuard],
-  exports: [ConnectionsService],
+  controllers: [ConnectionsController, GraphWebhookController],
+  providers: [
+    ConnectionsService,
+    ConnectionsRepository,
+    GraphSubscriptionsRepository,
+    GraphWebhookService,
+    GraphSubscriptionScheduler,
+    OrgMembershipGuard,
+  ],
+  exports: [ConnectionsService, GraphWebhookService],
 })
 export class ConnectionsModule {}

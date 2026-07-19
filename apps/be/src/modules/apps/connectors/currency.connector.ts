@@ -14,7 +14,10 @@ interface CurrencyConfig {
 const FX_API = 'https://api.frankfurter.dev/v1/latest';
 
 /** Uppercase ISO codes, de-duplicated, with the base removed and sorted. */
-function normalizeTargets(targets: string[] | undefined, base: string): string[] {
+function normalizeTargets(
+  targets: string[] | undefined,
+  base: string,
+): string[] {
   const seen = new Set<string>();
   for (const raw of targets ?? []) {
     const code = String(raw).trim().toUpperCase();
@@ -66,7 +69,7 @@ export const currencyConnector: AppConnector<CurrencyConfig, FxPayload> = {
     // so one bad code degrades to "not shown" rather than a wrong/zero rate.
     const rates: FxRate[] = targets
       .filter((code) => typeof upstream[code] === 'number')
-      .map((code) => ({ code, rate: upstream[code] as number }));
+      .map((code) => ({ code, rate: upstream[code] }));
 
     if (rates.length === 0) {
       throw new Error('currency: no rates returned');

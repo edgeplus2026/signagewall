@@ -343,8 +343,7 @@ describe('gcal connector (connected)', () => {
     const url = new URL((fetchMock.mock.calls[0] as [string])[0]);
     const timeMax = new Date(url.searchParams.get('timeMax')!);
     const timeMin = new Date(url.searchParams.get('timeMin')!);
-    const daysAhead =
-      (timeMax.getTime() - Date.now()) / (24 * 60 * 60 * 1000);
+    const daysAhead = (timeMax.getTime() - Date.now()) / (24 * 60 * 60 * 1000);
 
     // On the 31st, the old window could see 12 days. This one still sees ~60.
     expect(daysAhead).toBeGreaterThan(59);
@@ -1119,8 +1118,20 @@ describe('crypto connector (server)', () => {
     expect(result.playerPayload).toEqual({
       vs: 'usd',
       coins: [
-        { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', price: 65000, change24h: 2.3 },
-        { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', price: 1900, change24h: -1.1 },
+        {
+          id: 'bitcoin',
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: 65000,
+          change24h: 2.3,
+        },
+        {
+          id: 'ethereum',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          price: 1900,
+          change24h: -1.1,
+        },
       ],
     });
   });
@@ -1177,12 +1188,12 @@ describe('air quality connector (server)', () => {
 
 describe('power-prices connector (server)', () => {
   it('cacheKey is the area only (currency is display-only)', () => {
-    expect(powerPricesConnector.cacheKey!({ area: 'dk1', currency: 'EUR' })).toBe(
-      'power:DK1',
-    );
-    expect(powerPricesConnector.cacheKey!({ area: 'DK1', currency: 'DKK' })).toBe(
-      'power:DK1',
-    );
+    expect(
+      powerPricesConnector.cacheKey!({ area: 'dk1', currency: 'EUR' }),
+    ).toBe('power:DK1');
+    expect(
+      powerPricesConnector.cacheKey!({ area: 'DK1', currency: 'DKK' }),
+    ).toBe('power:DK1');
   });
 
   it('orders hours oldest-first and converts MWh prices to per-kWh', async () => {

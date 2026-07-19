@@ -11,8 +11,10 @@ import { getConnector } from '../apps/connectors/connector-registry';
 import { ConnectionsRepository } from './connections.repository';
 import { searchCanvaDesigns } from './providers/canva-api';
 import { listGoogleCalendars } from './providers/google-api';
+import { searchDrivePptx } from './providers/graph-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
+import { createMicrosoftOAuthProvider } from './providers/microsoft.oauth';
 import type { OAuthProvider } from './providers/oauth-provider';
 import {
   AppConnectionDocument,
@@ -67,6 +69,7 @@ const STATE_TTL = '10m';
 /** Config namespace holding each provider's clientId/clientSecret. */
 const PROVIDER_CONFIG_NS: Record<ConnectionProvider, string> = {
   [ConnectionProvider.GOOGLE]: 'google',
+  [ConnectionProvider.MICROSOFT]: 'microsoft',
   [ConnectionProvider.CANVA]: 'canva',
 };
 
@@ -319,6 +322,9 @@ export class ConnectionsService {
       case 'google-calendars':
         this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
         return listGoogleCalendars(connection.accessToken, query);
+      case 'powerpoint-files':
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        return searchDrivePptx(connection.accessToken, query);
       default:
         throw BusinessException.badRequest(
           `Unknown browse source "${source}".`,
@@ -386,10 +392,21 @@ export class ConnectionsService {
     return oauth.scopes;
   }
 
+  /** Lazily built once (tenant is process-constant), like the other singletons. */
+  private microsoftProvider?: OAuthProvider;
+
   private getProvider(provider: ConnectionProvider): OAuthProvider {
-    return provider === ConnectionProvider.GOOGLE
-      ? googleOAuthProvider
-      : canvaOAuthProvider;
+    switch (provider) {
+      case ConnectionProvider.GOOGLE:
+        return googleOAuthProvider;
+      case ConnectionProvider.MICROSOFT:
+        this.microsoftProvider ??= createMicrosoftOAuthProvider(
+          this.configService.get<string>('microsoft.tenant') ?? 'common',
+        );
+        return this.microsoftProvider;
+      default:
+        return canvaOAuthProvider;
+    }
   }
 
   private getCredentials(provider: ConnectionProvider): {

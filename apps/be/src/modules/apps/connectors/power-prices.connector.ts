@@ -88,12 +88,10 @@ export const powerPricesConnector: AppConnector<
 
     // Which hour contains "now" — else the latest hour already started, else -1.
     const now = Date.now();
-    let currentIndex = utcMs.findIndex(
-      (ms) => ms <= now && now < ms + HOUR_MS,
-    );
+    let currentIndex = utcMs.findIndex((ms) => ms <= now && now < ms + HOUR_MS);
     if (currentIndex === -1) {
       for (let i = utcMs.length - 1; i >= 0; i -= 1) {
-        if ((utcMs[i] as number) <= now) {
+        if (utcMs[i] <= now) {
           currentIndex = i;
           break;
         }

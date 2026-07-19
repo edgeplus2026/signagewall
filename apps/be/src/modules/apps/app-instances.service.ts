@@ -1,10 +1,12 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { buildConfigZod, buildDefaultConfig } from '@edge/apps-contract';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
 import { ConnectionsService } from '../connections/connections.service';
+import { unpackDriveItem } from '../connections/providers/graph-api';
+import { GraphWebhookService } from '../connections/webhooks/graph-webhook.service';
 import {
   AppInstanceChangedEvent,
   PlayerEvents,
@@ -13,6 +15,7 @@ import {
 } from '../player/player.events';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensService } from '../screens/screens.service';
+import { cacheKeyForInstance } from './connectors/cache-key.util';
 import { getConnector } from './connectors/connector-registry';
 import { AppInstancesRepository } from './app-instances.repository';
 import { AppsRepository } from './apps.repository';
@@ -25,9 +28,13 @@ import { AppInstanceDocument } from './schemas/app-instance.schema';
 
 @Injectable()
 export class AppInstancesService {
+  private readonly logger = new Logger(AppInstancesService.name);
+
   constructor(
     private readonly instancesRepository: AppInstancesRepository,
     private readonly appsRepository: AppsRepository,
+    @Inject(forwardRef(() => GraphWebhookService))
+    private readonly graphWebhookService: GraphWebhookService,
     @Inject(forwardRef(() => ConnectionsService))
     private readonly connectionsService: ConnectionsService,
     private readonly transactionService: TransactionService,
@@ -135,6 +142,10 @@ export class AppInstancesService {
       { config: result.data, configVersion: app.version },
     );
 
+    if (updated) {
+      void this.ensureWebhookSubscription(organizationId, updated);
+    }
+
     // Push the new config to every player showing this instance, live. The
     // gateway resolves the affected screens (direct + via playlist) and re-sends
     // their snapshot — without this, edits only appear after a manual reload.
@@ -230,6 +241,53 @@ export class AppInstancesService {
       instanceId,
       connectionId,
     );
+  }
+
+  /**
+   * For a webhook-capable connected app (PowerPoint on Microsoft Graph),
+   * register a change subscription on the selected drive item so updates push
+   * live. Best-effort and out-of-band: a webhook/config issue must never fail
+   * the config save, and polling (`refreshSeconds`) remains the fallback.
+   *
+   * The file field is a `remote-select` storing `{ id: "driveId|itemId" }`; we
+   * split it so the subscription can address the item in its own drive (works
+   * for personal OneDrive AND business/SharePoint).
+   */
+  private async ensureWebhookSubscription(
+    organizationId: string,
+    instance: AppInstanceDocument,
+  ): Promise<void> {
+    const oauth = getConnector(instance.appSlug)?.oauth;
+    if (oauth?.provider !== 'microsoft') {
+      return;
+    }
+    const cacheKey = cacheKeyForInstance(instance);
+    const connectionId = instance.config.connectionId;
+    const presentation = instance.config.presentation as
+      | { id?: unknown }
+      | undefined;
+    const packed =
+      presentation && typeof presentation.id === 'string'
+        ? presentation.id
+        : undefined;
+    if (!cacheKey || typeof connectionId !== 'string' || !packed) {
+      return;
+    }
+    const unpacked = unpackDriveItem(packed);
+    if (!unpacked) {
+      return;
+    }
+    try {
+      await this.graphWebhookService.ensureSubscription({
+        connectionId,
+        organizationId,
+        driveId: unpacked.driveId,
+        itemId: unpacked.itemId,
+        cacheKey,
+      });
+    } catch (error) {
+      this.logger.warn(`Webhook subscription setup failed: ${String(error)}`);
+    }
   }
 
   async remove(organizationId: string, id: string): Promise<void> {

@@ -1,0 +1,41 @@
+/* PDF Reader — a rendered PDF page fit (contain) inside the black slot. */
+
+.pdf-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+
+.pdf-canvas {
+  display: block;
+  /* Belt-and-braces: the canvas is already sized to fit, but never let a
+     rounding gap push it past the slot. */
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Retriggered on every page change for a gentle cross-page fade. */
+.pdf-canvas.is-fresh {
+  animation: pdf-fade 0.45s ease;
+}
+
+@keyframes pdf-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Empty / loading / error states (centered via the shared `.center`). */
+.pdf-hint {
+  font-size: 2.4vh;
+  font-weight: 500;
+  opacity: 0.6;
+  letter-spacing: 0.01em;
+}

@@ -19,6 +19,10 @@ packages/
 
 - **pnpm** workspaces + **turbo** task runner.
 - Node >= 20.
+- **poppler-utils** (`pdftoppm`) on the backend host/image — the PowerPoint app
+  rasterizes decks to slide images with it. Install with `brew install poppler`
+  (macOS) or `apt-get install -y poppler-utils` (Debian/Ubuntu). Absent, only the
+  PowerPoint app is affected (it errors clearly); everything else runs.
 
 ## Common commands
 

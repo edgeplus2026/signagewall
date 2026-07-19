@@ -1,5 +1,6 @@
 import { cpSync, rmSync } from 'node:fs'
 import { readdirSync, statSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -24,6 +25,27 @@ function mirrorToCms(): Plugin {
     closeBundle() {
       rmSync(cmsOutDir, { recursive: true, force: true })
       cpSync(playerOutDir, cmsOutDir, { recursive: true })
+    },
+  }
+}
+
+/**
+ * Copy pdf.js's standard-font and CMap data into the bundle so the PDF Reader
+ * app can render PDFs that reference the base-14 fonts (Helvetica/Times/…)
+ * without embedding them, and CJK text. They land in `assets/` next to the app
+ * chunks; the embed points pdf.js at them relative to its own module URL. Must
+ * run before {@link mirrorToCms} so the CMS mirror picks them up too.
+ */
+function copyPdfjsAssets(): Plugin {
+  return {
+    name: 'copy-pdfjs-assets',
+    closeBundle() {
+      const require = createRequire(import.meta.url)
+      const pdfjsDir = path.dirname(require.resolve('pdfjs-dist/package.json'))
+      const assetsDir = path.join(playerOutDir, 'assets')
+      for (const name of ['standard_fonts', 'cmaps']) {
+        cpSync(path.join(pdfjsDir, name), path.join(assetsDir, name), { recursive: true })
+      }
     },
   }
 }
@@ -58,7 +80,7 @@ function discoverInputs(): Record<string, string> {
 export default defineConfig({
   root: embedsRoot,
   base: './',
-  plugins: [mirrorToCms()],
+  plugins: [copyPdfjsAssets(), mirrorToCms()],
   build: {
     outDir: playerOutDir,
     emptyOutDir: true,

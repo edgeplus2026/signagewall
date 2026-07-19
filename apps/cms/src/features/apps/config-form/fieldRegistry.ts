@@ -10,6 +10,7 @@ import {
   ColorControl,
   DateTimeControl,
   type FieldControlProps,
+  FileControl,
   ImageControl,
   MultiSelectControl,
   NumberControl,
@@ -31,6 +32,8 @@ export const FIELD_CONTROLS: Record<FieldType, (props: FieldControlProps) => Rea
   switch: SwitchControl,
   color: ColorControl,
   image: ImageControl,
+  // Dropzone that reads a file (e.g. a PDF) to a base64 data URL string.
+  file: FileControl,
   // Native date-and-time picker; stores a local `YYYY-MM-DDTHH:MM` string.
   datetime: DateTimeControl,
   // Connect a third-party account (Google/Canva) and store the chosen

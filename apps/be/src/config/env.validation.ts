@@ -16,13 +16,17 @@ export const envValidationSchema = Joi.object({
   GOOGLE_CLIENT_ID: Joi.string().optional().allow(''),
   GOOGLE_CLIENT_SECRET: Joi.string().optional().allow(''),
   GOOGLE_CALLBACK_URL: Joi.string().uri().optional().allow(''),
+  MICROSOFT_CLIENT_ID: Joi.string().optional().allow(''),
+  MICROSOFT_CLIENT_SECRET: Joi.string().optional().allow(''),
+  MICROSOFT_TENANT: Joi.string().optional().allow(''),
   CANVA_CLIENT_ID: Joi.string().optional().allow(''),
   CANVA_CLIENT_SECRET: Joi.string().optional().allow(''),
   // Base32/64 of a 32-byte key. Required to store third-party OAuth tokens at
   // rest (AES-256-GCM). Connected apps are disabled when unset.
   ENCRYPTION_KEY: Joi.string().optional().allow(''),
   // Publicly reachable HTTPS base URL of this API, used to build the connection
-  // OAuth callback URLs. Falls back to the local port when unset.
+  // OAuth callback URLs and to receive Microsoft Graph webhook notifications.
+  // Falls back to the local port when unset (Graph webhooks then disabled).
   PUBLIC_API_URL: Joi.string().uri().optional().allow(''),
   MAIL_ENABLED: Joi.boolean().truthy('true').falsy('false').default(false),
   RESEND_API_KEY: Joi.string().optional().allow(''),

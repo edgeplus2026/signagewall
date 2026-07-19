@@ -75,3 +75,22 @@ export const MEDIA_PROCESSING_MAX_ATTEMPTS = 3;
  * Kept short so transient failures recover within the client's poll window.
  */
 export const MEDIA_PROCESSING_STALE_MS = 60 * 1000;
+
+/**
+ * PowerPoint slideshow rendering (see PptxRenderService). Microsoft Graph
+ * converts `.pptx → PDF` for us; poppler (`pdftoppm`) rasterizes each page and
+ * sharp re-encodes to WebP for the signage image slideshow.
+ */
+/** DPI passed to `pdftoppm`. 150 keeps 16:9 slides crisp on 1080p screens. */
+export const PPTX_SLIDE_RENDER_DPI = 150;
+/** Slides are downscaled to at most this width before WebP encoding. */
+export const PPTX_SLIDE_MAX_WIDTH = 1920;
+/** WebP quality for rendered slides (matches the original-image setting). */
+export const PPTX_SLIDE_WEBP_QUALITY = ORIGINAL_IMAGE_WEBP_QUALITY;
+/** Hard cap on rendered slides, so a huge deck can't exhaust CPU/storage. */
+export const PPTX_MAX_SLIDES = 100;
+/** Max bytes accepted for the Graph PDF rendition (SSRF/DoS guard). */
+export const PPTX_PDF_MAX_BYTES = 100 * 1024 * 1024;
+/** Timeouts for the Graph PDF fetch (redirect resolve + body download). */
+export const PPTX_PDF_METADATA_TIMEOUT_MS = 15 * 1000;
+export const PPTX_PDF_DOWNLOAD_TIMEOUT_MS = 60 * 1000;

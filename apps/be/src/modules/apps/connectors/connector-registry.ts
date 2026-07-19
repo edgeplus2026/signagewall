@@ -6,6 +6,7 @@ import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
 import { gcalConnector } from './gcal.connector';
 import { powerPricesConnector } from './power-prices.connector';
+import { powerpointConnector } from './powerpoint.connector';
 import { rssConnector } from './rss.connector';
 import { weatherConnector } from './weather.connector';
 import { wisdomConnector } from './wisdom.connector';
@@ -27,6 +28,7 @@ const CONNECTORS: Record<string, AppConnector> = {
   canva: canvaConnector,
   rss: rssConnector,
   wisdom: wisdomConnector,
+  powerpoint: powerpointConnector,
 };
 
 /** The connector for `slug`, or undefined for `static` apps / unknown slugs. */

@@ -20,13 +20,20 @@ export default () => ({
       process.env.GOOGLE_CALLBACK_URL ??
       'http://localhost:3000/api/v1/auth/google/callback',
   },
+  microsoft: {
+    clientId: process.env.MICROSOFT_CLIENT_ID,
+    clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+    // 'common' allows any work/school/personal account; override for single-tenant.
+    tenant: process.env.MICROSOFT_TENANT ?? 'common',
+  },
   canva: {
     clientId: process.env.CANVA_CLIENT_ID,
     clientSecret: process.env.CANVA_CLIENT_SECRET,
   },
   // AES-256-GCM key for encrypting third-party OAuth tokens at rest.
   encryptionKey: process.env.ENCRYPTION_KEY,
-  // Publicly reachable HTTPS base URL of this API (connection OAuth callbacks).
+  // Publicly reachable HTTPS base URL of this API (connection OAuth callbacks +
+  // Microsoft Graph webhook notifications).
   publicApiUrl: process.env.PUBLIC_API_URL,
   mail: {
     enabled: process.env.MAIL_ENABLED === 'true',
@@ -119,8 +126,7 @@ export default () => ({
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY,
     model:
-      process.env.OPENROUTER_MODEL ??
-      'meta-llama/llama-3.3-70b-instruct:free',
+      process.env.OPENROUTER_MODEL ?? 'meta-llama/llama-3.3-70b-instruct:free',
     baseUrl: process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1',
     timeoutMs: parseInt(process.env.OPENROUTER_TIMEOUT_MS ?? '60000', 10),
     // Optional attribution headers OpenRouter recommends for API traffic.

@@ -15,6 +15,7 @@ import { MediaService } from './media.service';
 import { MediaItem, MediaItemSchema } from './schemas/media-item.schema';
 import { MediaThumbnailService } from './storage/media-thumbnail.service';
 import { MediaVideoService } from './storage/media-video.service';
+import { PptxRenderService } from './storage/pptx-render.service';
 import { R2StorageService } from './storage/r2-storage.service';
 
 @Module({
@@ -34,6 +35,7 @@ import { R2StorageService } from './storage/r2-storage.service';
     R2StorageService,
     MediaThumbnailService,
     MediaVideoService,
+    PptxRenderService,
     MediaProcessingScheduler,
     CloudImportService,
     CloudMediaFetcher,

@@ -10,7 +10,9 @@ import { dashboardManifest } from './dashboard/manifest.js'
 import { gcalManifest } from './gcal/manifest.js'
 import { gslidesPublicManifest } from './gslides-public/manifest.js'
 import { menuManifest } from './menu/manifest.js'
+import { pdfManifest } from './pdf/manifest.js'
 import { powerPricesManifest } from './power-prices/manifest.js'
+import { powerpointManifest } from './powerpoint/manifest.js'
 import { qrManifest } from './qr/manifest.js'
 import { rssManifest } from './rss/manifest.js'
 import { streamManifest } from './stream/manifest.js'
@@ -52,6 +54,8 @@ export const APP_MANIFESTS: AppManifest[] = [
   canvaManifest,
   rssManifest,
   wisdomManifest,
+  pdfManifest,
+  powerpointManifest,
 ]
 
 export {
@@ -77,6 +81,8 @@ export {
   canvaManifest,
   rssManifest,
   wisdomManifest,
+  pdfManifest,
+  powerpointManifest,
 }
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
 export { parseVimeo, toVimeoEmbedUrl } from './vimeo/embed.js'
@@ -134,6 +140,8 @@ export type {
 } from './weather/payload.js'
 export type { GcalPayload, GcalEvent } from './gcal/payload.js'
 export type { CanvaPayload } from './canva/payload.js'
+export type { PowerPointPayload } from './powerpoint/payload.js'
+export type { WisdomPayload, WisdomQuote } from './wisdom/payload.js'
 export type { RssPayload, RssItem } from './rss/payload.js'
 export type { FxPayload, FxRate } from './currency/payload.js'
 export type { AirQualityPayload } from './airquality/payload.js'

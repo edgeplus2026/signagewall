@@ -1,0 +1,44 @@
+/*
+ * PowerPoint slideshow chrome. Two stacked slide layers crossfade; only
+ * `opacity` is animated (the one property the compositor can move without a
+ * main-thread repaint — see the note in wisdom/motion.css).
+ */
+
+.ppt {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Letterbox fill for `contain`; overridden inline from config.background. */
+  background: #000000;
+}
+
+/* Both slide layers occupy the full frame, stacked; the visible one is opaque. */
+.ppt-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+}
+
+.ppt-slide.is-visible {
+  opacity: 1;
+}
+
+/* Fill the screen and crop the edges instead of letterboxing. */
+.ppt--cover .ppt-slide {
+  object-fit: cover;
+}
+
+/* The crossfade — only present when the operator chose the fade transition. */
+.ppt--fade .ppt-slide {
+  transition: opacity 700ms ease;
+}
+
+/* Respect reduced-motion: cut straight to the next slide. */
+@media (prefers-reduced-motion: reduce) {
+  .ppt--fade .ppt-slide {
+    transition: none;
+  }
+}

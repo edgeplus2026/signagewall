@@ -15,6 +15,12 @@ export type FieldType =
   | 'checkbox'
   | 'switch'
   | 'image'
+  /**
+   * A file uploaded from the operator's computer via a dropzone, stored inline
+   * as a base64 `data:` URL string. Which file types are accepted and the size
+   * cap are set per-field by {@link Field.accept} / {@link Field.maxSizeMb}.
+   */
+  | 'file'
   | 'color'
   | 'oauth'
   /** A place picked via autocomplete; stored as {@link LocationValue}. */
@@ -119,6 +125,17 @@ export interface Field {
    * provider when connecting an account. The backend ignores it on validate.
    */
   provider?: string
+  /**
+   * For `file`: the accepted file types, as an `<input accept>` value
+   * (e.g. `'application/pdf'`). Advisory to the CMS dropzone only; the backend
+   * ignores it on validate (the value is validated as a string).
+   */
+  accept?: string
+  /**
+   * For `file`: the maximum upload size in megabytes the CMS dropzone accepts
+   * before rejecting. Advisory to the CMS only; the backend ignores it.
+   */
+  maxSizeMb?: number
   validation?: FieldValidation
   /** Conditional visibility based on another field's value. */
   visibleWhen?: FieldVisibility
@@ -132,6 +149,9 @@ const STRING_LIKE_TYPES = new Set<FieldType>([
   'textarea',
   'color',
   'image',
+  // A base64 `data:` URL of the uploaded file — validated as a (non-empty when
+  // required) string, exactly like `image`.
+  'file',
   'oauth',
   'richtext',
   // A local ISO string from the picker; validated as a (required → non-empty) string.

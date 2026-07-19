@@ -14,7 +14,8 @@ interface GcalConfig {
 }
 
 const CALENDAR_API = 'https://www.googleapis.com/calendar/v3/calendars';
-const CHANNELS_STOP_API = 'https://www.googleapis.com/calendar/v3/channels/stop';
+const CHANNELS_STOP_API =
+  'https://www.googleapis.com/calendar/v3/channels/stop';
 
 /**
  * Cap on events stored per fetch. Raised with the window below: a wider look-ahead
@@ -95,7 +96,9 @@ interface WatchChannel {
   address: string;
 }
 
-function readChannel(secrets: Record<string, unknown> | undefined): WatchChannel | undefined {
+function readChannel(
+  secrets: Record<string, unknown> | undefined,
+): WatchChannel | undefined {
   const channel = secrets?.channel as Partial<WatchChannel> | undefined;
   if (
     !channel ||
