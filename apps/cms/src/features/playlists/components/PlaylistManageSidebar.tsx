@@ -39,6 +39,7 @@ export function PlaylistManageSidebar({
 
   const tabLabels: LibraryTabLabels = {
     librarySearch: labels?.librarySearch ?? t("playlists.content.librarySearch"),
+    appsSearch: labels?.appsSearch ?? t("playlists.content.appsSearch"),
     libraryBack: labels?.libraryBack ?? t("playlists.content.libraryBack"),
     libraryEmpty: labels?.libraryEmpty ?? t("playlists.content.libraryEmpty"),
     libraryEmptySearch:

@@ -312,6 +312,7 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
             onDuplicate={handleDuplicate}
             onAddToScreen={setAddToScreenIds}
             onDelete={setDeleteIds}
+            onCreate={onCreateClick}
           />
         ) : (
           <PlaylistsTable

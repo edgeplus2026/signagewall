@@ -1,5 +1,7 @@
+import { MonitorPlayIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
+import { CreateCard } from "@/components/common/CreateCard"
 import { Checkbox } from "@/components/ui/checkbox"
 import { mediaGridClassName } from "@/features/media/lib/mediaActionCardStyles"
 import { ScreenCard } from "@/features/screens/components/ScreenCard"
@@ -15,6 +17,7 @@ interface ScreensGridProps {
   onSelectAll: (selected: boolean) => void
   onOpen: (screen: ScreenSummary, tab: ScreenManageTab) => void
   onDelete: (ids: string[]) => void
+  onCreate: () => void
 }
 
 export function ScreensGrid({
@@ -24,6 +27,7 @@ export function ScreensGrid({
   onSelectAll,
   onOpen,
   onDelete,
+  onCreate,
 }: ScreensGridProps) {
   const { t } = useTranslation()
   const allSelected =
@@ -46,6 +50,12 @@ export function ScreensGrid({
       ) : null}
 
       <div className={mediaGridClassName}>
+        <CreateCard
+          icon={MonitorPlayIcon}
+          title={t("screens.create.title")}
+          hint={t("screens.create.description")}
+          onClick={onCreate}
+        />
         {screens.map((screen) => (
           <ScreenCard
             key={screen.id}

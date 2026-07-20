@@ -239,7 +239,7 @@ export function AddToScreenSheet({
           </div>
         </div>
 
-        <SheetFooter>
+        <SheetFooter className="flex-row justify-end gap-2 border-t border-secondary">
           <Button
             type="button"
             variant="outline"

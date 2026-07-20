@@ -32,7 +32,20 @@ export class GraphWebhookService {
 
   /** True when a public callback URL is configured (webhooks usable). */
   isEnabled(): boolean {
-    return Boolean(this.configService.get<string>('publicApiUrl'));
+    return Boolean(this.callbackBaseUrl());
+  }
+
+  /**
+   * Base URL Graph can reach for notifications. `webhookPublicUrl` (a dev
+   * tunnel, e.g. cloudflared/ngrok) overrides `publicApiUrl` so webhooks can be
+   * exercised locally while OAuth callbacks stay on localhost.
+   */
+  private callbackBaseUrl(): string | undefined {
+    return (
+      this.configService.get<string>('webhookPublicUrl') ||
+      this.configService.get<string>('publicApiUrl') ||
+      undefined
+    );
   }
 
   /**
@@ -72,8 +85,13 @@ export class GraphWebhookService {
   }
 
   /**
-   * Create (or replace) a Graph subscription for a OneDrive item so changes
-   * push live. No-op when webhooks aren't configured (falls back to polling).
+   * Create (or replace) a Graph subscription for the drive a OneDrive item
+   * lives in, so changes push live. Graph does NOT support driveItem
+   * subscriptions on individual files — only on the drive ROOT — so we
+   * subscribe to the whole drive and let the connector's content-tag
+   * comparison turn changes to *other* files into cheap no-ops (the refresh
+   * re-reads the deck's cTag, sees it unchanged, and reuses the render).
+   * No-op when webhooks aren't configured (falls back to polling).
    */
   async ensureSubscription(params: {
     connectionId: string;
@@ -84,7 +102,6 @@ export class GraphWebhookService {
      * omitted we fall back to the connected user's default drive.
      */
     driveId?: string;
-    itemId: string;
     cacheKey: string;
   }): Promise<void> {
     if (!this.isEnabled()) {
@@ -105,9 +122,11 @@ export class GraphWebhookService {
       params.connectionId,
     );
     const clientState = randomBytes(24).toString('base64url');
+    // Root-level resource: the only shape Graph accepts for driveItem
+    // subscriptions (item-level ones are rejected with 400).
     const resource = params.driveId
-      ? `/drives/${params.driveId}/items/${params.itemId}`
-      : `/me/drive/items/${params.itemId}`;
+      ? `/drives/${params.driveId}/root`
+      : `/me/drive/root`;
     const expiresAt = new Date(Date.now() + SUBSCRIPTION_TTL_MS);
 
     const response = await fetch(GRAPH_SUBSCRIPTIONS_URL, {
@@ -194,7 +213,10 @@ export class GraphWebhookService {
   }
 
   private notificationUrl(): string {
-    const base = this.configService.getOrThrow<string>('publicApiUrl');
+    const base = this.callbackBaseUrl();
+    if (!base) {
+      throw new Error('Graph webhooks are not configured');
+    }
     const prefix = this.configService.get<string>('apiPrefix') ?? 'api';
     return `${base.replace(/\/$/, '')}/${prefix}/v1/connections/webhooks/graph`;
   }

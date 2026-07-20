@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next'
 import { RocketIcon, SearchIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -12,10 +13,24 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AppCard } from '@/features/apps/components/AppCard'
-import { useCategories } from '@/features/apps/hooks/useCategories'
-import type { AppCategory, EdgeApp } from '@/features/apps/types/app.types'
+import {
+  APP_CATEGORIES,
+  appCategorySlugs,
+  appTagline,
+  categoryName,
+} from '@/features/apps/lib/appCopy'
+import type { EdgeApp } from '@/features/apps/types/app.types'
+
+type InstallFilter = 'all' | 'installed' | 'not-installed'
 
 interface AppGridProps {
   apps: EdgeApp[]
@@ -39,7 +54,7 @@ function AppCardSkeleton() {
   return (
     <div className="flex flex-col gap-5 rounded-2xl bg-panel p-5 ring-1 ring-quaternary">
       <div className="flex items-start justify-between gap-3">
-        <Skeleton className="size-14 rounded-2xl" />
+        <Skeleton className="size-12 rounded-2xl" />
         <Skeleton className="size-7 rounded-md" />
       </div>
       <div className="flex flex-col gap-2">
@@ -51,28 +66,34 @@ function AppCardSkeleton() {
   )
 }
 
-/** Group apps into ordered category sections; an app shown under each of its categories. */
-function buildSections(
-  apps: EdgeApp[],
-  categories: AppCategory[],
-  uncategorizedTitle: string,
-): AppSection[] {
-  const ordered = [...categories].sort((a, b) => a.order - b.order)
+/**
+ * Group apps into ordered category sections from the code registry; an app is
+ * shown under each category it belongs to. Category names come from i18n.
+ */
+function buildSections(apps: EdgeApp[], t: TFunction): AppSection[] {
+  const ordered = [...APP_CATEGORIES].sort((a, b) => a.order - b.order)
   const sections: AppSection[] = []
 
   for (const category of ordered) {
-    const inCategory = apps.filter((app) => app.categoryIds.includes(category.id))
+    const inCategory = apps.filter((app) =>
+      appCategorySlugs(app.slug).includes(category.slug),
+    )
     if (inCategory.length > 0) {
-      sections.push({ id: category.id, title: category.name, apps: inCategory })
+      sections.push({
+        id: category.slug,
+        title: categoryName(t, category.slug),
+        apps: inCategory,
+      })
     }
   }
 
-  const knownIds = new Set(categories.map((category) => category.id))
-  const uncategorized = apps.filter(
-    (app) => !app.categoryIds.some((id) => knownIds.has(id)),
-  )
+  const uncategorized = apps.filter((app) => appCategorySlugs(app.slug).length === 0)
   if (uncategorized.length > 0) {
-    sections.push({ id: UNCATEGORIZED, title: uncategorizedTitle, apps: uncategorized })
+    sections.push({
+      id: UNCATEGORIZED,
+      title: t('apps.categories.uncategorized'),
+      apps: uncategorized,
+    })
   }
 
   return sections
@@ -88,41 +109,59 @@ export function AppGrid({
 }: AppGridProps) {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
-  const { data: categories = [] } = useCategories()
+  const [installFilter, setInstallFilter] = useState<InstallFilter>('all')
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase()
-    if (query.length === 0) return apps
-    return apps.filter(
-      (app) =>
+    return apps.filter((app) => {
+      if (installFilter === 'installed' && !app.isInstalled) return false
+      if (installFilter === 'not-installed' && app.isInstalled) return false
+      if (query.length === 0) return true
+      return (
         app.name.toLowerCase().includes(query) ||
-        app.tagline.toLowerCase().includes(query),
-    )
-  }, [apps, search])
+        appTagline(t, app.slug).toLowerCase().includes(query)
+      )
+    })
+  }, [apps, search, installFilter, t])
 
-  const sections = useMemo(
-    () => buildSections(filtered, categories, t('apps.categories.uncategorized')),
-    [filtered, categories, t],
-  )
+  const sections = useMemo(() => buildSections(filtered, t), [filtered, t])
 
-  const hasActiveFilters = search.trim().length > 0
+  const hasActiveFilters = search.trim().length > 0 || installFilter !== 'all'
 
   const clearFilters = () => {
     setSearch('')
+    setInstallFilter('all')
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="relative w-full sm:max-w-xs">
-        <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-secondary" />
-        <Input
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value)
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-xs">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-secondary" />
+          <Input
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value)
+            }}
+            placeholder={t('apps.search')}
+            className="pl-9"
+          />
+        </div>
+        <Select
+          value={installFilter}
+          onValueChange={(value) => {
+            setInstallFilter(value as InstallFilter)
           }}
-          placeholder={t('apps.search')}
-          className="pl-9"
-        />
+        >
+          <SelectTrigger className="w-full sm:w-44" aria-label={t('apps.filter.label')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('apps.filter.all')}</SelectItem>
+            <SelectItem value="installed">{t('apps.filter.installed')}</SelectItem>
+            <SelectItem value="not-installed">{t('apps.filter.notInstalled')}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (

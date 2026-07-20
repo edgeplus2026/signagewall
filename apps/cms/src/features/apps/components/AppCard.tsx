@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { AppIcon } from '@/features/apps/components/AppIcon'
 import { useInstallApp } from '@/features/apps/hooks/useApps'
-import { resolveAppColor } from '@/features/apps/lib/appColor'
+import { appTagline } from '@/features/apps/lib/appCopy'
 import type { EdgeApp } from '@/features/apps/types/app.types'
 import { cn } from '@/lib/utils'
 
@@ -43,8 +43,6 @@ export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps
     }
   }
 
-  const brandColor = resolveAppColor(app.color)
-
   return (
     <div
       role="button"
@@ -58,24 +56,15 @@ export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps
       }}
       className={cn(
         'group relative flex cursor-pointer flex-col gap-5 overflow-hidden rounded-2xl bg-panel p-5 text-left ring-1 ring-quaternary transition',
-        'hover:-translate-y-0.5 hover:shadow-lg hover:ring-tertiary',
+        'hover:-translate-y-0.5 hover:ring-tertiary',
         'focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none',
       )}
     >
-      {/* Strong inner glow in the app's brand colour, anchored to the bottom. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-36 opacity-60 blur-2xl transition-opacity duration-300 group-hover:opacity-90"
-        style={{
-          background: `radial-gradient(120% 80% at 50% 130%, ${brandColor}, transparent 70%)`,
-        }}
-      />
-
       <div className="relative flex items-start justify-between gap-3">
         <AppIcon
           iconSvg={app.iconSvg}
           color={app.color}
-          className="size-14 rounded-2xl shadow-md"
+          className="size-12 rounded-2xl shadow-md"
         />
 
         <div className="flex items-center gap-2">
@@ -148,7 +137,7 @@ export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps
 
       <div className="relative flex flex-col gap-1.5">
         <h3 className="text-base font-semibold text-primary">{app.name}</h3>
-        <p className="line-clamp-2 text-sm text-secondary">{app.tagline}</p>
+        <p className="line-clamp-2 text-sm text-secondary">{appTagline(t, app.slug)}</p>
       </div>
     </div>
   )

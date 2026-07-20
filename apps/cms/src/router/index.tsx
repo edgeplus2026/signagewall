@@ -117,7 +117,11 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: '/dashboard',
-                element: <DashboardPage />,
+                element: (
+                  <PresenceProvider>
+                    <DashboardPage />
+                  </PresenceProvider>
+                ),
                 handle: { breadcrumb: { labelKey: 'layout.dashboard' } },
               },
               {

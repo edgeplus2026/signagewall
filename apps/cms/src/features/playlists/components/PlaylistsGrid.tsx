@@ -1,5 +1,7 @@
+import { ListPlusIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { CreateCard } from '@/components/common/CreateCard'
 import { Checkbox } from '@/components/ui/checkbox'
 import { mediaGridClassName } from '@/features/media/lib/mediaActionCardStyles'
 import { PlaylistCard } from '@/features/playlists/components/PlaylistCard'
@@ -14,6 +16,7 @@ interface PlaylistsGridProps {
   onDuplicate: (playlist: PlaylistSummary) => Promise<void>
   onAddToScreen: (ids: string[]) => void
   onDelete: (ids: string[]) => void
+  onCreate: () => void
 }
 
 export function PlaylistsGrid({
@@ -25,6 +28,7 @@ export function PlaylistsGrid({
   onDuplicate,
   onAddToScreen,
   onDelete,
+  onCreate,
 }: PlaylistsGridProps) {
   const { t } = useTranslation()
   const allSelected =
@@ -47,6 +51,12 @@ export function PlaylistsGrid({
       ) : null}
 
       <div className={mediaGridClassName}>
+        <CreateCard
+          icon={ListPlusIcon}
+          title={t('playlists.create.title')}
+          hint={t('playlists.create.description')}
+          onClick={onCreate}
+        />
         {playlists.map((playlist) => (
           <PlaylistCard
             key={playlist.id}

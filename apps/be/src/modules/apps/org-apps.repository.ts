@@ -20,6 +20,19 @@ export class OrgAppsRepository {
     return docs.map((doc) => doc.appId.toString());
   }
 
+  /**
+   * Install count per app across all organizations, keyed by app id. Each
+   * OrgApp doc is one org's install, so this counts installing organizations.
+   */
+  async countInstallsByApp(): Promise<Map<string, number>> {
+    const rows = await this.model
+      .aggregate<{ _id: Types.ObjectId; count: number }>([
+        { $group: { _id: '$appId', count: { $sum: 1 } } },
+      ])
+      .exec();
+    return new Map(rows.map((row) => [row._id.toString(), row.count]));
+  }
+
   async isInstalled(organizationId: string, appId: string): Promise<boolean> {
     if (!Types.ObjectId.isValid(appId)) return false;
     const count = await this.model

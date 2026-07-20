@@ -1,4 +1,5 @@
 import { connectToHost } from '../_shared/host-bridge.js'
+import { applyTextStyle } from '../_shared/text-style.js'
 import '../_shared/base.css'
 import './style.css'
 
@@ -24,11 +25,28 @@ interface AlertConfig {
   pulse?: boolean
 }
 
+/**
+ * Shrink the type until the whole alert fits the screen: a long message must
+ * never be cut off — an alert you can't read to the end is a failed alert.
+ * The multiplier feeds `--al-fit` (font sizes + icon scale in the stylesheet).
+ */
+function fitToViewport(wrap: HTMLElement): void {
+  wrap.style.setProperty('--al-fit', '1')
+  let scale = 1
+  while (wrap.scrollHeight > wrap.clientHeight + 1 && scale > 0.35) {
+    scale = Math.round((scale - 0.05) * 100) / 100
+    wrap.style.setProperty('--al-fit', String(scale))
+  }
+}
+
 function render(config: AlertConfig): void {
   if (!root) return
   const severity = SEVERITY[String(config.severity)] ?? SEVERITY.critical!
   root.style.background = severity.bg
   root.style.color = '#fff'
+  // Shared Style Settings (font, weight, size %, line height, spacing) → CSS
+  // custom properties the stylesheet consumes.
+  applyTextStyle(root, config as Record<string, unknown>)
 
   const wrap = document.createElement('div')
   wrap.className = 'al'
@@ -64,6 +82,8 @@ function render(config: AlertConfig): void {
   }
 
   root.replaceChildren(wrap)
+  // Measure AFTER insertion (forces the layout the fit loop reads).
+  fitToViewport(wrap)
 }
 
 connectToHost<AlertConfig>(({ config }) => {

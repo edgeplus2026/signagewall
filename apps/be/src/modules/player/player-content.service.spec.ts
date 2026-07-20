@@ -62,9 +62,8 @@ function buildService(options: {
   >;
   /** Stored `screen.availability` subdocument, when the screen has one. */
   availability?: unknown;
-  /** Split-screen preset + zone rotations, when the screen has them. */
-  layout?: string;
-  zones?: Array<{ key: string; items: unknown[] }>;
+  /** All app instances in the org (overlay resolution scans these). */
+  orgInstances?: unknown[];
 }) {
   const screensRepository = {
     findById: jest.fn().mockResolvedValue({
@@ -73,8 +72,6 @@ function buildService(options: {
       organizationId: new Types.ObjectId(),
       items: options.screenItems,
       ...(options.availability ? { availability: options.availability } : {}),
-      ...(options.layout ? { layout: options.layout } : {}),
-      ...(options.zones ? { zones: options.zones } : {}),
     }),
   };
   const playlistsRepository = {
@@ -95,6 +92,8 @@ function buildService(options: {
     findByIds: jest.fn((_org: string, ids: string[]) =>
       Promise.resolve(ids.map((id) => options.appsById?.[id]).filter(Boolean)),
     ),
+    // Overlay resolution scans the org's instances; none by default.
+    findByOrganization: jest.fn().mockResolvedValue(options.orgInstances ?? []),
   };
   const appDataCacheRepository = {
     findByCacheKeys: jest.fn((keys: string[]) =>
@@ -188,75 +187,50 @@ describe('PlayerContentService', () => {
     });
   });
 
-  it('resolves split-screen zones alongside the main items', async () => {
+  it('carries overlay apps assigned to this screen (and only this screen)', async () => {
     const mainImage = media({ id: 'main', type: MediaItemType.IMAGE });
-    const sideImage = media({ id: 'side', type: MediaItemType.IMAGE });
-
-    const service = buildService({
-      mediaById: {
-        [mainImage._id.toString()]: mainImage,
-        [sideImage._id.toString()]: sideImage,
+    const overlayInstance = {
+      _id: new Types.ObjectId(),
+      appSlug: 'ticker',
+      config: {
+        screens: ['screen'],
+        position: 'top',
+        source: 'messages',
+        messages: [{ message: 'Hello' }],
       },
-      screenItems: [screenMediaItem(mainImage, 0, { duration: 10 })],
-      layout: 'main-sidebar',
-      zones: [
-        { key: 'sidebar', items: [screenMediaItem(sideImage, 0, { duration: 8 })] },
-      ],
-    });
+      updatedAt: new Date(),
+    };
+    const elsewhereInstance = {
+      _id: new Types.ObjectId(),
+      appSlug: 'ticker',
+      config: { screens: ['other-screen'], messages: [] },
+      updatedAt: new Date(),
+    };
 
-    const snapshot = await service.resolveByScreenId('org', 'screen');
-
-    expect(snapshot?.layout).toBe('main-sidebar');
-    expect(snapshot?.items).toHaveLength(1);
-    expect(snapshot?.zones).toHaveLength(1);
-    expect(snapshot?.zones?.[0]).toMatchObject({ key: 'sidebar' });
-    expect(snapshot?.zones?.[0]?.items[0]).toMatchObject({
-      kind: 'image',
-      durationMs: 8_000,
-      url: 'https://cdn.test/side.jpg',
-    });
-  });
-
-  it('omits the layout when every defined zone resolves empty', async () => {
-    const mainImage = media({ id: 'main', type: MediaItemType.IMAGE });
-
-    const service = buildService({
+    const base = {
       mediaById: { [mainImage._id.toString()]: mainImage },
       screenItems: [screenMediaItem(mainImage, 0, { duration: 10 })],
-      layout: 'main-ticker',
-      zones: [{ key: 'ticker', items: [] }],
-    });
-
-    const snapshot = await service.resolveByScreenId('org', 'screen');
-
-    expect(snapshot?.layout).toBeUndefined();
-    expect(snapshot?.zones).toBeUndefined();
-    expect(snapshot?.items).toHaveLength(1);
-  });
-
-  it('a zone edit changes the revision (so devices are re-pushed)', async () => {
-    const mainImage = media({ id: 'main', type: MediaItemType.IMAGE });
-    const sideImage = media({ id: 'side', type: MediaItemType.IMAGE });
-    const mediaById = {
-      [mainImage._id.toString()]: mainImage,
-      [sideImage._id.toString()]: sideImage,
     };
-    const base = {
-      mediaById,
-      screenItems: [screenMediaItem(mainImage, 0, { duration: 10 })],
-      layout: 'main-sidebar',
-    };
-
-    const without = await buildService({ ...base, zones: [] })
-      .resolveByScreenId('org', 'screen');
-    const withZone = await buildService({
+    const withOverlay = await buildService({
       ...base,
-      zones: [
-        { key: 'sidebar', items: [screenMediaItem(sideImage, 0, { duration: 8 })] },
-      ],
+      orgInstances: [overlayInstance, elsewhereInstance],
     }).resolveByScreenId('org', 'screen');
+    const without = await buildService(base).resolveByScreenId('org', 'screen');
 
-    expect(without?.revision).not.toBe(withZone?.revision);
+    expect(withOverlay?.overlays).toHaveLength(1);
+    expect(withOverlay?.overlays?.[0]).toMatchObject({
+      kind: 'app',
+      slug: 'ticker',
+      durationMs: 0,
+    });
+    expect(withOverlay?.overlays?.[0]?.config).toMatchObject({
+      position: 'top',
+    });
+    // The overlay never takes a rotation slot.
+    expect(withOverlay?.items).toHaveLength(1);
+    expect(without?.overlays).toBeUndefined();
+    // Assigning an overlay must re-push (revision changes).
+    expect(withOverlay?.revision).not.toBe(without?.revision);
   });
 
   it('serves the 1280px image variant, falling back to the original', async () => {

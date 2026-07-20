@@ -13,6 +13,7 @@ import { Server, Socket } from 'socket.io';
 
 import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
+import { isOverlaySlug, overlayScreenIds } from '../apps/overlay.util';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensRepository } from '../screens/screens.repository';
@@ -443,15 +444,16 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Resolve the distinct screen ids in `organizationId` that contain any of
-   * `instanceIds`, directly or through a playlist. Shared by the app-data and
-   * app-instance fan-out handlers.
+   * Resolve the distinct screen ids in `organizationId` that show any of
+   * `instanceIds` — directly, through a playlist, or as an overlay (an overlay
+   * app instance names its screens in its `screens` config). Shared by the
+   * app-data and app-instance fan-out handlers.
    */
   private async resolveScreenIdsForInstances(
     organizationId: string,
     instanceIds: string[],
   ): Promise<string[]> {
-    const [directScreens, playlistIds] = await Promise.all([
+    const [directScreens, playlistIds, instances] = await Promise.all([
       this.screensRepository.findContainingAppInstanceIds(
         organizationId,
         instanceIds,
@@ -460,6 +462,7 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
         organizationId,
         instanceIds,
       ),
+      this.appInstancesRepository.findByIds(organizationId, instanceIds),
     ]);
 
     const playlistScreens =
@@ -470,10 +473,15 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
           )
         : [];
 
+    const overlayScreens = instances
+      .filter((instance) => isOverlaySlug(instance.appSlug))
+      .flatMap((instance) => overlayScreenIds(instance.config));
+
     return [
       ...new Set<string>([
         ...directScreens.map((screen) => screen._id.toString()),
         ...playlistScreens.map((screen) => screen._id.toString()),
+        ...overlayScreens,
       ]),
     ];
   }

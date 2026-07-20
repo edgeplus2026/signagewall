@@ -21,6 +21,8 @@ interface MultiSelectProps {
   searchPlaceholder?: string | undefined
   emptyLabel?: string | undefined
   disabled?: boolean | undefined
+  /** Hard cap: once this many are selected, unchecked options can't be added. */
+  maxSelected?: number | undefined
   'aria-invalid'?: boolean | undefined
   'aria-label'?: string | undefined
   className?: string | undefined
@@ -36,6 +38,7 @@ export function MultiSelect({
   searchPlaceholder,
   emptyLabel,
   disabled,
+  maxSelected,
   'aria-invalid': ariaInvalid,
   'aria-label': ariaLabel,
   className,
@@ -57,12 +60,15 @@ export function MultiSelect({
     return options.filter((option) => option.label.toLowerCase().includes(q))
   }, [options, query])
 
+  const atCap = maxSelected !== undefined && value.length >= maxSelected
+
   const toggle = (optionValue: string) => {
-    onChange(
-      value.includes(optionValue)
-        ? value.filter((entry) => entry !== optionValue)
-        : [...value, optionValue],
-    )
+    if (value.includes(optionValue)) {
+      onChange(value.filter((entry) => entry !== optionValue))
+      return
+    }
+    if (atCap) return
+    onChange([...value, optionValue])
   }
 
   return (
@@ -118,14 +124,19 @@ export function MultiSelect({
           ) : (
             filtered.map((option) => {
               const checked = value.includes(option.value)
+              const blocked = !checked && atCap
               return (
                 <button
                   key={option.value}
                   type="button"
+                  disabled={blocked}
                   onClick={() => {
                     toggle(option.value)
                   }}
-                  className="hover:bg-highlight flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors"
+                  className={cn(
+                    'hover:bg-highlight flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                    blocked && 'cursor-not-allowed opacity-40 hover:bg-transparent',
+                  )}
                 >
                   <Checkbox checked={checked} className="pointer-events-none" tabIndex={-1} />
                   <span className="truncate">{option.label}</span>

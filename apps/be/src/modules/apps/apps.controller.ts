@@ -21,7 +21,6 @@ import {
   ApiSuccessNullResponse,
   ApiSuccessResponse,
 } from '../../common/swagger';
-import { AppCategoriesService } from './app-categories.service';
 import { AppDataService } from './app-data.service';
 import { AppsService } from './apps.service';
 import { PreviewAppDataDto } from './dto/preview-app-data.dto';
@@ -35,7 +34,6 @@ import { PreviewAppDataDto } from './dto/preview-app-data.dto';
 export class AppsController {
   constructor(
     private readonly appsService: AppsService,
-    private readonly categoriesService: AppCategoriesService,
     private readonly appDataService: AppDataService,
   ) {}
 
@@ -44,14 +42,6 @@ export class AppsController {
   @ApiSuccessResponse(Object, { isArray: true })
   list(@RequiredOrganizationId() organizationId: string) {
     return this.appsService.listCatalog(organizationId);
-  }
-
-  /** Catalog categories, for the org catalog filter (read-only). */
-  @Get('categories')
-  @RequireOrgRole()
-  @ApiSuccessResponse(Object, { isArray: true })
-  listCategories() {
-    return this.categoriesService.list();
   }
 
   @Get(':id')

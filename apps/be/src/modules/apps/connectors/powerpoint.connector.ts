@@ -19,8 +19,6 @@ interface PowerPointConfig {
   connectionId?: string;
   /** The chosen deck: { id: "driveId|itemId", label } from the picker. */
   presentation?: { id?: string; label?: string };
-  /** When false, pin to the version rendered first (no re-render on change). */
-  autoUpdate?: boolean;
 }
 
 /** Persisted (server-only) state of the last render, carried via `secrets`. */
@@ -67,6 +65,13 @@ export const powerpointConnector: AppConnector<
     return `powerpoint:${connectionId}:${presentationId}`;
   },
 
+  // Which drive item the external Graph subscription orchestrator should watch
+  // for this config (`AppInstancesService.ensureWebhookSubscription`).
+  webhookResource(config) {
+    const packed = (config.presentation?.id ?? '').trim();
+    return packed ? { provider: 'microsoft', packedDriveItem: packed } : null;
+  },
+
   async fetchData(
     config: PowerPointConfig,
     ctx: ConnectorContext,
@@ -102,13 +107,11 @@ export const powerpointConnector: AppConnector<
     const name = meta.name ?? label;
 
     const prev = readState(ctx.secrets);
-    const autoUpdate = config.autoUpdate !== false;
 
     // Reuse already-rendered slides when the content tag is unchanged (both
     // empty counts as unchanged — with no tag we can't detect a change, and
-    // re-rendering every poll would just thrash), or when the operator pinned
-    // the version (autoUpdate off) after the first render.
-    if (prev && (prev.version === version || !autoUpdate)) {
+    // re-rendering every poll would just thrash).
+    if (prev && prev.version === version) {
       ctx.logger.debug('powerpoint reuse', { itemId, version: prev.version });
       return fromState({ ...prev, name }, renderer);
     }

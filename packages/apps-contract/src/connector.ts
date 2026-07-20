@@ -24,8 +24,31 @@ export interface AppConnector<Config = Record<string, unknown>, Payload = unknow
    */
   fetchData(config: Config, ctx: ConnectorContext): Promise<ConnectorResult<Payload>>
 
-  /** OAuth descriptor for `connected` apps; absent for plain `server` apps. */
-  oauth?: OAuthDescriptor
+  /**
+   * OAuth descriptor(s) for `connected` apps; absent for plain `server` apps.
+   * An array means the app supports several providers (e.g. a tabular app that
+   * syncs from Google Sheets *or* Microsoft Excel) — resolve the one in play
+   * with {@link oauthDescriptorFor}.
+   */
+  oauth?: OAuthDescriptor | OAuthDescriptor[]
+
+  /**
+   * For connectors that self-subscribe to provider push notifications inside
+   * `fetchData` (the Google channel pattern): the API route, relative to the
+   * API base, that the provider should POST to (e.g. `'webhooks/google/drive'`).
+   * The host builds the absolute `ConnectorContext.webhookUrl` from it; absent
+   * means the connector never receives a `webhookUrl`.
+   */
+  webhookPath?: string
+
+  /**
+   * For connectors whose push subscriptions are orchestrated externally (the
+   * Microsoft Graph pattern — subscriptions are managed per config save, not by
+   * the connector): given a validated config, name the provider resource to
+   * watch, or null when the current config has nothing to subscribe to.
+   * `packedDriveItem` is the `"driveId|itemId"`-packed drive item.
+   */
+  webhookResource?(config: Config): { provider: 'microsoft'; packedDriveItem: string } | null
 
   /**
    * Optional per-connector fetch budget (ms) overriding the host default. Raise
@@ -118,4 +141,20 @@ export interface OAuthDescriptor {
   authorizationUrl: string
   tokenUrl: string
   scopes: string[]
+}
+
+/** All OAuth descriptors of a connector, normalized to an array. */
+export function oauthDescriptors(
+  connector: { oauth?: OAuthDescriptor | OAuthDescriptor[] } | undefined,
+): OAuthDescriptor[] {
+  if (!connector?.oauth) return []
+  return Array.isArray(connector.oauth) ? connector.oauth : [connector.oauth]
+}
+
+/** The connector's OAuth descriptor for `provider`, if it supports it. */
+export function oauthDescriptorFor(
+  connector: { oauth?: OAuthDescriptor | OAuthDescriptor[] } | undefined,
+  provider: string,
+): OAuthDescriptor | undefined {
+  return oauthDescriptors(connector).find((descriptor) => descriptor.provider === provider)
 }

@@ -74,4 +74,15 @@ export function useDemoteSuperAdmin() {
   })
 }
 
+export function useDeleteAdminUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (userId: string) => adminApi.deleteUser(userId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ADMIN_USERS_QUERY_KEY })
+    },
+  })
+}
+
 export { DEFAULT_PAGE_SIZE }

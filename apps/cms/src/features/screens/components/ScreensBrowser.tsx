@@ -327,6 +327,7 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
             onSelectAll={handleSelectAll}
             onOpen={openScreen}
             onDelete={setDeleteIds}
+            onCreate={onCreateClick}
           />
         ) : (
           <ScreensTable

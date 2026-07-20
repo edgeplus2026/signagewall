@@ -37,7 +37,7 @@ export type FieldType =
    * in {@link Field.fields}. Stored as an array of objects (`Array<Record<string,
    * unknown>>`). The CMS renders an add/remove/reorder editor; the backend
    * validates every row against `fields`. Replaces the "one item per line"
-   * textarea MVP used by list apps (menu, ticker, world clocks, stocks).
+   * textarea MVP used by list apps (menu, ticker).
    */
   | 'repeater'
   /**
@@ -47,6 +47,28 @@ export type FieldType =
    * field's {@link Field.remoteSource}. Used by `connected` apps (e.g. Canva).
    */
   | 'remote-select'
+  /**
+   * The organization's screens, multi-selected. Stored as an array of screen id
+   * strings. The CMS resolves the options from the org's screen list at render
+   * time (the manifest cannot know them). Used by `overlay` apps to choose
+   * which screens the overlay shows on.
+   */
+  | 'screens'
+  /**
+   * Maps columns of a synced spreadsheet (Google Sheets / Excel) onto the app's
+   * target item fields. Stored as `Record<targetKey, headerName>`. The CMS
+   * fetches the sheet's header row from the connections "tabular headers"
+   * endpoint and renders one picker per target declared in
+   * {@link Field.columnMapping}. Which sibling fields name the connection /
+   * source / file is also declared there, so the control is app-agnostic.
+   */
+  | 'column-mapping'
+  /**
+   * A read-only preview of the rows a tabular sync currently produces (from the
+   * app's preview-data endpoint), with sync status and a "convert to manual"
+   * action. Display-only: stores no value and is skipped by validation.
+   */
+  | 'tabular-preview'
 
 /**
  * The value a `location` field stores: a resolved place with coordinates (from
@@ -82,10 +104,58 @@ export interface FieldOption {
   set?: Record<string, unknown>
 }
 
-/** Show a field only when another field has a given value. */
+/**
+ * Show a field only when another field has a given value (`equals`) or one of
+ * several values (`equalsAny`). Exactly one of the two should be set.
+ */
 export interface FieldVisibility {
   field: string
-  equals: string | number | boolean
+  equals?: string | number | boolean
+  equalsAny?: (string | number | boolean)[]
+}
+
+/** True when `visibleWhen` is satisfied by the current form values. */
+export function isFieldVisible(
+  visibleWhen: FieldVisibility | undefined,
+  values: Record<string, unknown>,
+): boolean {
+  if (!visibleWhen) return true
+  const actual = values[visibleWhen.field]
+  if (visibleWhen.equalsAny !== undefined) {
+    return visibleWhen.equalsAny.some((candidate) => candidate === actual)
+  }
+  return actual === visibleWhen.equals
+}
+
+/** One target field a spreadsheet column can be mapped onto. */
+export interface ColumnMappingTarget {
+  key: string
+  label: string
+  required?: boolean
+}
+
+/**
+ * Declares how a `column-mapping` field finds its context inside the same
+ * config form: which sibling holds the connection, which select chooses the
+ * source kind, and which sibling holds the picked file per source kind. Keeping
+ * these as declarations (not hardcoded keys) lets any app reuse the control.
+ */
+export interface ColumnMappingSpec {
+  targets: ColumnMappingTarget[]
+  /** Sibling `oauth` field key holding the connection id. */
+  connectionKey: string
+  /** Sibling `select` field key choosing the tabular source kind. */
+  sourceKey: string
+  /** Sibling `remote-select` field key holding the picked file, per source kind. */
+  fileKeyBySource: Record<string, string>
+  /** Sibling field key naming the worksheet/tab, when the source has one. */
+  worksheetKey?: string
+  /**
+   * Sibling `repeater` field key holding the manual rows. Used by the
+   * `tabular-preview` control's "convert to manual" action to know where the
+   * synced rows should be copied.
+   */
+  itemsKey?: string
 }
 
 export interface FieldValidation {
@@ -123,6 +193,13 @@ export interface Field {
   /** For `select` / `multiselect`. */
   options?: FieldOption[]
   /**
+   * For `select`: render as a searchable combobox instead of a plain dropdown.
+   * Use it when the option list is long (currencies, timezones). Purely a CMS
+   * form convenience — the backend ignores it when validating config.
+   * (`multiselect` is always searchable and doesn't need this.)
+   */
+  searchable?: boolean
+  /**
    * For `repeater`: the sub-fields of one row. Each row's value is an object
    * keyed by these fields' `key`s. Keep them simple (text / number / select /
    * switch) — they render inline as columns.
@@ -153,6 +230,21 @@ export interface Field {
   validation?: FieldValidation
   /** Conditional visibility based on another field's value. */
   visibleWhen?: FieldVisibility
+  /** For `column-mapping`: targets and sibling-field wiring. */
+  columnMapping?: ColumnMappingSpec
+  /**
+   * For `repeater`: offer a client-side "Import CSV" flow that maps CSV columns
+   * onto the row sub-fields and writes the rows into the list. Advisory to the
+   * CMS only; the backend ignores it.
+   */
+  csvImport?: boolean
+  /**
+   * For `oauth`: resolve the connection provider dynamically from another
+   * field's value (e.g. a `source` select mapping `gsheets → google`,
+   * `excel → microsoft`). Takes precedence over {@link provider} when set.
+   * Advisory to the CMS only; the backend ignores it on validate.
+   */
+  providerFrom?: { field: string; map: Record<string, string> }
 }
 
 /** An app's full config form: an ordered list of fields. */
@@ -221,6 +313,23 @@ function buildFieldZod(field: Field): z.ZodTypeAny {
       label: z.string().optional(),
     })
     schema = field.required ? resource : resource.optional()
+  } else if (field.type === 'screens') {
+    // Screen ids are org data, unknowable to the schema — any string array;
+    // the backend additionally scopes them to the org when resolving.
+    let arr = z.array(z.string().min(1))
+    const min = field.validation?.min ?? (field.required ? 1 : undefined)
+    if (min !== undefined) arr = arr.min(min)
+    if (field.validation?.max !== undefined) arr = arr.max(field.validation.max)
+    schema = arr
+  } else if (field.type === 'column-mapping') {
+    // target key → sheet header name. Required targets are enforced by the CMS
+    // control (they need live sheet headers to make sense); the backend only
+    // checks the shape.
+    const record = z.record(z.string(), z.string())
+    schema = field.required ? record : record.optional()
+  } else if (field.type === 'tabular-preview') {
+    // Display-only; never stores a value.
+    schema = z.any().optional()
   } else if (field.type === 'repeater') {
     // A list of rows, each validated against the sub-field schema. `buildConfigZod`
     // is hoisted, so the mutual recursion (repeater → row schema) is fine.
@@ -269,7 +378,7 @@ export function buildConfigZod(
     const hidden =
       values !== undefined &&
       field.visibleWhen !== undefined &&
-      values[field.visibleWhen.field] !== field.visibleWhen.equals
+      !isFieldVisible(field.visibleWhen, values)
     // Hidden conditional field: accept (and keep) its value without enforcing it.
     shape[field.key] = hidden ? z.any().optional() : buildFieldZod(field)
   }
@@ -282,7 +391,11 @@ export function buildDefaultConfig(schema: ConfigSchema): Record<string, unknown
   for (const field of schema) {
     if (field.default !== undefined) {
       config[field.key] = field.default
-    } else if (field.type === 'multiselect' || field.type === 'repeater') {
+    } else if (
+      field.type === 'multiselect' ||
+      field.type === 'repeater' ||
+      field.type === 'screens'
+    ) {
       config[field.key] = []
     } else if (field.type === 'checkbox' || field.type === 'switch') {
       config[field.key] = false

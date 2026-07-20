@@ -49,4 +49,22 @@ export const connectionsApi = {
     )
     return data
   },
+
+  /**
+   * The header row of a synced spreadsheet, for the `column-mapping` control.
+   * `kind` picks the provider reader ('gsheets' | 'excel'); `worksheet` may be
+   * blank for the first sheet.
+   */
+  fetchTabularHeaders: async (
+    connectionId: string,
+    kind: string,
+    fileId: string,
+    worksheet: string,
+  ): Promise<string[]> => {
+    const { data } = await api.get<{ headers: string[] }>(
+      `${BASE}/${connectionId}/tabular/headers`,
+      { params: { kind, fileId, ...(worksheet ? { worksheet } : {}) } },
+    )
+    return data.headers
+  },
 }

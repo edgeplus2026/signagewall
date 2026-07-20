@@ -50,4 +50,8 @@ export const adminApi = {
     )
     return data
   },
+
+  deleteUser: async (userId: string): Promise<void> => {
+    await api.delete(`${ADMIN_BASE}/users/${userId}`)
+  },
 }

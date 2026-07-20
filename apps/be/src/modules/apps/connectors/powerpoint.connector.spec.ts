@@ -131,14 +131,15 @@ describe('powerpoint connector', () => {
     expect(result.version).toBe('ctag-2');
   });
 
-  it('pins to the rendered version when autoUpdate is off', async () => {
+  it('ignores a legacy autoUpdate:false — the deck always follows the file', async () => {
     const renderer = makeRenderer();
     setPptxRenderer(renderer);
-    // The deck changed upstream (ctag-2) but the operator pinned the version.
+    // The deck changed upstream (ctag-2); old configs may still carry the
+    // removed autoUpdate switch, which must no longer pin the version.
     mockMeta({ name: 'My Deck', cTag: 'ctag-2' });
 
     const result = await powerpointConnector.fetchData(
-      { ...config, autoUpdate: false },
+      { ...config, autoUpdate: false } as typeof config,
       makeCtx(
         renderedSecrets({
           version: 'ctag-1',
@@ -148,22 +149,8 @@ describe('powerpoint connector', () => {
       ),
     );
 
-    expect(renderer.render).not.toHaveBeenCalled();
-    expect(result.version).toBe('ctag-1');
-  });
-
-  it('renders the first time even when autoUpdate is off (no prior state)', async () => {
-    const renderer = makeRenderer();
-    setPptxRenderer(renderer);
-    mockMeta({ name: 'My Deck', cTag: 'ctag-1' });
-
-    const result = await powerpointConnector.fetchData(
-      { ...config, autoUpdate: false },
-      makeCtx(),
-    );
-
     expect(renderer.render).toHaveBeenCalledTimes(1);
-    expect(result.playerPayload?.slides).toHaveLength(2);
+    expect(result.version).toBe('ctag-2');
   });
 
   it('returns pending when the render service is not registered yet', async () => {

@@ -31,6 +31,15 @@ export function PreferencesSection() {
   const [isSaving, setIsSaving] = useState(false)
   const language = getLanguageCode(i18n.language)
 
+  const handleThemeChange = (value: ThemePreference) => {
+    if (value === theme) return
+
+    setTheme(value)
+    void settingsApi.updateSettings({ theme: value }).catch(() => {
+      // Theme is applied locally even when the API is unavailable.
+    })
+  }
+
   const handleLanguageChange = async (value: SupportedLanguage) => {
     if (value === language) return
 
@@ -57,7 +66,7 @@ export function PreferencesSection() {
         <Select
           value={theme}
           onValueChange={(value) => {
-            setTheme(value as ThemePreference)
+            handleThemeChange(value as ThemePreference)
           }}
         >
           <SelectTrigger className="w-36">

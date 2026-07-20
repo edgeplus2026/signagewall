@@ -1,6 +1,7 @@
 import type { Field } from '@edge/apps-contract'
 
 import { Checkbox } from '@/components/ui/checkbox'
+import { Combobox } from '@/components/ui/combobox'
 import { FileUploader } from '@/components/ui/file-uploader'
 import { ImageUploader } from '@/components/ui/image-uploader'
 import { Input } from '@/components/ui/input'
@@ -105,6 +106,23 @@ export function NumberControl({ field, id, value, onChange, onBlur, invalid, dis
 }
 
 export function SelectControl({ field, id, value, onChange, onBlur, invalid, disabled }: FieldControlProps) {
+  // Long option lists (currencies, timezones) opt into a searchable combobox.
+  if (field.searchable) {
+    return (
+      <Combobox
+        id={id}
+        value={asString(value)}
+        options={field.options ?? []}
+        placeholder={field.placeholder}
+        aria-invalid={invalid}
+        disabled={disabled}
+        onChange={(next) => {
+          onChange(next)
+        }}
+        onBlur={onBlur}
+      />
+    )
+  }
   return (
     <Select
       value={asString(value)}
@@ -135,6 +153,7 @@ export function MultiSelectControl({ field, id, value, onChange, onBlur, invalid
       value={Array.isArray(value) ? (value as string[]) : []}
       options={field.options ?? []}
       placeholder={field.placeholder}
+      maxSelected={field.validation?.max}
       aria-invalid={invalid}
       disabled={disabled}
       onChange={onChange}

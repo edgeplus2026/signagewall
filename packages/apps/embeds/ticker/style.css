@@ -2,7 +2,16 @@
    copies of the message list and is translated by -50%, so as one copy scrolls
    off the other takes its place with no gap or jump. Duration is set from the
    measured copy width (in main.ts), so the pixels-per-second speed is constant
-   regardless of how much text there is. */
+   regardless of how much text there is.
+
+   The ticker renders as a persistent OVERLAY on the player: everything except
+   the band itself must stay transparent (overriding base.css's black backdrop),
+   so the band draws over the playing content and nothing else does. */
+
+html,
+body {
+  background: transparent;
+}
 
 .tk {
   width: 100%;
@@ -12,9 +21,15 @@
   font-family: var(--app-font, inherit);
   font-weight: var(--app-font-weight, 400);
   letter-spacing: var(--app-letter-spacing, 0);
+  /* Band type scale that works in BOTH viewport shapes this bundle renders in:
+     a full-screen frame (config preview) where 4vw wins, and the player's thin
+     overlay strip where 55vh wins — sizing the text to the strip. */
+  font-size: calc(min(4vw, 55vh) * var(--app-font-scale, 1));
 }
 
-/* Vertical placement of the band. */
+/* Vertical placement of the band inside the frame. In the player overlay the
+   strip container is already pinned to the chosen edge; inside a full-screen
+   preview frame these anchor the band to the matching edge. */
 .tk-top {
   justify-content: flex-start;
 }
@@ -25,22 +40,50 @@
   justify-content: flex-end;
 }
 
+/* The painted band: the ONLY opaque element (colors set inline from config). */
+.tk-band {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Player overlay strip (the host sizes this frame as a thin full-width band —
+   no full-screen surface is ever this wide): the band paints the WHOLE strip,
+   so a smaller font shrinks the text, never the band — a see-through gap must
+   never open inside the strip. A full-screen frame (the config preview) keeps
+   the content-sized band anchored to its edge instead. */
+@media (min-aspect-ratio: 5/1) {
+  .tk-band {
+    height: 100%;
+  }
+}
+
 .tk-viewport {
   width: 100%;
   overflow: hidden;
-  padding: 2.5vh 0;
+  padding: 0.35em 0;
 }
 
+/* Two chained animations on the same property: while `tk-enter` runs its single
+   pass, `tk-loop` is still in its delay and has no effect; the moment the enter
+   finishes, the loop (later in the list, so it wins) takes over from 0 and
+   shifts by exactly one segment per cycle — a seamless, gapless repeat. */
 .tk-track {
   display: inline-flex;
   white-space: nowrap;
   will-change: transform;
-  animation: tk-scroll var(--tk-dur, 30s) linear infinite;
+  transform: translateX(100vw);
+  animation:
+    tk-enter var(--tk-enter-dur, 8s) linear 1,
+    tk-loop var(--tk-loop-dur, 30s) linear var(--tk-enter-dur, 8s) infinite;
 }
 
-/* Left-to-right reverses the same animation, so the copies still tile seamlessly. */
+/* Left-to-right: no enter pass (the band starts filled) — just the seamless
+   loop played backwards, so the flow marches right forever. */
 .tk-right .tk-track {
-  animation-direction: reverse;
+  transform: translateX(0);
+  animation: tk-loop var(--tk-loop-dur, 30s) linear infinite reverse;
 }
 
 .tk-copy {
@@ -50,31 +93,43 @@
 }
 
 .tk-msg {
-  font-size: calc(min(4vw, 9vh) * var(--app-font-scale, 1));
   line-height: 1;
-  padding: 0 1.2vw;
+  padding: 0 0.35em;
 }
 
+/* Separator follows the text color — deliberately no separate accent swatch. */
 .tk-sep {
-  font-size: calc(min(4vw, 9vh) * var(--app-font-scale, 1));
   line-height: 1;
-  color: var(--tk-accent, #f97316);
-  opacity: 0.9;
-  padding: 0 0.6vw;
+  opacity: 0.55;
+  padding: 0 0.2em;
 }
 
 .tk-empty {
   width: 100%;
   text-align: center;
-  font-size: 3vh;
+  font-size: 0.8em;
   opacity: 0.6;
+  padding: 0.4em 0;
 }
 
-@keyframes tk-scroll {
+/* Entrance: from fully off the RIGHT edge (100vw = the frame's width) to the
+   resting origin — the first message walks in first. */
+@keyframes tk-enter {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Seamless repeat: shift by exactly one segment (set in px by main.ts); the
+   second segment lands where the first began, so the jump is invisible. */
+@keyframes tk-loop {
   from {
     transform: translateX(0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translateX(calc(-1 * var(--tk-shift, 100%)));
   }
 }

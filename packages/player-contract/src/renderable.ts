@@ -52,46 +52,21 @@ export interface AppRenderable {
 
 export type Renderable = ImageRenderable | VideoRenderable | AppRenderable
 
-/**
- * Split-screen layout presets. Geometry is owned by the player's CSS (keyed on
- * the preset), so the wire carries a name, not rectangles. `fullscreen` (or an
- * absent `layout`) is the classic single-region screen.
- */
-export type ScreenLayoutPreset =
-  | 'fullscreen'
-  | 'main-sidebar'
-  | 'main-ticker'
-  | 'main-sidebar-ticker'
-
-/** The additional regions a preset can have; `main` is `PlayerSnapshot.items`. */
-export type ScreenZoneKey = 'sidebar' | 'ticker'
-
-/** One secondary region's resolved rotation. */
-export interface SnapshotZone {
-  key: ScreenZoneKey
-  items: Renderable[]
-}
-
 export interface PlayerSnapshot {
   screenId: string
   name: string
   revision: string
-  /**
-   * The MAIN zone's rotation. Deliberately keeps its historical name/shape so a
-   * player that predates split-screen still plays the main content fullscreen.
-   */
   items: Renderable[]
-  /**
-   * Split-screen: the layout preset and the secondary zones' rotations. Absent
-   * (legacy screens, or preset `fullscreen`) ⇒ single-region playback. The
-   * player only draws the zones its preset defines; audio belongs to the main
-   * zone alone — secondary zones always play muted.
-   */
-  layout?: ScreenLayoutPreset
-  zones?: SnapshotZone[]
   /**
    * Working-hours rule the player evaluates locally (standby scheduling).
    * Absent ⇒ always on.
    */
   availability?: AvailabilityRule
+  /**
+   * Persistent overlay apps (manifest `overlay: true`, e.g. the ticker band)
+   * assigned to this screen. Drawn above the stage for as long as the snapshot
+   * carries them — they never occupy a rotation slot. `durationMs` is
+   * meaningless here and set to 0.
+   */
+  overlays?: AppRenderable[]
 }

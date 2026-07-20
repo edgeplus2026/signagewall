@@ -10,12 +10,11 @@ import './style.css'
 /** Display settings the operator sets in the config form (applied client-side). */
 interface PowerPointConfig {
   slideDuration?: number
-  transition?: 'none' | 'fade'
   fit?: 'contain' | 'cover'
   background?: string
 }
 
-const DEFAULT_SECONDS = 10
+const DEFAULT_SECONDS = 15
 const MIN_SECONDS = 3
 const MAX_SECONDS = 120
 
@@ -61,8 +60,8 @@ function renderLoading(): void {
 }
 
 function applyStageStyles(stage: HTMLElement): void {
-  // Fade unless the operator chose "None".
-  stage.classList.toggle('ppt--fade', config.transition !== 'none')
+  // Slides always crossfade — a hard cut reads as a glitch on signage.
+  stage.classList.add('ppt--fade')
   stage.classList.toggle('ppt--cover', config.fit === 'cover')
   stage.style.background = config.background ?? '#000000'
 }
@@ -91,7 +90,7 @@ function buildStage(): void {
   a.classList.add('is-visible')
 }
 
-/** Crossfade to the next slide (or hard-cut when the fade class is absent). */
+/** Crossfade to the next slide. */
 function advance(): void {
   if (layers.length < 2 || slides.length < 2) return
   const next = (index + 1) % slides.length

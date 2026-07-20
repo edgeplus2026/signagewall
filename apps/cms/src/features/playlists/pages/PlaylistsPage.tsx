@@ -1,10 +1,9 @@
-import { ListVideoIcon, SparklesIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { usePlaylists } from '../hooks/usePlaylists'
 
-import { Button } from '@/components/ui/button'
+import { AiGeneratorButton } from '@/features/ai-generator/components/AiGeneratorButton'
 import { useAiGeneratorStore } from '@/features/ai-generator/store/aiGeneratorStore'
 import { PlaylistFormSheet } from '@/features/playlists/components/PlaylistFormSheet'
 import { PlaylistsBrowser } from '@/features/playlists/components/PlaylistsBrowser'
@@ -38,29 +37,12 @@ export default function PlaylistsPage() {
         </div>
 
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
+          <AiGeneratorButton
             className="w-full sm:w-auto"
             onClick={() => {
               openAiGenerator()
             }}
-          >
-            <SparklesIcon data-icon="inline-start" />
-            {t('aiGenerator.button')}
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            className="w-full sm:w-auto"
-            onClick={() => {
-              setCreateOpen(true)
-            }}
-          >
-            <ListVideoIcon data-icon="inline-start" />
-            {t('playlists.create.button')}
-          </Button>
+          />
         </div>
       </div>
 

@@ -1,10 +1,16 @@
-import { buildConfigZod, type ConfigSchema, type Field } from '@edge/apps-contract'
+import {
+  buildConfigZod,
+  isFieldVisible,
+  type ConfigSchema,
+  type Field,
+} from '@edge/apps-contract'
 import { useMemo, useState } from 'react'
 
 import { FieldGroup } from '@/components/ui/field'
 import { CollapsibleSection } from '@/features/apps/config-form/CollapsibleSection'
 import { FieldRenderer } from '@/features/apps/config-form/FieldRenderer'
 import { AppSlugProvider } from '@/features/apps/config-form/appSlugContext'
+import { ConfigPatchProvider } from '@/features/apps/config-form/configPatchContext'
 import { ConfigValuesProvider } from '@/features/apps/config-form/configValuesContext'
 import { InstanceIdProvider } from '@/features/apps/config-form/instanceIdContext'
 
@@ -110,8 +116,7 @@ export function SchemaForm({
   }
 
   const renderField = (field: Field) => {
-    const vw = field.visibleWhen
-    if (vw && value[vw.field] !== vw.equals) {
+    if (!isFieldVisible(field.visibleWhen, value)) {
       return null
     }
     return (
@@ -145,6 +150,7 @@ export function SchemaForm({
     <AppSlugProvider value={appSlug ?? null}>
       <InstanceIdProvider value={instanceId ?? null}>
       <ConfigValuesProvider value={value}>
+      <ConfigPatchProvider value={(patch) => { onChange({ ...value, ...patch }); }}>
       <div className="flex flex-col gap-4">
         {sections.map((section, index) => {
           // First (untitled, always-open) section also carries the name field.
@@ -186,6 +192,7 @@ export function SchemaForm({
           )
         })}
       </div>
+      </ConfigPatchProvider>
       </ConfigValuesProvider>
       </InstanceIdProvider>
     </AppSlugProvider>

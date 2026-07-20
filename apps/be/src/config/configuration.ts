@@ -39,6 +39,10 @@ export default () => ({
   // Publicly reachable HTTPS base URL of this API (connection OAuth callbacks +
   // Microsoft Graph webhook notifications).
   publicApiUrl: process.env.PUBLIC_API_URL,
+  // Optional override for provider webhook callbacks only (Microsoft Graph).
+  // Point it at a dev tunnel (cloudflared/ngrok) to receive webhooks on a
+  // machine whose PUBLIC_API_URL is unset or not publicly reachable.
+  webhookPublicUrl: process.env.WEBHOOK_PUBLIC_URL,
   mail: {
     enabled: process.env.MAIL_ENABLED === 'true',
     from: process.env.MAIL_FROM ?? 'Edge <onboarding@resend.dev>',

@@ -3,7 +3,6 @@ import type { FxPayload } from '../../src/currency/payload.js'
 import { DEFAULT_ACCENT } from '../../src/_shared/theme.js'
 import { freshnessFooterHtml } from '../_shared/freshness.js'
 import { type AppDataMeta, connectToHost } from '../_shared/host-bridge.js'
-import { applyTextStyle } from '../_shared/text-style.js'
 
 import '../_shared/base.css'
 import './style.css'
@@ -18,25 +17,66 @@ const NAMES = new Map<string, string>(
   }),
 )
 
-/** Theme presets mirrored from the manifest's `theme` options. */
-const THEMES: Record<string, { bg: string; text: string }> = {
-  light: { bg: '#FFFFFF', text: '#0F172A' },
-  dark: { bg: '#0B1220', text: '#E2E8F0' },
+/**
+ * Currency symbol for the row badge ("€", "$", "kr"). Falls back to the ISO
+ * code itself when the locale has no shorter symbol (e.g. RSD) — the CSS then
+ * shrinks the badge type so three letters still fit.
+ */
+const symbolCache = new Map<string, string>()
+function symbolOf(code: string): string {
+  const cached = symbolCache.get(code)
+  if (cached !== undefined) return cached
+  let symbol = code
+  try {
+    symbol =
+      new Intl.NumberFormat('en', {
+        style: 'currency',
+        currency: code,
+        currencyDisplay: 'narrowSymbol',
+      })
+        .formatToParts(1)
+        .find((part) => part.type === 'currency')?.value ?? code
+  } catch {
+    // Unknown code for this runtime — the code itself is a fine badge.
+  }
+  symbolCache.set(code, symbol)
+  return symbol
 }
 
-/** Format a rate with a sensible number of decimals for its magnitude. */
-const rateFormat = new Intl.NumberFormat(undefined, {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 4,
-})
+/**
+ * Rates read best at a precision matched to their magnitude: "117.20", not
+ * "117.1992"; "1.0842", not "1.08". Tiny rates (an expensive base) keep three
+ * significant digits so they never collapse to "0.0000".
+ */
+function formatRate(rate: number): string {
+  if (rate < 0.1) {
+    return new Intl.NumberFormat(undefined, {
+      maximumSignificantDigits: 3,
+    }).format(rate)
+  }
+  const digits = rate >= 50 ? 2 : 4
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(rate)
+}
+
+/** The upstream reference date ("2026-07-20") as a short local date. */
+function formatDate(iso: string): string {
+  if (!iso) return ''
+  const date = new Date(`${iso}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
 
 function applyChrome(config: Record<string, unknown>): void {
   if (!root) return
-  const theme = THEMES[String(config.theme)] ?? THEMES.dark!
-  root.style.background = theme.bg
-  root.style.color = theme.text
+  root.className = config.theme === 'light' ? 'fx-theme-light' : 'fx-theme-dark'
   root.style.setProperty('--fx-accent', DEFAULT_ACCENT)
-  applyTextStyle(root, config)
 }
 
 function render(
@@ -55,37 +95,82 @@ function render(
   const wrap = document.createElement('div')
   wrap.className = 'fx'
 
-  const head = document.createElement('div')
+  const head = document.createElement('header')
   head.className = 'fx-head'
-  head.textContent = `1 ${data.base} =`
+
+  const headLeft = document.createElement('div')
+  const eyebrow = document.createElement('div')
+  eyebrow.className = 'fx-eyebrow'
+  eyebrow.textContent = 'Exchange rates'
+  const title = document.createElement('div')
+  title.className = 'fx-title'
+  const unit = document.createElement('b')
+  unit.textContent = `1 ${data.base}`
+  title.append(unit)
+  const baseName = NAMES.get(data.base)
+  if (baseName) {
+    const nameEl = document.createElement('span')
+    nameEl.className = 'fx-title-name'
+    nameEl.textContent = baseName
+    title.append(nameEl)
+  }
+  headLeft.append(eyebrow, title)
+  head.append(headLeft)
+
+  const dateLabel = formatDate(data.date)
+  if (dateLabel) {
+    const dateEl = document.createElement('div')
+    dateEl.className = 'fx-date'
+    dateEl.textContent = dateLabel
+    head.append(dateEl)
+  }
   wrap.append(head)
+
+  // One column reads best up to six rows; beyond that, split into two so every
+  // row keeps its size instead of shrinking into an unreadable strip.
+  const count = data.rates.length
+  const columns = count > 6 ? 2 : 1
+  const rowsPerColumn = Math.ceil(count / columns)
 
   const list = document.createElement('div')
   list.className = 'fx-list'
-  for (const { code, rate } of data.rates) {
+  list.style.setProperty('--fx-cols', String(columns))
+  list.style.setProperty('--fx-rows', String(rowsPerColumn))
+
+  data.rates.forEach(({ code, rate }, index) => {
     const row = document.createElement('div')
     row.className = 'fx-row'
+    // Hide the divider under the bottom row of each column.
+    if ((index + 1) % rowsPerColumn === 0 || index === count - 1) {
+      row.classList.add('fx-row-last')
+    }
 
-    const left = document.createElement('div')
-    left.className = 'fx-code'
+    const badge = document.createElement('div')
+    badge.className = 'fx-badge'
+    const symbol = symbolOf(code)
+    if (symbol.length > 2) badge.classList.add('fx-badge-long')
+    badge.textContent = symbol
+
+    const id = document.createElement('div')
+    id.className = 'fx-id'
     const codeEl = document.createElement('b')
     codeEl.textContent = code
-    left.append(codeEl)
+    id.append(codeEl)
     const name = NAMES.get(code)
     if (name) {
       const nameEl = document.createElement('span')
       nameEl.className = 'fx-name'
       nameEl.textContent = name
-      left.append(nameEl)
+      id.append(nameEl)
     }
 
     const rateEl = document.createElement('div')
     rateEl.className = 'fx-rate'
-    rateEl.textContent = rateFormat.format(rate)
+    rateEl.textContent = formatRate(rate)
 
-    row.append(left, rateEl)
+    row.append(badge, id, rateEl)
     list.append(row)
-  }
+  })
   wrap.append(list)
   root.replaceChildren(wrap)
   // Controlled markup (an ISO time + literals) — see freshnessFooterHtml.

@@ -535,6 +535,12 @@ export const MediaBrowser = forwardRef<MediaBrowserHandle, MediaBrowserProps>(fu
           onAddToScreen={() => {
             if (detailItem) setAddToScreenIds([detailItem.id])
           }}
+          onDelete={() => {
+            if (detailItem) {
+              setDeleteIds([detailItem.id])
+              setDetailItem(null)
+            }
+          }}
         />
 
         <UploadMediaSheet

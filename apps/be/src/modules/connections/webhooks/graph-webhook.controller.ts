@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Header,
-  HttpCode,
-  Post,
-  Query,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Post, Query, Res } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Response } from 'express';
 
@@ -41,22 +33,23 @@ export class GraphWebhookController {
 
   @Public()
   @Post('graph')
-  @HttpCode(200)
-  @Header('content-type', 'text/plain')
   ingress(
     @Query('validationToken') validationToken: string | undefined,
     @Body() body: GraphNotificationBody,
-    @Res({ passthrough: true }) res: Response,
-  ): string {
-    // Validation handshake: echo the token verbatim, nothing else.
+    @Res() res: Response,
+  ): void {
+    // Validation handshake: Graph requires the RAW token as the whole
+    // text/plain body. Written straight to the response (non-passthrough
+    // @Res) so the global success-envelope interceptor can't wrap it in
+    // JSON — wrapped, Graph rejects the subscription.
     if (validationToken) {
-      return validationToken;
+      res.status(200).type('text/plain').send(validationToken);
+      return;
     }
 
     // Acknowledge fast; process out of band so a slow refresh can't make Graph
     // retry/disable the subscription.
     void this.webhookService.handleNotifications(body.value ?? []);
-    res.status(202);
-    return '';
+    res.status(202).send();
   }
 }

@@ -17,6 +17,7 @@ import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensService } from '../screens/screens.service';
 import { cacheKeyForInstance } from './connectors/cache-key.util';
 import { getConnector } from './connectors/connector-registry';
+import { isOverlaySlug, overlayScreenIds } from './overlay.util';
 import { AppInstancesRepository } from './app-instances.repository';
 import { AppsRepository } from './apps.repository';
 import {
@@ -136,6 +137,13 @@ export class AppInstancesService {
       result.data,
     );
 
+    // Overlay apps name their screens in config: remember the PREVIOUS
+    // assignment so screens dropped by this edit also get a push (the changed
+    // event below only resolves the current assignment).
+    const previousOverlayScreens = isOverlaySlug(instance.appSlug)
+      ? overlayScreenIds(instance.config)
+      : [];
+
     const updated = await this.instancesRepository.updateById(
       organizationId,
       id,
@@ -147,12 +155,25 @@ export class AppInstancesService {
     }
 
     // Push the new config to every player showing this instance, live. The
-    // gateway resolves the affected screens (direct + via playlist) and re-sends
-    // their snapshot — without this, edits only appear after a manual reload.
+    // gateway resolves the affected screens (direct + via playlist + overlay
+    // assignment) and re-sends their snapshot — without this, edits only appear
+    // after a manual reload.
     this.eventEmitter.emit(PlayerEvents.AppInstanceChanged, {
       organizationId,
       instanceId: id,
     } satisfies AppInstanceChangedEvent);
+
+    // Screens the overlay was REMOVED from re-resolve too, so the band
+    // disappears there immediately.
+    const nextOverlayScreens = new Set(overlayScreenIds(result.data));
+    for (const screenId of previousOverlayScreens) {
+      if (!nextOverlayScreens.has(screenId)) {
+        this.eventEmitter.emit(PlayerEvents.ScreenContentChanged, {
+          organizationId,
+          screenId,
+        } satisfies ScreenContentChangedEvent);
+      }
+    }
 
     return toAppInstanceResponse(updated!);
   }
@@ -245,35 +266,35 @@ export class AppInstancesService {
 
   /**
    * For a webhook-capable connected app (PowerPoint on Microsoft Graph),
-   * register a change subscription on the selected drive item so updates push
-   * live. Best-effort and out-of-band: a webhook/config issue must never fail
-   * the config save, and polling (`refreshSeconds`) remains the fallback.
+   * register a change subscription on the drive holding the selected file so
+   * updates push live (Graph only supports drive-root subscriptions; the
+   * connector's content-tag check filters out changes to other files).
+   * Best-effort and out-of-band: a webhook/config issue must never fail the
+   * config save, and polling (`refreshSeconds`) remains the fallback.
    *
    * The file field is a `remote-select` storing `{ id: "driveId|itemId" }`; we
-   * split it so the subscription can address the item in its own drive (works
-   * for personal OneDrive AND business/SharePoint).
+   * split it so the subscription can address the item's own drive (works for
+   * personal OneDrive AND business/SharePoint).
    */
   private async ensureWebhookSubscription(
     organizationId: string,
     instance: AppInstanceDocument,
   ): Promise<void> {
-    const oauth = getConnector(instance.appSlug)?.oauth;
-    if (oauth?.provider !== 'microsoft') {
+    // The connector itself declares which drive item its current config wants
+    // watched (PowerPoint: the picked deck; menu: the Excel workbook — or
+    // nothing when its source is manual/Google).
+    const resource = getConnector(instance.appSlug)?.webhookResource?.(
+      instance.config,
+    );
+    if (resource?.provider !== 'microsoft') {
       return;
     }
     const cacheKey = cacheKeyForInstance(instance);
     const connectionId = instance.config.connectionId;
-    const presentation = instance.config.presentation as
-      | { id?: unknown }
-      | undefined;
-    const packed =
-      presentation && typeof presentation.id === 'string'
-        ? presentation.id
-        : undefined;
-    if (!cacheKey || typeof connectionId !== 'string' || !packed) {
+    if (!cacheKey || typeof connectionId !== 'string') {
       return;
     }
-    const unpacked = unpackDriveItem(packed);
+    const unpacked = unpackDriveItem(resource.packedDriveItem);
     if (!unpacked) {
       return;
     }
@@ -282,7 +303,6 @@ export class AppInstancesService {
         connectionId,
         organizationId,
         driveId: unpacked.driveId,
-        itemId: unpacked.itemId,
         cacheKey,
       });
     } catch (error) {
@@ -292,7 +312,13 @@ export class AppInstancesService {
 
   async remove(organizationId: string, id: string): Promise<void> {
     // 404 up front so a bad id can't run a partial cascade.
-    await this.requireInstance(organizationId, id);
+    const instance = await this.requireInstance(organizationId, id);
+
+    // Overlay assignment lives in the instance's own config — capture it now so
+    // those screens can re-resolve (and drop the band) after the delete.
+    const overlayScreens = isOverlaySlug(instance.appSlug)
+      ? overlayScreenIds(instance.config)
+      : [];
 
     // Purge the instance's references from playlists and screens, then delete it
     // — all in one transaction so content never points at a missing instance.
@@ -325,6 +351,12 @@ export class AppInstancesService {
     // Emit after commit so the realtime resolver reads post-delete state. Screens
     // that held the app directly re-resolve; playlists that held it notify every
     // screen referencing them.
+    for (const screenId of overlayScreens) {
+      this.eventEmitter.emit(PlayerEvents.ScreenContentChanged, {
+        organizationId,
+        screenId,
+      } satisfies ScreenContentChangedEvent);
+    }
     for (const screenId of affectedScreenIds) {
       this.eventEmitter.emit(PlayerEvents.ScreenContentChanged, {
         organizationId,
@@ -355,6 +387,9 @@ export class AppInstancesService {
       return;
     }
     const instanceIds = instances.map((instance) => instance._id.toString());
+    const overlayScreens = instances
+      .filter((instance) => isOverlaySlug(instance.appSlug))
+      .flatMap((instance) => overlayScreenIds(instance.config));
 
     let affectedScreenIds: string[] = [];
     let affectedPlaylistIds: string[] = [];
@@ -382,6 +417,12 @@ export class AppInstancesService {
       instanceIds,
     );
 
+    for (const screenId of new Set(overlayScreens)) {
+      this.eventEmitter.emit(PlayerEvents.ScreenContentChanged, {
+        organizationId,
+        screenId,
+      } satisfies ScreenContentChangedEvent);
+    }
     for (const screenId of affectedScreenIds) {
       this.eventEmitter.emit(PlayerEvents.ScreenContentChanged, {
         organizationId,

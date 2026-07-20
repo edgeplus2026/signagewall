@@ -1,0 +1,5753 @@
+[
+  {
+    "_id": "6a58ab4fdda5dee9f6f09794",
+    "slug": "airquality",
+    "name": "Air quality",
+    "tagline": "Live air quality for any location",
+    "description": "Show the current air-quality index and key pollutants for a place — updated automatically.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "location",
+        "type": "location",
+        "label": "Location",
+        "required": true,
+        "placeholder": "Search a city…",
+        "help": "Start typing and pick a place from the list."
+      },
+      {
+        "key": "scale",
+        "type": "select",
+        "label": "Index",
+        "help": "Which air-quality scale to show.",
+        "default": "european",
+        "options": [
+          {
+            "label": "European (EAQI)",
+            "value": "european"
+          },
+          {
+            "label": "US (AQI)",
+            "value": "us"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 10h11a3 3 0 1 0-3-3\"/><path d=\"M2 14h15a3 3 0 1 1-3 3\"/><path d=\"M18 10.5a2.5 2.5 0 1 1 2 4\"/></svg>",
+    "color": "#14B8A6",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-16T09:58:39.552Z",
+    "updatedAt": "2026-07-20T20:12:57.752Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a5d4ec496ec3ce4c31162f7",
+    "slug": "alert",
+    "name": "Emergency Alert",
+    "tagline": "Full-screen urgent message",
+    "description": "Show a high-visibility alert full-screen — a headline, optional details and a severity colour. Works offline.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "headline",
+        "type": "text",
+        "label": "Headline",
+        "required": true,
+        "placeholder": "Evacuate the building",
+        "help": "The main message — keep it short so it reads from across the room."
+      },
+      {
+        "key": "message",
+        "type": "textarea",
+        "label": "Details",
+        "help": "Optional supporting detail shown under the headline."
+      },
+      {
+        "key": "severity",
+        "type": "select",
+        "label": "Severity",
+        "help": "Sets the colour and icon.",
+        "default": "critical",
+        "options": [
+          {
+            "label": "Critical (red)",
+            "value": "critical"
+          },
+          {
+            "label": "Warning (amber)",
+            "value": "warning"
+          },
+          {
+            "label": "Information (blue)",
+            "value": "info"
+          }
+        ]
+      },
+      {
+        "key": "showIcon",
+        "type": "switch",
+        "label": "Show icon",
+        "default": true
+      },
+      {
+        "key": "pulse",
+        "type": "switch",
+        "label": "Pulsing edge",
+        "help": "A slow pulsing border to draw the eye (no rapid flashing).",
+        "default": true
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "800",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.25
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 2,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>",
+    "color": "#DC2626",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:25:08.232Z",
+    "updatedAt": "2026-07-20T20:12:57.451Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a444884e7ef6f4e2222559b",
+    "slug": "canva",
+    "name": "Canva",
+    "tagline": "Show a Canva design on your screens",
+    "description": "Connect your Canva account and display any design — it re-exports automatically so the screen always shows the latest version.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Canva account",
+        "required": true,
+        "provider": "canva",
+        "help": "Sign in once — Edge then finds your designs for you."
+      },
+      {
+        "key": "design",
+        "type": "remote-select",
+        "label": "Design",
+        "required": true,
+        "remoteSource": "canva-designs",
+        "placeholder": "Search your designs…",
+        "help": "Start typing to find one of your Canva designs. Edit it in Canva later and the screen catches up on its own."
+      },
+      {
+        "key": "slideDuration",
+        "type": "number",
+        "label": "Seconds per page",
+        "default": 8,
+        "validation": {
+          "min": 1
+        },
+        "help": "Multi-page designs only. Videos and presentations play at their own pace."
+      },
+      {
+        "key": "maxPages",
+        "type": "number",
+        "label": "Pages to show",
+        "default": 0,
+        "validation": {
+          "min": 0
+        },
+        "help": "Leave at 0 to show every page. Set a number to stop after that many."
+      }
+    ],
+    "version": 2,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M15 9.5a3.5 3.5 0 10-1 5.8\"/></svg>",
+    "color": "#00C4CC",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-06-30T22:51:48.198Z",
+    "updatedAt": "2026-07-20T20:12:58.007Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a42f1771c71ba3ae29dd02a",
+    "slug": "clock",
+    "name": "Clock",
+    "tagline": "Show the current time on your screens",
+    "description": "Display a live clock — 12- or 24-hour, with optional seconds and date.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "face",
+        "type": "select",
+        "label": "Face",
+        "help": "How the clock tells the time.",
+        "default": "digital",
+        "options": [
+          {
+            "label": "Digital — the time, in numbers",
+            "value": "digital"
+          },
+          {
+            "label": "Analogue — a clock face with hands",
+            "value": "analog"
+          },
+          {
+            "label": "Flip — a split-flap board",
+            "value": "flip"
+          },
+          {
+            "label": "Words — \"ten past three\", spelled out",
+            "value": "word"
+          },
+          {
+            "label": "Orbit — rings that close as the hour turns",
+            "value": "orbit"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "help": "A starting point — it fills in the colours below, which you can still change.",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light",
+            "set": {
+              "backgroundColor": "#FFFFFF",
+              "textColor": "#0F172A",
+              "accentColor": "#F97316"
+            }
+          },
+          {
+            "label": "Dark",
+            "value": "dark",
+            "set": {
+              "backgroundColor": "#000000",
+              "textColor": "#FFFFFF",
+              "accentColor": "#F97316"
+            }
+          },
+          {
+            "label": "Midnight",
+            "value": "midnight",
+            "set": {
+              "backgroundColor": "#0B1220",
+              "textColor": "#E2E8F0",
+              "accentColor": "#F97316"
+            }
+          }
+        ]
+      },
+      {
+        "key": "format",
+        "type": "select",
+        "label": "Time format",
+        "section": "Clock Settings",
+        "default": "24h",
+        "options": [
+          {
+            "label": "24-hour (14:30)",
+            "value": "24h"
+          },
+          {
+            "label": "12-hour (2:30 PM)",
+            "value": "12h"
+          }
+        ]
+      },
+      {
+        "key": "showSeconds",
+        "type": "switch",
+        "label": "Show seconds",
+        "section": "Clock Settings",
+        "help": "Not used by the Words face, which tells the time to the nearest five minutes.",
+        "default": false
+      },
+      {
+        "key": "showDate",
+        "type": "switch",
+        "label": "Show date",
+        "section": "Clock Settings",
+        "default": true
+      },
+      {
+        "key": "backgroundColor",
+        "type": "color",
+        "label": "Background colour",
+        "section": "Theme Settings",
+        "default": "#000000"
+      },
+      {
+        "key": "textColor",
+        "type": "color",
+        "label": "Text colour",
+        "section": "Theme Settings",
+        "default": "#FFFFFF"
+      },
+      {
+        "key": "accentColor",
+        "type": "color",
+        "label": "Accent colour",
+        "section": "Theme Settings",
+        "help": "The second hand, the ticking colon, the ring that closes — the one thing on the face that moves.",
+        "default": "#F97316"
+      }
+    ],
+    "version": 4,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+    "color": "#0EA5E9",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-06-29T22:28:07.386Z",
+    "updatedAt": "2026-07-20T20:12:56.810Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a5d508ec3e9a99fa555b776",
+    "slug": "countdown",
+    "name": "Countdown",
+    "tagline": "Count down to a moment — or up since one",
+    "description": "Show a live countdown to an event, or count up since a date. Ticks on its own, on or offline.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "title",
+        "type": "text",
+        "label": "Title",
+        "help": "Shown above the timer. Leave blank for just the numbers.",
+        "placeholder": "New Year"
+      },
+      {
+        "key": "target",
+        "type": "datetime",
+        "label": "Date & time",
+        "help": "The moment to count to — the screen's local time.",
+        "required": true
+      },
+      {
+        "key": "mode",
+        "type": "select",
+        "label": "Direction",
+        "default": "down",
+        "options": [
+          {
+            "label": "Count down to it",
+            "value": "down"
+          },
+          {
+            "label": "Count up since it",
+            "value": "up"
+          }
+        ]
+      },
+      {
+        "key": "finishedText",
+        "type": "text",
+        "label": "Message at zero",
+        "help": "Shown when a countdown reaches zero (e.g. \"Happy New Year!\"). A count-up ignores it.",
+        "placeholder": "Happy New Year!"
+      },
+      {
+        "key": "showLabels",
+        "type": "switch",
+        "label": "Show unit labels",
+        "help": "The Days / Hours / Mins / Secs captions under each number.",
+        "default": true
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "help": "A starting point — it fills in the colours below, which you can still change.",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light",
+            "set": {
+              "backgroundColor": "#FFFFFF",
+              "textColor": "#0F172A",
+              "accentColor": "#F97316"
+            }
+          },
+          {
+            "label": "Dark",
+            "value": "dark",
+            "set": {
+              "backgroundColor": "#000000",
+              "textColor": "#FFFFFF",
+              "accentColor": "#F97316"
+            }
+          },
+          {
+            "label": "Midnight",
+            "value": "midnight",
+            "set": {
+              "backgroundColor": "#0B1220",
+              "textColor": "#E2E8F0",
+              "accentColor": "#F97316"
+            }
+          }
+        ]
+      },
+      {
+        "key": "backgroundColor",
+        "type": "color",
+        "label": "Background colour",
+        "section": "Theme Settings",
+        "default": "#000000"
+      },
+      {
+        "key": "textColor",
+        "type": "color",
+        "label": "Text colour",
+        "section": "Theme Settings",
+        "default": "#FFFFFF"
+      },
+      {
+        "key": "accentColor",
+        "type": "color",
+        "label": "Accent colour",
+        "section": "Theme Settings",
+        "help": "The unit labels and the message at zero.",
+        "default": "#F97316"
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"13\" r=\"8\"/><path d=\"M12 13V9\"/><path d=\"M9 2h6\"/><path d=\"M19.5 5.5 18 7\"/></svg>",
+    "color": "#8B5CF6",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:32:46.131Z",
+    "updatedAt": "2026-07-20T20:12:57.358Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d5401c3e9a99fa555b799",
+    "slug": "crypto",
+    "name": "Crypto prices",
+    "tagline": "Live cryptocurrency prices",
+    "description": "Show live prices for the coins you choose, in your currency, with the 24-hour change.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "coins",
+        "type": "multiselect",
+        "label": "Coins",
+        "help": "Which coins to show, up to 5. They appear in a consistent order.",
+        "default": [
+          "bitcoin",
+          "ethereum"
+        ],
+        "validation": {
+          "min": 1,
+          "max": 5
+        },
+        "options": [
+          {
+            "label": "Bitcoin (BTC)",
+            "value": "bitcoin"
+          },
+          {
+            "label": "Ethereum (ETH)",
+            "value": "ethereum"
+          },
+          {
+            "label": "Tether (USDT)",
+            "value": "tether"
+          },
+          {
+            "label": "BNB (BNB)",
+            "value": "binancecoin"
+          },
+          {
+            "label": "Solana (SOL)",
+            "value": "solana"
+          },
+          {
+            "label": "XRP (XRP)",
+            "value": "ripple"
+          },
+          {
+            "label": "Cardano (ADA)",
+            "value": "cardano"
+          },
+          {
+            "label": "Dogecoin (DOGE)",
+            "value": "dogecoin"
+          },
+          {
+            "label": "Polkadot (DOT)",
+            "value": "polkadot"
+          },
+          {
+            "label": "Litecoin (LTC)",
+            "value": "litecoin"
+          },
+          {
+            "label": "Chainlink (LINK)",
+            "value": "chainlink"
+          },
+          {
+            "label": "TRON (TRX)",
+            "value": "tron"
+          }
+        ]
+      },
+      {
+        "key": "vs",
+        "type": "select",
+        "label": "Currency",
+        "help": "The currency prices are shown in.",
+        "default": "usd",
+        "options": [
+          {
+            "label": "US dollar (USD)",
+            "value": "usd"
+          },
+          {
+            "label": "Euro (EUR)",
+            "value": "eur"
+          },
+          {
+            "label": "British pound (GBP)",
+            "value": "gbp"
+          },
+          {
+            "label": "Danish krone (DKK)",
+            "value": "dkk"
+          }
+        ]
+      },
+      {
+        "key": "showChange",
+        "type": "switch",
+        "label": "Show 24-hour change",
+        "default": true
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      }
+    ],
+    "version": 2,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 8h4a2 2 0 0 1 0 4h-4h4.5a2 2 0 0 1 0 4H9.5\"/><path d=\"M10 8V6M10 18v-2M12.5 8V6M12.5 18v-2\"/></svg>",
+    "color": "#F59E0B",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:47:29.568Z",
+    "updatedAt": "2026-07-20T20:12:57.837Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53fdc3e9a99fa555b798",
+    "slug": "currency",
+    "name": "Exchange rates",
+    "tagline": "Live currency exchange rates",
+    "description": "Show exchange rates from a base currency to the ones you choose — updated automatically from ECB reference rates.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "base",
+        "type": "select",
+        "label": "Base currency",
+        "help": "Rates are shown as how much of each currency one unit of this buys.",
+        "default": "EUR",
+        "searchable": true,
+        "options": [
+          {
+            "label": "EUR — Euro",
+            "value": "EUR"
+          },
+          {
+            "label": "DKK — Danish krone",
+            "value": "DKK"
+          },
+          {
+            "label": "SEK — Swedish krona",
+            "value": "SEK"
+          },
+          {
+            "label": "NOK — Norwegian krone",
+            "value": "NOK"
+          },
+          {
+            "label": "USD — US dollar",
+            "value": "USD"
+          },
+          {
+            "label": "GBP — British pound",
+            "value": "GBP"
+          },
+          {
+            "label": "CHF — Swiss franc",
+            "value": "CHF"
+          },
+          {
+            "label": "RSD — Serbian dinar",
+            "value": "RSD"
+          },
+          {
+            "label": "BAM — Bosnian convertible mark",
+            "value": "BAM"
+          },
+          {
+            "label": "MKD — Macedonian denar",
+            "value": "MKD"
+          },
+          {
+            "label": "ALL — Albanian lek",
+            "value": "ALL"
+          },
+          {
+            "label": "AED — UAE dirham",
+            "value": "AED"
+          },
+          {
+            "label": "AUD — Australian dollar",
+            "value": "AUD"
+          },
+          {
+            "label": "BGN — Bulgarian lev",
+            "value": "BGN"
+          },
+          {
+            "label": "BRL — Brazilian real",
+            "value": "BRL"
+          },
+          {
+            "label": "CAD — Canadian dollar",
+            "value": "CAD"
+          },
+          {
+            "label": "CNY — Chinese yuan",
+            "value": "CNY"
+          },
+          {
+            "label": "CZK — Czech koruna",
+            "value": "CZK"
+          },
+          {
+            "label": "EGP — Egyptian pound",
+            "value": "EGP"
+          },
+          {
+            "label": "GEL — Georgian lari",
+            "value": "GEL"
+          },
+          {
+            "label": "HKD — Hong Kong dollar",
+            "value": "HKD"
+          },
+          {
+            "label": "HUF — Hungarian forint",
+            "value": "HUF"
+          },
+          {
+            "label": "IDR — Indonesian rupiah",
+            "value": "IDR"
+          },
+          {
+            "label": "ILS — Israeli shekel",
+            "value": "ILS"
+          },
+          {
+            "label": "INR — Indian rupee",
+            "value": "INR"
+          },
+          {
+            "label": "ISK — Icelandic króna",
+            "value": "ISK"
+          },
+          {
+            "label": "JPY — Japanese yen",
+            "value": "JPY"
+          },
+          {
+            "label": "KRW — South Korean won",
+            "value": "KRW"
+          },
+          {
+            "label": "MXN — Mexican peso",
+            "value": "MXN"
+          },
+          {
+            "label": "MYR — Malaysian ringgit",
+            "value": "MYR"
+          },
+          {
+            "label": "NZD — New Zealand dollar",
+            "value": "NZD"
+          },
+          {
+            "label": "PHP — Philippine peso",
+            "value": "PHP"
+          },
+          {
+            "label": "PLN — Polish złoty",
+            "value": "PLN"
+          },
+          {
+            "label": "QAR — Qatari riyal",
+            "value": "QAR"
+          },
+          {
+            "label": "RON — Romanian leu",
+            "value": "RON"
+          },
+          {
+            "label": "SAR — Saudi riyal",
+            "value": "SAR"
+          },
+          {
+            "label": "SGD — Singapore dollar",
+            "value": "SGD"
+          },
+          {
+            "label": "THB — Thai baht",
+            "value": "THB"
+          },
+          {
+            "label": "TRY — Turkish lira",
+            "value": "TRY"
+          },
+          {
+            "label": "UAH — Ukrainian hryvnia",
+            "value": "UAH"
+          },
+          {
+            "label": "VND — Vietnamese dong",
+            "value": "VND"
+          },
+          {
+            "label": "ZAR — South African rand",
+            "value": "ZAR"
+          }
+        ]
+      },
+      {
+        "key": "targets",
+        "type": "multiselect",
+        "label": "Show rates for",
+        "help": "The currencies to display against the base.",
+        "default": [
+          "USD",
+          "GBP",
+          "DKK"
+        ],
+        "validation": {
+          "min": 1,
+          "max": 12
+        },
+        "options": [
+          {
+            "label": "EUR — Euro",
+            "value": "EUR"
+          },
+          {
+            "label": "DKK — Danish krone",
+            "value": "DKK"
+          },
+          {
+            "label": "SEK — Swedish krona",
+            "value": "SEK"
+          },
+          {
+            "label": "NOK — Norwegian krone",
+            "value": "NOK"
+          },
+          {
+            "label": "USD — US dollar",
+            "value": "USD"
+          },
+          {
+            "label": "GBP — British pound",
+            "value": "GBP"
+          },
+          {
+            "label": "CHF — Swiss franc",
+            "value": "CHF"
+          },
+          {
+            "label": "RSD — Serbian dinar",
+            "value": "RSD"
+          },
+          {
+            "label": "BAM — Bosnian convertible mark",
+            "value": "BAM"
+          },
+          {
+            "label": "MKD — Macedonian denar",
+            "value": "MKD"
+          },
+          {
+            "label": "ALL — Albanian lek",
+            "value": "ALL"
+          },
+          {
+            "label": "AED — UAE dirham",
+            "value": "AED"
+          },
+          {
+            "label": "AUD — Australian dollar",
+            "value": "AUD"
+          },
+          {
+            "label": "BGN — Bulgarian lev",
+            "value": "BGN"
+          },
+          {
+            "label": "BRL — Brazilian real",
+            "value": "BRL"
+          },
+          {
+            "label": "CAD — Canadian dollar",
+            "value": "CAD"
+          },
+          {
+            "label": "CNY — Chinese yuan",
+            "value": "CNY"
+          },
+          {
+            "label": "CZK — Czech koruna",
+            "value": "CZK"
+          },
+          {
+            "label": "EGP — Egyptian pound",
+            "value": "EGP"
+          },
+          {
+            "label": "GEL — Georgian lari",
+            "value": "GEL"
+          },
+          {
+            "label": "HKD — Hong Kong dollar",
+            "value": "HKD"
+          },
+          {
+            "label": "HUF — Hungarian forint",
+            "value": "HUF"
+          },
+          {
+            "label": "IDR — Indonesian rupiah",
+            "value": "IDR"
+          },
+          {
+            "label": "ILS — Israeli shekel",
+            "value": "ILS"
+          },
+          {
+            "label": "INR — Indian rupee",
+            "value": "INR"
+          },
+          {
+            "label": "ISK — Icelandic króna",
+            "value": "ISK"
+          },
+          {
+            "label": "JPY — Japanese yen",
+            "value": "JPY"
+          },
+          {
+            "label": "KRW — South Korean won",
+            "value": "KRW"
+          },
+          {
+            "label": "MXN — Mexican peso",
+            "value": "MXN"
+          },
+          {
+            "label": "MYR — Malaysian ringgit",
+            "value": "MYR"
+          },
+          {
+            "label": "NZD — New Zealand dollar",
+            "value": "NZD"
+          },
+          {
+            "label": "PHP — Philippine peso",
+            "value": "PHP"
+          },
+          {
+            "label": "PLN — Polish złoty",
+            "value": "PLN"
+          },
+          {
+            "label": "QAR — Qatari riyal",
+            "value": "QAR"
+          },
+          {
+            "label": "RON — Romanian leu",
+            "value": "RON"
+          },
+          {
+            "label": "SAR — Saudi riyal",
+            "value": "SAR"
+          },
+          {
+            "label": "SGD — Singapore dollar",
+            "value": "SGD"
+          },
+          {
+            "label": "THB — Thai baht",
+            "value": "THB"
+          },
+          {
+            "label": "TRY — Turkish lira",
+            "value": "TRY"
+          },
+          {
+            "label": "UAH — Ukrainian hryvnia",
+            "value": "UAH"
+          },
+          {
+            "label": "VND — Vietnamese dong",
+            "value": "VND"
+          },
+          {
+            "label": "ZAR — South African rand",
+            "value": "ZAR"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M14.5 9.5a3 3 0 0 0-2.5-1.5c-1.7 0-3 1.1-3 2.5s1.3 2 3 2.5 3 1.1 3 2.5-1.3 2.5-3 2.5a3 3 0 0 1-2.5-1.5\"/><path d=\"M12 6.5v11\"/></svg>",
+    "color": "#22C55E",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:47:25.983Z",
+    "updatedAt": "2026-07-20T20:12:57.790Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53bfc3e9a99fa555b783",
+    "slug": "dashboard",
+    "name": "Dashboard",
+    "tagline": "Put a live dashboard on the wall",
+    "description": "Embed a public dashboard (Grafana, Looker Studio, Power BI publish-to-web, …) and reload it on a schedule so the numbers stay current.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "Dashboard link",
+        "help": "The dashboard's public, embeddable link — Grafana's share/snapshot URL, Looker Studio's embed URL, or Power BI's “publish to web” link. A private/login page won't load on a screen.",
+        "required": true,
+        "placeholder": "https://example.grafana.net/public-dashboards/…",
+        "validation": {
+          "pattern": "^https?://.+"
+        }
+      },
+      {
+        "key": "refreshMinutes",
+        "type": "number",
+        "label": "Reload every (minutes)",
+        "help": "Reload the dashboard this often to pull fresh data. Set 0 to never reload.",
+        "default": 5,
+        "validation": {
+          "min": 0,
+          "max": 1440
+        }
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "",
+    "color": "",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:23.770Z",
+    "updatedAt": "2026-07-19T22:46:23.770Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53e2c3e9a99fa555b78b",
+    "slug": "facebook",
+    "name": "Facebook Page",
+    "tagline": "Show a Facebook Page feed on your screens",
+    "description": "Connect a Facebook account and display a Page's latest posts as a rotating spotlight or a grid.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Facebook account",
+        "required": true,
+        "provider": "meta",
+        "help": "Sign in with the Facebook account that manages the Page. Edge only reads posts — it never posts on your behalf."
+      },
+      {
+        "key": "page",
+        "type": "remote-select",
+        "label": "Page",
+        "required": true,
+        "remoteSource": "meta-pages",
+        "placeholder": "Search your Pages…",
+        "help": "Only Pages your account manages appear here."
+      },
+      {
+        "key": "layout",
+        "type": "select",
+        "label": "Layout",
+        "default": "spotlight",
+        "options": [
+          {
+            "label": "Spotlight (one post at a time)",
+            "value": "spotlight"
+          },
+          {
+            "label": "Grid",
+            "value": "grid"
+          }
+        ]
+      },
+      {
+        "key": "slideSeconds",
+        "type": "number",
+        "label": "Seconds per post",
+        "help": "How long each post stays up in Spotlight.",
+        "default": 8,
+        "validation": {
+          "min": 2,
+          "max": 120
+        },
+        "visibleWhen": {
+          "field": "layout",
+          "equals": "spotlight"
+        }
+      },
+      {
+        "key": "showCaption",
+        "type": "switch",
+        "label": "Show post text",
+        "default": true
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "section": "Theme Settings",
+        "default": "light",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"5\"/><path d=\"M15 8h-2a2 2 0 0 0-2 2v2m-2 0h6m-4 0v6\"/></svg>",
+    "color": "#1877F2",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:58.336Z",
+    "updatedAt": "2026-07-20T20:12:58.567Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a4573f2f07de7dd5d903c0f",
+    "slug": "gcal",
+    "name": "Google Calendar",
+    "tagline": "Show upcoming events from a Google Calendar",
+    "description": "Display the next events from a connected Google Calendar — great for meeting rooms and lobbies.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Google account",
+        "required": true,
+        "provider": "google",
+        "help": "Sign in once. Edge only reads your calendars — it never adds, changes or deletes anything."
+      },
+      {
+        "key": "calendar",
+        "type": "remote-select",
+        "label": "Calendar",
+        "required": true,
+        "remoteSource": "google-calendars",
+        "placeholder": "Search your calendars…",
+        "help": "Start typing to find the calendar you want on screen."
+      },
+      {
+        "key": "calendarView",
+        "type": "select",
+        "label": "Calendar view",
+        "help": "How events are laid out on the screen.",
+        "default": "schedule",
+        "options": [
+          {
+            "label": "Day",
+            "value": "day"
+          },
+          {
+            "label": "Week",
+            "value": "week"
+          },
+          {
+            "label": "Month",
+            "value": "month"
+          },
+          {
+            "label": "Schedule",
+            "value": "schedule"
+          }
+        ]
+      },
+      {
+        "key": "onlyUpcoming",
+        "type": "switch",
+        "label": "Only show upcoming events",
+        "help": "Events that have already ended drop off the list.",
+        "default": true,
+        "visibleWhen": {
+          "field": "calendarView",
+          "equals": "schedule"
+        }
+      },
+      {
+        "key": "autoScroll",
+        "type": "switch",
+        "label": "Auto scroll",
+        "default": false,
+        "help": "Slowly scrolls the screen when there are more events than fit on it."
+      },
+      {
+        "key": "language",
+        "type": "select",
+        "label": "Language",
+        "help": "The language dates and events are shown in on the screen. It doesn't change this page.",
+        "default": "en",
+        "options": [
+          {
+            "label": "English",
+            "value": "en"
+          },
+          {
+            "label": "Serbian",
+            "value": "sr"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "section": "Theme Settings",
+        "default": "light",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      }
+    ],
+    "version": 4,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/></svg>",
+    "color": "#4285F4",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-01T20:09:22.203Z",
+    "updatedAt": "2026-07-20T20:12:57.969Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a5d53d5c3e9a99fa555b788",
+    "slug": "gsheets",
+    "name": "Google Sheets",
+    "tagline": "Put a Google Sheet on the wall",
+    "description": "Show a range from one of your Google Sheets as a live table or a single KPI — it refreshes on its own.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Google account",
+        "required": true,
+        "provider": "google",
+        "help": "Sign in once — Edge then lists your spreadsheets to choose from."
+      },
+      {
+        "key": "spreadsheet",
+        "type": "remote-select",
+        "label": "Spreadsheet",
+        "required": true,
+        "remoteSource": "google-sheets",
+        "placeholder": "Search your spreadsheets…",
+        "help": "Pick a spreadsheet from your Google Drive."
+      },
+      {
+        "key": "range",
+        "type": "text",
+        "label": "Range",
+        "help": "The cells to show in A1 notation, e.g. \"A1:D20\" or \"Sheet1!A1:D20\".",
+        "required": true,
+        "placeholder": "Sheet1!A1:D20"
+      },
+      {
+        "key": "layout",
+        "type": "select",
+        "label": "Layout",
+        "default": "table",
+        "options": [
+          {
+            "label": "Table",
+            "value": "table"
+          },
+          {
+            "label": "Single value (KPI)",
+            "value": "kpi"
+          }
+        ]
+      },
+      {
+        "key": "hasHeader",
+        "type": "switch",
+        "label": "First row is a header",
+        "help": "Style the first row as column headings (table), or use it as the KPI label.",
+        "default": true
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><path d=\"M4 9h16M4 15h16M10 3v18\"/></svg>",
+    "color": "#0F9D58",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:45.051Z",
+    "updatedAt": "2026-07-20T20:12:58.376Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53d9c3e9a99fa555b789",
+    "slug": "gslides",
+    "name": "Google Slides (private)",
+    "tagline": "Loop a private Google Slides deck from your account",
+    "description": "Connect your Google account and play a private Google Slides deck as a slideshow — it re-exports automatically so edits show up.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Google account",
+        "required": true,
+        "provider": "google",
+        "help": "Sign in once — Edge then lists your presentations to choose from."
+      },
+      {
+        "key": "presentation",
+        "type": "remote-select",
+        "label": "Presentation",
+        "required": true,
+        "remoteSource": "google-presentations",
+        "placeholder": "Search your presentations…",
+        "help": "Pick a Google Slides deck from your Drive. Edit it later and the screen catches up."
+      },
+      {
+        "key": "slideSeconds",
+        "type": "number",
+        "label": "Seconds per slide",
+        "default": 8,
+        "validation": {
+          "min": 1,
+          "max": 120
+        }
+      },
+      {
+        "key": "maxSlides",
+        "type": "number",
+        "label": "Slides to show",
+        "help": "Leave at 0 to show every slide. Set a number to stop after that many.",
+        "default": 0,
+        "validation": {
+          "min": 0,
+          "max": 30
+        }
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"14\" rx=\"2\"/><rect x=\"7\" y=\"8\" width=\"10\" height=\"6\" rx=\"1\"/><path d=\"M8 21h8M12 18v3\"/></svg>",
+    "color": "#FBBC04",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:49.487Z",
+    "updatedAt": "2026-07-20T20:12:58.420Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53aac3e9a99fa555b781",
+    "slug": "gslides-public",
+    "name": "Google Slides",
+    "tagline": "Loop a published Google Slides deck",
+    "description": "Show a Google Slides presentation that you've published to the web — it advances on its own and picks up your edits.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "Presentation link",
+        "help": "In Google Slides: File → Share → Publish to web, then paste the link here. A plain edit link won't show on a screen.",
+        "required": true,
+        "placeholder": "https://docs.google.com/presentation/d/e/…/pub",
+        "validation": {
+          "pattern": "^https?://docs\\.google\\.com/presentation/.+"
+        }
+      },
+      {
+        "key": "slideSeconds",
+        "type": "number",
+        "label": "Seconds per slide",
+        "help": "How long each slide stays up before it advances.",
+        "default": 5,
+        "validation": {
+          "min": 1,
+          "max": 600
+        }
+      },
+      {
+        "key": "loop",
+        "type": "switch",
+        "label": "Loop",
+        "help": "Start over from the first slide after the last one.",
+        "default": true
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "",
+    "color": "",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:02.029Z",
+    "updatedAt": "2026-07-19T22:46:02.029Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53cac3e9a99fa555b786",
+    "slug": "holidays",
+    "name": "Public holidays",
+    "tagline": "Upcoming public holidays",
+    "description": "Show the next public holidays for a country — handy for offices, lobbies and staff areas.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "country",
+        "type": "select",
+        "label": "Country",
+        "default": "DK",
+        "options": [
+          {
+            "label": "Denmark",
+            "value": "DK"
+          },
+          {
+            "label": "Sweden",
+            "value": "SE"
+          },
+          {
+            "label": "Norway",
+            "value": "NO"
+          },
+          {
+            "label": "Finland",
+            "value": "FI"
+          },
+          {
+            "label": "Iceland",
+            "value": "IS"
+          },
+          {
+            "label": "Germany",
+            "value": "DE"
+          },
+          {
+            "label": "Netherlands",
+            "value": "NL"
+          },
+          {
+            "label": "United Kingdom",
+            "value": "GB"
+          },
+          {
+            "label": "Ireland",
+            "value": "IE"
+          },
+          {
+            "label": "France",
+            "value": "FR"
+          },
+          {
+            "label": "Spain",
+            "value": "ES"
+          },
+          {
+            "label": "Italy",
+            "value": "IT"
+          },
+          {
+            "label": "Poland",
+            "value": "PL"
+          },
+          {
+            "label": "Austria",
+            "value": "AT"
+          },
+          {
+            "label": "Belgium",
+            "value": "BE"
+          },
+          {
+            "label": "Switzerland",
+            "value": "CH"
+          },
+          {
+            "label": "United States",
+            "value": "US"
+          }
+        ]
+      },
+      {
+        "key": "count",
+        "type": "number",
+        "label": "How many to show",
+        "help": "The number of upcoming holidays to list.",
+        "default": 5,
+        "validation": {
+          "min": 1,
+          "max": 12
+        }
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"2\"/><path d=\"M3 9h18\"/><path d=\"M8 2v4M16 2v4\"/><path d=\"M12 13v4M10 15h4\"/></svg>",
+    "color": "#E11D48",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:34.607Z",
+    "updatedAt": "2026-07-20T20:12:58.276Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53ddc3e9a99fa555b78a",
+    "slug": "instagram",
+    "name": "Instagram",
+    "tagline": "Show an Instagram feed on your screens",
+    "description": "Connect a professional Instagram account and display its latest posts as a rotating spotlight or a grid.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Facebook account",
+        "required": true,
+        "provider": "meta",
+        "help": "Sign in with the Facebook account that manages your Instagram. Edge only reads posts — it never posts, likes or messages."
+      },
+      {
+        "key": "account",
+        "type": "remote-select",
+        "label": "Instagram account",
+        "required": true,
+        "remoteSource": "meta-ig-accounts",
+        "placeholder": "Search your Instagram accounts…",
+        "help": "Only professional (Business or Creator) accounts linked to a Page appear here."
+      },
+      {
+        "key": "layout",
+        "type": "select",
+        "label": "Layout",
+        "default": "spotlight",
+        "options": [
+          {
+            "label": "Spotlight (one post at a time)",
+            "value": "spotlight"
+          },
+          {
+            "label": "Grid",
+            "value": "grid"
+          }
+        ]
+      },
+      {
+        "key": "slideSeconds",
+        "type": "number",
+        "label": "Seconds per post",
+        "help": "How long each post stays up in Spotlight.",
+        "default": 8,
+        "validation": {
+          "min": 2,
+          "max": 120
+        },
+        "visibleWhen": {
+          "field": "layout",
+          "equals": "spotlight"
+        }
+      },
+      {
+        "key": "showCaption",
+        "type": "switch",
+        "label": "Show captions",
+        "default": true
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "section": "Theme Settings",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17.5\" cy=\"6.5\" r=\"1\" fill=\"currentColor\" stroke=\"none\"/></svg>",
+    "color": "#E1306C",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:53.846Z",
+    "updatedAt": "2026-07-20T20:12:58.512Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53fac3e9a99fa555b797",
+    "slug": "livechannel",
+    "name": "Live channel",
+    "tagline": "Embed a live Twitch or Kick channel",
+    "description": "Show a live Twitch or Kick channel on your screens — just enter the channel name and it plays live.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "platform",
+        "type": "select",
+        "label": "Platform",
+        "default": "twitch",
+        "options": [
+          {
+            "label": "Twitch",
+            "value": "twitch"
+          },
+          {
+            "label": "Kick",
+            "value": "kick"
+          }
+        ]
+      },
+      {
+        "key": "channel",
+        "type": "text",
+        "label": "Channel",
+        "required": true,
+        "placeholder": "shroud",
+        "help": "The channel name — the last part of its address, e.g. twitch.tv/shroud or kick.com/xqc. You can paste the full link too."
+      },
+      {
+        "key": "audio",
+        "type": "switch",
+        "label": "Play audio",
+        "help": "Off by default. On to play the channel's sound — it still follows the screen's own volume.",
+        "default": false
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "",
+    "color": "",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:47:22.496Z",
+    "updatedAt": "2026-07-19T22:47:22.496Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d5123c3e9a99fa555b77e",
+    "slug": "menu",
+    "name": "Menu board",
+    "tagline": "Show a menu or price list",
+    "description": "A clean board of items and prices — for cafés, canteens and shops. Add a row per item.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "heading",
+        "type": "text",
+        "label": "Heading",
+        "help": "Shown at the top. Leave blank for just the list.",
+        "placeholder": "Today's Menu"
+      },
+      {
+        "key": "template",
+        "type": "select",
+        "label": "Design",
+        "default": "classic",
+        "options": [
+          {
+            "label": "Classic — a refined price list",
+            "value": "classic"
+          },
+          {
+            "label": "Chalkboard — a hand-written café board",
+            "value": "chalkboard"
+          },
+          {
+            "label": "Gallery — cards with photos",
+            "value": "gallery"
+          },
+          {
+            "label": "Counter — a bold fast-food board",
+            "value": "counter"
+          },
+          {
+            "label": "Noir — understated luxury",
+            "value": "noir"
+          }
+        ]
+      },
+      {
+        "key": "currency",
+        "type": "select",
+        "label": "Currency",
+        "searchable": true,
+        "default": "EUR",
+        "help": "Applied to every price on the board.",
+        "options": [
+          {
+            "label": "Euro (€)",
+            "value": "EUR",
+            "set": {
+              "currencyPosition": "prefix"
+            }
+          },
+          {
+            "label": "US Dollar ($)",
+            "value": "USD",
+            "set": {
+              "currencyPosition": "prefix"
+            }
+          },
+          {
+            "label": "British Pound (£)",
+            "value": "GBP",
+            "set": {
+              "currencyPosition": "prefix"
+            }
+          },
+          {
+            "label": "Serbian Dinar (дин)",
+            "value": "RSD",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Swiss Franc (CHF)",
+            "value": "CHF",
+            "set": {
+              "currencyPosition": "prefix"
+            }
+          },
+          {
+            "label": "Swedish Krona (kr)",
+            "value": "SEK",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Norwegian Krone (kr)",
+            "value": "NOK",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Danish Krone (kr)",
+            "value": "DKK",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Polish Złoty (zł)",
+            "value": "PLN",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Czech Koruna (Kč)",
+            "value": "CZK",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Hungarian Forint (Ft)",
+            "value": "HUF",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Bosnian Mark (KM)",
+            "value": "BAM",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Romanian Leu (lei)",
+            "value": "RON",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Macedonian Denar (ден)",
+            "value": "MKD",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Bulgarian Lev (лв)",
+            "value": "BGN",
+            "set": {
+              "currencyPosition": "suffix"
+            }
+          },
+          {
+            "label": "Japanese Yen (¥)",
+            "value": "JPY",
+            "set": {
+              "currencyPosition": "prefix"
+            }
+          },
+          {
+            "label": "Australian Dollar (A$)",
+            "value": "AUD",
+            "set": {
+              "currencyPosition": "prefix"
+            }
+          },
+          {
+            "label": "Canadian Dollar (C$)",
+            "value": "CAD",
+            "set": {
+              "currencyPosition": "prefix"
+            }
+          }
+        ]
+      },
+      {
+        "key": "currencyPosition",
+        "type": "select",
+        "label": "Currency position",
+        "default": "prefix",
+        "options": [
+          {
+            "label": "Before the amount (€10)",
+            "value": "prefix"
+          },
+          {
+            "label": "After the amount (10 €)",
+            "value": "suffix"
+          }
+        ]
+      },
+      {
+        "key": "source",
+        "type": "select",
+        "label": "Items come from",
+        "default": "manual",
+        "help": "Keep the rows here, or sync them live from a spreadsheet you already maintain.",
+        "options": [
+          {
+            "label": "Manual table",
+            "value": "manual"
+          },
+          {
+            "label": "Google Sheets (live sync)",
+            "value": "gsheets"
+          },
+          {
+            "label": "Microsoft Excel (live sync)",
+            "value": "excel"
+          }
+        ]
+      },
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Account",
+        "visibleWhen": {
+          "field": "source",
+          "equalsAny": [
+            "gsheets",
+            "excel"
+          ]
+        },
+        "providerFrom": {
+          "field": "source",
+          "map": {
+            "gsheets": "google",
+            "excel": "microsoft"
+          }
+        },
+        "help": "Sign in once — Edge then lists your files to choose from."
+      },
+      {
+        "key": "spreadsheet",
+        "type": "remote-select",
+        "label": "Spreadsheet",
+        "visibleWhen": {
+          "field": "source",
+          "equals": "gsheets"
+        },
+        "remoteSource": "google-sheets",
+        "placeholder": "Search your spreadsheets…",
+        "help": "Pick a spreadsheet from your Google Drive."
+      },
+      {
+        "key": "workbook",
+        "type": "remote-select",
+        "label": "Workbook",
+        "visibleWhen": {
+          "field": "source",
+          "equals": "excel"
+        },
+        "remoteSource": "excel-files",
+        "placeholder": "Search your Excel files…",
+        "help": "Pick an .xlsx file from your OneDrive or SharePoint."
+      },
+      {
+        "key": "worksheet",
+        "type": "text",
+        "label": "Worksheet",
+        "visibleWhen": {
+          "field": "source",
+          "equalsAny": [
+            "gsheets",
+            "excel"
+          ]
+        },
+        "placeholder": "Sheet1",
+        "help": "The tab to read. Leave blank for the first one."
+      },
+      {
+        "key": "mapping",
+        "type": "column-mapping",
+        "label": "Column mapping",
+        "visibleWhen": {
+          "field": "source",
+          "equalsAny": [
+            "gsheets",
+            "excel"
+          ]
+        },
+        "columnMapping": {
+          "targets": [
+            {
+              "key": "name",
+              "label": "Name",
+              "required": true
+            },
+            {
+              "key": "price",
+              "label": "Price"
+            },
+            {
+              "key": "description",
+              "label": "Description"
+            },
+            {
+              "key": "category",
+              "label": "Category"
+            },
+            {
+              "key": "imageUrl",
+              "label": "Image URL"
+            }
+          ],
+          "connectionKey": "connectionId",
+          "sourceKey": "source",
+          "fileKeyBySource": {
+            "gsheets": "spreadsheet",
+            "excel": "workbook"
+          },
+          "worksheetKey": "worksheet",
+          "itemsKey": "items"
+        },
+        "help": "Tell Edge which spreadsheet column holds what. The first row is read as headers."
+      },
+      {
+        "key": "syncedItems",
+        "type": "tabular-preview",
+        "label": "Synced rows",
+        "visibleWhen": {
+          "field": "source",
+          "equalsAny": [
+            "gsheets",
+            "excel"
+          ]
+        },
+        "columnMapping": {
+          "targets": [
+            {
+              "key": "name",
+              "label": "Name",
+              "required": true
+            },
+            {
+              "key": "price",
+              "label": "Price"
+            },
+            {
+              "key": "description",
+              "label": "Description"
+            },
+            {
+              "key": "category",
+              "label": "Category"
+            },
+            {
+              "key": "imageUrl",
+              "label": "Image URL"
+            }
+          ],
+          "connectionKey": "connectionId",
+          "sourceKey": "source",
+          "fileKeyBySource": {
+            "gsheets": "spreadsheet",
+            "excel": "workbook"
+          },
+          "worksheetKey": "worksheet",
+          "itemsKey": "items"
+        }
+      },
+      {
+        "key": "items",
+        "type": "repeater",
+        "label": "Items",
+        "help": "The items on the board. Price, description, category and photo are optional.",
+        "visibleWhen": {
+          "field": "source",
+          "equals": "manual"
+        },
+        "csvImport": true,
+        "required": true,
+        "validation": {
+          "min": 1
+        },
+        "fields": [
+          {
+            "key": "name",
+            "type": "text",
+            "label": "Name",
+            "required": true,
+            "placeholder": "Espresso"
+          },
+          {
+            "key": "price",
+            "type": "number",
+            "label": "Price",
+            "placeholder": "2.50"
+          },
+          {
+            "key": "description",
+            "type": "text",
+            "label": "Description",
+            "placeholder": "Oat milk on request"
+          },
+          {
+            "key": "category",
+            "type": "text",
+            "label": "Category",
+            "placeholder": "Drinks"
+          },
+          {
+            "key": "imageUrl",
+            "type": "image",
+            "label": "Photo"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "help": "A starting point — it fills in the colours below, which you can still change.",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light",
+            "set": {
+              "backgroundColor": "#FFFFFF",
+              "textColor": "#0F172A",
+              "accentColor": "#F97316"
+            }
+          },
+          {
+            "label": "Dark",
+            "value": "dark",
+            "set": {
+              "backgroundColor": "#0B1220",
+              "textColor": "#E2E8F0",
+              "accentColor": "#F97316"
+            }
+          }
+        ]
+      },
+      {
+        "key": "backgroundColor",
+        "type": "color",
+        "label": "Background colour",
+        "section": "Theme Settings",
+        "default": "#0B1220"
+      },
+      {
+        "key": "textColor",
+        "type": "color",
+        "label": "Text colour",
+        "section": "Theme Settings",
+        "default": "#E2E8F0"
+      },
+      {
+        "key": "accentColor",
+        "type": "color",
+        "label": "Accent colour",
+        "section": "Theme Settings",
+        "help": "The heading and the prices.",
+        "default": "#F97316"
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 2,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M9 8h6\"/><path d=\"M9 12h6\"/><path d=\"M9 16h4\"/></svg>",
+    "color": "#16A34A",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:35:15.203Z",
+    "updatedAt": "2026-07-20T20:12:57.409Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d5405c3e9a99fa555b79a",
+    "slug": "news",
+    "name": "News headlines",
+    "tagline": "Latest headlines from a news source you pick",
+    "description": "Pick a news publisher and the screen shows its latest headlines — no feed URLs to hunt down. Refreshes on its own.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "url",
+        "type": "select",
+        "label": "News source",
+        "required": true,
+        "default": "https://feeds.bbci.co.uk/news/rss.xml",
+        "options": [
+          {
+            "label": "BBC News — Top Stories",
+            "value": "https://feeds.bbci.co.uk/news/rss.xml"
+          },
+          {
+            "label": "BBC News — World",
+            "value": "https://feeds.bbci.co.uk/news/world/rss.xml"
+          },
+          {
+            "label": "Sky News",
+            "value": "https://feeds.skynews.com/feeds/rss/home.xml"
+          },
+          {
+            "label": "NPR News",
+            "value": "https://feeds.npr.org/1001/rss.xml"
+          },
+          {
+            "label": "Al Jazeera",
+            "value": "https://www.aljazeera.com/xml/rss/all.xml"
+          },
+          {
+            "label": "Fox News",
+            "value": "https://moxie.foxnews.com/google-publisher/latest.xml"
+          },
+          {
+            "label": "The Guardian — World",
+            "value": "https://www.theguardian.com/world/rss"
+          },
+          {
+            "label": "CNBC — Top News",
+            "value": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"
+          },
+          {
+            "label": "BBC News — Business",
+            "value": "https://feeds.bbci.co.uk/news/business/rss.xml"
+          },
+          {
+            "label": "BBC News — Technology",
+            "value": "https://feeds.bbci.co.uk/news/technology/rss.xml"
+          },
+          {
+            "label": "TechCrunch",
+            "value": "https://techcrunch.com/feed/"
+          },
+          {
+            "label": "The Verge",
+            "value": "https://www.theverge.com/rss/index.xml"
+          },
+          {
+            "label": "Hacker News",
+            "value": "https://hnrss.org/frontpage"
+          },
+          {
+            "label": "BBC Sport",
+            "value": "https://feeds.bbci.co.uk/sport/rss.xml"
+          },
+          {
+            "label": "ESPN",
+            "value": "https://www.espn.com/espn/rss/news"
+          }
+        ],
+        "help": "Pick a publisher. For any other feed, use the RSS feed app instead."
+      },
+      {
+        "key": "displayMode",
+        "type": "select",
+        "label": "Layout",
+        "help": "How the stories are arranged on the screen.",
+        "default": "story",
+        "options": [
+          {
+            "label": "One story at a time",
+            "value": "story"
+          },
+          {
+            "label": "Cover — the photo fills the screen",
+            "value": "cover"
+          },
+          {
+            "label": "Editorial — a magazine page",
+            "value": "editorial"
+          },
+          {
+            "label": "Rolling list — stories queue up and move on",
+            "value": "rolling"
+          },
+          {
+            "label": "Mosaic — the whole front page at once",
+            "value": "mosaic"
+          },
+          {
+            "label": "Primetime — a headliner, and what’s up next",
+            "value": "primetime"
+          },
+          {
+            "label": "Broadcast — a news channel",
+            "value": "broadcast"
+          },
+          {
+            "label": "Kinetic — typography that performs",
+            "value": "kinetic"
+          },
+          {
+            "label": "Atelier — the deluxe edition",
+            "value": "atelier"
+          },
+          {
+            "label": "Statement — the headline, and nothing else",
+            "value": "statement"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "showQr",
+        "type": "switch",
+        "label": "Show QR code",
+        "help": "Puts a code beside the story so people can scan it and keep reading on their phone.",
+        "default": true
+      },
+      {
+        "key": "itemCount",
+        "type": "number",
+        "label": "How many stories",
+        "section": "Feed Settings",
+        "help": "How many of the newest stories to use. Older ones are ignored.",
+        "default": 6,
+        "validation": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      {
+        "key": "secondsPerStory",
+        "type": "number",
+        "label": "Seconds per story",
+        "section": "Feed Settings",
+        "help": "How long each story stays up, in layouts that move from one story to the next.",
+        "default": 8,
+        "validation": {
+          "min": 3,
+          "max": 60
+        }
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "",
+    "color": "",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:47:33.162Z",
+    "updatedAt": "2026-07-19T22:47:33.162Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53f2c3e9a99fa555b78f",
+    "slug": "onthisday",
+    "name": "On this day",
+    "tagline": "Historical events for today's date",
+    "description": "Show notable things that happened on today's date through history — engaging lobby and waiting-room content.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "language",
+        "type": "select",
+        "label": "Language",
+        "help": "The Wikipedia edition the events come from.",
+        "default": "en",
+        "options": [
+          {
+            "label": "English",
+            "value": "en"
+          },
+          {
+            "label": "German",
+            "value": "de"
+          },
+          {
+            "label": "Spanish",
+            "value": "es"
+          },
+          {
+            "label": "French",
+            "value": "fr"
+          }
+        ]
+      },
+      {
+        "key": "count",
+        "type": "number",
+        "label": "How many to show",
+        "help": "The number of events to list.",
+        "default": 6,
+        "validation": {
+          "min": 1,
+          "max": 12
+        }
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 9-9 9 9 0 0 0-7 3.3\"/><path d=\"M3 4v3.5h3.5\"/><path d=\"M12 8v4l3 2\"/></svg>",
+    "color": "#7C3AED",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:47:14.830Z",
+    "updatedAt": "2026-07-20T20:12:58.329Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53ebc3e9a99fa555b78d",
+    "slug": "outlook",
+    "name": "Outlook Calendar",
+    "tagline": "Show a Microsoft Outlook calendar on your screens",
+    "description": "Display a connected Microsoft Outlook / Microsoft 365 calendar as a day, week, month or schedule view — great for meeting rooms and lobbies.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Microsoft account",
+        "required": true,
+        "provider": "microsoft",
+        "help": "Sign in once. Edge only reads your calendars — it never adds, changes or deletes anything."
+      },
+      {
+        "key": "calendar",
+        "type": "remote-select",
+        "label": "Calendar",
+        "required": true,
+        "remoteSource": "ms-calendars",
+        "placeholder": "Search your calendars…",
+        "help": "Start typing to find the calendar you want on screen."
+      },
+      {
+        "key": "calendarView",
+        "type": "select",
+        "label": "Calendar view",
+        "help": "How events are laid out on the screen.",
+        "default": "schedule",
+        "options": [
+          {
+            "label": "Day",
+            "value": "day"
+          },
+          {
+            "label": "Week",
+            "value": "week"
+          },
+          {
+            "label": "Month",
+            "value": "month"
+          },
+          {
+            "label": "Schedule",
+            "value": "schedule"
+          }
+        ]
+      },
+      {
+        "key": "onlyUpcoming",
+        "type": "switch",
+        "label": "Only show upcoming events",
+        "help": "Events that have already ended drop off the list.",
+        "default": true,
+        "visibleWhen": {
+          "field": "calendarView",
+          "equals": "schedule"
+        }
+      },
+      {
+        "key": "autoScroll",
+        "type": "switch",
+        "label": "Auto scroll",
+        "default": false,
+        "help": "Slowly scrolls the screen when there are more events than fit on it."
+      },
+      {
+        "key": "language",
+        "type": "select",
+        "label": "Language",
+        "help": "The language dates and events are shown in on the screen. It doesn't change this page.",
+        "default": "en",
+        "options": [
+          {
+            "label": "English",
+            "value": "en"
+          },
+          {
+            "label": "Serbian",
+            "value": "sr"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "section": "Theme Settings",
+        "default": "light",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/></svg>",
+    "color": "#0078D4",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:47:07.203Z",
+    "updatedAt": "2026-07-20T20:12:58.472Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a57f9244767099e5683b15b",
+    "slug": "pdf",
+    "name": "PDF Reader",
+    "tagline": "Show a PDF on screen",
+    "description": "Upload a PDF and display it full-screen. A multi-page PDF flips through its pages automatically at a speed you choose.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "file",
+        "type": "file",
+        "label": "PDF",
+        "help": "Upload a PDF from your computer (up to 10MB).",
+        "required": true,
+        "placeholder": "Upload a PDF",
+        "accept": "application/pdf",
+        "maxSizeMb": 10
+      },
+      {
+        "key": "speed",
+        "type": "select",
+        "label": "Speed",
+        "help": "How long each page stays on screen. Only matters for multi-page PDFs.",
+        "default": "medium",
+        "options": [
+          {
+            "label": "Slow (10s)",
+            "value": "slow"
+          },
+          {
+            "label": "Medium (7s)",
+            "value": "medium"
+          },
+          {
+            "label": "Fast (5s)",
+            "value": "fast"
+          }
+        ]
+      }
+    ],
+    "version": 1,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\"/><path d=\"M14 2v4a2 2 0 0 0 2 2h4\"/><path d=\"M9 13h1.5a1.5 1.5 0 0 1 0 3H9v-3Zm0 3v2\"/><path d=\"M14 13v5\"/><path d=\"M14 13h2\"/><path d=\"M14 15.5h1.5\"/></svg>",
+    "color": "#EF4444",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-15T21:18:28.565Z",
+    "updatedAt": "2026-07-20T20:12:58.126Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a5d53f6c3e9a99fa555b790",
+    "slug": "power-prices",
+    "name": "Electricity prices",
+    "tagline": "Live electricity spot prices",
+    "description": "Show the current electricity spot price and today's hourly curve for a price area — from Energinet.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "area",
+        "type": "select",
+        "label": "Price area",
+        "help": "Which electricity market area to show prices for.",
+        "default": "DK1",
+        "options": [
+          {
+            "label": "DK1 — Denmark West",
+            "value": "DK1"
+          },
+          {
+            "label": "DK2 — Denmark East",
+            "value": "DK2"
+          },
+          {
+            "label": "SE3 — Sweden (Stockholm)",
+            "value": "SE3"
+          },
+          {
+            "label": "SE4 — Sweden (Malmö)",
+            "value": "SE4"
+          },
+          {
+            "label": "NO2 — Norway (Kristiansand)",
+            "value": "NO2"
+          }
+        ]
+      },
+      {
+        "key": "currency",
+        "type": "select",
+        "label": "Currency",
+        "default": "DKK",
+        "options": [
+          {
+            "label": "DKK (øre/kWh)",
+            "value": "DKK"
+          },
+          {
+            "label": "EUR (cents/kWh)",
+            "value": "EUR"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13 2 4 14h7l-1 8 9-12h-7l1-8z\"/></svg>",
+    "color": "#EAB308",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:47:18.483Z",
+    "updatedAt": "2026-07-20T20:12:57.871Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53c3c3e9a99fa555b784",
+    "slug": "powerbi",
+    "name": "Power BI",
+    "tagline": "Put a published Power BI report on the wall",
+    "description": "Embed a Power BI report you have published to the web, and reload it on a schedule so the numbers stay current.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "Power BI embed link",
+        "required": true,
+        "placeholder": "https://app.powerbi.com/view?r=…",
+        "help": "In Power BI open the report → File → Embed report → Publish to web (public), then paste the link here. A normal report link needs a login and will not load on a screen.",
+        "validation": {
+          "pattern": "^https://([a-z0-9-]+\\.)*powerbi\\.com/.+"
+        }
+      },
+      {
+        "key": "refreshMinutes",
+        "type": "number",
+        "label": "Reload every (minutes)",
+        "help": "Power BI refreshes published data on its own; set this only to force a periodic reload of the whole report. 0 = never.",
+        "default": 0,
+        "validation": {
+          "min": 0,
+          "max": 1440
+        }
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 21h18\"/><rect x=\"5\" y=\"10\" width=\"3.5\" height=\"8\" rx=\"1\"/><rect x=\"10.25\" y=\"4\" width=\"3.5\" height=\"14\" rx=\"1\"/><rect x=\"15.5\" y=\"13\" width=\"3.5\" height=\"5\" rx=\"1\"/></svg>",
+    "color": "#F2C811",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:27.582Z",
+    "updatedAt": "2026-07-20T20:12:57.560Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a57f98f4767099e5683b15d",
+    "slug": "powerpoint",
+    "name": "PowerPoint",
+    "tagline": "Show a PowerPoint deck on your screens",
+    "description": "Display a PowerPoint presentation from OneDrive or SharePoint as a looping slideshow — it updates on screen the moment the deck changes.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Microsoft account",
+        "required": true,
+        "provider": "microsoft",
+        "help": "Sign in once. Edge only reads your files — it never changes or deletes anything."
+      },
+      {
+        "key": "presentation",
+        "type": "remote-select",
+        "label": "Presentation",
+        "required": true,
+        "remoteSource": "powerpoint-files",
+        "placeholder": "Search your PowerPoint files…",
+        "help": "Pick the .pptx to show. Works with both personal OneDrive and work / SharePoint files."
+      },
+      {
+        "key": "slideDuration",
+        "type": "number",
+        "label": "Seconds per slide",
+        "default": 15,
+        "validation": {
+          "min": 3,
+          "max": 120
+        },
+        "help": "How long each slide stays on screen before the next one."
+      },
+      {
+        "key": "fit",
+        "type": "select",
+        "label": "Fit to screen",
+        "default": "contain",
+        "options": [
+          {
+            "label": "Fit whole slide (letterbox)",
+            "value": "contain"
+          },
+          {
+            "label": "Fill screen (crop edges)",
+            "value": "cover"
+          }
+        ],
+        "help": "Show the whole slide with bars, or fill the screen and crop the edges. Portrait screens usually want letterbox."
+      },
+      {
+        "key": "background",
+        "type": "color",
+        "label": "Letterbox colour",
+        "default": "#000000",
+        "visibleWhen": {
+          "field": "fit",
+          "equals": "contain"
+        },
+        "help": "Colour of the bars around a slide that doesn’t match the screen’s shape."
+      }
+    ],
+    "version": 2,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M7 20h10M12 18v2\"/><path d=\"M8 8h4a2 2 0 010 4H8V8v4\"/></svg>",
+    "color": "#D24726",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-15T21:20:15.033Z",
+    "updatedAt": "2026-07-20T20:12:58.195Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a4306103be40ee3b9d5bab8",
+    "slug": "qr",
+    "name": "QR code",
+    "tagline": "Show a scannable QR code",
+    "description": "Turn a link or text into a QR code your audience can scan from the screen.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "qrType",
+        "type": "select",
+        "label": "What the code does",
+        "help": "What happens on the phone when someone scans it.",
+        "default": "url",
+        "options": [
+          {
+            "label": "Open a website",
+            "value": "url"
+          },
+          {
+            "label": "Call a phone number",
+            "value": "phone"
+          },
+          {
+            "label": "Send a text message",
+            "value": "sms"
+          },
+          {
+            "label": "Write an email",
+            "value": "email"
+          },
+          {
+            "label": "Join a Wi-Fi network",
+            "value": "wifi"
+          },
+          {
+            "label": "Leave a Google review",
+            "value": "review"
+          }
+        ]
+      },
+      {
+        "key": "value",
+        "type": "url",
+        "label": "Website address",
+        "required": true,
+        "placeholder": "https://example.com",
+        "help": "Where the code takes people when they scan it.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "url"
+        }
+      },
+      {
+        "key": "phone",
+        "type": "text",
+        "label": "Phone number",
+        "required": true,
+        "placeholder": "+381 60 123 4567",
+        "help": "Scanning opens the dialer with this number ready to call.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "phone"
+        }
+      },
+      {
+        "key": "smsPhone",
+        "type": "text",
+        "label": "Phone number",
+        "required": true,
+        "placeholder": "+381 60 123 4567",
+        "help": "The number the text message is sent to.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "sms"
+        }
+      },
+      {
+        "key": "smsMessage",
+        "type": "text",
+        "label": "Message",
+        "placeholder": "Optional",
+        "help": "Written into the message for them — they can still edit it before sending.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "sms"
+        }
+      },
+      {
+        "key": "emailTo",
+        "type": "text",
+        "label": "Email address",
+        "required": true,
+        "placeholder": "name@example.com",
+        "help": "The address the email is sent to.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "email"
+        }
+      },
+      {
+        "key": "emailSubject",
+        "type": "text",
+        "label": "Subject",
+        "placeholder": "Optional",
+        "help": "Filled in for them — they can still change it before sending.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "email"
+        }
+      },
+      {
+        "key": "emailBody",
+        "type": "textarea",
+        "label": "Message",
+        "placeholder": "Optional",
+        "help": "Filled in for them — they can still edit it before sending.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "email"
+        }
+      },
+      {
+        "key": "wifiSsid",
+        "type": "text",
+        "label": "Wi-Fi network name",
+        "required": true,
+        "placeholder": "MyNetwork",
+        "help": "Exactly as it appears in the phone's Wi-Fi list. Sometimes called the SSID.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "wifi"
+        }
+      },
+      {
+        "key": "wifiPassword",
+        "type": "text",
+        "label": "Wi-Fi password",
+        "help": "Leave blank if the network has no password.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "wifi"
+        }
+      },
+      {
+        "key": "wifiSecurity",
+        "type": "select",
+        "label": "Security type",
+        "help": "If you don't know, WPA/WPA2 is almost always the right one.",
+        "default": "WPA",
+        "options": [
+          {
+            "label": "WPA/WPA2",
+            "value": "WPA"
+          },
+          {
+            "label": "WEP",
+            "value": "WEP"
+          },
+          {
+            "label": "None",
+            "value": "nopass"
+          }
+        ],
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "wifi"
+        }
+      },
+      {
+        "key": "wifiHidden",
+        "type": "switch",
+        "label": "Hidden network",
+        "help": "Turn this on only if the network doesn't show up in the phone's Wi-Fi list.",
+        "default": false,
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "wifi"
+        }
+      },
+      {
+        "key": "reviewPlaceId",
+        "type": "text",
+        "label": "Google Place ID",
+        "required": true,
+        "placeholder": "ChIJ…",
+        "help": "Search your business in Google's Place ID Finder and paste the code it gives you. Scanning opens your review form.",
+        "visibleWhen": {
+          "field": "qrType",
+          "equals": "review"
+        }
+      },
+      {
+        "key": "caption",
+        "type": "textarea",
+        "label": "Caption",
+        "placeholder": "Scan me",
+        "help": "Optional text beside the code — tell people why they should scan it."
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "300",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      },
+      {
+        "key": "color",
+        "type": "color",
+        "label": "QR code color",
+        "section": "Theme Settings",
+        "default": "#000000"
+      },
+      {
+        "key": "backgroundColor",
+        "type": "color",
+        "label": "Background color",
+        "section": "Theme Settings",
+        "default": "#FFFFFF"
+      }
+    ],
+    "version": 4,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z\"/></svg>",
+    "color": "#111827",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-06-29T23:56:00.988Z",
+    "updatedAt": "2026-07-20T20:12:57.291Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a556d723af574b421d0878b",
+    "slug": "rss",
+    "name": "RSS feed",
+    "tagline": "Show the latest stories from any feed",
+    "description": "Point it at a news site or blog and the screen shows its latest stories — refreshed on its own.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "Feed address",
+        "required": true,
+        "placeholder": "https://example.com/feed.xml",
+        "help": "The site's RSS or Atom feed — usually the homepage address with \"/feed\" or \"/rss\" on the end."
+      },
+      {
+        "key": "displayMode",
+        "type": "select",
+        "label": "Layout",
+        "help": "How the stories are arranged on the screen.",
+        "default": "story",
+        "options": [
+          {
+            "label": "One story at a time",
+            "value": "story"
+          },
+          {
+            "label": "Cover — the photo fills the screen",
+            "value": "cover"
+          },
+          {
+            "label": "Editorial — a magazine page",
+            "value": "editorial"
+          },
+          {
+            "label": "Rolling list — stories queue up and move on",
+            "value": "rolling"
+          },
+          {
+            "label": "Mosaic — the whole front page at once",
+            "value": "mosaic"
+          },
+          {
+            "label": "Primetime — a headliner, and what’s up next",
+            "value": "primetime"
+          },
+          {
+            "label": "Broadcast — a news channel",
+            "value": "broadcast"
+          },
+          {
+            "label": "Kinetic — typography that performs",
+            "value": "kinetic"
+          },
+          {
+            "label": "Atelier — the deluxe edition",
+            "value": "atelier"
+          },
+          {
+            "label": "Statement — the headline, and nothing else",
+            "value": "statement"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "showQr",
+        "type": "switch",
+        "label": "Show QR code",
+        "help": "Puts a code beside the story so people can scan it and keep reading on their phone.",
+        "default": true
+      },
+      {
+        "key": "itemCount",
+        "type": "number",
+        "label": "How many stories",
+        "section": "Feed Settings",
+        "help": "How many of the newest stories to use. Older ones are ignored.",
+        "default": 6,
+        "validation": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      {
+        "key": "secondsPerStory",
+        "type": "number",
+        "label": "Seconds per story",
+        "section": "Feed Settings",
+        "help": "How long each story stays up, in layouts that move from one story to the next.",
+        "default": 8,
+        "validation": {
+          "min": 3,
+          "max": 60
+        }
+      }
+    ],
+    "version": 1,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6.18 15.64a2.18 2.18 0 110 4.36 2.18 2.18 0 010-4.36zM4 4.44A15.56 15.56 0 0119.56 20h-2.83A12.73 12.73 0 004 7.27V4.44zm0 5.66a9.9 9.9 0 019.9 9.9h-2.83A7.07 7.07 0 004 12.93V10.1z\"/></svg>",
+    "color": "#F97316",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-13T22:57:54.920Z",
+    "updatedAt": "2026-07-20T20:12:58.051Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a5d53efc3e9a99fa555b78e",
+    "slug": "sports",
+    "name": "Sports",
+    "tagline": "Fixtures and results for your team",
+    "description": "Show a team's upcoming fixtures and recent results — football and many other sports.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "team",
+        "type": "text",
+        "label": "Team",
+        "help": "The team name to follow, e.g. \"Arsenal\", \"FC Copenhagen\", \"LA Lakers\".",
+        "required": true,
+        "placeholder": "Arsenal"
+      },
+      {
+        "key": "mode",
+        "type": "select",
+        "label": "Show",
+        "default": "upcoming",
+        "options": [
+          {
+            "label": "Upcoming fixtures",
+            "value": "upcoming"
+          },
+          {
+            "label": "Recent results",
+            "value": "results"
+          },
+          {
+            "label": "Both",
+            "value": "both"
+          }
+        ]
+      },
+      {
+        "key": "count",
+        "type": "number",
+        "label": "How many",
+        "help": "How many fixtures / results to list (per section).",
+        "default": 5,
+        "validation": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "",
+    "color": "",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:47:11.295Z",
+    "updatedAt": "2026-07-19T22:47:11.295Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a589bd2e1f9f68b9e261878",
+    "slug": "stocks",
+    "name": "Stocks",
+    "tagline": "Live stock prices on your screens",
+    "description": "Show live prices and daily change for the stock tickers you choose. Requires Alpaca market-data credentials configured by your administrator.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "symbols",
+        "type": "repeater",
+        "label": "Tickers",
+        "help": "Add a ticker per row, e.g. AAPL, MSFT, TSLA. Shown in a consistent order.",
+        "required": true,
+        "validation": {
+          "min": 1
+        },
+        "fields": [
+          {
+            "key": "symbol",
+            "type": "text",
+            "label": "Ticker",
+            "required": true,
+            "placeholder": "AAPL"
+          }
+        ]
+      },
+      {
+        "key": "showChange",
+        "type": "switch",
+        "label": "Show daily change",
+        "default": true
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "iconSvg": "",
+    "color": "#700000",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-16T08:52:34.807Z",
+    "updatedAt": "2026-07-16T08:52:34.807Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53cec3e9a99fa555b787",
+    "slug": "stream",
+    "name": "Live stream",
+    "tagline": "Play a live video stream on your screens",
+    "description": "Show a live HLS video stream — a camera, a TV channel, an event feed. Paste the stream's .m3u8 link.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "Stream link",
+        "help": "The stream's HLS address — a link ending in .m3u8.",
+        "required": true,
+        "placeholder": "https://example.com/live/stream.m3u8",
+        "validation": {
+          "pattern": "^https?://.+"
+        }
+      },
+      {
+        "key": "fit",
+        "type": "select",
+        "label": "Fit",
+        "help": "Contain shows the whole picture (with bars if needed). Cover fills the screen and may crop the edges.",
+        "default": "contain",
+        "options": [
+          {
+            "label": "Contain (show all)",
+            "value": "contain"
+          },
+          {
+            "label": "Cover (fill screen)",
+            "value": "cover"
+          }
+        ]
+      },
+      {
+        "key": "audio",
+        "type": "switch",
+        "label": "Play audio",
+        "help": "Off for a silent feed like a camera. On to play the stream's sound — it still follows the screen's volume.",
+        "default": false
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49\"/><path d=\"M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 0-14.14\"/></svg>",
+    "color": "#DC2626",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:38.423Z",
+    "updatedAt": "2026-07-20T20:12:57.656Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a589c07e1f9f68b9e26187a",
+    "slug": "sunmoon",
+    "name": "Sun & Moon",
+    "tagline": "Sunrise, sunset and the moon phase",
+    "description": "Show today's sunrise, sunset and day length for a place, plus the current moon phase — updated automatically.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "location",
+        "type": "location",
+        "label": "Location",
+        "required": true,
+        "placeholder": "Search a city…",
+        "help": "Start typing and pick a place from the list."
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "iconSvg": "",
+    "color": "#cca000",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-16T08:53:27.593Z",
+    "updatedAt": "2026-07-16T08:53:27.593Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5d53e6c3e9a99fa555b78c",
+    "slug": "teams",
+    "name": "Microsoft Teams",
+    "tagline": "Show a Teams channel on your screens",
+    "description": "Connect a Microsoft account and display a Teams channel's latest messages and announcements as a rotating spotlight or a grid.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "connected",
+    "configSchema": [
+      {
+        "key": "connectionId",
+        "type": "oauth",
+        "label": "Microsoft account",
+        "required": true,
+        "provider": "microsoft",
+        "help": "Sign in with a work or school account. Edge only reads channel messages — it never posts. Your Microsoft admin must approve message access the first time."
+      },
+      {
+        "key": "channel",
+        "type": "remote-select",
+        "label": "Channel",
+        "required": true,
+        "remoteSource": "ms-teams-channels",
+        "placeholder": "Search your teams and channels…",
+        "help": "Only teams you are a member of and their channels appear here."
+      },
+      {
+        "key": "layout",
+        "type": "select",
+        "label": "Layout",
+        "default": "spotlight",
+        "options": [
+          {
+            "label": "Spotlight (one message at a time)",
+            "value": "spotlight"
+          },
+          {
+            "label": "Grid",
+            "value": "grid"
+          }
+        ]
+      },
+      {
+        "key": "slideSeconds",
+        "type": "number",
+        "label": "Seconds per message",
+        "help": "How long each message stays up in Spotlight.",
+        "default": 8,
+        "validation": {
+          "min": 2,
+          "max": 120
+        },
+        "visibleWhen": {
+          "field": "layout",
+          "equals": "spotlight"
+        }
+      },
+      {
+        "key": "showCaption",
+        "type": "switch",
+        "label": "Show author names",
+        "default": true
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "section": "Theme Settings",
+        "default": "light",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 8a3 3 0 1 0 0-.01\"/><path d=\"M4 20v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2\"/><path d=\"M16 3.5a2.5 2.5 0 1 1 0 5\"/><path d=\"M15 14h4a2 2 0 0 1 2 2v1a3 3 0 0 1-3 3h-1\"/></svg>",
+    "color": "#6264A7",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:47:02.035Z",
+    "updatedAt": "2026-07-20T20:20:03.501Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a442e69288ef75f3d0b0603",
+    "slug": "text",
+    "name": "Text",
+    "tagline": "Show a message or announcement",
+    "description": "Display a short message or announcement on your screens.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "body",
+        "type": "richtext",
+        "label": "Message",
+        "help": "Optional when a background image is set."
+      },
+      {
+        "key": "backgroundImage",
+        "type": "url",
+        "label": "Background image URL",
+        "help": "Optional. A full-screen background photo behind the text."
+      },
+      {
+        "key": "overlay",
+        "type": "select",
+        "label": "Image overlay",
+        "default": "dark",
+        "help": "Darkens the background image so text stays readable.",
+        "options": [
+          {
+            "label": "None",
+            "value": "none"
+          },
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "color",
+        "type": "color",
+        "label": "Text color",
+        "default": "#FFFFFF"
+      },
+      {
+        "key": "backgroundColor",
+        "type": "color",
+        "label": "Background color",
+        "default": "#000000"
+      }
+    ],
+    "version": 3,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M4 6h16M4 12h16M4 18h10\"/></svg>",
+    "color": "#6366F1",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-06-30T21:00:25.327Z",
+    "updatedAt": "2026-07-20T20:12:57.021Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a5d43baf59b6cdb54aa39c5",
+    "slug": "ticker",
+    "name": "Ticker",
+    "tagline": "Scroll announcements across the screen",
+    "description": "A moving band of short messages — news, notices, opening hours. Add a row per message.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "screens",
+        "type": "screens",
+        "label": "Show on screens",
+        "help": "The ticker stays visible over everything these screens play."
+      },
+      {
+        "key": "source",
+        "type": "select",
+        "label": "Source",
+        "default": "messages",
+        "options": [
+          {
+            "label": "My messages",
+            "value": "messages"
+          },
+          {
+            "label": "RSS feed",
+            "value": "rss"
+          }
+        ],
+        "help": "Scroll your own messages, or live headlines from an RSS feed."
+      },
+      {
+        "key": "messages",
+        "type": "repeater",
+        "label": "Messages",
+        "help": "The messages to scroll. They repeat in order — drag to reorder.",
+        "required": true,
+        "validation": {
+          "min": 1
+        },
+        "visibleWhen": {
+          "field": "source",
+          "equals": "messages"
+        },
+        "fields": [
+          {
+            "key": "message",
+            "type": "text",
+            "label": "Message",
+            "required": true,
+            "placeholder": "Welcome!"
+          }
+        ]
+      },
+      {
+        "key": "rssUrl",
+        "type": "url",
+        "label": "RSS feed URL",
+        "required": true,
+        "placeholder": "https://example.com/feed.xml",
+        "visibleWhen": {
+          "field": "source",
+          "equals": "rss"
+        },
+        "help": "Headlines from this feed scroll in the band and refresh automatically."
+      },
+      {
+        "key": "speed",
+        "type": "select",
+        "label": "Speed",
+        "default": "normal",
+        "options": [
+          {
+            "label": "Slow",
+            "value": "slow"
+          },
+          {
+            "label": "Normal",
+            "value": "normal"
+          },
+          {
+            "label": "Fast",
+            "value": "fast"
+          }
+        ]
+      },
+      {
+        "key": "direction",
+        "type": "select",
+        "label": "Direction",
+        "default": "left",
+        "options": [
+          {
+            "label": "Right to left",
+            "value": "left"
+          },
+          {
+            "label": "Left to right",
+            "value": "right"
+          }
+        ]
+      },
+      {
+        "key": "position",
+        "type": "select",
+        "label": "Position",
+        "help": "Where the band sits on the screen.",
+        "default": "bottom",
+        "options": [
+          {
+            "label": "Top",
+            "value": "top"
+          },
+          {
+            "label": "Bottom",
+            "value": "bottom"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "help": "A starting point — it fills in the colors below, which you can still change.",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light",
+            "set": {
+              "backgroundColor": "#FFFFFF",
+              "textColor": "#0F172A"
+            }
+          },
+          {
+            "label": "Dark",
+            "value": "dark",
+            "set": {
+              "backgroundColor": "#000000",
+              "textColor": "#FFFFFF"
+            }
+          }
+        ]
+      },
+      {
+        "key": "backgroundColor",
+        "type": "color",
+        "label": "Background color",
+        "section": "Theme Settings",
+        "default": "#000000"
+      },
+      {
+        "key": "textColor",
+        "type": "color",
+        "label": "Text color",
+        "section": "Theme Settings",
+        "default": "#FFFFFF"
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 2,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"10\" rx=\"2\"/><path d=\"M6 12h2\"/><path d=\"M11 12h7\"/></svg>",
+    "color": "#F43F5E",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T21:38:02.196Z",
+    "updatedAt": "2026-07-20T20:12:57.167Z",
+    "__v": 0,
+    "overlay": true
+  },
+  {
+    "_id": "6a5d53c6c3e9a99fa555b785",
+    "slug": "vimeo",
+    "name": "Vimeo",
+    "tagline": "Play a Vimeo video on your screens",
+    "description": "Paste a Vimeo link and loop the video across your displays — no downloads, no fuss.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "Vimeo link",
+        "help": "Copy it from Vimeo's address bar, or from its Share button. One video per app.",
+        "required": true,
+        "placeholder": "https://vimeo.com/76979871",
+        "validation": {
+          "pattern": "^https?://(www\\.|player\\.)?vimeo\\.com/.+"
+        }
+      }
+    ],
+    "version": 1,
+    "overlay": false,
+    "iconSvg": "",
+    "color": "",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T22:46:30.807Z",
+    "updatedAt": "2026-07-19T22:46:30.807Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a42dd1b6d54b83930ac0ed3",
+    "slug": "weather",
+    "name": "Weather",
+    "tagline": "Live local weather on your screens",
+    "description": "Show the current weather and a short forecast for any city — updated automatically.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "location",
+        "type": "location",
+        "label": "Location",
+        "required": true,
+        "placeholder": "Search a city…",
+        "help": "Start typing and pick a place from the list. The forecast follows it."
+      },
+      {
+        "key": "displayMode",
+        "type": "select",
+        "label": "Layout",
+        "help": "How the weather is arranged on the screen.",
+        "default": "glance",
+        "options": [
+          {
+            "label": "At a glance — the temperature and the week",
+            "value": "glance"
+          },
+          {
+            "label": "Panel — every reading, laid out",
+            "value": "panel"
+          },
+          {
+            "label": "Hour by hour — how today unfolds",
+            "value": "hourly"
+          },
+          {
+            "label": "The week — seven days, warmest to coldest",
+            "value": "week"
+          },
+          {
+            "label": "Daylight — sunrise, now, sunset",
+            "value": "solar"
+          },
+          {
+            "label": "Minimal — the temperature, and nothing else",
+            "value": "minimal"
+          },
+          {
+            "label": "Agency — a weather desk on the news",
+            "value": "agency"
+          },
+          {
+            "label": "Tiles — a board of cards",
+            "value": "tiles"
+          }
+        ]
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "help": "Weather: the screen takes its colours from the sky — blue in clear weather, grey in rain, dark at night.",
+        "default": "auto",
+        "options": [
+          {
+            "label": "Weather (follows the sky)",
+            "value": "auto"
+          },
+          {
+            "label": "Light",
+            "value": "light"
+          },
+          {
+            "label": "Dark",
+            "value": "dark"
+          }
+        ]
+      },
+      {
+        "key": "units",
+        "type": "select",
+        "label": "Temperature units",
+        "section": "Weather Settings",
+        "default": "metric",
+        "options": [
+          {
+            "label": "Celsius (°C)",
+            "value": "metric"
+          },
+          {
+            "label": "Fahrenheit (°F)",
+            "value": "imperial"
+          }
+        ]
+      },
+      {
+        "key": "language",
+        "type": "select",
+        "label": "Language",
+        "section": "Weather Settings",
+        "help": "The language the weather is shown in on the screen. It doesn't change this page.",
+        "default": "en",
+        "options": [
+          {
+            "label": "English",
+            "value": "en"
+          },
+          {
+            "label": "Serbian",
+            "value": "sr"
+          }
+        ]
+      },
+      {
+        "key": "showClock",
+        "type": "switch",
+        "label": "Show the time",
+        "section": "Weather Settings",
+        "help": "A small clock in the corner. It also proves the screen is live rather than frozen.",
+        "default": true
+      }
+    ],
+    "version": 3,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 13a5 5 0 10-9.9 1H5a3 3 0 000 6h11a4 4 0 000-8z\"/></svg>",
+    "color": "#38BDF8",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-06-29T21:01:15.677Z",
+    "updatedAt": "2026-07-20T20:12:57.693Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a44387a38e515736fb3b152",
+    "slug": "web",
+    "name": "Web page",
+    "tagline": "Show any website or dashboard",
+    "description": "Embed any web page or live dashboard on your screens by URL.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "Page address",
+        "required": true,
+        "placeholder": "https://example.com",
+        "help": "Not every site can be shown this way. Google, social networks and most banking sites refuse, and come up blank on screen — a page you own, or a dashboard’s public share link, works best."
+      }
+    ],
+    "version": 1,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18\"/></svg>",
+    "color": "#10B981",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-06-30T21:43:22.024Z",
+    "updatedAt": "2026-07-20T20:12:57.501Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a56b1bda4d9a310df26e560",
+    "slug": "wisdom",
+    "name": "Daily Wisdom",
+    "tagline": "A new quote on the wall every day",
+    "description": "Shows a handful of inspiring quotes, each one in a different design — refreshed on its own, every day.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "server",
+    "configSchema": [
+      {
+        "key": "categories",
+        "type": "multiselect",
+        "label": "Topics",
+        "help": "What the quotes should be about. Pick a few — a gym might choose Motivation and Sports, a waiting room Health & wellness and Life.",
+        "default": [
+          "motivation",
+          "wisdom"
+        ],
+        "options": [
+          {
+            "label": "Famous quotes",
+            "value": "famous"
+          },
+          {
+            "label": "Wisdom",
+            "value": "wisdom"
+          },
+          {
+            "label": "Life",
+            "value": "life"
+          },
+          {
+            "label": "Motivation",
+            "value": "motivation"
+          },
+          {
+            "label": "Love & friendship",
+            "value": "love"
+          },
+          {
+            "label": "Health & wellness",
+            "value": "health_wellness"
+          },
+          {
+            "label": "Humor",
+            "value": "humor"
+          },
+          {
+            "label": "Business",
+            "value": "business"
+          },
+          {
+            "label": "Success",
+            "value": "success"
+          },
+          {
+            "label": "Technology & science",
+            "value": "technology"
+          },
+          {
+            "label": "Sports",
+            "value": "sports"
+          },
+          {
+            "label": "Leadership",
+            "value": "leadership"
+          }
+        ],
+        "validation": {
+          "min": 1
+        }
+      },
+      {
+        "key": "quoteCount",
+        "type": "number",
+        "label": "How many quotes",
+        "help": "How many quotes the screen cycles through before starting over.",
+        "default": 5,
+        "validation": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      {
+        "key": "secondsPerQuote",
+        "type": "number",
+        "label": "Seconds per quote",
+        "help": "How long each quote stays on the screen.",
+        "default": 20,
+        "validation": {
+          "min": 5,
+          "max": 120
+        }
+      }
+    ],
+    "version": 1,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M9.5 5C6.46 5 4 7.46 4 10.5c0 2.7 1.94 4.95 4.5 5.41V17c0 1.1-.9 2-2 2v2c2.21 0 4-1.79 4-4v-6.5C10.5 8.57 9.43 7.5 8.1 7.5c-.2 0-.4.02-.6.07C8.1 6.63 8.74 6 9.5 6V5zm9 0C15.46 5 13 7.46 13 10.5c0 2.7 1.94 4.95 4.5 5.41V17c0 1.1-.9 2-2 2v2c2.21 0 4-1.79 4-4v-6.5c0-1.93-1.07-3-2.4-3-.2 0-.4.02-.6.07.6-.94 1.24-1.57 2-1.57V5z\"/></svg>",
+    "color": "#8B5CF6",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-14T22:01:33.619Z",
+    "updatedAt": "2026-07-20T20:12:58.090Z",
+    "__v": 0,
+    "overlay": false
+  },
+  {
+    "_id": "6a5d14113c73d2053b6e186f",
+    "slug": "worldclock",
+    "name": "World clocks",
+    "tagline": "The time in several places at once",
+    "description": "Show the current time in multiple cities. One place per line as \"Label | Zone\".",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "clocks",
+        "type": "repeater",
+        "label": "Places",
+        "help": "Add a place per row. The zone is an IANA name, e.g. Europe/London, America/New_York, Asia/Tokyo.",
+        "required": true,
+        "validation": {
+          "min": 1
+        },
+        "fields": [
+          {
+            "key": "label",
+            "type": "text",
+            "label": "Label",
+            "placeholder": "London"
+          },
+          {
+            "key": "zone",
+            "type": "text",
+            "label": "Time zone",
+            "required": true,
+            "placeholder": "Europe/London"
+          }
+        ]
+      },
+      {
+        "key": "format",
+        "type": "select",
+        "label": "Time format",
+        "section": "Clock Settings",
+        "default": "24h",
+        "options": [
+          {
+            "label": "24-hour (14:30)",
+            "value": "24h"
+          },
+          {
+            "label": "12-hour (2:30 PM)",
+            "value": "12h"
+          }
+        ]
+      },
+      {
+        "key": "showSeconds",
+        "type": "switch",
+        "label": "Show seconds",
+        "section": "Clock Settings",
+        "default": false
+      },
+      {
+        "key": "showDate",
+        "type": "switch",
+        "label": "Show date",
+        "section": "Clock Settings",
+        "default": true
+      },
+      {
+        "key": "theme",
+        "type": "select",
+        "label": "Theme",
+        "help": "A starting point — it fills in the colours below, which you can still change.",
+        "default": "dark",
+        "options": [
+          {
+            "label": "Light",
+            "value": "light",
+            "set": {
+              "backgroundColor": "#FFFFFF",
+              "textColor": "#0F172A",
+              "accentColor": "#F97316"
+            }
+          },
+          {
+            "label": "Dark",
+            "value": "dark",
+            "set": {
+              "backgroundColor": "#000000",
+              "textColor": "#FFFFFF",
+              "accentColor": "#F97316"
+            }
+          },
+          {
+            "label": "Midnight",
+            "value": "midnight",
+            "set": {
+              "backgroundColor": "#0B1220",
+              "textColor": "#E2E8F0",
+              "accentColor": "#F97316"
+            }
+          }
+        ]
+      },
+      {
+        "key": "backgroundColor",
+        "type": "color",
+        "label": "Background colour",
+        "section": "Theme Settings",
+        "default": "#000000"
+      },
+      {
+        "key": "textColor",
+        "type": "color",
+        "label": "Text colour",
+        "section": "Theme Settings",
+        "default": "#FFFFFF"
+      },
+      {
+        "key": "accentColor",
+        "type": "color",
+        "label": "Accent colour",
+        "section": "Theme Settings",
+        "help": "The place labels.",
+        "default": "#F97316"
+      },
+      {
+        "key": "fontFamily",
+        "type": "select",
+        "label": "Font",
+        "section": "Style Settings",
+        "default": "system",
+        "options": [
+          {
+            "label": "Default",
+            "value": "system"
+          },
+          {
+            "label": "Sans-serif (Arial)",
+            "value": "sans"
+          },
+          {
+            "label": "Serif (Georgia)",
+            "value": "serif"
+          },
+          {
+            "label": "Monospace",
+            "value": "mono"
+          },
+          {
+            "label": "Verdana",
+            "value": "verdana"
+          },
+          {
+            "label": "Tahoma",
+            "value": "tahoma"
+          },
+          {
+            "label": "Trebuchet MS",
+            "value": "trebuchet"
+          },
+          {
+            "label": "Times New Roman",
+            "value": "times"
+          }
+        ]
+      },
+      {
+        "key": "fontWeight",
+        "type": "select",
+        "label": "Font weight",
+        "section": "Style Settings",
+        "default": "400",
+        "options": [
+          {
+            "label": "Thin (100)",
+            "value": "100"
+          },
+          {
+            "label": "Extra light (200)",
+            "value": "200"
+          },
+          {
+            "label": "Light (300)",
+            "value": "300"
+          },
+          {
+            "label": "Regular (400)",
+            "value": "400"
+          },
+          {
+            "label": "Medium (500)",
+            "value": "500"
+          },
+          {
+            "label": "Semibold (600)",
+            "value": "600"
+          },
+          {
+            "label": "Bold (700)",
+            "value": "700"
+          },
+          {
+            "label": "Extra bold (800)",
+            "value": "800"
+          },
+          {
+            "label": "Black (900)",
+            "value": "900"
+          }
+        ]
+      },
+      {
+        "key": "fontSize",
+        "type": "number",
+        "label": "Font size (%)",
+        "section": "Style Settings",
+        "help": "100% is the size the app was designed at. Go up or down from there — the text always scales with the screen.",
+        "default": 100,
+        "validation": {
+          "min": 25,
+          "max": 400
+        }
+      },
+      {
+        "key": "lineHeight",
+        "type": "number",
+        "label": "Line height",
+        "section": "Style Settings",
+        "default": 1.2
+      },
+      {
+        "key": "letterSpacing",
+        "type": "number",
+        "label": "Letter spacing",
+        "section": "Style Settings",
+        "default": 0
+      }
+    ],
+    "version": 1,
+    "iconSvg": "",
+    "color": "",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-07-19T18:14:41.994Z",
+    "updatedAt": "2026-07-19T21:08:31.135Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a42db1edb5975274bbfe7f1",
+    "slug": "youtube",
+    "name": "YouTube",
+    "tagline": "Play a YouTube video on your screens",
+    "description": "Paste a YouTube link and play the video across your displays — no downloads, no fuss.",
+    "about": "",
+    "runtimeKind": "embed",
+    "dataSource": "static",
+    "configSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "YouTube link",
+        "help": "Copy it from YouTube's address bar, or from its Share button. One video per app — playlists aren't supported.",
+        "required": true,
+        "placeholder": "https://www.youtube.com/watch?v=…",
+        "validation": {
+          "pattern": "^https?://(www\\.|m\\.)?(youtube\\.com/(watch\\?v=|embed/|shorts/|v/)|youtu\\.be/).+"
+        }
+      }
+    ],
+    "version": 1,
+    "iconSvg": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M9.5 7.5v9l7-4.5-7-4.5z\"/></svg>",
+    "color": "#FF0000",
+    "isPublic": true,
+    "categoryIds": [],
+    "createdAt": "2026-06-29T20:52:46.087Z",
+    "updatedAt": "2026-07-20T20:12:57.600Z",
+    "__v": 0,
+    "overlay": false
+  }
+]

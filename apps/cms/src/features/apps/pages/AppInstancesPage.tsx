@@ -7,16 +7,17 @@ import { AppsBreadcrumb } from '@/features/apps/components/AppsBreadcrumb'
 import { CreateInstanceCard } from '@/features/apps/components/CreateInstanceCard'
 import { DeleteInstanceDialog } from '@/features/apps/components/DeleteInstanceDialog'
 import { InstanceCard } from '@/features/apps/components/InstanceCard'
-import { RenameInstanceDialog } from '@/features/apps/components/RenameInstanceDialog'
+import { RenameInstanceSheet } from '@/features/apps/components/RenameInstanceSheet'
 import { useApp, useAppInstances, useCreateInstance } from '@/features/apps/hooks/useApps'
 import type { AppInstance } from '@/features/apps/types/app.types'
+import { mediaGridClassName } from '@/features/media/lib/mediaActionCardStyles'
 
 function InstanceCardSkeleton() {
   return (
-    <div className="flex items-center gap-2.5 rounded-2xl bg-panel p-4 ring-1 ring-quaternary">
-      <Skeleton className="size-9 shrink-0 rounded-lg" />
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <Skeleton className="h-3.5 w-2/3 rounded-md" />
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-secondary bg-panel">
+      <Skeleton className="aspect-4/3 w-full rounded-none" />
+      <div className="flex h-[5.5rem] flex-col gap-2 p-2.5">
+        <Skeleton className="h-4 w-2/3 rounded-md" />
         <Skeleton className="h-3 w-1/3 rounded-md" />
       </div>
     </div>
@@ -47,7 +48,7 @@ export default function AppInstancesPage() {
           <Skeleton className="h-7 w-48 rounded-md" />
           <Skeleton className="h-4 w-72 rounded-md" />
         </div>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className={mediaGridClassName}>
           {Array.from({ length: 4 }).map((_, index) => (
             <InstanceCardSkeleton key={index} />
           ))}
@@ -90,14 +91,16 @@ export default function AppInstancesPage() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <h1 className="text-primary text-xl font-medium tracking-tight">{app.name}</h1>
-            <span className="bg-brand/10 text-brand inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium">
+            <span className="bg-success/10 text-success inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium">
               {t('apps.instances.count', { count: instances.length })}
             </span>
           </div>
-          <p className="text-secondary text-sm">{t('apps.instances.description')}</p>
+          <p className="text-secondary text-sm">
+            {t('apps.instances.description', { app: app.name })}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className={mediaGridClassName}>
           <CreateInstanceCard onClick={handleCreate} />
           {instances.map((instance) => (
             <InstanceCard
@@ -111,7 +114,7 @@ export default function AppInstancesPage() {
         </div>
       </div>
 
-      <RenameInstanceDialog
+      <RenameInstanceSheet
         instance={renameTarget}
         open={renameOpen}
         onOpenChange={setRenameOpen}

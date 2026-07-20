@@ -8,12 +8,15 @@ import { useAuthStore } from '@/features/auth/store/authStore'
 import { useOrganizationHydrated } from '@/features/organizations/hooks/useOrganizationHydrated'
 import { useOrganizations } from '@/features/organizations/hooks/useOrganizations'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
+import { useSyncAccountSettings } from '@/features/settings/hooks/useSyncAccountSettings'
 
 export function AuthSessionGate({ children }: { children: ReactNode }) {
   const location = useLocation()
   const authHydrated = useAuthHydrated()
   const orgHydrated = useOrganizationHydrated()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+
+  useSyncAccountSettings()
   const cachedOrganizationCount = useOrganizationStore(
     (state) => state.organizations.length,
   )

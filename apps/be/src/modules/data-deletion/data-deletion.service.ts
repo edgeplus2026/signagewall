@@ -133,6 +133,19 @@ export class DataDeletionService {
     return { scheduledFor: scheduledFor.toISOString() };
   }
 
+  /**
+   * Super-admin permanent deletion, executed immediately (no grace period).
+   * Cascades the user's solely-owned orgs and data, then physically removes the
+   * account row — no anonymized tombstone is kept. Any queued account-deletion
+   * request for this user is cleared too, since the account no longer exists.
+   */
+  async purgeAccountNow(userId: string): Promise<void> {
+    await this.purgeAccount(userId, true);
+    await this.pendingModel
+      .deleteMany({ type: 'account', targetId: new Types.ObjectId(userId) })
+      .exec();
+  }
+
   async cancelAccountDeletion(userId: string): Promise<void> {
     await this.usersRepository.reactivate(userId);
     await this.pendingModel
@@ -224,8 +237,13 @@ export class DataDeletionService {
     });
   }
 
-  /** Account erasure: cascade solely-owned orgs, drop other memberships, anonymize. */
-  private async purgeAccount(userId: string): Promise<void> {
+  /**
+   * Account erasure: cascade solely-owned orgs, drop other memberships, then
+   * either anonymize (GDPR self-service — keeps the row so references stay
+   * valid) or, when `hardDelete` is set (super-admin permanent delete),
+   * physically remove the account row.
+   */
+  private async purgeAccount(userId: string, hardDelete = false): Promise<void> {
     const memberships = await this.membershipModel
       .find({ userId: new Types.ObjectId(userId) })
       .exec();
@@ -246,7 +264,11 @@ export class DataDeletionService {
     // Erase the user's legal-acceptance records too — they carry the user id +
     // IP (personal data). Proof-of-consent is discarded on erasure by design.
     await this.legalRepository.deleteByUser(userId);
-    await this.usersRepository.anonymize(userId);
+    if (hardDelete) {
+      await this.usersRepository.deleteById(userId);
+    } else {
+      await this.usersRepository.anonymize(userId);
+    }
   }
 
   /**

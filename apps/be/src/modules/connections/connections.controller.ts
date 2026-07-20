@@ -80,6 +80,31 @@ export class ConnectionsController {
     );
   }
 
+  @Get(':id/tabular/headers')
+  @ApiOrgScoped()
+  @UseGuards(OrgMembershipGuard)
+  @RequireOrgRole()
+  @ApiSuccessResponse(Object)
+  @ApiOperation({
+    summary:
+      "Read a synced spreadsheet's header row for the column-mapping config control.",
+  })
+  tabularHeaders(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('id') id: string,
+    @Query('kind') kind?: string,
+    @Query('fileId') fileId?: string,
+    @Query('worksheet') worksheet?: string,
+  ) {
+    return this.connectionsService.fetchTabularHeaders(
+      organizationId,
+      id,
+      kind ?? '',
+      fileId ?? '',
+      worksheet ?? '',
+    );
+  }
+
   @Get('oauth/:provider/start')
   @ApiOrgScoped()
   @UseGuards(OrgMembershipGuard)

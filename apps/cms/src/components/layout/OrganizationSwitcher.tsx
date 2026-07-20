@@ -1,5 +1,5 @@
 import { Check, ChevronsUpDown, PencilIcon, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -20,9 +20,8 @@ import {
 } from '@/features/organizations/store/organizationStore'
 import type { Organization } from '@/features/organizations/types/organization.types'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { getInitials } from '@/lib/initials'
 import { cn } from '@/lib/utils'
-// Import favicon.svg from public
-import favicon from '@/assets/sidebar-logo.svg'
 
 const menuItemClassName =
   'gap-2 p-2 focus:!bg-highlight data-highlighted:!bg-highlight text-primary focus:**:text-primary data-highlighted:**:text-primary [&_[data-org-icon]_span]:!text-brand-contrast [&_[data-org-icon]]:shrink-0 [&_[data-org-action]]:pointer-events-auto'
@@ -39,7 +38,7 @@ function OrganizationIcon({ name }: { name: string }) {
       className="bg-brand flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg"
     >
       <span className="text-brand-contrast text-sm font-medium">
-        {name.charAt(0).toUpperCase()}
+        {getInitials(name)}
       </span>
     </div>
   )
@@ -53,6 +52,9 @@ export function OrganizationSwitcher() {
   const organizations = useOrganizationStore((state) => state.organizations)
   const setActiveOrganization = useOrganizationStore((state) => state.setActiveOrganization)
   const [menuOpen, setMenuOpen] = useState(false)
+  // True when a row's edit/delete button received the pointer-down, so the
+  // row's `onSelect` (which fires on the item, not the button) can skip switching.
+  const actionClickedRef = useRef(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [editOrganization, setEditOrganization] = useState<Organization | null>(null)
   const [deleteOrganization, setDeleteOrganization] = useState<Organization | null>(null)
@@ -77,8 +79,7 @@ export function OrganizationSwitcher() {
                 size="lg"
                 className="data-[state=open]:bg-highlight data-[state=open]:text-primary [&_[data-org-icon]_span]:!text-brand-contrast"
               >
-                {/* Display favicon.svg from public */}
-                <img src={favicon} alt="Favicon" className="w-7 border border-primary rounded-md" />
+                <OrganizationIcon name={activeOrganization.name} />
 
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{activeOrganization.name}</span>
@@ -102,9 +103,14 @@ export function OrganizationSwitcher() {
               {organizations.map((organization) => (
                 <DropdownMenuItem
                   key={organization.id}
+                  onPointerDownCapture={(event) => {
+                    actionClickedRef.current = Boolean(
+                      (event.target as HTMLElement).closest('[data-org-action]'),
+                    )
+                  }}
                   onSelect={(event) => {
-                    const target = event.target as HTMLElement
-                    if (target.closest('[data-org-action]')) {
+                    if (actionClickedRef.current) {
+                      actionClickedRef.current = false
                       event.preventDefault()
                       return
                     }

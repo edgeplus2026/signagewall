@@ -1,17 +1,38 @@
 import type { CryptoPayload } from '../../src/crypto/payload.js'
 import { freshnessFooterHtml } from '../_shared/freshness.js'
 import { type AppDataMeta, connectToHost } from '../_shared/host-bridge.js'
-import { applyTextStyle } from '../_shared/text-style.js'
 
 import '../_shared/base.css'
 import './style.css'
 
 const root = document.getElementById('app')
 
-const THEMES: Record<string, { bg: string; text: string }> = {
-  light: { bg: '#FFFFFF', text: '#0F172A' },
-  dark: { bg: '#0B1220', text: '#E2E8F0' },
+/**
+ * Per-coin accent colours — brand-inspired but tuned to stay readable on the
+ * dark terminal background (the light theme darkens them via color-mix).
+ */
+const COIN_COLORS: Record<string, string> = {
+  bitcoin: '#F7931A',
+  ethereum: '#8CA5FF',
+  tether: '#2ED8A7',
+  binancecoin: '#F3BA2F',
+  solana: '#14F195',
+  ripple: '#38BDF8',
+  cardano: '#4C82FB',
+  dogecoin: '#E3C55C',
+  polkadot: '#FF3B9A',
+  litecoin: '#A7B7CE',
+  chainlink: '#5C87FF',
+  tron: '#FF4D5E',
 }
+
+const FALLBACK_COIN_COLOR = '#00FF9C'
+
+/**
+ * Last rendered price per coin id, so a refresh can flash the row that moved
+ * (up/down). Survives across renders; reset is harmless (no flash).
+ */
+const lastPrices = new Map<string, number>()
 
 /** Currency price with more decimals for sub-1 prices (e.g. DOGE), fewer above. */
 function formatPrice(price: number, currency: string): string {
@@ -33,25 +54,19 @@ function formatChange(pct: number): string {
   return `${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(2)}%`
 }
 
-function applyChrome(config: Record<string, unknown>): void {
-  if (!root) return
-  const theme = THEMES[String(config.theme)] ?? THEMES.dark!
-  root.style.background = theme.bg
-  root.style.color = theme.text
-  applyTextStyle(root, config)
-}
-
 function render(
   config: Record<string, unknown>,
   data: CryptoPayload | null,
   meta: AppDataMeta | null,
 ): void {
   if (!root) return
-  applyChrome(config)
+  const light = String(config.theme) === 'light'
+  root.className = light ? 'cx-light' : 'cx-dark'
 
   if (!data || data.coins.length === 0) {
     root.innerHTML =
-      '<div class="cx"><p class="cx-empty">Loading prices…</p></div>'
+      '<div class="cx"><div class="cx-scan"></div>' +
+      '<p class="cx-empty">▮ CONNECTING TO FEED<span class="cx-cursor">_</span></p></div>'
     return
   }
 
@@ -61,9 +76,42 @@ function render(
   const wrap = document.createElement('div')
   wrap.className = 'cx'
 
-  for (const coin of data.coins) {
+  // Decorative overlays: background grid + CRT scanlines (dark theme only).
+  const scan = document.createElement('div')
+  scan.className = 'cx-scan'
+  wrap.append(scan)
+
+  const header = document.createElement('header')
+  header.className = 'cx-head'
+  const title = document.createElement('div')
+  title.className = 'cx-title'
+  title.innerHTML =
+    '<span class="cx-title-dim">CRYPTO://</span>MARKET<span class="cx-cursor">_</span>'
+  const status = document.createElement('div')
+  status.className = 'cx-status'
+  status.innerHTML =
+    `<span class="cx-live"><span class="cx-live-dot"></span>LIVE</span>` +
+    `<span class="cx-vs">${currency}</span>`
+  header.append(title, status)
+  wrap.append(header)
+
+  const list = document.createElement('div')
+  list.className = 'cx-list'
+
+  data.coins.forEach((coin, index) => {
     const row = document.createElement('div')
     row.className = 'cx-row'
+    row.style.setProperty('--coin', COIN_COLORS[coin.id] ?? FALLBACK_COIN_COLOR)
+
+    const prev = lastPrices.get(coin.id)
+    if (prev !== undefined && coin.price !== prev) {
+      row.classList.add(coin.price > prev ? 'cx-tick-up' : 'cx-tick-down')
+    }
+    lastPrices.set(coin.id, coin.price)
+
+    const rank = document.createElement('div')
+    rank.className = 'cx-rank'
+    rank.textContent = String(index + 1).padStart(2, '0')
 
     const id = document.createElement('div')
     id.className = 'cx-id'
@@ -89,9 +137,16 @@ function render(
       right.append(change)
     }
 
-    row.append(id, right)
-    wrap.append(row)
-  }
+    row.append(rank, id, right)
+    list.append(row)
+  })
+
+  wrap.append(list)
+
+  const foot = document.createElement('footer')
+  foot.className = 'cx-foot'
+  foot.textContent = '// COINGECKO FEED'
+  wrap.append(foot)
 
   root.replaceChildren(wrap)
   root.insertAdjacentHTML('beforeend', freshnessFooterHtml(meta))

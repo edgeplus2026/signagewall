@@ -23,12 +23,20 @@ export function AppLibraryPanel({ labels, onAddApp }: LibraryTabPanelProps) {
   const isLoading = instancesLoading || catalogLoading
 
   const filtered = useMemo(() => {
+    // Overlay apps (ticker) never join a rotation — they pick their screens in
+    // their own settings, so offering them here would only mislead.
+    const overlaySlugs = new Set(
+      catalog.filter((entry) => entry.overlay).map((entry) => entry.slug),
+    )
+    const addable = instances.filter(
+      (instance) => !overlaySlugs.has(instance.appSlug),
+    )
     const query = search.trim().toLowerCase()
-    if (!query) return instances
-    return instances.filter((instance) =>
+    if (!query) return addable
+    return addable.filter((instance) =>
       instance.name.toLowerCase().includes(query),
     )
-  }, [instances, search])
+  }, [instances, catalog, search])
 
   return (
     <>
@@ -39,7 +47,7 @@ export function AppLibraryPanel({ labels, onAddApp }: LibraryTabPanelProps) {
           onChange={(event) => {
             setSearch(event.target.value)
           }}
-          placeholder={labels.librarySearch}
+          placeholder={labels.appsSearch ?? labels.librarySearch}
           className="h-7 pl-7 text-xs"
         />
       </div>

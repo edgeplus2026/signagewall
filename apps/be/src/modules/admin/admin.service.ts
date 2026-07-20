@@ -4,6 +4,7 @@ import { I18nService } from 'nestjs-i18n';
 import { toPaginatedResult } from '../../common/dto/paginated-result';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { AuthTokensService } from '../auth/auth.tokens';
+import { DataDeletionService } from '../data-deletion/data-deletion.service';
 import { toOrganizationResponse } from '../organizations/mappers/organization.mapper';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { toUserResponse, UserResponseDto } from '../users/mappers/user.mapper';
@@ -32,6 +33,7 @@ export class AdminService {
     private readonly usersRepository: UsersRepository,
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly authTokensService: AuthTokensService,
+    private readonly dataDeletionService: DataDeletionService,
     private readonly i18n: I18nService,
   ) {}
 
@@ -197,5 +199,28 @@ export class AdminService {
       user: toUserResponse(target, Boolean(userWithPassword?.password)),
       tokens,
     };
+  }
+
+  /**
+   * Permanently deletes a user and cascades all of their data (solely-owned
+   * organizations and everything scoped to them, other memberships, legal
+   * records), then physically removes the account. Irreversible; no grace
+   * period. A super-admin cannot delete their own account this way.
+   */
+  async deleteUser(adminUserId: string, targetUserId: string): Promise<void> {
+    if (adminUserId === targetUserId) {
+      throw BusinessException.badRequest(this.i18n.t('admin.cannotDeleteSelf'));
+    }
+
+    const user = await this.usersRepository.findById(targetUserId);
+    if (!user) {
+      throw BusinessException.notFound(this.i18n.t('auth.userNotFound'));
+    }
+
+    await this.dataDeletionService.purgeAccountNow(targetUserId);
+
+    this.logger.log(
+      `Super-admin ${adminUserId} permanently deleted user ${targetUserId}`,
+    );
   }
 }

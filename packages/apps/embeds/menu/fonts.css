@@ -1,0 +1,75 @@
+/*
+ * The faces the menu designs are built on. Same deal as the wisdom app's
+ * `fonts.css` (see the long note there): self-hosted, bundled by Vite, served
+ * same-origin from the player's `/apps` dir, `.woff2` precached by the player's
+ * service worker — nothing touches the network at play time. Latin subsets
+ * only, `font-display: block` because the player preloads apps hidden.
+ */
+
+/* Editorial serif — "classic" headings. */
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('@fontsource/playfair-display/files/playfair-display-latin-600-normal.woff2')
+    format('woff2');
+}
+
+/* Chalk hand — "chalkboard" lettering. */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('@fontsource/caveat/files/caveat-latin-600-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('@fontsource/caveat/files/caveat-latin-700-normal.woff2')
+    format('woff2');
+}
+
+/* Condensed display — "counter" headline type. */
+@font-face {
+  font-family: 'Bebas Neue';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2')
+    format('woff2');
+}
+
+/* Fine editorial serif — "noir". Light weight is the whole point of it. */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 300;
+  font-display: block;
+  src: url('@fontsource/cormorant-garamond/files/cormorant-garamond-latin-300-normal.woff2')
+    format('woff2');
+}
+
+/* Neutral sans — body text, labels, "gallery" cards. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('@fontsource/inter/files/inter-latin-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('@fontsource/inter/files/inter-latin-600-normal.woff2')
+    format('woff2');
+}

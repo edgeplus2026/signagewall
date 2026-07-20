@@ -1,5 +1,11 @@
 import { type ColumnDef, type OnChangeFn, type SortingState } from '@tanstack/react-table'
-import { EllipsisIcon, ShieldIcon, ShieldOffIcon, UserRoundIcon } from 'lucide-react'
+import {
+  EllipsisIcon,
+  ShieldIcon,
+  ShieldOffIcon,
+  Trash2Icon,
+  UserRoundIcon,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -10,11 +16,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAuthStore } from '@/features/auth/store/authStore'
 import type { AdminUsersSortField } from '@/features/super-admin/api/adminApi'
 import { AdminUserSheet } from '@/features/super-admin/components/AdminUserSheet'
+import { DeleteUserDialog } from '@/features/super-admin/components/DeleteUserDialog'
 import {
   PromoteSuperAdminDialog,
   type SuperAdminRoleAction,
@@ -22,7 +31,6 @@ import {
 import { SwitchUserDialog } from '@/features/super-admin/components/SwitchUserDialog'
 import { DEFAULT_PAGE_SIZE, useAdminUsers } from '@/features/super-admin/hooks/useAdminUsers'
 import type { AdminUserListItem } from '@/features/super-admin/types/admin.types'
-import { useAuthStore } from '@/features/auth/store/authStore'
 import { getInitials } from '@/lib/initials'
 import { cn } from '@/lib/utils'
 
@@ -64,6 +72,7 @@ export function AllUsersTab() {
     action: SuperAdminRoleAction
   } | null>(null)
   const [switchUser, setSwitchUser] = useState<AdminUserListItem | null>(null)
+  const [deleteUser, setDeleteUser] = useState<AdminUserListItem | null>(null)
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -90,7 +99,7 @@ export function AllUsersTab() {
     () => [
       {
         accessorKey: 'name',
-        meta: { width: '32%' },
+        meta: { width: '30%' },
         header: () => t('superAdmin.users.columns.name'),
         cell: ({ row }) => (
           <div className="flex items-center gap-2.5">
@@ -98,22 +107,35 @@ export function AllUsersTab() {
               <AvatarFallback>{getInitials(row.original.name)}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="truncate font-medium">{row.original.name}</p>
-                {row.original.isSuperAdmin ? (
-                  <span className="bg-brand/10 text-brand inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-medium">
-                    {t('superAdmin.users.superAdminBadge')}
-                  </span>
-                ) : null}
-              </div>
+              <p className="truncate font-medium">{row.original.name}</p>
               <p className="text-secondary truncate text-xs">{row.original.email}</p>
             </div>
           </div>
         ),
       },
       {
+        id: 'role',
+        enableSorting: false,
+        meta: { width: '13%' },
+        header: () => t('superAdmin.users.columns.role'),
+        cell: ({ row }) => (
+          <span
+            className={cn(
+              'inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium',
+              row.original.isSuperAdmin
+                ? 'bg-brand/10 text-brand'
+                : 'bg-secondary/10 text-secondary',
+            )}
+          >
+            {row.original.isSuperAdmin
+              ? t('superAdmin.userSheet.role.superAdmin')
+              : t('superAdmin.userSheet.role.user')}
+          </span>
+        ),
+      },
+      {
         accessorKey: 'organizationCount',
-        meta: { width: '16%' },
+        meta: { width: '14%' },
         header: () => t('superAdmin.users.columns.organizations'),
         cell: ({ row }) => row.original.organizationCount,
       },
@@ -209,7 +231,17 @@ export function AllUsersTab() {
                     }}
                   >
                     <UserRoundIcon />
-                    {t('superAdmin.users.actions.switch')}
+                    {t('superAdmin.users.actions.impersonate')}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="danger"
+                    onClick={() => {
+                      setDeleteUser(user)
+                    }}
+                  >
+                    <Trash2Icon />
+                    {t('superAdmin.users.actions.delete')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -282,6 +314,14 @@ export function AllUsersTab() {
           if (!open) setSwitchUser(null)
         }}
         user={switchUser}
+      />
+
+      <DeleteUserDialog
+        open={!!deleteUser}
+        onOpenChange={(open) => {
+          if (!open) setDeleteUser(null)
+        }}
+        user={deleteUser}
       />
     </>
   )

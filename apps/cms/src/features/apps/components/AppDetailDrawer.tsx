@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/drawer'
 import { AppIcon } from '@/features/apps/components/AppIcon'
 import { useInstallApp } from '@/features/apps/hooks/useApps'
+import { appAbout, appTagline } from '@/features/apps/lib/appCopy'
 import type { EdgeApp } from '@/features/apps/types/app.types'
 
 interface AppDetailDrawerProps {
@@ -59,7 +60,7 @@ export function AppDetailDrawer({ app, open, onOpenChange }: AppDetailDrawerProp
 
               <div className="flex min-w-0 flex-1 flex-col gap-2">
                 <DrawerTitle className="text-lg">{app.name}</DrawerTitle>
-                <span className="text-sm text-secondary">{app.tagline}</span>
+                <span className="text-sm text-secondary">{appTagline(t, app.slug)}</span>
 
                 <Button
                   type="button"
@@ -83,12 +84,14 @@ export function AppDetailDrawer({ app, open, onOpenChange }: AppDetailDrawerProp
               </div>
             </div>
 
-            <DrawerDescription className="sr-only">{app.tagline}</DrawerDescription>
+            <DrawerDescription className="sr-only">{appTagline(t, app.slug)}</DrawerDescription>
 
-            <section className="flex flex-col gap-2">
-              <h3 className="text-sm font-medium text-primary">{t('apps.aboutTitle')}</h3>
-              <p className="text-sm leading-relaxed text-secondary">{app.about}</p>
-            </section>
+            {appAbout(t, app.slug) ? (
+              <section className="flex flex-col gap-2">
+                <h3 className="text-sm font-medium text-primary">{t('apps.aboutTitle')}</h3>
+                <p className="text-sm leading-relaxed text-secondary">{appAbout(t, app.slug)}</p>
+              </section>
+            ) : null}
           </div>
         ) : null}
       </DrawerContent>

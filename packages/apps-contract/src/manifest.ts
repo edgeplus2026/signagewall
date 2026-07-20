@@ -49,6 +49,15 @@ export interface AppManifest {
    * have elapsed since its last fetch. Absent for `static` apps (no connector).
    */
   refreshSeconds?: number
+  /**
+   * True for apps that render as a persistent OVERLAY on top of whatever a
+   * screen is playing (e.g. the ticker band), instead of taking a slot in the
+   * content rotation. Overlay apps are not addable to screens/playlists as
+   * items; the operator picks the screens they appear on via a `screens`
+   * config field, and the player draws them above the stage on every snapshot
+   * that carries them.
+   */
+  overlay?: boolean
   /** Default icon as inline SVG markup. Super-admin can override in the catalog. */
   icon?: string
   /** Default brand colour (hex). Super-admin can override in the catalog. */

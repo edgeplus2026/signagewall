@@ -38,6 +38,10 @@ import {
   useUpdateInstanceConfig,
 } from '@/features/apps/hooks/useApps'
 import { needsConnection } from '@/features/apps/lib/connectedApp'
+import {
+  menuConfigNeedsMigration,
+  migrateMenuConfig,
+} from '@/features/apps/lib/menuConfigMigration'
 import type { AppInstanceConfig } from '@/features/apps/types/app.types'
 import { AddToPlaylistSheet } from '@/features/playlists/components/AddToPlaylistSheet'
 import { AddToScreenSheet } from '@/features/screens/components/AddToScreenSheet'
@@ -102,13 +106,16 @@ export default function AppInstanceConfigPage() {
   // The saved config with the schema defaults merged in, so newly added fields
   // (e.g. after an app upgrade) render with their defaults instead of blank — and
   // dirtiness is measured against that, not the raw stored config.
-  const baseline = useMemo<AppInstanceConfig>(
-    () =>
-      app && instance
-        ? { ...buildDefaultConfig(app.configSchema), ...instance.config }
-        : {},
-    [app, instance],
-  )
+  const baseline = useMemo<AppInstanceConfig>(() => {
+    if (!app || !instance) return {}
+    const merged = { ...buildDefaultConfig(app.configSchema), ...instance.config }
+    // Menu v1 → v2: string prices become numbers, `columns` drops. Load-time
+    // only — stored configs keep playing untouched until the operator saves.
+    if (app.slug === 'menu' && menuConfigNeedsMigration(merged)) {
+      return migrateMenuConfig(merged)
+    }
+    return merged
+  }, [app, instance])
 
   // Reset the local drafts when navigating between instances — adjusting state
   // during render (React's recommended alternative to an effect).

@@ -28,6 +28,9 @@ export const envValidationSchema = Joi.object({
   // OAuth callback URLs and to receive Microsoft Graph webhook notifications.
   // Falls back to the local port when unset (Graph webhooks then disabled).
   PUBLIC_API_URL: Joi.string().uri().optional().allow(''),
+  // Overrides PUBLIC_API_URL for provider webhook callbacks only — set it to a
+  // dev tunnel URL to exercise Microsoft Graph webhooks against localhost.
+  WEBHOOK_PUBLIC_URL: Joi.string().uri().optional().allow(''),
   MAIL_ENABLED: Joi.boolean().truthy('true').falsy('false').default(false),
   RESEND_API_KEY: Joi.string().optional().allow(''),
   MAIL_FROM: Joi.string().optional(),

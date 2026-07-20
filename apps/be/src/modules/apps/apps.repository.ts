@@ -4,22 +4,16 @@ import { Model, Types } from 'mongoose';
 
 import { App, AppDocument } from './schemas/app.schema';
 
-export type CreateAppData = Partial<Omit<App, 'categoryIds'>> & {
+export type CreateAppData = Partial<App> & {
   slug: string;
   name: string;
-  tagline: string;
-  description: string;
-  /** Category ids as strings; Mongoose casts them to ObjectIds on write. */
-  categoryIds?: string[];
 };
 
 export type UpdateAppData = Partial<
-  Omit<App, 'slug' | 'createdAt' | 'updatedAt' | 'configSchema' | 'categoryIds'>
+  Omit<App, 'slug' | 'createdAt' | 'updatedAt' | 'configSchema'>
 > & {
   /** Stored as Mixed JSON; validated structurally elsewhere. */
   configSchema?: unknown[];
-  /** Category ids as strings; Mongoose casts them to ObjectIds on write. */
-  categoryIds?: string[];
 };
 
 @Injectable()
@@ -78,16 +72,5 @@ export class AppsRepository {
   async findAllSlugs(): Promise<string[]> {
     const docs = await this.appModel.find().select({ slug: 1 }).exec();
     return docs.map((doc) => doc.slug);
-  }
-
-  /** Removes a category reference from every app that has it (on category delete). */
-  async pullCategoryFromAll(categoryId: string): Promise<void> {
-    if (!Types.ObjectId.isValid(categoryId)) return;
-    await this.appModel
-      .updateMany(
-        { categoryIds: new Types.ObjectId(categoryId) },
-        { $pull: { categoryIds: new Types.ObjectId(categoryId) } },
-      )
-      .exec();
   }
 }

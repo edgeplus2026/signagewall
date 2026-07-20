@@ -1,39 +1,61 @@
 import type { AppManifest } from '@edge/apps-contract'
 
-import { DEFAULT_ACCENT } from '../_shared/theme.js'
 import { styleFields } from '../_shared/style-fields.js'
 
 const TICKER_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 12h2"/><path d="M11 12h7"/></svg>'
 
 /**
- * Announcement ticker — a scrolling band of messages. Pure client-side
- * (`static`). Messages are entered as repeater rows (add/remove/reorder); the
- * embed also accepts the legacy one-message-per-line string for older configs.
+ * Announcement ticker — a scrolling band of messages drawn as a persistent
+ * OVERLAY (sticky at the top or bottom) on top of whatever the screen is
+ * playing. It is not a rotation item: the operator picks the screens it shows
+ * on via the `screens` field, and the player keeps the band up across every
+ * slide on those screens.
  *
- * Deliberately few knobs: the messages, how fast they move, which way, and where
- * the band sits. The look follows the theme + the shared Style Settings, so the
- * band matches the rest of a playlist without a pile of colour pickers.
+ * Messages come from repeater rows, or live from an RSS feed (headlines) — the
+ * backend connector resolves either into one `{ messages }` payload, so the
+ * band is identical to render whichever source feeds it.
  */
 export const tickerManifest: AppManifest = {
   slug: 'ticker',
   name: 'Ticker',
   tagline: 'Scroll announcements across the screen',
   description:
-    'A moving band of short messages — news, notices, opening hours. Add a row per message.',
+    'A moving band of short messages or live RSS headlines, always visible over your content — pick the screens it shows on.',
   runtimeKind: 'embed',
-  dataSource: 'static',
-  version: 1,
+  dataSource: 'server',
+  version: 2,
+  overlay: true,
+  // RSS mode refresh cadence; the messages mode payload is effectively free.
+  refreshSeconds: 300,
   icon: TICKER_ICON,
   color: '#F43F5E',
   configSchema: [
     {
+      key: 'screens',
+      type: 'screens',
+      label: 'Show on screens',
+      help: 'The ticker stays visible over everything these screens play.',
+    },
+    {
+      key: 'source',
+      type: 'select',
+      label: 'Source',
+      default: 'messages',
+      options: [
+        { label: 'My messages', value: 'messages' },
+        { label: 'RSS feed', value: 'rss' },
+      ],
+      help: 'Scroll your own messages, or live headlines from an RSS feed.',
+    },
+    {
       key: 'messages',
       type: 'repeater',
       label: 'Messages',
-      help: 'The messages to scroll, one per row. They repeat in order.',
+      help: 'The messages to scroll. They repeat in order — drag to reorder.',
       required: true,
       validation: { min: 1 },
+      visibleWhen: { field: 'source', equals: 'messages' },
       fields: [
         {
           key: 'message',
@@ -43,6 +65,15 @@ export const tickerManifest: AppManifest = {
           placeholder: 'Welcome!',
         },
       ],
+    },
+    {
+      key: 'rssUrl',
+      type: 'url',
+      label: 'RSS feed URL',
+      required: true,
+      placeholder: 'https://example.com/feed.xml',
+      visibleWhen: { field: 'source', equals: 'rss' },
+      help: 'Headlines from this feed scroll in the band and refresh automatically.',
     },
     {
       key: 'speed',
@@ -70,10 +101,9 @@ export const tickerManifest: AppManifest = {
       type: 'select',
       label: 'Position',
       help: 'Where the band sits on the screen.',
-      default: 'middle',
+      default: 'bottom',
       options: [
         { label: 'Top', value: 'top' },
-        { label: 'Middle', value: 'middle' },
         { label: 'Bottom', value: 'bottom' },
       ],
     },
@@ -81,7 +111,7 @@ export const tickerManifest: AppManifest = {
       key: 'theme',
       type: 'select',
       label: 'Theme',
-      help: 'A starting point — it fills in the colours below, which you can still change.',
+      help: 'A starting point — it fills in the colors below, which you can still change.',
       default: 'dark',
       options: [
         {
@@ -90,7 +120,6 @@ export const tickerManifest: AppManifest = {
           set: {
             backgroundColor: '#FFFFFF',
             textColor: '#0F172A',
-            accentColor: DEFAULT_ACCENT,
           },
         },
         {
@@ -99,7 +128,6 @@ export const tickerManifest: AppManifest = {
           set: {
             backgroundColor: '#000000',
             textColor: '#FFFFFF',
-            accentColor: DEFAULT_ACCENT,
           },
         },
       ],
@@ -107,25 +135,19 @@ export const tickerManifest: AppManifest = {
     {
       key: 'backgroundColor',
       type: 'color',
-      label: 'Background colour',
+      label: 'Background color',
       section: 'Theme Settings',
       default: '#000000',
     },
     {
       key: 'textColor',
       type: 'color',
-      label: 'Text colour',
+      label: 'Text color',
       section: 'Theme Settings',
       default: '#FFFFFF',
     },
-    {
-      key: 'accentColor',
-      type: 'color',
-      label: 'Accent colour',
-      section: 'Theme Settings',
-      help: 'The separators between messages.',
-      default: DEFAULT_ACCENT,
-    },
+    // No accent color: the separators between messages simply follow the text
+    // color, so the band never needs a third swatch to keep in tune.
     ...styleFields(),
   ],
 }

@@ -34,13 +34,7 @@ async function getOrNull<T>(url: string): Promise<T | null> {
 export interface CreateAppPayload {
   slug: string
   name: string
-  tagline: string
-  description: string
-  about?: string | undefined
-  iconSvg?: string | undefined
-  color?: string | undefined
   isPublic?: boolean | undefined
-  categoryIds?: string[] | undefined
 }
 
 export type UpdateAppPayload = Partial<Omit<CreateAppPayload, 'slug'>>

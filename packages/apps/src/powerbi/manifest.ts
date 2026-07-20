@@ -8,8 +8,8 @@ const POWERBI_URL_PATTERN = '^https://([a-z0-9-]+\\.)*powerbi\\.com/.+'
 
 /**
  * Power BI — a `static` app that embeds a Power BI report published for public
- * viewing, the Power BI analogue of `gslides-public`. The operator uses Power
- * BI's "Publish to web" and pastes the resulting `app.powerbi.com/view?r=…`
+ * viewing. The operator uses Power BI's "Publish to web" and pastes the
+ * resulting `app.powerbi.com/view?r=…`
  * link; the embed renders it in a sandboxed iframe and can reload it on a
  * cadence. No account, no OAuth, no capacity.
  *

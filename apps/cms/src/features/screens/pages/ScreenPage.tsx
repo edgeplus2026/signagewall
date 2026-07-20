@@ -113,8 +113,8 @@ export default function ScreenPage() {
             <TabsList variant="line" className="w-fit shrink-0">
               <TabsTrigger value="content">{t('screens.manage.tabs.content')}</TabsTrigger>
               <TabsTrigger value="device">{t('screens.manage.tabs.device')}</TabsTrigger>
-              <TabsTrigger value="settings">{t('screens.manage.tabs.settings')}</TabsTrigger>
               <TabsTrigger value="availability">{t('screens.manage.tabs.availability')}</TabsTrigger>
+              <TabsTrigger value="settings">{t('screens.manage.tabs.settings')}</TabsTrigger>
             </TabsList>
 
             <div className="flex items-center gap-2 sm:ml-auto">

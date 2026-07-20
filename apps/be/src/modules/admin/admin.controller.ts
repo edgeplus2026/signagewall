@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -7,6 +15,7 @@ import {
   AdminUserListItemSchema,
   ApiBearerAuthRequired,
   ApiCommonErrorResponses,
+  ApiSuccessNullResponse,
   ApiSuccessResponse,
   AuthResponseSchema,
   PaginatedAdminUsersSchema,
@@ -67,5 +76,15 @@ export class AdminController {
     @Param('id') targetUserId: string,
   ) {
     return this.adminService.demoteFromSuperAdmin(user.id, targetUserId);
+  }
+
+  @Delete('users/:id')
+  @ApiSuccessNullResponse()
+  async deleteUser(
+    @CurrentUser() user: RequestUser,
+    @Param('id') targetUserId: string,
+  ): Promise<null> {
+    await this.adminService.deleteUser(user.id, targetUserId);
+    return null;
   }
 }

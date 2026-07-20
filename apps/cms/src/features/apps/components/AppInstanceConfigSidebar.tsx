@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import { AppIcon } from '@/features/apps/components/AppIcon'
 import { SchemaForm } from '@/features/apps/config-form'
+import { appTagline } from '@/features/apps/lib/appCopy'
 import type { AppInstanceConfig, EdgeApp } from '@/features/apps/types/app.types'
 
 interface AppInstanceConfigSidebarProps {
@@ -32,7 +33,7 @@ export function AppInstanceConfigSidebar({
         <AppIcon iconSvg={app.iconSvg} color={app.color} className="size-12 rounded-xl shadow-md" />
         <div className="flex min-w-0 flex-col gap-0.5">
           <h2 className="text-sm font-semibold text-primary">{app.name}</h2>
-          <p className="text-xs text-secondary">{app.tagline}</p>
+          <p className="text-xs text-secondary">{appTagline(t, app.slug)}</p>
         </div>
       </div>
 

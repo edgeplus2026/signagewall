@@ -104,7 +104,7 @@ export function MoveMediaSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="visible-scrollbar min-h-0 flex-1 overflow-y-auto py-2">
+        <div className="visible-scrollbar min-h-0 flex-1 overflow-y-auto py-2 px-3">
           <FolderTree
             nodes={tree}
             selectedId={selectedFolderId}
@@ -114,7 +114,7 @@ export function MoveMediaSheet({
           />
         </div>
 
-        <SheetFooter>
+        <SheetFooter className="flex-row justify-end gap-2 border-t border-secondary">
           <Button
             type="button"
             variant="outline"

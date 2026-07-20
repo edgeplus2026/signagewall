@@ -54,9 +54,32 @@ export class WebhooksController {
     @Headers('x-goog-channel-id') channelId?: string,
     @Headers('x-goog-resource-state') resourceState?: string,
   ): Promise<void> {
+    await this.handleChannelPing(channelId, resourceState);
+  }
+
+  /**
+   * Drive `files.watch` pings — the menu board's Google Sheets sync (and any
+   * future file-backed tabular connector). Identical semantics to `calendar`:
+   * a channel id we generated resolves to one cache key, and the ping carries
+   * no diff, so all it does is schedule a coalesced re-fetch of that key.
+   */
+  @Public()
+  @Post('drive')
+  @HttpCode(200)
+  async drive(
+    @Headers('x-goog-channel-id') channelId?: string,
+    @Headers('x-goog-resource-state') resourceState?: string,
+  ): Promise<void> {
+    await this.handleChannelPing(channelId, resourceState);
+  }
+
+  private async handleChannelPing(
+    channelId?: string,
+    resourceState?: string,
+  ): Promise<void> {
     // The handshake Google sends the moment a channel is registered. It means "you
     // are subscribed", not "something changed" — refreshing on it would fetch the
-    // calendar we have this second finished fetching.
+    // resource we have this second finished fetching.
     if (!channelId || resourceState === 'sync') {
       return;
     }

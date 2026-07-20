@@ -4,6 +4,7 @@
   "cannotImpersonateSelf": "You cannot impersonate your own account.",
   "cannotPromoteSelf": "You cannot change your own super-admin role.",
   "cannotDemoteSelf": "You cannot remove your own super-admin role.",
+  "cannotDeleteSelf": "You cannot permanently delete your own account.",
   "alreadySuperAdmin": "This user is already a super-admin.",
   "notSuperAdmin": "This user is not a super-admin."
 }

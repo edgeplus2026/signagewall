@@ -1,74 +1,291 @@
-/* Crypto price board. Rows: symbol + name on the left, price and 24h change on
-   the right. The change is coloured semantically (up green, down red), which is
-   why those two colours are literals here, not the app accent. */
+/* Crypto price board — terminal/arcade look. Monospace type, per-coin accent
+   colours (--coin, set inline per row), neon glow and CRT scanlines on the dark
+   theme; the light theme keeps the layout but drops the glow and darkens the
+   accents for contrast. Up/down colours are semantic literals, not the accent. */
+
+#app.cx-dark {
+  --cx-bg: #04090d;
+  --cx-fg: #d7fbe8;
+  --cx-dim: rgba(215, 251, 232, 0.55);
+  --cx-accent: #00ff9c;
+  --cx-up: #00ff9c;
+  --cx-down: #ff4d5e;
+  --cx-row-bg: rgba(0, 255, 156, 0.045);
+  --cx-row-border: rgba(0, 255, 156, 0.16);
+  --cx-glow: 0 0 0.35em;
+}
+
+#app.cx-light {
+  --cx-bg: #f2f6f3;
+  --cx-fg: #0b1512;
+  --cx-dim: rgba(11, 21, 18, 0.55);
+  --cx-accent: #047857;
+  --cx-up: #047857;
+  --cx-down: #b91c1c;
+  --cx-row-bg: rgba(4, 120, 87, 0.05);
+  --cx-row-border: rgba(4, 120, 87, 0.18);
+  --cx-glow: 0 0 0;
+}
 
 .cx {
+  position: relative;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 5vh 6vw;
+  padding: 3.5vh 4vw 4.5vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 1.8vh;
-  font-family: var(--app-font, inherit);
-  font-weight: var(--app-font-weight, 400);
-  letter-spacing: var(--app-letter-spacing, 0);
+  gap: 2vh;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(0, 255, 156, 0.03) 1px, transparent 1px) 0 0 / 100% 4vmin,
+    linear-gradient(90deg, rgba(0, 255, 156, 0.03) 1px, transparent 1px) 0 0 / 4vmin 100%,
+    radial-gradient(ellipse at 50% 0%, rgba(0, 255, 156, 0.07), transparent 60%),
+    var(--cx-bg);
+  color: var(--cx-fg);
+  font-family: ui-monospace, 'Cascadia Mono', 'JetBrains Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+}
+
+#app.cx-light .cx {
+  background:
+    linear-gradient(rgba(4, 120, 87, 0.04) 1px, transparent 1px) 0 0 / 100% 4vmin,
+    linear-gradient(90deg, rgba(4, 120, 87, 0.04) 1px, transparent 1px) 0 0 / 4vmin 100%,
+    var(--cx-bg);
+}
+
+/* CRT scanlines + a slow sweeping glare, dark theme only. */
+.cx-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.22) 0,
+    rgba(0, 0, 0, 0.22) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  opacity: 0.5;
+}
+.cx-scan::after {
+  content: '';
+  position: absolute;
+  inset: -30% 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 255, 156, 0.05) 50%,
+    transparent 100%
+  );
+  animation: cx-sweep 9s linear infinite;
+}
+#app.cx-light .cx-scan {
+  display: none;
+}
+@keyframes cx-sweep {
+  from {
+    transform: translateY(-45%);
+  }
+  to {
+    transform: translateY(45%);
+  }
+}
+
+/* ---- Header ---- */
+
+.cx-head {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2vw;
+  border-bottom: 1px solid var(--cx-row-border);
+  padding-bottom: 1.4vh;
+}
+
+.cx-title {
+  font-size: min(2.6vw, 4.6vh);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-shadow: var(--cx-glow) color-mix(in srgb, var(--cx-accent) 55%, transparent);
+}
+.cx-title-dim {
+  color: var(--cx-dim);
+  text-shadow: none;
+}
+
+.cx-cursor {
+  display: inline-block;
+  color: var(--cx-accent);
+  animation: cx-blink 1.1s steps(1) infinite;
+}
+@keyframes cx-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.cx-status {
+  display: flex;
+  align-items: center;
+  gap: 1.4vw;
+  font-size: min(1.6vw, 2.8vh);
+  letter-spacing: 0.14em;
+}
+.cx-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  color: var(--cx-up);
+  font-weight: 700;
+}
+.cx-live-dot {
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: var(--cx-up);
+  box-shadow: 0 0 0.6em var(--cx-up);
+  animation: cx-pulse 1.6s ease-in-out infinite;
+}
+@keyframes cx-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+.cx-vs {
+  color: var(--cx-dim);
+  border: 1px solid var(--cx-row-border);
+  padding: 0.15em 0.6em;
+  border-radius: 0.3em;
+  font-weight: 700;
+}
+
+/* ---- Rows ---- */
+
+.cx-list {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 1.2vh;
 }
 
 .cx-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 4vw;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  padding-bottom: 1.6vh;
+  gap: 2.2vw;
+  padding: 1.2vh 2vw;
+  background: var(--cx-row-bg);
+  border: 1px solid var(--cx-row-border);
+  border-left: 0.4vw solid var(--coin, var(--cx-accent));
+  border-radius: 0.5vmin;
 }
-.cx-row:last-child {
-  border-bottom: 0;
+
+.cx-rank {
+  font-size: min(1.8vw, 3.2vh);
+  font-weight: 700;
+  color: var(--cx-dim);
+  letter-spacing: 0.08em;
 }
 
 .cx-id {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 .cx-sym {
-  font-size: calc(min(3.4vw, 6vh) * var(--app-font-scale, 1));
-  font-weight: 700;
+  font-size: min(3vw, 5.4vh);
+  font-weight: 800;
   line-height: 1.05;
+  letter-spacing: 0.06em;
+  color: var(--coin, var(--cx-accent));
+  text-shadow: var(--cx-glow) color-mix(in srgb, var(--coin, var(--cx-accent)) 45%, transparent);
+}
+#app.cx-light .cx-sym {
+  color: color-mix(in srgb, var(--coin, var(--cx-accent)) 65%, #000);
 }
 .cx-name {
-  font-size: calc(min(1.7vw, 3vh) * var(--app-font-scale, 1));
-  opacity: 0.65;
+  font-size: min(1.5vw, 2.6vh);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cx-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cx-right {
+  margin-left: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.4vh;
+  gap: 0.5vh;
 }
 .cx-price {
   font-variant-numeric: tabular-nums;
-  font-size: calc(min(3.4vw, 6vh) * var(--app-font-scale, 1));
-  font-weight: 700;
+  font-size: min(3vw, 5.4vh);
+  font-weight: 800;
   white-space: nowrap;
+  text-shadow: var(--cx-glow) color-mix(in srgb, var(--cx-fg) 25%, transparent);
 }
 .cx-change {
   font-variant-numeric: tabular-nums;
-  font-size: calc(min(1.9vw, 3.4vh) * var(--app-font-scale, 1));
-  font-weight: 600;
+  font-size: min(1.7vw, 3vh);
+  font-weight: 700;
   white-space: nowrap;
+  padding: 0.1em 0.55em;
+  border-radius: 0.3em;
 }
 .cx-up {
-  color: #16a34a;
+  color: var(--cx-up);
+  background: color-mix(in srgb, var(--cx-up) 12%, transparent);
+  text-shadow: var(--cx-glow) color-mix(in srgb, var(--cx-up) 55%, transparent);
 }
 .cx-down {
-  color: #dc2626;
+  color: var(--cx-down);
+  background: color-mix(in srgb, var(--cx-down) 12%, transparent);
+  text-shadow: var(--cx-glow) color-mix(in srgb, var(--cx-down) 55%, transparent);
+}
+
+/* Flash the row whose price moved since the previous refresh. */
+.cx-tick-up {
+  animation: cx-flash-up 1.4s ease-out 1;
+}
+.cx-tick-down {
+  animation: cx-flash-down 1.4s ease-out 1;
+}
+@keyframes cx-flash-up {
+  0% {
+    background: color-mix(in srgb, var(--cx-up) 22%, transparent);
+  }
+  100% {
+    background: var(--cx-row-bg);
+  }
+}
+@keyframes cx-flash-down {
+  0% {
+    background: color-mix(in srgb, var(--cx-down) 22%, transparent);
+  }
+  100% {
+    background: var(--cx-row-bg);
+  }
+}
+
+/* ---- Footer / states ---- */
+
+.cx-foot {
+  font-size: min(1.2vw, 2vh);
+  letter-spacing: 0.2em;
+  color: var(--cx-dim);
 }
 
 .cx-empty {
   margin: auto;
   font-size: 3vh;
-  opacity: 0.6;
+  letter-spacing: 0.14em;
+  color: var(--cx-accent);
+  text-shadow: var(--cx-glow) color-mix(in srgb, var(--cx-accent) 55%, transparent);
 }

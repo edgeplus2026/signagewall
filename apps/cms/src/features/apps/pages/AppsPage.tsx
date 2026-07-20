@@ -45,7 +45,7 @@ export default function AppsPage() {
           <h1 className="text-primary text-xl font-medium tracking-tight">
             {t('apps.title')}
           </h1>
-          <span className="bg-brand/10 text-brand inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium">
+          <span className="bg-success/10 text-success inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium">
             {t('apps.count', { count: apps.length })}
           </span>
         </div>

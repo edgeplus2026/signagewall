@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
+import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
 
 import type {
   ConfigSchema,
@@ -7,6 +7,12 @@ import type {
   RuntimeKind,
 } from '@edge/apps-contract';
 
+/**
+ * Catalog entry for a code-defined app. Presentation COPY (tagline, description,
+ * about) and CATEGORIES are NOT stored here — they live in code and the CMS i18n
+ * bundle (`apps.catalog.<slug>.*`, `apps.categories.*`), keyed by `slug`, so the
+ * store ships translated. This holds only the technical definition + governance.
+ */
 @Schema({ timestamps: true, collection: 'apps' })
 export class App {
   /** Stable identifier; the player registry key and catalog slug. */
@@ -15,16 +21,6 @@ export class App {
 
   @Prop({ required: true, trim: true })
   name!: string;
-
-  @Prop({ required: true, trim: true })
-  tagline!: string;
-
-  @Prop({ required: true, trim: true })
-  description!: string;
-
-  /** Long marketing copy for the "About this app" section. */
-  @Prop({ default: '' })
-  about!: string;
 
   @Prop({ type: String, required: true, default: 'native' })
   runtimeKind!: RuntimeKind;
@@ -39,6 +35,14 @@ export class App {
   @Prop({ required: true, default: 1, min: 1 })
   version!: number;
 
+  /**
+   * True for apps that render as a persistent overlay over a screen's content
+   * (e.g. the ticker band) instead of taking a rotation slot. Synced from the
+   * code manifest; the CMS hides such apps from the content pickers.
+   */
+  @Prop({ default: false })
+  overlay!: boolean;
+
   /** Inline SVG markup used as the app icon. */
   @Prop({ default: '' })
   iconSvg!: string;
@@ -50,10 +54,6 @@ export class App {
   /** The single public/private toggle — only public apps are offered to organizations. */
   @Prop({ required: true, default: false })
   isPublic!: boolean;
-
-  /** Catalog categories this app belongs to (super-admin managed). */
-  @Prop({ type: [Types.ObjectId], ref: 'AppCategory', default: [] })
-  categoryIds!: Types.ObjectId[];
 
   createdAt!: Date;
   updatedAt!: Date;

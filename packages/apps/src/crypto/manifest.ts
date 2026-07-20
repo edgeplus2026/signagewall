@@ -1,6 +1,5 @@
 import type { AppManifest } from '@edge/apps-contract'
 
-import { styleFields } from '../_shared/style-fields.js'
 import { coinOptions } from './coins.js'
 
 const CRYPTO_ICON =
@@ -21,7 +20,7 @@ export const cryptoManifest: AppManifest = {
     'Show live prices for the coins you choose, in your currency, with the 24-hour change.',
   runtimeKind: 'embed',
   dataSource: 'server',
-  version: 1,
+  version: 2,
   refreshSeconds: 300,
   icon: CRYPTO_ICON,
   color: '#F59E0B',
@@ -30,9 +29,9 @@ export const cryptoManifest: AppManifest = {
       key: 'coins',
       type: 'multiselect',
       label: 'Coins',
-      help: 'Which coins to show. They appear in a consistent order.',
+      help: 'Which coins to show, up to 5. They appear in a consistent order.',
       default: ['bitcoin', 'ethereum'],
-      validation: { min: 1, max: 12 },
+      validation: { min: 1, max: 5 },
       options: coinOptions(),
     },
     {
@@ -64,6 +63,5 @@ export const cryptoManifest: AppManifest = {
         { label: 'Dark', value: 'dark' },
       ],
     },
-    ...styleFields(),
   ],
 }

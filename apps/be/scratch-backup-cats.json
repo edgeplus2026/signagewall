@@ -1,0 +1,92 @@
+[
+  {
+    "_id": "6a42d4e56085a2d5536b07bf",
+    "name": "Social Media",
+    "slug": "social-media",
+    "order": 0,
+    "createdAt": "2026-06-29T20:26:13.095Z",
+    "updatedAt": "2026-06-29T20:26:13.095Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a42d5196085a2d5536b07c0",
+    "name": "News",
+    "slug": "news",
+    "order": 0,
+    "createdAt": "2026-06-29T20:27:05.557Z",
+    "updatedAt": "2026-06-29T20:27:05.557Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a42d52e6085a2d5536b07c1",
+    "name": "General",
+    "slug": "general",
+    "order": 0,
+    "createdAt": "2026-06-29T20:27:26.023Z",
+    "updatedAt": "2026-06-29T20:27:26.023Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5a118f7c94357315142a49",
+    "name": "Information",
+    "slug": "information",
+    "order": 1,
+    "createdAt": "2026-07-17T11:27:11.149Z",
+    "updatedAt": "2026-07-17T11:27:11.149Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5a118f7c94357315142a4a",
+    "name": "Finance",
+    "slug": "finance",
+    "order": 2,
+    "createdAt": "2026-07-17T11:27:11.536Z",
+    "updatedAt": "2026-07-17T11:27:11.536Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5a118f7c94357315142a4b",
+    "name": "Productivity",
+    "slug": "productivity",
+    "order": 3,
+    "createdAt": "2026-07-17T11:27:11.600Z",
+    "updatedAt": "2026-07-17T11:27:11.600Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5a118f7c94357315142a4c",
+    "name": "Data & Dashboards",
+    "slug": "data-dashboards",
+    "order": 4,
+    "createdAt": "2026-07-17T11:27:11.664Z",
+    "updatedAt": "2026-07-17T11:27:11.664Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5a118f7c94357315142a4d",
+    "name": "Media",
+    "slug": "media",
+    "order": 5,
+    "createdAt": "2026-07-17T11:27:11.734Z",
+    "updatedAt": "2026-07-17T11:27:11.734Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5a118f7c94357315142a4e",
+    "name": "Social",
+    "slug": "social",
+    "order": 6,
+    "createdAt": "2026-07-17T11:27:11.795Z",
+    "updatedAt": "2026-07-17T11:27:11.795Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5a118f7c94357315142a4f",
+    "name": "Utilities",
+    "slug": "utilities",
+    "order": 7,
+    "createdAt": "2026-07-17T11:27:11.868Z",
+    "updatedAt": "2026-07-17T11:27:11.868Z",
+    "__v": 0
+  }
+]

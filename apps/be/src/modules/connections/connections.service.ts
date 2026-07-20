@@ -3,7 +3,10 @@ import { randomBytes, createHash } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import type { ResolvedConnection } from '@edge/apps-contract';
+import {
+  oauthDescriptorFor,
+  type ResolvedConnection,
+} from '@edge/apps-contract';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { EncryptionService } from '../../common/services/encryption.service';
@@ -11,19 +14,22 @@ import { getConnector } from '../apps/connectors/connector-registry';
 import { ConnectionsRepository } from './connections.repository';
 import { searchCanvaDesigns } from './providers/canva-api';
 import {
+  fetchSheetTable,
   listGoogleCalendars,
   listGooglePresentations,
   listGoogleSpreadsheets,
 } from './providers/google-api';
-import { searchDrivePptx } from './providers/graph-api';
+import {
+  fetchWorkbookTable,
+  searchDrivePptx,
+  searchDriveXlsx,
+  unpackDriveItem,
+} from './providers/graph-api';
 import {
   listMicrosoftCalendars,
   listTeamsChannels,
 } from './providers/microsoft-api';
-import {
-  listFacebookPages,
-  listInstagramAccounts,
-} from './providers/meta-api';
+import { listFacebookPages, listInstagramAccounts } from './providers/meta-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
 import { metaOAuthProvider } from './providers/meta.oauth';
@@ -339,6 +345,9 @@ export class ConnectionsService {
       case 'powerpoint-files':
         this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
         return searchDrivePptx(connection.accessToken, query);
+      case 'excel-files':
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        return searchDriveXlsx(connection.accessToken, query);
       case 'google-sheets':
         this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
         return listGoogleSpreadsheets(connection.accessToken, query);
@@ -369,6 +378,59 @@ export class ConnectionsService {
       throw BusinessException.badRequest(
         `Connection is not a ${expected} account.`,
       );
+    }
+  }
+
+  /**
+   * The header row of a synced spreadsheet, for the CMS `column-mapping`
+   * control. `kind` picks the provider reader ('gsheets' | 'excel'); `fileId`
+   * is the picked file's id (Excel: packed `"driveId|itemId"`); `worksheet` may
+   * be blank for the first sheet. Same ownership/refresh guarantees as
+   * {@link browseRemoteOptions}.
+   */
+  async fetchTabularHeaders(
+    organizationId: string,
+    id: string,
+    kind: string,
+    fileId: string,
+    worksheet: string,
+  ): Promise<{ headers: string[] }> {
+    await this.assertOwned(organizationId, id);
+    const connection = await this.resolveConnection(id);
+
+    if (!fileId.trim()) {
+      throw BusinessException.badRequest('Missing fileId.');
+    }
+
+    switch (kind) {
+      case 'gsheets': {
+        this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
+        // Header row only — one data row is enough to prove the sheet reads.
+        const table = await fetchSheetTable(
+          connection.accessToken,
+          fileId.trim(),
+          worksheet,
+          1,
+        );
+        return { headers: table.headers };
+      }
+      case 'excel': {
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        const unpacked = unpackDriveItem(fileId.trim());
+        if (!unpacked) {
+          throw BusinessException.badRequest('Invalid workbook id.');
+        }
+        const table = await fetchWorkbookTable(
+          connection.accessToken,
+          unpacked.driveId,
+          unpacked.itemId,
+          worksheet,
+          1,
+        );
+        return { headers: table.headers };
+      }
+      default:
+        throw BusinessException.badRequest(`Unknown tabular kind "${kind}".`);
     }
   }
 
@@ -415,8 +477,10 @@ export class ConnectionsService {
     appSlug: string,
     provider: ConnectionProvider,
   ): string[] {
-    const oauth = getConnector(appSlug)?.oauth;
-    if (!oauth || oauth.provider !== String(provider)) {
+    // Multi-provider connectors (e.g. the menu board syncing from Google
+    // Sheets OR Excel) declare one descriptor per provider.
+    const oauth = oauthDescriptorFor(getConnector(appSlug), String(provider));
+    if (!oauth) {
       throw BusinessException.badRequest(
         `App "${appSlug}" has no ${provider} OAuth descriptor.`,
       );

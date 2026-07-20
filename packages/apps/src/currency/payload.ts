@@ -1,9 +1,10 @@
 /**
  * Normalized FX payload — the shared contract between the backend `currency`
- * connector (which fetches ECB reference rates via Frankfurter) and the embed
- * bundle (which renders them). One unit of `base` buys `rate` units of `code`.
+ * connector (which fetches daily reference rates from the open currency-api
+ * dataset) and the embed bundle (which renders them). One unit of `base` buys
+ * `rate` units of `code`.
  *
- * `date` is the upstream reference date (ECB publishes once per working day), so
+ * `date` is the upstream reference date (published once per day), so
  * it changes with the DATA, not with the fetch — an unchanged day of rates does
  * not fan out to every screen on each refresh.
  */

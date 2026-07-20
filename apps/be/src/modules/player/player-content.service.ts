@@ -3,11 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 
 import type {
+  AppRenderable,
   AvailabilityRule,
   ImageRenderable,
   PlayerSnapshot,
   Renderable,
-  SnapshotZone,
   VideoRenderable,
 } from '@edge/player-contract';
 
@@ -23,6 +23,7 @@ import {
 import { AppDataCacheRepository } from '../apps/app-data-cache.repository';
 import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
+import { OVERLAY_SLUGS, overlayScreenIds } from '../apps/overlay.util';
 import { AppInstanceDocument } from '../apps/schemas/app-instance.schema';
 import { MediaRepository } from '../media/media.repository';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
@@ -34,8 +35,6 @@ import {
   ScreenAvailabilityMode,
   ScreenItemDocument,
   ScreenItemType,
-  ScreenLayout,
-  ScreenZoneKey,
 } from '../screens/schemas/screen.schema';
 
 const DEFAULT_DURATION_SECONDS = 15;
@@ -133,39 +132,16 @@ export class PlayerContentService {
       screen.items,
     );
 
-    // Split-screen: resolve each zone the layout defines with the same
-    // machinery as the main items. Zones with no items are dropped here — the
-    // player degrades its layout to the zones that actually arrive.
-    const zoneKeys = this.zonesForLayout(screen.layout);
-    const pendingZones: Array<{
-      key: ScreenZoneKey;
-      pending: PendingEntry[];
-    }> = [];
-    for (const key of zoneKeys) {
-      const zoneItems =
-        screen.zones?.find((zone) => zone.key === key)?.items ?? [];
-      if (zoneItems.length === 0) {
-        continue;
-      }
-      pendingZones.push({
-        key,
-        pending: await this.collectPendingItems(organizationId, zoneItems),
-      });
-    }
-
-    // One batched load across the main items AND every zone, so a split screen
-    // still costs the same two queries as a fullscreen one.
-    const allPending = [...pending, ...pendingZones.flatMap((z) => z.pending)];
     const [mediaById, appById] = await Promise.all([
       this.loadMediaMap(
         organizationId,
-        allPending.flatMap((entry) =>
+        pending.flatMap((entry) =>
           entry.kind === 'media' ? [entry.mediaId] : [],
         ),
       ),
       this.loadAppMap(
         organizationId,
-        allPending.flatMap((entry) =>
+        pending.flatMap((entry) =>
           entry.kind === 'app' ? [entry.appInstanceId] : [],
         ),
       ),
@@ -210,25 +186,16 @@ export class PlayerContentService {
       revisionParts,
     };
 
-    const items = this.buildRenderables(pending, context, '');
-    const zones: SnapshotZone[] = [];
-    for (const zone of pendingZones) {
-      const zoneItems = this.buildRenderables(
-        zone.pending,
-        context,
-        `${zone.key}:`,
-      );
-      if (zoneItems.length > 0) {
-        zones.push({ key: zone.key, items: zoneItems });
-      }
-    }
-    // Only ship a layout when a defined zone actually resolved content; a split
-    // preset with empty zones plays exactly like a fullscreen screen.
-    const layout =
-      screen.layout && screen.layout !== ScreenLayout.FULLSCREEN && zones.length > 0
-        ? screen.layout
-        : undefined;
-    revisionParts.push(`layout:${layout ?? 'fullscreen'}`);
+    const items = this.buildRenderables(pending, context);
+
+    // Persistent overlay apps assigned to this screen (via their `screens`
+    // config), resolved AFTER the rotation so their fingerprint lands in the
+    // same revision — an overlay edit re-pushes the snapshot like any other.
+    const overlays = await this.resolveOverlays(
+      organizationId,
+      screenId,
+      revisionParts,
+    );
 
     // The availability rule rides in the snapshot AND in the revision: the
     // gateway only re-pushes on reconnect when revisions differ, so without
@@ -242,20 +209,98 @@ export class PlayerContentService {
       name: screen.name,
       revision: this.hashRevision(revisionParts),
       items,
-      ...(layout ? { layout, zones } : {}),
       ...(availability ? { availability } : {}),
+      ...(overlays.length > 0 ? { overlays } : {}),
     };
   }
 
   /**
-   * Resolves one ordered pending list into renderables, appending each item's
-   * revision fingerprint (prefixed with its zone, so identical content in two
-   * zones still hashes apart) to the shared revision parts.
+   * Resolve the overlay app instances (manifest `overlay: true`) assigned to
+   * `screenId` through their `screens` config field, with their latest
+   * connector payloads. Each contributes to the revision (config edits, data
+   * refreshes and assignment changes all re-push). `durationMs` is 0 — an
+   * overlay has no dwell time.
+   */
+  private async resolveOverlays(
+    organizationId: string,
+    screenId: string,
+    revisionParts: string[],
+  ): Promise<AppRenderable[]> {
+    if (OVERLAY_SLUGS.size === 0) {
+      return [];
+    }
+    const instances =
+      await this.appInstancesRepository.findByOrganization(organizationId);
+    const assigned = instances.filter(
+      (instance) =>
+        OVERLAY_SLUGS.has(instance.appSlug) &&
+        overlayScreenIds(instance.config).includes(screenId),
+    );
+    if (assigned.length === 0) {
+      return [];
+    }
+
+    const cacheKeyByInstanceId = new Map<string, string>();
+    for (const instance of assigned) {
+      const cacheKey = cacheKeyForInstance(instance);
+      if (cacheKey) {
+        cacheKeyByInstanceId.set(instance._id.toString(), cacheKey);
+      }
+    }
+    const cacheByKey = new Map<
+      string,
+      { payload: unknown; fetchedAt?: Date; stale: boolean }
+    >();
+    if (cacheKeyByInstanceId.size > 0) {
+      const entries = await this.appDataCacheRepository.findByCacheKeys([
+        ...new Set(cacheKeyByInstanceId.values()),
+      ]);
+      for (const entry of entries) {
+        cacheByKey.set(entry.cacheKey, {
+          payload: entry.payload,
+          ...(entry.fetchedAt ? { fetchedAt: entry.fetchedAt } : {}),
+          stale: Boolean(entry.lastError),
+        });
+      }
+    }
+
+    const overlays: AppRenderable[] = [];
+    for (const instance of assigned) {
+      const id = instance._id.toString();
+      const cacheKey = cacheKeyByInstanceId.get(id);
+      const cached = cacheKey ? cacheByKey.get(cacheKey) : undefined;
+      overlays.push({
+        id,
+        kind: 'app',
+        slug: instance.appSlug,
+        config: instance.config,
+        durationMs: 0,
+        ...(cacheKey ? { data: cached?.payload ?? null } : {}),
+        ...(cacheKey
+          ? {
+              dataMeta: {
+                ...(cached?.fetchedAt
+                  ? { fetchedAt: cached.fetchedAt.toISOString() }
+                  : {}),
+                stale: cached?.stale ?? false,
+              },
+            }
+          : {}),
+      });
+      revisionParts.push(
+        `overlay:${id}:${instance.appSlug}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
+      );
+    }
+    return overlays;
+  }
+
+  /**
+   * Resolves the ordered pending list into renderables, appending each item's
+   * revision fingerprint to the shared revision parts.
    */
   private buildRenderables(
     pending: PendingEntry[],
     context: RenderableContext,
-    revPrefix: string,
   ): PlayerRenderable[] {
     const items: PlayerRenderable[] = [];
     for (const entry of pending) {
@@ -273,7 +318,7 @@ export class PlayerContentService {
         // Include the media's updatedAt so replacing a file (same id) or editing
         // a playlist changes the revision even when screen.updatedAt is untouched.
         context.revisionParts.push(
-          `${revPrefix}${renderable.id}:${renderable.kind}:${renderable.url}:${renderable.durationMs}:${media?.updatedAt.getTime() ?? 0}`,
+          `${renderable.id}:${renderable.kind}:${renderable.url}:${renderable.durationMs}:${media?.updatedAt.getTime() ?? 0}`,
         );
         continue;
       }
@@ -309,24 +354,10 @@ export class PlayerContentService {
       context.revisionParts.push(
         // Include the payload's fetch time AND staleness so both a refresh and a
         // healthy↔stale transition change the revision and re-push the snapshot.
-        `${revPrefix}${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
+        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
       );
     }
     return items;
-  }
-
-  /** The secondary zones a layout preset defines (empty for fullscreen/legacy). */
-  private zonesForLayout(layout: ScreenLayout | undefined): ScreenZoneKey[] {
-    switch (layout) {
-      case ScreenLayout.MAIN_SIDEBAR:
-        return [ScreenZoneKey.SIDEBAR];
-      case ScreenLayout.MAIN_TICKER:
-        return [ScreenZoneKey.TICKER];
-      case ScreenLayout.MAIN_SIDEBAR_TICKER:
-        return [ScreenZoneKey.SIDEBAR, ScreenZoneKey.TICKER];
-      default:
-        return [];
-    }
   }
 
   /**

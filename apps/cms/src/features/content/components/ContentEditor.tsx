@@ -1,7 +1,7 @@
 import { DndContext, DragOverlay, useDroppable } from '@dnd-kit/core'
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { LibraryIcon, ListVideoIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { LibraryIcon, ListVideoIcon, Trash2Icon } from 'lucide-react'
 import { memo, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -36,6 +36,8 @@ export interface ContentEditorLabels {
   libraryTitle: string
   libraryDescription: string
   librarySearch: string
+  /** Apps-tab search placeholder; only the screen content editor sets it. */
+  appsSearch?: string | undefined
   libraryBack: string
   libraryEmpty: string
   libraryEmptySearch: string
@@ -116,39 +118,23 @@ const ContentPlaceholderCell = memo(function ContentPlaceholderCell() {
   )
 })
 
-const ContentHintCard = memo(function ContentHintCard({
-  labels,
-}: {
-  labels: Pick<ContentEditorLabels, 'hintTitle' | 'hintDescription'>
-}) {
-  return (
-    <div className="border-secondary bg-panel/40 flex min-w-42 flex-col overflow-hidden rounded-xl border border-dashe min-h-56">
-      <div className="flex aspect-4/3 w-full flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
-        <PlusIcon className="text-secondary size-8" />
-        <p className="text-primary text-sm font-medium">{labels.hintTitle}</p>
-        <p className="text-secondary text-xs leading-snug">{labels.hintDescription}</p>
-      </div>
-    </div>
-  )
-})
-
 const ContentRemoveZone = memo(function ContentRemoveZone({ label }: { label: string }) {
   const { setNodeRef, isOver } = useDroppable({ id: CONTENT_REMOVE_ID })
 
   return (
     <div
       ref={setNodeRef}
-      className="pointer-events-none absolute bottom-0 left-1/2 z-30 -translate-x-1/2"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-30 px-2 pb-2"
     >
       <div
         className={cn(
-          'flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium shadow-lg backdrop-blur-sm transition-all duration-200',
+          'flex items-center justify-center gap-2 rounded-xl border py-5 text-sm font-medium shadow-lg backdrop-blur-sm transition-all duration-200',
           isOver
-            ? 'border-danger bg-danger scale-105 text-white shadow-xl'
-            : 'border-danger/30 bg-danger/10 text-danger',
+            ? 'border-danger bg-danger text-white shadow-xl'
+            : 'border-danger/40 bg-danger/10 text-danger',
         )}
       >
-        <Trash2Icon className={cn('size-4 shrink-0 transition-transform', isOver && 'scale-110')} />
+        <Trash2Icon className={cn('size-5 shrink-0 transition-transform', isOver && 'scale-110')} />
         <span>{label}</span>
       </div>
     </div>
@@ -200,7 +186,6 @@ export function ContentEditor({
     collisionDetection,
     renderItems,
     sortableIds,
-    isLibraryDrag,
     activeLibraryDrag,
     activeReorderId,
     dragOverlaySize,
@@ -381,7 +366,6 @@ export function ContentEditor({
                         />
                       )
                     })}
-                    {!isLibraryDrag ? <ContentHintCard labels={labels} /> : null}
                   </div>
                 </SortableContext>
               )}

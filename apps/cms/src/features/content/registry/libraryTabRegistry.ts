@@ -7,6 +7,8 @@ import type { PlaylistSummary } from "@/features/playlists/types/playlist.types"
 /** Labels a library tab panel may consume (superset; each panel reads a subset). */
 export interface LibraryTabLabels {
   librarySearch: string
+  /** Apps-tab search placeholder; only provided by the screen content editor. */
+  appsSearch?: string | undefined
   libraryBack: string
   libraryEmpty: string
   libraryEmptySearch: string

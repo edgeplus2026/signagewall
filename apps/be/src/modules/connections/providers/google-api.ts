@@ -125,6 +125,56 @@ export function listGoogleSpreadsheets(
   );
 }
 
+/** A sheet's cells as displayed text: first row + data rows. */
+export interface SheetTable {
+  headers: string[];
+  rows: string[][];
+}
+
+const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
+
+/**
+ * Read a worksheet's cells as displayed text via the Sheets values API (the
+ * tabular sync). `worksheet` may be blank for the spreadsheet's first sheet —
+ * an unqualified range addresses it. Rows are capped at the source (`maxRows`
+ * data rows after the header row) so a huge sheet can't balloon the fetch.
+ */
+export async function fetchSheetTable(
+  accessToken: string,
+  spreadsheetId: string,
+  worksheet: string,
+  maxRows: number,
+  signal?: AbortSignal,
+): Promise<SheetTable> {
+  // A1 range: rows 1..maxRows+1 across all columns; sheet names are quoted with
+  // internal quotes doubled, so any tab name is safe to embed.
+  const rowRange = `1:${String(maxRows + 1)}`;
+  const name = worksheet.trim();
+  const range = name ? `'${name.replace(/'/g, "''")}'!${rowRange}` : rowRange;
+
+  const url =
+    `${SHEETS_API}/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(range)}` +
+    `?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`;
+  const response = await fetch(url, {
+    headers: { authorization: `Bearer ${accessToken}` },
+    ...(signal ? { signal } : {}),
+  });
+  if (!response.ok) {
+    throw new Error(`google sheets upstream ${response.status}`);
+  }
+  const body = (await response.json()) as {
+    values?: Array<Array<string | number | boolean | null>>;
+  };
+  const values = (body.values ?? []).map((row) =>
+    row.map((cell) =>
+      cell === null || cell === undefined ? '' : String(cell),
+    ),
+  );
+
+  const headers = values[0] ?? [];
+  return { headers, rows: values.slice(1) };
+}
+
 /** List the account's Google Slides decks for the presentation picker. */
 export function listGooglePresentations(
   accessToken: string,

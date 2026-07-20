@@ -1,73 +1,179 @@
-/* Exchange-rate board. A base heading over a list of rows: currency code + name
-   on the left, the rate (in the accent) on the right. */
+/* Exchange-rate board.
+   Header: an accent eyebrow, "1 EUR — Euro" and the reference date.
+   Body: rows of [symbol badge | code + name | rate], one column up to six
+   rates, two columns beyond that (the JS sets --fx-cols / --fx-rows). */
 
 .fx {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 5vh 6vw;
+  padding: 6vh 7vw;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 3vh;
-  font-family: var(--app-font, inherit);
-  font-weight: var(--app-font-weight, 400);
-  letter-spacing: var(--app-letter-spacing, 0);
+  gap: 4vh;
 }
+
+/* Theme classes set by the embed from the `theme` config. */
+.fx-theme-dark {
+  background: radial-gradient(120% 140% at 18% 0%, #17233d 0%, #0b1220 55%, #070c16 100%);
+  color: #e8edf5;
+}
+.fx-theme-light {
+  background: radial-gradient(120% 140% at 18% 0%, #ffffff 0%, #f4f6fa 60%, #e9edf4 100%);
+  color: #101828;
+}
+
+/* ---- Header ---- */
 
 .fx-head {
-  font-size: calc(min(4vw, 6.5vh) * var(--app-font-scale, 1));
-  font-weight: 600;
-  opacity: 0.9;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4vw;
+  padding-bottom: 2.6vh;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent);
 }
 
-.fx-list {
+.fx-eyebrow {
+  font-size: min(1.5vw, 2.4vh);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--fx-accent, #f97316);
+  margin-bottom: 1vh;
+}
+
+.fx-title {
   display: flex;
-  flex-direction: column;
-  gap: 1.8vh;
+  align-items: baseline;
+  gap: 1.4vw;
+}
+.fx-title b {
+  font-size: min(4.4vw, 7vh);
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.fx-title-name {
+  font-size: min(1.9vw, 3.2vh);
+  opacity: 0.55;
+}
+
+.fx-date {
+  font-size: min(1.5vw, 2.6vh);
+  opacity: 0.55;
+  white-space: nowrap;
+  padding-bottom: 0.6vh;
+}
+
+/* ---- Rate rows ---- */
+
+.fx-list {
+  display: grid;
+  grid-template-columns: repeat(var(--fx-cols, 1), 1fr);
+  grid-template-rows: repeat(var(--fx-rows, 6), 1fr);
+  grid-auto-flow: column;
+  column-gap: 6vw;
 }
 
 .fx-row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4vw;
-  border-bottom: 1px solid currentColor;
-  padding-bottom: 1.4vh;
+  align-items: center;
+  gap: min(2vw, 3vh);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
 }
-.fx-row:last-child {
+.fx-row-last {
   border-bottom: 0;
 }
 
-.fx-code {
+.fx-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: min(3.8vw, 6.4vh);
+  height: min(3.8vw, 6.4vh);
+  border-radius: 24%;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  font-size: min(1.9vw, 3.2vh);
+  font-weight: 600;
+  opacity: 0.9;
+}
+/* Three-letter fallbacks (RSD, DKK) need smaller type to sit inside the badge. */
+.fx-badge-long {
+  font-size: min(1.1vw, 1.9vh);
+  letter-spacing: 0.02em;
+}
+
+.fx-id {
   display: flex;
   flex-direction: column;
+  gap: 0.3vh;
+  min-width: 0;
 }
-.fx-code b {
-  font-size: calc(min(3.4vw, 6vh) * var(--app-font-scale, 1));
-  font-weight: 700;
+.fx-id b {
+  font-size: min(2.4vw, 4.2vh);
+  font-weight: 650;
   line-height: 1.05;
 }
 .fx-name {
-  font-size: calc(min(1.7vw, 3vh) * var(--app-font-scale, 1));
-  opacity: 0.65;
+  font-size: min(1.4vw, 2.4vh);
+  opacity: 0.55;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fx-rate {
+  margin-left: auto;
   font-variant-numeric: tabular-nums;
-  font-size: calc(min(4vw, 7vh) * var(--app-font-scale, 1));
+  font-size: min(2.9vw, 4.9vh);
   font-weight: 700;
   white-space: nowrap;
-  color: var(--fx-accent, #22c55e);
-}
-
-/* The dividing lines shouldn't be as loud as the text. */
-.fx-row {
-  border-color: color-mix(in srgb, currentColor 18%, transparent);
+  letter-spacing: 0.01em;
 }
 
 .fx-empty {
   margin: auto;
   font-size: 3vh;
   opacity: 0.6;
+}
+
+/* Narrow zones (split-screen regions, portrait screens): the vw-based caps
+   above are tuned for landscape and leave the type too small — give every
+   size a wider vw budget so the board fills the region. */
+@media (max-aspect-ratio: 5/4) {
+  .fx {
+    padding: 5vh 8vw;
+  }
+  .fx-eyebrow {
+    font-size: min(2.6vw, 2.4vh);
+  }
+  .fx-title b {
+    font-size: min(7.4vw, 7vh);
+  }
+  .fx-title-name {
+    font-size: min(3.2vw, 3.2vh);
+  }
+  .fx-date {
+    font-size: min(2.6vw, 2.6vh);
+  }
+  .fx-badge {
+    width: min(6.4vw, 6.4vh);
+    height: min(6.4vw, 6.4vh);
+    font-size: min(3.2vw, 3.2vh);
+  }
+  .fx-badge-long {
+    font-size: min(1.9vw, 1.9vh);
+  }
+  .fx-id b {
+    font-size: min(4.2vw, 4.2vh);
+  }
+  .fx-name {
+    font-size: min(2.4vw, 2.4vh);
+  }
+  .fx-rate {
+    font-size: min(4.9vw, 4.9vh);
+  }
 }

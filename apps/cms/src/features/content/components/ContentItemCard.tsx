@@ -3,9 +3,7 @@ import { CSS } from "@dnd-kit/utilities"
 import {
   BanIcon,
   CircleCheckIcon,
-  MinusIcon,
   MoreHorizontalIcon,
-  PlusIcon,
   Trash2Icon,
 } from "lucide-react"
 import { forwardRef, type HTMLAttributes } from "react"
@@ -105,14 +103,6 @@ export const ContentItemCardView = forwardRef<
     : null
   const showActionsMenu = !!menuItems || !!onRemove || !!onToggleDisabled
 
-  const adjustDuration = (delta: number) => {
-    if (!durationEditable || !onItemDurationChange) {
-      return
-    }
-    const next = Math.min(3600, Math.max(1, item.duration + delta))
-    onItemDurationChange(item.clientId, next)
-  }
-
   return (
     <div
       ref={ref}
@@ -204,28 +194,11 @@ export const ContentItemCardView = forwardRef<
           </span>
           {showDurationInput ? (
             <div
-              className="flex shrink-0 items-center gap-0.5"
+              className="flex shrink-0 items-center"
               onPointerDown={(event) => {
                 event.stopPropagation()
               }}
             >
-              {/* Stepper buttons only for editable (image) durations; video and
-                  playlist show the value disabled, with no +/- controls. */}
-              {canEditDuration ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="size-6 shrink-0"
-                  disabled={item.duration <= 1}
-                  aria-label={`${t("common.decrease")} ${labels.durationLabel}`}
-                  onClick={() => {
-                    adjustDuration(-1)
-                  }}
-                >
-                  <MinusIcon className="size-3" />
-                </Button>
-              ) : null}
               <Input
                 type="number"
                 min={1}
@@ -241,21 +214,6 @@ export const ContentItemCardView = forwardRef<
                 className="h-7 w-14 px-1 text-center text-xs disabled:opacity-100"
                 aria-label={labels.durationLabel}
               />
-              {canEditDuration ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="size-6 shrink-0"
-                  disabled={item.duration >= 3600}
-                  aria-label={`${t("common.increase")} ${labels.durationLabel}`}
-                  onClick={() => {
-                    adjustDuration(1)
-                  }}
-                >
-                  <PlusIcon className="size-3" />
-                </Button>
-              ) : null}
             </div>
           ) : null}
         </div>

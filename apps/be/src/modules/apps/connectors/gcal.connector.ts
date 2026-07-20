@@ -237,6 +237,10 @@ export const gcalConnector: AppConnector<GcalConfig, GcalPayload> = {
     scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
   },
 
+  // Where Google posts this connector's channel notifications; the host builds
+  // the absolute `ctx.webhookUrl` from it.
+  webhookPath: 'webhooks/google/calendar',
+
   cacheKey(config) {
     const connectionId = config.connectionId ?? 'none';
     return `gcal:${connectionId}:${calendarIdOf(config)}`;

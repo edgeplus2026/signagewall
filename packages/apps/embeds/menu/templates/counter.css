@@ -1,0 +1,153 @@
+/* "Counter" — fast-food board: condensed caps, price chips, category rail. */
+
+.co {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.8vh;
+  padding: 4vh 4vw;
+  overflow: hidden;
+}
+
+.co-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3vw;
+}
+
+.co-heading {
+  font-family: 'Bebas Neue', 'Anton', var(--app-font, sans-serif);
+  font-size: calc(min(4.2vw, 7.4vh) * var(--app-font-scale, 1));
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.co-rail {
+  display: flex;
+  gap: 0.7vw;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.co-tab {
+  font-family: 'Bebas Neue', var(--app-font, sans-serif);
+  font-size: calc(min(1.5vw, 2.8vh) * var(--app-font-scale, 1));
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.7vh 1.1vw;
+  border-radius: 999px;
+  border: 0.22vh solid currentColor;
+  opacity: 0.45;
+  white-space: nowrap;
+}
+
+.co-tab.is-on {
+  opacity: 1;
+  border-color: var(--menu-accent, #f97316);
+  background: var(--menu-accent, #f97316);
+  color: #101010;
+}
+
+.co-cat {
+  font-family: 'Bebas Neue', 'Anton', var(--app-font, sans-serif);
+  font-size: calc(min(7vw, 12.5vh) * var(--app-font-scale, 1) * var(--mb-fit, 1));
+  font-weight: 400;
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--menu-accent, #f97316);
+}
+
+.co-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: block;
+  margin-top: 0.6vh;
+}
+
+.co-cols {
+  column-count: 2;
+  column-gap: 4vw;
+}
+
+.co-item {
+  break-inside: avoid;
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  padding: calc(1.5vh * var(--mb-fit, 1)) 0;
+  border-bottom: 0.22vh solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.co-thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: calc(6.4vh * var(--mb-fit, 1) + 1.2vw);
+  height: calc(6.4vh * var(--mb-fit, 1) + 1.2vw);
+  border-radius: 1vh;
+  overflow: hidden;
+}
+
+.co-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.co-thumb .mb-monogram {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.6vh;
+  color: rgb(255 255 255 / 85%);
+  background: var(--menu-accent, #f97316);
+}
+
+.co-thumb.is-broken img {
+  display: none;
+}
+
+.co-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2vh;
+}
+
+.co-name {
+  font-family: var(--app-font, 'Inter', inherit);
+  font-size: calc(min(2.3vw, 4.3vh) * var(--app-font-scale, 1) * var(--mb-fit, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: var(--app-line-height, 1.15);
+}
+
+.co-desc {
+  font-size: calc(min(1.35vw, 2.5vh) * var(--app-font-scale, 1) * var(--mb-fit, 1));
+  opacity: 0.62;
+  line-height: 1.25;
+}
+
+.co-price {
+  flex: 0 0 auto;
+  font-family: 'Bebas Neue', var(--app-font, sans-serif);
+  font-size: calc(min(2.4vw, 4.4vh) * var(--app-font-scale, 1) * var(--mb-fit, 1));
+  letter-spacing: 0.03em;
+  padding: 0.6vh 1.1vw;
+  border-radius: 1vh;
+  background: var(--menu-accent, #f97316);
+  color: #101010;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}

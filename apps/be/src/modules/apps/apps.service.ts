@@ -40,12 +40,13 @@ export class AppsService implements OnModuleInit {
 
   /**
    * On boot, keep each catalog entry's *technical* definition (config schema,
-   * version, runtime, data source) in lockstep with its code manifest, so
-   * editing a manifest — adding fields/sections, bumping the version — reaches
-   * the CMS and validation without a manual re-add. Presentation/governance
-   * (name, copy, icon, colour, visibility, categories) stays operator-owned and
-   * is never overwritten. New manifests are NOT auto-added: super-admin still
-   * curates what enters the catalog.
+   * version, runtime, data source) plus its icon + brand colour in lockstep
+   * with its code manifest, so editing a manifest — adding fields/sections,
+   * bumping the version, restyling the icon — reaches the CMS and validation
+   * without a manual re-add. Icon and colour are code-owned (defined in the
+   * manifest); the remaining governance (name, copy, visibility, categories)
+   * stays operator-owned and is never overwritten. New manifests are NOT
+   * auto-added: super-admin still curates what enters the catalog.
    */
   private async syncManifestDefinitions(): Promise<void> {
     const bySlug = new Map(
@@ -56,10 +57,15 @@ export class AppsService implements OnModuleInit {
       if (!existing) {
         continue;
       }
+      const manifestIcon = manifest.icon ?? '';
+      const manifestColor = manifest.color ?? '';
       const unchanged =
         existing.version === manifest.version &&
         existing.runtimeKind === manifest.runtimeKind &&
         existing.dataSource === manifest.dataSource &&
+        existing.overlay === (manifest.overlay ?? false) &&
+        existing.iconSvg === manifestIcon &&
+        existing.color === manifestColor &&
         JSON.stringify(existing.configSchema ?? []) ===
           JSON.stringify(manifest.configSchema);
       if (unchanged) {
@@ -70,6 +76,9 @@ export class AppsService implements OnModuleInit {
         version: manifest.version,
         runtimeKind: manifest.runtimeKind,
         dataSource: manifest.dataSource,
+        overlay: manifest.overlay ?? false,
+        iconSvg: manifestIcon,
+        color: manifestColor,
       });
       this.logger.log(`Synced manifest definition for app "${manifest.slug}"`);
     }
@@ -140,8 +149,13 @@ export class AppsService implements OnModuleInit {
   // ----- Super-admin catalog management -----
 
   async listAll(): Promise<AppAdminResponseDto[]> {
-    const apps = await this.appsRepository.findAll();
-    return apps.map(toAppAdminResponse);
+    const [apps, installCounts] = await Promise.all([
+      this.appsRepository.findAll(),
+      this.orgAppsRepository.countInstallsByApp(),
+    ]);
+    return apps.map((app) =>
+      toAppAdminResponse(app, installCounts.get(app._id.toString()) ?? 0),
+    );
   }
 
   /** Code apps available to add to the catalog, flagged if already added. */
@@ -161,9 +175,10 @@ export class AppsService implements OnModuleInit {
   }
 
   /**
-   * Creates a catalog entry from a code manifest. The technical definition is
-   * taken from the manifest (by slug); only presentation/governance comes from
-   * the request — so the catalog can never hold a phantom app with no code.
+   * Creates a catalog entry from a code manifest. The technical definition and
+   * icon/colour are taken from the manifest (by slug); copy (tagline/description/
+   * about) and categories are code + i18n, never stored — so the request carries
+   * only the name and the public toggle.
    */
   async create(dto: CreateAppDto): Promise<AppAdminResponseDto> {
     const manifest = APP_MANIFESTS.find((entry) => entry.slug === dto.slug);
@@ -178,18 +193,14 @@ export class AppsService implements OnModuleInit {
     const data: CreateAppData = {
       slug: manifest.slug,
       name: dto.name,
-      tagline: dto.tagline,
-      description: dto.description,
-      about: dto.about ?? '',
       runtimeKind: manifest.runtimeKind,
       dataSource: manifest.dataSource,
       configSchema: manifest.configSchema,
       version: manifest.version,
-      // Presentation defaults come from the manifest; super-admin can override.
-      iconSvg: dto.iconSvg ?? manifest.icon ?? '',
-      color: dto.color ?? manifest.color ?? '',
+      // Icon + colour are code-owned: taken from the manifest, not the request.
+      iconSvg: manifest.icon ?? '',
+      color: manifest.color ?? '',
       isPublic: dto.isPublic ?? false,
-      categoryIds: dto.categoryIds ?? [],
     };
     const created = await this.appsRepository.create(data);
     return toAppAdminResponse(created);

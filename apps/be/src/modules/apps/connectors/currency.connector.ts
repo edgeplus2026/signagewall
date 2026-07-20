@@ -10,8 +10,16 @@ interface CurrencyConfig {
   targets?: string[];
 }
 
-/** ECB reference rates via Frankfurter — no API key, no rate limit worth minding. */
-const FX_API = 'https://api.frankfurter.dev/v1/latest';
+/**
+ * Daily exchange rates via the open currency-api dataset — no API key, no rate
+ * limit, and (unlike ECB/Frankfurter) it quotes non-ECB currencies such as RSD.
+ * One request returns every rate against the base; we pick the targets out.
+ * The pages.dev mirror is the publisher's own fallback host for the same data.
+ */
+const FX_HOSTS = [
+  'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies',
+  'https://latest.currency-api.pages.dev/v1/currencies',
+];
 
 /** Uppercase ISO codes, de-duplicated, with the base removed and sorted. */
 function normalizeTargets(
@@ -30,12 +38,49 @@ function baseOf(config: CurrencyConfig): string {
   return (config.base ?? 'EUR').trim().toUpperCase() || 'EUR';
 }
 
+/** The upstream body: a date plus a lowercase-keyed rate table under the base. */
+interface FxUpstream {
+  date?: string;
+  [base: string]: unknown;
+}
+
+/**
+ * Fetch the base's rate table, trying each host in order. A host is only a
+ * fallback for the next one on network/HTTP errors — an abort stops the chain.
+ */
+async function fetchUpstream(
+  base: string,
+  ctx: ConnectorContext,
+): Promise<FxUpstream> {
+  let lastError: unknown;
+  for (const host of FX_HOSTS) {
+    if (ctx.signal?.aborted) throw lastError ?? new Error('currency: aborted');
+    try {
+      const url = `${host}/${base.toLowerCase()}.json`;
+      const response = await fetch(
+        url,
+        ctx.signal ? { signal: ctx.signal } : {},
+      );
+      if (!response.ok) {
+        throw new Error(`currency upstream ${response.status}`);
+      }
+      return (await response.json()) as FxUpstream;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('currency: all upstreams failed');
+}
+
 /**
  * Exchange-rates connector (`server`). The cache key is the base plus the SORTED
  * target set, so instances that watch the same currencies — in any display order,
  * with any typography — share a single upstream fetch. The payload carries the
- * rates in that same sorted order and the ECB reference date; no fetch timestamp,
- * so an unchanged day of rates never fans out to every screen.
+ * rates in that same sorted order and the upstream reference date (published once
+ * per day); no fetch timestamp, so an unchanged day of rates never fans out to
+ * every screen.
  */
 export const currencyConnector: AppConnector<CurrencyConfig, FxPayload> = {
   cacheKey(config) {
@@ -53,23 +98,18 @@ export const currencyConnector: AppConnector<CurrencyConfig, FxPayload> = {
       throw new Error('currency: no target currencies');
     }
 
-    const url = `${FX_API}?base=${encodeURIComponent(base)}&symbols=${encodeURIComponent(targets.join(','))}`;
-    const response = await fetch(url, ctx.signal ? { signal: ctx.signal } : {});
-    if (!response.ok) {
-      throw new Error(`currency upstream ${response.status}`);
-    }
-    const body = (await response.json()) as {
-      base?: string;
-      date?: string;
-      rates?: Record<string, number>;
-    };
+    const body = await fetchUpstream(base, ctx);
+    const table = body[base.toLowerCase()];
+    const upstream: Record<string, unknown> =
+      table && typeof table === 'object'
+        ? (table as Record<string, unknown>)
+        : {};
 
-    const upstream = body.rates ?? {};
     // Keep the sorted target order and drop any code the upstream didn't quote,
     // so one bad code degrades to "not shown" rather than a wrong/zero rate.
     const rates: FxRate[] = targets
-      .filter((code) => typeof upstream[code] === 'number')
-      .map((code) => ({ code, rate: upstream[code] }));
+      .filter((code) => typeof upstream[code.toLowerCase()] === 'number')
+      .map((code) => ({ code, rate: upstream[code.toLowerCase()] as number }));
 
     if (rates.length === 0) {
       throw new Error('currency: no rates returned');
@@ -78,8 +118,8 @@ export const currencyConnector: AppConnector<CurrencyConfig, FxPayload> = {
     ctx.logger.debug('currency fetched', { base, count: rates.length });
     return {
       playerPayload: {
-        base: body.base ?? base,
-        date: body.date ?? '',
+        base,
+        date: typeof body.date === 'string' ? body.date : '',
         rates,
       },
     };

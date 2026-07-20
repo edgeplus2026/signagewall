@@ -6,6 +6,9 @@ import { OAuthControl } from '@/features/apps/config-form/OAuthControl'
 import { RemoteSelectControl } from '@/features/apps/config-form/RemoteSelectControl'
 import { RepeaterControl } from '@/features/apps/config-form/RepeaterControl'
 import { RichTextControl } from '@/features/apps/config-form/RichTextControl'
+import { ScreensControl } from '@/features/apps/config-form/ScreensControl'
+import { ColumnMappingControl } from '@/features/apps/config-form/tabular/ColumnMappingControl'
+import { TabularPreviewControl } from '@/features/apps/config-form/tabular/TabularPreviewControl'
 import {
   CheckboxControl,
   ColorControl,
@@ -49,6 +52,13 @@ export const FIELD_CONTROLS: Record<FieldType, (props: FieldControlProps) => Rea
   // Async searchable dropdown over a connected account; stores { id, label }.
   // Used by `connected` apps that pick a remote resource (Canva designs).
   'remote-select': RemoteSelectControl,
+  // The org's screens as a multi-select; used by overlay apps (ticker) to pick
+  // where the overlay shows. Stores the selected screen ids.
+  screens: ScreensControl,
+  // Map synced-spreadsheet columns onto item fields; stores {target: header}.
+  'column-mapping': ColumnMappingControl,
+  // Read-only table of the rows a tabular sync produces + "convert to manual".
+  'tabular-preview': TabularPreviewControl,
 }
 
 /** Field types rendered with the label beside the control instead of above it. */

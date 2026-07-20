@@ -10,15 +10,14 @@ import { gsheetsConnector } from './gsheets.connector';
 import { gslidesConnector } from './gslides.connector';
 import { holidaysConnector } from './holidays.connector';
 import { instagramConnector } from './instagram.connector';
+import { menuConnector } from './menu.connector';
 import { onthisdayConnector } from './onthisday.connector';
 import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { powerpointConnector } from './powerpoint.connector';
 import { rssConnector } from './rss.connector';
-import { sportsConnector } from './sports.connector';
-import { stocksConnector } from './stocks.connector';
-import { sunmoonConnector } from './sunmoon.connector';
 import { teamsConnector } from './teams.connector';
+import { tickerConnector } from './ticker.connector';
 import { weatherConnector } from './weather.connector';
 import { wisdomConnector } from './wisdom.connector';
 
@@ -37,22 +36,20 @@ const CONNECTORS: Record<string, AppConnector> = {
   'power-prices': powerPricesConnector,
   gcal: gcalConnector,
   gsheets: gsheetsConnector,
+  // Menu board: inert (cacheKey '') in manual mode; syncs items from Google
+  // Sheets or Excel when the operator picks a tabular source.
+  menu: menuConnector,
   gslides: gslidesConnector,
   canva: canvaConnector,
   rss: rssConnector,
-  // News is a curated front-end to RSS: same connector, its `url` comes from a
-  // preset picker instead of free text. Shares the `rss:<hash(url)>` cache with
-  // any RSS instance pointed at the same feed.
-  news: rssConnector,
   holidays: holidaysConnector,
   onthisday: onthisdayConnector,
   outlook: outlookConnector,
   instagram: instagramConnector,
   facebook: facebookConnector,
-  sports: sportsConnector,
-  stocks: stocksConnector,
-  sunmoon: sunmoonConnector,
   teams: teamsConnector,
+  // The ticker overlay: resolves its band messages (rows or RSS headlines).
+  ticker: tickerConnector,
   wisdom: wisdomConnector,
   powerpoint: powerpointConnector,
 };

@@ -1,12 +1,29 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { DownloadIcon, ImageIcon, ListPlusIcon, MonitorIcon, VideoIcon } from "lucide-react"
-import { useEffect, useMemo } from "react"
+import {
+  DownloadIcon,
+  ImageIcon,
+  ListPlusIcon,
+  MonitorIcon,
+  MoreHorizontalIcon,
+  Trash2Icon,
+  VideoIcon,
+  XIcon,
+} from "lucide-react"
+import { Dialog as DialogPrimitive } from "radix-ui"
+import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
@@ -40,9 +57,55 @@ interface MediaDetailSheetProps {
   item: MediaItem | null
   onAddToPlaylist?: () => void
   onAddToScreen?: () => void
+  onDelete?: () => void
+}
+
+function ImageLightbox({
+  src,
+  alt,
+  open,
+  onOpenChange,
+}: {
+  src: string
+  alt: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-100 bg-black/80 duration-150 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+        <DialogPrimitive.Content
+          className="fixed inset-0 z-100 flex items-center justify-center p-6 outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0"
+          onClick={() => {
+            onOpenChange(false)
+          }}
+        >
+          <DialogPrimitive.Title className="sr-only">{alt}</DialogPrimitive.Title>
+          <img
+            src={src}
+            alt={alt}
+            className="max-h-full max-w-full cursor-zoom-out object-contain"
+          />
+          <DialogPrimitive.Close
+            className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-lg text-white/80 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-3 focus-visible:ring-white/40"
+            onClick={(event) => {
+              event.stopPropagation()
+            }}
+          >
+            <XIcon className="size-5" />
+            <span className="sr-only">{t("media.detail.closePreview")}</span>
+          </DialogPrimitive.Close>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
+  )
 }
 
 function MediaPreview({ item }: { item: MediaItem }) {
+  const { t } = useTranslation()
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const previewUrl = item.fileUrl ?? item.thumbnailUrl
   return (
     <div className="relative aspect-video w-full shrink-0 self-start overflow-hidden rounded-lg bg-sidebar">
@@ -53,11 +116,28 @@ function MediaPreview({ item }: { item: MediaItem }) {
           className="absolute inset-0 size-full object-contain"
         />
       ) : previewUrl ? (
-        <img
-          src={previewUrl}
-          alt=""
-          className="absolute inset-0 size-full object-contain"
-        />
+        <>
+          <button
+            type="button"
+            className="absolute inset-0 size-full cursor-zoom-in outline-none focus-visible:ring-3 focus-visible:ring-tertiary/50"
+            aria-label={t("media.detail.viewFullSize")}
+            onClick={() => {
+              setLightboxOpen(true)
+            }}
+          >
+            <img
+              src={previewUrl}
+              alt=""
+              className="size-full object-contain"
+            />
+          </button>
+          <ImageLightbox
+            src={previewUrl}
+            alt={item.name}
+            open={lightboxOpen}
+            onOpenChange={setLightboxOpen}
+          />
+        </>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-sidebar via-panel to-sidebar">
           {item.type === "video" ? (
@@ -86,6 +166,7 @@ export function MediaDetailSheet({
   item,
   onAddToPlaylist,
   onAddToScreen,
+  onDelete,
 }: MediaDetailSheetProps) {
   const { t, i18n } = useTranslation()
   const updateMedia = useUpdateMedia()
@@ -180,41 +261,6 @@ export function MediaDetailSheet({
         <div className="visible-scrollbar flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-1">
           <div className="flex shrink-0 flex-col gap-3">
             <MediaPreview item={item} />
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                void handleDownload()
-              }}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("media.detail.download")}
-            </Button>
-            {onAddToScreen || onAddToPlaylist ? (
-              <div className="grid grid-cols-2 gap-2">
-                {onAddToScreen ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onAddToScreen}
-                  >
-                    <MonitorIcon data-icon="inline-start" />
-                    {t("media.detail.addToScreen")}
-                  </Button>
-                ) : null}
-                {onAddToPlaylist ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onAddToPlaylist}
-                  >
-                    <ListPlusIcon data-icon="inline-start" />
-                    {t("media.detail.addToPlaylist")}
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
           </div>
 
           <form
@@ -305,6 +351,45 @@ export function MediaDetailSheet({
           >
             {t("media.detail.save")}
           </Button>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" size="icon">
+                <MoreHorizontalIcon />
+                <span className="sr-only">{t("common.actions")}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-auto min-w-44">
+              <DropdownMenuItem
+                onClick={() => {
+                  void handleDownload()
+                }}
+              >
+                <DownloadIcon />
+                {t("media.detail.download")}
+              </DropdownMenuItem>
+              {onAddToScreen ? (
+                <DropdownMenuItem onClick={onAddToScreen}>
+                  <MonitorIcon />
+                  {t("media.detail.addToScreen")}
+                </DropdownMenuItem>
+              ) : null}
+              {onAddToPlaylist ? (
+                <DropdownMenuItem onClick={onAddToPlaylist}>
+                  <ListPlusIcon />
+                  {t("media.detail.addToPlaylist")}
+                </DropdownMenuItem>
+              ) : null}
+              {onDelete ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="danger" onClick={onDelete}>
+                    <Trash2Icon />
+                    {t("media.actions.moveToTrash")}
+                  </DropdownMenuItem>
+                </>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </SheetFooter>
       </SheetContent>
     </Sheet>

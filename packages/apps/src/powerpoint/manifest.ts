@@ -23,7 +23,7 @@ export const powerpointManifest: AppManifest = {
     'Display a PowerPoint presentation from OneDrive or SharePoint as a looping slideshow — it updates on screen the moment the deck changes.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 1,
+  version: 2,
   // Polling fallback; the Graph webhook makes updates near-instant when a public
   // callback URL is configured.
   refreshSeconds: 900,
@@ -55,21 +55,13 @@ export const powerpointManifest: AppManifest = {
       key: 'slideDuration',
       type: 'number',
       label: 'Seconds per slide',
-      default: 10,
+      default: 15,
       validation: { min: 3, max: 120 },
       help: 'How long each slide stays on screen before the next one.',
     },
-    {
-      key: 'transition',
-      type: 'select',
-      label: 'Transition',
-      default: 'fade',
-      options: [
-        { label: 'None', value: 'none' },
-        { label: 'Fade', value: 'fade' },
-      ],
-      help: 'How one slide gives way to the next.',
-    },
+    // No transition field: slides always crossfade (a hard cut reads as a
+    // glitch on signage), and no auto-update switch: the deck on screen always
+    // follows the file in OneDrive — that immediacy is the app's whole promise.
     {
       key: 'fit',
       type: 'select',
@@ -88,13 +80,6 @@ export const powerpointManifest: AppManifest = {
       default: '#000000',
       visibleWhen: { field: 'fit', equals: 'contain' },
       help: 'Colour of the bars around a slide that doesn’t match the screen’s shape.',
-    },
-    {
-      key: 'autoUpdate',
-      type: 'switch',
-      label: 'Auto-update on changes',
-      default: true,
-      help: 'When you edit the presentation in OneDrive, the screen refreshes to the new version automatically. Turn off to keep showing the current version.',
     },
     // No theme / accent / language field, and the absence is deliberate: a slide
     // IS the design the operator already authored. Tinting it here would only let

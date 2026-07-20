@@ -1,6 +1,9 @@
-import type { ConnectorContext, ResolvedConnection } from '@edge/apps-contract';
+import {
+  oauthDescriptorFor,
+  type ConnectorContext,
+  type ResolvedConnection,
+} from '@edge/apps-contract';
 import type { RssPayload } from '@edge/apps';
-import { NEWS_SOURCES } from '@edge/apps';
 
 import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';
@@ -17,9 +20,6 @@ import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
 import { rssConnector } from './rss.connector';
 import { safeFetchText } from './safe-fetch.util';
-import { sportsConnector } from './sports.connector';
-import { stocksConnector } from './stocks.connector';
-import { sunmoonConnector } from './sunmoon.connector';
 import { teamsConnector } from './teams.connector';
 import { weatherConnector } from './weather.connector';
 
@@ -271,8 +271,9 @@ describe('gcal connector (connected)', () => {
   });
 
   it('exposes a google OAuth descriptor with read-only scope', () => {
-    expect(gcalConnector.oauth?.provider).toBe('google');
-    expect(gcalConnector.oauth?.scopes).toContain(
+    const oauth = oauthDescriptorFor(gcalConnector, 'google');
+    expect(oauth?.provider).toBe('google');
+    expect(oauth?.scopes).toContain(
       'https://www.googleapis.com/auth/calendar.readonly',
     );
   });
@@ -502,8 +503,9 @@ describe('canva connector (connected)', () => {
   });
 
   it('exposes a canva OAuth descriptor with design read + export scopes', () => {
-    expect(canvaConnector.oauth?.provider).toBe('canva');
-    expect(canvaConnector.oauth?.scopes).toEqual(
+    const oauth = oauthDescriptorFor(canvaConnector, 'canva');
+    expect(oauth?.provider).toBe('canva');
+    expect(oauth?.scopes).toEqual(
       expect.arrayContaining(['design:meta:read', 'design:content:read']),
     );
   });
@@ -1063,16 +1065,15 @@ describe('currency connector (server)', () => {
   it('normalizes rates in sorted order and drops codes the upstream omits', async () => {
     mockFetchSequence([
       {
+        // currency-api shape: lowercase rate table keyed by the base.
         body: {
-          amount: 1,
-          base: 'EUR',
           date: '2026-07-14',
-          rates: { USD: 1.14, GBP: 0.85 }, // DKK requested but omitted upstream
+          eur: { usd: 1.14, gbp: 0.85, rsd: 117.2 }, // DKK requested but omitted upstream
         },
       },
     ]);
     const result = await currencyConnector.fetchData(
-      { base: 'EUR', targets: ['USD', 'GBP', 'DKK'] },
+      { base: 'EUR', targets: ['USD', 'GBP', 'RSD', 'DKK'] },
       ctx,
     );
     expect(result.playerPayload).toEqual({
@@ -1080,16 +1081,28 @@ describe('currency connector (server)', () => {
       date: '2026-07-14',
       rates: [
         { code: 'GBP', rate: 0.85 },
+        { code: 'RSD', rate: 117.2 },
         { code: 'USD', rate: 1.14 },
       ],
     });
   });
 
+  it('falls back to the mirror host when the primary fails', async () => {
+    mockFetchSequence([
+      { ok: false, body: {} },
+      { body: { date: '2026-07-14', eur: { usd: 1.14 } } },
+    ]);
+    const result = await currencyConnector.fetchData(
+      { base: 'EUR', targets: ['USD'] },
+      ctx,
+    );
+    expect(result.playerPayload?.rates).toEqual([{ code: 'USD', rate: 1.14 }]);
+  });
+
   it('carries only the upstream date, so an unchanged day does not fan out', async () => {
     const body = {
-      base: 'EUR',
       date: '2026-07-14',
-      rates: { USD: 1.14 },
+      eur: { usd: 1.14 },
     };
     mockFetchSequence([{ body }, { body }]);
     const first = await currencyConnector.fetchData(
@@ -1317,235 +1330,6 @@ describe('onthisday connector (server)', () => {
   });
 });
 
-describe('sunmoon connector (server)', () => {
-  it('cacheKey is coarse coordinates', () => {
-    expect(
-      sunmoonConnector.cacheKey!({ location: { lat: 55.681, lng: 12.571 } }),
-    ).toBe('sun:55.68,12.57');
-  });
-
-  it('normalizes today\'s sun times and daylight length', async () => {
-    mockFetchSequence([
-      {
-        body: {
-          daily: {
-            time: ['2026-07-16'],
-            sunrise: ['2026-07-16T04:48'],
-            sunset: ['2026-07-16T21:43'],
-            daylight_duration: [60922.21],
-          },
-        },
-      },
-    ]);
-    const result = await sunmoonConnector.fetchData(
-      { location: { lat: 55.68, lng: 12.57, label: 'Copenhagen' } },
-      ctx,
-    );
-    expect(result.playerPayload).toEqual({
-      location: 'Copenhagen',
-      sunrise: '2026-07-16T04:48',
-      sunset: '2026-07-16T21:43',
-      daylightSeconds: 60922.21,
-      observedAt: '2026-07-16',
-    });
-  });
-});
-
-describe('stocks connector (server, keyed via Alpaca)', () => {
-  const KEYS = ['ALPACA_API_KEY_ID', 'ALPACA_API_SECRET_KEY'] as const;
-  const original: Record<string, string | undefined> = {
-    ALPACA_API_KEY_ID: process.env.ALPACA_API_KEY_ID,
-    ALPACA_API_SECRET_KEY: process.env.ALPACA_API_SECRET_KEY,
-  };
-  afterAll(() => {
-    for (const key of KEYS) {
-      if (original[key] === undefined) delete process.env[key];
-      else process.env[key] = original[key];
-    }
-  });
-
-  it('cacheKey is the sorted ticker set — from a legacy string or repeater rows', () => {
-    expect(stocksConnector.cacheKey!({ symbols: 'msft\naapl\nAAPL' })).toBe(
-      'stocks:AAPL,MSFT',
-    );
-    expect(
-      stocksConnector.cacheKey!({ symbols: [{ symbol: 'msft' }, { symbol: 'AAPL' }] }),
-    ).toBe('stocks:AAPL,MSFT');
-  });
-
-  it('throws a clear error when the Alpaca credentials are missing', async () => {
-    delete process.env.ALPACA_API_KEY_ID;
-    delete process.env.ALPACA_API_SECRET_KEY;
-    await expect(
-      stocksConnector.fetchData({ symbols: 'AAPL' }, ctx),
-    ).rejects.toThrow(/ALPACA/);
-  });
-
-  it('maps Alpaca snapshots (change vs prev close), sorted, dropping unknown tickers', async () => {
-    process.env.ALPACA_API_KEY_ID = 'test-id';
-    process.env.ALPACA_API_SECRET_KEY = 'test-secret';
-    // One call returns every symbol, keyed by ticker.
-    mockFetchSequence([
-      {
-        body: {
-          AAPL: { latestTrade: { p: 211.3 }, prevDailyBar: { c: 209 } },
-          MSFT: { latestTrade: { p: 417 }, prevDailyBar: { c: 423 } },
-          ZZZZ: {}, // unknown ticker — no price, dropped
-        },
-      },
-    ]);
-    const result = await stocksConnector.fetchData(
-      { symbols: 'MSFT\nAAPL\nZZZZ' },
-      ctx,
-    );
-    expect(result.playerPayload).toEqual({
-      quotes: [
-        { symbol: 'AAPL', price: 211.3, change: 2.3, changePercent: 1.1 },
-        { symbol: 'MSFT', price: 417, change: -6, changePercent: -1.42 },
-      ],
-    });
-  });
-});
-
-describe('sports connector (server)', () => {
-  it('cacheKey is the team only (mode/count are display-only)', () => {
-    expect(sportsConnector.cacheKey!({ team: '  Arsenal ' })).toBe(
-      'sports:arsenal',
-    );
-    expect(
-      sportsConnector.cacheKey!({ team: 'Arsenal', mode: 'both', count: 10 }),
-    ).toBe('sports:arsenal');
-  });
-
-  it('resolves the team then normalizes fixtures and results', async () => {
-    mockFetchSequence([
-      { body: { teams: [{ idTeam: '133604', strTeam: 'Arsenal' }] } },
-      {
-        body: {
-          events: [
-            {
-              strHomeTeam: 'Girona',
-              strAwayTeam: 'Arsenal',
-              dateEvent: '2026-08-01',
-              strTime: '18:00:00',
-              strLeague: 'Club Friendlies',
-            },
-          ],
-        },
-      },
-      {
-        body: {
-          results: [
-            {
-              strHomeTeam: 'Arsenal',
-              strAwayTeam: 'Spurs',
-              dateEvent: '2026-05-20',
-              strTime: '16:30:00',
-              strLeague: 'Premier League',
-              intHomeScore: '2',
-              intAwayScore: '1',
-            },
-          ],
-        },
-      },
-    ]);
-    const result = await sportsConnector.fetchData({ team: 'Arsenal' }, ctx);
-    expect(result.playerPayload).toEqual({
-      team: 'Arsenal',
-      upcoming: [
-        {
-          home: 'Girona',
-          away: 'Arsenal',
-          date: '2026-08-01',
-          time: '18:00',
-          league: 'Club Friendlies',
-        },
-      ],
-      results: [
-        {
-          home: 'Arsenal',
-          away: 'Spurs',
-          date: '2026-05-20',
-          time: '16:30',
-          league: 'Premier League',
-          homeScore: 2,
-          awayScore: 1,
-        },
-      ],
-    });
-  });
-});
-
-describe('gsheets connector (connected)', () => {
-  const connectedCtx: ConnectorContext = {
-    ...ctx,
-    connection: {
-      id: 'c1',
-      provider: 'google',
-      accountLabel: 'me@example.com',
-      accessToken: 'tok',
-      scopes: [],
-    } satisfies ResolvedConnection,
-  };
-
-  it('cacheKey is per-connection + spreadsheet + range (layout is display-only)', () => {
-    const a = gsheetsConnector.cacheKey!({
-      connectionId: 'c1',
-      spreadsheet: { id: 'S1' },
-      range: 'A1:B2',
-      layout: 'table',
-    });
-    const b = gsheetsConnector.cacheKey!({
-      connectionId: 'c1',
-      spreadsheet: { id: 'S1' },
-      range: 'A1:B2',
-      layout: 'kpi',
-      hasHeader: false,
-    });
-    expect(a).toBe('gsheets:c1:S1:A1:B2');
-    expect(a).toBe(b);
-  });
-
-  it('throws without a resolved connection', async () => {
-    await expect(
-      gsheetsConnector.fetchData(
-        { connectionId: 'c1', spreadsheet: { id: 'S1' }, range: 'A1:B2' },
-        ctx,
-      ),
-    ).rejects.toThrow(/no connection/);
-  });
-
-  it('normalizes the range values to strings, keeping the picked title', async () => {
-    mockFetchSequence([
-      {
-        body: {
-          values: [
-            ['Name', 'Sales'],
-            ['Q1', 100],
-            ['Q2', 200],
-          ],
-        },
-      },
-    ]);
-    const result = await gsheetsConnector.fetchData(
-      {
-        connectionId: 'c1',
-        spreadsheet: { id: 'S1', label: 'KPIs' },
-        range: 'A1:B3',
-      },
-      connectedCtx,
-    );
-    expect(result.playerPayload).toEqual({
-      title: 'KPIs',
-      values: [
-        ['Name', 'Sales'],
-        ['Q1', '100'],
-        ['Q2', '200'],
-      ],
-    });
-  });
-});
-
 describe('gslides connector (connected)', () => {
   const connectedCtx: ConnectorContext = {
     ...ctx,
@@ -1576,7 +1360,12 @@ describe('gslides connector (connected)', () => {
   it('exports each slide as a thumbnail and carries no volatile version', async () => {
     // 1st call: the presentation metadata; then one thumbnail per page.
     mockFetchSequence([
-      { body: { title: 'Deck', slides: [{ objectId: 'p1' }, { objectId: 'p2' }] } },
+      {
+        body: {
+          title: 'Deck',
+          slides: [{ objectId: 'p1' }, { objectId: 'p2' }],
+        },
+      },
       { body: { contentUrl: 'https://img/1' } },
       { body: { contentUrl: 'https://img/2' } },
     ]);
@@ -1608,7 +1397,10 @@ describe('outlook connector (connected, microsoft)', () => {
 
   it('cacheKey is per-connection + calendar', () => {
     expect(
-      outlookConnector.cacheKey!({ connectionId: 'c1', calendar: { id: 'cal1' } }),
+      outlookConnector.cacheKey!({
+        connectionId: 'c1',
+        calendar: { id: 'cal1' },
+      }),
     ).toBe('outlook:c1:cal1');
   });
 
@@ -1785,29 +1577,6 @@ describe('facebook connector (connected, meta)', () => {
   });
 });
 
-describe('news sources (curated RSS presets)', () => {
-  it('every source is a unique https feed URL with a label', () => {
-    const urls = new Set<string>();
-    const labels = new Set<string>();
-    for (const source of NEWS_SOURCES) {
-      expect(source.label.length).toBeGreaterThan(0);
-      expect(new URL(source.url).protocol).toBe('https:');
-      urls.add(source.url);
-      labels.add(source.label);
-    }
-    expect(urls.size).toBe(NEWS_SOURCES.length);
-    expect(labels.size).toBe(NEWS_SOURCES.length);
-  });
-
-  it('each source resolves to an rss cache key (shared with the rss app)', () => {
-    for (const source of NEWS_SOURCES) {
-      expect(rssConnector.cacheKey!({ url: source.url })).toMatch(
-        /^rss:[0-9a-f]{40}$/,
-      );
-    }
-  });
-});
-
 describe('teams connector (connected, microsoft)', () => {
   const connectedCtx: ConnectorContext = {
     ...ctx,
@@ -1840,7 +1609,10 @@ describe('teams connector (connected, microsoft)', () => {
               subject: 'Heads up',
               createdDateTime: '2026-07-16T09:00:00Z',
               webUrl: 'https://teams.microsoft.com/l/message/1',
-              body: { contentType: 'html', content: '<p>Office closed <b>Friday</b></p>' },
+              body: {
+                contentType: 'html',
+                content: '<p>Office closed <b>Friday</b></p>',
+              },
               from: { user: { displayName: 'Robin Kline' } },
             },
             // System event — must be skipped.
@@ -1861,7 +1633,10 @@ describe('teams connector (connected, microsoft)', () => {
       },
     ]);
     const result = await teamsConnector.fetchData(
-      { connectionId: 'c1', channel: { id: 'team-1::chan-1', label: 'Ops · General' } },
+      {
+        connectionId: 'c1',
+        channel: { id: 'team-1::chan-1', label: 'Ops · General' },
+      },
       connectedCtx,
     );
     expect(result.playerPayload).toEqual({

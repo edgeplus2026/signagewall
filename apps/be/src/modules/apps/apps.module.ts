@@ -7,9 +7,6 @@ import { OrganizationsModule } from '../organizations/organizations.module';
 import { PlaylistsModule } from '../playlists/playlists.module';
 import { ScreensModule } from '../screens/screens.module';
 import { UsersModule } from '../users/users.module';
-import { AppCategoriesAdminController } from './app-categories-admin.controller';
-import { AppCategoriesRepository } from './app-categories.repository';
-import { AppCategoriesService } from './app-categories.service';
 import { AppDataCacheRepository } from './app-data-cache.repository';
 import { AppDataScheduler } from './app-data.scheduler';
 import { AppDataService } from './app-data.service';
@@ -24,7 +21,6 @@ import { OrgAppsRepository } from './org-apps.repository';
 import { WebhooksController } from './webhooks.controller';
 import { SuperAdminGuard } from '../admin/guards/super-admin.guard';
 import { App, AppSchema } from './schemas/app.schema';
-import { AppCategory, AppCategorySchema } from './schemas/app-category.schema';
 import {
   AppDataCache,
   AppDataCacheSchema,
@@ -36,7 +32,6 @@ import { OrgApp, OrgAppSchema } from './schemas/org-app.schema';
   imports: [
     MongooseModule.forFeature([
       { name: App.name, schema: AppSchema },
-      { name: AppCategory.name, schema: AppCategorySchema },
       { name: AppInstance.name, schema: AppInstanceSchema },
       { name: OrgApp.name, schema: OrgAppSchema },
       { name: AppDataCache.name, schema: AppDataCacheSchema },
@@ -52,15 +47,12 @@ import { OrgApp, OrgAppSchema } from './schemas/org-app.schema';
   controllers: [
     AppsController,
     AppsAdminController,
-    AppCategoriesAdminController,
     AppInstancesController,
     WebhooksController,
   ],
   providers: [
     AppsService,
     AppsRepository,
-    AppCategoriesService,
-    AppCategoriesRepository,
     AppInstancesService,
     AppInstancesRepository,
     OrgAppsRepository,

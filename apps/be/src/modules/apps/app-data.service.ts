@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { APP_MANIFESTS } from '@edge/apps';
 import type {
+  AppConnector,
   AppDataMeta,
   ConnectorLogger,
   ResolvedConnection,
@@ -56,21 +57,29 @@ export class AppDataService {
   ) {}
 
   /**
-   * Where a provider posts its change notifications, or undefined when this
-   * deployment has no address a provider could reach.
+   * Where a provider posts its change notifications for this connector, or
+   * undefined when the connector declares no `webhookPath` or this deployment
+   * has no address a provider could reach.
    *
-   * `PUBLIC_API_URL` is the whole condition, and localhost is not a substitute: the
-   * caller here is Google, not a browser. Unset it and the connectors simply don't
-   * subscribe and the poll carries the data — which is exactly what should happen on
-   * a developer's laptop.
+   * A public base URL is the whole condition, and localhost is not a substitute:
+   * the caller here is Google, not a browser. Unset it and the connectors simply
+   * don't subscribe and the poll carries the data — which is exactly what should
+   * happen on a developer's laptop. `WEBHOOK_PUBLIC_URL` (a dev tunnel) wins over
+   * `PUBLIC_API_URL`, matching the Graph subscription service, so push can be
+   * exercised locally through cloudflared/ngrok.
    */
-  private webhookUrl(): string | undefined {
-    const base = this.configService.get<string>('publicApiUrl');
+  private webhookUrl(connector: AppConnector): string | undefined {
+    if (!connector.webhookPath) {
+      return undefined;
+    }
+    const base =
+      this.configService.get<string>('webhookPublicUrl') ||
+      this.configService.get<string>('publicApiUrl');
     if (!base) {
       return undefined;
     }
     const prefix = this.configService.get<string>('apiPrefix') ?? 'api';
-    return `${base.replace(/\/$/, '')}/${prefix}/v1/webhooks/google/calendar`;
+    return `${base.replace(/\/$/, '')}/${prefix}/v1/${connector.webhookPath}`;
   }
 
   /**
@@ -301,7 +310,7 @@ export class AppDataService {
         ? await this.resolveConnection(candidate)
         : undefined;
 
-      const webhookUrl = this.webhookUrl();
+      const webhookUrl = this.webhookUrl(connector);
       const result = await connector.fetchData(candidate.config, {
         // No organizationId: the runtime is global (the cache is shared across
         // orgs); `connected` apps get tenant identity from `connection`.
