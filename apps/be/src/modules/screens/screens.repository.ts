@@ -8,8 +8,6 @@ import {
   ScreenDocument,
   ScreenItemType,
   ScreenItemValue,
-  ScreenLayout,
-  ScreenZoneValue,
 } from './schemas/screen.schema';
 
 export interface CreateScreenData {
@@ -166,49 +164,6 @@ export class ScreensRepository {
           updatedAt: expectedUpdatedAt,
         },
         update,
-        { new: true },
-      )
-      .exec();
-  }
-
-  /**
-   * Atomically replaces a screen's split-screen zones, guarded like
-   * {@link replaceItems}: `null` on a concurrent change (service maps to 409).
-   * The service passes the FULL zones array (it merged the edited zone into the
-   * zones it loaded under the same guard, so nothing can be lost).
-   */
-  async setZones(
-    organizationId: string,
-    id: string,
-    expectedUpdatedAt: Date,
-    zones: ScreenZoneValue[],
-  ): Promise<ScreenDocument | null> {
-    return this.screenModel
-      .findOneAndUpdate(
-        {
-          _id: new Types.ObjectId(id),
-          organizationId: new Types.ObjectId(organizationId),
-          updatedAt: expectedUpdatedAt,
-        },
-        { $set: { zones } },
-        { new: true },
-      )
-      .exec();
-  }
-
-  /** Sets the split-screen layout preset. */
-  async setLayout(
-    organizationId: string,
-    id: string,
-    layout: ScreenLayout,
-  ): Promise<ScreenDocument | null> {
-    return this.screenModel
-      .findOneAndUpdate(
-        {
-          _id: new Types.ObjectId(id),
-          organizationId: new Types.ObjectId(organizationId),
-        },
-        { $set: { layout } },
         { new: true },
       )
       .exec();

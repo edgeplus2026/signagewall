@@ -89,13 +89,7 @@ export const view = computed<View>(() => {
   if (!availabilityOn.value) {
     return 'standby'
   }
-  // Split-screen: content in ANY zone counts — a screen whose main region is
-  // empty but whose ticker has messages should still play, not show the splash.
-  const snap = snapshot.value
-  const items = [
-    ...(snap?.items ?? []),
-    ...(snap?.zones ?? []).flatMap((zone) => zone.items),
-  ]
+  const items = snapshot.value?.items ?? []
   const hasPlayable = online.value
     ? items.length > 0
     : items.some((item) => !itemRequiresNetwork(item))

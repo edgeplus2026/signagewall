@@ -20,9 +20,6 @@ export type {
   PlayerSnapshot,
   Renderable,
   ReportedProfile,
-  ScreenLayoutPreset,
-  ScreenZoneKey,
-  SnapshotZone,
   VideoRenderable,
 } from '@edge/player-contract'
 

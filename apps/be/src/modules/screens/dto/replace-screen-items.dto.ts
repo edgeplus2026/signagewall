@@ -14,7 +14,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { ScreenItemType, ScreenZoneKey } from '../schemas/screen.schema';
+import { ScreenItemType } from '../schemas/screen.schema';
 
 export class ReplaceScreenItemDto {
   @ApiPropertyOptional()
@@ -61,15 +61,6 @@ export class ReplaceScreenItemsDto {
   @ValidateNested({ each: true })
   @Type(() => ReplaceScreenItemDto)
   items!: ReplaceScreenItemDto[];
-
-  /**
-   * Split-screen: which region the list replaces. Absent ⇒ the MAIN zone (the
-   * classic behaviour, and what every pre-split client sends).
-   */
-  @ApiPropertyOptional({ enum: ScreenZoneKey })
-  @IsOptional()
-  @IsIn([ScreenZoneKey.SIDEBAR, ScreenZoneKey.TICKER])
-  zone?: ScreenZoneKey;
 
   /**
    * The `updatedAt` the client last observed. When provided, the write is

@@ -66,12 +66,7 @@ function mediaUrls(snap: PlayerSnapshot | null): string[] {
   if (!snap) {
     return []
   }
-  // Main zone first, then split-screen zones — everything on screen gets warmed.
-  const all = [
-    ...snap.items,
-    ...(snap.zones ?? []).flatMap((zone) => zone.items),
-  ]
-  return all.flatMap((item) =>
+  return snap.items.flatMap((item) =>
     item.kind === 'image' || item.kind === 'video' ? [item.url] : [],
   )
 }
