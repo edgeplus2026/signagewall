@@ -81,8 +81,10 @@ function ToolButton({ active, disabled, label, onClick, children }: ToolButtonPr
       }}
       onClick={onClick}
       className={cn(
-        'flex size-7 items-center justify-center rounded transition-colors disabled:opacity-50',
-        active ? 'bg-highlight text-primary' : 'text-secondary hover:bg-highlight',
+        'flex size-8 items-center justify-center rounded-md transition-colors disabled:opacity-50',
+        active
+          ? 'bg-highlight text-primary ring-1 ring-inset ring-white/10'
+          : 'text-secondary hover:bg-highlight hover:text-primary',
       )}
     >
       {children}
@@ -110,7 +112,7 @@ function ToolSelect({ label, value, disabled, options, onChange }: ToolSelectPro
       onChange={(event) => {
         onChange(event.target.value)
       }}
-      className="text-secondary hover:bg-highlight h-7 max-w-28 rounded bg-transparent px-1.5 text-xs outline-none"
+      className="text-secondary hover:bg-highlight hover:text-primary border-quaternary h-8 min-w-24 max-w-36 cursor-pointer rounded-md border bg-transparent px-2 text-xs outline-none transition-colors"
     >
       {options.map((option) => (
         <option key={option.label} value={option.value}>
@@ -184,7 +186,7 @@ export function RichTextControl({
         invalid ? 'border-danger' : 'border-quaternary',
       )}
     >
-      <div className="border-quaternary flex flex-wrap items-center gap-x-1 gap-y-1.5 border-b px-1.5 py-1.5">
+      <div className="border-quaternary bg-highlight/30 flex flex-wrap items-center gap-x-1.5 gap-y-2 border-b px-2 py-2">
         <ToolButton
           label="Bold"
           active={editor?.isActive('bold') ?? false}
@@ -218,7 +220,7 @@ export function RichTextControl({
           <StrikethroughIcon className="size-4" />
         </ToolButton>
 
-        <span className="bg-quaternary mx-1 h-5 w-px" />
+        <span className="bg-quaternary mx-1.5 h-6 w-px" />
 
         <ToolButton
           label="Align left"
@@ -245,7 +247,7 @@ export function RichTextControl({
           <AlignRightIcon className="size-4" />
         </ToolButton>
 
-        <span className="bg-quaternary mx-1 h-5 w-px" />
+        <span className="bg-quaternary mx-1.5 h-6 w-px" />
 
         <ToolButton
           label="Bullet list"

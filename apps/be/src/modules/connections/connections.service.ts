@@ -85,6 +85,22 @@ function base64url(buffer: Buffer): string {
 const REFRESH_SKEW_MS = 60_000;
 const STATE_TTL = '10m';
 
+/**
+ * Proactive (scheduler-driven) refresh: renew a connection whose token expires
+ * within this window even if nothing fetched it. Wide enough that a Meta token
+ * (reported ~30-day expiry) is re-extended well before it closes, and a
+ * durable-refresh-token provider (Google/Microsoft) is kept exercised so its
+ * refresh token never lapses from inactivity.
+ */
+const PROACTIVE_REFRESH_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
+/**
+ * Don't proactively refresh a connection touched (refreshed on a fetch, or by a
+ * previous proactive pass) more recently than this — actively-used connections
+ * self-heal on fetch, and this spacing also avoids a refresh-token rotation race
+ * with a concurrent fetch-driven refresh.
+ */
+const MIN_REFRESH_SPACING_MS = 5 * 60 * 60 * 1000;
+
 /** Config namespace holding each provider's clientId/clientSecret. */
 const PROVIDER_CONFIG_NS: Record<ConnectionProvider, string> = {
   [ConnectionProvider.GOOGLE]: 'google',
@@ -439,6 +455,60 @@ export class ConnectionsService {
       return false;
     }
     return doc.expiresAt.getTime() - Date.now() <= REFRESH_SKEW_MS;
+  }
+
+  /** True when a connection should be renewed by the proactive scheduler. */
+  private isProactivelyDue(doc: AppConnectionDocument, now: number): boolean {
+    if (!doc.refreshTokenEnc || !doc.expiresAt) {
+      return false;
+    }
+    // Nearing expiry (or already expired)…
+    if (doc.expiresAt.getTime() - now > PROACTIVE_REFRESH_WINDOW_MS) {
+      return false;
+    }
+    // …but not one a recent fetch (or a previous pass) already refreshed.
+    const updatedAt = doc.updatedAt?.getTime() ?? 0;
+    return now - updatedAt >= MIN_REFRESH_SPACING_MS;
+  }
+
+  /**
+   * Proactively renew connections whose token is nearing expiry, regardless of
+   * whether anything fetched them. Runs on a schedule so an idle connection's
+   * session never lapses — the live-sync apps must never go dark, and Meta
+   * tokens (no refresh token; re-extended inside {@link refreshTokens}) must be
+   * renewed before their window closes even when the instance is briefly unused.
+   * Never throws: each connection's failure is isolated and logged.
+   */
+  async refreshExpiring(
+    now: Date = new Date(),
+  ): Promise<{ refreshed: number; failed: number; skipped: number }> {
+    const docs = await this.repository.findRefreshable();
+    const nowMs = now.getTime();
+    let refreshed = 0;
+    let failed = 0;
+    let skipped = 0;
+    for (const doc of docs) {
+      if (!this.isProactivelyDue(doc, nowMs)) {
+        skipped += 1;
+        continue;
+      }
+      try {
+        await this.refreshTokens(doc);
+        refreshed += 1;
+      } catch (error) {
+        failed += 1;
+        this.logger.warn(
+          `Proactive token refresh failed for connection ${doc._id.toString()} (${doc.provider})`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      }
+    }
+    if (refreshed > 0 || failed > 0) {
+      this.logger.log(
+        `Proactive token refresh: ${refreshed} renewed, ${failed} failed, ${skipped} skipped`,
+      );
+    }
+    return { refreshed, failed, skipped };
   }
 
   private async refreshTokens(

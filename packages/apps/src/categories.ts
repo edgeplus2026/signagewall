@@ -66,6 +66,15 @@ export const APP_CATEGORY_MEMBERSHIP: Record<string, string[]> = {
   onthisday: ['news'],
   holidays: ['news'],
   wisdom: ['news'],
+  // Branded news outlets built from the RSS app (see src/rss/news.ts). Kept in
+  // sync with NEWS_PRESETS by hand — this module is intentionally import-free.
+  cnn: ['news'],
+  bbc: ['news'],
+  aljazeera: ['news'],
+  guardian: ['news'],
+  dw: ['news'],
+  france24: ['news'],
+  skynews: ['news'],
   // Weather & Environment
   weather: ['weather'],
   airquality: ['weather'],

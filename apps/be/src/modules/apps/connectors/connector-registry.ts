@@ -1,3 +1,4 @@
+import { NEWS_PRESETS } from '@edge/apps';
 import type { AppConnector } from '@edge/apps-contract';
 
 import { airqualityConnector } from './airquality.connector';
@@ -52,6 +53,9 @@ const CONNECTORS: Record<string, AppConnector> = {
   ticker: tickerConnector,
   wisdom: wisdomConnector,
   powerpoint: powerpointConnector,
+  // Branded news apps (CNN, BBC, …) are the RSS app with a fixed feed URL, so
+  // they resolve to the same connector — kept in sync with NEWS_PRESETS.
+  ...Object.fromEntries(NEWS_PRESETS.map((preset) => [preset.slug, rssConnector])),
 };
 
 /** The connector for `slug`, or undefined for `static` apps / unknown slugs. */

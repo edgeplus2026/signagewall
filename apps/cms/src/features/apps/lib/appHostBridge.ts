@@ -35,6 +35,13 @@ export interface AppPreviewHandle {
     data?: unknown
     meta?: AppDataMeta | null
   }): void
+  /**
+   * Set the preview's mute state. The preview starts muted (a live preview is
+   * never audible on its own); an operator can unmute to verify sound on
+   * audio-capable apps (e.g. Live stream, YouTube). Re-sends `app-active` with
+   * the new mute state once the bundle is ready.
+   */
+  setMuted(muted: boolean): void
   /** Detaches the listener and removes the iframe. */
   dispose(): void
 }
@@ -87,8 +94,17 @@ export function mountAppPreview(
   iframe.setAttribute('allow', IFRAME_ALLOW)
 
   let ready = false
+  // Preview starts muted; an operator can unmute to test audio-capable apps.
+  let muted = true
   let pending: { config: Record<string, unknown>; data: unknown; meta: AppDataMeta | null } | null =
     null
+
+  const sendActive = (): void => {
+    iframe.contentWindow?.postMessage(
+      { type: APP_ACTIVE_TYPE, active: true, muted },
+      targetOrigin,
+    )
+  }
 
   const send = (payload: {
     config: Record<string, unknown>
@@ -121,12 +137,9 @@ export function mountAppPreview(
     }
     // The previewed app is, by definition, the on-screen (active) item — unlike
     // the player there is no hidden preload here. Tell it so, so media apps
-    // (e.g. YouTube, which gate playback on `app-active`) actually render — but
-    // always muted: a live preview is never audible.
-    iframe.contentWindow?.postMessage(
-      { type: APP_ACTIVE_TYPE, active: true, muted: true },
-      targetOrigin,
-    )
+    // (e.g. YouTube, which gate playback on `app-active`) actually render. Starts
+    // muted; the operator can unmute via {@link AppPreviewHandle.setMuted}.
+    sendActive()
   }
 
   window.addEventListener('message', onMessage)
@@ -147,6 +160,12 @@ export function mountAppPreview(
         send(payload)
       } else {
         pending = payload
+      }
+    },
+    setMuted(next): void {
+      muted = next
+      if (ready) {
+        sendActive()
       }
     },
     dispose(): void {

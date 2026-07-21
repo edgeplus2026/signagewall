@@ -16,3 +16,13 @@
 .stream-video.fit-cover {
   object-fit: cover;
 }
+
+/* Platform players (Twitch / YouTube / Vimeo …) run in an iframe that fills the
+   slot; they letterbox their own content, so `fit` doesn't apply to them. */
+.stream-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #000;
+}

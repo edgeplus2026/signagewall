@@ -76,7 +76,8 @@ function formatDate(iso: string): string {
 function applyChrome(config: Record<string, unknown>): void {
   if (!root) return
   root.className = config.theme === 'light' ? 'fx-theme-light' : 'fx-theme-dark'
-  root.style.setProperty('--fx-accent', DEFAULT_ACCENT)
+  // The app's own brand green — a rate board reads as "money", not the shared accent.
+  root.style.setProperty('--fx-accent', '#22C55E')
 }
 
 function render(
@@ -99,6 +100,16 @@ function render(
   head.className = 'fx-head'
 
   const headLeft = document.createElement('div')
+  headLeft.className = 'fx-headline'
+
+  // Base-currency medallion — the hero focal point.
+  const baseBadge = document.createElement('div')
+  baseBadge.className = 'fx-base-badge'
+  const baseSymbol = symbolOf(data.base)
+  if (baseSymbol.length > 2) baseBadge.classList.add('fx-badge-long')
+  baseBadge.textContent = baseSymbol
+
+  const headText = document.createElement('div')
   const eyebrow = document.createElement('div')
   eyebrow.className = 'fx-eyebrow'
   eyebrow.textContent = 'Exchange rates'
@@ -114,7 +125,8 @@ function render(
     nameEl.textContent = baseName
     title.append(nameEl)
   }
-  headLeft.append(eyebrow, title)
+  headText.append(eyebrow, title)
+  headLeft.append(baseBadge, headText)
   head.append(headLeft)
 
   const dateLabel = formatDate(data.date)

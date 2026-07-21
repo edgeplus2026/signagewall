@@ -7,6 +7,8 @@
 export interface HolidaysPayload {
   /** ISO-3166 alpha-2 country code, e.g. "DK". */
   country: string
+  /** Human country name, e.g. "Denmark". */
+  countryName: string
   holidays: Holiday[]
 }
 

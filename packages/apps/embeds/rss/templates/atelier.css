@@ -68,10 +68,6 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--rs-accent) 30%, transparent);
 }
 
-.at-media .rs-media-img {
-  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
-}
-
 /* ----- The text ----- */
 
 .at-text {

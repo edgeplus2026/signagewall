@@ -1212,49 +1212,51 @@ describe('air quality connector (server)', () => {
 });
 
 describe('power-prices connector (server)', () => {
-  it('cacheKey is the area only (currency is display-only)', () => {
-    expect(
-      powerPricesConnector.cacheKey!({ area: 'dk1', currency: 'EUR' }),
-    ).toBe('power:DK1');
-    expect(
-      powerPricesConnector.cacheKey!({ area: 'DK1', currency: 'DKK' }),
-    ).toBe('power:DK1');
+  it('cacheKey is the area only, defaulting to Serbia', () => {
+    expect(powerPricesConnector.cacheKey!({ area: 'RS' })).toBe('power:RS');
+    expect(powerPricesConnector.cacheKey!({ area: 'DE-LU' })).toBe(
+      'power:DE-LU',
+    );
+    // No area → the home-market default.
+    expect(powerPricesConnector.cacheKey!({})).toBe('power:RS');
   });
 
-  it('orders hours oldest-first and converts MWh prices to per-kWh', async () => {
+  it('averages sub-hourly points into hourly EUR/kWh and keeps today', async () => {
+    // 2026-07-15 10:20 UTC = 12:20 in Europe/Belgrade (CEST, UTC+2).
+    const fixedNow = Date.UTC(2026, 6, 15, 10, 20, 0);
+    jest.spyOn(Date, 'now').mockReturnValue(fixedNow);
+
+    const hour10Utc = Date.UTC(2026, 6, 15, 10, 0, 0); // local 12:00
+    const hour11Utc = Date.UTC(2026, 6, 15, 11, 0, 0); // local 13:00
     mockFetchSequence([
       {
-        // API returns newest-first; the connector reverses to ascending.
         body: {
-          records: [
-            {
-              HourUTC: '2026-07-15T13:00:00',
-              HourDK: '2026-07-15T15:00:00',
-              PriceArea: 'DK1',
-              SpotPriceDKK: 1900,
-              SpotPriceEUR: 255,
-            },
-            {
-              HourUTC: '2026-07-15T12:00:00',
-              HourDK: '2026-07-15T14:00:00',
-              PriceArea: 'DK1',
-              SpotPriceDKK: 1850,
-              SpotPriceEUR: 248,
-            },
-          ],
+          // Four 15-minute points in the 12:00 local hour + one in 13:00.
+          unix_seconds: [
+            hour10Utc,
+            hour10Utc + 900_000,
+            hour10Utc + 1_800_000,
+            hour10Utc + 2_700_000,
+            hour11Utc,
+          ].map((ms) => ms / 1000),
+          price: [40, 40, 60, 60, 100], // EUR/MWh
         },
       },
     ]);
-    const result = await powerPricesConnector.fetchData({ area: 'DK1' }, ctx);
+
+    const result = await powerPricesConnector.fetchData({ area: 'RS' }, ctx);
     const payload = result.playerPayload!;
-    expect(payload.area).toBe('DK1');
+    expect(payload.area).toBe('RS');
+    expect(payload.areaLabel).toBe('Serbia');
+    // avg(40,40,60,60)=50 EUR/MWh → 0.05 EUR/kWh; 100 → 0.1.
     expect(payload.hours).toEqual([
-      { start: '2026-07-15T14:00:00', dkk: 1.85, eur: 0.248 },
-      { start: '2026-07-15T15:00:00', dkk: 1.9, eur: 0.255 },
+      { start: '2026-07-15T12:00:00', eur: 0.05 },
+      { start: '2026-07-15T13:00:00', eur: 0.1 },
     ]);
-    // The current hour is resolved from UTC; it always points inside the series.
-    expect(payload.currentIndex).toBeGreaterThanOrEqual(-1);
-    expect(payload.currentIndex).toBeLessThan(payload.hours.length);
+    // "Now" (12:20 local) falls in the 12:00 hour.
+    expect(payload.currentIndex).toBe(0);
+
+    jest.restoreAllMocks();
   });
 });
 
@@ -1290,6 +1292,7 @@ describe('holidays connector (server)', () => {
     const result = await holidaysConnector.fetchData({ country: 'DK' }, ctx);
     expect(result.playerPayload).toEqual({
       country: 'DK',
+      countryName: 'Denmark',
       holidays: [
         { date: '2026-12-25', name: 'Christmas Day', localName: 'Juledag' },
         { date: '2027-01-01', name: "New Year's Day", localName: 'Nytårsdag' },

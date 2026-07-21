@@ -1,27 +1,26 @@
 import type { AppManifest } from '@edge/apps-contract'
 
-import { styleFields } from '../_shared/style-fields.js'
-import { AREA_OPTIONS } from './areas.js'
+import { AREA_OPTIONS, DEFAULT_AREA } from './areas.js'
 
 const POWER_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>'
 
 /**
- * Electricity spot prices — a `server` app backed by Energinet's open
- * Elspotprices dataset (no API key). Shows the current day-ahead spot price and
- * today's hourly curve for a Nord Pool price area. The connector fetches once per
- * area and fans it out; both DKK and EUR travel in the payload, so the currency
- * choice is display-only and never splits the cache.
+ * Electricity spot prices — a `server` app backed by energy-charts.info's open
+ * day-ahead price data (no API key), covering Serbia and the popular European
+ * markets. Shows the current day-ahead spot price and today's hourly curve for a
+ * price area. The connector fetches once per area (in the area's timezone) and
+ * fans it out; prices travel in EUR, formatted per kWh by the embed.
  */
 export const powerPricesManifest: AppManifest = {
   slug: 'power-prices',
   name: 'Electricity prices',
   tagline: 'Live electricity spot prices',
   description:
-    'Show the current electricity spot price and today\'s hourly curve for a price area — from Energinet.',
+    "Show the current electricity spot price and today's hourly price curve for a country or market area.",
   runtimeKind: 'embed',
   dataSource: 'server',
-  version: 1,
+  version: 2,
   refreshSeconds: 1800,
   icon: POWER_ICON,
   color: '#EAB308',
@@ -30,30 +29,23 @@ export const powerPricesManifest: AppManifest = {
       key: 'area',
       type: 'select',
       label: 'Price area',
-      help: 'Which electricity market area to show prices for.',
-      default: 'DK1',
+      // The market is the country's day-ahead bidding zone — not their retail
+      // bill. Say that plainly so nobody reads a low spot price as their tariff.
+      help: 'The country or market whose day-ahead wholesale prices to show. Start typing to find yours.',
+      default: DEFAULT_AREA,
+      searchable: true,
       options: AREA_OPTIONS,
-    },
-    {
-      key: 'currency',
-      type: 'select',
-      label: 'Currency',
-      default: 'DKK',
-      options: [
-        { label: 'DKK (øre/kWh)', value: 'DKK' },
-        { label: 'EUR (cents/kWh)', value: 'EUR' },
-      ],
     },
     {
       key: 'theme',
       type: 'select',
       label: 'Theme',
+      help: 'The overall colour scheme of the screen.',
       default: 'dark',
       options: [
         { label: 'Light', value: 'light' },
         { label: 'Dark', value: 'dark' },
       ],
     },
-    ...styleFields(),
   ],
 }

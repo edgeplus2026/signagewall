@@ -1,18 +1,17 @@
-/* On this day. A heading with today's date over a list of events, each a year
-   (in the accent) and a one-to-two-line description. */
+/* On this day. A date hero over a vertical timeline of historical events — each a
+   year on the left, a dot on a continuous accent line, and the description. Sized
+   with min(vw,vh) so it holds up in landscape and narrow portrait zones. */
 
 .otd {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 5vh 6vw;
+  padding: 6vh 6vw;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 2.5vh;
+  gap: 3vh;
   font-family: var(--app-font, inherit);
-  font-weight: var(--app-font-weight, 400);
-  letter-spacing: var(--app-letter-spacing, 0);
 }
 
 .otd-head {
@@ -20,39 +19,61 @@
   flex-direction: column;
   gap: 0.4vh;
 }
-.otd-title {
-  font-size: calc(min(2.2vw, 3.6vh) * var(--app-font-scale, 1));
+.otd-eyebrow {
+  font-size: calc(min(1.9vw, 3.2vh));
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  opacity: 0.6;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  color: var(--otd-accent, #a78bfa);
 }
 .otd-date {
-  font-size: calc(min(5vw, 8vh) * var(--app-font-scale, 1));
-  font-weight: 700;
+  font-size: calc(min(5.5vw, 8.5vh));
+  font-weight: 800;
+  line-height: 1;
 }
 
 .otd-list {
   display: flex;
   flex-direction: column;
-  gap: 1.8vh;
 }
-
 .otd-event {
-  display: flex;
-  align-items: baseline;
-  gap: 1.4vw;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 2.6vw;
 }
 .otd-year {
-  flex: none;
+  text-align: right;
+  align-self: start;
+  padding-top: 0.1em;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  font-size: calc(min(2.6vw, 4.4vh) * var(--app-font-scale, 1));
-  color: var(--otd-accent, #7c3aed);
-  min-width: 4ch;
+  font-weight: 800;
+  font-size: calc(min(2.6vw, 4.2vh));
+  color: var(--otd-accent, #a78bfa);
+  white-space: nowrap;
+}
+/* The continuous timeline line is the left border of every body cell; the dot is
+   pinned onto it. Using padding-bottom (not row gap) keeps the line unbroken. */
+.otd-body {
+  position: relative;
+  border-left: 0.22vmin solid color-mix(in srgb, var(--otd-accent) 40%, transparent);
+  padding: 0 0 2.4vh 3vw;
+}
+.otd-event:last-child .otd-body {
+  border-left-color: transparent;
+}
+.otd-body::before {
+  content: '';
+  position: absolute;
+  left: calc(-0.7vmin - 0.11vmin);
+  top: 0.35em;
+  width: 1.4vmin;
+  height: 1.4vmin;
+  border-radius: 50%;
+  background: var(--otd-accent, #a78bfa);
 }
 .otd-text {
-  font-size: calc(min(2vw, 3.4vh) * var(--app-font-scale, 1));
-  line-height: 1.25;
+  font-size: calc(min(2.1vw, 3.5vh));
+  line-height: 1.28;
   /* Keep a very long entry from pushing the list off-screen. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -65,4 +86,17 @@
   margin: auto;
   font-size: 3vh;
   opacity: 0.6;
+}
+
+/* Narrow / portrait zones: widen the vw budget so the date + events stay legible. */
+@media (max-aspect-ratio: 5/4) {
+  .otd-date {
+    font-size: calc(min(9vw, 7.5vh));
+  }
+  .otd-year {
+    font-size: calc(min(4.6vw, 3.8vh));
+  }
+  .otd-text {
+    font-size: calc(min(3.6vw, 3.1vh));
+  }
 }

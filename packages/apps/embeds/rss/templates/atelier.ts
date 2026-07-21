@@ -1,4 +1,4 @@
-import { mediaFrameHtml, progressHtml, qrPanelHtml } from '../chrome.js'
+import { mediaFrameHtml, qrPanelHtml } from '../chrome.js'
 import { escapeHtml, timeAgo } from '../format.js'
 import type { RssTemplate, RssTemplateContext } from './index.js'
 import './atelier.css'
@@ -31,7 +31,6 @@ export const atelierTemplate: RssTemplate = {
 
     return `
       <div class="at${qr ? ' has-qr' : ''}" data-template-root>
-        ${progressHtml(ctx.items.length, ctx.index)}
         <div class="at-frame">
           <div class="at-plate">${mediaFrameHtml(item, 'at-media')}</div>
           <div class="at-text">

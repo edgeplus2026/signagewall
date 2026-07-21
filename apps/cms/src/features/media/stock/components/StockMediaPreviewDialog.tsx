@@ -1,9 +1,9 @@
-import { ExternalLinkIcon, ListVideoIcon, MonitorIcon, DownloadIcon } from "lucide-react"
-import { useState } from "react"
-import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
+import { ExternalLinkIcon, ListVideoIcon, MonitorIcon, ImportIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -11,15 +11,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useImportStockMedia, useStockMediaItem } from "@/features/media/stock/hooks/useStockMedia"
-import { formatStockDuration, getOrientation } from "@/features/media/stock/lib/stockMediaUtils"
-import type { StockMediaItem } from "@/features/media/stock/types/stockMedia.types"
-import { getApiErrorMessage } from "@/lib/api-error"
-import { cn } from "@/lib/utils"
+} from '@/components/ui/dialog'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useImportStockMedia, useStockMediaItem } from '@/features/media/stock/hooks/useStockMedia'
+import { formatStockDuration, getOrientation } from '@/features/media/stock/lib/stockMediaUtils'
+import type { StockMediaItem } from '@/features/media/stock/types/stockMedia.types'
+import { getApiErrorMessage } from '@/lib/api-error'
+import { cn } from '@/lib/utils'
 
-type ImportAction = "import" | "playlist" | "screen"
+type ImportAction = 'import' | 'playlist' | 'screen'
 
 interface StockMediaPreviewDialogProps {
   item: StockMediaItem | null
@@ -57,10 +57,7 @@ export function StockMediaPreviewDialog({
   // a different item is opened — no effect needed.
   const [loadedItemId, setLoadedItemId] = useState<string | null>(null)
 
-  const { data: detail } = useStockMediaItem(
-    item?.id ?? null,
-    item?.mediaType ?? null,
-  )
+  const { data: detail } = useStockMediaItem(item?.id ?? null, item?.mediaType ?? null)
 
   // The list item already carries enough to render; the detail query enriches
   // it (and provides a reliable playable URL) once it arrives.
@@ -70,7 +67,7 @@ export function StockMediaPreviewDialog({
     if (!item) return null
 
     setPendingAction(action)
-    const toastId = toast.loading(t("media.stock.preview.importing"))
+    const toastId = toast.loading(t('media.stock.preview.importing'))
 
     try {
       const media = await importMutation.mutateAsync({
@@ -78,13 +75,10 @@ export function StockMediaPreviewDialog({
         mediaType: item.mediaType,
         parentId,
       })
-      toast.success(t("media.stock.preview.imported"), { id: toastId })
+      toast.success(t('media.stock.preview.imported'), { id: toastId })
       return media.id
     } catch (error) {
-      toast.error(
-        getApiErrorMessage(error, t("media.stock.preview.importError")),
-        { id: toastId },
-      )
+      toast.error(getApiErrorMessage(error, t('media.stock.preview.importError')), { id: toastId })
       return null
     } finally {
       setPendingAction(null)
@@ -92,14 +86,14 @@ export function StockMediaPreviewDialog({
   }
 
   const handleImport = async () => {
-    const mediaId = await runImport("import")
+    const mediaId = await runImport('import')
     if (mediaId) {
       onOpenChange(false)
     }
   }
 
   const handleAddToPlaylist = async () => {
-    const mediaId = await runImport("playlist")
+    const mediaId = await runImport('playlist')
     if (mediaId) {
       onOpenChange(false)
       onAddToPlaylist(mediaId)
@@ -107,14 +101,14 @@ export function StockMediaPreviewDialog({
   }
 
   const handleAddToScreen = async () => {
-    const mediaId = await runImport("screen")
+    const mediaId = await runImport('screen')
     if (mediaId) {
       onOpenChange(false)
       onAddToScreen(mediaId)
     }
   }
 
-  const isVideo = active?.mediaType === "video"
+  const isVideo = active?.mediaType === 'video'
   const isBusy = pendingAction !== null
   const mediaLoaded = !!active && loadedItemId === active.id
 
@@ -123,25 +117,23 @@ export function StockMediaPreviewDialog({
   }
   const trimmedAlt = active?.alt?.trim()
   const titleText =
-    trimmedAlt && trimmedAlt.length > 0
-      ? trimmedAlt
-      : (active?.author ?? t("media.stock.title"))
+    trimmedAlt && trimmedAlt.length > 0 ? trimmedAlt : (active?.author ?? t('media.stock.title'))
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
-        <DialogHeader className="border-secondary border-b px-5 py-4 text-left pr-10">
+        <DialogHeader className="border-secondary border-b px-5 py-4 pr-10 text-left">
           <DialogTitle className="truncate">{titleText}</DialogTitle>
           {active ? (
             <DialogDescription>
-              {t("media.stock.preview.attribution", { author: active.author })}{" "}
+              {t('media.stock.preview.attribution', { author: active.author })}{' '}
               <a
                 href={active.sourceUrl}
                 target="_blank"
                 rel="noreferrer noopener"
                 className="text-brand inline-flex items-center gap-0.5 hover:underline"
               >
-                {t("media.stock.preview.viewOnPexels")}
+                {t('media.stock.preview.viewOnPexels')}
                 <ExternalLinkIcon className="size-3" />
               </a>
             </DialogDescription>
@@ -150,10 +142,8 @@ export function StockMediaPreviewDialog({
 
         <div className="visible-scrollbar flex-1 overflow-y-auto p-5">
           <div className="grid gap-5 sm:grid-cols-[1.6fr_1fr]">
-            <div className="bg-sidebar relative flex items-center justify-center overflow-hidden rounded-xl border border-secondary">
-              {!mediaLoaded ? (
-                <Skeleton className="aspect-video w-full" />
-              ) : null}
+            <div className="bg-sidebar border-secondary relative flex items-center justify-center overflow-hidden rounded-xl border">
+              {!mediaLoaded ? <Skeleton className="aspect-video w-full" /> : null}
 
               {active ? (
                 isVideo ? (
@@ -164,8 +154,8 @@ export function StockMediaPreviewDialog({
                     playsInline
                     onLoadedData={handleMediaLoaded}
                     className={cn(
-                      "max-h-[55vh] w-full bg-black object-contain",
-                      !mediaLoaded && "invisible absolute",
+                      'max-h-[55vh] w-full bg-black object-contain',
+                      !mediaLoaded && 'invisible absolute',
                     )}
                   />
                 ) : (
@@ -175,8 +165,8 @@ export function StockMediaPreviewDialog({
                     onLoad={handleMediaLoaded}
                     onError={handleMediaLoaded}
                     className={cn(
-                      "max-h-[55vh] w-full object-contain",
-                      !mediaLoaded && "invisible absolute",
+                      'max-h-[55vh] w-full object-contain',
+                      !mediaLoaded && 'invisible absolute',
                     )}
                   />
                 )
@@ -186,25 +176,22 @@ export function StockMediaPreviewDialog({
             <div className="flex flex-col gap-2.5">
               {active ? (
                 <>
+                  <MetaRow label={t('media.stock.preview.author')} value={active.author} />
                   <MetaRow
-                    label={t("media.stock.preview.author")}
-                    value={active.author}
-                  />
-                  <MetaRow
-                    label={t("media.stock.preview.dimensions")}
+                    label={t('media.stock.preview.dimensions')}
                     value={`${String(active.width)} × ${String(active.height)}`}
                   />
                   <MetaRow
-                    label={t("media.stock.preview.orientation")}
+                    label={t('media.stock.preview.orientation')}
                     value={t(`media.stock.orientation.${getOrientation(active)}`)}
                   />
                   <MetaRow
-                    label={t("media.stock.preview.mediaType")}
+                    label={t('media.stock.preview.mediaType')}
                     value={t(`media.stock.mediaType.${active.mediaType}`)}
                   />
                   {active.duration !== undefined ? (
                     <MetaRow
-                      label={t("media.stock.preview.duration")}
+                      label={t('media.stock.preview.duration')}
                       value={formatStockDuration(active.duration)}
                     />
                   ) : null}
@@ -230,7 +217,7 @@ export function StockMediaPreviewDialog({
             }}
           >
             <ListVideoIcon data-icon="inline-start" />
-            {t("media.stock.preview.addToPlaylist")}
+            {t('media.stock.preview.addToPlaylist')}
           </Button>
           <Button
             type="button"
@@ -241,7 +228,7 @@ export function StockMediaPreviewDialog({
             }}
           >
             <MonitorIcon data-icon="inline-start" />
-            {t("media.stock.preview.addToScreen")}
+            {t('media.stock.preview.addToScreen')}
           </Button>
           <Button
             type="button"
@@ -250,8 +237,8 @@ export function StockMediaPreviewDialog({
               void handleImport()
             }}
           >
-            <DownloadIcon data-icon="inline-start" />
-            {t("media.stock.preview.import")}
+            <ImportIcon data-icon="inline-start" />
+            {t('media.stock.preview.import')}
           </Button>
         </DialogFooter>
       </DialogContent>

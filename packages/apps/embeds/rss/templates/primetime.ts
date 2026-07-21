@@ -1,4 +1,4 @@
-import { mediaFrameHtml, progressHtml, qrPanelHtml } from '../chrome.js'
+import { mediaFrameHtml, qrPanelHtml } from '../chrome.js'
 import { escapeHtml, timeAgo } from '../format.js'
 import type { RssTemplate, RssTemplateContext } from './index.js'
 import './primetime.css'
@@ -56,7 +56,6 @@ export const primetimeTemplate: RssTemplate = {
       <div class="pt${rail ? ' has-rail' : ''}${qr ? ' has-qr' : ''}" data-template-root>
         ${mediaFrameHtml(item, 'pt-backdrop')}
         <div class="pt-fade"></div>
-        ${progressHtml(total, ctx.index)}
         <div class="pt-hero">
           ${ctx.feedTitle ? `<div class="pt-brand">${escapeHtml(ctx.feedTitle)}</div>` : ''}
           <h1 class="pt-title">${escapeHtml(item.title)}</h1>

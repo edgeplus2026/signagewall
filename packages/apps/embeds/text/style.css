@@ -1,32 +1,10 @@
-/* Scrim over a background photo so overlaid text stays readable. Sits below the
-   text layer (which is lifted with position/z-index below). */
-.text-scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-.text-scrim-light {
-  background: rgba(0, 0, 0, 0.25);
-}
-.text-scrim-dark {
-  background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.6));
-}
-
-/* Lift the centered text above the scrim. */
-.center {
-  position: relative;
-  z-index: 1;
-}
-
 .text-rich {
   width: 100%;
   box-sizing: border-box;
   padding: 0 6%;
-  /* A soft shadow keeps text legible even with a light/none overlay. */
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  /* Default size for unsized text; the editor sets explicit px (10–100) per run. */
-  font-size: 40px;
+  /* Default size for unsized text scales with the screen; the editor sets an
+     explicit px size per run when the operator picks one. */
+  font-size: min(4vw, 7vh);
   font-weight: 300;
   line-height: 1.2;
   text-align: center;

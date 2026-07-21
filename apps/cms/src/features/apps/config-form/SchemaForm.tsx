@@ -13,6 +13,7 @@ import { AppSlugProvider } from '@/features/apps/config-form/appSlugContext'
 import { ConfigPatchProvider } from '@/features/apps/config-form/configPatchContext'
 import { ConfigValuesProvider } from '@/features/apps/config-form/configValuesContext'
 import { InstanceIdProvider } from '@/features/apps/config-form/instanceIdContext'
+import { friendlyMessage } from '@/features/apps/config-form/validationMessages'
 
 type ConfigValues = Record<string, unknown>
 
@@ -98,6 +99,12 @@ export function SchemaForm({
 
   const sections = useMemo(() => groupSections(schema), [schema])
 
+  const fieldByKey = useMemo(() => {
+    const map = new Map<string, Field>()
+    for (const field of schema) map.set(field.key, field)
+    return map
+  }, [schema])
+
   const errors = useMemo(() => {
     const map: Record<string, string> = {}
     // Pass `value` so conditionally-hidden (visibleWhen) fields aren't enforced.
@@ -105,17 +112,23 @@ export function SchemaForm({
     if (!result.success) {
       for (const issue of result.error.issues) {
         const key = String(issue.path[0] ?? '')
-        if (key && !(key in map)) map[key] = issue.message
+        // Human, field-aware copy instead of raw zod defaults.
+        if (key && !(key in map)) map[key] = friendlyMessage(issue, fieldByKey.get(key))
       }
     }
     return map
-  }, [schema, value])
+  }, [schema, value, fieldByKey])
 
   const markTouched = (key: string) => {
     setTouched((prev) => (prev.has(key) ? prev : new Set(prev).add(key)))
   }
 
   const renderField = (field: Field) => {
+    // Predefined, non-editable fields (e.g. a branded news app's fixed feed URL)
+    // are kept in the config but never shown.
+    if (field.hidden) {
+      return null
+    }
     if (!isFieldVisible(field.visibleWhen, value)) {
       return null
     }

@@ -1,4 +1,4 @@
-import { mediaFrameHtml, progressHtml, qrPanelHtml } from '../chrome.js'
+import { mediaFrameHtml, qrPanelHtml } from '../chrome.js'
 import { escapeHtml, timeAgo } from '../format.js'
 import type { RssTemplate, RssTemplateContext } from './index.js'
 import './cover.css'
@@ -57,7 +57,6 @@ export const coverTemplate: RssTemplate = {
       <div class="cv${qr ? ' has-qr' : ''}" data-template-root>
         ${mediaFrameHtml(item, 'cv-media')}
         <div class="cv-scrim"></div>
-        ${progressHtml(ctx.items.length, ctx.index)}
         <div class="cv-content">
           ${ctx.feedTitle ? `<div class="cv-badge">${escapeHtml(ctx.feedTitle)}</div>` : ''}
           <h1 class="cv-headline">${kineticHeadline(item.title)}</h1>

@@ -44,12 +44,6 @@ export interface DashboardData {
     media: number
   }
   growth: GrowthPoint[]
-  /** Per-category cumulative weekly totals, for the stat-card sparklines. */
-  sparks: {
-    screens: number[]
-    playlists: number[]
-    media: number[]
-  }
   recentPlaylists: PlaylistSummary[]
 }
 
@@ -100,7 +94,10 @@ export function useDashboardData(): DashboardData {
       const mediaCum = countCreatedUpTo(mediaTimes, cutoff)
 
       growth.push({
-        weekStart: weekStart.getTime(),
+        // Past buckets are labelled by the week's Monday; the current (last) bucket
+        // is labelled as of today so the newest point reads as "now", not a stale
+        // start-of-week date.
+        weekStart: i === 0 ? now.getTime() : weekStart.getTime(),
         screens: screensCum,
         playlists: playlistsCum,
         media: mediaCum,
@@ -129,11 +126,6 @@ export function useDashboardData(): DashboardData {
         media: countCreatedWithin(mediaTimes, deltaSince),
       },
       growth,
-      sparks: {
-        screens: growth.map((g) => g.screens),
-        playlists: growth.map((g) => g.playlists),
-        media: growth.map((g) => g.media),
-      },
       recentPlaylists,
     }
   }, [playlists, screens, media, presenceMap, playlistsLoading, screensLoading, mediaLoading])

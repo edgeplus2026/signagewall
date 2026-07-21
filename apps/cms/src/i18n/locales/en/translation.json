@@ -232,29 +232,22 @@
       "stored": "stored",
       "empty": "No media yet."
     },
-    "learn": {
-      "title": "Learn the basics",
-      "description": "A quick tour of how Edge turns your files into live signage.",
-      "faqLink": "Browse FAQ",
-      "cta": "Open",
-      "tipsTitle": "Tips & tricks",
-      "tips": [
-        "Group content into playlists so you can update many screens in one move.",
-        "A green dot means a screen is live — check connectivity here at a glance.",
-        "Set a per-item duration to control the pace of your playback."
-      ],
-      "concepts": {
-        "screens": {
-          "title": "Screens",
-          "description": "Screens are the physical displays you pair with a code. Each one plays the content you assign to it."
+    "gettingStarted": {
+      "title": "Get started with Edge",
+      "subtitle": "Three quick steps to put content on your screens.",
+      "dismiss": "Dismiss",
+      "steps": {
+        "media": {
+          "title": "Upload media",
+          "description": "Add images and videos to your library."
         },
         "playlists": {
-          "title": "Playlists",
-          "description": "Playlists are ordered collections of media. Set the order and duration, then push them to any screen."
+          "title": "Create a playlist",
+          "description": "Arrange your media into a playlist."
         },
-        "media": {
-          "title": "Media library",
-          "description": "Your library holds every image and video. Upload files or pull them straight from the cloud."
+        "screens": {
+          "title": "Add a screen",
+          "description": "Pair a display and play your content."
         }
       }
     }
@@ -1413,7 +1406,7 @@
         "orientation": "Orientation",
         "mediaType": "Type",
         "duration": "Duration",
-        "import": "Import",
+        "import": "Import to media library",
         "addToPlaylist": "Add to playlist",
         "addToScreen": "Add to screen",
         "importing": "Importing asset...",
@@ -2084,6 +2077,41 @@
         "tagline": "Show the latest stories from any feed",
         "description": "Point it at a news site or blog and the screen shows its latest stories — refreshed on its own.",
         "about": "Bring any RSS or Atom feed to your screens — a news site, an industry blog or your own company feed. Paste the feed address, usually the site's homepage with /feed or /rss on the end, choose one of many layouts from a single story to a full mosaic, and optionally add a QR code to keep reading on a phone. Stories refresh on their own, so it stays fresh in lobbies and break rooms."
+      },
+      "cnn": {
+        "tagline": "Latest world headlines from CNN",
+        "description": "Show CNN's latest world headlines on your screens — refreshed automatically.",
+        "about": "Put CNN's latest world headlines on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+      },
+      "bbc": {
+        "tagline": "World news from the BBC",
+        "description": "Show the BBC's latest world news on your screens — refreshed automatically.",
+        "about": "Put the BBC's latest world news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+      },
+      "aljazeera": {
+        "tagline": "Global news from Al Jazeera",
+        "description": "Show Al Jazeera's latest news on your screens — refreshed automatically.",
+        "about": "Put Al Jazeera's latest global news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+      },
+      "guardian": {
+        "tagline": "World news from The Guardian",
+        "description": "Show The Guardian's latest world news on your screens — refreshed automatically.",
+        "about": "Put The Guardian's latest world news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+      },
+      "dw": {
+        "tagline": "World news from Deutsche Welle",
+        "description": "Show Deutsche Welle's latest world news on your screens — refreshed automatically.",
+        "about": "Put Deutsche Welle's latest world news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+      },
+      "france24": {
+        "tagline": "International news from France 24",
+        "description": "Show France 24's latest international news on your screens — refreshed automatically.",
+        "about": "Put France 24's latest international news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+      },
+      "skynews": {
+        "tagline": "Breaking world news from Sky News",
+        "description": "Show Sky News's latest world headlines on your screens — refreshed automatically.",
+        "about": "Put Sky News's latest world headlines on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
       },
       "onthisday": {
         "tagline": "Historical events for today's date",

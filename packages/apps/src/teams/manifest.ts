@@ -26,7 +26,7 @@ export const teamsManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 1,
-  refreshSeconds: 300,
+  refreshSeconds: 120,
   icon: TEAMS_ICON,
   color: '#6264A7',
   configSchema: [

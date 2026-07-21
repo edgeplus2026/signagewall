@@ -5,7 +5,8 @@ const TEXT_ICON =
 
 /**
  * Text / Announcement — quick on-screen messages. Pure client-side: renders the
- * configured text centered on the surface.
+ * configured rich text centered on a solid background. "Theme" is the quick
+ * light/dark preset (like every other app); the two colour pickers fine-tune it.
  */
 export const textManifest: AppManifest = {
   slug: 'text',
@@ -14,7 +15,7 @@ export const textManifest: AppManifest = {
   description: 'Display a short message or announcement on your screens.',
   runtimeKind: 'embed',
   dataSource: 'static',
-  version: 3,
+  version: 4,
   icon: TEXT_ICON,
   color: '#6366F1',
   configSchema: [
@@ -22,38 +23,35 @@ export const textManifest: AppManifest = {
       key: 'body',
       type: 'richtext',
       label: 'Message',
-      // Optional: a slide can be image-only (a full-screen background photo).
-      help: 'Optional when a background image is set.',
+      help: 'The text to show, centered on the screen. Use the toolbar to style it.',
+      required: true,
     },
     {
-      key: 'backgroundImage',
-      type: 'url',
-      label: 'Background image URL',
-      help: 'Optional. A full-screen background photo behind the text.',
-    },
-    {
-      key: 'overlay',
+      key: 'theme',
       type: 'select',
-      label: 'Image overlay',
+      label: 'Theme',
+      // Matches the "Theme" convention across apps; picking one presets the two
+      // colours below, which the operator can then fine-tune.
+      help: 'A quick light or dark look. You can still fine-tune the colours below.',
       default: 'dark',
-      help: 'Darkens the background image so text stays readable.',
       options: [
-        { label: 'None', value: 'none' },
-        { label: 'Light', value: 'light' },
-        { label: 'Dark', value: 'dark' },
+        { label: 'Dark', value: 'dark', set: { color: '#FFFFFF', backgroundColor: '#0B1220' } },
+        { label: 'Light', value: 'light', set: { color: '#0F172A', backgroundColor: '#FFFFFF' } },
       ],
     },
     {
       key: 'color',
       type: 'color',
       label: 'Text color',
+      help: 'The colour of the message text.',
       default: '#FFFFFF',
     },
     {
       key: 'backgroundColor',
       type: 'color',
       label: 'Background color',
-      default: '#000000',
+      help: 'The colour behind the message.',
+      default: '#0B1220',
     },
   ],
 }

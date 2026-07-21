@@ -1,4 +1,4 @@
-import { mediaFrameHtml, progressBarHtml, qrPanelHtml } from '../chrome.js'
+import { mediaFrameHtml, qrPanelHtml } from '../chrome.js'
 import { escapeHtml, timeAgo } from '../format.js'
 import type { RssTemplate, RssTemplateContext } from './index.js'
 import './broadcast.css'
@@ -70,7 +70,6 @@ export const broadcastTemplate: RssTemplate = {
 
     return `
       <div class="bc${crawl ? ' has-crawl' : ''}" data-template-root>
-        ${progressBarHtml()}
         ${mediaFrameHtml(item, 'bc-shot')}
         <div class="bc-vignette"></div>
 

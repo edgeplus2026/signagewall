@@ -22,6 +22,7 @@ import { powerPricesManifest } from './power-prices/manifest.js'
 import { powerpointManifest } from './powerpoint/manifest.js'
 import { qrManifest } from './qr/manifest.js'
 import { rssManifest } from './rss/manifest.js'
+import { NEWS_MANIFESTS } from './rss/news.js'
 import { streamManifest } from './stream/manifest.js'
 import { teamsManifest } from './teams/manifest.js'
 import { textManifest } from './text/manifest.js'
@@ -68,6 +69,9 @@ export const APP_MANIFESTS: AppManifest[] = [
   instagramManifest,
   facebookManifest,
   teamsManifest,
+  // Branded news apps built from the RSS app (CNN, BBC, …) — same runtime,
+  // fixed feed URL. See src/rss/news.ts.
+  ...NEWS_MANIFESTS,
 ]
 
 export {
@@ -102,6 +106,13 @@ export {
   facebookManifest,
   teamsManifest,
 }
+export {
+  NEWS_MANIFESTS,
+  NEWS_PRESETS,
+  newsFeedManifest,
+} from './rss/news.js'
+export type { NewsPreset } from './rss/news.js'
+
 export { APP_CATEGORIES, APP_CATEGORY_MEMBERSHIP } from './categories.js'
 export type { AppCategoryDef } from './categories.js'
 export { parseYouTubeId, toYouTubeEmbedUrl } from './youtube/embed.js'
@@ -186,11 +197,19 @@ export type {
   PowerPricesPayload,
   PowerHour,
 } from './power-prices/payload.js'
+export {
+  AREA_OPTIONS as POWER_AREA_OPTIONS,
+  DEFAULT_AREA as DEFAULT_POWER_AREA,
+  POWER_AREAS,
+  powerAreaByValue,
+} from './power-prices/areas.js'
+export type { PowerArea } from './power-prices/areas.js'
 
 export { COIN_LIST, COINS_BY_ID, coinOptions } from './crypto/coins.js'
 export type { Coin } from './crypto/coins.js'
 export type { CryptoPayload, CryptoCoin } from './crypto/payload.js'
 export type { HolidaysPayload, Holiday } from './holidays/payload.js'
+export { HOLIDAY_COUNTRIES, holidayCountryName } from './holidays/countries.js'
 export type { OnThisDayPayload, OnThisDayEvent } from './onthisday/payload.js'
 export type { GsheetsPayload } from './gsheets/payload.js'
 export type { GslidesPayload } from './gslides/payload.js'

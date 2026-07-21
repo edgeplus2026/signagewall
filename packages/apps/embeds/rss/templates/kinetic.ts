@@ -1,4 +1,4 @@
-import { mediaFrameHtml, progressHtml, qrPanelHtml } from '../chrome.js'
+import { mediaFrameHtml, qrPanelHtml } from '../chrome.js'
 import { escapeHtml, timeAgo } from '../format.js'
 import type { RssTemplate, RssTemplateContext } from './index.js'
 import './kinetic.css'
@@ -79,7 +79,6 @@ export const kineticTemplate: RssTemplate = {
       <div class="kn${qr ? ' has-qr' : ''}" data-template-root>
         ${mediaFrameHtml(item, 'kn-media')}
         <div class="kn-slab"></div>
-        ${progressHtml(ctx.items.length, ctx.index)}
         <div class="kn-content">
           ${ctx.feedTitle ? `<div class="kn-source">${escapeHtml(ctx.feedTitle)}</div>` : ''}
           <h1 class="kn-headline">${kineticLetters(item.title)}</h1>

@@ -7,6 +7,9 @@ interface AppInstanceScreenProps {
   config: AppInstanceConfig
 }
 
+/** Apps that can produce sound — the preview offers an unmute control for these. */
+const AUDIO_CAPABLE_SLUGS = new Set(['stream', 'youtube'])
+
 /**
  * The content shown inside the live-preview TV screen. Generic for every app:
  * mounts the same embed bundle the player runs and drives it with the live draft
@@ -15,5 +18,13 @@ interface AppInstanceScreenProps {
  */
 export function AppInstanceScreen({ app, config }: AppInstanceScreenProps) {
   const { data, meta } = useAppPreviewData(app, config)
-  return <AppPreviewFrame slug={app.slug} config={config} data={data} meta={meta} />
+  return (
+    <AppPreviewFrame
+      slug={app.slug}
+      config={config}
+      data={data}
+      meta={meta}
+      audioCapable={AUDIO_CAPABLE_SLUGS.has(app.slug)}
+    />
+  )
 }

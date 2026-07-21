@@ -31,7 +31,11 @@ export function ContentGrowthChart({ data }: ContentGrowthChartProps) {
   } satisfies ChartConfig
 
   const latest = data.at(-1)?.total ?? 0
-  const first = data.find((point) => point.total > 0)?.total ?? 0
+  // Baseline is the cumulative total at the start of the window, so "added" counts
+  // everything created within it. (Using the first *non-zero* point instead would
+  // report 0 whenever all content is recent — the first non-zero bucket already
+  // holds the full total.)
+  const first = data[0]?.total ?? 0
   const added = Math.max(0, latest - first)
 
   if (latest === 0) {

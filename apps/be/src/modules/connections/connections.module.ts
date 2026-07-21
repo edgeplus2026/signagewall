@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { AppsModule } from '../apps/apps.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { ConnectionRefreshScheduler } from './connection-refresh.scheduler';
 import { ConnectionsController } from './connections.controller';
 import { ConnectionsRepository } from './connections.repository';
 import { ConnectionsService } from './connections.service';
@@ -42,6 +43,7 @@ import { GraphWebhookService } from './webhooks/graph-webhook.service';
     GraphSubscriptionsRepository,
     GraphWebhookService,
     GraphSubscriptionScheduler,
+    ConnectionRefreshScheduler,
     OrgMembershipGuard,
   ],
   exports: [ConnectionsService, GraphWebhookService],

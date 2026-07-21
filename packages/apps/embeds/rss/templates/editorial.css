@@ -124,10 +124,6 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
 }
 
-.ed-plate .rs-media-img {
-  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
-}
-
 /* ----- Portrait ----- */
 
 @media (max-aspect-ratio: 1/1) {

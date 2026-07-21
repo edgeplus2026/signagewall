@@ -1769,7 +1769,7 @@
   {
     "_id": "6a5d53d9c3e9a99fa555b789",
     "slug": "gslides",
-    "name": "Google Slides (private)",
+    "name": "Google Slides",
     "tagline": "Loop a private Google Slides deck from your account",
     "description": "Connect your Google account and play a private Google Slides deck as a slideshow — it re-exports automatically so edits show up.",
     "about": "",

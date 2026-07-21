@@ -22,7 +22,7 @@ export const outlookManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 1,
-  refreshSeconds: 300,
+  refreshSeconds: 120,
   icon: OUTLOOK_ICON,
   color: '#0078D4',
   configSchema: [

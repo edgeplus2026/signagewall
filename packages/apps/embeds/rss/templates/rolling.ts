@@ -1,4 +1,4 @@
-import { mediaFrameHtml, progressBarHtml, qrPanelHtml } from '../chrome.js'
+import { mediaFrameHtml, qrPanelHtml } from '../chrome.js'
 import { escapeHtml, timeAgo } from '../format.js'
 import type { RssTemplate, RssTemplateContext } from './index.js'
 import './rolling.css'
@@ -62,7 +62,6 @@ export const rollingTemplate: RssTemplate = {
 
     return `
       <div class="rl${qr ? ' has-qr' : ''}" data-template-root>
-        ${progressBarHtml()}
         ${ctx.feedTitle ? `<div class="rl-masthead">${escapeHtml(ctx.feedTitle)}</div>` : ''}
         <div class="rl-viewport">
           <ul class="rl-list" style="--rows:${rows}">${list}</ul>

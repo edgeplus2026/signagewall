@@ -61,7 +61,7 @@ function ChartContainer({
         data-slot="chart"
         data-chart={chartId}
         className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-(--text-secondary) [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-(--border-tertiary) [&_.recharts-curve.recharts-tooltip-cursor]:stroke-(--border-secondary) [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-(--border-tertiary) [&_.recharts-radial-bar-background-sector]:fill-(--highlight) [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-(--highlight) [&_.recharts-reference-line_[stroke='#ccc']]:stroke-(--border-secondary) [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
+          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-(--text-secondary) [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-(--border-tertiary) [&_.recharts-curve.recharts-tooltip-cursor]:stroke-(--border-secondary) [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-(--border-tertiary) [&_.recharts-radial-bar-background-sector]:fill-(--highlight) [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-(--highlight) [&_.recharts-reference-line_[stroke='#ccc']]:stroke-(--border-secondary) [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden [&_*:focus]:outline-none [&_*:focus-visible]:outline-none",
           className,
         )}
         {...props}
@@ -163,8 +163,11 @@ function ChartTooltipContent({
 
   return (
     <div
+      // bg-panel-raised is an opaque, theme-aware surface that sits above the
+      // panel the chart lives on — a plain bg-panel matches the surface behind it
+      // in dark mode and reads as transparent over bright chart areas (pie slices).
       className={cn(
-        'border-secondary bg-panel grid min-w-32 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
+        'border-primary bg-panel-raised grid min-w-32 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
         className,
       )}
     >
@@ -215,7 +218,7 @@ function ChartTooltipContent({
                     )}
                     <div
                       className={cn(
-                        'flex flex-1 justify-between leading-none',
+                        'flex flex-1 justify-between gap-4 leading-none',
                         nestLabel ? 'items-end' : 'items-center',
                       )}
                     >

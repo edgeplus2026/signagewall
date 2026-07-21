@@ -8,7 +8,7 @@ import { ContentGrowthChart } from '@/features/dashboard/components/ContentGrowt
 import { DashboardHero } from '@/features/dashboard/components/DashboardHero'
 import { DashboardPanel } from '@/features/dashboard/components/DashboardPanel'
 import { DashboardStatCard } from '@/features/dashboard/components/DashboardStatCard'
-import { LearnSection } from '@/features/dashboard/components/LearnSection'
+import { GettingStarted } from '@/features/dashboard/components/GettingStarted'
 import { MediaBreakdownChart } from '@/features/dashboard/components/MediaBreakdownChart'
 import { RecentPlaylists } from '@/features/dashboard/components/RecentPlaylists'
 import { ScreenStatusChart } from '@/features/dashboard/components/ScreenStatusChart'
@@ -18,9 +18,10 @@ function DashboardSkeleton() {
   return (
     <div className="flex w-full min-w-0 flex-col gap-6 lg:px-10">
       <Skeleton className="h-40 rounded-2xl" />
+      <Skeleton className="h-32 rounded-2xl" />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-38 rounded-xl" />
+          <Skeleton key={index} className="h-22 rounded-xl" />
         ))}
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
@@ -51,6 +52,12 @@ export default function DashboardPage() {
         total={data.presence.total}
       />
 
+      <GettingStarted
+        screens={data.counts.screens}
+        playlists={data.counts.playlists}
+        media={data.counts.media}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardStatCard
           label={t('dashboard.stats.screens')}
@@ -59,7 +66,6 @@ export default function DashboardPage() {
           to="/screens"
           delta={data.deltas.screens}
           deltaLabel={thisWeek}
-          spark={data.sparks.screens}
         />
         <DashboardStatCard
           label={t('dashboard.stats.online')}
@@ -75,7 +81,6 @@ export default function DashboardPage() {
           to="/playlists"
           delta={data.deltas.playlists}
           deltaLabel={thisWeek}
-          spark={data.sparks.playlists}
         />
         <DashboardStatCard
           label={t('dashboard.stats.media')}
@@ -84,7 +89,6 @@ export default function DashboardPage() {
           to="/media"
           delta={data.deltas.media}
           deltaLabel={thisWeek}
-          spark={data.sparks.media}
         />
       </div>
 
@@ -134,8 +138,6 @@ export default function DashboardPage() {
           />
         </DashboardPanel>
       </div>
-
-      <LearnSection />
     </div>
   )
 }

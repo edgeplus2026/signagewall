@@ -1,5 +1,6 @@
 import type { AppDataMeta } from '@edge/apps-contract'
-import { useEffect, useRef } from 'react'
+import { Volume2Icon, VolumeXIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 import { ScaledViewport } from '@/components/common/ScaledViewport'
 import {
@@ -20,6 +21,12 @@ interface AppPreviewFrameProps {
   data?: unknown
   /** Data freshness for `server` apps. */
   meta?: AppDataMeta | null
+  /**
+   * Whether this app can produce sound (e.g. Live stream, YouTube). When true the
+   * preview shows a mute/unmute button so the operator can verify audio; the
+   * preview always starts muted.
+   */
+  audioCapable?: boolean
 }
 
 /**
@@ -30,9 +37,17 @@ interface AppPreviewFrameProps {
  * The iframe is (re)mounted only when `slug` changes; config/data/meta changes
  * are pushed to the existing bundle, which re-renders idempotently.
  */
-export function AppPreviewFrame({ slug, config, data, meta }: AppPreviewFrameProps) {
+export function AppPreviewFrame({
+  slug,
+  config,
+  data,
+  meta,
+  audioCapable = false,
+}: AppPreviewFrameProps) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const handleRef = useRef<AppPreviewHandle | null>(null)
+  // The preview always starts muted; the operator opts into sound per app.
+  const [muted, setMuted] = useState(true)
 
   // Latest props mirrored into a ref (updated in an effect, not during render) so
   // the mount effect can seed config without depending on — and thus re-mounting
@@ -54,11 +69,18 @@ export function AppPreviewFrame({ slug, config, data, meta }: AppPreviewFramePro
     handleRef.current = handle
     const { config: c, data: d, meta: m } = latestRef.current
     handle.postConfig({ config: c, data: d, meta: m ?? null })
+    // A new app starts muted regardless of the previous one's state.
+    setMuted(true)
     return () => {
       handle.dispose()
       handleRef.current = null
     }
   }, [slug])
+
+  // Push the mute state to the bundle whenever it (or the mounted app) changes.
+  useEffect(() => {
+    handleRef.current?.setMuted(muted)
+  }, [muted, slug])
 
   // Push subsequent config/data edits to the (already mounted) bundle.
   useEffect(() => {
@@ -69,8 +91,24 @@ export function AppPreviewFrame({ slug, config, data, meta }: AppPreviewFramePro
   // pixels the preview box happens to be — apps size themselves in `vw`/`vh`, so
   // only a real-resolution viewport renders what the screen will actually show.
   return (
-    <ScaledViewport className="bg-black">
-      <div ref={hostRef} className="size-full" />
-    </ScaledViewport>
+    <div className="relative size-full">
+      <ScaledViewport className="bg-black">
+        <div ref={hostRef} className="size-full" />
+      </ScaledViewport>
+      {audioCapable ? (
+        <button
+          type="button"
+          onClick={() => setMuted((previous) => !previous)}
+          aria-label={muted ? 'Unmute preview' : 'Mute preview'}
+          className="absolute right-2 bottom-2 z-10 flex size-8 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/15 backdrop-blur transition-colors hover:bg-black/75"
+        >
+          {muted ? (
+            <VolumeXIcon className="size-4" />
+          ) : (
+            <Volume2Icon className="size-4" />
+          )}
+        </button>
+      ) : null}
+    </div>
   )
 }

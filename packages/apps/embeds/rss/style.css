@@ -175,84 +175,6 @@
   display: none;
 }
 
-/* ----- Progress tiles ----- */
-
-.rs-progress {
-  position: absolute;
-  top: calc(var(--rs-edge) * 0.85);
-  left: var(--rs-edge);
-  right: var(--rs-edge);
-  display: flex;
-  gap: 0.35em;
-  z-index: 3;
-}
-
-.rs-tile {
-  position: relative;
-  flex: 1;
-  height: 0.28em;
-  min-height: 3px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: currentColor;
-  opacity: 0.2;
-}
-
-.rs-tile.is-done {
-  background: var(--rs-accent, #f97316);
-  opacity: 1;
-}
-
-.rs-tile.is-current {
-  opacity: 1;
-  /* Keep the faint track visible behind the draining fill. */
-  background: color-mix(in srgb, currentColor 20%, transparent);
-}
-
-.rs-tile-fill {
-  position: absolute;
-  inset: 0;
-  display: block;
-  border-radius: inherit;
-  background: var(--rs-accent, #f97316);
-  transform-origin: left center;
-  transform: scaleX(0);
-  animation: rs-drain var(--rs-story-seconds, 8s) linear both;
-}
-
-@keyframes rs-drain {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-/* ----- The single progress bar -----
-   For layouts where "which story are we on" is not a question anyone is asking.
-   Same clock as the tiles, one stroke instead of many. */
-
-.rs-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 0.22em;
-  min-height: 3px;
-  background: color-mix(in srgb, currentColor 14%, transparent);
-  z-index: 3;
-}
-
-.rs-bar-fill {
-  display: block;
-  height: 100%;
-  background: var(--rs-accent, #f97316);
-  transform-origin: left center;
-  transform: scaleX(0);
-  animation: rs-drain var(--rs-story-seconds, 8s) linear both;
-}
-
 /* ----- The QR panel -----
    Pinned to the corner (`#app` is the positioned ancestor). Always black on
    white: a scanner needs the contrast, and the label sits outside the code so its
@@ -283,27 +205,4 @@
   font-weight: 500;
   opacity: 0.65;
   text-align: center;
-}
-
-/* ----- Motion that belongs to the rotation -----
-   A slow drift across the story's picture for exactly as long as the story is up.
-   Static images on a screen look like a frozen player; a barely-perceptible push
-   keeps the frame alive without ever asking to be looked at. */
-
-@keyframes rs-drift {
-  from {
-    transform: scale(1.015);
-  }
-  to {
-    transform: scale(1.075);
-  }
-}
-
-/* The player preloads the next item into a hidden slot. A bar that drained in
-   there — or a picture that drifted through its whole push — would be spent
-   before anyone ever saw it. Time only runs on the instance that is on the wall. */
-.rss:not(.is-active) .rs-tile-fill,
-.rss:not(.is-active) .rs-bar-fill,
-.rss:not(.is-active) [data-media] img {
-  animation-play-state: paused;
 }

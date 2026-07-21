@@ -188,6 +188,13 @@ export interface Field {
   /** Helper / legend text shown under the field. */
   help?: string
   required?: boolean
+  /**
+   * Never rendered in the CMS form. The value is still kept in the config (its
+   * `default` applies and it is validated), so this is how an app ships a
+   * predefined value the operator must not edit — e.g. a fixed feed URL on a
+   * branded news app built from the generic RSS app.
+   */
+  hidden?: boolean
   default?: unknown
   placeholder?: string
   /** For `select` / `multiselect`. */

@@ -17,7 +17,7 @@ const GSLIDES_ICON =
  */
 export const gslidesManifest: AppManifest = {
   slug: 'gslides',
-  name: 'Google Slides (private)',
+  name: 'Google Slides',
   tagline: 'Loop a private Google Slides deck from your account',
   description:
     'Connect your Google account and play a private Google Slides deck as a slideshow — it re-exports automatically so edits show up.',

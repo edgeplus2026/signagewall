@@ -21,10 +21,6 @@
   border-radius: 0;
 }
 
-.kn-media .rs-media-img {
-  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
-}
-
 /* A wash over the picture so the slab and the type have something to sit on. */
 .kn::after {
   content: '';

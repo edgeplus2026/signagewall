@@ -1,6 +1,6 @@
-/* Air quality. A big index number coloured by its band, the category label under
-   it, the place above, and a row of pollutant chips. The band colour is set at
-   runtime (--aq-band) from the AQI value. */
+/* Air quality. A semicircular gauge — the six AQI bands in their official
+   colours with a needle at the current value — over the index number, category
+   and pollutant chips. The band colour is set at runtime (--aq-band). */
 
 .aq {
   width: 100%;
@@ -11,7 +11,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.5vh;
+  gap: 1vh;
   text-align: center;
   font-family: var(--app-font, inherit);
   font-weight: var(--app-font-weight, 300);
@@ -19,37 +19,76 @@
 }
 
 .aq-place {
-  font-size: calc(min(3.4vw, 6vh) * var(--app-font-scale, 1));
+  font-size: calc(min(3vw, 5vh) * var(--app-font-scale, 1));
   font-weight: 500;
   opacity: 0.92;
+  margin-bottom: 0.5vh;
 }
 
+/* ---- Gauge ---- */
+.aq-gauge {
+  width: min(56vw, 62vh);
+  max-width: 100%;
+}
+.aq-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.aq-seg {
+  fill: none;
+  stroke-width: 13;
+  stroke-linecap: butt;
+}
+.aq-tick {
+  fill: currentColor;
+  opacity: 0.5;
+  font-size: 6.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.aq-needle {
+  fill: currentColor;
+}
+.aq-hub {
+  fill: currentColor;
+}
+
+/* ---- Readout ---- */
+.aq-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2vh;
+  /* Tuck up just under the gauge's hub (the needle sits above it, so no overlap). */
+  margin-top: calc(min(56vw, 62vh) * -0.06);
+}
 .aq-value {
   font-variant-numeric: tabular-nums;
-  font-size: calc(min(22vw, 34vh) * var(--app-font-scale, 1));
+  font-size: calc(min(9vw, 15vh) * var(--app-font-scale, 1));
   line-height: 0.95;
   font-weight: 700;
   color: var(--aq-band, currentColor);
 }
-
 .aq-category {
-  font-size: calc(min(5vw, 8vh) * var(--app-font-scale, 1));
+  font-size: calc(min(3.4vw, 5.5vh) * var(--app-font-scale, 1));
   font-weight: 600;
   color: var(--aq-band, currentColor);
 }
-
 .aq-scale {
-  font-size: calc(min(1.8vw, 3vh) * var(--app-font-scale, 1));
+  font-size: calc(min(1.7vw, 2.8vh) * var(--app-font-scale, 1));
   text-transform: uppercase;
   letter-spacing: 0.14em;
   opacity: 0.6;
 }
 
+/* ---- Pollutant chips ---- */
 .aq-chips {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1.4vh 2vw;
+  gap: 1.2vh 2vw;
   margin-top: 1.5vh;
 }
 .aq-chip {
@@ -65,4 +104,20 @@
 .aq-empty {
   font-size: 3vh;
   opacity: 0.6;
+}
+
+/* Narrow / portrait zones: widen the gauge and figures. */
+@media (max-aspect-ratio: 5/4) {
+  .aq-gauge {
+    width: min(84vw, 62vh);
+  }
+  .aq-readout {
+    margin-top: calc(min(84vw, 62vh) * -0.06);
+  }
+  .aq-value {
+    font-size: calc(min(16vw, 15vh) * var(--app-font-scale, 1));
+  }
+  .aq-category {
+    font-size: calc(min(6vw, 5.5vh) * var(--app-font-scale, 1));
+  }
 }

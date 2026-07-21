@@ -25,7 +25,7 @@ export const instagramManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 1,
-  refreshSeconds: 900,
+  refreshSeconds: 120,
   requiresNetwork: true,
   icon: INSTAGRAM_ICON,
   color: '#E1306C',

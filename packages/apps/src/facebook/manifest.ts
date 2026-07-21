@@ -25,7 +25,7 @@ export const facebookManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 1,
-  refreshSeconds: 900,
+  refreshSeconds: 120,
   requiresNetwork: true,
   icon: FACEBOOK_ICON,
   color: '#1877F2',

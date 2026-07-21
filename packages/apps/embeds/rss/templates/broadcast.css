@@ -23,10 +23,6 @@
   border-radius: 0;
 }
 
-.bc-shot .rs-media-img {
-  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
-}
-
 /* Just enough darkening at top and bottom for the flag and the strap to bite. */
 .bc-vignette {
   position: absolute;

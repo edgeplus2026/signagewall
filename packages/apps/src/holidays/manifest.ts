@@ -1,6 +1,5 @@
 import type { AppManifest } from '@edge/apps-contract'
 
-import { styleFields } from '../_shared/style-fields.js'
 import { COUNTRY_OPTIONS } from './countries.js'
 
 const HOLIDAYS_ICON =
@@ -20,7 +19,7 @@ export const holidaysManifest: AppManifest = {
     'Show the next public holidays for a country — handy for offices, lobbies and staff areas.',
   runtimeKind: 'embed',
   dataSource: 'server',
-  version: 1,
+  version: 2,
   refreshSeconds: 21600,
   icon: HOLIDAYS_ICON,
   color: '#E11D48',
@@ -29,14 +28,16 @@ export const holidaysManifest: AppManifest = {
       key: 'country',
       type: 'select',
       label: 'Country',
-      default: 'DK',
+      help: 'Whose public holidays to show. Start typing to find a country.',
+      default: 'RS',
+      searchable: true,
       options: COUNTRY_OPTIONS,
     },
     {
       key: 'count',
       type: 'number',
       label: 'How many to show',
-      help: 'The number of upcoming holidays to list.',
+      help: 'The number of upcoming holidays to list (1–12).',
       default: 5,
       validation: { min: 1, max: 12 },
     },
@@ -44,12 +45,12 @@ export const holidaysManifest: AppManifest = {
       key: 'theme',
       type: 'select',
       label: 'Theme',
+      help: 'The overall colour scheme of the screen.',
       default: 'dark',
       options: [
         { label: 'Light', value: 'light' },
         { label: 'Dark', value: 'dark' },
       ],
     },
-    ...styleFields(),
   ],
 }

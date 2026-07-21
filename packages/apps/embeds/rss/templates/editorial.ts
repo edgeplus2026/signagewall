@@ -1,4 +1,4 @@
-import { mediaFrameHtml, progressHtml, qrPanelHtml } from '../chrome.js'
+import { mediaFrameHtml, qrPanelHtml } from '../chrome.js'
 import { escapeHtml, timeAgo } from '../format.js'
 import type { RssTemplate, RssTemplateContext } from './index.js'
 import './editorial.css'
@@ -29,7 +29,6 @@ export const editorialTemplate: RssTemplate = {
 
     return `
       <div class="ed${qr ? ' has-qr' : ''}" data-template-root>
-        ${progressHtml(ctx.items.length, ctx.index)}
         <div class="ed-column">
           ${ctx.feedTitle ? `<div class="ed-kicker">${escapeHtml(ctx.feedTitle)}</div>` : ''}
           <div class="ed-rule"></div>

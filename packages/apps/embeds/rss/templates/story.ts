@@ -1,4 +1,4 @@
-import { mediaFrameHtml, progressHtml, qrPanelHtml } from '../chrome.js'
+import { mediaFrameHtml, qrPanelHtml } from '../chrome.js'
 import { escapeHtml, timeAgo } from '../format.js'
 import type { RssTemplate, RssTemplateContext } from './index.js'
 import './story.css'
@@ -26,7 +26,6 @@ export const storyTemplate: RssTemplate = {
     // `has-qr` reserves the corner gutter so the summary can't run under the code.
     return `
       <div class="rs-story${qr ? ' has-qr' : ''}" data-template-root>
-        ${progressHtml(ctx.items.length, ctx.index)}
         ${mediaFrameHtml(item, 'rs-story-media')}
         <div class="rs-body">
           ${ctx.feedTitle ? `<div class="rs-source">${escapeHtml(ctx.feedTitle)}</div>` : ''}

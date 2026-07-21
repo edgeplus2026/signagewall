@@ -209,29 +209,22 @@
       "stored": "sačuvano",
       "empty": "Još nema medija."
     },
-    "learn": {
-      "title": "Nauči osnove",
-      "description": "Kratak vodič kako Edge pretvara vaše fajlove u živu signalizaciju.",
-      "faqLink": "Pogledaj FAQ",
-      "cta": "Otvori",
-      "tipsTitle": "Saveti i trikovi",
-      "tips": [
-        "Grupišite sadržaj u plejliste da biste jednim potezom ažurirali više ekrana.",
-        "Zelena tačka znači da je ekran uživo — proverite povezanost ovde na prvi pogled.",
-        "Podesite trajanje po stavci da kontrolišete tempo reprodukcije."
-      ],
-      "concepts": {
-        "screens": {
-          "title": "Ekrani",
-          "description": "Ekrani su fizički displeji koje uparujete kodom. Svaki reprodukuje sadržaj koji mu dodelite."
+    "gettingStarted": {
+      "title": "Počnite sa Edge-om",
+      "subtitle": "Tri brza koraka da sadržaj stigne na vaše ekrane.",
+      "dismiss": "Sakrij",
+      "steps": {
+        "media": {
+          "title": "Otpremi medije",
+          "description": "Dodaj slike i video u biblioteku."
         },
         "playlists": {
-          "title": "Plejliste",
-          "description": "Plejliste su uređene kolekcije medija. Podesite redosled i trajanje, pa ih pošaljite na bilo koji ekran."
+          "title": "Napravi plejlistu",
+          "description": "Rasporedi medije u plejlistu."
         },
-        "media": {
-          "title": "Biblioteka medija",
-          "description": "Vaša biblioteka čuva svaku sliku i video. Otpremite fajlove ili ih povucite direktno iz clouda."
+        "screens": {
+          "title": "Dodaj ekran",
+          "description": "Upari displej i pusti sadržaj."
         }
       }
     }
@@ -1395,7 +1388,7 @@
         "orientation": "Orijentacija",
         "mediaType": "Tip",
         "duration": "Trajanje",
-        "import": "Uvezi",
+        "import": "Uvezi u biblioteku medija",
         "addToPlaylist": "Dodaj u plejlistu",
         "addToScreen": "Dodaj na ekran",
         "importing": "Uvoženje sadržaja...",
@@ -2066,6 +2059,41 @@
         "tagline": "Najnovije priče iz bilo kog feeda",
         "description": "Usmerite je na sajt sa vestima ili blog i ekran prikazuje najnovije priče — sam se osvežava.",
         "about": "Prikažite bilo koji RSS ili Atom feed na ekranima — sajt sa vestima, stručni blog ili sopstveni feed firme. Nalepite adresu feeda, obično adresu sajta sa /feed ili /rss na kraju, izaberite jedan od mnogih izgleda, od jedne priče do celog mozaika, i po želji dodajte QR kod za nastavak čitanja na telefonu. Priče se same osvežavaju, pa sadržaj ostaje svež u holovima i sobama za pauzu."
+      },
+      "cnn": {
+        "tagline": "Najnoviji svetski naslovi sa CNN-a",
+        "description": "Prikažite najnovije svetske naslove sa CNN-a na ekranima — automatski se osvežava.",
+        "about": "Postavite najnovije svetske naslove sa CNN-a na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+      },
+      "bbc": {
+        "tagline": "Svetske vesti sa BBC-ja",
+        "description": "Prikažite najnovije svetske vesti sa BBC-ja na ekranima — automatski se osvežava.",
+        "about": "Postavite najnovije svetske vesti sa BBC-ja na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+      },
+      "aljazeera": {
+        "tagline": "Globalne vesti sa Al Jazeere",
+        "description": "Prikažite najnovije vesti sa Al Jazeere na ekranima — automatski se osvežava.",
+        "about": "Postavite najnovije globalne vesti sa Al Jazeere na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+      },
+      "guardian": {
+        "tagline": "Svetske vesti iz The Guardian-a",
+        "description": "Prikažite najnovije svetske vesti iz The Guardian-a na ekranima — automatski se osvežava.",
+        "about": "Postavite najnovije svetske vesti iz The Guardian-a na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+      },
+      "dw": {
+        "tagline": "Svetske vesti sa Deutsche Welle",
+        "description": "Prikažite najnovije svetske vesti sa Deutsche Welle na ekranima — automatski se osvežava.",
+        "about": "Postavite najnovije svetske vesti sa Deutsche Welle na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+      },
+      "france24": {
+        "tagline": "Međunarodne vesti sa France 24",
+        "description": "Prikažite najnovije međunarodne vesti sa France 24 na ekranima — automatski se osvežava.",
+        "about": "Postavite najnovije međunarodne vesti sa France 24 na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+      },
+      "skynews": {
+        "tagline": "Najnovije svetske vesti sa Sky News-a",
+        "description": "Prikažite najnovije svetske naslove sa Sky News-a na ekranima — automatski se osvežava.",
+        "about": "Postavite najnovije svetske naslove sa Sky News-a na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
       },
       "onthisday": {
         "tagline": "Istorijski događaji za današnji datum",

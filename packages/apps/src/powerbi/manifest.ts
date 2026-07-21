@@ -27,7 +27,7 @@ export const powerbiManifest: AppManifest = {
     'Embed a Power BI report you have published to the web, and reload it on a schedule so the numbers stay current.',
   runtimeKind: 'embed',
   dataSource: 'static',
-  version: 1,
+  version: 2,
   // Renders a live remote page — nothing cached to show while offline.
   requiresNetwork: true,
   icon: POWERBI_ICON,
@@ -48,9 +48,11 @@ export const powerbiManifest: AppManifest = {
       key: 'refreshMinutes',
       type: 'number',
       label: 'Reload every (minutes)',
-      help: 'Power BI refreshes published data on its own; set this only to force a periodic reload of the whole report. 0 = never.',
-      default: 0,
-      validation: { min: 0, max: 1440 },
+      // Always-on: a signage report should stay current on its own, so the reload
+      // is never "off" — the operator only tunes how often.
+      help: 'How often to reload the whole report so it always shows the latest data. Lower is fresher; 15 minutes suits most dashboards.',
+      default: 15,
+      validation: { min: 1, max: 1440 },
     },
   ],
 }

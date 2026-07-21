@@ -1,4 +1,4 @@
-import { progressHtml, qrPanelHtml } from '../chrome.js'
+import { qrPanelHtml } from '../chrome.js'
 import { escapeHtml, timeAgo } from '../format.js'
 import type { RssTemplate, RssTemplateContext } from './index.js'
 import './statement.css'
@@ -32,7 +32,6 @@ export const statementTemplate: RssTemplate = {
 
     return `
       <div class="st${qr ? ' has-qr' : ''}" data-template-root>
-        ${progressHtml(ctx.items.length, ctx.index)}
         <div class="st-glow"></div>
         <div class="st-block">
           ${ctx.feedTitle ? `<div class="st-house">${escapeHtml(ctx.feedTitle)}</div>` : ''}

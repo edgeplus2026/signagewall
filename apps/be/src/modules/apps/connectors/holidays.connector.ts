@@ -3,6 +3,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@edge/apps-contract';
+import { holidayCountryName } from '@edge/apps';
 import type { Holiday, HolidaysPayload } from '@edge/apps';
 
 interface HolidaysConfig {
@@ -64,6 +65,8 @@ export const holidaysConnector: AppConnector<HolidaysConfig, HolidaysPayload> = 
     }
 
     ctx.logger.debug('holidays fetched', { country, count: holidays.length });
-    return { playerPayload: { country, holidays } };
+    return {
+      playerPayload: { country, countryName: holidayCountryName(country), holidays },
+    };
   },
 };

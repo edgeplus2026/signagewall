@@ -1,5 +1,5 @@
 import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, SearchIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -8,6 +8,12 @@ import { cn } from '@/lib/utils'
 export interface ComboboxOption {
   label: string
   value: string
+  /**
+   * Optional group heading. When any option carries a group, the list renders
+   * options under their group's heading (e.g. cities grouped by country). The
+   * group text is also matched by the local search.
+   */
+  group?: string
 }
 
 interface ComboboxProps {
@@ -32,6 +38,12 @@ interface ComboboxProps {
    * may not have the selected item loaded). Falls back to a matching option.
    */
   selectedLabel?: string | undefined
+  /**
+   * Cap the number of rendered rows (large datasets like world cities). When the
+   * filtered set exceeds it, the extra rows are hidden behind a "keep typing"
+   * hint. Omit for no cap (short lists render whole).
+   */
+  maxResults?: number | undefined
   'aria-invalid'?: boolean | undefined
   'aria-label'?: string | undefined
   className?: string | undefined
@@ -50,6 +62,7 @@ export function Combobox({
   onSearch,
   loading,
   selectedLabel: selectedLabelProp,
+  maxResults,
   'aria-invalid': ariaInvalid,
   'aria-label': ariaLabel,
   className,
@@ -70,8 +83,23 @@ export function Combobox({
     if (isAsync) return options
     const q = query.trim().toLowerCase()
     if (!q) return options
-    return options.filter((option) => option.label.toLowerCase().includes(q))
+    return options.filter(
+      (option) =>
+        option.label.toLowerCase().includes(q) ||
+        (option.group?.toLowerCase().includes(q) ?? false),
+    )
   }, [isAsync, options, query])
+
+  // Cap huge result sets so the popover stays fast; the hidden remainder is
+  // surfaced as a "keep typing" hint below the list.
+  const visible = useMemo(
+    () =>
+      maxResults && filtered.length > maxResults
+        ? filtered.slice(0, maxResults)
+        : filtered,
+    [filtered, maxResults],
+  )
+  const hiddenCount = filtered.length - visible.length
 
   return (
     <Popover
@@ -127,31 +155,49 @@ export function Combobox({
           />
         </div>
         <div className="max-h-[300px] overflow-y-auto p-1">
-          {filtered.length === 0 ? (
+          {visible.length === 0 ? (
             <p className="text-secondary px-2 py-4 text-center text-sm">
               {loading ? '…' : emptyLabel}
             </p>
           ) : (
-            filtered.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  onChange(option.value)
-                  setOpen(false)
-                  setQuery('')
-                }}
-                className="hover:bg-highlight flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors"
-              >
-                <CheckIcon
-                  className={cn(
-                    'size-4 shrink-0',
-                    option.value === value ? 'opacity-100' : 'opacity-0',
-                  )}
-                />
-                <span className="truncate">{option.label}</span>
-              </button>
-            ))
+            <>
+              {visible.map((option, index) => {
+                const showGroupHeader =
+                  option.group !== undefined &&
+                  option.group !== visible[index - 1]?.group
+                return (
+                  <Fragment key={option.value}>
+                    {showGroupHeader ? (
+                      <div className="text-secondary px-2 pt-2 pb-1 text-xs font-medium">
+                        {option.group}
+                      </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onChange(option.value)
+                        setOpen(false)
+                        setQuery('')
+                      }}
+                      className="hover:bg-highlight flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors"
+                    >
+                      <CheckIcon
+                        className={cn(
+                          'size-4 shrink-0',
+                          option.value === value ? 'opacity-100' : 'opacity-0',
+                        )}
+                      />
+                      <span className="truncate">{option.label}</span>
+                    </button>
+                  </Fragment>
+                )
+              })}
+              {hiddenCount > 0 ? (
+                <p className="text-secondary px-2 pt-2 pb-1.5 text-center text-xs">
+                  +{hiddenCount} more — keep typing to narrow the list
+                </p>
+              ) : null}
+            </>
           )}
         </div>
       </PopoverContent>

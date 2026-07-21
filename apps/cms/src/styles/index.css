@@ -27,6 +27,7 @@
   /* Surfaces */
   --background-color-page: var(--page);
   --background-color-panel: var(--panel);
+  --background-color-panel-raised: var(--panel-raised);
   --background-color-sidebar: var(--sidebar);
   --background-color-highlight: var(--highlight);
   --background-color-quaternary: var(--border-quaternary);

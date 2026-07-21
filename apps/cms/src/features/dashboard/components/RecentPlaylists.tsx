@@ -1,4 +1,4 @@
-import { ListVideoIcon } from 'lucide-react'
+import { ChevronRightIcon, ListVideoIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
@@ -69,6 +69,7 @@ export function RecentPlaylists({ playlists }: RecentPlaylistsProps) {
                   {t('dashboard.recentPlaylists.meta', { count, duration })}
                 </p>
               </div>
+              <ChevronRightIcon className="text-secondary/60 group-hover:text-primary size-4 shrink-0 transition-all group-hover:translate-x-0.5" />
             </Link>
           </li>
         )

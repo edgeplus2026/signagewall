@@ -16,26 +16,110 @@ const THEMES: Record<string, { bg: string; text: string }> = {
 interface Band {
   label: string
   color: string
+  /** Upper bound of this band (inclusive). */
+  max: number
 }
 
 /** European AQI (EAQI) bands and their official palette. */
-function europeanBand(value: number): Band {
-  if (value <= 20) return { label: 'Good', color: '#50F0E6' }
-  if (value <= 40) return { label: 'Fair', color: '#50CCAA' }
-  if (value <= 60) return { label: 'Moderate', color: '#F0E641' }
-  if (value <= 80) return { label: 'Poor', color: '#FF5050' }
-  if (value <= 100) return { label: 'Very poor', color: '#960032' }
-  return { label: 'Extremely poor', color: '#7D2181' }
-}
+const EUROPEAN_BANDS: Band[] = [
+  { label: 'Good', color: '#50F0E6', max: 20 },
+  { label: 'Fair', color: '#50CCAA', max: 40 },
+  { label: 'Moderate', color: '#F0E641', max: 60 },
+  { label: 'Poor', color: '#FF5050', max: 80 },
+  { label: 'Very poor', color: '#960032', max: 100 },
+  { label: 'Extremely poor', color: '#7D2181', max: 120 },
+]
 
 /** US AQI bands and their official palette. */
-function usBand(value: number): Band {
-  if (value <= 50) return { label: 'Good', color: '#00E400' }
-  if (value <= 100) return { label: 'Moderate', color: '#FFC000' }
-  if (value <= 150) return { label: 'Unhealthy (sensitive)', color: '#FF7E00' }
-  if (value <= 200) return { label: 'Unhealthy', color: '#FF0000' }
-  if (value <= 300) return { label: 'Very unhealthy', color: '#8F3F97' }
-  return { label: 'Hazardous', color: '#7E0023' }
+const US_BANDS: Band[] = [
+  { label: 'Good', color: '#00E400', max: 50 },
+  { label: 'Moderate', color: '#FFC000', max: 100 },
+  { label: 'Unhealthy (sensitive)', color: '#FF7E00', max: 150 },
+  { label: 'Unhealthy', color: '#FF0000', max: 200 },
+  { label: 'Very unhealthy', color: '#8F3F97', max: 300 },
+  { label: 'Hazardous', color: '#7E0023', max: 500 },
+]
+
+function bandFor(value: number, bands: Band[]): Band {
+  return bands.find((band) => value <= band.max) ?? bands[bands.length - 1]!
+}
+
+// ---- Gauge geometry (a 180° arc, 0 on the left, max on the right) ----
+const CX = 100
+const CY = 100
+const R = 82
+const GAP_DEG = 1.6
+
+function round(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
+/** Point on a circle for an angle measured CLOCKWISE from the top (12 o'clock). */
+function polar(radius: number, angleDeg: number): { x: number; y: number } {
+  const a = ((angleDeg - 90) * Math.PI) / 180
+  return { x: CX + radius * Math.cos(a), y: CY + radius * Math.sin(a) }
+}
+
+/** SVG path for the arc between two gauge angles (standard describeArc). */
+function arcPath(radius: number, startAngle: number, endAngle: number): string {
+  const start = polar(radius, endAngle)
+  const end = polar(radius, startAngle)
+  const large = endAngle - startAngle <= 180 ? '0' : '1'
+  return `M ${round(start.x)} ${round(start.y)} A ${radius} ${radius} 0 ${large} 0 ${round(end.x)} ${round(end.y)}`
+}
+
+/** Value 0 → left (−90°), value max → right (+90°). */
+function angleForFraction(fraction: number): number {
+  return -90 + fraction * 180
+}
+
+/** Where the value sits on the gauge, 0..1, spread evenly across the 6 bands. */
+function gaugeFraction(value: number, boundaries: number[]): number {
+  const max = boundaries[boundaries.length - 1]!
+  if (value <= 0) return 0
+  if (value >= max) return 1
+  for (let i = 0; i < 6; i += 1) {
+    if (value <= boundaries[i + 1]!) {
+      const lo = boundaries[i]!
+      const hi = boundaries[i + 1]!
+      return (i + (value - lo) / (hi - lo)) / 6
+    }
+  }
+  return 1
+}
+
+function buildGauge(value: number, bands: Band[]): string {
+  const boundaries = [0, ...bands.map((band) => band.max)]
+
+  const segments = bands
+    .map((band, i) => {
+      const start = angleForFraction(i / 6) + GAP_DEG
+      const end = angleForFraction((i + 1) / 6) - GAP_DEG
+      return `<path class="aq-seg" d="${arcPath(R, start, end)}" stroke="${band.color}" />`
+    })
+    .join('')
+
+  const ticks = boundaries
+    .map((boundary, i) => {
+      const p = polar(R + 12, angleForFraction(i / 6))
+      return `<text class="aq-tick" x="${round(p.x)}" y="${round(p.y)}" text-anchor="middle" dominant-baseline="middle">${boundary}</text>`
+    })
+    .join('')
+
+  // Needle: a slim triangle from the hub to the value's angle.
+  const angle = angleForFraction(gaugeFraction(value, boundaries))
+  const tip = polar(R - 6, angle)
+  const dx = tip.x - CX
+  const dy = tip.y - CY
+  const len = Math.hypot(dx, dy) || 1
+  const px = (-dy / len) * 3.4
+  const py = (dx / len) * 3.4
+  const needle =
+    `<polygon class="aq-needle" points="${round(tip.x)},${round(tip.y)} ` +
+    `${round(CX + px)},${round(CY + py)} ${round(CX - px)},${round(CY - py)}" />`
+  const hub = `<circle class="aq-hub" cx="${CX}" cy="${CY}" r="5.5" />`
+
+  return `<svg class="aq-svg" viewBox="-10 -6 220 116">${segments}${ticks}${needle}${hub}</svg>`
 }
 
 function applyChrome(config: Record<string, unknown>): void {
@@ -64,17 +148,14 @@ function render(
   applyChrome(config)
 
   if (!data) {
-    root.innerHTML =
-      '<div class="aq"><p class="aq-empty">Loading air quality…</p></div>'
+    root.innerHTML = '<div class="aq"><p class="aq-empty">Loading air quality…</p></div>'
     return
   }
 
   const useUs = String(config.scale) === 'us'
-  // Prefer the chosen scale; fall back to the other if upstream omitted it.
   const value = useUs
     ? (data.usAqi ?? data.europeanAqi)
     : (data.europeanAqi ?? data.usAqi)
-  // Which scale the shown value is actually on (after any fallback).
   const shownUs = useUs ? data.usAqi !== undefined : data.europeanAqi === undefined
 
   const wrap = document.createElement('div')
@@ -97,23 +178,29 @@ function render(
     return
   }
 
-  const band = shownUs ? usBand(value) : europeanBand(value)
+  const bands = shownUs ? US_BANDS : EUROPEAN_BANDS
+  const band = bandFor(value, bands)
+  wrap.style.setProperty('--aq-band', band.color)
 
+  // Gauge (SVG built from numeric values — no untrusted input goes into it).
+  const gauge = document.createElement('div')
+  gauge.className = 'aq-gauge'
+  gauge.innerHTML = buildGauge(value, bands)
+  wrap.append(gauge)
+
+  const readout = document.createElement('div')
+  readout.className = 'aq-readout'
   const num = document.createElement('div')
   num.className = 'aq-value'
   num.textContent = String(Math.round(value))
-
   const category = document.createElement('div')
   category.className = 'aq-category'
   category.textContent = band.label
-
   const scale = document.createElement('div')
   scale.className = 'aq-scale'
   scale.textContent = shownUs ? 'US AQI' : 'European AQI'
-
-  wrap.append(num, category, scale)
-  // Band colour drives the number + category via a custom property.
-  wrap.style.setProperty('--aq-band', band.color)
+  readout.append(num, category, scale)
+  wrap.append(readout)
 
   const chips = document.createElement('div')
   chips.className = 'aq-chips'
@@ -127,8 +214,6 @@ function render(
   root.insertAdjacentHTML('beforeend', freshnessFooterHtml(meta))
 }
 
-connectToHost<Record<string, unknown>, AirQualityPayload>(
-  ({ config, data, meta }) => {
-    render(config, data, meta)
-  },
-)
+connectToHost<Record<string, unknown>, AirQualityPayload>(({ config, data, meta }) => {
+  render(config, data, meta)
+})

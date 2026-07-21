@@ -63,6 +63,22 @@ export class ConnectionsRepository {
   }
 
   /**
+   * Every connection that can be proactively refreshed — one with a stored
+   * refresh mechanism and a known expiry. Global (cross-org); used by the
+   * proactive refresh scheduler so an idle connection's session never lapses
+   * (critical for the always-live-sync apps, and for Meta tokens that must be
+   * re-extended before their ~60-day window closes even when never fetched).
+   */
+  async findRefreshable(): Promise<AppConnectionDocument[]> {
+    return this.model
+      .find({
+        refreshTokenEnc: { $exists: true, $ne: null },
+        expiresAt: { $exists: true, $ne: null },
+      })
+      .exec();
+  }
+
+  /**
    * Upsert the connection OWNED BY an instance — reconnecting (even to a
    * different account) replaces that instance's tokens/label rather than
    * creating duplicates. One connection per instance (unique index).

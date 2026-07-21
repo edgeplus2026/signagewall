@@ -18,10 +18,6 @@
   border-radius: 0;
 }
 
-.pt-backdrop .rs-media-img {
-  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
-}
-
 .pt-fade {
   position: absolute;
   inset: 0;

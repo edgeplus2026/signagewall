@@ -43,38 +43,6 @@ export function mediaFrameHtml(item: RssItem, className = ''): string {
 }
 
 /**
- * A tile per story — the ones behind stay filled, the one that's up drains in
- * real time. Timed off `--rs-story-seconds`, the same value that drives the
- * rotation timer, so the bar can't drift from the story it's measuring.
- *
- * Nothing to show for a single story: there is no "next" to count down to.
- */
-export function progressHtml(count: number, index: number): string {
-  if (count < 2) {
-    return ''
-  }
-  const tiles = Array.from({ length: count }, (_unused, i) => {
-    if (i < index) {
-      return '<span class="rs-tile is-done"></span>'
-    }
-    if (i === index) {
-      return '<span class="rs-tile is-current"><i class="rs-tile-fill"></i></span>'
-    }
-    return '<span class="rs-tile"></span>'
-  }).join('')
-  return `<div class="rs-progress">${tiles}</div>`
-}
-
-/**
- * One continuous bar instead of a tile per story — for the layouts where "which
- * story are we on" isn't a question anyone is asking (a rolling list, a ticker).
- * It still answers the one that matters: how long until this moves.
- */
-export function progressBarHtml(): string {
-  return '<div class="rs-bar"><i class="rs-bar-fill"></i></div>'
-}
-
-/**
  * The QR panel for the story on screen. `code` is the pre-generated data URL from
  * the template context — `null` when the operator turned codes off, the story has
  * no link, or it wouldn't encode — and the panel simply isn't there.

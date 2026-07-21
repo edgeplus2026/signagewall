@@ -1,5 +1,7 @@
-/* Electricity spot prices. A big current price over today's hourly bar chart,
-   with the current hour highlighted in the accent. */
+/* Electricity day-ahead spot prices. A big current price and level pill over
+   today's hourly bar chart (bars coloured cheap→green, pricey→red), with a
+   low / average / high stat row beneath. Sized with min(vw,vh) so it holds up in
+   both landscape and narrow portrait zones. */
 
 .pp {
   width: 100%;
@@ -8,7 +10,7 @@
   padding: 5vh 5vw 3vh;
   display: flex;
   flex-direction: column;
-  gap: 2vh;
+  gap: 2.4vh;
   font-family: var(--app-font, inherit);
   font-weight: var(--app-font-weight, 300);
   letter-spacing: var(--app-letter-spacing, 0);
@@ -16,36 +18,49 @@
 
 .pp-head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 2vw;
-}
-.pp-area {
-  font-size: calc(min(3vw, 5vh) * var(--app-font-scale, 1));
-  font-weight: 600;
+  gap: 3vw;
+  flex-wrap: wrap;
 }
 .pp-label {
-  font-size: calc(min(1.8vw, 3vh) * var(--app-font-scale, 1));
+  font-size: calc(min(1.7vw, 2.9vh) * var(--app-font-scale, 1));
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  opacity: 0.6;
+  letter-spacing: 0.16em;
+  opacity: 0.55;
+}
+.pp-area {
+  font-size: calc(min(4.4vw, 7vh) * var(--app-font-scale, 1));
+  font-weight: 700;
+  line-height: 1.05;
 }
 
 .pp-now {
   display: flex;
   align-items: baseline;
-  gap: 1vw;
+  gap: 1.2vw;
 }
 .pp-now b {
   font-variant-numeric: tabular-nums;
-  font-size: calc(min(12vw, 20vh) * var(--app-font-scale, 1));
-  line-height: 0.95;
+  font-size: calc(min(9vw, 15vh) * var(--app-font-scale, 1));
+  line-height: 0.9;
   font-weight: 700;
   color: var(--pp-accent, #eab308);
 }
 .pp-unit {
-  font-size: calc(min(2.6vw, 4.5vh) * var(--app-font-scale, 1));
+  font-size: calc(min(2.2vw, 3.8vh) * var(--app-font-scale, 1));
   opacity: 0.8;
+}
+.pp-pill {
+  align-self: center;
+  font-size: calc(min(1.4vw, 2.4vh) * var(--app-font-scale, 1));
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.35em 0.75em;
+  border: 0.12em solid currentColor;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 .pp-chart {
@@ -53,32 +68,99 @@
   min-height: 0;
   display: flex;
   align-items: flex-end;
-  gap: 0.5%;
+  gap: 0.6%;
+}
+.pp-col {
+  flex: 1 1 0;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 0.35vmin;
 }
 .pp-bar {
-  flex: 1 1 0;
-  min-height: 2%;
-  border-radius: 3px 3px 0 0;
+  width: 100%;
+  min-height: 3%;
+  border-radius: 0.5vmin 0.5vmin 0 0;
   background: color-mix(in srgb, currentColor 22%, transparent);
+  transition: height 0.4s ease;
 }
-.pp-bar.is-now {
-  background: var(--pp-accent, #eab308);
+.pp-col.is-now {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  outline: 0.22vmin solid color-mix(in srgb, currentColor 45%, transparent);
+  outline-offset: 0.2vmin;
+  border-radius: 0.5vmin;
+}
+.pp-col.is-now .pp-bar {
+  box-shadow: 0 0 1.2vmin color-mix(in srgb, currentColor 35%, transparent);
 }
 
 .pp-axis {
   display: flex;
-  gap: 0.5%;
+  gap: 0.6%;
   font-variant-numeric: tabular-nums;
-  font-size: calc(min(1.4vw, 2.4vh) * var(--app-font-scale, 1));
-  opacity: 0.55;
+  font-size: calc(min(1.3vw, 2.2vh) * var(--app-font-scale, 1));
+  opacity: 0.5;
 }
 .pp-tick {
   flex: 1 1 0;
   text-align: center;
+}
+.pp-tick.is-now {
+  opacity: 1;
+  font-weight: 700;
+  color: var(--pp-accent, #eab308);
+}
+
+.pp-stats {
+  display: flex;
+  gap: 4vw;
+  border-top: 0.15vmin solid color-mix(in srgb, currentColor 15%, transparent);
+  padding-top: 1.8vh;
+}
+.pp-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vh;
+}
+.pp-stat-label {
+  font-size: calc(min(1.3vw, 2.2vh) * var(--app-font-scale, 1));
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.55;
+}
+.pp-stat-value {
+  font-variant-numeric: tabular-nums;
+  font-size: calc(min(2.8vw, 4.6vh) * var(--app-font-scale, 1));
+  font-weight: 700;
+}
+.pp-stat-sub {
+  font-size: calc(min(1.3vw, 2.2vh) * var(--app-font-scale, 1));
+  opacity: 0.55;
 }
 
 .pp-empty {
   margin: auto;
   font-size: 3vh;
   opacity: 0.6;
+}
+
+/* Narrow / portrait zones: the min(vw,vh) caps above lean landscape, so widen
+   the vw budget for the headline figures and let the stat row wrap. */
+@media (max-aspect-ratio: 5/4) {
+  .pp-area {
+    font-size: calc(min(7vw, 6.5vh) * var(--app-font-scale, 1));
+  }
+  .pp-now b {
+    font-size: calc(min(15vw, 13vh) * var(--app-font-scale, 1));
+  }
+  .pp-unit {
+    font-size: calc(min(4vw, 3.6vh) * var(--app-font-scale, 1));
+  }
+  .pp-stats {
+    gap: 6vw;
+    flex-wrap: wrap;
+  }
+  .pp-stat-value {
+    font-size: calc(min(5vw, 4.4vh) * var(--app-font-scale, 1));
+  }
 }

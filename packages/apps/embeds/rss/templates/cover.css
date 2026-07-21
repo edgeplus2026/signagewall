@@ -20,10 +20,6 @@
   border-radius: 0;
 }
 
-.cv-media .rs-media-img {
-  animation: rs-drift var(--rs-story-seconds, 8s) linear both;
-}
-
 /* No picture at all (Hacker News, most mailing lists) — or one that died on the
    way. Not an apology for a missing image: a cover in its own right, built from
    the accent. The shared placeholder is only a glyph on a tint; here it earns the

@@ -5,6 +5,8 @@ import type {
 } from '@edge/apps-contract';
 import type { GsheetsPayload } from '@edge/apps';
 
+import { ensureDriveChannel } from './_shared/tabular/drive-watch';
+
 interface GsheetsConfig {
   connectionId?: string;
   /** The chosen spreadsheet: { id, label } from the `remote-select` picker. */
@@ -46,6 +48,11 @@ export const gsheetsConnector: AppConnector<GsheetsConfig, GsheetsPayload> = {
       'https://www.googleapis.com/auth/spreadsheets.readonly',
     ],
   },
+
+  // Self-subscribes to Google Drive `files.watch` on the chosen spreadsheet so an
+  // edit reaches the screen in seconds (the same push the menu board uses). The
+  // poll cadence stays as the floor that keeps the channel renewed.
+  webhookPath: 'webhooks/google/drive',
 
   cacheKey(config) {
     const connectionId = config.connectionId ?? 'none';
@@ -90,7 +97,15 @@ export const gsheetsConnector: AppConnector<GsheetsConfig, GsheetsPayload> = {
       (typeof config.spreadsheet === 'object' ? config.spreadsheet?.label : '') ||
       'Google Sheet';
 
+    // Keep the Drive push channel alive so a sheet edit reaches screens in
+    // seconds; never fails the fetch (see drive-watch.ts) — undefined webhookUrl
+    // (no public callback) just means the poll cadence carries the data.
+    const channel = await ensureDriveChannel(spreadsheetId, ctx);
+
     ctx.logger.debug('gsheets fetched', { spreadsheetId, rows: values.length });
-    return { playerPayload: { title, values } };
+    return {
+      playerPayload: { title, values },
+      ...(channel ? { secrets: { channel } } : {}),
+    };
   },
 };
