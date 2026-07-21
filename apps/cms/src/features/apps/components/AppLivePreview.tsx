@@ -10,8 +10,8 @@ interface AppLivePreviewProps {
 }
 
 /**
- * A TV device mock (screen + bezel + neck + stand) used to render the live
- * preview of an app instance. Flat — no ambient backlight or drop shadow.
+ * A TV device mock (screen + bezel) used to render the live preview of an app
+ * instance. Flat — no ambient backlight or drop shadow, no stand.
  */
 export function AppLivePreview({ children, className }: AppLivePreviewProps) {
   return (
@@ -27,11 +27,6 @@ export function AppLivePreview({ children, className }: AppLivePreviewProps) {
           </div>
         </div>
       </div>
-
-      {/* Neck */}
-      <div className="h-6 w-16 rounded-b-md bg-linear-to-b from-neutral-800 to-neutral-900" />
-      {/* Stand */}
-      <div className="h-2.5 w-44 rounded-full bg-neutral-800" />
     </div>
   )
 }

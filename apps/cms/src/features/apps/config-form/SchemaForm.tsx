@@ -17,27 +17,12 @@ import { friendlyMessage } from '@/features/apps/config-form/validationMessages'
 
 type ConfigValues = Record<string, unknown>
 
-/** The built-in instance-name field, always rendered first. */
-const NAME_KEY = '__name__'
-
-/** The instance name, rendered as the first field of the first section. */
-export interface NameField {
-  value: string
-  /** Already-translated label / placeholder / required message (i18n lives in the page). */
-  label: string
-  placeholder?: string | undefined
-  requiredMessage: string
-  onChange: (value: string) => void
-}
-
 interface SchemaFormProps {
   schema: ConfigSchema
   /** Current config values (controlled). */
   value: ConfigValues
   /** Called with the full config on every change — drives live preview + dirty tracking. */
   onChange: (value: ConfigValues) => void
-  /** Instance name, rendered as the first field (above all config fields). */
-  nameField?: NameField
   /** The app slug, so the `oauth` control can start the right OAuth flow. */
   appSlug?: string
   /** The instance id, so the `oauth` control can connect/disconnect this instance. */
@@ -81,15 +66,14 @@ function groupSections(schema: ConfigSchema): Section[] {
  * Renders an app's config form from its {@link ConfigSchema}. Validation is
  * derived from the same schema via `buildConfigZod`, so the CMS enforces exactly
  * what the backend validates. Fully controlled: each change is merged and lifted
- * up. Fields are grouped into sections — the first is untitled and always open
- * (and carries the instance name); the rest are collapsible. Adding a new field
- * type needs no change here — only a new control registry entry.
+ * up. Fields are grouped into sections — the first is untitled and always open;
+ * the rest are collapsible. Adding a new field type needs no change here — only
+ * a new control registry entry.
  */
 export function SchemaForm({
   schema,
   value,
   onChange,
-  nameField,
   appSlug,
   instanceId,
   disabled,
@@ -156,9 +140,6 @@ export function SchemaForm({
     )
   }
 
-  const nameError =
-    nameField?.value.trim() === '' ? nameField.requiredMessage : undefined
-
   return (
     <AppSlugProvider value={appSlug ?? null}>
       <InstanceIdProvider value={instanceId ?? null}>
@@ -166,33 +147,10 @@ export function SchemaForm({
       <ConfigPatchProvider value={(patch) => { onChange({ ...value, ...patch }); }}>
       <div className="flex flex-col gap-4">
         {sections.map((section, index) => {
-          // First (untitled, always-open) section also carries the name field.
+          // First (untitled, always-open) section — the primary config fields.
           if (index === 0) {
             return (
               <FieldGroup key="primary">
-                {nameField ? (
-                  <FieldRenderer
-                    field={{
-                      key: NAME_KEY,
-                      type: 'text',
-                      label: nameField.label,
-                      required: true,
-                      ...(nameField.placeholder !== undefined
-                        ? { placeholder: nameField.placeholder }
-                        : {}),
-                    }}
-                    value={nameField.value}
-                    error={touched.has(NAME_KEY) ? nameError : undefined}
-                    disabled={disabled}
-                    onChange={(next) => {
-                      markTouched(NAME_KEY)
-                      nameField.onChange(typeof next === 'string' ? next : '')
-                    }}
-                    onBlur={() => {
-                      markTouched(NAME_KEY)
-                    }}
-                  />
-                ) : null}
                 {section.fields.map(renderField)}
               </FieldGroup>
             )

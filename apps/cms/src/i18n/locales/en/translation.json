@@ -1825,7 +1825,7 @@
         "save": "Save changes",
         "saved": "Changes saved",
         "name": {
-          "label": "Name",
+          "label": "App instance name",
           "placeholder": "Instance name",
           "required": "Name is required"
         },

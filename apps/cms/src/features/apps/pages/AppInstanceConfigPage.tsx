@@ -24,7 +24,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppIcon } from '@/features/apps/components/AppIcon'
 import { AppInstanceConfigSidebar } from '@/features/apps/components/AppInstanceConfigSidebar'
 import { AppInstanceScreen } from '@/features/apps/components/AppInstanceScreen'
 import { AppLivePreview } from '@/features/apps/components/AppLivePreview'
@@ -37,6 +40,7 @@ import {
   useRenameInstance,
   useUpdateInstanceConfig,
 } from '@/features/apps/hooks/useApps'
+import { appTagline } from '@/features/apps/lib/appCopy'
 import { needsConnection } from '@/features/apps/lib/connectedApp'
 import {
   menuConfigNeedsMigration,
@@ -99,6 +103,7 @@ export default function AppInstanceConfigPage() {
   // form is touched, then compared against `baseline` to track dirtiness.
   const [draft, setDraft] = useState<AppInstanceConfig | null>(null)
   const [nameDraft, setNameDraft] = useState<string | null>(null)
+  const [nameTouched, setNameTouched] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [addToScreenOpen, setAddToScreenOpen] = useState(false)
   const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false)
@@ -124,37 +129,42 @@ export default function AppInstanceConfigPage() {
     setLastInstanceId(instance?.id ?? null)
     setDraft(null)
     setNameDraft(null)
+    setNameTouched(false)
   }
 
   if (appLoading || instanceLoading) {
     return (
       <div className="flex h-[calc(100dvh-5.5rem)] w-full min-w-0 flex-col gap-4 lg:px-10">
-        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden pb-4 lg:flex-row lg:gap-8">
-          {/* Config sidebar */}
-          <div className="flex w-full flex-col gap-6 lg:w-96 lg:shrink-0">
-            <div className="flex items-start gap-3">
-              <Skeleton className="size-12 shrink-0 rounded-xl" />
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <Skeleton className="h-4 w-2/3 rounded-md" />
-                <Skeleton className="h-3 w-4/5 rounded-md" />
+        {/* Top bar: app info + instance name */}
+        <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <Skeleton className="size-12 shrink-0 rounded-xl" />
+            <div className="flex flex-col gap-1.5">
+              <Skeleton className="h-4 w-24 rounded-md" />
+              <Skeleton className="h-3 w-40 rounded-md" />
+            </div>
+          </div>
+          <div className="flex w-full flex-col gap-2 sm:max-w-xs">
+            <Skeleton className="h-3.5 w-28 rounded-md" />
+            <Skeleton className="h-8 w-full rounded-lg" />
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-4 lg:flex-row lg:gap-8 lg:overflow-hidden">
+          {/* Config options */}
+          <div className="flex w-full flex-col gap-5 lg:w-96 lg:shrink-0">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="flex flex-col gap-2">
+                <Skeleton className="h-3.5 w-24 rounded-md" />
+                <Skeleton className="h-9 w-full rounded-md" />
               </div>
-            </div>
-            <div className="flex flex-col gap-5">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="flex flex-col gap-2">
-                  <Skeleton className="h-3.5 w-24 rounded-md" />
-                  <Skeleton className="h-9 w-full rounded-md" />
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
 
           {/* Live preview */}
           <div className="flex min-w-0 flex-1 items-center justify-center">
-            <div className="flex w-full max-w-xl flex-col items-center gap-3">
+            <div className="w-full max-w-xl">
               <Skeleton className="aspect-video w-full rounded-2xl" />
-              <Skeleton className="h-6 w-16 rounded-b-md" />
-              <Skeleton className="h-2.5 w-44 rounded-full" />
             </div>
           </div>
         </div>
@@ -188,6 +198,10 @@ export default function AppInstanceConfigPage() {
   const activeDraft = draft ?? baseline
   const activeName = nameDraft ?? instance.name
   const trimmedName = activeName.trim()
+  const nameError =
+    nameTouched && trimmedName.length === 0
+      ? t('apps.instances.config.name.required')
+      : undefined
 
   const isConfigDirty = !configEquals(activeDraft, baseline)
   const isNameDirty = trimmedName !== instance.name
@@ -221,12 +235,46 @@ export default function AppInstanceConfigPage() {
       <AppsBreadcrumb app={app} instanceName={instance.name} />
 
       <div className="flex h-[calc(100dvh-5.5rem)] w-full min-w-0 flex-col gap-4 lg:px-10">
-        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-4 lg:flex-row lg:gap-8">
+        {/* Fixed top bar: app info on the left, the instance name on the right. */}
+        <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <AppIcon
+              iconSvg={app.iconSvg}
+              color={app.color}
+              className="size-12 shrink-0 rounded-xl shadow-md"
+            />
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <h2 className="text-sm font-semibold text-primary">{app.name}</h2>
+              <p className="text-xs text-secondary">{appTagline(t, app.slug)}</p>
+            </div>
+          </div>
+
+          <Field className="w-full sm:max-w-xs">
+            <FieldLabel htmlFor="instance-name">
+              {t('apps.instances.config.name.label')}
+              <span className="text-danger"> *</span>
+            </FieldLabel>
+            <Input
+              id="instance-name"
+              value={activeName}
+              placeholder={t('apps.instances.config.name.placeholder')}
+              aria-invalid={nameError ? true : undefined}
+              onChange={(event) => {
+                setNameTouched(true)
+                setNameDraft(event.target.value)
+              }}
+              onBlur={() => {
+                setNameTouched(true)
+              }}
+            />
+            <FieldError errors={nameError ? [{ message: nameError }] : []} />
+          </Field>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-4 lg:flex-row lg:gap-8 lg:overflow-hidden">
           <AppInstanceConfigSidebar
             app={app}
             instanceId={instance.id}
-            name={activeName}
-            onNameChange={setNameDraft}
             config={activeDraft}
             onConfigChange={setDraft}
           />

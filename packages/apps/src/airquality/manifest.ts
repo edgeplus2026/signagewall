@@ -1,7 +1,5 @@
 import type { AppManifest } from '@edge/apps-contract'
 
-import { styleFields } from '../_shared/style-fields.js'
-
 const AIR_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11a3 3 0 1 0-3-3"/><path d="M2 14h15a3 3 0 1 1-3 3"/><path d="M18 10.5a2.5 2.5 0 1 1 2 4"/></svg>'
 
@@ -54,6 +52,5 @@ export const airqualityManifest: AppManifest = {
         { label: 'Dark', value: 'dark' },
       ],
     },
-    ...styleFields(),
   ],
 }

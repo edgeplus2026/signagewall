@@ -1807,7 +1807,7 @@
         "save": "Sačuvaj izmene",
         "saved": "Izmene sačuvane",
         "name": {
-          "label": "Naziv",
+          "label": "Naziv instance aplikacije",
           "placeholder": "Naziv instance",
           "required": "Naziv je obavezan"
         },

@@ -1,7 +1,6 @@
 import type { AppManifest } from '@edge/apps-contract'
 
 import { DEFAULT_ACCENT } from '../_shared/theme.js'
-import { styleFields } from '../_shared/style-fields.js'
 
 const COUNTDOWN_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9"/><path d="M9 2h6"/><path d="M19.5 5.5 18 7"/></svg>'
@@ -131,6 +130,5 @@ export const countdownManifest: AppManifest = {
       help: 'The unit labels and the message at zero.',
       default: DEFAULT_ACCENT,
     },
-    ...styleFields(),
   ],
 }
