@@ -133,4 +133,28 @@ export class AppDataCacheRepository {
       { upsert: true },
     );
   }
+
+  /**
+   * Drop cache entries untouched since `cutoff`, returning how many went.
+   *
+   * These are ORPHANS, not cold data: the scheduler writes `lastAttemptAt` on
+   * every attempt of every key still in use, so a document whose `updatedAt`
+   * has not moved is one nothing references any more — an instance that was
+   * deleted or reconfigured (`weather:belgrade` after the operator switched to
+   * Niš), or a half-typed config the live preview fetched once on its way to
+   * the real one. Nothing reads them and nothing ever refreshes them; without
+   * this the collection only grows.
+   *
+   * The caller's cutoff must clear the slowest app's cadence by a wide margin
+   * (see {@link AppDataScheduler}).
+   *
+   * The one way a live key can age past the cutoff is the API being down for
+   * longer than it, and that case is harmless: the entry is deleted, the next
+   * tick re-fetches it, and the screens are briefly served from the snapshot
+   * they already hold. Nothing is lost that an upstream call can't rebuild.
+   */
+  async deleteStale(cutoff: Date): Promise<number> {
+    const result = await this.model.deleteMany({ updatedAt: { $lt: cutoff } });
+    return result.deletedCount;
+  }
 }

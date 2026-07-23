@@ -42,6 +42,12 @@ const FETCH_TIMEOUT_MS = 15_000;
  * outage clears quickly without waiting a full (e.g. 15-min) refresh window.
  */
 const ERROR_RETRY_SECONDS = 120;
+/**
+ * How long a cache entry may go untouched before it's considered an orphan.
+ * The slowest app refreshes daily (`wisdom`, 86 400 s), so seven days is a wide
+ * margin over "would have been attempted by now" — nothing in use can reach it.
+ */
+const STALE_CACHE_DAYS = 7;
 
 @Injectable()
 export class AppDataService {
@@ -149,13 +155,18 @@ export class AppDataService {
    * instance resolves to `cacheKey`.
    */
   async refreshCacheKey(cacheKey: string): Promise<boolean> {
-    const candidate = (await this.collectDistinctCandidates()).find(
-      (entry) => entry.cacheKey === cacheKey,
-    );
+    // Read the cache entry FIRST: it records which app produced this key, which
+    // narrows the instance lookup to that one slug instead of enumerating every
+    // connector app's instances just to find a single candidate.
+    const [existing] = await this.cacheRepository.findByCacheKeys([cacheKey]);
+    const candidate = (
+      await this.collectDistinctCandidates(
+        existing ? [existing.slug] : undefined,
+      )
+    ).find((entry) => entry.cacheKey === cacheKey);
     if (!candidate) {
       return false;
     }
-    const [existing] = await this.cacheRepository.findByCacheKeys([cacheKey]);
     const changed = await this.refreshOne(candidate, {
       payload: existing?.payload,
       version: existing?.version,
@@ -171,13 +182,30 @@ export class AppDataService {
   }
 
   /**
+   * Drop connector cache entries nothing references any more. See
+   * {@link AppDataCacheRepository.deleteStale} for what makes an entry an
+   * orphan; `STALE_CACHE_DAYS` is the margin over the slowest app's cadence.
+   */
+  async pruneStaleCache(): Promise<number> {
+    const cutoff = new Date(Date.now() - STALE_CACHE_DAYS * 86_400_000);
+    const removed = await this.cacheRepository.deleteStale(cutoff);
+    if (removed > 0) {
+      this.logger.log(
+        `Pruned ${String(removed)} stale connector cache entries`,
+      );
+    }
+    return removed;
+  }
+
+  /**
    * Enumerate every active `server`-app instance and reduce it to the distinct
    * set of cache keys (one fetch serves all instances sharing a key). The first
    * instance seen for a key supplies the representative config.
    */
-  private async collectDistinctCandidates(): Promise<DueCandidate[]> {
-    const instances =
-      await this.appInstancesRepository.findBySlugs(connectorSlugs());
+  private async collectDistinctCandidates(
+    slugs: string[] = connectorSlugs(),
+  ): Promise<DueCandidate[]> {
+    const instances = await this.appInstancesRepository.findBySlugs(slugs);
     const byKey = new Map<string, DueCandidate>();
     for (const instance of instances) {
       const cacheKey = cacheKeyForInstance(instance);

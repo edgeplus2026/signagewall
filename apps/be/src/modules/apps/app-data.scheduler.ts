@@ -33,4 +33,19 @@ export class AppDataScheduler {
       this.running = false;
     }
   }
+
+  /**
+   * Sweep orphaned connector cache entries once a day. Deleting a reconfigured
+   * or deleted instance's key is not urgent — it just must happen, or the cache
+   * collection grows for the lifetime of the deployment. Failures are logged and
+   * dropped: a missed sweep costs nothing the next one won't collect.
+   */
+  @Interval('app-data-cache-prune', 24 * 60 * 60_000)
+  async prune(): Promise<void> {
+    try {
+      await this.appDataService.pruneStaleCache();
+    } catch (error) {
+      this.logger.error('App data cache prune failed', error);
+    }
+  }
 }

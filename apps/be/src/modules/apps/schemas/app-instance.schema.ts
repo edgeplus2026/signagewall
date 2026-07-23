@@ -40,3 +40,11 @@ export type AppInstanceDocument = HydratedDocument<AppInstance>;
 export const AppInstanceSchema = SchemaFactory.createForClass(AppInstance);
 
 AppInstanceSchema.index({ organizationId: 1, appId: 1, updatedAt: -1 });
+
+/**
+ * The app-data hot path queries instances BY SLUG, ACROSS organizations — the
+ * connector cache is global, so the scheduler (every 60s), the webhook refresh
+ * and the fan-out all run `find({ appSlug: { $in: [...] } })`. Without this the
+ * three of them are collection scans on the busiest collection in the system.
+ */
+AppInstanceSchema.index({ appSlug: 1 });
