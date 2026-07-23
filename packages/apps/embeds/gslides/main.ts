@@ -9,6 +9,13 @@ let slides: string[] = []
 let index = 0
 let timer: ReturnType<typeof setInterval> | undefined
 let img: HTMLImageElement | null = null
+/**
+ * Slides whose image failed to load, so `advance` can step over them. A
+ * mirrored slide should always load, but a screen that has been up for weeks
+ * against a half-purged bucket must degrade to the slides it *can* show rather
+ * than parking on a broken-image icon.
+ */
+let broken = new Set<number>()
 
 function stop(): void {
   if (timer !== undefined) {
@@ -17,9 +24,35 @@ function stop(): void {
   }
 }
 
+/** The next index with a loadable image, or -1 when every slide is broken. */
+function nextIndex(from: number): number {
+  for (let step = 1; step <= slides.length; step++) {
+    const candidate = (from + step) % slides.length
+    if (!broken.has(candidate)) return candidate
+  }
+  return -1
+}
+
 function show(i: number): void {
   const url = slides[i]
-  if (img && url) img.src = url
+  if (img && url) {
+    index = i
+    img.src = url
+  }
+}
+
+function advance(): void {
+  const next = nextIndex(index)
+  if (next === -1) {
+    stop()
+    if (root) {
+      root.innerHTML =
+        '<div class="gsl"><p class="gsl-empty">Slides unavailable</p></div>'
+      img = null
+    }
+    return
+  }
+  show(next)
 }
 
 function setup(
@@ -34,6 +67,7 @@ function setup(
       ? config.maxSlides
       : all.length
   slides = all.slice(0, max)
+  broken = new Set()
   const seconds =
     typeof config.slideSeconds === 'number' && config.slideSeconds > 0
       ? config.slideSeconds
@@ -58,16 +92,17 @@ function setup(
   img = document.createElement('img')
   img.className = 'gsl-img'
   img.alt = ''
+  img.addEventListener('error', () => {
+    broken.add(index)
+    advance()
+  })
   wrap.append(img)
   root.replaceChildren(wrap)
 
   index = 0
   show(0)
   if (slides.length > 1) {
-    timer = setInterval(() => {
-      index = (index + 1) % slides.length
-      show(index)
-    }, seconds * 1000)
+    timer = setInterval(advance, seconds * 1000)
   }
 }
 

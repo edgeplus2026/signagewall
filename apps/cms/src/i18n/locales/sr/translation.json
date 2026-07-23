@@ -2006,8 +2006,8 @@
       },
       "gslides": {
         "tagline": "Vrtite privatni Google Slides sa svog naloga",
-        "description": "Povežite svoj Google nalog i puštajte privatnu Google Slides prezentaciju kao slajdšou — automatski se ponovo izvozi, pa se izmene vide.",
-        "about": "Pustite privatnu Google Slides prezentaciju kao slajdšou koji se sam pomera, bez objavljivanja na web. Prijavite se na svoj Google nalog, izaberite prezentaciju sa svog Drive-a i podesite koliko dugo svaki slajd stoji i koliko slajdova da se prikaže. Kasnije izmenite prezentaciju i ekran sam preuzima promene — pogodno za interna obaveštenja, uvođenje zaposlenih i timsku komunikaciju u kancelarijama i prostorima za osoblje."
+        "description": "Povežite svoj Google nalog i puštajte privatnu Google Slides prezentaciju kao slajdšou — ekran se ažurira čim izmenite prezentaciju.",
+        "about": "Pustite privatnu Google Slides prezentaciju kao slajdšou koji se sam pomera, bez objavljivanja na web. Prijavite se na svoj Google nalog, izaberite prezentaciju sa svog Drive-a i podesite koliko dugo svaki slajd stoji i koliko slajdova da se prikaže. Izmenite prezentaciju i ekrani preuzimaju novu verziju za nekoliko sekundi, a pošto se slajdovi čuvaju umesto da se strimuju, nastavljaju da rade i kada ekran ostane bez veze — pogodno za interna obaveštenja, uvođenje zaposlenih i timsku komunikaciju u kancelarijama i prostorima za osoblje."
       },
       "pdf": {
         "tagline": "Prikažite PDF na ekranu",

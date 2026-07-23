@@ -123,7 +123,7 @@ export class ScreensRepository {
           organizationId: new Types.ObjectId(organizationId),
         },
         { $set: data },
-        { new: true, timestamps: options.touch ?? true },
+        { returnDocument: 'after', timestamps: options.touch ?? true },
       )
       .select(SUMMARY_PROJECTION)
       .exec();
@@ -164,7 +164,7 @@ export class ScreensRepository {
           updatedAt: expectedUpdatedAt,
         },
         update,
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }

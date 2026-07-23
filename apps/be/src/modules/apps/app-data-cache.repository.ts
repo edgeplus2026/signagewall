@@ -72,7 +72,7 @@ export class AppDataCacheRepository {
         },
         $unset: { lastError: '' },
       },
-      { new: true, upsert: true },
+      { returnDocument: 'after', upsert: true },
     );
     return updated;
   }
@@ -101,7 +101,7 @@ export class AppDataCacheRepository {
         },
         $unset: { lastError: '' },
       },
-      { new: true, upsert: true },
+      { returnDocument: 'after', upsert: true },
     );
   }
 

@@ -13,6 +13,10 @@ import { facebookConnector } from './facebook.connector';
 import { gcalConnector } from './gcal.connector';
 import { gsheetsConnector } from './gsheets.connector';
 import { gslidesConnector } from './gslides.connector';
+import {
+  type AssetMirror,
+  setAssetMirror,
+} from './_shared/asset-mirror.registry';
 import { holidaysConnector } from './holidays.connector';
 import { instagramConnector } from './instagram.connector';
 import { onthisdayConnector } from './onthisday.connector';
@@ -1345,6 +1349,24 @@ describe('gslides connector (connected)', () => {
     } satisfies ResolvedConnection,
   };
 
+  let mirrorImages: jest.MockedFunction<AssetMirror['mirrorImages']>;
+
+  beforeEach(() => {
+    mirrorImages = jest.fn((params) =>
+      Promise.resolve(
+        params.urls.map(
+          (_, i) => `${params.keyPrefix}/${String(i).padStart(3, '0')}.webp`,
+        ),
+      ),
+    );
+    setAssetMirror({
+      isConfigured: () => true,
+      mirrorImages,
+      publicUrl: (key: string) => `https://cdn.test/${key}`,
+      deleteObjects: () => Promise.resolve(),
+    });
+  });
+
   it('cacheKey is per-connection + presentation (slideSeconds/maxSlides display-only)', () => {
     const a = gslidesConnector.cacheKey!({
       connectionId: 'c1',
@@ -1360,29 +1382,85 @@ describe('gslides connector (connected)', () => {
     expect(a).toBe(b);
   });
 
-  it('exports each slide as a thumbnail and carries no volatile version', async () => {
-    // 1st call: the presentation metadata; then one thumbnail per page.
+  it('mirrors each exported slide to storage and reports the Drive revision', async () => {
+    // Drive metadata (change detection), then the page ids, then one thumbnail
+    // export per page. `ensureDriveChannel` makes no call without a webhookUrl.
     mockFetchSequence([
-      {
-        body: {
-          title: 'Deck',
-          slides: [{ objectId: 'p1' }, { objectId: 'p2' }],
-        },
-      },
+      { body: { name: 'Deck', version: '7', modifiedTime: 'T1' } },
+      { body: { slides: [{ objectId: 'p1' }, { objectId: 'p2' }] } },
       { body: { contentUrl: 'https://img/1' } },
       { body: { contentUrl: 'https://img/2' } },
     ]);
+
     const result = await gslidesConnector.fetchData(
-      { connectionId: 'c1', presentation: { id: 'P1', label: 'Deck' } },
+      { connectionId: 'c1', presentation: { id: 'P1', label: 'ignored' } },
       connectedCtx,
     );
-    expect(result.playerPayload).toEqual({
-      title: 'Deck',
-      slides: ['https://img/1', 'https://img/2'],
-    });
-    // No `version`: rotating thumbnail URLs must fan out each refresh so they
-    // reach the screen before they expire.
-    expect(result.version).toBeUndefined();
+
+    // Google's expiring thumbnail URLs go to the mirror, never to the player.
+    expect(mirrorImages).toHaveBeenCalledTimes(1);
+    expect(mirrorImages.mock.calls[0]?.[0].urls).toEqual([
+      'https://img/1',
+      'https://img/2',
+    ]);
+
+    const payload = result.playerPayload!;
+    expect(payload.title).toBe('Deck');
+    expect(payload.slides).toHaveLength(2);
+    for (const url of payload.slides) {
+      expect(url).toMatch(/^https:\/\/cdn\.test\/gslides\//);
+    }
+    // The Drive revision is a STABLE signature now that slide URLs are permanent.
+    expect(result.version).toBe('7');
+    expect(result.secrets?.mirrored).toMatchObject({ version: '7' });
+  });
+
+  it('reuses mirrored slides when the Drive revision is unchanged', async () => {
+    // Only the cheap metadata call — no page listing, no thumbnail exports.
+    const fetchMock = mockFetchSequence([
+      { body: { name: 'Deck', version: '7', modifiedTime: 'T1' } },
+    ]);
+
+    const result = await gslidesConnector.fetchData(
+      { connectionId: 'c1', presentation: { id: 'P1' } },
+      {
+        ...connectedCtx,
+        secrets: {
+          mirrored: {
+            version: '7',
+            slideKeys: ['gslides/abc/def/000.webp'],
+            title: 'Deck',
+          },
+        },
+      },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(mirrorImages).not.toHaveBeenCalled();
+    expect(result.playerPayload?.slides).toEqual([
+      'https://cdn.test/gslides/abc/def/000.webp',
+    ]);
+    // Re-persisted, or the payload upsert would null out the mirror state.
+    expect(result.secrets?.mirrored).toMatchObject({ version: '7' });
+  });
+
+  it('fails the whole fetch when one slide cannot be exported', async () => {
+    // A partial export must never be mirrored and cached under this revision —
+    // it would replay a deck with a hole in it until the next edit.
+    mockFetchSequence([
+      { body: { name: 'Deck', version: '8' } },
+      { body: { slides: [{ objectId: 'p1' }, { objectId: 'p2' }] } },
+      { body: { contentUrl: 'https://img/1' } },
+      { ok: false, body: {} },
+    ]);
+
+    await expect(
+      gslidesConnector.fetchData(
+        { connectionId: 'c1', presentation: { id: 'P1' } },
+        connectedCtx,
+      ),
+    ).rejects.toThrow(/thumbnail/);
+    expect(mirrorImages).not.toHaveBeenCalled();
   });
 });
 

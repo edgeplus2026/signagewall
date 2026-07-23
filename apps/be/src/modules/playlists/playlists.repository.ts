@@ -152,7 +152,7 @@ export class PlaylistsRepository {
           updatedAt: expectedUpdatedAt,
         },
         update,
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }
@@ -274,7 +274,7 @@ export class PlaylistsRepository {
           organizationId: new Types.ObjectId(organizationId),
         },
         { $set: data },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .select(SUMMARY_PROJECTION)
       .exec();

@@ -104,7 +104,7 @@ export class ConnectionsRepository {
             : {}),
         },
       },
-      { new: true, upsert: true },
+      { returnDocument: 'after', upsert: true },
     );
   }
 

@@ -146,7 +146,7 @@ export class AppInstancesRepository {
           organizationId: new Types.ObjectId(organizationId),
         },
         { $set: data },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }

@@ -94,3 +94,22 @@ export const PPTX_PDF_MAX_BYTES = 100 * 1024 * 1024;
 /** Timeouts for the Graph PDF fetch (redirect resolve + body download). */
 export const PPTX_PDF_METADATA_TIMEOUT_MS = 15 * 1000;
 export const PPTX_PDF_DOWNLOAD_TIMEOUT_MS = 60 * 1000;
+
+/**
+ * Connector asset mirroring (see AssetMirrorService). Re-hosts images a provider
+ * only exposes behind a temporary or authenticated URL (Google Slides thumbnail
+ * exports) as permanent WebP objects the player can cache and play offline.
+ */
+/** Mirrored images are downscaled to at most this width before WebP encoding. */
+export const ASSET_MIRROR_MAX_WIDTH = PPTX_SLIDE_MAX_WIDTH;
+/** WebP quality for mirrored images (matches rendered PowerPoint slides). */
+export const ASSET_MIRROR_WEBP_QUALITY = PPTX_SLIDE_WEBP_QUALITY;
+/** Max bytes accepted per source image (SSRF/DoS guard). */
+export const ASSET_MIRROR_MAX_BYTES = 25 * 1024 * 1024;
+/** Per-image download budget. */
+export const ASSET_MIRROR_TIMEOUT_MS = 30 * 1000;
+/**
+ * How many source images to download at once. Bounded so mirroring a 100-slide
+ * deck doesn't open 100 sockets to the provider and trip its rate limiter.
+ */
+export const ASSET_MIRROR_CONCURRENCY = 6;

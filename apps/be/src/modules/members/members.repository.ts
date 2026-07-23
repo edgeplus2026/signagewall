@@ -73,7 +73,7 @@ export class MembersRepository {
     data: Partial<Pick<OrganizationInvitation, 'name' | 'role'>>,
   ): Promise<OrganizationInvitationDocument | null> {
     return this.invitationModel
-      .findByIdAndUpdate(invitationId, data, { new: true })
+      .findByIdAndUpdate(invitationId, data, { returnDocument: 'after' })
       .exec();
   }
 

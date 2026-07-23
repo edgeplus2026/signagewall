@@ -271,7 +271,7 @@ export class MediaRepository {
           organizationId: new Types.ObjectId(organizationId),
         },
         { $set: update },
-        { new: true, session: session ?? null },
+        { returnDocument: 'after', session: session ?? null },
       )
       .exec();
   }

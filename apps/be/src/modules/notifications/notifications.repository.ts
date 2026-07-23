@@ -129,7 +129,7 @@ export class NotificationsRepository {
     }
 
     return this.notificationModel
-      .findByIdAndUpdate(id, { $set: set }, { new: true })
+      .findByIdAndUpdate(id, { $set: set }, { returnDocument: 'after' })
       .exec();
   }
 
@@ -147,7 +147,7 @@ export class NotificationsRepository {
             expiresAt: data.expiresAt,
           },
         },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }
@@ -157,7 +157,7 @@ export class NotificationsRepository {
       .findByIdAndUpdate(
         id,
         { $set: { status: 'draft', publishedAt: null } },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }

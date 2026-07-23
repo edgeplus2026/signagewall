@@ -5,7 +5,7 @@ import type {
 } from '@edge/apps-contract';
 import type { GsheetsPayload } from '@edge/apps';
 
-import { ensureDriveChannel } from './_shared/tabular/drive-watch';
+import { ensureDriveChannel } from './_shared/drive-watch';
 
 interface GsheetsConfig {
   connectionId?: string;

@@ -27,12 +27,17 @@ export class AppConnection {
   })
   organizationId!: Types.ObjectId;
 
-  /** The app instance that owns this connection (per-instance ownership). */
+  /**
+   * The app instance that owns this connection (per-instance ownership).
+   *
+   * Deliberately NOT `index: true` — the UNIQUE index below is the one that
+   * matters, and declaring both makes Mongoose build the same `{instanceId: 1}`
+   * key twice and warn about it on every boot.
+   */
   @Prop({
     type: Types.ObjectId,
     ref: 'AppInstance',
     required: true,
-    index: true,
   })
   instanceId!: Types.ObjectId;
 

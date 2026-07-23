@@ -188,6 +188,17 @@ export class AppDataService {
       if (refreshSeconds === undefined) {
         continue;
       }
+      // A `connected` instance saved without an account can never fetch — the
+      // fetch would throw "connected app has no connectionId" (see
+      // {@link resolveConnection}) every cycle, forever, for an instance the
+      // operator simply hasn't finished configuring. Skipping it here keeps the
+      // scheduler (and the logs) about things that can actually succeed.
+      if (
+        this.needsConnection(instance.appSlug) &&
+        !instance.config.connectionId
+      ) {
+        continue;
+      }
       byKey.set(cacheKey, {
         cacheKey,
         slug: instance.appSlug,
@@ -201,6 +212,14 @@ export class AppDataService {
   private refreshSecondsFor(slug: string): number | undefined {
     return APP_MANIFESTS.find((manifest) => manifest.slug === slug)
       ?.refreshSeconds;
+  }
+
+  /** Whether this app's connector fetches on behalf of an OAuth connection. */
+  private needsConnection(slug: string): boolean {
+    return (
+      APP_MANIFESTS.find((manifest) => manifest.slug === slug)?.dataSource ===
+      'connected'
+    );
   }
 
   /**

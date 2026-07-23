@@ -17,7 +17,7 @@ import {
   parsePriceNumber,
   type TabularTable,
 } from './_shared/tabular/apply-mapping';
-import { ensureDriveChannel } from './_shared/tabular/drive-watch';
+import { ensureDriveChannel } from './_shared/drive-watch';
 
 interface MenuConfig {
   connectionId?: string;

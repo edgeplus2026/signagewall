@@ -56,7 +56,11 @@ export class AppsRepository {
   ): Promise<AppDocument | null> {
     if (!Types.ObjectId.isValid(id)) return null;
     return this.appModel
-      .findByIdAndUpdate(new Types.ObjectId(id), { $set: data }, { new: true })
+      .findByIdAndUpdate(
+        new Types.ObjectId(id),
+        { $set: data },
+        { returnDocument: 'after' },
+      )
       .exec();
   }
 

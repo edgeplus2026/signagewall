@@ -75,7 +75,6 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 | Vimeo | Static (network) | Need a single Vimeo video link | None | None |
 | Live stream | Static (network) | Need an HLS `.m3u8` source URL | None | None |
 | Live channel | Static (network) | Enter a Twitch/Kick channel name | None | Twitch needs the player served from a real domain (not a bare IP) |
-| Google Slides (public) | Static (network) | Publish deck to web, use `/pub` link | None | None |
 | Weather | Keyless | None — per-instance only | None | None |
 | Air quality | Keyless | None — per-instance only | None | None |
 | Sun & Moon | Keyless | None — per-instance only | None | None |
@@ -91,7 +90,7 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 | Sports | Keyed (optional) | Works out of the box; optional key for higher limits | `THESPORTSDB_API_KEY` (**optional**, defaults to test key `3`) | None (optional TheSportsDB key) |
 | Google Calendar | Connected (OAuth) | Google OAuth app + `ENCRYPTION_KEY`; per-instance connect + pick calendar | `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth verification for non-test accounts (sensitive scope) |
 | Google Sheets | Connected (OAuth) | Reuses Google OAuth app; per-instance connect + pick sheet + range | `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth verification (2 sensitive scopes) |
-| Google Slides (private) | Connected (OAuth) | Reuses Google OAuth app; per-instance connect + pick deck | `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth verification (2 sensitive scopes) |
+| Google Slides | Connected (OAuth) | Reuses Google OAuth app; per-instance connect + pick deck; **R2 required** (slides are mirrored) | `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `R2_*` | Google OAuth verification (2 sensitive scopes) |
 | Outlook Calendar | Connected (OAuth) | Entra app + `ENCRYPTION_KEY`; per-instance connect + pick calendar | `ENCRYPTION_KEY`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | Possible tenant admin consent; publisher verification recommended |
 | Microsoft Teams | Connected (OAuth) | Same Entra app; per-instance connect + pick channel | `ENCRYPTION_KEY`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | **Azure AD admin consent** for `ChannelMessage.Read.All`; no personal accounts |
 | Instagram | Connected (OAuth) | Meta app + `ENCRYPTION_KEY`; per-instance connect + pick IG account | `ENCRYPTION_KEY`, `META_CLIENT_ID`, `META_CLIENT_SECRET` | **Meta App Review + Business verification** for non-owned accounts |
@@ -188,12 +187,7 @@ These render entirely on the player from operator-typed content. No env vars, no
   2. Enter **Channel** (required) — the channel name (last part of its URL, e.g. `twitch.tv/shroud` → `shroud`); pasting the full link works too.
   3. Toggle **Play audio** (default off — channels autoplay muted; when on, follows the screen's own volume).
 
-- **Google Slides (public)** — `requiresNetwork: true`. Embeds the deck's `/embed` view straight from Google; advances on its own and picks up edits. **No account/OAuth used.** **Prerequisite:** in Google Slides, **File → Share → Publish to web** (or share as "anyone with the link"), then copy the `/pub` link. A plain edit link needs a login and shows nothing.
-  1. Enter **Presentation link** (url, required, must match `^https?://docs.google.com/presentation/.+`).
-  2. Set **Seconds per slide** (default 5, range 1–600).
-  3. Toggle **Loop** (default on).
-
-> For a **private** deck that is not published to the web, use the connected **Google Slides (private)** app in §5 instead.
+> To show a Google Slides deck, use the connected **Google Slides** app in §5 — it signs into your Google account and works with private decks, so nothing has to be published to the web.
 
 ---
 
@@ -405,13 +399,17 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   3. Enter the **Range** in A1 notation (**required** text field, e.g. `A1:D20` or `Sheet1!A1:D20`) — this is part of the cache key.
   4. Display-only: Layout (Table / Single value KPI), "First row is a header", Theme, plus shared style fields.
 
-- **Google Slides (private)** (`gslides`, provider google) — refresh 900s, `requiresNetwork: true` (streams exported slide thumbnails from Google).
+- **Google Slides** (`gslides`, provider google) — refresh 900s, `requiresNetwork: false`.
   - **Scopes:** `https://www.googleapis.com/auth/presentations.readonly`, `https://www.googleapis.com/auth/drive.metadata.readonly`
-  - **Env:** `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. Enable the Slides API **and** Drive API.
+  - **Env:** `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, **plus R2** (`R2_*`) for the mirrored slides. Enable the Slides API **and** Drive API.
   1. Connect a Google account.
   2. Pick the **Presentation** (`remoteSource: google-presentations` — from your Drive).
-  3. Display-only numbers: Seconds per slide (1–120, default 8), Slides to show (0 = all, max 30).
-  > For decks already **published to the web**, use the keyless **Google Slides (public)** app (§2.2) — no account/OAuth needed.
+  3. Display-only numbers: Seconds per slide (1–120, default 8), Slides to show (0 = all, max 100).
+  > **Live sync.** The connector registers a Drive `files.watch` push channel on the deck, so an edit reaches the screens within seconds; the 900s poll is the fallback and also what renews the channel. Push needs `PUBLIC_API_URL` (or `WEBHOOK_PUBLIC_URL`) set to an address Google can reach — without one the app still works, just on the poll cadence.
+  >
+  > ⚠️ **Google push needs a domain you own.** Beyond being reachable over HTTPS, the callback domain must be **verified in Google Search Console** and listed under **Domain verification** in the Cloud project. An unverified host — notably an ephemeral `*.trycloudflare.com` / `*.ngrok.io` dev tunnel — makes `files.watch` return **403 `Unauthorized WebHook callback channel`**, logged as `drive watch failed`. Nothing breaks: the connector skips the subscription and the poll carries the data. **This applies to every Google push app** (Calendar, Sheets, menu board), not just Slides. Microsoft Graph push (PowerPoint, Outlook) has no such requirement, which is why a plain dev tunnel is enough there.
+  >
+  > Slides are exported once per deck revision and **mirrored to R2**, so screens play them from cache and keep working offline. An unchanged deck costs one cheap Drive metadata call per poll — not one export per slide. Decks longer than 100 slides are cut at 100 (logged server-side).
 
 - **Outlook Calendar** (`outlook`, provider microsoft) — refresh 300s, `requiresNetwork: false`.
   - **Scope:** `https://graph.microsoft.com/Calendars.Read`

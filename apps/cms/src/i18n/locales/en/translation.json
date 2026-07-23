@@ -2024,8 +2024,8 @@
       },
       "gslides": {
         "tagline": "Loop a private Google Slides deck from your account",
-        "description": "Connect your Google account and play a private Google Slides deck as a slideshow — it re-exports automatically so edits show up.",
-        "about": "Run a private Google Slides presentation as a self-advancing slideshow, without publishing it to the web. Sign in to your Google account, choose the deck from your Drive, and set how long each slide stays up and how many slides to include. Edit the deck later and the screen picks up the changes on its own — well suited to internal updates, onboarding and team comms in offices and staff areas."
+        "description": "Connect your Google account and play a private Google Slides deck as a slideshow — it updates on screen the moment the deck changes.",
+        "about": "Run a private Google Slides presentation as a self-advancing slideshow, without publishing it to the web. Sign in to your Google account, choose the deck from your Drive, and set how long each slide stays up and how many slides to include. Edit the deck and the screens pick up the new version within seconds, and because the slides are stored rather than streamed they keep playing even if the screen loses its connection — well suited to internal updates, onboarding and team comms in offices and staff areas."
       },
       "pdf": {
         "tagline": "Show a PDF on screen",

@@ -63,7 +63,7 @@ export class DevicesRepository {
           $setOnInsert: { deviceId, status: DeviceStatus.UNPAIRED },
           ...(profile ? { $set: { profile } } : {}),
         },
-        { new: true, upsert: true, setDefaultsOnInsert: true },
+        { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true },
       )
       .exec();
   }
@@ -77,7 +77,7 @@ export class DevicesRepository {
       .findOneAndUpdate(
         { deviceId },
         { $set: { pairingCode, pairingCodeExpiresAt } },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }
@@ -98,7 +98,7 @@ export class DevicesRepository {
           },
           $unset: { pairingCode: '', pairingCodeExpiresAt: '' },
         },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }
@@ -112,7 +112,7 @@ export class DevicesRepository {
           $set: { status: DeviceStatus.UNPAIRED, online: false },
           $unset: { screenId: '', organizationId: '', tokenHash: '' },
         },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }
@@ -122,7 +122,11 @@ export class DevicesRepository {
     volume: number,
   ): Promise<DeviceDocument | null> {
     return this.deviceModel
-      .findOneAndUpdate({ deviceId }, { $set: { volume } }, { new: true })
+      .findOneAndUpdate(
+        { deviceId },
+        { $set: { volume } },
+        { returnDocument: 'after' },
+      )
       .exec();
   }
 
@@ -140,7 +144,11 @@ export class DevicesRepository {
     }
 
     return this.deviceModel
-      .findOneAndUpdate({ deviceId }, { $set: update }, { new: true })
+      .findOneAndUpdate(
+        { deviceId },
+        { $set: update },
+        { returnDocument: 'after' },
+      )
       .exec();
   }
 
@@ -149,7 +157,11 @@ export class DevicesRepository {
     tokenHash: string,
   ): Promise<DeviceDocument | null> {
     return this.deviceModel
-      .findOneAndUpdate({ deviceId }, { $set: { tokenHash } }, { new: true })
+      .findOneAndUpdate(
+        { deviceId },
+        { $set: { tokenHash } },
+        { returnDocument: 'after' },
+      )
       .exec();
   }
 
@@ -169,7 +181,7 @@ export class DevicesRepository {
             ...(profile ? { profile } : {}),
           },
         },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }

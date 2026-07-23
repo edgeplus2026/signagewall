@@ -93,11 +93,22 @@ export async function ensureDriveChannel(
       },
     );
     if (!response.ok) {
-      // Commonly a scope issue (`files.watch` can demand more than
-      // metadata-readonly for some files) — polling carries the data either way.
+      // The status alone is not actionable — a 403 here is almost always one of
+      // two very different things, and Google only says which in the body:
+      //   "Unauthorized WebHook callback channel: <address>"
+      //       → the callback DOMAIN is not verified for this Cloud project.
+      //         Expected on any tunnel/host you don't own (see OPERATOR.md §5).
+      //   an insufficient-scope message
+      //       → `files.watch` wants more than the connector asked for.
+      // Read the body best-effort; polling carries the data either way.
+      const detail = await response
+        .text()
+        .then((text) => text.slice(0, 300))
+        .catch(() => '');
       ctx.logger.warn('drive watch failed', {
         fileId,
         status: response.status,
+        detail,
       });
       return existing;
     }

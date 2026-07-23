@@ -148,7 +148,11 @@ export class OrganizationsRepository {
     session?: ClientSession,
   ): Promise<boolean> {
     const result = await this.organizationModel
-      .findByIdAndUpdate(organizationId, { deletedAt }, { new: true })
+      .findByIdAndUpdate(
+        organizationId,
+        { deletedAt },
+        { returnDocument: 'after' },
+      )
       .session(session ?? null)
       .exec();
     return result !== null;
@@ -159,7 +163,7 @@ export class OrganizationsRepository {
     name: string,
   ): Promise<OrganizationDocument | null> {
     return this.organizationModel
-      .findByIdAndUpdate(organizationId, { name }, { new: true })
+      .findByIdAndUpdate(organizationId, { name }, { returnDocument: 'after' })
       .exec();
   }
 
@@ -211,7 +215,7 @@ export class OrganizationsRepository {
     role: OrganizationRole,
   ): Promise<OrganizationMembershipDocument | null> {
     return this.membershipModel
-      .findByIdAndUpdate(membershipId, { role }, { new: true })
+      .findByIdAndUpdate(membershipId, { role }, { returnDocument: 'after' })
       .exec();
   }
 

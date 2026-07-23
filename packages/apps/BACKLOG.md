@@ -15,13 +15,13 @@ CMS and player contain **zero per-app code**. Adding an app is done almost entir
 **37 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
   `menu`, `alert` (Emergency Alert), `web`, `dashboard`, `powerbi`, `youtube`, `vimeo`, `stream`,
-  `livechannel` (Twitch/Kick), `gslides-public`
+  `livechannel` (Twitch/Kick)
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
   (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays` (Nager.Date),
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, `news`
   (curated RSS presets), and `stocks` (Alpaca — needs `ALPACA_API_KEY_ID` + `ALPACA_API_SECRET_KEY`)
 - `connected` (OAuth account): `gcal` (Google Calendar), `gsheets` (Google Sheets), `gslides` (Google
-  Slides, private), `outlook` (Outlook Calendar), `teams` (Microsoft Teams), `instagram` + `facebook`
+  Slides), `outlook` (Outlook Calendar), `teams` (Microsoft Teams), `instagram` + `facebook`
   (Meta), `canva`
 
 **Shipped in the current push:** all of **Tier 1** (§4) + the keyless **Tier 2** server apps, plus the
@@ -147,7 +147,7 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 | **E4b** ✅ | **`repeater` field type** — an add/remove/reorder row editor (each row a set of typed sub-fields via `field.fields`). Shipped: contract union + zod + CMS `RepeaterControl`. Adopted by Menu, Ticker, World clocks and Stocks (each keeps a legacy string/textarea fallback so saved configs don't break). | M | Menu, Ticker, World clocks, Stocks (done) |
 | **E5** ✅ | **Keyed-connector convention** — `requireConnectorKey(name)` in `connectors/env.util.ts` reads a key from the backend env and throws cleanly when it's missing (the host then keeps last-known-good). Keys live in `.env` / `.env.example`. Shipped; used by Stocks. | S–M | sports, transit (keyed) now unblocked |
 | **E6** ✅ | Refreshed [`README.md`](./README.md) to current reality (`embeds/<slug>/` bundles, the three app kinds, the build/preview pipeline, a BACKLOG pointer). | S | docs accuracy |
-| **E7** | **Connector→R2 asset persistence** — a way for a connector to save a binary it fetched (with a server-side token) to R2 and return a public URL the player can load, extending `ConnectorContext`. Google Slides sidestepped this with Google's own thumbnail URLs, but providers that only hand back an *authenticated* file (Power BI Export-to-file, SharePoint/PowerPoint export) need it. This is the gating item for the whole "export a private document/report to an image" family. | M | private Power BI (21b), SharePoint/PowerPoint (22) |
+| **E7** | **Connector→R2 asset persistence ✅ shipped** — `AssetMirror` (`connectors/_shared/asset-mirror.registry.ts`, implemented by `AssetMirrorService` in MediaModule) lets a connector hand over a list of image URLs and get back permanent R2 keys/URLs, re-encoded to WebP with https + size + timeout guards. Reached via the same DI service-locator bridge as `PptxRenderer`, so `ConnectorContext` stays provider-neutral. First consumer: Google Slides (18), whose thumbnail URLs expire in ~30 min. Providers that hand back an *authenticated* file (Power BI Export-to-file, SharePoint/PowerPoint export) still need a **binary** variant — `mirrorImages` takes URLs it can fetch anonymously, not a token-authenticated download. | M | private Power BI (21b), SharePoint/PowerPoint (22) |
 
 ## 4. App catalog (prioritized)
 
@@ -163,7 +163,6 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | **Tier 1 — static, no backend (ship first)** ||||||
 | 1 | Countdown / Timer ✅ | `countdown` | static | Utilities | S | E4a ✅ |
 | 2 | Vimeo ✅ | `vimeo` | static | Media | S | — |
-| 3 | Google Slides (published) ✅ | `gslides-public` | static | Productivity | S | — |
 | 4 | Dashboard embed (public) ✅ | `dashboard` | static | Data & Dashboards | S | — |
 | 5 | Live stream (HLS) ✅ | `stream` | static | Media | S–M | — |
 | 6 | Menu board / price list ✅ | `menu` | static | Utilities | M | E4b ✅ |
@@ -185,7 +184,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 33 | Sun & Moon ✅ | `sunmoon` | server | Information | M | — |
 | **Tier 3 — connected, reuse Google provider** ||||||
 | 17 | Google Sheets (KPI/table) ✅ | `gsheets` | connected | Data & Dashboards | M | — |
-| 18 | Google Slides (private) ✅ | `gslides` | connected | Productivity | M–L | — |
+| 18 | Google Slides ✅ | `gslides` | connected | Productivity | M–L | — |
 | 19 | Google Photos album ⛔ | `gphotos` | connected | Media | — | blocked (API) |
 | **Tier 4 — connected, new providers** ||||||
 | 20 | Outlook / M365 Calendar ✅ | `outlook` | connected | Productivity | M | E1 ✅ |
@@ -212,11 +211,6 @@ picker, E4a ✅), `mode` (select: down/up), `finishedText` (text), `showLabels` 
 **2. Vimeo** (`vimeo`, static, `requiresNetwork: true`)
 Vimeo analogue of YouTube. **Config:** `url` (url, vimeo pattern), `autoplay/loop/muted` (switch).
 **Render:** Vimeo player iframe; gate audio on `onActive` (double-buffer safe, like YouTube).
-
-**3. Google Slides — published** (`gslides-public`, static, `requiresNetwork: true`)
-Zero-OAuth: operator uses Google's "Publish to web". **Config:** `publishedUrl` (url,
-`docs.google.com/presentation/.../pub` pattern), `slideSeconds` (number), `loop` (switch). **Render:**
-embed the `/embed?start=true&loop=…&delayms=…` URL in an iframe. (Private decks → #18.)
 
 **4. Dashboard embed** (`dashboard`, static, `requiresNetwork: true`)
 A hardened, auto-refreshing `web` app tuned for **Grafana / Looker Studio / Power BI "publish to web" /
@@ -326,13 +320,16 @@ list); reads a range via the Sheets API. `cacheKey gsheets:<connId>:<sheetId>:<r
 `hasHeader`, theme. **Needs** `GOOGLE_CLIENT_ID`/`SECRET` + `ENCRYPTION_KEY` on the backend (same
 prerequisite as Calendar).
 
-**18. Google Slides (private)** (`gslides`, connected) — ✅ shipped. Google OAuth; connector scopes
+**18. Google Slides** (`gslides`, connected) — ✅ shipped. Google OAuth; connector scopes
 `presentations.readonly` + `drive.metadata.readonly`. `remote-select` `google-presentations` (Drive
-list). Reads the deck's page ids, then exports each as a thumbnail via the Slides API; the embed loops
-them. `cacheKey gslides:<connId>:<presentationId>`. Thumbnail URLs are temporary, so it carries **no
-`version`** — the rotating URLs fan out each 15-min refresh, keeping them fresh before they expire.
-Distinct from the keyless `gslides-public` (published decks, no login). Needs `GOOGLE_CLIENT_ID`/`SECRET`
-+ `ENCRYPTION_KEY`.
+list). Reads the deck's page ids, exports each as a thumbnail via the Slides API, then **mirrors the
+images to R2 via E7** and serves the permanent URLs; the embed loops them.
+`cacheKey gslides:<connId>:<presentationId>`. Change detection keys on the Drive revision (`version`,
+falling back to `modifiedTime`), which is also the payload `version` — an unchanged deck costs one
+metadata call per poll instead of one export per slide. **Live sync** via a Drive `files.watch` channel
+the connector registers itself (`webhookPath: webhooks/google/drive`), with the 900s poll as fallback
+and channel renewal. `requiresNetwork: false` — mirrored slides cache and play offline. Needs
+`GOOGLE_CLIENT_ID`/`SECRET` + `ENCRYPTION_KEY` + R2.
 
 **19. Google Photos album** (`gphotos`, connected) — ⛔ **blocked, not viable.** Google restricted the
 Photos Library API on 2025-03-31: `photoslibrary.readonly` now returns 403 and apps can only read
@@ -347,8 +344,8 @@ library read access. (Docs: developers.google.com/photos/support/updates.)
 shared `GcalPayload`, so `embeds/outlook` **reuses the gcal embed** wholesale (its config keys mirror
 gcal's). `cacheKey outlook:<connId>:<calId>`. Needs `MICROSOFT_CLIENT_ID`/`SECRET` + `ENCRYPTION_KEY`.
 
-**21. Power BI** (`powerbi`, **static**) — ✅ shipped as a **publish-to-web wrapper**, the Power BI
-analogue of `gslides-public`. The operator uses Power BI's "Publish to web", pastes the
+**21. Power BI** (`powerbi`, **static**) — ✅ shipped as a **publish-to-web wrapper**, a publish-to-web
+wrapper like the `dashboard` app. The operator uses Power BI's "Publish to web", pastes the
 `app.powerbi.com/view?r=…` link; the embed validates the `*.powerbi.com` host and renders it in a
 sandboxed iframe with an optional reload cadence. No OAuth, no capacity. `url` (pattern-validated) +
 `refreshMinutes`. Chosen deliberately (see below): private-report embedding is impossible without a
@@ -448,7 +445,7 @@ override + push), distinct from the `alert` app which is just a playlist item.
 - **M1 — Fast value, no auth ✅ done:** all Tier 1 statics + keyless Tier 2 (air quality, currency,
   crypto, power-prices) shipped, plus the `datetime` field (E4a) and the `repeater` field (E4b ✅).
   E0 (base categories, seeded on boot) ✅ and E6 (README refresh) ✅ — this band is now complete.
-- **M2 — Google reuse:** Google Sheets ✅, Google Slides (private) ✅. Google Photos ⛔ blocked (Photos
+- **M2 — Google reuse:** Google Sheets ✅, Google Slides ✅. Google Photos ⛔ blocked (Photos
   Library API restricted to app-created media since 2025; a user's library needs the Picker API).
 - **M3 — Microsoft (E1 ✅):** Outlook Calendar ✅ (reuses the gcal embed), Microsoft Teams ✅ (reuses the
   social-feed embed); Power BI / SharePoint next — same provider, new connectors.
