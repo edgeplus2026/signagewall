@@ -300,6 +300,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/legal/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public: the current Terms/Privacy documents for a locale. */
+        get: operations["LegalgetDocuments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/legal/acceptance-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which current documents the signed-in user still needs to accept. */
+        get: operations["LegalgetAcceptanceStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/legal/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept the current version of the given documents (defaults to all). */
+        post: operations["Legalaccept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/organizations": {
         parameters: {
             query?: never;
@@ -326,7 +377,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["Organizationsremove"];
+        delete?: never;
         options?: never;
         head?: never;
         patch: operations["Organizationsupdate"];
@@ -396,6 +447,23 @@ export interface paths {
         patch: operations["SettingsupdateSettings"];
         trace?: never;
     };
+    "/api/v1/settings/data-export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GDPR right of access: download all personal data we hold about the user. */
+        get: operations["SettingsexportData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings/feedback": {
         parameters: {
             query?: never;
@@ -423,6 +491,23 @@ export interface paths {
         put?: never;
         post: operations["SettingsreportProblem"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{organizationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Queue an organization for GDPR deletion (30-day grace, then cascade). */
+        delete: operations["DataDeletiondeleteOrganization"];
         options?: never;
         head?: never;
         patch?: never;
@@ -636,6 +721,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/playlists/add-apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlaylistsaddApps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/playlists/{id}/items": {
         parameters: {
             query?: never;
@@ -698,6 +799,289 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["Playlistsupdate"];
+        trace?: never;
+    };
+    "/api/v1/apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["Appslist"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apps/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AppsgetById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apps/{id}/install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["Appsinstall"];
+        delete: operations["Appsuninstall"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apps/{slug}/preview-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resolve the connector payload for an app's live preview, given a draft
+         *     config. `static` apps return `{ data: null }`. Org-scoped (the guard), but
+         *     the underlying cache is global — previewing a key real screens already use
+         *     is an instant hit. `slug` (not id) so the preview works against the manifest.
+         */
+        post: operations["AppspreviewData"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AppsAdminlist"];
+        put?: never;
+        post: operations["AppsAdmincreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/apps/manifests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AppsAdminmanifests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/apps/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AppsAdmingetById"];
+        put?: never;
+        post?: never;
+        delete: operations["AppsAdminremove"];
+        options?: never;
+        head?: never;
+        patch: operations["AppsAdminupdate"];
+        trace?: never;
+    };
+    "/api/v1/admin/apps/{id}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AppsAdminsetVisibility"];
+        trace?: never;
+    };
+    "/api/v1/app-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AppInstanceslist"];
+        put?: never;
+        post: operations["AppInstancescreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/app-instances/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AppInstancesgetById"];
+        put?: never;
+        post?: never;
+        delete: operations["AppInstancesremove"];
+        options?: never;
+        head?: never;
+        patch: operations["AppInstancesrename"];
+        trace?: never;
+    };
+    "/api/v1/app-instances/{id}/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AppInstancesupdateConfig"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/app-instances/{id}/connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["AppInstancesdisconnect"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Token-free summary of a connection (config form's connected state). */
+        get: operations["ConnectionsgetOne"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/{id}/browse/{source}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search a connection's resources for a remote-select config field (e.g. Canva designs, Google calendars). */
+        get: operations["Connectionsbrowse"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/{id}/tabular/headers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a synced spreadsheet's header row for the column-mapping config control. */
+        get: operations["ConnectionstabularHeaders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/oauth/{provider}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Build the provider authorization URL for an instance connection OAuth flow. */
+        get: operations["Connectionsstart"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/oauth/{provider}/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Provider OAuth callback — binds the connection to its instance and returns to it. */
+        get: operations["Connectionscallback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/screens": {
@@ -844,182 +1228,6 @@ export interface paths {
         patch: operations["Screensupdate"];
         trace?: never;
     };
-    "/api/v1/apps": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["Appslist"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/apps/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AppsgetById"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/apps/{id}/install": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["Appsinstall"];
-        delete: operations["Appsuninstall"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/apps": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AppsAdminlist"];
-        put?: never;
-        post: operations["AppsAdmincreate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/apps/manifests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AppsAdminmanifests"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/apps/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AppsAdmingetById"];
-        put?: never;
-        post?: never;
-        delete: operations["AppsAdminremove"];
-        options?: never;
-        head?: never;
-        patch: operations["AppsAdminupdate"];
-        trace?: never;
-    };
-    "/api/v1/admin/apps/{id}/visibility": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["AppsAdminsetVisibility"];
-        trace?: never;
-    };
-    "/api/v1/app-instances": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AppInstanceslist"];
-        put?: never;
-        post: operations["AppInstancescreate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/app-instances/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AppInstancesgetById"];
-        put?: never;
-        post?: never;
-        delete: operations["AppInstancesremove"];
-        options?: never;
-        head?: never;
-        patch: operations["AppInstancesrename"];
-        trace?: never;
-    };
-    "/api/v1/app-instances/{id}/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["AppInstancesupdateConfig"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/app-instances/{id}/duplicate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["AppInstancesduplicate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/stock-media/search": {
         parameters: {
             query?: never;
@@ -1110,7 +1318,7 @@ export interface paths {
         get: operations["AdmingetUser"];
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["AdmindeleteUser"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1158,6 +1366,59 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AdmindemoteSuperAdmin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai-content/generations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The current user's recent generations in this org (the history table). */
+        get: operations["AiContentlist"];
+        put?: never;
+        /** Enqueue a generation. Enforces the per-user daily quota. */
+        post: operations["AiContentgenerate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai-content/generations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Poll a generation's status/result (also used to refetch on the socket nudge). */
+        get: operations["AiContentgetById"];
+        put?: never;
+        post?: never;
+        /** Delete a generation from history (does not delete any created playlist). */
+        delete: operations["AiContentremove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai-content/generations/{id}/playlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Materialize the generated slides into a new draft playlist (idempotent). */
+        post: operations["AiContentcreatePlaylist"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1290,6 +1551,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["DevicePairingsetScale"];
+        trace?: never;
+    };
+    "/api/v1/screens/{screenId}/device/kiosk-mode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["DevicePairingsetKioskMode"];
         trace?: never;
     };
     "/api/v1/screens/{screenId}/device/daily-reload": {
@@ -1532,6 +1809,8 @@ export interface components {
             company?: string;
             password: string;
             inviteToken?: string;
+            /** @description Must be true — the user accepts the current Terms of Service + Privacy Policy. */
+            acceptedLegal: boolean;
         };
         AuthResponseSchema: {
             user: components["schemas"]["UserResponseSchema"];
@@ -1596,6 +1875,13 @@ export interface components {
         };
         AcceptInvitationResponseSchema: {
             organizationId: string;
+        };
+        AcceptLegalDto: {
+            /**
+             * @description Which documents to accept at their current version. Omit to accept every
+             *     document that currently needs (re-)consent.
+             */
+            docTypes?: ("tos" | "privacy")[];
         };
         OrganizationResponseSchema: {
             id: string;
@@ -1731,9 +2017,22 @@ export interface components {
             playlistIds: string[];
             mediaIds: string[];
         };
+        AddPlaylistAppsDto: {
+            playlistIds: string[];
+            appInstanceIds: string[];
+        };
         ReplacePlaylistItemDto: {
             id?: string;
-            mediaId: string;
+            /**
+             * @description Item kind. Optional for back-compat with clients that only ever sent media
+             *     items (no `type`); the service defaults a missing value to `media`.
+             * @enum {string}
+             */
+            type?: "media" | "app";
+            /** @description Required when `type` is `media`. */
+            mediaId?: string;
+            /** @description Required when `type` is `app`. */
+            appInstanceId?: string;
             duration: number;
             disabled?: boolean;
         };
@@ -1753,6 +2052,40 @@ export interface components {
         UpdatePlaylistDto: {
             name?: string;
             description?: string;
+        };
+        PreviewAppDataDto: {
+            /** @description Draft app config to fetch preview data for. */
+            config: {
+                [key: string]: unknown;
+            };
+        };
+        CreateAppDto: {
+            /** @description Slug of an available code manifest. */
+            slug: string;
+            name: string;
+            isPublic?: Record<string, never>;
+        };
+        UpdateAppDto: {
+            name?: string;
+            isPublic?: Record<string, never>;
+        };
+        SetAppVisibilityDto: {
+            /** @description Whether the app is offered to organizations. */
+            isPublic: boolean;
+        };
+        CreateAppInstanceDto: {
+            /** @description Catalog app id to create an instance of. */
+            appId: string;
+            name?: string;
+        };
+        RenameAppInstanceDto: {
+            name: string;
+        };
+        UpdateAppInstanceConfigDto: {
+            /** @description Instance config; validated against the app config schema. */
+            config: {
+                [key: string]: unknown;
+            };
         };
         CreateScreenDto: {
             name: string;
@@ -1781,7 +2114,7 @@ export interface components {
             playlistId?: string;
             appInstanceId?: string;
             duration?: number;
-            disabled?: boolean;
+            disabled?: Record<string, never>;
         };
         ReplaceScreenItemsDto: {
             items: components["schemas"]["ReplaceScreenItemDto"][];
@@ -1822,48 +2155,6 @@ export interface components {
         UpdateScreenDto: {
             name?: string;
             description?: string;
-        };
-        CreateAppDto: {
-            /** @description Slug of an available code manifest. */
-            slug: string;
-            name: string;
-            tagline: string;
-            description: string;
-            about?: string;
-            /** @description Inline SVG markup for the app icon. */
-            iconSvg?: string;
-            /** @description Brand colour (hex). */
-            color?: string;
-            isPublic?: boolean;
-        };
-        UpdateAppDto: {
-            name?: string;
-            tagline?: string;
-            description?: string;
-            about?: string;
-            /** @description Inline SVG markup for the app icon. */
-            iconSvg?: string;
-            /** @description Brand colour (hex). */
-            color?: string;
-            isPublic?: boolean;
-        };
-        SetAppVisibilityDto: {
-            /** @description Whether the app is offered to organizations. */
-            isPublic: boolean;
-        };
-        CreateAppInstanceDto: {
-            /** @description Catalog app id to create an instance of. */
-            appId: string;
-            name?: string;
-        };
-        RenameAppInstanceDto: {
-            name: string;
-        };
-        UpdateAppInstanceConfigDto: {
-            /** @description Instance config; validated against the app config schema. */
-            config: {
-                [key: string]: unknown;
-            };
         };
         ImportStockMediaDto: {
             /**
@@ -1910,6 +2201,45 @@ export interface components {
             updatedAt: string;
             organizations: components["schemas"]["OrganizationResponseSchema"][];
         };
+        AiGenerationJobSchema: {
+            id: string;
+            /** @enum {string} */
+            status: "queued" | "processing" | "succeeded" | "failed";
+            /** @description The multi-step form inputs the user entered. */
+            input: {
+                [key: string]: unknown;
+            };
+            /** @description Validated generated content; present once the job succeeds. */
+            result?: {
+                [key: string]: unknown;
+            } | null;
+            error?: string | null;
+            /** @description Id of the draft playlist created from this generation. */
+            playlistId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CreateAiGenerationDto: {
+            /** @enum {string} */
+            industry: "retail" | "hospitality" | "restaurant" | "cafe" | "healthcare" | "fitness" | "beauty" | "realEstate" | "automotive" | "education" | "technology" | "finance" | "events" | "nonprofit" | "other";
+            businessName?: string;
+            targetAudience?: string;
+            /** @enum {string} */
+            primaryGoal: "promotion" | "announcement" | "event" | "awareness" | "welcome" | "info";
+            /** @enum {string} */
+            tone: "professional" | "friendly" | "energetic" | "playful" | "luxurious" | "minimal";
+            keyPoints?: string[];
+            /** @enum {string} */
+            language: "en" | "sr";
+        };
+        AiGenerationPlaylistSchema: {
+            /** @description Id of the created draft playlist. */
+            playlistId: string;
+        };
+        MaterializeAiGenerationDto: {
+            /** @description Name for the created playlist. Defaults to the model's suggested name. */
+            name?: string;
+        };
         PlayerHeartbeatDto: {
             /** @description Id of the renderable currently on screen */
             playingItemId?: string;
@@ -1949,6 +2279,14 @@ export interface components {
              * @enum {string}
              */
             scale: "none" | "fit" | "stretch" | "zoom";
+        };
+        SetDeviceKioskModeDto: {
+            /**
+             * @description Kiosk lockdown level enforced by the native shell.
+             * @example off
+             * @enum {string}
+             */
+            kioskMode: "hard" | "soft" | "off";
         };
         SetDeviceDailyReloadDto: {
             /**
@@ -3518,6 +3856,84 @@ export interface operations {
             };
         };
     };
+    LegalgetDocuments: {
+        parameters: {
+            query?: {
+                locale?: string;
+            };
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>[];
+                };
+            };
+        };
+    };
+    LegalgetAcceptanceStatus: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    Legalaccept: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptLegalDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
     Organizationslist: {
         parameters: {
             query?: never;
@@ -3618,82 +4034,6 @@ export interface operations {
                         /** @enum {boolean} */
                         success: true;
                         data: components["schemas"]["OrganizationResponseSchema"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    Organizationsremove: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        /** @example null */
-                        data: null | null;
                     };
                 };
             };
@@ -4147,14 +4487,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        /** @example null */
-                        data: null | null;
-                    };
-                };
+                content?: never;
             };
             /** @description Validation or business error */
             400: {
@@ -4231,6 +4564,75 @@ export interface operations {
                         success: true;
                         data: components["schemas"]["AccountSettingsSchema"];
                     };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    SettingsexportData: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
                 };
             };
             /** @description Validation or business error */
@@ -4392,6 +4794,75 @@ export interface operations {
                         data: null | null;
                     };
                 };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    DataDeletiondeleteOrganization: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                organizationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation or business error */
             400: {
@@ -5704,6 +6175,86 @@ export interface operations {
             };
         };
     };
+    PlaylistsaddApps: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddPlaylistAppsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
     PlaylistsgetItems: {
         parameters: {
             query?: never;
@@ -6130,6 +6681,1867 @@ export interface operations {
                         data: components["schemas"]["Object"];
                     };
                 };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    Appslist: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"][];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppsgetById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    Appsinstall: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    Appsuninstall: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppspreviewData: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewAppDataDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppsAdminlist: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"][];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppsAdmincreate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAppDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppsAdminmanifests: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"][];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppsAdmingetById: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppsAdminremove: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppsAdminupdate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAppDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppsAdminsetVisibility: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetAppVisibilityDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppInstanceslist: {
+        parameters: {
+            query?: {
+                /** @description Filter instances by catalog app id. */
+                appId?: string;
+            };
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"][];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppInstancescreate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAppInstanceDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppInstancesgetById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppInstancesremove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppInstancesrename: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenameAppInstanceDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppInstancesupdateConfig: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAppInstanceConfigDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AppInstancesdisconnect: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    ConnectionsgetOne: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    Connectionsbrowse: {
+        parameters: {
+            query?: {
+                query?: string;
+            };
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+                source: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"][];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    ConnectionstabularHeaders: {
+        parameters: {
+            query?: {
+                kind?: string;
+                fileId?: string;
+                worksheet?: string;
+            };
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    Connectionsstart: {
+        parameters: {
+            query: {
+                appSlug: string;
+                instanceId: string;
+            };
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    Connectionscallback: {
+        parameters: {
+            query: {
+                code: string;
+                state: string;
+            };
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation or business error */
             400: {
@@ -7203,1396 +9615,6 @@ export interface operations {
             };
         };
     };
-    Appslist: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"][];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsgetById: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    Appsinstall: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    Appsuninstall: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        /** @example null */
-                        data: null | null;
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdminlist: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"][];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdmincreate: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateAppDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdminmanifests: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"][];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdmingetById: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdminremove: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        /** @example null */
-                        data: null | null;
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdminupdate: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateAppDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdminsetVisibility: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetAppVisibilityDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppInstanceslist: {
-        parameters: {
-            query?: {
-                /** @description Filter instances by catalog app id. */
-                appId?: string;
-            };
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"][];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppInstancescreate: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateAppInstanceDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppInstancesgetById: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppInstancesremove: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        /** @example null */
-                        data: null | null;
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppInstancesrename: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RenameAppInstanceDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppInstancesupdateConfig: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateAppInstanceConfigDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppInstancesduplicate: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Active organization id for tenant-scoped routes */
-                "x-organization-id": string;
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
     StockMediasearch: {
         parameters: {
             query: {
@@ -9068,6 +10090,82 @@ export interface operations {
             };
         };
     };
+    AdmindeleteUser: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
     Adminimpersonate: {
         parameters: {
             query?: never;
@@ -9243,6 +10341,396 @@ export interface operations {
                         /** @enum {boolean} */
                         success: true;
                         data: components["schemas"]["AdminUserListItemSchema"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AiContentlist: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["AiGenerationJobSchema"][];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AiContentgenerate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAiGenerationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["AiGenerationJobSchema"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AiContentgetById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["AiGenerationJobSchema"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AiContentremove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AiContentcreatePlaylist: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterializeAiGenerationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["AiGenerationPlaylistSchema"];
                     };
                 };
             };
@@ -9841,6 +11329,87 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["SetDeviceScaleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["Object"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    DevicePairingsetKioskMode: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                screenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetDeviceKioskModeDto"];
             };
         };
         responses: {

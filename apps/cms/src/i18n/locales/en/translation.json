@@ -937,6 +937,11 @@
       "maintenance": {
         "title": "Maintenance"
       },
+      "kiosk": {
+        "title": "Kiosk",
+        "success": "Kiosk mode updated.",
+        "error": "Could not update the kiosk mode. Please try again."
+      },
       "details": {
         "title": "Device details"
       },
@@ -965,6 +970,15 @@
           "fit": "Fit (keep aspect ratio)",
           "stretch": "Stretch (fill, distort)",
           "zoom": "Zoom (fill, crop)"
+        }
+      },
+      "kioskMode": {
+        "title": "Kiosk lock",
+        "description": "How locked-down the device is (Android displays only).",
+        "options": {
+          "hard": "Hard (fully locked)",
+          "soft": "Soft (user can exit)",
+          "off": "Off (no lock)"
         }
       },
       "dailyReload": {

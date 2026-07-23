@@ -5,7 +5,7 @@
  * return undefined in a browser, so the reported profile stays web-only there.
  */
 import type { DeviceUpdateStatus } from '../types'
-import { nativeInvoke } from './tauri'
+import { nativeInvoke } from './host'
 
 type UpdateResult = NonNullable<DeviceUpdateStatus['lastResult']>
 

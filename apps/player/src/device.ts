@@ -1,8 +1,10 @@
 import { config } from './config'
 import {
   DEFAULT_DAILY_RELOAD,
+  DEFAULT_KIOSK_MODE,
   DEFAULT_ORIENTATION,
   DEFAULT_SCALE,
+  isKioskMode,
   isOrientation,
   isScale,
   normalizeDailyReload,
@@ -14,6 +16,7 @@ import type {
   DailyReloadSetting,
   DeviceOrientation,
   DeviceScale,
+  KioskMode,
   PairingCodePayload,
   ReportedProfile,
 } from './types'
@@ -24,6 +27,7 @@ const PAIRING_CODE_KEY = 'edge.player.pairingCode'
 const VOLUME_KEY = 'edge.player.volume'
 const ORIENTATION_KEY = 'edge.player.orientation'
 const SCALE_KEY = 'edge.player.scale'
+const KIOSK_MODE_KEY = 'edge.player.kioskMode'
 const DAILY_RELOAD_KEY = 'edge.player.dailyReload'
 
 /**
@@ -171,6 +175,19 @@ export function getStoredScale(): DeviceScale {
 
 export function setStoredScale(scale: DeviceScale): void {
   safeSet(SCALE_KEY, scale)
+}
+
+/**
+ * Persisted kiosk lockdown mode. Cached locally so an offline reboot re-applies
+ * the lock immediately, before the socket re-delivers it. Defaults to off.
+ */
+export function getStoredKioskMode(): KioskMode {
+  const raw = safeGet(KIOSK_MODE_KEY)
+  return isKioskMode(raw) ? raw : DEFAULT_KIOSK_MODE
+}
+
+export function setStoredKioskMode(mode: KioskMode): void {
+  safeSet(KIOSK_MODE_KEY, mode)
 }
 
 /**

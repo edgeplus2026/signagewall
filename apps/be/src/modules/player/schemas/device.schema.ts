@@ -2,11 +2,13 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import {
   DEFAULT_DAILY_RELOAD_TIME,
+  KIOSK_MODES,
   ORIENTATIONS,
   SCALES,
   type DeviceOrientation as DeviceOrientationValue,
   type DeviceScale as DeviceScaleValue,
   type DeviceUpdateStatus as DeviceUpdateStatusValue,
+  type KioskMode as KioskModeValue,
   type PlayerRuntime,
 } from '@edge/player-contract';
 
@@ -42,6 +44,17 @@ export const DeviceScale = {
 } as const satisfies Record<string, DeviceScaleValue>;
 export type DeviceScale = DeviceScaleValue;
 
+/**
+ * Kiosk lockdown level enforced by a native shell. Const object (not a TS `enum`)
+ * so the value type IS the shared-contract union — same pattern as DeviceScale.
+ */
+export const KioskMode = {
+  HARD: 'hard',
+  SOFT: 'soft',
+  OFF: 'off',
+} as const satisfies Record<string, KioskModeValue>;
+export type KioskMode = KioskModeValue;
+
 /** Automatic once-a-day player reload, in the device's local time. */
 @Schema({ _id: false })
 export class DailyReloadSetting {
@@ -72,6 +85,9 @@ export class DeviceSettings {
 
   @Prop({ type: String, enum: SCALES, default: DeviceScale.FIT })
   scale!: DeviceScale;
+
+  @Prop({ type: String, enum: KIOSK_MODES, default: KioskMode.OFF })
+  kioskMode!: KioskMode;
 
   @Prop({ type: DailyReloadSettingSchema, default: () => ({}) })
   dailyReload!: DailyReloadSetting;
@@ -196,7 +212,7 @@ export class Device {
   @Prop({ default: 100, min: 0, max: 100 })
   volume!: number;
 
-  /** Display + power settings (orientation, scale, daily reload). */
+  /** Display + power settings (orientation, scale, kiosk mode, daily reload). */
   @Prop({ type: DeviceSettingsSchema, default: () => ({}) })
   settings!: DeviceSettings;
 

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Level 3: prompted APK self-update on non-Device-Owner devices. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- TV boxes have no touchscreen; declare both optional so one APK installs on
+         Android-TV boxes/sticks AND touch tablets. -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+
+    <application
+        android:name=".EdgePlayerApp"
+        android:allowBackup="false"
+        android:banner="@drawable/tv_banner"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.EdgePlayer">
+
+        <!-- The kiosk WebView. singleTask = one instance (the Android analogue of
+             the Tauri single-instance plugin). Handling these config changes keeps
+             the WebView alive across rotation / dock / density changes instead of
+             recreating (and reloading) the Activity. -->
+        <activity
+            android:name=".KioskActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density|smallestScreenSize|navigation"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.EdgePlayer.Fullscreen">
+            <!-- Normal launcher (tablets / phones). -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Android-TV / leanback launcher (boxes, sticks). -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Autostart on power-up. -->
+        <receiver
+            android:name=".boot.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Keep-alive watchdog (foreground service). -->
+        <service
+            android:name=".boot.WatchdogService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Unattended digital-signage kiosk keep-alive watchdog" />
+        </service>
+
+        <!-- Own DPC: enables provisioning this app as Device Owner (QR / adb). -->
+        <receiver
+            android:name=".kiosk.EdgeDeviceAdminReceiver"
+            android:description="@string/device_admin_description"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- PackageInstaller session-result callback (Level 3 self-update). -->
+        <receiver
+            android:name=".update.InstallReceiver"
+            android:exported="false" />
+    </application>
+</manifest>

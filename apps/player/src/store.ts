@@ -3,6 +3,7 @@ import { signal, computed } from '@preact/signals'
 import {
   getCachedPairingCode,
   getStoredDailyReload,
+  getStoredKioskMode,
   getStoredOrientation,
   getStoredScale,
   getStoredVolume,
@@ -13,6 +14,7 @@ import type {
   DailyReloadSetting,
   DeviceOrientation,
   DeviceScale,
+  KioskMode,
   PairingCodePayload,
   PlayerSnapshot,
 } from './types'
@@ -52,6 +54,9 @@ export const orientation = signal<DeviceOrientation>(getStoredOrientation())
 
 /** Content scale (object-fit mode), set from the CMS; persisted. */
 export const scale = signal<DeviceScale>(getStoredScale())
+
+/** Kiosk lockdown mode, set from the CMS; persisted + offline-safe. */
+export const kioskMode = signal<KioskMode>(getStoredKioskMode())
 
 /** Automatic daily-reload setting, set from the CMS; persisted + offline-safe. */
 export const dailyReload = signal<DailyReloadSetting>(getStoredDailyReload())

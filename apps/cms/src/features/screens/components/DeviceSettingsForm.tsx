@@ -17,11 +17,13 @@ import { DeviceVolumeControl } from '@/features/screens/components/DeviceVolumeC
 import {
   useRestartDevice,
   useSetDeviceDailyReload,
+  useSetDeviceKioskMode,
   useSetDeviceOrientation,
   useSetDeviceScale,
   useSetDeviceVolume,
 } from '@/features/screens/hooks/useScreens'
 import type {
+  ScreenDeviceKioskMode,
   ScreenDeviceOrientation,
   ScreenDeviceScale,
   ScreenDeviceSettings,
@@ -44,6 +46,12 @@ const SCALE_OPTIONS: readonly ScreenDeviceScale[] = [
   'fit',
   'stretch',
   'zoom',
+]
+
+const KIOSK_MODE_OPTIONS: readonly ScreenDeviceKioskMode[] = [
+  'hard',
+  'soft',
+  'off',
 ]
 
 interface DeviceSettingsFormProps {
@@ -72,6 +80,11 @@ export function DeviceSettingsForm({
         savedOrientation={savedSettings.orientation}
         savedScale={savedSettings.scale}
       />
+      <KioskSettings
+        key={`kiosk-${savedSettings.kioskMode}`}
+        screenId={screenId}
+        savedKioskMode={savedSettings.kioskMode}
+      />
       <MaintenanceSettings
         key={`maintenance-${savedSettings.dailyReload.enabled ? 'on' : 'off'}-${savedSettings.dailyReload.time}`}
         screenId={screenId}
@@ -79,6 +92,60 @@ export function DeviceSettingsForm({
         savedReloadTime={savedSettings.dailyReload.time}
       />
     </div>
+  )
+}
+
+interface KioskSettingsProps {
+  screenId: string
+  savedKioskMode: ScreenDeviceKioskMode
+}
+
+/**
+ * Kiosk lockdown for the bound device (enforced by the Android native shell;
+ * a no-op on browser/desktop players). Its own section + save, so it never
+ * remounts the Display or Maintenance drafts when committed.
+ */
+function KioskSettings({ screenId, savedKioskMode }: KioskSettingsProps) {
+  const { t } = useTranslation()
+  const setKioskMode = useSetDeviceKioskMode()
+
+  const [kioskMode, setKioskModeDraft] = useState(savedKioskMode)
+  const dirty = kioskMode !== savedKioskMode
+
+  const onSave = async () => {
+    try {
+      await setKioskMode.mutateAsync({ id: screenId, kioskMode })
+      toast.success(t('screens.device.kiosk.success'))
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t('screens.device.kiosk.error')))
+    }
+  }
+
+  return (
+    <SettingsSection title={t('screens.device.kiosk.title')}>
+      <SettingsRow
+        label={t('screens.device.kioskMode.title')}
+        description={t('screens.device.kioskMode.description')}
+      >
+        <SettingSelect
+          value={kioskMode}
+          options={KIOSK_MODE_OPTIONS}
+          i18nPrefix="screens.device.kioskMode.options"
+          disabled={setKioskMode.isPending}
+          onChange={setKioskModeDraft}
+        />
+      </SettingsRow>
+
+      <div className="flex justify-end px-4 py-3">
+        <Button
+          size="sm"
+          onClick={() => void onSave()}
+          disabled={!dirty || setKioskMode.isPending}
+        >
+          {t('screens.device.settings.save')}
+        </Button>
+      </div>
+    </SettingsSection>
   )
 }
 

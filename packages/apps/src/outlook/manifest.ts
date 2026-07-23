@@ -22,7 +22,11 @@ export const outlookManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 1,
-  refreshSeconds: 120,
+  // Live updates arrive via the Graph webhook on the calendar's events (see the
+  // connector's `webhookResource`). This slow poll is only the reconcile
+  // fallback: first-save population, sliding the fetch window forward over time,
+  // and recovering missed notifications or a deploy with no public webhook URL.
+  refreshSeconds: 1800,
   icon: OUTLOOK_ICON,
   color: '#0078D4',
   configSchema: [

@@ -25,6 +25,7 @@ import {
 } from './store'
 import { startAvailability } from './sync/availability'
 import { startDailyReload } from './sync/daily-reload'
+import { startKioskLock } from './sync/kiosk'
 import { startOnline } from './sync/online'
 import { startPrefetch } from './sync/prefetch'
 import { requestPreviewToken } from './sync/preview-handshake'
@@ -97,6 +98,7 @@ export function App() {
     // already carries the shell version. Both no-op in a plain browser. useEffect
     // can't be async, so run boot in a guarded IIFE and collect disposers.
     let disposed = false
+    let stopKioskLock: (() => void) | undefined
     let stopDailyReload: (() => void) | undefined
     let stopAvailability: (() => void) | undefined
     let stopPrefetch: (() => void) | undefined
@@ -128,6 +130,11 @@ export function App() {
 
       connectPlayer()
 
+      // Enforce the kiosk lockdown before the content loops so the device locks
+      // as early as possible; reads the persisted mode, so it re-locks even while
+      // offline (no-op off the Android shell).
+      stopKioskLock = startKioskLock()
+
       // Offline-capable background loops: daily reload, standby (availability),
       // and media prefetch (keeps the cache warm even during standby).
       stopDailyReload = startDailyReload()
@@ -154,6 +161,7 @@ export function App() {
       stopPrefetch?.()
       stopAvailability?.()
       stopDailyReload?.()
+      stopKioskLock?.()
       disconnectPlayer()
     }
   }, [])

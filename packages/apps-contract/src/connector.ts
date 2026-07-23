@@ -45,10 +45,18 @@ export interface AppConnector<Config = Record<string, unknown>, Payload = unknow
    * For connectors whose push subscriptions are orchestrated externally (the
    * Microsoft Graph pattern — subscriptions are managed per config save, not by
    * the connector): given a validated config, name the provider resource to
-   * watch, or null when the current config has nothing to subscribe to.
-   * `packedDriveItem` is the `"driveId|itemId"`-packed drive item.
+   * watch, or null when the current config has nothing to subscribe to. Two
+   * shapes:
+   *  - `packedDriveItem` (`"driveId|itemId"`): a OneDrive/SharePoint file; the
+   *    host subscribes to that item's drive ROOT (PowerPoint deck, menu Excel).
+   *  - `graphResource`: an explicit Graph resource path to subscribe to, with
+   *    the change types to watch (Outlook Calendar: the calendar's events, e.g.
+   *    `/me/calendars/{id}/events` on `'created,updated,deleted'`).
    */
-  webhookResource?(config: Config): { provider: 'microsoft'; packedDriveItem: string } | null
+  webhookResource?(config: Config):
+    | { provider: 'microsoft'; packedDriveItem: string }
+    | { provider: 'microsoft'; graphResource: string; changeType?: string }
+    | null
 
   /**
    * Optional per-connector fetch budget (ms) overriding the host default. Raise

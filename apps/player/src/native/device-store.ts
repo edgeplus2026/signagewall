@@ -5,7 +5,7 @@
  * URL-based recovery cannot cover on a fixed-entry-URL native shell. No-ops in a
  * browser (returns undefined), where localStorage + the URL remain the anchors.
  */
-import { nativeInvoke, nativeInvokeStrict } from './tauri'
+import { nativeInvoke, nativeInvokeStrict } from './host'
 
 /** Bound on the native identity read so a stuck config disk can't wedge boot. */
 const READ_TIMEOUT_MS = 5000

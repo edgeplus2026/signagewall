@@ -77,6 +77,12 @@ function windowIso(now: Date): { start: string; end: string } {
  * Microsoft Graph `calendarView` and normalizes to the shared {@link GcalPayload}
  * so the Google Calendar embed renders it unchanged. View/language/theme are
  * display-only. No fetch timestamp in the payload.
+ *
+ * Updates are pushed live by a Graph subscription on the calendar's event
+ * collection ({@link outlookConnector.webhookResource}); the slow poll
+ * (`refreshSeconds`) is the reconcile fallback — it re-populates on first save,
+ * slides the fetch window forward over time, and recovers any missed
+ * notification or a deploy with no public webhook URL.
  */
 export const outlookConnector: AppConnector<OutlookConfig, GcalPayload> = {
   oauth: {
@@ -90,6 +96,24 @@ export const outlookConnector: AppConnector<OutlookConfig, GcalPayload> = {
   cacheKey(config) {
     const connectionId = config.connectionId ?? 'none';
     return `outlook:${connectionId}:${calendarIdOf(config) || 'default'}`;
+  },
+
+  // Which Graph resource the external subscription orchestrator should watch for
+  // this config (`AppInstancesService.ensureWebhookSubscription`). We watch the
+  // picked calendar's event collection (default calendar when none is picked)
+  // for create/update/delete, so any calendar change pushes a refresh live. The
+  // subscription can't target the sliding `calendarView`, so the reconcile poll
+  // still handles events entering/leaving the fetch window over time.
+  webhookResource(config) {
+    const calendarId = calendarIdOf(config);
+    const graphResource = calendarId
+      ? `/me/calendars/${encodeURIComponent(calendarId)}/events`
+      : '/me/events';
+    return {
+      provider: 'microsoft',
+      graphResource,
+      changeType: 'created,updated,deleted',
+    };
   },
 
   async fetchData(

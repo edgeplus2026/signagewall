@@ -9,7 +9,7 @@ import { getUrlDeviceId } from '../recovery'
 import { reportError } from '../sentry'
 import { getShellVersion, loadShellVersion } from './runtime'
 import { readNativeDeviceId, setNativeDeviceId } from './device-store'
-import { isTauri } from './tauri'
+import { hasNativeBridge } from './host'
 import { checkForUpdate, loadUpdateState } from './updater'
 
 /**
@@ -57,7 +57,7 @@ function compareShellVersions(a: string, b: string): number {
  * untouched, so a later healthy boot can still recover the real id.
  */
 export async function bootstrapNativeIdentity(): Promise<void> {
-  if (!isTauri()) {
+  if (!hasNativeBridge()) {
     return
   }
 
@@ -96,7 +96,7 @@ export async function bootstrapNativeIdentity(): Promise<void> {
  * to reach a later heartbeat, so a slow/unreachable endpoint never delays connect.
  */
 export async function bootstrapNativeRuntime(): Promise<void> {
-  if (!isTauri()) {
+  if (!hasNativeBridge()) {
     return
   }
   await Promise.all([loadShellVersion(), loadUpdateState()])

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { isTauri, nativeInvoke } from './tauri'
+import { isTauri, tauriTransport } from './tauri'
 
 function stubWindow(props: Record<string, unknown>) {
   vi.stubGlobal('window', props)
@@ -25,32 +25,27 @@ describe('isTauri', () => {
     stubWindow({ __TAURI__: {} })
     expect(isTauri()).toBe(true)
   })
+
+  it('stays false for an Android WebView shell (must not report tauri)', () => {
+    stubWindow({ AndroidBridge: { invoke: vi.fn() } })
+    expect(isTauri()).toBe(false)
+  })
 })
 
-describe('nativeInvoke', () => {
-  it('returns undefined (no-op) outside Tauri', async () => {
-    stubWindow({})
-    expect(await nativeInvoke('shell_version')).toBeUndefined()
-  })
-
-  it('returns undefined when the bridge lacks core.invoke', async () => {
+describe('tauriTransport', () => {
+  it('is undefined when the bridge lacks core.invoke', () => {
     stubWindow({ __TAURI__: {} })
-    expect(await nativeInvoke('shell_version')).toBeUndefined()
+    expect(tauriTransport()).toBeUndefined()
   })
 
-  it('forwards cmd + args and returns the result', async () => {
+  it('forwards cmd + args to core.invoke', async () => {
     const invoke = vi.fn(async () => '1.2.3')
     stubWindow({ __TAURI__: { core: { invoke } } })
-    const result = await nativeInvoke<string>('set_device_id', { id: 'x' })
-    expect(result).toBe('1.2.3')
+    const transport = tauriTransport()
+    expect(transport).toBeDefined()
+    await expect(transport!.invoke('set_device_id', { id: 'x' })).resolves.toBe(
+      '1.2.3',
+    )
     expect(invoke).toHaveBeenCalledWith('set_device_id', { id: 'x' })
-  })
-
-  it('swallows a rejected command and returns undefined', async () => {
-    const invoke = vi.fn(async () => {
-      throw new Error('boom')
-    })
-    stubWindow({ __TAURI__: { core: { invoke } } })
-    expect(await nativeInvoke('get_device_id')).toBeUndefined()
   })
 })

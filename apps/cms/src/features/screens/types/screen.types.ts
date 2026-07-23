@@ -1,5 +1,6 @@
 import {
   DEFAULT_DAILY_RELOAD,
+  DEFAULT_KIOSK_MODE,
   DEFAULT_ORIENTATION,
   DEFAULT_SCALE,
   type DailyReloadSetting,
@@ -7,6 +8,7 @@ import {
   type DeviceScale,
   type DeviceSettings,
   type DeviceUpdateStatus,
+  type KioskMode,
   type PlayerRuntime,
 } from '@edge/player-contract'
 
@@ -40,6 +42,7 @@ export interface ScreenDeviceProfile {
 // `ScreenDevice*` names so the rest of the CMS keeps importing from here.
 export type ScreenDeviceOrientation = DeviceOrientation
 export type ScreenDeviceScale = DeviceScale
+export type ScreenDeviceKioskMode = KioskMode
 export type { DailyReloadSetting }
 export type ScreenDeviceSettings = DeviceSettings
 
@@ -47,6 +50,7 @@ export type ScreenDeviceSettings = DeviceSettings
 export const DEFAULT_DEVICE_SETTINGS: ScreenDeviceSettings = {
   orientation: DEFAULT_ORIENTATION,
   scale: DEFAULT_SCALE,
+  kioskMode: DEFAULT_KIOSK_MODE,
   dailyReload: { ...DEFAULT_DAILY_RELOAD },
 }
 

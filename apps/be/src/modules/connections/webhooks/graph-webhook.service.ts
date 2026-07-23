@@ -9,7 +9,11 @@ import { GraphSubscriptionsRepository } from './graph-subscriptions.repository';
 
 const GRAPH_SUBSCRIPTIONS_URL =
   'https://graph.microsoft.com/v1.0/subscriptions';
-/** Graph caps drive-item subscriptions well under 3 days; renew with margin. */
+/**
+ * Graph caps subscription lifetime under 3 days for both drive items and
+ * calendar events (~4230 min ≈ 2.94 days); 2 days fits both, renewed with
+ * margin by {@link GraphSubscriptionScheduler}.
+ */
 const SUBSCRIPTION_TTL_MS = 2 * 24 * 60 * 60 * 1000;
 const RENEW_BEFORE_MS = 12 * 60 * 60 * 1000;
 
@@ -85,12 +89,17 @@ export class GraphWebhookService {
   }
 
   /**
-   * Create (or replace) a Graph subscription for the drive a OneDrive item
-   * lives in, so changes push live. Graph does NOT support driveItem
-   * subscriptions on individual files — only on the drive ROOT — so we
-   * subscribe to the whole drive and let the connector's content-tag
-   * comparison turn changes to *other* files into cheap no-ops (the refresh
-   * re-reads the deck's cTag, sees it unchanged, and reuses the render).
+   * Create (or replace) a Graph subscription so provider changes push live.
+   *
+   * Two resource shapes, picked by the caller:
+   *  - `driveId` (OneDrive/SharePoint files): Graph does NOT support driveItem
+   *    subscriptions on individual files — only on the drive ROOT — so we
+   *    subscribe to the whole drive and let the connector's content-tag
+   *    comparison turn changes to *other* files into cheap no-ops (the refresh
+   *    re-reads the deck's cTag, sees it unchanged, and reuses the render).
+   *  - `resource` (an explicit Graph resource, e.g. an Outlook calendar's event
+   *    collection): used verbatim with the given `changeType`.
+   *
    * No-op when webhooks aren't configured (falls back to polling).
    */
   async ensureSubscription(params: {
@@ -99,9 +108,17 @@ export class GraphWebhookService {
     /**
      * The drive the item lives in. Present for OneDrive-for-Business and
      * SharePoint files (which are not in the caller's own `/me/drive`); when
-     * omitted we fall back to the connected user's default drive.
+     * omitted (and no explicit `resource`) we fall back to the connected user's
+     * default drive.
      */
     driveId?: string;
+    /**
+     * An explicit Graph resource path to subscribe to, overriding the drive-root
+     * default — e.g. `/me/calendars/{id}/events`. Pair with `changeType`.
+     */
+    resource?: string;
+    /** Change types to watch. Defaults to `'updated'` (drive-root items). */
+    changeType?: string;
     cacheKey: string;
   }): Promise<void> {
     if (!this.isEnabled()) {
@@ -122,11 +139,12 @@ export class GraphWebhookService {
       params.connectionId,
     );
     const clientState = randomBytes(24).toString('base64url');
-    // Root-level resource: the only shape Graph accepts for driveItem
-    // subscriptions (item-level ones are rejected with 400).
-    const resource = params.driveId
-      ? `/drives/${params.driveId}/root`
-      : `/me/drive/root`;
+    // An explicit resource wins; otherwise the drive ROOT — the only shape Graph
+    // accepts for driveItem subscriptions (item-level ones are rejected 400).
+    const resource =
+      params.resource ??
+      (params.driveId ? `/drives/${params.driveId}/root` : `/me/drive/root`);
+    const changeType = params.changeType ?? 'updated';
     const expiresAt = new Date(Date.now() + SUBSCRIPTION_TTL_MS);
 
     const response = await fetch(GRAPH_SUBSCRIPTIONS_URL, {
@@ -136,7 +154,7 @@ export class GraphWebhookService {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        changeType: 'updated',
+        changeType,
         notificationUrl: this.notificationUrl(),
         resource,
         clientState,

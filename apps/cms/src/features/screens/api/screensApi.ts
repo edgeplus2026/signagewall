@@ -10,6 +10,7 @@ import type {
   ScreenAvailabilityStatus,
   ScreenDetail,
   ScreenDevice,
+  ScreenDeviceKioskMode,
   ScreenDeviceOrientation,
   ScreenDeviceScale,
   ScreenItem,
@@ -150,6 +151,17 @@ export const screensApi = {
     const { data } = await api.patch<ScreenDevice>(
       `${SCREENS_BASE}/${id}/device/scale`,
       { scale },
+    )
+    return data
+  },
+
+  setDeviceKioskMode: async (
+    id: string,
+    kioskMode: ScreenDeviceKioskMode,
+  ): Promise<ScreenDevice> => {
+    const { data } = await api.patch<ScreenDevice>(
+      `${SCREENS_BASE}/${id}/device/kiosk-mode`,
+      { kioskMode },
     )
     return data
   },

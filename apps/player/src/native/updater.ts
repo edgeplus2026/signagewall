@@ -20,8 +20,8 @@ import { effect } from '@preact/signals'
 import { restartPlayer } from '../restart'
 import { view } from '../store'
 import type { DeviceUpdateStatus } from '../types'
+import { hasNativeBridge, nativeInvoke } from './host'
 import { getShellVersion, setApplyOutcome, setDetectionStatus } from './runtime'
-import { isTauri, nativeInvoke } from './tauri'
 
 /** Shape returned by the Rust `check_update` command (camelCase via serde). */
 interface UpdateCheck {
@@ -54,7 +54,7 @@ interface UpdateStateReport {
  * the result rides out on a later heartbeat. No-op outside the native shell.
  */
 export async function checkForUpdate(): Promise<void> {
-  if (!isTauri()) {
+  if (!hasNativeBridge()) {
     return
   }
 
@@ -104,7 +104,7 @@ let updateInFlight = false
  * "available" forever with no sign the device had tried and failed.
  */
 async function runUpdate(): Promise<RunResult | undefined> {
-  if (!isTauri()) {
+  if (!hasNativeBridge()) {
     return undefined
   }
   // A concurrent apply already holds the guard (the nightly window and the
@@ -177,7 +177,7 @@ export async function applyUpdateIfAvailable(): Promise<void> {
  * at close-time. Installing + relaunching while the screen is already black
  * disrupts nothing, and this is the catch-up for devices that are powered off or
  * offline during the nightly reload window (which they'd otherwise miss for
- * another day). Returns a disposer. No-op in a plain browser (never Tauri).
+ * another day). Returns a disposer. No-op in a plain browser (no native shell).
  */
 export function startStandbyUpdate(): () => void {
   return effect(() => {
@@ -203,7 +203,7 @@ const MAINTENANCE_INTERVAL_MS = 6 * 60 * 60 * 1000 // 6h
  * Returns a disposer. No-op in a plain browser.
  */
 export function startMaintenanceUpdates(): () => void {
-  if (!isTauri()) {
+  if (!hasNativeBridge()) {
     return () => undefined
   }
   const timer = setInterval(() => {
@@ -239,7 +239,7 @@ export async function reportAlive(): Promise<void> {
  * fleet-wide rollback.
  */
 export async function reportHealthy(): Promise<void> {
-  if (!isTauri()) {
+  if (!hasNativeBridge()) {
     return
   }
   // The Rust command returns `()` (undefined) on success and — via nativeInvoke —

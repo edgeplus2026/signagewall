@@ -25,6 +25,7 @@ import {
   DeviceScale,
   DeviceSettings,
   DeviceStatus,
+  KioskMode,
 } from './schemas/device.schema';
 
 // `ReportedProfile` (what the player reports on connect/heartbeat) is the shared
@@ -384,6 +385,23 @@ export class PlayerService {
     );
   }
 
+  /** CMS action: set the kiosk lockdown level enforced by the native shell. */
+  setScreenDeviceKioskMode(
+    organizationId: string,
+    screenId: string,
+    kioskMode: KioskMode,
+  ): Promise<DeviceStatusDto> {
+    return this.applyDeviceSetting(
+      organizationId,
+      screenId,
+      { kioskMode },
+      {
+        type: 'kioskMode',
+        value: kioskMode,
+      },
+    );
+  }
+
   /** CMS action: configure the bound device's automatic daily reload. */
   setScreenDeviceDailyReload(
     organizationId: string,
@@ -636,6 +654,7 @@ export class PlayerService {
     return {
       orientation: settings?.orientation ?? DeviceOrientation.LANDSCAPE,
       scale: settings?.scale ?? DeviceScale.FIT,
+      kioskMode: settings?.kioskMode ?? KioskMode.OFF,
       dailyReload: {
         enabled: settings?.dailyReload?.enabled ?? true,
         time: settings?.dailyReload?.time ?? DEFAULT_DAILY_RELOAD_TIME,

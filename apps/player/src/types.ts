@@ -13,6 +13,7 @@ export type {
   DeviceSettings,
   DeviceUpdateStatus,
   ImageRenderable,
+  KioskMode,
   PairedPayload,
   PairingCodePayload,
   PlayerCommand,

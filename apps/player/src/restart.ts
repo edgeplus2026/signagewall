@@ -7,8 +7,18 @@ import { getPlatform } from './device'
  */
 declare global {
   interface Window {
-    /** Android WebView JS interface (e.g. `addJavascriptInterface`). */
-    AndroidBridge?: { restart?: () => void }
+    /**
+     * Android WebView JS interface — the Kotlin shell's `@JavascriptInterface`
+     * host, exposed on `window` at document-start. `restart` relaunches the app;
+     * `invoke` is the synchronous IPC transport (returns a JSON envelope string,
+     * bridged to a Promise in `native/host.ts`); `setKioskLock` drives the native
+     * lockdown mode. All optional so the same bundle runs in a plain browser.
+     */
+    AndroidBridge?: {
+      restart?: () => void
+      invoke?: (cmd: string, argsJson: string) => string
+      setKioskLock?: (mode: string) => void
+    }
     /** Electron preload-exposed API. */
     electronAPI?: { restart?: () => void }
     /**

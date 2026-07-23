@@ -87,3 +87,25 @@ jobs:
       - name: Tests
         working-directory: apps/player/src-tauri
         run: cargo test
+
+  android:
+    name: android (compile + unit tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # TODO: pin the Android toolchain actions to commit SHAs to match repo convention.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      # assembleDebug compiles the whole shell (the debug build type auto-signs, so
+      # no keystore secret is needed); testDebugUnitTest runs the JVM-side tests
+      # (DeviceIdStore, BridgeDispatcher, UpdateDecisions).
+      - name: Compile + unit tests
+        working-directory: apps/player/android-shell
+        run: gradle :app:assembleDebug :app:testDebugUnitTest

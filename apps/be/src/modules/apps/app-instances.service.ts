@@ -265,24 +265,27 @@ export class AppInstancesService {
   }
 
   /**
-   * For a webhook-capable connected app (PowerPoint on Microsoft Graph),
-   * register a change subscription on the drive holding the selected file so
-   * updates push live (Graph only supports drive-root subscriptions; the
-   * connector's content-tag check filters out changes to other files).
+   * For a webhook-capable connected app on Microsoft Graph, register a change
+   * subscription so updates push live. Two connector shapes:
+   *  - a drive item (PowerPoint deck, menu Excel): subscribe to the item's drive
+   *    ROOT (Graph only supports drive-root subscriptions; the connector's
+   *    content-tag check filters out changes to other files). The file field is
+   *    a `remote-select` storing `{ id: "driveId|itemId" }`; we split it so the
+   *    subscription addresses the item's own drive (personal OneDrive AND
+   *    business/SharePoint).
+   *  - an explicit Graph resource (Outlook Calendar: the calendar's event
+   *    collection): subscribe to it verbatim with the connector's change types.
+   *
    * Best-effort and out-of-band: a webhook/config issue must never fail the
    * config save, and polling (`refreshSeconds`) remains the fallback.
-   *
-   * The file field is a `remote-select` storing `{ id: "driveId|itemId" }`; we
-   * split it so the subscription can address the item's own drive (works for
-   * personal OneDrive AND business/SharePoint).
    */
   private async ensureWebhookSubscription(
     organizationId: string,
     instance: AppInstanceDocument,
   ): Promise<void> {
-    // The connector itself declares which drive item its current config wants
-    // watched (PowerPoint: the picked deck; menu: the Excel workbook — or
-    // nothing when its source is manual/Google).
+    // The connector itself declares what its current config wants watched
+    // (PowerPoint: the picked deck; menu: the Excel workbook; Outlook: the
+    // calendar's events — or nothing when its source is manual/Google).
     const resource = getConnector(instance.appSlug)?.webhookResource?.(
       instance.config,
     );
@@ -294,11 +297,21 @@ export class AppInstancesService {
     if (!cacheKey || typeof connectionId !== 'string') {
       return;
     }
-    const unpacked = unpackDriveItem(resource.packedDriveItem);
-    if (!unpacked) {
-      return;
-    }
     try {
+      if ('graphResource' in resource) {
+        await this.graphWebhookService.ensureSubscription({
+          connectionId,
+          organizationId,
+          resource: resource.graphResource,
+          changeType: resource.changeType ?? 'updated',
+          cacheKey,
+        });
+        return;
+      }
+      const unpacked = unpackDriveItem(resource.packedDriveItem);
+      if (!unpacked) {
+        return;
+      }
       await this.graphWebhookService.ensureSubscription({
         connectionId,
         organizationId,

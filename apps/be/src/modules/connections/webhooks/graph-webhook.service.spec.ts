@@ -195,6 +195,36 @@ describe('GraphWebhookService.ensureSubscription', () => {
     );
   });
 
+  it('subscribes to an explicit resource + changeType verbatim (Outlook Calendar)', async () => {
+    const { service, subscriptionsRepository } = buildService({
+      publicApiUrl: 'https://api.example',
+    });
+    const fetchMock = mockGraphCreate({ id: 'sub-cal' });
+
+    await service.ensureSubscription({
+      connectionId: 'c1',
+      organizationId: 'o1',
+      resource: '/me/calendars/AAMk%3D/events',
+      changeType: 'created,updated,deleted',
+      cacheKey: 'outlook:c1:AAMk=',
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+    const body = JSON.parse(init.body) as {
+      resource: string;
+      changeType: string;
+    };
+    expect(body.resource).toBe('/me/calendars/AAMk%3D/events');
+    expect(body.changeType).toBe('created,updated,deleted');
+    expect(subscriptionsRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subscriptionId: 'sub-cal',
+        resource: '/me/calendars/AAMk%3D/events',
+        cacheKey: 'outlook:c1:AAMk=',
+      }),
+    );
+  });
+
   it('sends notifications through the tunnel url when one is set', async () => {
     const { service } = buildService({
       publicApiUrl: 'https://api.example',

@@ -3,6 +3,7 @@ import type {
   DeviceOrientation,
   DeviceScale,
   DeviceSettings,
+  KioskMode,
 } from './settings.js'
 
 /** Server→player pairing-code payload (shown while unpaired). */
@@ -33,6 +34,7 @@ export type PlayerCommand =
   | { type: 'scale'; value: DeviceScale }
   | { type: 'restart' }
   | { type: 'dailyReload'; value: DailyReloadSetting }
+  | { type: 'kioskMode'; value: KioskMode }
   // Transient playback nudges (remote next/prev, e.g. from the CMS preview).
   | { type: 'next' }
   | { type: 'prev' }
