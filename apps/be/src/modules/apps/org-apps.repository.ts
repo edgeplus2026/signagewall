@@ -26,9 +26,10 @@ export class OrgAppsRepository {
    */
   async countInstallsByApp(): Promise<Map<string, number>> {
     const rows = await this.model
-      .aggregate<{ _id: Types.ObjectId; count: number }>([
-        { $group: { _id: '$appId', count: { $sum: 1 } } },
-      ])
+      .aggregate<{
+        _id: Types.ObjectId;
+        count: number;
+      }>([{ $group: { _id: '$appId', count: { $sum: 1 } } }])
       .exec();
     return new Map(rows.map((row) => [row._id.toString(), row.count]));
   }

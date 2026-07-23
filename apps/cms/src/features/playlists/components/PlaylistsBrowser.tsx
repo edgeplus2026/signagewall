@@ -7,8 +7,6 @@ import {
   ListVideoIcon,
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
-
-import { useViewMode } from '@/hooks/useViewMode'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -45,6 +43,7 @@ import type {
   PlaylistSummary,
 } from '@/features/playlists/types/playlist.types'
 import { AddToScreenSheet } from '@/features/screens/components/AddToScreenSheet'
+import { useViewMode } from '@/hooks/useViewMode'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 function PlaylistsGridSkeleton() {

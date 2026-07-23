@@ -15,11 +15,11 @@ import {
   type PlaylistSchema,
 } from "@/features/playlists/schemas/playlistSchemas"
 import type { Playlist } from "@/features/playlists/types/playlist.types"
-import { getApiErrorMessage } from "@/lib/api-error"
 import {
   SettingsRow,
   SettingsSection,
 } from "@/features/settings/components/SettingsSection"
+import { getApiErrorMessage } from "@/lib/api-error"
 
 const FORM_ID = "playlist-settings-form"
 

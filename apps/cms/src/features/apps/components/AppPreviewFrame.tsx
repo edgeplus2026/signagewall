@@ -98,7 +98,7 @@ export function AppPreviewFrame({
       {audioCapable ? (
         <button
           type="button"
-          onClick={() => setMuted((previous) => !previous)}
+          onClick={() => { setMuted((previous) => !previous); }}
           aria-label={muted ? 'Unmute preview' : 'Mute preview'}
           className="absolute right-2 bottom-2 z-10 flex size-8 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/15 backdrop-blur transition-colors hover:bg-black/75"
         >

@@ -16,11 +16,11 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { settingsApi } from '@/features/settings/api/settingsApi'
-import { getApiErrorMessage } from '@/lib/api-error'
 import {
   createChangePasswordSchema,
   type ChangePasswordSchema,
 } from '@/features/settings/schemas/settingsSchemas'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 const FORM_ID = 'change-password-form'
 

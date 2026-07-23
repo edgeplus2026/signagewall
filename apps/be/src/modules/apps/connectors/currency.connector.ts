@@ -54,7 +54,13 @@ async function fetchUpstream(
 ): Promise<FxUpstream> {
   let lastError: unknown;
   for (const host of FX_HOSTS) {
-    if (ctx.signal?.aborted) throw lastError ?? new Error('currency: aborted');
+    // `lastError` is whatever the previous host threw — `unknown`, so it is only
+    // safe to re-throw once we know it really is an Error.
+    if (ctx.signal?.aborted) {
+      throw lastError instanceof Error
+        ? lastError
+        : new Error('currency: aborted');
+    }
     try {
       const url = `${host}/${base.toLowerCase()}.json`;
       const response = await fetch(

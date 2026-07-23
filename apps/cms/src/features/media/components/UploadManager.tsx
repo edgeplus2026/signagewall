@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -9,7 +10,6 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQueryClient } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -159,8 +159,10 @@ export function UploadManager() {
         return
       }
 
+      // `preventDefault()` alone is the specified way to ask for the "leave
+      // site?" prompt; the old `returnValue = ''` companion is deprecated and
+      // no longer needed by any browser we target.
       event.preventDefault()
-      event.returnValue = ''
     }
 
     window.addEventListener('beforeunload', handleBeforeUnload)

@@ -13,6 +13,14 @@ import { ErrorCodes } from '../constants/error-codes';
 import { BusinessException } from '../exceptions/business.exception';
 import { ApiErrorResponse } from '../interfaces/api-response.interface';
 
+/**
+ * The boundary above which a response is our fault, not the caller's — only
+ * those get logged with a stack. Widened to `number` on purpose: `status` is a
+ * plain number, and comparing it against the enum member directly is the
+ * unsafe-enum-comparison the linter (rightly) objects to.
+ */
+const SERVER_ERROR_STATUS: number = HttpStatus.INTERNAL_SERVER_ERROR;
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
@@ -28,7 +36,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       i18n,
     );
 
-    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (status >= SERVER_ERROR_STATUS) {
       this.logger.error(
         `${request.method} ${request.url}`,
         exception instanceof Error ? exception.stack : String(exception),

@@ -1,6 +1,6 @@
 import { type ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -53,9 +53,14 @@ export function UsersTable({ inviteOpen, onInviteOpenChange }: UsersTableProps) 
   const [editUser, setEditUser] = useState<User | null>(null)
   const [deleteUser, setDeleteUser] = useState<User | null>(null)
 
-  const isSelfUser = (user: User) =>
-    !!currentUser &&
-    user.email.toLowerCase() === currentUser.email.toLowerCase()
+  // Memoized so it can be an honest dependency of the column memo below —
+  // a fresh closure each render would have rebuilt the columns every time.
+  const isSelfUser = useCallback(
+    (user: User) =>
+      !!currentUser &&
+      user.email.toLowerCase() === currentUser.email.toLowerCase(),
+    [currentUser],
+  )
 
   const columns = useMemo<ColumnDef<User>[]>(
     () => [
@@ -190,7 +195,7 @@ export function UsersTable({ inviteOpen, onInviteOpenChange }: UsersTableProps) 
           ]
         : []),
     ],
-    [t, i18n.language, isAdmin, currentUser?.email],
+    [t, i18n.language, isAdmin, isSelfUser],
   )
 
   if (isLoading) {

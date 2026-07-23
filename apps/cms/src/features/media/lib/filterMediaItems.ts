@@ -1,7 +1,6 @@
 import type {
   MediaItem,
   MediaListParams,
-  MediaSortField,
 } from '@/features/media/types/media.types'
 
 export function filterMediaItems(
@@ -28,7 +27,7 @@ export function filterMediaItems(
   const directionMultiplier = sortDirection === 'asc' ? 1 : -1
 
   result.sort((a, b) => {
-    switch (sortBy as MediaSortField) {
+    switch (sortBy) {
       case 'createdAt':
         return (
           (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) *

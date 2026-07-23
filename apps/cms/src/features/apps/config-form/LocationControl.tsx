@@ -30,7 +30,7 @@ const CITY_BY_OPTION = new Map(GEO_CITIES.map((city) => [optionValue(city), city
 
 /** Coordinate key so a saved location resolves back to its dropdown option. */
 function coordKey(lat: number, lng: number): string {
-  return `${lat},${lng}`
+  return `${String(lat)},${String(lng)}`
 }
 const OPTION_BY_COORD = new Map(
   GEO_CITIES.map((city) => [coordKey(city.lat, city.lng), optionValue(city)]),

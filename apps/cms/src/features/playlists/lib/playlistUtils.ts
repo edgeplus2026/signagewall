@@ -6,16 +6,23 @@ import type {
 
 type PlaylistWithCounts = Playlist | PlaylistDetail | PlaylistSummary
 
+/**
+ * The three playlist shapes come from different endpoints, and every one of
+ * them *declares* `itemCount` — so narrowing by `in` left the rest of this
+ * function typed `never` while the fallback it guards is still needed at
+ * runtime. Reading through a `Partial` view says the honest thing: these fields
+ * may or may not be on the object in hand.
+ */
+type PartialPlaylistShape = Partial<Playlist & PlaylistSummary>
+
 export function getPlaylistItemCount(playlist: PlaylistWithCounts) {
-  if ("itemCount" in playlist && playlist.itemCount !== undefined) {
-    return playlist.itemCount
+  const shape = playlist as PartialPlaylistShape
+
+  if (typeof shape.itemCount === "number") {
+    return shape.itemCount
   }
 
-  if ("items" in playlist) {
-    return playlist.items.length
-  }
-
-  return 0
+  return shape.items?.length ?? 0
 }
 
 export function getPlaylistTotalDuration(playlist: PlaylistWithCounts) {

@@ -17,11 +17,11 @@ import {
 } from '@/components/ui/sheet'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { settingsApi } from '@/features/settings/api/settingsApi'
-import { getApiErrorMessage } from '@/lib/api-error'
 import {
   createSetPasswordSchema,
   type SetPasswordSchema,
 } from '@/features/settings/schemas/settingsSchemas'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 const FORM_ID = 'set-password-form'
 

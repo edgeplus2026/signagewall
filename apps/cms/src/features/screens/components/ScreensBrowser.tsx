@@ -8,8 +8,6 @@ import {
   WifiIcon,
 } from 'lucide-react'
 import { useCallback, useContext, useMemo, useState } from 'react'
-
-import { useViewMode } from '@/hooks/useViewMode'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
@@ -45,6 +43,7 @@ import type {
   ScreenStatusFilter,
   ScreenSummary,
 } from '@/features/screens/types/screen.types'
+import { useViewMode } from '@/hooks/useViewMode'
 
 function ScreensGridSkeleton() {
   return (

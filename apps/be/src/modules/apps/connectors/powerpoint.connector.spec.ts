@@ -45,7 +45,9 @@ function mockMeta(
   return fn;
 }
 
-function makeRenderer(overrides: Partial<PptxRenderer> = {}): jest.Mocked<PptxRenderer> {
+function makeRenderer(
+  overrides: Partial<PptxRenderer> = {},
+): jest.Mocked<PptxRenderer> {
   return {
     isConfigured: jest.fn(() => true),
     render: jest.fn(async ({ keyPrefix }: { keyPrefix: string }) => ({

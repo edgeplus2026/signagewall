@@ -1,9 +1,9 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-import i18n from '@/i18n'
-import type { AuthTokens } from '@/features/auth/types/auth.types'
 import { useAuthStore } from '@/features/auth/store/authStore'
+import type { AuthTokens } from '@/features/auth/types/auth.types'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
+import i18n from '@/i18n'
 import { toApiError } from '@/lib/api-error'
 
 interface ApiEnvelope<T> {
@@ -26,10 +26,10 @@ export const api = axios.create({
 })
 
 let isRefreshing = false
-let refreshQueue: Array<(token: string) => void> = []
+let refreshQueue: ((token: string) => void)[] = []
 
 const processRefreshQueue = (token: string) => {
-  refreshQueue.forEach((callback) => callback(token))
+  refreshQueue.forEach((callback) => { callback(token); })
   refreshQueue = []
 }
 
@@ -54,7 +54,7 @@ api.interceptors.request.use((config) => {
 })
 
 api.interceptors.response.use((response) => {
-  const body = response.data as ApiEnvelope<unknown> | unknown
+  const body = response.data as unknown
   if (
     body &&
     typeof body === 'object' &&
@@ -99,13 +99,19 @@ api.interceptors.response.use(
             originalRequest.headers.Authorization = `Bearer ${token}`
             resolve(api(originalRequest))
           })
-          setTimeout(() => reject(toApiError(axiosError)), 10_000)
+          setTimeout(() => { reject(toApiError(axiosError)); }, 10_000)
         })
       }
 
       originalRequest._retry = true
       isRefreshing = true
 
+      // Only the REFRESH call belongs in this try. The replayed request is
+      // deliberately outside it: if the retry itself fails (say a 500), that is
+      // not a credentials problem and must not log the user out. Returning it
+      // from inside the try would have meant either swallowing that distinction
+      // or awaiting it and logging out on any downstream error.
+      let refreshedToken: string
       try {
         const { data } = await axios.post<ApiEnvelope<AuthTokens>>(
           `${baseURL}/auth/refresh`,
@@ -116,16 +122,18 @@ api.interceptors.response.use(
         const tokens = data.data
         useAuthStore.getState().setTokens(tokens.accessToken, tokens.refreshToken)
         processRefreshQueue(tokens.accessToken)
-        originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`
-        return api(originalRequest)
+        refreshedToken = tokens.accessToken
       } catch (refreshError) {
         refreshQueue = []
         useAuthStore.getState().logout()
         window.location.href = '/login'
-        return Promise.reject(toApiError(refreshError))
+        throw toApiError(refreshError)
       } finally {
         isRefreshing = false
       }
+
+      originalRequest.headers.Authorization = `Bearer ${refreshedToken}`
+      return api(originalRequest)
     }
 
     return Promise.reject(toApiError(axiosError))

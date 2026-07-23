@@ -16,11 +16,11 @@ import {
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { settingsApi } from '@/features/settings/api/settingsApi'
-import { getApiErrorMessage } from '@/lib/api-error'
 import {
   createReportProblemSchema,
   type ReportProblemSchema,
 } from '@/features/settings/schemas/settingsSchemas'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 const FORM_ID = 'report-problem-form'
 

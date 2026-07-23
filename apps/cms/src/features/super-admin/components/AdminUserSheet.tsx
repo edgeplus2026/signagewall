@@ -23,6 +23,16 @@ interface AdminUserSheetProps {
 
 export function AdminUserSheet({ userId, open, onOpenChange }: AdminUserSheetProps) {
   const { t, i18n } = useTranslation()
+
+  /**
+   * An optional detail line. Blank counts as missing, not as a value — which
+   * is why this is not `value ?? notSet`: the API returns `''` for a field the
+   * user cleared, and rendering an empty row reads as a broken layout.
+   */
+  const orNotSet = (value: string | undefined | null) =>
+    value !== undefined && value !== null && value.trim() !== ''
+      ? value
+      : t('superAdmin.userSheet.notSet')
   const { data: user, isLoading, isError } = useAdminUser(open ? userId : null)
 
   const formatDate = (value: string) =>
@@ -72,12 +82,12 @@ export function AdminUserSheet({ userId, open, onOpenChange }: AdminUserSheetPro
               <CopyableDetailRow label={t('common.email')} value={user.email} />
               <CopyableDetailRow
                 label={t('common.phone')}
-                value={user.phone || t('superAdmin.userSheet.notSet')}
+                value={orNotSet(user.phone)}
                 copyValue={user.phone ?? ''}
               />
               <CopyableDetailRow
                 label={t('common.company')}
-                value={user.company || t('superAdmin.userSheet.notSet')}
+                value={orNotSet(user.company)}
                 copyValue={user.company ?? ''}
               />
               <CopyableDetailRow
@@ -148,7 +158,7 @@ export function AdminUserSheet({ userId, open, onOpenChange }: AdminUserSheetPro
         </div>
 
         <SheetFooter className="shrink-0 border-t border-secondary">
-          <Button type="button" variant="outline" className="w-full" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" className="w-full" onClick={() => { onOpenChange(false); }}>
             {t('common.cancel')}
           </Button>
         </SheetFooter>

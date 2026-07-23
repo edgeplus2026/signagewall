@@ -16,12 +16,12 @@ import {
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { settingsApi } from '@/features/settings/api/settingsApi'
-import { getApiErrorMessage } from '@/lib/api-error'
 import { RatingInput } from '@/features/settings/components/RatingInput'
 import {
   createFeedbackSchema,
   type FeedbackSchema,
 } from '@/features/settings/schemas/settingsSchemas'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 const FORM_ID = 'feedback-form'
 

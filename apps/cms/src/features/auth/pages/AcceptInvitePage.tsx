@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { AuthLayout } from '@/features/auth/components/AuthLayout'
-import { AcceptInviteDialog } from '@/features/auth/components/AcceptInviteDialog'
 import { invitationsApi } from '@/features/auth/api/invitationsApi'
+import { AcceptInviteDialog } from '@/features/auth/components/AcceptInviteDialog'
+import { AuthLayout } from '@/features/auth/components/AuthLayout'
 import { useAuthStore } from '@/features/auth/store/authStore'
 
 function InviteLoader() {
@@ -32,7 +32,10 @@ export default function AcceptInvitePage() {
     isError,
   } = useQuery({
     queryKey: ['invitation', inviteToken],
-    queryFn: () => invitationsApi.getPreview(inviteToken!),
+    queryFn: () => {
+      if (!inviteToken) throw new Error('Missing invite token')
+      return invitationsApi.getPreview(inviteToken)
+    },
     enabled: !!inviteToken && isAuthenticated,
     retry: false,
   })

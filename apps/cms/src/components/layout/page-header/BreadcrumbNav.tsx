@@ -2,8 +2,8 @@ import { ChevronRightIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import type { BreadcrumbItem } from '@/components/layout/page-header/types'
 import { getBreadcrumbLabelDisplay } from '@/components/layout/page-header/truncateBreadcrumbLabel'
+import type { BreadcrumbItem } from '@/components/layout/page-header/types'
 import { Button } from '@/components/ui/button'
 
 interface BreadcrumbNavProps {
@@ -55,7 +55,7 @@ export function BreadcrumbNav({ items }: BreadcrumbNavProps) {
           const { displayLabel, title } = getBreadcrumbLabelDisplay(item.label)
 
           return (
-            <div key={`${item.kind}-${item.label}-${index}`} className="flex min-w-0 items-center gap-1">
+            <div key={`${item.kind}-${item.label}-${String(index)}`} className="flex min-w-0 items-center gap-1">
               <ChevronRightIcon className="size-3.5 shrink-0 text-secondary" />
               <Button
                 type="button"

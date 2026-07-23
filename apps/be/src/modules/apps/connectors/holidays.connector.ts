@@ -33,40 +33,45 @@ interface NagerHoliday {
  * for a country shares one fetch. Returns the upcoming holidays soonest-first;
  * no fetch timestamp, so the list fans out only when it actually changes.
  */
-export const holidaysConnector: AppConnector<HolidaysConfig, HolidaysPayload> = {
-  cacheKey(config) {
-    return `holidays:${countryOf(config)}`;
-  },
+export const holidaysConnector: AppConnector<HolidaysConfig, HolidaysPayload> =
+  {
+    cacheKey(config) {
+      return `holidays:${countryOf(config)}`;
+    },
 
-  async fetchData(
-    config: HolidaysConfig,
-    ctx: ConnectorContext,
-  ): Promise<ConnectorResult<HolidaysPayload>> {
-    const country = countryOf(config);
-    const response = await fetch(
-      `${NAGER_API}/${encodeURIComponent(country)}`,
-      ctx.signal ? { signal: ctx.signal } : {},
-    );
-    if (!response.ok) {
-      throw new Error(`holidays upstream ${response.status}`);
-    }
-    const body = (await response.json()) as NagerHoliday[];
-    if (!Array.isArray(body)) {
-      throw new Error('holidays: unexpected response');
-    }
+    async fetchData(
+      config: HolidaysConfig,
+      ctx: ConnectorContext,
+    ): Promise<ConnectorResult<HolidaysPayload>> {
+      const country = countryOf(config);
+      const response = await fetch(
+        `${NAGER_API}/${encodeURIComponent(country)}`,
+        ctx.signal ? { signal: ctx.signal } : {},
+      );
+      if (!response.ok) {
+        throw new Error(`holidays upstream ${response.status}`);
+      }
+      const body = (await response.json()) as NagerHoliday[];
+      if (!Array.isArray(body)) {
+        throw new Error('holidays: unexpected response');
+      }
 
-    const holidays: Holiday[] = body.slice(0, MAX_STORED).map((entry) => ({
-      date: entry.date,
-      name: entry.name,
-      localName: entry.localName,
-    }));
-    if (holidays.length === 0) {
-      throw new Error('holidays: none returned');
-    }
+      const holidays: Holiday[] = body.slice(0, MAX_STORED).map((entry) => ({
+        date: entry.date,
+        name: entry.name,
+        localName: entry.localName,
+      }));
+      if (holidays.length === 0) {
+        throw new Error('holidays: none returned');
+      }
 
-    ctx.logger.debug('holidays fetched', { country, count: holidays.length });
-    return {
-      playerPayload: { country, countryName: holidayCountryName(country), holidays },
-    };
-  },
-};
+      ctx.logger.debug('holidays fetched', { country, count: holidays.length });
+      return {
+        playerPayload: {
+          country,
+          countryName: holidayCountryName(country),
+          holidays,
+        },
+      };
+    },
+  };

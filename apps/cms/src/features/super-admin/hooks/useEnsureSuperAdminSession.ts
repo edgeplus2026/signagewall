@@ -7,21 +7,33 @@ import { queryClient } from '@/providers/QueryProvider'
 
 export function useEnsureSuperAdminSession() {
   const token = useAuthStore((state) => state.token)
-  const [isRecovering, setIsRecovering] = useState(() => tokenHasImpersonator(token))
+  const hasImpersonator = tokenHasImpersonator(token)
+  const [isRecovering, setIsRecovering] = useState(hasImpersonator)
+
+  // Re-sync to a new token during render rather than from inside the effect —
+  // React's documented alternative to a state-syncing effect, and it avoids a
+  // frame where a freshly-restored session still reads as "recovering".
+  const [prevToken, setPrevToken] = useState(token)
+  if (prevToken !== token) {
+    setPrevToken(token)
+    setIsRecovering(hasImpersonator)
+  }
 
   useEffect(() => {
     if (!tokenHasImpersonator(token)) {
-      setIsRecovering(false)
       return
     }
 
-    let cancelled = false
+    // An AbortController rather than a `let cancelled = false` flag: the flag
+    // reads as permanently `false` to TypeScript's flow analysis (the only
+    // write is in the cleanup closure), so every check against it looked dead.
+    const controller = new AbortController()
 
     void (async () => {
       setIsRecovering(true)
       const restored = await exitImpersonationSession()
 
-      if (!cancelled) {
+      if (!controller.signal.aborted) {
         if (restored) {
           await queryClient.invalidateQueries()
         }
@@ -30,7 +42,7 @@ export function useEnsureSuperAdminSession() {
     })()
 
     return () => {
-      cancelled = true
+      controller.abort()
     }
   }, [token])
 

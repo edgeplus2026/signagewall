@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
+import { useAuthStore } from '@/features/auth/store/authStore'
 import { organizationApi } from '@/features/organizations/api/organizationApi'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
-import { useAuthStore } from '@/features/auth/store/authStore'
 
 export function useOrganizations() {
   const token = useAuthStore((state) => state.token)

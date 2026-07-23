@@ -8,7 +8,7 @@ import {
 
 import type { PageBreadcrumbValue } from '@/components/layout/page-header/types'
 
-type PageHeaderContextValue = {
+interface PageHeaderContextValue {
   breadcrumbOverride: PageBreadcrumbValue
   setBreadcrumbOverride: (value: PageBreadcrumbValue) => void
 }

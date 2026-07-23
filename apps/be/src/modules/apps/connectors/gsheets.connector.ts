@@ -90,12 +90,15 @@ export const gsheetsConnector: AppConnector<GsheetsConfig, GsheetsPayload> = {
     };
 
     const values: string[][] = (body.values ?? []).map((row) =>
-      row.map((cell) => (cell === null || cell === undefined ? '' : String(cell))),
+      row.map((cell) =>
+        cell === null || cell === undefined ? '' : String(cell),
+      ),
     );
 
     const title =
-      (typeof config.spreadsheet === 'object' ? config.spreadsheet?.label : '') ||
-      'Google Sheet';
+      (typeof config.spreadsheet === 'object'
+        ? config.spreadsheet?.label
+        : '') || 'Google Sheet';
 
     // Keep the Drive push channel alive so a sheet edit reaches screens in
     // seconds; never fails the fetch (see drive-watch.ts) — undefined webhookUrl

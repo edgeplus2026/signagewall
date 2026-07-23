@@ -162,7 +162,11 @@ export const teamsConnector: AppConnector<TeamsConfig, SocialPayload> = {
       .filter((post): post is SocialPost => post !== null);
     const accountLabel = channelLabelOf(config) ?? 'Teams';
 
-    ctx.logger.debug('teams fetched', { teamId, channelId, posts: posts.length });
+    ctx.logger.debug('teams fetched', {
+      teamId,
+      channelId,
+      posts: posts.length,
+    });
     return { playerPayload: { accountLabel, posts } };
   },
 };

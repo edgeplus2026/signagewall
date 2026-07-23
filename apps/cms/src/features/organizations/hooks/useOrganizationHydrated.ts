@@ -1,19 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
 
+/**
+ * Whether the persisted organization store has finished rehydrating. Same
+ * reasoning as `useAuthHydrated`: hydration is external state, so it is read
+ * with `useSyncExternalStore` instead of mirrored into React state by an effect.
+ */
 export function useOrganizationHydrated() {
-  const [hydrated, setHydrated] = useState(() =>
-    useOrganizationStore.persist.hasHydrated(),
+  return useSyncExternalStore(
+    (onStoreChange) =>
+      useOrganizationStore.persist.onFinishHydration(onStoreChange),
+    () => useOrganizationStore.persist.hasHydrated(),
+    () => useOrganizationStore.persist.hasHydrated(),
   )
-
-  useEffect(() => {
-    setHydrated(useOrganizationStore.persist.hasHydrated())
-
-    return useOrganizationStore.persist.onFinishHydration(() => {
-      setHydrated(true)
-    })
-  }, [])
-
-  return hydrated
 }

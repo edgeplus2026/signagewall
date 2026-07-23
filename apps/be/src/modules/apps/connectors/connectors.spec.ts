@@ -11,7 +11,6 @@ import { cryptoConnector } from './crypto.connector';
 import { currencyConnector } from './currency.connector';
 import { facebookConnector } from './facebook.connector';
 import { gcalConnector } from './gcal.connector';
-import { gsheetsConnector } from './gsheets.connector';
 import { gslidesConnector } from './gslides.connector';
 import {
   type AssetMirror,
@@ -45,10 +44,21 @@ const ctx: ConnectorContext = {
   },
 };
 
+/**
+ * Shape of the request options the connectors pass to `fetch`, narrowed to what
+ * the assertions actually read. Typing the mock (rather than leaving it `any`)
+ * is what lets a test inspect `mock.calls[n][1].headers` without casting.
+ */
+interface FetchInit {
+  headers?: Record<string, string>;
+  method?: string;
+  body?: string;
+}
+
 function mockFetchSequence(
   responses: Array<{ ok?: boolean; body: unknown; text?: boolean }>,
 ) {
-  const fn = jest.fn();
+  const fn = jest.fn<Promise<unknown>, [url: string, init?: FetchInit]>();
   for (const res of responses) {
     fn.mockResolvedValueOnce({
       ok: res.ok ?? true,
@@ -1653,8 +1663,8 @@ describe('facebook connector (connected, meta)', () => {
       ],
     });
     // The feed read must use the resolved Page token, not the user token.
-    const feedCall = fetchMock.mock.calls[1]!;
-    expect(feedCall[1].headers.authorization).toBe('Bearer page-tok');
+    const feedCall = fetchMock.mock.calls[1];
+    expect(feedCall[1]?.headers?.authorization).toBe('Bearer page-tok');
   });
 });
 

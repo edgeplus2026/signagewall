@@ -49,26 +49,26 @@ export function friendlyMessage(issue: ValidationIssue, field: Field | undefined
     case 'too_small': {
       const min = Number(issue.minimum ?? 0)
       if (issue.origin === 'string') {
-        return min <= 1 ? `${label} is required.` : `${label} must be at least ${min} characters.`
+        return min <= 1 ? `${label} is required.` : `${label} must be at least ${String(min)} characters.`
       }
-      if (issue.origin === 'number') return `${label} must be ${min} or more.`
+      if (issue.origin === 'number') return `${label} must be ${String(min)} or more.`
       if (issue.origin === 'array') {
         if (field?.type === 'repeater') {
-          return min <= 1 ? `Add at least one row.` : `Add at least ${min} rows.`
+          return min <= 1 ? `Add at least one row.` : `Add at least ${String(min)} rows.`
         }
-        return min <= 1 ? `Choose at least one option.` : `Choose at least ${min} options.`
+        return min <= 1 ? `Choose at least one option.` : `Choose at least ${String(min)} options.`
       }
       return `${label} is required.`
     }
 
     case 'too_big': {
       const max = Number(issue.maximum ?? 0)
-      if (issue.origin === 'string') return `${label} must be ${max} characters or fewer.`
-      if (issue.origin === 'number') return `${label} must be ${max} or less.`
+      if (issue.origin === 'string') return `${label} must be ${String(max)} characters or fewer.`
+      if (issue.origin === 'number') return `${label} must be ${String(max)} or less.`
       if (issue.origin === 'array') {
         return field?.type === 'repeater'
-          ? `Keep it to ${max} rows at most.`
-          : `Choose ${max} options at most.`
+          ? `Keep it to ${String(max)} rows at most.`
+          : `Choose ${String(max)} options at most.`
       }
       return `${label} is too long.`
     }

@@ -116,7 +116,7 @@ export const powerPricesConnector: AppConnector<
     for (let i = 0; i < seconds.length; i += 1) {
       const price = prices[i];
       if (typeof price !== 'number') continue;
-      const { date, hour } = localParts(seconds[i]! * 1000, area.tz);
+      const { date, hour } = localParts(seconds[i] * 1000, area.tz);
       const key = `${date}T${hour}`;
       const bucket = buckets.get(key) ?? { date, hour, sum: 0, count: 0 };
       bucket.sum += price;
@@ -143,7 +143,7 @@ export const powerPricesConnector: AppConnector<
     let currentIndex = hours.findIndex((hour) => hour.start === currentHourIso);
     if (currentIndex === -1) {
       for (let i = hours.length - 1; i >= 0; i -= 1) {
-        if (hours[i]!.start <= currentHourIso) {
+        if (hours[i].start <= currentHourIso) {
           currentIndex = i;
           break;
         }

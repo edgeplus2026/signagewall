@@ -16,10 +16,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
-import { queryClient } from '@/providers/QueryProvider'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import { SettingsRow, SettingsSection } from '@/features/settings/components/SettingsSection'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { queryClient } from '@/providers/QueryProvider'
 
 export function AccountActionsSection() {
   const { t } = useTranslation()

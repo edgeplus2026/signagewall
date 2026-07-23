@@ -23,7 +23,7 @@ export const createRegisterSchema = (t: TFunction) =>
     password: z.string().min(PASSWORD_MIN, t('validation.passwordMin', { min: PASSWORD_MIN })),
     acceptedLegal: z
       .boolean()
-      .refine((value) => value === true, {
+      .refine((value) => value, {
         message: t('validation.acceptLegalRequired'),
       }),
   })

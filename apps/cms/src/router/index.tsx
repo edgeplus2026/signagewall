@@ -1,3 +1,11 @@
+/*
+ * The route table's whole job is to pair paths with components, so this file
+ * necessarily both defines components (the lazy pages, the Suspense wrapper)
+ * and exports something that is not one (`router`). Fast refresh can't do
+ * better than a full reload here, and splitting the file in two to please the
+ * heuristic would only scatter the routing.
+ */
+/* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense, type ReactNode } from 'react'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 

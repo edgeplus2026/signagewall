@@ -243,7 +243,10 @@ export class DataDeletionService {
    * valid) or, when `hardDelete` is set (super-admin permanent delete),
    * physically remove the account row.
    */
-  private async purgeAccount(userId: string, hardDelete = false): Promise<void> {
+  private async purgeAccount(
+    userId: string,
+    hardDelete = false,
+  ): Promise<void> {
     const memberships = await this.membershipModel
       .find({ userId: new Types.ObjectId(userId) })
       .exec();

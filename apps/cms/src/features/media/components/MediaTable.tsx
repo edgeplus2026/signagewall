@@ -111,7 +111,7 @@ export function MediaTable({
                   onOpenItem(item)
                 }}
               >
-                <TableCell onClick={(event) => event.stopPropagation()}>
+                <TableCell onClick={(event) => { event.stopPropagation(); }}>
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={(checked) => {
@@ -153,7 +153,7 @@ export function MediaTable({
                     day: "numeric",
                   })}
                 </TableCell>
-                <TableCell onClick={(event) => event.stopPropagation()}>
+                <TableCell onClick={(event) => { event.stopPropagation(); }}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button type="button" variant="ghost" size="icon-sm">

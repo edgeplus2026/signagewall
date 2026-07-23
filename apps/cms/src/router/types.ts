@@ -1,7 +1,7 @@
-export type RouteBreadcrumbHandle = {
+export interface RouteBreadcrumbHandle {
   labelKey: string
 }
 
-export type RouteHandle = {
+export interface RouteHandle {
   breadcrumb?: RouteBreadcrumbHandle | null
 }

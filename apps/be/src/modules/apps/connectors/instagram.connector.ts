@@ -68,59 +68,60 @@ function toPost(media: IgMedia): SocialPost {
  * legitimately changes across fetches and must fan out to keep images live (see
  * the note on `SocialPayload`). `refreshSeconds` is kept modest to bound that.
  */
-export const instagramConnector: AppConnector<InstagramConfig, SocialPayload> = {
-  oauth: {
-    provider: 'meta',
-    authorizationUrl: `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth`,
-    tokenUrl: `${GRAPH_API}/oauth/access_token`,
-    // Read a linked IG business account's media. `pages_show_list` lets us
-    // enumerate the Pages the IG accounts hang off in the picker.
-    scopes: ['instagram_basic', 'pages_show_list'],
-  },
+export const instagramConnector: AppConnector<InstagramConfig, SocialPayload> =
+  {
+    oauth: {
+      provider: 'meta',
+      authorizationUrl: `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth`,
+      tokenUrl: `${GRAPH_API}/oauth/access_token`,
+      // Read a linked IG business account's media. `pages_show_list` lets us
+      // enumerate the Pages the IG accounts hang off in the picker.
+      scopes: ['instagram_basic', 'pages_show_list'],
+    },
 
-  cacheKey(config) {
-    const connectionId = config.connectionId ?? 'none';
-    return `instagram:${connectionId}:${accountIdOf(config) || 'none'}`;
-  },
+    cacheKey(config) {
+      const connectionId = config.connectionId ?? 'none';
+      return `instagram:${connectionId}:${accountIdOf(config) || 'none'}`;
+    },
 
-  async fetchData(
-    config: InstagramConfig,
-    ctx: ConnectorContext,
-  ): Promise<ConnectorResult<SocialPayload>> {
-    if (!ctx.connection) {
-      throw new Error('instagram: no connection resolved');
-    }
-    const accountId = accountIdOf(config);
-    if (!accountId) {
-      throw new Error('instagram: no account selected');
-    }
+    async fetchData(
+      config: InstagramConfig,
+      ctx: ConnectorContext,
+    ): Promise<ConnectorResult<SocialPayload>> {
+      if (!ctx.connection) {
+        throw new Error('instagram: no connection resolved');
+      }
+      const accountId = accountIdOf(config);
+      if (!accountId) {
+        throw new Error('instagram: no account selected');
+      }
 
-    const fields =
-      'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,username';
-    const query = new URLSearchParams({
-      fields,
-      limit: String(MAX_STORED_POSTS),
-    });
-    const url = `${GRAPH_API}/${encodeURIComponent(accountId)}/media?${query.toString()}`;
+      const fields =
+        'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,username';
+      const query = new URLSearchParams({
+        fields,
+        limit: String(MAX_STORED_POSTS),
+      });
+      const url = `${GRAPH_API}/${encodeURIComponent(accountId)}/media?${query.toString()}`;
 
-    const response = await fetch(url, {
-      headers: { authorization: `Bearer ${ctx.connection.accessToken}` },
-      ...(ctx.signal ? { signal: ctx.signal } : {}),
-    });
-    if (!response.ok) {
-      throw new Error(`instagram upstream ${response.status}`);
-    }
-    const body = (await response.json()) as {
-      data?: IgMedia[];
-    };
+      const response = await fetch(url, {
+        headers: { authorization: `Bearer ${ctx.connection.accessToken}` },
+        ...(ctx.signal ? { signal: ctx.signal } : {}),
+      });
+      if (!response.ok) {
+        throw new Error(`instagram upstream ${response.status}`);
+      }
+      const body = (await response.json()) as {
+        data?: IgMedia[];
+      };
 
-    const items = body.data ?? [];
-    const posts = items.slice(0, MAX_STORED_POSTS).map(toPost);
-    // The account @handle rides on each media row (`username`); read the first.
-    const username = items[0]?.username;
-    const accountLabel = username ? `@${username}` : 'Instagram';
+      const items = body.data ?? [];
+      const posts = items.slice(0, MAX_STORED_POSTS).map(toPost);
+      // The account @handle rides on each media row (`username`); read the first.
+      const username = items[0]?.username;
+      const accountLabel = username ? `@${username}` : 'Instagram';
 
-    ctx.logger.debug('instagram fetched', { accountId, posts: posts.length });
-    return { playerPayload: { accountLabel, posts } };
-  },
-};
+      ctx.logger.debug('instagram fetched', { accountId, posts: posts.length });
+      return { playerPayload: { accountLabel, posts } };
+    },
+  };

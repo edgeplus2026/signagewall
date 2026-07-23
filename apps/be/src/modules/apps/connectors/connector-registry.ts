@@ -55,7 +55,9 @@ const CONNECTORS: Record<string, AppConnector> = {
   powerpoint: powerpointConnector,
   // Branded news apps (CNN, BBC, …) are the RSS app with a fixed feed URL, so
   // they resolve to the same connector — kept in sync with NEWS_PRESETS.
-  ...Object.fromEntries(NEWS_PRESETS.map((preset) => [preset.slug, rssConnector])),
+  ...Object.fromEntries(
+    NEWS_PRESETS.map((preset) => [preset.slug, rssConnector]),
+  ),
 };
 
 /** The connector for `slug`, or undefined for `static` apps / unknown slugs. */

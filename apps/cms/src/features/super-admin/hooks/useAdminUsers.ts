@@ -47,7 +47,10 @@ export function useAdminUsers(params: AdminUsersQueryParams) {
 export function useAdminUser(userId: string | null) {
   return useQuery({
     queryKey: ['admin', 'users', userId],
-    queryFn: () => adminApi.getUser(userId!),
+    queryFn: () => {
+      if (!userId) throw new Error('Missing user id')
+      return adminApi.getUser(userId)
+    },
     enabled: !!userId,
   })
 }

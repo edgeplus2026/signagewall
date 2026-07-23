@@ -25,7 +25,10 @@ export function toApiError(error: unknown): ApiError {
     const payload = error.response?.data as
       | { error?: { message?: string; code?: string } }
       | undefined
-    const message = payload?.error?.message ?? error.message ?? 'Request failed'
+    // `error.message` is always a string on an AxiosError, so `??` never fired
+    // on it — an empty one still needs the fallback, hence the explicit check.
+    const axiosMessage = error.message === '' ? 'Request failed' : error.message
+    const message = payload?.error?.message ?? axiosMessage
     return new ApiError(message, payload?.error?.code)
   }
   if (error instanceof ApiError) {

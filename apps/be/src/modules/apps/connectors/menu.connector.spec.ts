@@ -12,7 +12,11 @@ const connection: ResolvedConnection = {
 
 function makeCtx(overrides: Partial<ConnectorContext> = {}): ConnectorContext {
   return {
-    logger: { debug: () => undefined, warn: () => undefined, error: () => undefined },
+    logger: {
+      debug: () => undefined,
+      warn: () => undefined,
+      error: () => undefined,
+    },
     connection,
     ...overrides,
   };
@@ -42,7 +46,9 @@ const gsheetsConfig = {
 describe('menuConnector.cacheKey', () => {
   it('is empty (inert) for manual and incomplete configs', () => {
     expect(menuConnector.cacheKey!({ source: 'manual' })).toBe('');
-    expect(menuConnector.cacheKey!({ source: 'gsheets', connectionId: 'c' })).toBe('');
+    expect(
+      menuConnector.cacheKey!({ source: 'gsheets', connectionId: 'c' }),
+    ).toBe('');
     expect(
       menuConnector.cacheKey!({ source: 'gsheets', spreadsheet: { id: 's' } }),
     ).toBe('');
@@ -110,12 +116,19 @@ describe('menuConnector.fetchData (gsheets)', () => {
     const fetchMock = mockFetchSequence([
       { body: { values: [['Name'], ['Espresso']] } },
       // files.watch response
-      { body: { resourceId: 'res-1', expiration: String(Date.now() + 3_600_000) } },
+      {
+        body: {
+          resourceId: 'res-1',
+          expiration: String(Date.now() + 3_600_000),
+        },
+      },
     ]);
 
     const result = await menuConnector.fetchData(
       gsheetsConfig,
-      makeCtx({ webhookUrl: 'https://edge.example/api/v1/webhooks/google/drive' }),
+      makeCtx({
+        webhookUrl: 'https://edge.example/api/v1/webhooks/google/drive',
+      }),
     );
 
     const watchCall = fetchMock.mock.calls[1] as [string, RequestInit];
@@ -136,7 +149,9 @@ describe('menuConnector.fetchData (gsheets)', () => {
 
     const result = await menuConnector.fetchData(
       gsheetsConfig,
-      makeCtx({ webhookUrl: 'https://edge.example/api/v1/webhooks/google/drive' }),
+      makeCtx({
+        webhookUrl: 'https://edge.example/api/v1/webhooks/google/drive',
+      }),
     );
     expect(result.playerPayload?.items).toEqual([{ name: 'Espresso' }]);
     expect(result.secrets).toBeUndefined();

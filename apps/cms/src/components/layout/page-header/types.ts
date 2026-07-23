@@ -1,20 +1,20 @@
 import type { LucideIcon } from 'lucide-react'
 
-export type BreadcrumbLinkItem = {
+export interface BreadcrumbLinkItem {
   kind: 'link'
   label: string
   href: string
   icon?: LucideIcon
 }
 
-export type BreadcrumbActionItem = {
+export interface BreadcrumbActionItem {
   kind: 'action'
   label: string
   onClick: () => void
   icon?: LucideIcon
 }
 
-export type BreadcrumbCurrentItem = {
+export interface BreadcrumbCurrentItem {
   kind: 'current'
   label: string
 }

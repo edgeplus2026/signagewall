@@ -17,7 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useIsMobile } from "@/hooks/use-mobile"
 import { MediaThumbnail } from "@/features/media/components/MediaThumbnail"
 import { MediaUploadCard } from "@/features/media/components/MediaUploadCard"
 import { mediaGridClassName } from "@/features/media/lib/mediaActionCardStyles"
@@ -26,6 +25,7 @@ import {
   setMediaDragData,
 } from "@/features/media/lib/mediaDrag"
 import type { MediaItem } from "@/features/media/types/media.types"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
 interface MediaGridProps {

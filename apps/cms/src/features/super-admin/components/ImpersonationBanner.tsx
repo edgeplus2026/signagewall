@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { ExitImpersonationDialog } from '@/features/super-admin/components/ExitImpersonationDialog'
 import { useAuthStore } from '@/features/auth/store/authStore'
+import { ExitImpersonationDialog } from '@/features/super-admin/components/ExitImpersonationDialog'
 
 export function ImpersonationBanner() {
   const { t } = useTranslation()

@@ -11,10 +11,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { organizationApi } from '@/features/organizations/api/organizationApi'
+import { syncOrganizationsQuery } from '@/features/organizations/lib/syncOrganizationsQuery'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
 import type { Organization } from '@/features/organizations/types/organization.types'
 import { getApiErrorMessage } from '@/lib/api-error'
-import { syncOrganizationsQuery } from '@/features/organizations/lib/syncOrganizationsQuery'
 
 interface DeleteOrganizationDialogProps {
   open: boolean

@@ -3,8 +3,8 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
-import { UsersTable } from "@/features/users/components/UsersTable"
 import { useIsOrgAdmin } from "@/features/organizations/hooks/useIsOrgAdmin"
+import { UsersTable } from "@/features/users/components/UsersTable"
 import { useUsers } from "@/features/users/hooks/useUsers"
 import { cn } from "@/lib/utils"
 

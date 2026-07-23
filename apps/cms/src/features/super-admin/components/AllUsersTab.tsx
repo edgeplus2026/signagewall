@@ -84,9 +84,14 @@ export function AllUsersTab() {
     }
   }, [searchInput])
 
-  useEffect(() => {
+  // Reset to page 1 when the search changes. Adjusting during render (React's
+  // documented alternative to a state-syncing effect) means the table never
+  // paints one frame of page N against the new query's results.
+  const [prevSearch, setPrevSearch] = useState(debouncedSearch)
+  if (prevSearch !== debouncedSearch) {
+    setPrevSearch(debouncedSearch)
     setPage(1)
-  }, [debouncedSearch])
+  }
 
   const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
     setSorting(updater)
@@ -253,6 +258,7 @@ export function AllUsersTab() {
     [t, i18n.language, currentUser?.id],
   )
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- see above
   if (isPending && !data) {
     return (
       <div className="flex flex-col gap-4">

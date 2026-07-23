@@ -10,11 +10,11 @@ import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field
 import { Input } from '@/components/ui/input'
 import { organizationApi } from '@/features/organizations/api/organizationApi'
 import { useOrganizations } from '@/features/organizations/hooks/useOrganizations'
+import { syncOrganizationsQuery } from '@/features/organizations/lib/syncOrganizationsQuery'
 import {
   createOrganizationSchema,
   type OrganizationSchema,
 } from '@/features/organizations/schemas/organizationSchemas'
-import { syncOrganizationsQuery } from '@/features/organizations/lib/syncOrganizationsQuery'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
 import { getApiErrorMessage } from '@/lib/api-error'
 
@@ -44,7 +44,7 @@ export default function CreateOrganizationPage() {
       setActiveOrganization(organization.id)
       await syncOrganizationsQuery()
       toast.success(t('organizations.create.success'))
-      navigate('/dashboard', { replace: true })
+      void navigate('/dashboard', { replace: true })
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('organizations.create.error')))
     }

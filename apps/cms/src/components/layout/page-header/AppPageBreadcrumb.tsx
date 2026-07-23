@@ -6,7 +6,12 @@ import { usePageHeader } from '@/components/layout/page-header/PageHeaderContext
 import type { BreadcrumbItem } from '@/components/layout/page-header/types'
 import type { RouteHandle } from '@/router/types'
 
-type AppUIMatch = UIMatch<unknown, RouteHandle>
+/**
+ * `handle` is genuinely absent on routes that declare none, so it is typed
+ * optional here. Claiming otherwise made the `?.` guards below look redundant
+ * to the linter while they were in fact the only thing preventing a crash.
+ */
+type AppUIMatch = UIMatch<unknown, RouteHandle | undefined>
 
 export function AppPageBreadcrumb() {
   const { t } = useTranslation()

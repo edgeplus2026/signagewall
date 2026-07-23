@@ -29,10 +29,13 @@ async function fetchManagedPages(
   signal?: AbortSignal,
 ): Promise<AccountsPage[]> {
   const params = new URLSearchParams({ fields, limit: '100' });
-  const response = await fetch(`${GRAPH_API}/me/accounts?${params.toString()}`, {
-    headers: { authorization: `Bearer ${accessToken}` },
-    ...(signal ? { signal } : {}),
-  });
+  const response = await fetch(
+    `${GRAPH_API}/me/accounts?${params.toString()}`,
+    {
+      headers: { authorization: `Bearer ${accessToken}` },
+      ...(signal ? { signal } : {}),
+    },
+  );
   if (!response.ok) {
     throw new Error(`meta graph upstream ${response.status}`);
   }

@@ -1,14 +1,14 @@
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { saveImpersonationBackup } from '@/features/auth/lib/impersonation'
 import { useAuthStore } from '@/features/auth/store/authStore'
-import { adminApi } from '@/features/super-admin/api/adminApi'
 import { syncOrganizationsQuery } from '@/features/organizations/lib/syncOrganizationsQuery'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
+import { adminApi } from '@/features/super-admin/api/adminApi'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { resetAuthRefreshState } from '@/lib/axios'
-import { useTranslation } from 'react-i18next'
 
 export function useImpersonateUser() {
   const { t } = useTranslation()

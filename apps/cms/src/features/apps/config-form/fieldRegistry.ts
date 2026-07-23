@@ -7,8 +7,6 @@ import { RemoteSelectControl } from '@/features/apps/config-form/RemoteSelectCon
 import { RepeaterControl } from '@/features/apps/config-form/RepeaterControl'
 import { RichTextControl } from '@/features/apps/config-form/RichTextControl'
 import { ScreensControl } from '@/features/apps/config-form/ScreensControl'
-import { ColumnMappingControl } from '@/features/apps/config-form/tabular/ColumnMappingControl'
-import { TabularPreviewControl } from '@/features/apps/config-form/tabular/TabularPreviewControl'
 import {
   CheckboxControl,
   ColorControl,
@@ -23,6 +21,8 @@ import {
   TextareaControl,
   TextControl,
 } from '@/features/apps/config-form/controls'
+import { ColumnMappingControl } from '@/features/apps/config-form/tabular/ColumnMappingControl'
+import { TabularPreviewControl } from '@/features/apps/config-form/tabular/TabularPreviewControl'
 
 /** Maps each field type to the control that renders it. */
 export const FIELD_CONTROLS: Record<FieldType, (props: FieldControlProps) => ReactNode> = {

@@ -214,7 +214,10 @@ export class MailService implements OnModuleInit {
 
     if (error) {
       this.logger.error(`Failed to send email to ${params.to}`, error);
-      throw error;
+      // Resend returns a plain `{ name, message }` object, not an Error, so
+      // re-throwing it as-is would give every catch site upstream something
+      // with no stack and no `instanceof Error`.
+      throw new Error(`${error.name}: ${error.message}`);
     }
 
     this.logger.log(`Email sent to ${params.to}: "${params.subject}"`);
