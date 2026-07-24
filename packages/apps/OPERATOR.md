@@ -95,6 +95,7 @@ Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-ad
 | Microsoft Teams | Connected (OAuth) | Same Entra app; per-instance connect + pick channel | `ENCRYPTION_KEY`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | **Azure AD admin consent** for `ChannelMessage.Read.All`; no personal accounts |
 | Instagram | Connected (OAuth) | Meta app + `ENCRYPTION_KEY`; per-instance connect + pick IG account | `ENCRYPTION_KEY`, `META_CLIENT_ID`, `META_CLIENT_SECRET` | **Meta App Review + Business verification** for non-owned accounts |
 | Facebook Page | Connected (OAuth) | Same Meta app; per-instance connect + pick Page | `ENCRYPTION_KEY`, `META_CLIENT_ID`, `META_CLIENT_SECRET` | **Meta App Review + Business verification** for non-owned Pages |
+| LinkedIn Page | Connected (OAuth) | LinkedIn app + `ENCRYPTION_KEY`; per-instance connect + pick Page | `ENCRYPTION_KEY`, `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` | **Community Management API approval** (no dev mode, even for your own Pages); posts render text-only |
 | Canva | Connected (OAuth) | Canva Connect app + `ENCRYPTION_KEY`; per-instance connect + pick design | `ENCRYPTION_KEY`, `CANVA_CLIENT_ID`, `CANVA_CLIENT_SECRET` | Canva review/approval to publish beyond your own team |
 
 ---
@@ -333,7 +334,7 @@ Every connected app requires **`ENCRYPTION_KEY`** set on the server (see §0.3) 
 ```
 https://<PUBLIC_API_URL>/api/v1/connections/oauth/<provider>/callback
 ```
-where `<provider>` is one of `google | microsoft | meta | canva`, `/v1/` is literal, and `api` is `API_PREFIX`. Register it **exactly**.
+where `<provider>` is one of `google | microsoft | meta | linkedin | canva`, `/v1/` is literal, and `api` is `API_PREFIX`. Register it **exactly**.
 
 #### Google — `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
 - **Console:** https://console.cloud.google.com/apis/credentials (Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID; configure the OAuth consent screen; enable the Google Calendar / Sheets / Slides APIs the apps use).
@@ -368,6 +369,19 @@ where `<provider>` is one of `google | microsoft | meta | canva`, `/v1/` is lite
   4. **No PKCE.** Scopes are sent **comma-separated**. The flow is two-hop: code → short-lived user token → long-lived (~60-day) token. Auth URL `https://www.facebook.com/v22.0/dialog/oauth`; token URL `https://graph.facebook.com/v22.0/oauth/access_token` (Graph pinned to **v22.0**).
 - **Approvals — REQUIRED:** **Meta App Review AND Business verification** are required before Page-feed / business-Instagram permissions (e.g. `instagram_basic`, `pages_read_engagement`) work with accounts you do **not** own. Accounts you own / are a tester/role on work in dev mode without review.
 - **Token note:** Meta issues **no refresh token**. The long-lived token is stored as both access and "refresh"; the service under-reports expiry (`REPORTED_TTL_SECONDS = 30 days`) so it re-extends via `fb_exchange_token` roughly monthly, inside the ~60-day hard limit. An expired token can only be **re-consented**, not re-extended.
+
+#### LinkedIn — `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`
+- **Console:** https://www.linkedin.com/developers/apps (create an app; it must be **verified against the Company Page that owns it** before any product can be requested).
+- **Redirect URI (register exactly, under Auth → Authorized redirect URLs):** `https://<PUBLIC_API_URL>/api/v1/connections/oauth/linkedin/callback`
+- **Reserved scopes:** `openid`, `profile` (prepended by the provider; they supply the "Connected as …" name).
+- **Steps:**
+  1. Create the app and complete **Page verification** (a Page admin clicks the verification link).
+  2. Add the redirect URL above under **Auth → OAuth 2.0 settings**.
+  3. Products tab: request **Community Management API** (approval-gated) and add **Sign In with LinkedIn using OpenID Connect** (self-serve, for the account name).
+  4. Copy Client ID → `LINKEDIN_CLIENT_ID`, Client Secret → `LINKEDIN_CLIENT_SECRET` (config namespace `linkedin`).
+  5. **No PKCE.** Scopes are **space-delimited**. Auth URL `https://www.linkedin.com/oauth/v2/authorization`; token URL `https://www.linkedin.com/oauth/v2/accessToken`. Every data call is the **versioned** REST API and carries `LinkedIn-Version` (pinned to `202606` in `linkedin-api.ts`) plus `X-Restli-Protocol-Version: 2.0.0`.
+- **Approvals — REQUIRED:** the **Community Management API** product must be granted before `r_organization_admin` / `r_organization_social` exist on the app. Unlike Meta there is **no dev-mode shortcut**: without the product the app cannot read even Pages the operator owns, and the authorization request fails with *invalid scope*. If your app was granted the older combined `rw_organization_admin` instead of `r_organization_admin`, the scope list in `linkedin.connector.ts` needs to match what the app actually holds.
+- **Token note:** LinkedIn issues **60-day access tokens** and a **refresh token only for apps approved for "Programmatic Refresh Tokens"**. With one, the scheduler's proactive pass renews the connection indefinitely; without one the connection simply **lapses after 60 days** and the operator reconnects (there is no re-extension trick like Meta's `fb_exchange_token`). Account label from `https://api.linkedin.com/v2/userinfo`.
 
 #### Canva — `CANVA_CLIENT_ID`, `CANVA_CLIENT_SECRET`
 - **Console:** https://www.canva.com/developers (Canva Developers → create a Connect API integration).
@@ -441,6 +455,15 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   1. Connect the Facebook account that manages the Page via the **Facebook account** OAuth field — read-only.
   2. Pick the **Page** (`remoteSource: meta-pages` — only Pages your account manages). `pages_show_list` enumerates the Pages; the connector then derives a Page access token (from the long-lived user token) to read the feed with `pages_read_engagement`.
   3. Display-only: Layout (Spotlight / Grid), Seconds per post (spotlight only, 2–120), Show post text, Theme.
+
+- **LinkedIn Page** (`linkedin`, provider linkedin) — refresh 900s, **no** `requiresNetwork` (text-only payload, so it plays from the cached snapshot). Versioned REST API pinned to `202606`.
+  - **Scopes:** `r_organization_admin`, `r_organization_social` (+ reserved `openid`, `profile`)
+  - **Env:** `ENCRYPTION_KEY`, `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`
+  - **Approval — REQUIRED:** the **Community Management API** product. There is no dev-mode equivalent, so until it is granted this app cannot be used at all — not even on a Page the operator administers. The connected member must be an **APPROVED ADMINISTRATOR** of the Page.
+  1. Connect the LinkedIn account that administers the Page via the **LinkedIn account** OAuth field — read-only, never posts.
+  2. Pick the **Page** (`remoteSource: linkedin-orgs`). The picker reads the member's `ADMINISTRATOR`/`APPROVED` role assignments (`organizationAcls`) and titles them via `organizationsLookup`; if that name lookup is refused, entries fall back to `Page <id>` labels — the selection still works, since the id is what the connector fetches with.
+  3. Display-only: Layout (Spotlight / Grid), Seconds per post (spotlight only, 2–120), Theme.
+  > **Text-only, deliberately.** LinkedIn returns post images as `urn:li:image:…` URNs, and resolving one to a URL requires a GET on the Images API — which LinkedIn permits only for tokens holding a **write** scope (`w_organization_social` / `rw_ads`). Edge never asks an operator for permission to publish to their Page, so posts render as text heroes (same as Teams messages), article posts fold in their title + description, and image-only posts are skipped. There is therefore no "Show post text" toggle: with no image posts it would toggle nothing.
 
 - **Canva** (`canva`, provider canva) — refresh 900s, `requiresNetwork: true` (renders exported asset from Canva CDN).
   - **Scopes:** `design:meta:read`, `design:content:read`, `profile:read`
@@ -534,6 +557,11 @@ MICROSOFT_CLIENT_SECRET=        # Entra client secret
 META_CLIENT_ID=                 # Facebook app id (developers.facebook.com)
 META_CLIENT_SECRET=             # Facebook app secret
 # redirect: https://<PUBLIC_API_URL>/api/v1/connections/oauth/meta/callback
+
+# LinkedIn (LinkedIn Page) — reserved scopes openid,profile; Community Management API approval required
+LINKEDIN_CLIENT_ID=             # LinkedIn app client id (linkedin.com/developers)
+LINKEDIN_CLIENT_SECRET=         # LinkedIn app client secret
+# redirect: https://<PUBLIC_API_URL>/api/v1/connections/oauth/linkedin/callback
 
 # Canva — PKCE mandatory
 CANVA_CLIENT_ID=                # Canva Connect integration client id (canva.com/developers)

@@ -2069,6 +2069,11 @@
         "description": "Povežite profesionalni Instagram nalog i prikažite njegove najnovije objave kao rotirajući izbor ili mrežu.",
         "about": "Prikažite najnovije objave profesionalnog Instagram naloga na ekranima, bilo jednu po jednu u rotirajućem prikazu ili zajedno u mreži. Prijavite se Facebook nalogom koji upravlja Instagram profilom, izaberite nalog i odaberite raspored, trajanje i da li se prikazuju opisi. Edge samo čita objave — elegantan način da predstavite brend i kampanje u maloprodaji, kafićima i na recepcijama."
       },
+      "linkedin": {
+        "tagline": "Prikažite LinkedIn stranicu na ekranima",
+        "description": "Povežite LinkedIn nalog i prikažite najnovije objave neke stranice kao rotirajući izbor ili mrežu.",
+        "about": "Prikažite najnovije LinkedIn objave svoje kompanije na ekranu, jednu po jednu u rotirajućem prikazu ili više njih zajedno u mreži. Prijavite se nalogom koji administrira stranicu, izaberite koju stranicu da prikažete i podesite raspored i trajanje. Objave se prikazuju kao tekst, jer LinkedIn slike iz objava daje samo aplikacijama koje mogu i da objavljuju u vaše ime — pristup koji Edge nikada ne traži. Idealno za kancelarijske zidove, recepcije i prikaze za zapošljavanje."
+      },
       "rss": {
         "tagline": "Najnovije priče iz bilo kog feeda",
         "description": "Usmerite je na sajt sa vestima ili blog i ekran prikazuje najnovije priče — sam se osvežava.",

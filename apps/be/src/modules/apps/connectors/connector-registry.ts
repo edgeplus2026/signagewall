@@ -11,6 +11,7 @@ import { gsheetsConnector } from './gsheets.connector';
 import { gslidesConnector } from './gslides.connector';
 import { holidaysConnector } from './holidays.connector';
 import { instagramConnector } from './instagram.connector';
+import { linkedinConnector } from './linkedin.connector';
 import { menuConnector } from './menu.connector';
 import { onthisdayConnector } from './onthisday.connector';
 import { outlookConnector } from './outlook.connector';
@@ -48,6 +49,7 @@ const CONNECTORS: Record<string, AppConnector> = {
   outlook: outlookConnector,
   instagram: instagramConnector,
   facebook: facebookConnector,
+  linkedin: linkedinConnector,
   teams: teamsConnector,
   // The ticker overlay: resolves its band messages (rows or RSS headlines).
   ticker: tickerConnector,

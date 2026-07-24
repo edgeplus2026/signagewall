@@ -6,6 +6,7 @@ export enum ConnectionProvider {
   MICROSOFT = 'microsoft',
   CANVA = 'canva',
   META = 'meta',
+  LINKEDIN = 'linkedin',
 }
 
 /**

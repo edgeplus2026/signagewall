@@ -2087,6 +2087,11 @@
         "description": "Connect a professional Instagram account and display its latest posts as a rotating spotlight or a grid.",
         "about": "Bring a professional Instagram account's latest posts to your screens, either one at a time in a rotating spotlight or together in a grid. Sign in with the Facebook account that manages the Instagram profile, select the account, and choose the layout, timing and whether captions show. Edge only reads posts — a polished way to showcase your brand and campaigns in retail, cafés and reception areas."
       },
+      "linkedin": {
+        "tagline": "Show a LinkedIn Page feed on your screens",
+        "description": "Connect a LinkedIn account and display a Page's latest posts as a rotating spotlight or a grid.",
+        "about": "Put your company's latest LinkedIn posts on screen, one at a time in a rotating spotlight or several together in a grid. Sign in with the account that administers the Page, choose which Page to show, and set the layout and timing. Posts appear as text, since LinkedIn only releases post images to apps that can also publish on your behalf — access Edge never asks for. Ideal for office walls, reception areas and recruitment displays."
+      },
       "rss": {
         "tagline": "Show the latest stories from any feed",
         "description": "Point it at a news site or blog and the screen shows its latest stories — refreshed on its own.",

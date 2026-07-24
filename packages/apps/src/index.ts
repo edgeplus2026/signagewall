@@ -13,6 +13,7 @@ import { gsheetsManifest } from './gsheets/manifest.js'
 import { gslidesManifest } from './gslides/manifest.js'
 import { holidaysManifest } from './holidays/manifest.js'
 import { instagramManifest } from './instagram/manifest.js'
+import { linkedinManifest } from './linkedin/manifest.js'
 import { menuManifest } from './menu/manifest.js'
 import { onthisdayManifest } from './onthisday/manifest.js'
 import { outlookManifest } from './outlook/manifest.js'
@@ -68,6 +69,7 @@ export const APP_MANIFESTS: AppManifest[] = [
   outlookManifest,
   instagramManifest,
   facebookManifest,
+  linkedinManifest,
   teamsManifest,
   // Branded news apps built from the RSS app (CNN, BBC, …) — same runtime,
   // fixed feed URL. See src/rss/news.ts.
@@ -104,6 +106,7 @@ export {
   outlookManifest,
   instagramManifest,
   facebookManifest,
+  linkedinManifest,
   teamsManifest,
 }
 export {

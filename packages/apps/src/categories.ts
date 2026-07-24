@@ -61,6 +61,7 @@ export const APP_CATEGORY_MEMBERSHIP: Record<string, string[]> = {
   // Social Media
   facebook: ['social'],
   instagram: ['social'],
+  linkedin: ['social'],
   // News & Information
   rss: ['news'],
   onthisday: ['news'],

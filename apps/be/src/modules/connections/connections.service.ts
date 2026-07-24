@@ -30,8 +30,10 @@ import {
   listTeamsChannels,
 } from './providers/microsoft-api';
 import { listFacebookPages, listInstagramAccounts } from './providers/meta-api';
+import { listLinkedInOrganizations } from './providers/linkedin-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
+import { linkedinOAuthProvider } from './providers/linkedin.oauth';
 import { metaOAuthProvider } from './providers/meta.oauth';
 import { createMicrosoftOAuthProvider } from './providers/microsoft.oauth';
 import type { OAuthProvider } from './providers/oauth-provider';
@@ -107,6 +109,7 @@ const PROVIDER_CONFIG_NS: Record<ConnectionProvider, string> = {
   [ConnectionProvider.MICROSOFT]: 'microsoft',
   [ConnectionProvider.CANVA]: 'canva',
   [ConnectionProvider.META]: 'meta',
+  [ConnectionProvider.LINKEDIN]: 'linkedin',
 };
 
 @Injectable()
@@ -382,6 +385,9 @@ export class ConnectionsService {
       case 'meta-ig-accounts':
         this.assertProvider(connection.provider, ConnectionProvider.META);
         return listInstagramAccounts(connection.accessToken, query);
+      case 'linkedin-orgs':
+        this.assertProvider(connection.provider, ConnectionProvider.LINKEDIN);
+        return listLinkedInOrganizations(connection.accessToken, query);
       default:
         throw BusinessException.badRequest(
           `Unknown browse source "${source}".`,
@@ -572,6 +578,8 @@ export class ConnectionsService {
         return this.microsoftProvider;
       case ConnectionProvider.META:
         return metaOAuthProvider;
+      case ConnectionProvider.LINKEDIN:
+        return linkedinOAuthProvider;
       default:
         return canvaOAuthProvider;
     }

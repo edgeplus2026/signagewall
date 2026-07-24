@@ -1,19 +1,21 @@
 /**
  * Normalized social-feed payload — the shared contract between the backend
- * `instagram` / `facebook` / `teams` connectors and their embed bundles. Each
- * reduces to "an account/source and a list of recent posts", so one shape and
- * one renderer serve all three (Facebook fills in what it has; Instagram is
- * image-first; Teams channel messages are authored text). Fetched per-connection
- * (a feed is tied to a specific account/channel), so the cacheKey includes the
- * connection id.
+ * `instagram` / `facebook` / `linkedin` / `teams` connectors and their embed
+ * bundles. Each reduces to "an account/source and a list of recent posts", so
+ * one shape and one renderer serve all four (Facebook fills in what it has;
+ * Instagram is image-first; LinkedIn Page posts and Teams channel messages are
+ * text). Fetched per-connection (a feed is tied to a specific account/channel/
+ * Page), so the cacheKey includes the connection id.
  *
- * NOTE — this payload is intentionally allowed to FAN OUT. A post's `imageUrl`
- * is a CDN URL that Meta rotates/expires (a signed `scontent…` link), so the
- * object legitimately differs on most refreshes. This connector therefore
- * returns NO `version`: the host deep-compares and re-pushes the fresh URLs, and
- * screens keep working images rather than caching a link that will 403 within
- * hours. Keep `refreshSeconds` modest to bound the fan-out. This mirrors the
- * deliberate choice documented on `GslidesPayload` (rotating thumbnail URLs).
+ * NOTE — for the Meta-backed apps this payload is intentionally allowed to FAN
+ * OUT. A post's `imageUrl` is a CDN URL that Meta rotates/expires (a signed
+ * `scontent…` link), so the object legitimately differs on most refreshes. Those
+ * connectors therefore return NO `version`: the host deep-compares and re-pushes
+ * the fresh URLs, and screens keep working images rather than caching a link that
+ * will 403 within hours. Keep `refreshSeconds` modest to bound the fan-out. This
+ * mirrors the deliberate choice documented on `GslidesPayload` (rotating
+ * thumbnail URLs). The text-only sources (LinkedIn, Teams) carry no such URLs, so
+ * their payloads are stable and do not fan out.
  */
 export interface SocialPayload {
   /** Account display name / @handle shown in the header. */

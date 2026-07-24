@@ -196,7 +196,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | **Tier 5 — social (approval / cost gated)** ||||||
 | 25 | Instagram | `instagram` | connected | Social | L | E2 ✅ (code) |
 | 26 | Facebook Page | `facebook` | connected | Social | L | E2 ✅ (code) |
-| 27 | LinkedIn company page | `linkedin` | connected | Social | L | new provider |
+| 27 | LinkedIn company page ✅ | `linkedin` | connected | Social | L | E2 ✅ (code) — new provider |
 | 28 | X / Twitter | `twitter` | connected | Social | L | new provider (**paid API**) |
 | 29 | TikTok | `tiktok` | connected | Social | L | new provider |
 
@@ -391,8 +391,21 @@ access token**, so the connector resolves it from the long-lived user token each
 `remote-select` `meta-pages`. `cacheKey` `facebook:<connId>:<pageId>`, `refreshSeconds` 900. Same shared
 embed as Instagram (text-only posts render as a text hero). Needs Meta App Review + Business verification.
 
-**27. LinkedIn company page** (`linkedin`, connected) — LinkedIn OAuth is **partner-gated**; latest company
-posts. Mark risky.
+**27. LinkedIn company page** (`linkedin`, connected) ✅ (code) — **new provider** (`linkedin`), the fourth
+OAuth adapter. Reads a Page's recent posts via the versioned Posts API author finder
+(`/rest/posts?q=author&author=<orgUrn>`, scopes `r_organization_admin` + `r_organization_social`, reserved
+`openid`/`profile` for the label). Picker `remote-select` `linkedin-orgs` = `organizationAcls`
+(ADMINISTRATOR/APPROVED) titled via a best-effort `organizationsLookup`. `cacheKey`
+`linkedin:<connId>:<orgUrn>`, `refreshSeconds` 900. Shares the social-feed embed.
+**TEXT-ONLY on purpose:** post images are `urn:li:image:…` URNs and GETting the Images API needs a WRITE
+scope (`w_organization_social`/`rw_ads`), which we will not ask an operator for — so posts render as text
+heroes, article posts fold in title + description, image-only posts are dropped, and there is no
+`showCaption` field. Payload is therefore **stable** (no `version` needed, no fan-out) and needs no
+`requiresNetwork`. Every versioned call carries `LinkedIn-Version` (pinned `202606`) +
+`X-Restli-Protocol-Version: 2.0.0`. **Still partner-gated:** the Community Management API product is
+approval-only with no dev mode, so an unapproved app cannot read even its own Pages. Tokens last 60 days and
+a refresh token is only issued to apps approved for Programmatic Refresh Tokens — otherwise the connection
+lapses and is reconnected.
 
 **28. X / Twitter** (`twitter`, connected) — API is **paid (~$100+/mo) and restrictive**; flag cost before
 committing. Latest tweets from a handle.
@@ -452,8 +465,9 @@ override + push), distinct from the `alert` app which is just a playlist item.
 - **M4 — Keyed feeds (E5 ✅):** stocks ✅ (Alpaca), sports ✅ (TheSportsDB, free-key default), news presets
   ✅ (curated RSS, no key); transit next (same keyed pattern).
 - **M5 — Social (E2 ✅ code / E3):** Instagram ✅ + Facebook ✅ ship on the Meta provider (operator still
-  clears Meta App Review + Business verification to go live). Slack next (E3). X/TikTok/LinkedIn only if
-  the API cost/approval is acceptable.
+  clears Meta App Review + Business verification to go live); LinkedIn Page ✅ ships on its own `linkedin`
+  provider (operator still clears the Community Management API product; text-only feed — see #27). Slack
+  next (E3). X/TikTok only if the API cost/approval is acceptable.
 
 **Recommended next:** **Power BI (public)** ✅ shipped as a static publish-to-web wrapper. The remaining
 Microsoft win is **SharePoint / PowerPoint** — but note it hits the SAME wall as private Power BI: showing
@@ -461,8 +475,9 @@ a PPT/PDF means server-side export → an image the player can load, which needs
 enabler** (E7, below). That enabler is now the gating item for the whole "export a document/report to an
 image" family (private Power BI, SharePoint/PowerPoint). The connected recipe is proven across data-read
 (Sheets), image-export (Slides), normalized-payload embed reuse across providers (Outlook → gcal embed;
-Teams → social-feed embed) and a shared multi-app renderer (Meta → Instagram + Facebook; +Teams). After
-that: **Slack** (E3, new provider) and the approval/cost-gated social platforms (LinkedIn/X/TikTok).
+Teams → social-feed embed), a shared multi-app renderer (Meta → Instagram + Facebook; +Teams) and adding a
+whole new provider end-to-end (LinkedIn: OAuth adapter + browse source + connector, no host changes). After
+that: **Slack** (E3, new provider) and the remaining cost-gated social platforms (X/TikTok).
 
 ## 6. Known caveats to carry into implementation
 

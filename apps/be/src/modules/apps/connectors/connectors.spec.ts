@@ -18,6 +18,7 @@ import {
 } from './_shared/asset-mirror.registry';
 import { holidaysConnector } from './holidays.connector';
 import { instagramConnector } from './instagram.connector';
+import { linkedinConnector } from './linkedin.connector';
 import { onthisdayConnector } from './onthisday.connector';
 import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
@@ -1665,6 +1666,118 @@ describe('facebook connector (connected, meta)', () => {
     // The feed read must use the resolved Page token, not the user token.
     const feedCall = fetchMock.mock.calls[1];
     expect(feedCall[1]?.headers?.authorization).toBe('Bearer page-tok');
+  });
+});
+
+describe('linkedin connector (connected, linkedin)', () => {
+  const connectedCtx: ConnectorContext = {
+    ...ctx,
+    connection: {
+      id: 'c1',
+      provider: 'linkedin',
+      accountLabel: 'Robin Kline',
+      accessToken: 'tok',
+      scopes: [],
+    } satisfies ResolvedConnection,
+  };
+
+  it('cacheKey is per-connection + organization', () => {
+    expect(
+      linkedinConnector.cacheKey!({
+        connectionId: 'c1',
+        organization: { id: 'urn:li:organization:2414183' },
+      }),
+    ).toBe('linkedin:c1:urn:li:organization:2414183');
+  });
+
+  it('cacheKey normalizes a bare numeric page id to an organization URN', () => {
+    expect(
+      linkedinConnector.cacheKey!({
+        connectionId: 'c1',
+        organization: '2414183',
+      }),
+    ).toBe('linkedin:c1:urn:li:organization:2414183');
+  });
+
+  it('normalizes posts: little-format text, epoch→ISO, drops drafts and image-only', async () => {
+    const fetchMock = mockFetchSequence([
+      {
+        body: {
+          elements: [
+            {
+              id: 'urn:li:share:6856921137721544704',
+              lifecycleState: 'PUBLISHED',
+              publishedAt: 1784192400000,
+              commentary:
+                'Ship it {hashtag|\\#|coding} with @[Devtestco](urn:li:organization:2414183)',
+            },
+            // No commentary, but an article carries its own headline → fold it in.
+            {
+              id: 'urn:li:share:2',
+              lifecycleState: 'PUBLISHED',
+              publishedAt: 1784192400000,
+              content: {
+                article: {
+                  source: 'https://example.com/post',
+                  title: 'We are hiring',
+                  description: 'Three roles open in Niš',
+                },
+              },
+            },
+            // Draft — must be skipped.
+            {
+              id: 'urn:li:share:3',
+              lifecycleState: 'DRAFT',
+              commentary: 'not live yet',
+            },
+            // Image-only: the image URN is unresolvable without a write scope, so
+            // there is nothing renderable — must be skipped.
+            {
+              id: 'urn:li:share:4',
+              lifecycleState: 'PUBLISHED',
+              content: { media: { id: 'urn:li:image:C5F22AQEYStbwuCM12w' } },
+            },
+          ],
+        },
+      },
+    ]);
+    const result = await linkedinConnector.fetchData(
+      {
+        connectionId: 'c1',
+        organization: { id: 'urn:li:organization:2414183', label: 'Devtestco' },
+      },
+      connectedCtx,
+    );
+    expect(result.playerPayload).toEqual({
+      accountLabel: 'Devtestco',
+      posts: [
+        {
+          id: 'urn:li:share:6856921137721544704',
+          text: 'Ship it #coding with Devtestco',
+          permalink:
+            'https://www.linkedin.com/feed/update/urn:li:share:6856921137721544704/',
+          timestamp: '2026-07-16T09:00:00.000Z',
+          mediaType: 'text',
+        },
+        {
+          id: 'urn:li:share:2',
+          text: 'We are hiring — Three roles open in Niš',
+          permalink: 'https://www.linkedin.com/feed/update/urn:li:share:2/',
+          timestamp: '2026-07-16T09:00:00.000Z',
+          mediaType: 'text',
+        },
+      ],
+    });
+    // Text-only → stable payload, so no version and no fan-out (unlike Meta's).
+    expect(result.version).toBeUndefined();
+
+    // LinkedIn rejects a versioned call that omits either header, and the finder
+    // must ask for the picked Page's posts.
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('author=urn%3Ali%3Aorganization%3A2414183');
+    expect(url).toContain('q=author');
+    expect(init?.headers?.['LinkedIn-Version']).toBeDefined();
+    expect(init?.headers?.['X-Restli-Protocol-Version']).toBe('2.0.0');
   });
 });
 

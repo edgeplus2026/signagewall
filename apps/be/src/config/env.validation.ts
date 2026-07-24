@@ -21,6 +21,12 @@ export const envValidationSchema = Joi.object({
   MICROSOFT_TENANT: Joi.string().optional().allow(''),
   CANVA_CLIENT_ID: Joi.string().optional().allow(''),
   CANVA_CLIENT_SECRET: Joi.string().optional().allow(''),
+  // Meta (Facebook Login) — the Instagram / Facebook Page connected apps.
+  META_CLIENT_ID: Joi.string().optional().allow(''),
+  META_CLIENT_SECRET: Joi.string().optional().allow(''),
+  // LinkedIn (Community Management API) — the LinkedIn Page connected app.
+  LINKEDIN_CLIENT_ID: Joi.string().optional().allow(''),
+  LINKEDIN_CLIENT_SECRET: Joi.string().optional().allow(''),
   // Base32/64 of a 32-byte key. Required to store third-party OAuth tokens at
   // rest (AES-256-GCM). Connected apps are disabled when unset.
   ENCRYPTION_KEY: Joi.string().optional().allow(''),

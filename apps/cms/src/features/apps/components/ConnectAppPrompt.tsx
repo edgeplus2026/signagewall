@@ -12,6 +12,10 @@ const PROVIDER_LABELS: Record<string, string> = {
   canva: 'Canva',
   google: 'Google',
   microsoft: 'Microsoft',
+  // Instagram and Facebook both sign in with a Facebook account — that (not the
+  // internal 'meta' provider id) is what the operator is asked for.
+  meta: 'Facebook',
+  linkedin: 'LinkedIn',
 }
 
 interface ConnectAppPromptProps {
