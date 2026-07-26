@@ -27,13 +27,15 @@ const LINKEDIN_ICON =
  *
  * Needs LinkedIn OAuth configured on the backend (`LINKEDIN_CLIENT_ID`/`SECRET`
  * + `ENCRYPTION_KEY`) and the **Community Management API** product approved on
- * the LinkedIn app (`r_organization_admin` + `r_organization_social`). LinkedIn
- * gates those behind a partner review, so unlike Meta there is no dev-mode
- * shortcut even for Pages the operator owns.
+ * the LinkedIn app (`rw_organization_admin` + `r_organization_social`). LinkedIn
+ * grants that only by reviewing an access request from a registered company, so
+ * unlike Meta there is no "works on your own Page while unreviewed" mode.
  *
- * `refreshSeconds` is 900 rather than the 120 the other social apps use: a Page
- * posts far less often than an IG feed, and LinkedIn's quotas are per-app daily
- * caps that a 2-minute poll per connection would burn through.
+ * `refreshSeconds` is 1800, far off the 120 the other social apps use, because
+ * the Community Management **Development tier** allows only 100 API calls per
+ * member per 24h — a 15-minute poll (96/day) would sit right on that ceiling
+ * with nothing left for the config-form pickers. Half-hourly (48/day) leaves
+ * headroom, and a Page posts far less often than an IG feed anyway.
  */
 export const linkedinManifest: AppManifest = {
   slug: 'linkedin',
@@ -44,7 +46,7 @@ export const linkedinManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 1,
-  refreshSeconds: 900,
+  refreshSeconds: 1800,
   icon: LINKEDIN_ICON,
   color: '#0A66C2',
   configSchema: [
@@ -54,7 +56,7 @@ export const linkedinManifest: AppManifest = {
       label: 'LinkedIn account',
       required: true,
       provider: 'linkedin',
-      help: 'Sign in with the LinkedIn account that administers the Page. Edge only reads posts — it never posts on your behalf.',
+      help: "Sign in with the LinkedIn account that administers the Page. LinkedIn's consent screen says “manage your Pages” because that is the only permission it offers for listing them — Edge only reads posts and never publishes.",
     },
     {
       key: 'organization',

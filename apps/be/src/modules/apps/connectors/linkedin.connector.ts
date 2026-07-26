@@ -120,18 +120,26 @@ function toPost(post: LiPost): SocialPost | null {
  * That also makes the payload STABLE — no rotating CDN URLs like Instagram's or
  * Facebook's — so it does not fan out on every refresh and needs no `version`.
  *
- * Reading a Page's posts needs `r_organization_social` and listing the Pages
- * needs `r_organization_admin`; both come from LinkedIn's Community Management
- * API product, which is approval-gated (there is no dev-mode shortcut).
+ * Reading a Page's posts needs `r_organization_social`; listing the Pages needs
+ * `rw_organization_admin`. Both come from LinkedIn's Community Management API
+ * product, which is granted only by an access-request review.
+ *
+ * `rw_organization_admin` is READ/WRITE by name and that is not an oversight:
+ * Community Management grants no read-only admin scope (the `r_organization_admin`
+ * variant belongs to the Advertising API product), and without it there is no way
+ * to ask "which Pages does this member administer". Nothing in this connector
+ * ever writes — see the OPERATOR.md note, which the config-form help text mirrors
+ * so operators are not surprised by the consent screen.
  */
 export const linkedinConnector: AppConnector<LinkedInConfig, SocialPayload> = {
   oauth: {
     provider: 'linkedin',
     authorizationUrl: 'https://www.linkedin.com/oauth/v2/authorization',
     tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
-    // Enumerate the Pages the member administers, and read their posts. Both are
-    // read-only; `openid`/`profile` (the account label) are added by the provider.
-    scopes: ['r_organization_admin', 'r_organization_social'],
+    // Exactly what the Community Management API product grants for this job:
+    // enumerate the member's administered Pages, and read their posts.
+    // `r_basicprofile` (the account label) is added by the provider.
+    scopes: ['rw_organization_admin', 'r_organization_social'],
   },
 
   cacheKey(config) {

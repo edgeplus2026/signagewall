@@ -393,19 +393,22 @@ embed as Instagram (text-only posts render as a text hero). Needs Meta App Revie
 
 **27. LinkedIn company page** (`linkedin`, connected) ✅ (code) — **new provider** (`linkedin`), the fourth
 OAuth adapter. Reads a Page's recent posts via the versioned Posts API author finder
-(`/rest/posts?q=author&author=<orgUrn>`, scopes `r_organization_admin` + `r_organization_social`, reserved
-`openid`/`profile` for the label). Picker `remote-select` `linkedin-orgs` = `organizationAcls`
-(ADMINISTRATOR/APPROVED) titled via a best-effort `organizationsLookup`. `cacheKey`
-`linkedin:<connId>:<orgUrn>`, `refreshSeconds` 900. Shares the social-feed embed.
+(`/rest/posts?q=author&author=<orgUrn>`, scopes `rw_organization_admin` + `r_organization_social`, reserved
+`r_basicprofile` for the label — all three are what the Community Management product actually grants; the
+read-only `r_organization_admin` belongs to the Advertising product and would fail as *invalid scope*).
+Picker `remote-select` `linkedin-orgs` = `organizationAcls` (ADMINISTRATOR/APPROVED) titled via a
+best-effort `organizationsLookup` with per-Page GET fallback. `cacheKey` `linkedin:<connId>:<orgUrn>`,
+`refreshSeconds` 1800 (Development tier allows 100 calls/member/day). Shares the social-feed embed.
 **TEXT-ONLY on purpose:** post images are `urn:li:image:…` URNs and GETting the Images API needs a WRITE
 scope (`w_organization_social`/`rw_ads`), which we will not ask an operator for — so posts render as text
 heroes, article posts fold in title + description, image-only posts are dropped, and there is no
 `showCaption` field. Payload is therefore **stable** (no `version` needed, no fan-out) and needs no
 `requiresNetwork`. Every versioned call carries `LinkedIn-Version` (pinned `202606`) +
-`X-Restli-Protocol-Version: 2.0.0`. **Still partner-gated:** the Community Management API product is
-approval-only with no dev mode, so an unapproved app cannot read even its own Pages. Tokens last 60 days and
-a refresh token is only issued to apps approved for Programmatic Refresh Tokens — otherwise the connection
-lapses and is reconnected.
+`X-Restli-Protocol-Version: 2.0.0`. **Still partner-gated:** Community Management is approval-only with no
+unreviewed dev mode, so an unapproved app cannot read even its own Pages; the Development tier it grants
+caps at 500 app calls/day, 100/member/day and **no BATCH_GET** (hence the name-lookup fallbacks). Tokens
+last 60 days and a refresh token is only issued to apps approved for Programmatic Refresh Tokens —
+otherwise the connection lapses and is reconnected.
 
 **28. X / Twitter** (`twitter`, connected) — API is **paid (~$100+/mo) and restrictive**; flag cost before
 committing. Latest tweets from a handle.
