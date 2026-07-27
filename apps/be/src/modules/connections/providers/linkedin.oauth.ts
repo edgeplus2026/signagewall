@@ -11,16 +11,24 @@ import {
 
 const AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization';
 const TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken';
-const USERINFO_URL = 'https://api.linkedin.com/v2/userinfo';
+const PROFILE_URL = 'https://api.linkedin.com/v2/me';
 
 /**
  * LinkedIn OAuth for app connections (LinkedIn Page). A confidential client
  * (client secret, no PKCE) on a plain authorization-code flow, so it is the
  * closest of the four providers to Google/Microsoft. Scopes are SPACE-delimited
- * and the data scopes (`r_organization_admin`, `r_organization_social`) come
- * from the connected app's connector descriptor; `openid`/`profile` are
- * prepended here as the reserved identity scopes that give us the account label,
- * exactly like Google's `openid email`.
+ * and the data scopes (`rw_organization_admin`, `r_organization_social`) come
+ * from the connected app's connector descriptor; `r_basicprofile` is prepended
+ * here as the reserved identity scope that gives us the account label, exactly
+ * like Google's `openid email`.
+ *
+ * `r_basicprofile` (+ `/v2/me`) rather than the newer OpenID Connect
+ * `openid profile` (+ `/v2/userinfo`) on purpose: LinkedIn refuses the WHOLE
+ * authorization request if any requested scope is not on the app, and the OIDC
+ * scopes need a separate product ("Sign In with LinkedIn using OpenID Connect")
+ * added to it. `r_basicprofile` ships with the same Community Management API
+ * approval that makes this app work at all, so there is one fewer thing an
+ * operator can leave unticked and turn into an `invalid scope` error.
  *
  * TOKEN LIFETIME — LinkedIn issues 60-day access tokens and, unlike Google or
  * Microsoft, a refresh token ONLY for apps approved for "Programmatic Refresh
@@ -40,9 +48,9 @@ export const linkedinOAuthProvider: OAuthProvider = {
       client_id: params.clientId,
       redirect_uri: params.redirectUri,
       state: params.state,
-      // openid/profile give us the member's name for the "Connected as …" label;
-      // the rest are the app's data scopes.
-      scope: ['openid', 'profile', ...params.scopes].join(' '),
+      // r_basicprofile gives us the member's name for the "Connected as …"
+      // label; the rest are the app's data scopes.
+      scope: ['r_basicprofile', ...params.scopes].join(' '),
     });
     return `${AUTH_URL}?${query.toString()}`;
   },
@@ -61,8 +69,8 @@ export const linkedinOAuthProvider: OAuthProvider = {
       throw new Error('linkedin: no access_token in response');
     }
 
-    const profile = await fetchUserInfo(tokens.accessToken);
-    return { ...tokens, accountLabel: profile.name ?? 'LinkedIn account' };
+    const name = await fetchMemberName(tokens.accessToken);
+    return { ...tokens, accountLabel: name ?? 'LinkedIn account' };
   },
 
   async refresh(params): Promise<OAuthTokens> {
@@ -76,14 +84,22 @@ export const linkedinOAuthProvider: OAuthProvider = {
   },
 };
 
-/** The member's display name, for the "Connected as …" label (OpenID userinfo). */
-async function fetchUserInfo(accessToken: string): Promise<{ name?: string }> {
-  const response = await fetch(USERINFO_URL, {
+/** The member's display name, for the "Connected as …" label. */
+async function fetchMemberName(
+  accessToken: string,
+): Promise<string | undefined> {
+  const response = await fetch(PROFILE_URL, {
     headers: { authorization: `Bearer ${accessToken}` },
   });
   if (!response.ok) {
-    return {};
+    return undefined;
   }
   const profile = (await response.json()) as Record<string, unknown>;
-  return { name: readString(profile, 'name') };
+  const name = [
+    readString(profile, 'localizedFirstName'),
+    readString(profile, 'localizedLastName'),
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return name || undefined;
 }

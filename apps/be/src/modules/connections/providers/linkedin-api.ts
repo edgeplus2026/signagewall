@@ -21,6 +21,14 @@ const REST_API = 'https://api.linkedin.com/rest';
 /** Cap on admin roles read for the picker (one page; nobody admins 100+ Pages). */
 const MAX_ORGANIZATIONS = 100;
 
+/**
+ * Cap on individual name lookups when the batch call is unavailable. The
+ * Community Management Development tier allows only 500 app calls per 24h, so an
+ * un-capped per-org pass on a member with many Pages could spend the day's quota
+ * on cosmetics. Beyond this the picker shows id-derived labels.
+ */
+const MAX_NAME_LOOKUPS = 10;
+
 /** A Page as surfaced to a CMS picker (token-free). */
 export interface LinkedInResourceSummary {
   /** The organization URN (`urn:li:organization:123`) — what the Posts API takes. */
@@ -86,11 +94,15 @@ function finalize(
  * they called":
  *  1. `organizationAcls?q=roleAssignee` — the member's role assignments. This one
  *     is REQUIRED; without it there is nothing to show. It returns URNs only.
- *  2. `organizationsLookup` — the display names for those URNs. BEST-EFFORT: it
- *     sits behind its own permission (an app approved for `r_organization_admin`
- *     may still be refused the lookup), so a failure degrades the picker to
- *     "Page {id}" labels instead of breaking it. The ids are what the connector
- *     actually fetches with; the names are only what the operator reads.
+ *  2. the display names for those URNs. BEST-EFFORT in two steps, because the
+ *     cheap way is unavailable on the tier most operators start on: the batch
+ *     `organizationsLookup` is a Rest.li BATCH_GET, which the Community
+ *     Management **Development tier forbids outright**, so anything it misses is
+ *     retried as individual `organizations/{id}` GETs (capped — see
+ *     {@link MAX_NAME_LOOKUPS} — since that tier also allows only 500 calls a
+ *     day). If both fail the picker degrades to "Page {id}" labels rather than
+ *     breaking: the id is what the connector actually fetches with, the name is
+ *     only what the operator reads.
  *
  * Only ADMINISTRATOR/APPROVED roles are listed: those are the ones whose posts
  * `r_organization_social` is guaranteed to let us read, so the picker never
@@ -147,7 +159,9 @@ interface LookupResult {
 }
 
 /**
- * Best-effort org URN → display name map via the batch lookup. Never throws:
+ * Best-effort org URN → display name map: one batch call, then single GETs for
+ * whatever it didn't cover (the Development tier blocks BATCH_GET entirely, so
+ * there the batch always misses and the singles do all the work). Never throws —
  * the caller falls back to an id-derived label (see
  * {@link listLinkedInOrganizations}).
  */
@@ -168,14 +182,37 @@ async function fetchOrganizationNames(
     );
     const results = (body.results ?? {}) as Record<string, LookupResult>;
     for (const urn of urns) {
-      const result = results[organizationId(urn)];
-      const title = result?.localizedName ?? result?.vanityName;
+      const title = titleOf(results[organizationId(urn)]);
       if (title) {
         names.set(urn, title);
       }
     }
   } catch {
-    // Lookup refused/unavailable — ids still make a usable (if plain) picker.
+    // Batch refused (Development tier) — the per-org pass below covers it.
+  }
+
+  for (const urn of urns.slice(0, MAX_NAME_LOOKUPS)) {
+    if (names.has(urn)) {
+      continue;
+    }
+    try {
+      const body = await linkedinGet(
+        `/organizations/${organizationId(urn)}`,
+        accessToken,
+        signal,
+      );
+      const title = titleOf(body);
+      if (title) {
+        names.set(urn, title);
+      }
+    } catch {
+      // Out of quota or not permitted — this Page keeps its id-derived label.
+    }
   }
   return names;
+}
+
+/** An organization's display name from a lookup result, if it carried one. */
+function titleOf(result: LookupResult | undefined): string | undefined {
+  return result?.localizedName ?? result?.vanityName;
 }

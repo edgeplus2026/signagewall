@@ -373,15 +373,20 @@ where `<provider>` is one of `google | microsoft | meta | linkedin | canva`, `/v
 #### LinkedIn — `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`
 - **Console:** https://www.linkedin.com/developers/apps (create an app; it must be **verified against the Company Page that owns it** before any product can be requested).
 - **Redirect URI (register exactly, under Auth → Authorized redirect URLs):** `https://<PUBLIC_API_URL>/api/v1/connections/oauth/linkedin/callback`
-- **Reserved scopes:** `openid`, `profile` (prepended by the provider; they supply the "Connected as …" name).
+- **Reserved scopes:** `r_basicprofile` (prepended by the provider; supplies the "Connected as …" name).
 - **Steps:**
-  1. Create the app and complete **Page verification** (a Page admin clicks the verification link).
+  1. Create the app **under your company's LinkedIn Page** and complete **Page verification** (a Page super-admin clicks the verification link).
   2. Add the redirect URL above under **Auth → OAuth 2.0 settings**.
-  3. Products tab: request **Community Management API** (approval-gated) and add **Sign In with LinkedIn using OpenID Connect** (self-serve, for the account name).
+  3. Products tab: request **Community Management API**, then fill in the access-request form (see approvals below).
   4. Copy Client ID → `LINKEDIN_CLIENT_ID`, Client Secret → `LINKEDIN_CLIENT_SECRET` (config namespace `linkedin`).
   5. **No PKCE.** Scopes are **space-delimited**. Auth URL `https://www.linkedin.com/oauth/v2/authorization`; token URL `https://www.linkedin.com/oauth/v2/accessToken`. Every data call is the **versioned** REST API and carries `LinkedIn-Version` (pinned to `202606` in `linkedin-api.ts`) plus `X-Restli-Protocol-Version: 2.0.0`.
-- **Approvals — REQUIRED:** the **Community Management API** product must be granted before `r_organization_admin` / `r_organization_social` exist on the app. Unlike Meta there is **no dev-mode shortcut**: without the product the app cannot read even Pages the operator owns, and the authorization request fails with *invalid scope*. If your app was granted the older combined `rw_organization_admin` instead of `r_organization_admin`, the scope list in `linkedin.connector.ts` needs to match what the app actually holds.
-- **Token note:** LinkedIn issues **60-day access tokens** and a **refresh token only for apps approved for "Programmatic Refresh Tokens"**. With one, the scheduler's proactive pass renews the connection indefinitely; without one the connection simply **lapses after 60 days** and the operator reconnects (there is no re-extension trick like Meta's `fb_exchange_token`). Account label from `https://api.linkedin.com/v2/userinfo`.
+- **Approvals — REQUIRED:** the **Community Management API** product must be granted before `rw_organization_admin` / `r_organization_social` / `r_basicprofile` exist on the app; requesting a scope the app does not hold fails the whole authorization with *invalid scope*. Unlike Meta there is **no unreviewed dev mode** — even reading a Page you own needs the product. Approval has two tiers, and **both are applied for**:
+  - **Development tier** (the default on approval) — for registered legal organizations, commercial use cases, verified business email + verified Page-associated app. Hard limits: **500 app calls / 24h**, **100 calls per member / 24h**, **BATCH_GET disabled entirely**, and the integration is expected to be finished within 12 months.
+  - **Standard tier** — production, no limits. Requires a screencast of the OAuth flow and the app's core functionality, plus a valid privacy policy.
+  > `rw_organization_admin` is a **read/write-named** scope, which is why the consent screen says "manage your Pages". Community Management offers no read-only admin scope (`r_organization_admin` belongs to the Advertising API product), and it is the only way to enumerate a member's Pages. Edge never writes; the config-form help text tells the operator the same thing.
+  >
+  > BATCH_GET being disabled on the Development tier is why the Page-name lookup is best-effort: the picker retries names one Page at a time (capped at 10) and otherwise labels entries `Page <id>`.
+- **Token note:** LinkedIn issues **60-day access tokens** and a **refresh token only for apps approved for "Programmatic Refresh Tokens"**. With one, the scheduler's proactive pass renews the connection indefinitely; without one the connection simply **lapses after 60 days** and the operator reconnects (there is no re-extension trick like Meta's `fb_exchange_token`). Account label from `https://api.linkedin.com/v2/me`.
 
 #### Canva — `CANVA_CLIENT_ID`, `CANVA_CLIENT_SECRET`
 - **Console:** https://www.canva.com/developers (Canva Developers → create a Connect API integration).
@@ -456,12 +461,12 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   2. Pick the **Page** (`remoteSource: meta-pages` — only Pages your account manages). `pages_show_list` enumerates the Pages; the connector then derives a Page access token (from the long-lived user token) to read the feed with `pages_read_engagement`.
   3. Display-only: Layout (Spotlight / Grid), Seconds per post (spotlight only, 2–120), Show post text, Theme.
 
-- **LinkedIn Page** (`linkedin`, provider linkedin) — refresh 900s, **no** `requiresNetwork` (text-only payload, so it plays from the cached snapshot). Versioned REST API pinned to `202606`.
-  - **Scopes:** `r_organization_admin`, `r_organization_social` (+ reserved `openid`, `profile`)
+- **LinkedIn Page** (`linkedin`, provider linkedin) — refresh 1800s (the Development tier allows only 100 calls per member per 24h), **no** `requiresNetwork` (text-only payload, so it plays from the cached snapshot). Versioned REST API pinned to `202606`.
+  - **Scopes:** `rw_organization_admin`, `r_organization_social` (+ reserved `r_basicprofile`)
   - **Env:** `ENCRYPTION_KEY`, `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`
-  - **Approval — REQUIRED:** the **Community Management API** product. There is no dev-mode equivalent, so until it is granted this app cannot be used at all — not even on a Page the operator administers. The connected member must be an **APPROVED ADMINISTRATOR** of the Page.
-  1. Connect the LinkedIn account that administers the Page via the **LinkedIn account** OAuth field — read-only, never posts.
-  2. Pick the **Page** (`remoteSource: linkedin-orgs`). The picker reads the member's `ADMINISTRATOR`/`APPROVED` role assignments (`organizationAcls`) and titles them via `organizationsLookup`; if that name lookup is refused, entries fall back to `Page <id>` labels — the selection still works, since the id is what the connector fetches with.
+  - **Approval — REQUIRED:** the **Community Management API** product (Development tier at minimum). There is no unreviewed dev mode, so until it is granted this app cannot be used at all — not even on a Page the operator administers. The connected member must be an **APPROVED ADMINISTRATOR** of the Page.
+  1. Connect the LinkedIn account that administers the Page via the **LinkedIn account** OAuth field — read-only, never posts (despite the "manage your Pages" wording LinkedIn shows; see the provider note above).
+  2. Pick the **Page** (`remoteSource: linkedin-orgs`). The picker reads the member's `ADMINISTRATOR`/`APPROVED` role assignments (`organizationAcls`) and titles them via `organizationsLookup`, falling back to per-Page GETs where that batch call is unavailable (Development tier) and to `Page <id>` labels where both are — the selection still works, since the id is what the connector fetches with.
   3. Display-only: Layout (Spotlight / Grid), Seconds per post (spotlight only, 2–120), Theme.
   > **Text-only, deliberately.** LinkedIn returns post images as `urn:li:image:…` URNs, and resolving one to a URL requires a GET on the Images API — which LinkedIn permits only for tokens holding a **write** scope (`w_organization_social` / `rw_ads`). Edge never asks an operator for permission to publish to their Page, so posts render as text heroes (same as Teams messages), article posts fold in their title + description, and image-only posts are skipped. There is therefore no "Show post text" toggle: with no image posts it would toggle nothing.
 
@@ -558,7 +563,7 @@ META_CLIENT_ID=                 # Facebook app id (developers.facebook.com)
 META_CLIENT_SECRET=             # Facebook app secret
 # redirect: https://<PUBLIC_API_URL>/api/v1/connections/oauth/meta/callback
 
-# LinkedIn (LinkedIn Page) — reserved scopes openid,profile; Community Management API approval required
+# LinkedIn (LinkedIn Page) — reserved scope r_basicprofile; Community Management API approval required
 LINKEDIN_CLIENT_ID=             # LinkedIn app client id (linkedin.com/developers)
 LINKEDIN_CLIENT_SECRET=         # LinkedIn app client secret
 # redirect: https://<PUBLIC_API_URL>/api/v1/connections/oauth/linkedin/callback
