@@ -4,10 +4,19 @@
   "description": "Kiosk shell capabilities for the main window (incl. the remote player origin).",
   "windows": ["main"],
   "remote": {
-    "urls": ["http://localhost:5174", "https://REPLACE_PROD_ORIGIN"]
+    "urls": ["http://localhost:5174", "http://192.168.100.160:5174", "https://REPLACE_PROD_ORIGIN"]
   },
   "permissions": [
     "core:default",
-    "process:allow-restart"
+    "process:allow-restart",
+    "allow-get-device-id",
+    "allow-set-device-id",
+    "allow-shell-version",
+    "allow-report-liveness",
+    "allow-check-update",
+    "allow-run-update",
+    "allow-report-alive",
+    "allow-report-healthy",
+    "allow-get-update-state"
   ]
 }

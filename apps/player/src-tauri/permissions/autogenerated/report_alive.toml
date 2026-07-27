@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-report-alive"
+description = "Enables the report_alive command without any pre-configured scope."
+commands.allow = ["report_alive"]
+
+[[permission]]
+identifier = "deny-report-alive"
+description = "Denies the report_alive command without any pre-configured scope."
+commands.deny = ["report_alive"]

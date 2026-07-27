@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "title": "Rešenja",
+    "description": "Isti alat, prilagođen vašoj delatnosti — ugostiteljstvo, maloprodaja, kancelarije, zdravstvo, hoteli i teretane."
+  },
+  "hero": {
+    "eyebrow": "Rešenja",
+    "title": "Napravljeno za svaki prostor.",
+    "subtitle": "Bez obzira šta radite, EdgeRize se prilagođava vama. Izaberite svoju delatnost i vidite kako izgleda u praksi."
+  },
+  "overview": {
+    "title": "Izaberite svoju delatnost."
+  },
+  "detail": {
+    "scenariosTitle": "Šta možete da prikažete",
+    "benefitsTitle": "Zašto ima smisla"
+  },
+  "industries": {
+    "hospitality": {
+      "name": "Ugostiteljstvo",
+      "tagline": "Meniji koji se menjaju u hodu.",
+      "title": "Digitalni meniji i ponude za restorane i kafiće.",
+      "subtitle": "Zamenite štampane menije ekranima koje ažurirate za nekoliko sekundi — cene, ponuda dana i sezonske promocije, uvek aktuelne.",
+      "scenarios": [
+        {
+          "title": "Digitalni meni",
+          "body": "Jela, cene i ponuda dana bez ponovne štampe i lepljenja nalepnica."
+        },
+        {
+          "title": "Promocije",
+          "body": "Happy hour, sezonske akcije i preporuke šefa — zakazane unapred."
+        },
+        {
+          "title": "Brend i atmosfera",
+          "body": "Vizuali i muzika za identitet vašeg prostora, u svakom trenutku."
+        }
+      ],
+      "benefits": [
+        "Bez troška ponovne štampe",
+        "Promene u realnom vremenu",
+        "Profesionalan, moderan izgled"
+      ]
+    },
+    "retail": {
+      "name": "Maloprodaja",
+      "tagline": "Promocije koje privlače pogled.",
+      "title": "Cene, promocije i brend na svakom ekranu.",
+      "subtitle": "Privucite pažnju na ulazu i na polici — istaknite akcije, nove artikle i kampanje, i menjajte ih trenutno u svim radnjama.",
+      "scenarios": [
+        {
+          "title": "Promocije i sniženja",
+          "body": "Istaknite ponude tamo gde donose odluku o kupovini."
+        },
+        {
+          "title": "Novi artikli",
+          "body": "Predstavite novu kolekciju čim stigne, bez čekanja na štampu."
+        },
+        {
+          "title": "Brend i kampanje",
+          "body": "Doslednu poruku prikažite u svakoj radnji odjednom."
+        }
+      ],
+      "benefits": [
+        "Više impulsivnih kupovina",
+        "Trenutna izmena cena",
+        "Doslednost kroz sve lokacije"
+      ]
+    },
+    "office": {
+      "name": "Kancelarije",
+      "tagline": "Informacije koje tim vidi.",
+      "title": "Najave, kalendari i podaci za moderan radni prostor.",
+      "subtitle": "Držite tim informisanim i ostavite dobar utisak na posetioce — obaveštenja, rezervacije sala i ključni podaci na vidnom mestu.",
+      "scenarios": [
+        {
+          "title": "Najave i obaveštenja",
+          "body": "Interne vesti i važne poruke koje niko ne propusti."
+        },
+        {
+          "title": "Sale i kalendari",
+          "body": "Zauzeće sala i raspored sastanaka u realnom vremenu."
+        },
+        {
+          "title": "KPI i dashboard-i",
+          "body": "Ključni brojevi i ciljevi tima na velikom ekranu."
+        }
+      ],
+      "benefits": [
+        "Bolja interna komunikacija",
+        "Manje propuštenih informacija",
+        "Profesionalan dojam za goste"
+      ]
+    },
+    "healthcare": {
+      "name": "Zdravstvo",
+      "tagline": "Mirnija čekaonica.",
+      "title": "Redovi, obaveštenja i informacije za pacijente.",
+      "subtitle": "Smanjite gužvu na recepciji i učinite čekanje prijatnijim — jasne informacije, red pozivanja i korisni saveti.",
+      "scenarios": [
+        {
+          "title": "Redovi i pozivanje",
+          "body": "Ko je na redu i za koji šalter, jasno i bez pitanja."
+        },
+        {
+          "title": "Zdravstveni saveti",
+          "body": "Korisne informacije i prevencija dok pacijenti čekaju."
+        },
+        {
+          "title": "Radno vreme i uputstva",
+          "body": "Ordinacije, radno vreme i uputstva na jednom mestu."
+        }
+      ],
+      "benefits": ["Manje pitanja na recepciji", "Smirenija atmosfera", "Uvek ažurne informacije"]
+    },
+    "hotels": {
+      "name": "Hoteli",
+      "tagline": "Dobrodošlica na svakom koraku.",
+      "title": "Informacije i doživljaj za goste.",
+      "subtitle": "Od lobija do lifta — dočekajte goste, uputite ih i predstavite sadržaje hotela na elegantnim ekranima.",
+      "scenarios": [
+        {
+          "title": "Dobrodošlica i navigacija",
+          "body": "Pozdrav gostima, mapa i smer ka sadržajima hotela."
+        },
+        {
+          "title": "Događaji i sadržaji",
+          "body": "Program, restoran, spa i ponude — pregledno i lepo."
+        },
+        {
+          "title": "Vreme i lokalni vodič",
+          "body": "Prognoza i preporuke iz okoline za bolji boravak."
+        }
+      ],
+      "benefits": [
+        "Bolji utisak gostiju",
+        "Manje opterećenja recepcije",
+        "Prilika za promociju usluga"
+      ]
+    },
+    "gyms": {
+      "name": "Teretane",
+      "tagline": "Energija na ekranu.",
+      "title": "Raspored, motivacija i najave za fitnes.",
+      "subtitle": "Držite članove u toku i motivisane — raspored časova, saveti i akcije na ekranima kroz ceo prostor.",
+      "scenarios": [
+        { "title": "Raspored časova", "body": "Termini i treneri, uvek ažurni i vidljivi svima." },
+        { "title": "Motivacija i saveti", "body": "Poruke, izazovi i saveti koji dižu energiju." },
+        {
+          "title": "Članarine i akcije",
+          "body": "Ponude i novi paketi tačno tamo gde ih članovi vide."
+        }
+      ],
+      "benefits": ["Bolja informisanost članova", "Popunjeniji termini", "Moderan izgled prostora"]
+    }
+  }
+}

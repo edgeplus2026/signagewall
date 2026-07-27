@@ -1,0 +1,192 @@
+{
+  "text": {
+    "tagline": "Prikažite poruku ili obaveštenje",
+    "description": "Prikažite kratku poruku ili obaveštenje na ekranima.",
+    "about": "Postavite kratku poruku ili obaveštenje na ekran, oblikovano kako želite. Napišite tekst uz osnovno formatiranje, pa podesite boje teksta i pozadine ili dodajte pozadinsku fotografiju preko celog ekrana putem linka, sa svetlim ili tamnim prekrivačem da tekst ostane čitljiv. Najbrži način da objavite dobrodošlicu, radno vreme ili obaveštenje za osoblje u holovima, kancelarijama i radnjama."
+  },
+  "alert": {
+    "tagline": "Hitna poruka preko celog ekrana",
+    "description": "Prikažite upadljivo upozorenje preko celog ekrana — naslov, opcioni detalji i boja prema ozbiljnosti. Radi i van mreže.",
+    "about": "Kada nešto zahteva pažnju svih, ova aplikacija preuzima ceo ekran krupnim naslovom i opcionim detaljima. Unesite poruku, izaberite nivo ozbiljnosti — kritično crveno, upozorenje žuto ili informativno plavo — i uključite ili isključite ikonicu i sporo pulsirajući okvir. Radi i kada nema mreže, pa je spremna za evakuacije, bezbednosna obaveštenja i druge hitne situacije u kancelarijama, fabrikama i javnim prostorima."
+  },
+  "qr": {
+    "tagline": "Prikažite QR kod za skeniranje",
+    "description": "Pretvorite link ili tekst u QR kod koji publika može da skenira sa ekrana.",
+    "about": "Prikažite veliki QR kod koji ljudi mogu da skeniraju iz daljine. Izaberite šta radi — otvara sajt, poziva broj, započinje poruku ili imejl, povezuje na Wi-Fi mrežu ili vodi na Google recenziju — pa unesite podatke i dodajte natpis koji poziva na skeniranje. Možete podesiti i boje koda i pozadine. Savršeno za prikupljanje recenzija, deljenje Wi-Fi mreže za goste i promociju ponuda."
+  },
+  "countdown": {
+    "tagline": "Odbrojavajte do trenutka — ili od njega",
+    "description": "Prikažite odbrojavanje uživo do događaja ili merite vreme od nekog datuma. Sam otkucava, sa mrežom ili bez nje.",
+    "about": "Stvorite iščekivanje pomoću tajmera uživo koji odbrojava do važnog trenutka ili meri vreme od datuma koji je već prošao. Dodajte naslov, postavite ciljni datum i vreme, izaberite smer i unesite poruku koja se prikazuje kada odbrojavanje stigne do nule. Otkucava sam, sa vezom ili bez nje — sjajno za lansiranje proizvoda i otvaranja događaja ili kao tabla dana bez incidenta u radionicama i magacinima."
+  },
+  "ticker": {
+    "tagline": "Klizne poruke preko celog ekrana",
+    "description": "Pokretna traka kratkih poruka — vesti, obaveštenja, radno vreme. Dodajte red po poruci.",
+    "about": "Pokretna traka teksta koja klizi uz vrh ili dno ekrana i ostaje vidljiva preko svega ostalog što se pušta. Izaberite ekrane na kojima se prikazuje, pa je napunite sopstvenim porukama red po red ili živim RSS feedom naslova i podesite brzinu, smer, položaj i boje. Zgodan način da preko redovnog sadržaja dodate obaveštenja, radno vreme i vesti."
+  },
+  "powerpoint": {
+    "tagline": "Prikažite PowerPoint na ekranima",
+    "description": "Prikažite PowerPoint prezentaciju sa OneDrive ili SharePoint kao slajdšou u krug — ekran se ažurira čim se prezentacija promeni.",
+    "about": "Vrtite PowerPoint prezentaciju sačuvanu na OneDrive ili SharePoint kao slajdšou bez ručnog rada. Prijavite se svojim Microsoft nalogom, izaberite .pptx datoteku i podesite sekunde po slajdu i način uklapanja u ekran — ceo slajd sa crnim ivicama ili popunjavanje sa isecanjem. Čim neko izmeni prezentaciju, ekran se ažurira, pa je idealno za internu komunikaciju i prezentacije u kancelarijama i holovima."
+  },
+  "gslides": {
+    "tagline": "Vrtite privatni Google Slides sa svog naloga",
+    "description": "Povežite svoj Google nalog i puštajte privatnu Google Slides prezentaciju kao slajdšou — ekran se ažurira čim izmenite prezentaciju.",
+    "about": "Pustite privatnu Google Slides prezentaciju kao slajdšou koji se sam pomera, bez objavljivanja na web. Prijavite se na svoj Google nalog, izaberite prezentaciju sa svog Drive-a i podesite koliko dugo svaki slajd stoji i koliko slajdova da se prikaže. Izmenite prezentaciju i ekrani preuzimaju novu verziju za nekoliko sekundi, a pošto se slajdovi čuvaju umesto da se strimuju, nastavljaju da rade i kada ekran ostane bez veze — pogodno za interna obaveštenja, uvođenje zaposlenih i timsku komunikaciju u kancelarijama i prostorima za osoblje."
+  },
+  "pdf": {
+    "tagline": "Prikažite PDF na ekranu",
+    "description": "Otpremite PDF i prikažite ga preko celog ekrana. Višestranični PDF automatski lista strane brzinom koju izaberete.",
+    "about": "Otpremite PDF i prikažite ga preko celog ekrana, bez kontrola pregledača koje smetaju. Ako ima više strana, automatski ih lista brzinom koju izaberete — sporo, srednje ili brzo. Podržane su datoteke do 10 MB, pa je ovo jednostavan način da prikažete menije, cenovnike, obaveštenja, brošure i izveštaje u radnjama, kancelarijama i čekaonicama."
+  },
+  "canva": {
+    "tagline": "Prikažite Canva dizajn na ekranima",
+    "description": "Povežite svoj Canva nalog i prikažite bilo koji dizajn — automatski se ponovo izvozi, pa ekran uvek pokazuje najnoviju verziju.",
+    "about": "Prikažite dizajn napravljen u alatu Canva direktno na ekranima, uvek usklađen sa originalom. Prijavite se na Canva jednom, pronađite željeni dizajn, a za dizajne sa više strana podesite koliko sekundi traje svaka strana i koliko strana da se prikaže. Kada dizajn izmenite u alatu Canva, ekran se sam ažurira — pogodno za postere, promocije i grafike za događaje u radnjama, recepcijama i kancelarijama."
+  },
+  "youtube": {
+    "tagline": "Pustite YouTube video na ekranima",
+    "description": "Nalepite YouTube link i puštajte video na ekranima — bez preuzimanja, bez komplikacija.",
+    "about": "Puštajte YouTube video na svojim ekranima bez ikakvog preuzimanja. Kopirajte link iz YouTube adresne trake ili sa dugmeta Share i nalepite ga — jedan video po aplikaciji, a plejliste nisu podržane. Uredno se pušta na ekranu, pa je brz način da vrtite brend videe, promocije, objašnjenja i ambijentalne snimke u holovima, radnjama i na događajima."
+  },
+  "stream": {
+    "tagline": "Pustite video prenos uživo na ekranima",
+    "description": "Prikažite HLS video prenos uživo — kamera, TV kanal, prenos događaja. Nalepite .m3u8 link prenosa.",
+    "about": "Pustite HLS video prenos uživo na ekranima — sigurnosnu kameru, TV kanal ili prenos događaja. Nalepite adresu prenosa koja se završava na .m3u8, izaberite da li da se vidi cela slika ili da popuni ekran uz isecanje i uključite ili isključite zvuk. Radi neprekidno, pa je koristan za holove, kontrolne sobe, događaje uživo i prostore koji prikazuju program."
+  },
+  "powerbi": {
+    "tagline": "Objavljeni Power BI izveštaj na zidu",
+    "description": "Ugradite Power BI izveštaj objavljen na webu i osvežavajte ga po rasporedu da brojke ostanu aktuelne.",
+    "about": "Prikažite Power BI izveštaj na velikom ekranu da ga svi prate. U alatu Power BI izaberite File, Embed report, Publish to web da napravite javni link, nalepite ga ovde i po želji podesite da se ceo izveštaj povremeno ponovo učita. Pošto koristi javni publish-to-web link, a ne prijavljivanje, jednostavan je izbor za operativne centre, timske zidove i prikaze pokazatelja."
+  },
+  "gsheets": {
+    "tagline": "Postavite Google Sheet na zid",
+    "description": "Prikažite opseg iz nekog Google Sheets dokumenta kao tabelu uživo ili jednu KPI vrednost — sam se osvežava.",
+    "about": "Pretvorite opseg iz Google Sheets dokumenta u urednu tabelu na ekranu ili jednu istaknutu KPI vrednost. Povežite svoj Google nalog, izaberite tabelu i unesite ćelije u A1 zapisu, na primer Sheet1!A1:D20; izaberite prikaz tabele ili KPI i da li je prvi red zaglavlje. Sam se osvežava, pa prodajni rezultati, ciljevi i rasporedi ostaju aktuelni u kancelarijama i prostorijama za osoblje."
+  },
+  "web": {
+    "tagline": "Prikažite bilo koji sajt ili dashboard",
+    "description": "Ugradite bilo koju veb stranicu ili živi dashboard na ekrane pomoću adrese.",
+    "about": "Usmerite ekran na bilo koju veb stranicu unosom njene adrese. To je univerzalno rešenje kada ne postoji namenska aplikacija — stranica koju posedujete, interni alat ili javni link za deljenje dashboarda. Imajte u vidu da neki sajtovi, uključujući Google, društvene mreže i većinu banaka, odbijaju ugrađivanje i ostaju prazni, pa najbolje rade stranice pod vašom kontrolom. Korisno za intranet, statusne table i živi veb sadržaj."
+  },
+  "gcal": {
+    "tagline": "Prikažite događaje iz Google Calendar-a",
+    "description": "Prikažite naredne događaje iz povezanog Google Calendar-a — odlično za sale za sastanke i holove.",
+    "about": "Pogledajte šta sledi direktno iz Google Calendar-a, prikazano kao dan, nedelja, mesec ili tekući raspored. Povežite svoj Google nalog, izaberite kalendar i podesite opcije poput prikaza samo predstojećih događaja, laganog automatskog pomeranja za duže liste i jezika na ekranu. EdgeRize samo čita kalendar, nikada ga ne menja — savršeno ispred sala za sastanke, na recepcijama i u prostorima za osoblje."
+  },
+  "outlook": {
+    "tagline": "Prikažite Outlook kalendar na ekranima",
+    "description": "Prikažite povezani Microsoft Outlook / Microsoft 365 kalendar kao dan, nedelju, mesec ili raspored.",
+    "about": "Postavite Microsoft Outlook ili Microsoft 365 kalendar na ekran kao dan, nedelju, mesec ili tekući raspored. Prijavite se svojim Microsoft nalogom, izaberite kalendar i podesite opcije poput prikaza samo predstojećih događaja, laganog automatskog pomeranja i jezika na ekranu. EdgeRize samo čita kalendar i nikada ga ne menja, pa je idealan ispred sala za sastanke i na recepcijama."
+  },
+  "teams": {
+    "tagline": "Prikažite Teams kanal na ekranima",
+    "description": "Povežite Microsoft nalog i prikažite najnovije poruke i obaveštenja iz Teams kanala kao rotirajući izbor ili mrežu.",
+    "about": "Prikažite najnovije poruke i obaveštenja iz Microsoft Teams kanala na ekranu, jednu po jednu u rotirajućem prikazu ili više njih u mreži. Prijavite se poslovnim ili školskim nalogom, izaberite tim i kanal i podesite trajanje i da li se prikazuju imena autora. EdgeRize samo čita poruke i nikada ne objavljuje, a vaš Microsoft administrator prvi put odobrava pristup — odlično za informisanje prostora za osoblje i internih prostora."
+  },
+  "facebook": {
+    "tagline": "Prikažite Facebook stranicu na ekranima",
+    "description": "Povežite Facebook nalog i prikažite najnovije objave neke stranice kao rotirajući izbor ili mrežu.",
+    "about": "Pretvorite najnovije objave sa Facebook stranice u sadržaj za ekran, bilo jednu po jednu u rotirajućem prikazu ili više njih zajedno u mreži. Prijavite se nalogom koji upravlja stranicom, izaberite koju stranicu da prikažete, podesite koliko dugo svaka objava stoji i da li da se vidi tekst objave. EdgeRize samo čita objave, nikada ne piše — idealno za prikaz vašeg prisustva na mrežama u radnjama, holovima i na recepcijama."
+  },
+  "instagram": {
+    "tagline": "Prikažite Instagram feed na ekranima",
+    "description": "Povežite profesionalni Instagram nalog i prikažite njegove najnovije objave kao rotirajući izbor ili mrežu.",
+    "about": "Prikažite najnovije objave profesionalnog Instagram naloga na ekranima, bilo jednu po jednu u rotirajućem prikazu ili zajedno u mreži. Prijavite se Facebook nalogom koji upravlja Instagram profilom, izaberite nalog i odaberite raspored, trajanje i da li se prikazuju opisi. EdgeRize samo čita objave — elegantan način da predstavite brend i kampanje u maloprodaji, kafićima i na recepcijama."
+  },
+  "linkedin": {
+    "tagline": "Prikažite LinkedIn stranicu na ekranima",
+    "description": "Povežite LinkedIn nalog i prikažite najnovije objave neke stranice kao rotirajući izbor ili mrežu.",
+    "about": "Prikažite najnovije LinkedIn objave svoje kompanije na ekranu, jednu po jednu u rotirajućem prikazu ili više njih zajedno u mreži. Prijavite se nalogom koji administrira stranicu, izaberite koju stranicu da prikažete i podesite raspored i trajanje. Objave se prikazuju kao tekst, jer LinkedIn slike iz objava daje samo aplikacijama koje mogu i da objavljuju u vaše ime — pristup koji EdgeRize nikada ne traži. Idealno za kancelarijske zidove, recepcije i prikaze za zapošljavanje."
+  },
+  "rss": {
+    "tagline": "Najnovije priče iz bilo kog feeda",
+    "description": "Usmerite je na sajt sa vestima ili blog i ekran prikazuje najnovije priče — sam se osvežava.",
+    "about": "Prikažite bilo koji RSS ili Atom feed na ekranima — sajt sa vestima, stručni blog ili sopstveni feed firme. Nalepite adresu feeda, obično adresu sajta sa /feed ili /rss na kraju, izaberite jedan od mnogih izgleda, od jedne priče do celog mozaika, i po želji dodajte QR kod za nastavak čitanja na telefonu. Priče se same osvežavaju, pa sadržaj ostaje svež u holovima i sobama za pauzu."
+  },
+  "cnn": {
+    "tagline": "Najnoviji svetski naslovi sa CNN-a",
+    "description": "Prikažite najnovije svetske naslove sa CNN-a na ekranima — automatski se osvežava.",
+    "about": "Postavite najnovije svetske naslove sa CNN-a na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+  },
+  "bbc": {
+    "tagline": "Svetske vesti sa BBC-ja",
+    "description": "Prikažite najnovije svetske vesti sa BBC-ja na ekranima — automatski se osvežava.",
+    "about": "Postavite najnovije svetske vesti sa BBC-ja na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+  },
+  "aljazeera": {
+    "tagline": "Globalne vesti sa Al Jazeere",
+    "description": "Prikažite najnovije vesti sa Al Jazeere na ekranima — automatski se osvežava.",
+    "about": "Postavite najnovije globalne vesti sa Al Jazeere na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+  },
+  "guardian": {
+    "tagline": "Svetske vesti iz The Guardian-a",
+    "description": "Prikažite najnovije svetske vesti iz The Guardian-a na ekranima — automatski se osvežava.",
+    "about": "Postavite najnovije svetske vesti iz The Guardian-a na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+  },
+  "dw": {
+    "tagline": "Svetske vesti sa Deutsche Welle",
+    "description": "Prikažite najnovije svetske vesti sa Deutsche Welle na ekranima — automatski se osvežava.",
+    "about": "Postavite najnovije svetske vesti sa Deutsche Welle na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+  },
+  "france24": {
+    "tagline": "Međunarodne vesti sa France 24",
+    "description": "Prikažite najnovije međunarodne vesti sa France 24 na ekranima — automatski se osvežava.",
+    "about": "Postavite najnovije međunarodne vesti sa France 24 na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+  },
+  "skynews": {
+    "tagline": "Najnovije svetske vesti sa Sky News-a",
+    "description": "Prikažite najnovije svetske naslove sa Sky News-a na ekranima — automatski se osvežava.",
+    "about": "Postavite najnovije svetske naslove sa Sky News-a na ekrane, uz automatsko osvežavanje. Izaberite izgled — jedna priča, cela naslovna, lista koja se smenjuje — i po želji prikažite QR kod da posetioci nastave čitanje na telefonu. Ništa da se podešava: feed je već ugrađen."
+  },
+  "onthisday": {
+    "tagline": "Istorijski događaji za današnji datum",
+    "description": "Prikažite značajne događaje koji su se desili na današnji datum kroz istoriju — zanimljiv sadržaj za hol i čekaonicu.",
+    "about": "Svakog dana prikazuje značajne događaje koji su se desili na današnji datum kroz istoriju, preuzete sa Wikipedia. Izaberite jezik, koliko događaja da se prikaže i svetlu ili tamnu temu; lista se automatski osvežava kako datum prelazi u naredni. Zanimljiv sadržaj koji se stalno menja, za holove, čekaonice, škole i muzeje, pa ljudi imaju šta da čitaju dok čekaju."
+  },
+  "holidays": {
+    "tagline": "Predstojeći državni praznici",
+    "description": "Prikažite naredne državne praznike za neku zemlju — zgodno za kancelarije, holove i prostore za osoblje.",
+    "about": "Prikažite naredne državne praznike za izabranu zemlju kako bi svi mogli da planiraju unapred. Izaberite zemlju i koliko praznika da se prikaže, a zatim svetlu ili tamnu temu; datumi se automatski ažuriraju kako praznici prolaze. Prijatan dodatak holovima kancelarija, HR tablama i prostorima za osoblje, jer pomaže timovima da isprate produžene vikende i neradne dane."
+  },
+  "wisdom": {
+    "tagline": "Novi citat na zidu svakog dana",
+    "description": "Prikazuje nekoliko inspirativnih citata, svaki u drugačijem dizajnu — sam se osvežava, svakog dana.",
+    "about": "Smenjujte niz inspirativnih citata na ekranu, svaki predstavljen u sopstvenom prepoznatljivom dizajnu. Izaberite teme koje želite — Motivacija, Mudrost, Uspeh, Zdravlje i druge — pa podesite koliko citata da se smenjuje i koliko dugo svaki stoji. Svež izbor se pojavljuje svakog dana sam od sebe i unosi pozitivnu energiju u teretane, čekaonice, kancelarije i recepcije."
+  },
+  "weather": {
+    "tagline": "Lokalna vremenska prognoza uživo",
+    "description": "Prikažite trenutno vreme i kratku prognozu za bilo koji grad — uz automatsko ažuriranje.",
+    "about": "Prikažite trenutne uslove i kratku prognozu za bilo koji grad, u izgledu koji odgovara prostoru — na prvi pogled, po satima, cela nedelja, minimalni prikaz temperature ili panel u stilu vremenske redakcije. Pronađite lokaciju, izaberite Celzijuse ili Farenhajte i jezik na ekranu i pustite da tema prati nebo ili je fiksirajte na svetlu ili tamnu. Sam se osvežava i ulepšava holove, recepcije i kafiće."
+  },
+  "airquality": {
+    "tagline": "Kvalitet vazduha uživo za svaku lokaciju",
+    "description": "Prikažite trenutni indeks kvaliteta vazduha i ključne zagađivače za neko mesto — uz automatsko ažuriranje.",
+    "about": "Aplikacija prikazuje trenutni indeks kvaliteta vazduha zajedno sa ključnim zagađivačima, obojene od dobrog do opasnog nivoa. Pronađite grad, izaberite evropsku (EAQI) ili američku (AQI) skalu i svetlu ili tamnu temu; očitavanja se sama osvežavaju tokom dana. Idealno za recepcije, teretane, ordinacije i svaki prostor gde je kvalitet vazduha bitan."
+  },
+  "crypto": {
+    "tagline": "Cene kriptovaluta uživo",
+    "description": "Prikažite cene uživo za valute koje izaberete, u vašoj valuti, sa promenom za 24 časa.",
+    "about": "Pratite tržište uz cene uživo za do pet kriptovaluta po izboru, od Bitcoin i Ethereum do Solana i XRP. Izaberite valute, valutu u kojoj se cene prikazuju i odlučite da li da se vidi promena za 24 časa; cene se automatski osvežavaju. Svetla ili tamna tema odgovara fintech kancelarijama, kripto salonima, coworking prostorima i štandovima na događajima."
+  },
+  "currency": {
+    "tagline": "Kursna lista uživo",
+    "description": "Prikažite kurseve iz osnovne valute u one koje izaberete — uz automatsko ažuriranje prema referentnim kursevima ECB.",
+    "about": "Prikažite ažurne kurseve iz jedne osnovne valute u valute koje su vam važne. Izaberite osnovnu valutu, valute koje se prikazuju u odnosu na nju i svetlu ili tamnu temu; kursevi dolaze iz zvaničnih referentnih kurseva ECB i sami se ažuriraju. Prirodan izbor za bankarske filijale, menjačnice, hotelske recepcije i turističke pultove gde posetioci žele dnevne kurseve na prvi pogled."
+  },
+  "power-prices": {
+    "tagline": "Berzanske cene struje uživo",
+    "description": "Prikažite trenutnu berzansku cenu struje i današnju krivu po satima za izabranu zonu — iz izvora Energinet.",
+    "about": "Pratite tržište struje uz trenutnu berzansku cenu i današnju krivu po satima za izabranu cenovnu zonu, iz izvora Energinet. Izaberite zonu — DK1, DK2, SE3, SE4 ili NO2 — valutu (DKK ili EUR) i temu; vrednosti se automatski ažuriraju tokom dana. Pomaže kancelarijama, radionicama i energetski svesnim nordijskim firmama da potrošnju usklade sa jeftinijim satima."
+  },
+  "clock": {
+    "tagline": "Prikažite tačno vreme na ekranima",
+    "description": "Prikažite sat uživo — u 12- ili 24-časovnom formatu, sa opcionim sekundama i datumom.",
+    "about": "Sat uživo za vaše ekrane, u stilu koji odgovara prostoru: digitalne cifre, analogni brojčanik, split-flap tabla, vreme ispisano rečima ili prstenovi koji se zatvaraju. Izaberite 12- ili 24-časovni format, prikažite ili sakrijte sekunde i datum i podesite boje pozadine, teksta i akcenta. Odlično stoji na recepcijama, u studijima, salama za sastanke i svuda gde vreme treba da se lako čita."
+  },
+  "menu": {
+    "tagline": "Prikažite meni ili cenovnik",
+    "description": "Uredna tabla stavki i cena — za kafiće, kantine i radnje. Dodajte red po stavci.",
+    "about": "Predstavite doteran meni ili cenovnik, sa dizajnom koji odgovara prostoru: Classic, Chalkboard, Gallery kartice sa fotografijama, upadljiva Counter tabla ili suzdržani Noir. Dodajte naslov, izaberite valutu, pa unosite stavke red po red — ili ih uživo sinhronizujte iz Google Sheets ili Excel datoteke da se cene same ažuriraju. Napravljeno za kafiće, kantine, pekare i radnje."
+  }
+}

@@ -1,0 +1,142 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '../styles/variables.css';
+
+/* Drive Tailwind's `dark:` utilities off the `.dark` class that next-themes sets. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  /* Fonts — bound to the next/font CSS variables set on <html> in the layout.
+     (The CMS left these as system-ui; the marketing site binds real faces.)
+     Both faces are grotesks: Manrope is the wider, more geometric of the two,
+     so headings read as display type without changing the voice. */
+  --font-sans: var(--font-geist-sans);
+  --font-heading: var(--font-manrope);
+
+  /* The drawn column — `max-w-frame`. */
+  --container-frame: var(--frame);
+
+  /* Text */
+  --text-color-primary: var(--text-primary);
+  --text-color-secondary: var(--text-secondary);
+  --text-color-brand: var(--brand);
+  --text-color-brand-contrast: var(--brand-contrast);
+  --background-color-brand-contrast: var(--brand-contrast);
+  --border-color-brand-contrast: var(--brand-contrast);
+
+  /* Borders */
+  --border-color-primary: var(--border-primary);
+  --border-color-secondary: var(--border-secondary);
+  --border-color-tertiary: var(--border-tertiary);
+  --border-color-quaternary: var(--border-quaternary);
+  --border-color-brand: var(--brand);
+  --border-color-danger: var(--danger);
+
+  /* Surfaces */
+  --background-color-page: var(--page);
+  --background-color-panel: var(--panel);
+  --background-color-panel-raised: var(--panel-raised);
+  --background-color-sidebar: var(--sidebar);
+  --background-color-highlight: var(--highlight);
+  --background-color-quaternary: var(--border-quaternary);
+  --background-color-input: var(--border-secondary);
+  /* Fill for hairline grids — a `gap-px` grid on `bg-rule` draws one shared
+     line between cells instead of doubling every card's border. */
+  --background-color-rule: var(--border-secondary);
+  --background-color-brand: var(--brand);
+  --background-color-danger: var(--danger);
+
+  /* Rings & dividers */
+  --ring-color-tertiary: var(--border-tertiary);
+  --ring-color-quaternary: var(--border-quaternary);
+  --ring-color-danger: var(--danger);
+  --divide-color-quaternary: var(--border-quaternary);
+  --outline-color-tertiary: var(--border-tertiary);
+
+  /* Semantic */
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  /* Every step of the radius scale collapses onto the single `--radius` knob.
+     Overriding the whole scale (not just the steps we happen to use today)
+     keeps the flat-corner rule true no matter which `rounded-*` a component
+     reaches for. `rounded-full` is untouched — pills and avatars still round. */
+  --radius-xs: var(--radius);
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
+}
+
+@theme {
+  --animate-accordion-down: accordion-down 0.24s ease-out;
+  --animate-accordion-up: accordion-up 0.24s ease-out;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* Buttons ink themselves on hover: a pane of the opposite colour wipes up from
+   the bottom edge while the label flips with it.
+
+   Done as an animated `background-size` rather than a scaled pseudo-element,
+   because a `z-index:-10` pane paints *under* its own element's background —
+   on a button that already has a fill, the wipe simply never shows. The
+   gradient is part of the element's own background, so it always lands on top
+   of the background-colour. Variants set `--ink`. */
+@utility ink {
+  background-image: linear-gradient(to top, var(--ink, transparent) 0 100%);
+  background-repeat: no-repeat;
+  background-position: bottom;
+  background-size: 100% 0%;
+  transition-property: background-size, color, border-color;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+
+  &:hover {
+    background-size: 100% 100%;
+  }
+
+  /* Nested so it stays inside Tailwind's utilities layer — an unlayered rule
+     would outrank every utility, not just this one. */
+  @media (prefers-reduced-motion: reduce) {
+    transition-property: color, border-color;
+  }
+}
+
+/* Diagonal ruling used for the bands that separate one block from the next —
+   the printer's-proof texture that makes the gaps read as deliberate. */
+@utility hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--border-secondary) 0 1px,
+    transparent 1px 7px
+  );
+}
+
+@layer base {
+  * {
+    @apply border-secondary outline-tertiary/50;
+  }
+  body {
+    @apply bg-page font-sans text-primary antialiased;
+  }
+}

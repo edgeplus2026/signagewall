@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "title": "Aplikacije",
+    "description": "38 aplikacija spremnih za ekran — meni, vreme, kursna lista, vesti, kalendari, društvene mreže i još mnogo toga."
+  },
+  "hero": {
+    "eyebrow": "Aplikacije",
+    "title": "38 aplikacija, spremnih za ekran.",
+    "subtitle": "Sve što ekranu treba — bez pisanja koda. Pretražite, izaberite i objavite."
+  },
+  "browser": {
+    "placeholder": "Pretražite aplikacije…",
+    "all": "Sve",
+    "empty": "Nema rezultata za vašu pretragu."
+  },
+  "detail": {
+    "aboutTitle": "O aplikaciji",
+    "relatedTitle": "Slične aplikacije",
+    "categoriesLabel": "Kategorije",
+    "back": "Sve aplikacije",
+    "dataSource": {
+      "static": "Radi bez naloga — samo podesite i objavite.",
+      "server": "Automatski povlači žive podatke.",
+      "connected": "Poveže se sa vašim nalogom (npr. Google ili Microsoft)."
+    }
+  }
+}

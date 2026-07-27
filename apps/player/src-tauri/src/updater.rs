@@ -17,15 +17,22 @@
 //! / the watchdog may act on a pending update (a `decided` CAS picks the winner).
 
 use std::fs;
-use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Manager};
+
+// `UpdaterState`, the updating sentinel, and the atomic-write primitives live in
+// `state.rs` (pure std + serde, no Tauri) so the standalone `edge-watchdog`
+// binary can read the same files. This module keeps the AppHandle-based wrappers.
+use crate::state::{
+    clear_sentinel, now_ms, read_state_at, write_atomic, write_sentinel, write_state_at,
+    UpdaterState, UpdatingSentinel,
+};
 
 /// SHA-256 (hex, lowercase) of a file, or `None` if it can't be read. Used to
 /// verify the cached rollback installer hasn't been swapped since we promoted it.
@@ -83,46 +90,6 @@ impl Drop for RunGuard {
     fn drop(&mut self) {
         self.0.store(false, Ordering::SeqCst);
     }
-}
-
-/// Persisted updater state (`app_config_dir/updates/state.json`).
-#[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq)]
-pub struct UpdaterState {
-    /// Last version confirmed healthy after an OTA install.
-    #[serde(rename = "lastGoodVersion")]
-    pub last_good_version: Option<String>,
-    /// Path to the cached installer that produced `last_good_version` — the
-    /// rollback target for the next update.
-    #[serde(rename = "lastGoodInstaller")]
-    pub last_good_installer: Option<String>,
-    /// SHA-256 (hex) of `last_good_installer` at the moment it was promoted
-    /// healthy. Re-checked before the rollback executes that cached file, so a
-    /// locally-swapped payload is refused rather than run as the kiosk user.
-    #[serde(rename = "lastGoodSha256", default)]
-    pub last_good_sha256: Option<String>,
-    /// Version just installed and awaiting a health confirmation on next boot.
-    #[serde(rename = "pendingVersion")]
-    pub pending_version: Option<String>,
-    /// Last reported outcome, surfaced to the CMS via `get_update_state`.
-    #[serde(rename = "lastResult")]
-    pub last_result: Option<String>,
-    /// Whether the last boot rolled back a failed update.
-    #[serde(rename = "rolledBack")]
-    pub rolled_back: Option<bool>,
-    /// Count of consecutive post-update boots that could not confirm health
-    /// because the WebView never even loaded the remote page (device offline).
-    /// The watchdog defers rollback while this is small — a rollback can't help an
-    /// offline device — but rolls back once it crosses [`MAX_OFFLINE_DEFERS`], so
-    /// a build that never runs JS is still eventually recovered from.
-    #[serde(rename = "postUpdateAttempts", default)]
-    pub post_update_attempts: u32,
-    /// Versions that already failed their health check on THIS device. Never
-    /// auto-installed again: without this a rolled-back build is re-detected,
-    /// re-downloaded, re-installed and re-rolled-back every off-hours window
-    /// forever (flapping the screen, burning fleet-wide R2 bandwidth). A genuine
-    /// fix ships under a new, un-poisoned version and still installs.
-    #[serde(rename = "poisonedVersions", default)]
-    pub poisoned_versions: Vec<String>,
 }
 
 /// The terminal shape of a `run_update` invocation. A typed enum (kebab-cased to
@@ -221,60 +188,65 @@ pub fn poison(state: &mut UpdaterState, version: &str) {
 // Persistence
 // ---------------------------------------------------------------------------
 
-/// Writes atomically: temp file in the same dir → fsync → rename. A plain
-/// `fs::write` truncates in place, so a power cut mid-write (routine on these
-/// devices) would leave a torn file that silently parses back as defaults —
-/// losing the rollback target, or worse, the durable deviceId.
-pub fn write_atomic(path: &Path, data: &[u8]) -> std::io::Result<()> {
-    let tmp = path.with_extension("tmp");
-    {
-        let mut file = fs::File::create(&tmp)?;
-        file.write_all(data)?;
-        file.sync_all()?;
-    }
-    fs::rename(&tmp, path)?;
-    // Make the rename itself durable. Without fsyncing the directory the entry
-    // update can be lost on a power cut even though `rename` already returned —
-    // losing the just-written rollback state or the durable deviceId, the exact
-    // "torn write" this function exists to prevent. Best-effort and platform
-    // gated: a directory handle can't be fsynced this way on Windows (where NTFS
-    // journals metadata anyway); macOS (dev/test) and Linux get the guarantee.
-    #[cfg(unix)]
-    if let Some(parent) = path.parent() {
-        if let Ok(dir) = fs::File::open(parent) {
-            let _ = dir.sync_all();
-        }
-    }
-    Ok(())
-}
+// `write_atomic` moved to `state.rs` (shared with the watchdog); imported above.
 
 fn updates_dir(app: &AppHandle) -> Result<PathBuf, String> {
     let dir = app
         .path()
         .app_config_dir()
         .map_err(|e| e.to_string())?
-        .join("updates");
+        .join(crate::paths::UPDATES_SUBDIR);
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     Ok(dir)
 }
 
 fn state_path(app: &AppHandle) -> Result<PathBuf, String> {
-    Ok(updates_dir(app)?.join("state.json"))
+    Ok(updates_dir(app)?.join(crate::paths::STATE_FILE))
 }
 
+/// AppHandle wrapper over [`crate::state::read_state_at`] — resolves the path via
+/// Tauri's `app_config_dir()`, then delegates to the shared reader.
 fn read_state(app: &AppHandle) -> UpdaterState {
-    let Ok(path) = state_path(app) else {
-        return UpdaterState::default();
-    };
-    match fs::read_to_string(&path) {
-        Ok(raw) => serde_json::from_str(&raw).unwrap_or_default(),
+    match state_path(app) {
+        Ok(path) => read_state_at(&path),
         Err(_) => UpdaterState::default(),
     }
 }
 
+/// AppHandle wrapper over [`crate::state::write_state_at`].
 fn write_state(app: &AppHandle, state: &UpdaterState) -> Result<(), String> {
-    let raw = serde_json::to_string_pretty(state).map_err(|e| e.to_string())?;
-    write_atomic(&state_path(app)?, raw.as_bytes()).map_err(|e| e.to_string())
+    write_state_at(&state_path(app)?, state).map_err(|e| e.to_string())
+}
+
+/// Path to the timestamped "OTA install in progress" sentinel the keep-alive
+/// watchdog reads to tell an intentional updater restart from a crash.
+fn sentinel_path(app: &AppHandle) -> Result<PathBuf, String> {
+    Ok(updates_dir(app)?.join(crate::paths::SENTINEL_FILE))
+}
+
+/// Writes the updating sentinel (best-effort) right before an install cycles the
+/// process. Timestamped → self-expiring, so a missed clear can never wedge
+/// recovery. Only the desktop install path calls it; defined unconditionally so
+/// the shared imports stay used on every target.
+#[cfg_attr(not(desktop), allow(dead_code))]
+fn write_updating_sentinel(app: &AppHandle, version: &str) {
+    if let Ok(path) = sentinel_path(app) {
+        let _ = write_sentinel(
+            &path,
+            &UpdatingSentinel {
+                started_at_ms: now_ms(),
+                version: version.to_string(),
+            },
+        );
+    }
+}
+
+/// Clears the updating sentinel once a post-update boot resolves (healthy, rolled
+/// back, or reconciled). Best-effort — the sentinel self-expires regardless.
+fn clear_updating_sentinel(app: &AppHandle) {
+    if let Ok(path) = sentinel_path(app) {
+        clear_sentinel(&path);
+    }
 }
 
 /// The updater artifact extension per platform (Windows NSIS installer vs the
@@ -388,11 +360,31 @@ async fn verify_manifest_signature() -> Result<(), String> {
     .map_err(|_| "manifest signature fetch timed out".to_string())?
     .map_err(|e| e.to_string())?;
 
-    let pubkey = parse_pubkey(&pubkey_b64)?;
-    let sig = minisign_verify::Signature::decode(&sig_text)
+    verify_manifest(&manifest, &sig_text, &pubkey_b64)
+}
+
+/// Verifies manifest bytes against Tauri's detached `.sig` using the configured
+/// pubkey. Pure (no IO), so it is unit-testable against a real `tauri signer sign`
+/// artifact — the http-endpoint skip in the caller otherwise leaves this path
+/// untested, which is exactly how the "sig never base64-decoded" regression shipped.
+///
+/// Tauri wraps BOTH the pubkey and the signature as base64 of the whole minisign
+/// FILE (the config pubkey `dW50cnVzdGVk…` base64-decodes to `untrusted comment:
+/// …`). `parse_pubkey` already decodes the key; the signature needs the identical
+/// decode before `Signature::decode`, or the parser is handed base64 gibberish and
+/// verification fails closed on every device — silently disabling OTA fleet-wide.
+#[cfg(desktop)]
+fn verify_manifest(manifest: &[u8], sig_text: &str, pubkey_b64: &str) -> Result<(), String> {
+    use base64::Engine as _;
+    let pubkey = parse_pubkey(pubkey_b64)?;
+    let sig_file = base64::engine::general_purpose::STANDARD
+        .decode(sig_text.trim())
+        .map_err(|e| format!("manifest signature not base64: {e}"))
+        .and_then(|bytes| String::from_utf8(bytes).map_err(|e| e.to_string()))?;
+    let sig = minisign_verify::Signature::decode(&sig_file)
         .map_err(|e| format!("malformed manifest signature: {e}"))?;
     pubkey
-        .verify(&manifest, &sig, false)
+        .verify(manifest, &sig, false)
         .map_err(|e| format!("manifest signature verification failed: {e}"))
 }
 
@@ -475,6 +467,11 @@ pub async fn run_update(
     state.post_update_attempts = 0; // fresh install — reset the offline-defer counter
     write_state(&app, &state)?;
 
+    // Mark an install in progress so the keep-alive watchdog treats the imminent
+    // process exit (Windows force-exit / macOS restart) as an intentional update,
+    // not a crash — it must not relaunch the stale binary mid-install.
+    write_updating_sentinel(&app, &version);
+
     // If the install fails (AV quarantine, file lock, no privileges) the process
     // keeps running the OLD version. Clear the pending marker so we don't sit on
     // `installing` forever and the next boot reports a clean error — and delete
@@ -487,6 +484,7 @@ pub async fn run_update(
         failed.pending_version = None;
         failed.last_result = Some("error".into());
         let _ = write_state(&app, &failed);
+        clear_updating_sentinel(&app); // the install never happened — nothing in flight
         return Err(err.to_string());
     }
 
@@ -529,6 +527,11 @@ pub fn report_alive(guards: tauri::State<'_, UpdateGuards>) {
 #[tauri::command]
 pub fn report_healthy(app: AppHandle, guards: tauri::State<'_, UpdateGuards>) {
     guards.healthy.store(true, Ordering::SeqCst);
+
+    // The player booted and is rendering, so no install is in progress — clear the
+    // watchdog's updating sentinel. Covers the normal post-update-success path and
+    // sweeps a stale sentinel left by an earlier interrupted update.
+    clear_updating_sentinel(&app);
 
     let state = read_state(&app);
     let current = app.package_info().version.to_string();
@@ -637,6 +640,7 @@ pub fn spawn_health_watchdog(app: AppHandle, guards: &UpdateGuards) {
     // The install never took effect (failed / interrupted): clear it and stop.
     if let Some(reconciled) = reconcile(&state, &current) {
         let _ = write_state(&app, &reconciled);
+        clear_updating_sentinel(&app);
         return;
     }
 
@@ -652,18 +656,6 @@ pub fn spawn_health_watchdog(app: AppHandle, guards: &UpdateGuards) {
         if healthy.load(Ordering::SeqCst) {
             return; // web reported healthy; report_healthy owns the promotion
         }
-        if decided
-            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
-            .is_err()
-        {
-            return; // report_healthy won the race under the wire
-        }
-        // Re-check under the decision: report_healthy may have stored healthy=true
-        // after our initial load but before we won the CAS. Don't roll back a
-        // build that just reported healthy at the wire.
-        if healthy.load(Ordering::SeqCst) {
-            return;
-        }
 
         let mut state = read_state(&app);
 
@@ -674,17 +666,44 @@ pub fn spawn_health_watchdog(app: AppHandle, guards: &UpdateGuards) {
         // the pending marker so a later (online) boot can confirm health or roll
         // back with real evidence. Give up only after MAX_OFFLINE_DEFERS boots, so
         // a build that genuinely never runs JS is still eventually recovered from.
+        //
+        // A deferral is NOT terminal, so it must NOT consume the `decided` token —
+        // otherwise a later (online) `report_healthy` can never win the CAS and
+        // promote this build, stranding `pending`/`installing` and the rollback
+        // target until the next reboot (weeks, on 24/7 signage).
         if !alive.load(Ordering::SeqCst) {
             state.post_update_attempts += 1;
             if state.post_update_attempts < MAX_OFFLINE_DEFERS {
-                let _ = write_state(&app, &state); // keep pending; just record the attempt
+                if healthy.load(Ordering::SeqCst) {
+                    return; // a promotion is racing in at the wire; don't clobber it
+                }
+                let _ = write_state(&app, &state); // keep pending; record the attempt
                 return;
             }
+            // Deferred too many times — fall through to a terminal rollback.
+        }
+
+        // Terminal decision (roll back / flag unhealthy): exactly one of this thread
+        // and `report_healthy` may act on the pending update.
+        if decided
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .is_err()
+        {
+            return; // report_healthy won the race under the wire
+        }
+        // Re-check under the decision: report_healthy may have stored healthy=true
+        // after our load but before we won the CAS. Don't roll back a build that
+        // just reported healthy at the wire.
+        if healthy.load(Ordering::SeqCst) {
+            return;
         }
 
         // Either the page loaded but never got healthy (the update broke the
         // running app) or we've deferred too many times — roll back.
         poison(&mut state, &current);
+        // The update is being abandoned — clear the sentinel before rolling back
+        // (Windows `rollback_to` may `exit(0)` before returning).
+        clear_updating_sentinel(&app);
         match state.last_good_installer.clone() {
             Some(installer) => rollback_to(&app, &mut state, &installer),
             None => flag_unhealthy(&app, &mut state), // first-ever update: no target
@@ -708,24 +727,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn state_round_trips_through_json() {
-        let state = UpdaterState {
-            last_good_version: Some("0.1.0".into()),
-            last_good_installer: Some("/tmp/edge-player-0.1.0.exe".into()),
-            last_good_sha256: Some("deadbeef".into()),
-            pending_version: Some("0.2.0".into()),
-            last_result: Some("installing".into()),
-            rolled_back: Some(false),
-            post_update_attempts: 2,
-            poisoned_versions: vec!["0.2.0".into()],
-        };
-        let raw = serde_json::to_string(&state).unwrap();
-        assert!(raw.contains("lastGoodVersion"), "camelCase keys: {raw}");
-        assert!(raw.contains("poisonedVersions"), "camelCase keys: {raw}");
-        let back: UpdaterState = serde_json::from_str(&raw).unwrap();
-        assert_eq!(state, back);
-    }
+    // `UpdaterState` JSON round-trip / back-compat / `write_atomic` tests moved to
+    // `state.rs` alongside the code they cover.
 
     #[cfg(desktop)]
     #[test]
@@ -735,6 +738,33 @@ mod tests {
         let (endpoint, pubkey_b64) = updater_config().expect("config must read");
         assert!(!endpoint.is_empty(), "endpoint present");
         parse_pubkey(&pubkey_b64).expect("committed pubkey must parse into a verifier");
+    }
+
+    #[cfg(desktop)]
+    #[test]
+    fn verify_manifest_accepts_a_real_signature_and_rejects_tampering() {
+        // Fixtures from the exact prod path: `tauri signer generate` + `tauri signer
+        // sign`. Both the pubkey and the `.sig` are base64-of-the-minisign-FILE, so
+        // `verify_manifest` MUST base64-decode the sig before parsing. Omitting that
+        // decode (the shipped regression) made every prod install fail closed — and
+        // was invisible because the dev endpoint is http, so the caller skips this
+        // path entirely. This test exercises it directly.
+        const PUBKEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDUyNzM0RENBOTdDNDU0OEIKUldTTFZNU1h5azF6VXU5MDZ0VTZ5RW9ZcEp4TUFzeDVyaFlyS2VTeE5hSlBGMHlQb29OalhVRTUK";
+        const SIG: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTFZNU1h5azF6VXNnZ1VxcjdsTmU3TGs3QkxhS1BSekVvdXQvem10MW5mVTJFeUQrSFF5Ky91VVVOUGt1RFpKalhWUUFWcWV1cnZWM09KL3h1TGRDb1lBSGdyaWIveUFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTA5MDUwCWZpbGU6bGF0ZXN0Lmpzb24KK1FBTThPMTcybFFEdFRkN2JFclpxTmRMNTJrTVF4MXNDWVRZaVp3K1Q4cTZ4R3lQNnRDN05keFFJTS92di9EM2FZdkJLSFdERmphZG5wc3VkYjN2QWc9PQo=";
+        const MANIFEST: &[u8] = br#"{"version":"9.9.9"}"#;
+
+        // The genuine (manifest, sig, key) triplet must verify.
+        verify_manifest(MANIFEST, SIG, PUBKEY).expect("a real tauri signature must verify");
+
+        // A tampered manifest must fail — this is the signed-downgrade / R2-MITM
+        // defense the whole function exists for.
+        assert!(
+            verify_manifest(br#"{"version":"9.9.99"}"#, SIG, PUBKEY).is_err(),
+            "tampered manifest must not verify"
+        );
+
+        // Malformed inputs fail cleanly (no panic on the unattended path).
+        assert!(verify_manifest(MANIFEST, "not-base64-!!!", PUBKEY).is_err());
     }
 
     #[test]
@@ -747,19 +777,6 @@ mod tests {
         assert_eq!(state.poisoned_versions, vec!["0.2.0".to_string()]);
         // A genuine fix under a new version is not blocked.
         assert!(!is_poisoned(&state, "0.3.0"));
-    }
-
-    #[test]
-    fn missing_poisoned_field_deserializes_to_empty() {
-        // Older state.json written before the field existed must still load.
-        let back: UpdaterState = serde_json::from_str(r#"{"pendingVersion":"0.2.0"}"#).unwrap();
-        assert!(back.poisoned_versions.is_empty());
-    }
-
-    #[test]
-    fn unknown_or_corrupt_state_falls_back_to_default() {
-        let back: UpdaterState = serde_json::from_str("{}").unwrap();
-        assert_eq!(back, UpdaterState::default());
     }
 
     #[test]
@@ -803,19 +820,5 @@ mod tests {
         assert!(is_installer_name("edge-player-0.2.0.app.tar.gz"));
         assert!(!is_installer_name("state.json"));
         assert!(!is_installer_name("state.json.tmp"));
-    }
-
-    #[test]
-    fn write_atomic_replaces_the_target_in_place() {
-        let dir = std::env::temp_dir().join("edge-player-atomic-test");
-        let _ = fs::create_dir_all(&dir);
-        let target = dir.join("state.json");
-        write_atomic(&target, b"{\"lastResult\":\"one\"}").unwrap();
-        write_atomic(&target, b"{\"lastResult\":\"two\"}").unwrap();
-        let raw = fs::read_to_string(&target).unwrap();
-        assert!(raw.contains("two"), "second write must replace the first");
-        // The temp file must not survive a successful write.
-        assert!(!dir.join("state.tmp").exists());
-        let _ = fs::remove_dir_all(&dir);
     }
 }

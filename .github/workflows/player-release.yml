@@ -83,18 +83,23 @@ jobs:
             optional: false
             args: '--bundles nsis'
             rust_target: ''
+            # The watchdog sidecar is a native host build here (tauri builds
+            # without --target), so stage it under the host triple's name.
+            watchdog_target: x86_64-pc-windows-msvc
             bundle_glob: apps/player/src-tauri/target/release/bundle/nsis/*-setup.exe
           - platform: macos-latest
             key: darwin-aarch64
             optional: true
             args: '--target aarch64-apple-darwin --bundles app'
             rust_target: aarch64-apple-darwin
+            watchdog_target: aarch64-apple-darwin
             bundle_glob: apps/player/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz
           - platform: macos-latest
             key: darwin-x86_64
             optional: true
             args: '--target x86_64-apple-darwin --bundles app'
             rust_target: x86_64-apple-darwin
+            watchdog_target: x86_64-apple-darwin
             bundle_glob: apps/player/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
     runs-on: ${{ matrix.platform }}
     continue-on-error: ${{ matrix.optional }}
@@ -187,6 +192,9 @@ jobs:
       - name: Build & sign the shell
         uses: tauri-apps/tauri-action@fce9c6108b31ea247710505d3aaaa893ee6768d4 # v0
         env:
+          # Cross-stage the watchdog sidecar for THIS leg's triple: tauri-action
+          # runs beforeBuildCommand → prepare-watchdog.mjs, which reads this.
+          WATCHDOG_TARGET: ${{ matrix.watchdog_target }}
           # option_env! bakes this at Rust compile time; the shell loads this
           # remote player URL at runtime.
           EDGE_PLAYER_URL: ${{ vars.EDGE_PLAYER_URL }}

@@ -1,4 +1,4 @@
-# Edge Player — Android native shell (Kotlin)
+# EdgeRize Player — Android native shell (Kotlin)
 
 A thin native **Android WebView kiosk shell** that wraps the **remote** web player
 (`EDGE_PLAYER_URL`) — the Android counterpart of the desktop Tauri shell
@@ -7,7 +7,7 @@ fullscreen kiosk, autostart, watchdog, durable deviceId, and self-update.
 
 Android is the **primary** signage target (boxes + tablets). This is **NOT** a
 `tauri android` build — a standalone Gradle project (`./gradlew`, its own CI job),
-reusing the desktop `applicationId` (`rs.futureforward.edge.player`) and the
+reusing the desktop `applicationId` (`com.edgerize.player`) and the
 `player-vX.Y.Z` tag for versioning.
 
 > ⚠️ **Unverified on-device.** The Kotlin here was authored against the Tauri

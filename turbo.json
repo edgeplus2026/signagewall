@@ -10,6 +10,10 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "../../apps/player/public/apps/**"]
     },
+    "@edge/web#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
     "type-check": {
       "dependsOn": ["^build"]
     },

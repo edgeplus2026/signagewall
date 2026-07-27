@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "title": "Kontakt",
+    "description": "Zakažite demo ili nam pišite — pokazaćemo vam kako EdgeRize radi na vašem prostoru."
+  },
+  "hero": {
+    "eyebrow": "Kontakt",
+    "title": "Hajde da oživimo vaše ekrane.",
+    "subtitle": "Zakažite demo ili nam pišite — odgovaramo brzo, na vašem jeziku i bez obaveza."
+  },
+  "info": {
+    "title": "Javite nam se",
+    "body": "Recite nam nešto o vašem prostoru i ekranima, a mi ćemo predložiti najbolji način da krenete.",
+    "emailLabel": "Email",
+    "email": "office@edgerize.rs",
+    "responseTime": "Odgovaramo u roku od jednog radnog dana."
+  },
+  "form": {
+    "name": "Ime i prezime",
+    "namePlaceholder": "Vaše ime",
+    "email": "Email",
+    "emailPlaceholder": "vas@email.com",
+    "company": "Kompanija (opciono)",
+    "companyPlaceholder": "Naziv firme",
+    "message": "Poruka",
+    "messagePlaceholder": "Recite nam nešto o vašem prostoru i ekranima…",
+    "submit": "Pošaljite poruku",
+    "sending": "Šaljem…",
+    "success": "Hvala! Javićemo vam se uskoro.",
+    "error": "Došlo je do greške. Pokušajte ponovo ili nam pišite direktno.",
+    "invalid": "Proverite uneta polja i pokušajte ponovo."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "title": "Apps",
+    "description": "38 apps ready for the screen — menus, weather, exchange rates, news, calendars, social feeds and much more."
+  },
+  "hero": {
+    "eyebrow": "Apps",
+    "title": "38 apps, ready for the screen.",
+    "subtitle": "Everything a screen needs — without writing code. Search, pick and publish."
+  },
+  "browser": {
+    "placeholder": "Search apps…",
+    "all": "All",
+    "empty": "No results for your search."
+  },
+  "detail": {
+    "aboutTitle": "About this app",
+    "relatedTitle": "Related apps",
+    "categoriesLabel": "Categories",
+    "back": "All apps",
+    "dataSource": {
+      "static": "Works with no account — just set it up and publish.",
+      "server": "Pulls live data automatically.",
+      "connected": "Connects to your account (e.g. Google or Microsoft)."
+    }
+  }
+}

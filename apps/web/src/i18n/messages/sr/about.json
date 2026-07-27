@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "title": "O nama",
+    "description": "EdgeRize je softver za digitalne ekrane napravljen u Srbiji, za biznise koji žele da njihov prostor progovori."
+  },
+  "hero": {
+    "eyebrow": "O nama",
+    "title": "Softver za ekrane, napravljen u Srbiji.",
+    "subtitle": "EdgeRize razvija tim koji veruje da svaki ekran u vašem prostoru može da radi za vas, bez komplikacija i bez velikog budžeta."
+  },
+  "story": {
+    "title": "Zašto pravimo EdgeRize.",
+    "paragraphs": [
+      "Videli smo previše ekrana koji stoje ugašeni ili prikazuju istu sliku godinama — dok se meni menja ručno, promocije kasne, a informacije zastarevaju. Sve to zato što su postojeća rešenja skupa, komplikovana ili napravljena za nekog drugog.",
+      "Napravili smo EdgeRize da to promenimo: platformu kojom svako može da upravlja svojim ekranima — jednostavno kao objava na društvenoj mreži, a moćno kao alat za celu mrežu lokacija. Lokalno napravljeno, uz podršku na vašem jeziku."
+    ]
+  },
+  "values": {
+    "title": "U šta verujemo.",
+    "items": [
+      {
+        "title": "Jednostavnost prva",
+        "body": "Ako je komplikovano, nismo završili posao. Svaka funkcija mora da bude jasna na prvi pogled."
+      },
+      {
+        "title": "Pouzdanost 0–24",
+        "body": "Ekran koji se zamrzne je gori od praznog. Gradimo da radi neprekidno, i kad niko ne gleda."
+      },
+      {
+        "title": "Uz vas",
+        "body": "Podrška na vašem jeziku i ljudi koji razumeju vaš posao — ne tiket koji čeka nedeljama."
+      },
+      {
+        "title": "Bez skrivenih troškova",
+        "body": "Pošteni uslovi i cena koja se ne menja preko noći. Bez iznenađenja na računu."
+      }
+    ]
+  }
+}

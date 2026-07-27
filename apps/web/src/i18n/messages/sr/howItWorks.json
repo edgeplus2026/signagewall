@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "title": "Kako radi",
+    "description": "Od praznog ekrana do žive izloge za par minuta — povežite ekran, sastavite sadržaj i objavite na daljinu."
+  },
+  "hero": {
+    "eyebrow": "Kako radi",
+    "title": "Od praznog ekrana do žive izloge — za par minuta.",
+    "subtitle": "Bez kablova, bez tehničara, bez koda. Tri koraka vas dele od ekrana koji rade za vas."
+  },
+  "steps": {
+    "title": "Tri koraka do prvog ekrana.",
+    "items": [
+      {
+        "title": "Povežite ekran",
+        "body": "Instalirajte EdgeRize plejer na Android TV boks, mini-PC ili desktop koji već imate. Otvorite ekran, skenirajte QR kod iz kontrolne table — i ekran je uparen. Bez kablova i bez tehničara."
+      },
+      {
+        "title": "Sastavite sadržaj",
+        "body": "Birajte iz 38 gotovih aplikacija — meni, vreme, kursna lista, društvene mreže — ili otpremite svoje slike i video. Složite ih u plejlistu i podelite ekran na zone ako treba."
+      },
+      {
+        "title": "Objavite na daljinu",
+        "body": "Pošaljite na jedan ekran ili celu mrežu. Zakažite promene unapred i menjajte bilo šta u realnom vremenu — sa telefona ili računara, odakle god da ste."
+      }
+    ]
+  },
+  "capabilities": {
+    "eyebrow": "Šta dobijate",
+    "title": "Kontrola nad celom mrežom, iz jednog panela.",
+    "items": [
+      {
+        "title": "Upravljanje flotom",
+        "body": "Grupišite ekrane po lokaciji i objavljujte na sve odjednom ili pojedinačno."
+      },
+      {
+        "title": "Zakazivanje",
+        "body": "Različit sadržaj po satu, danu ili prilici — pripremljen unapred."
+      },
+      {
+        "title": "Zone na ekranu",
+        "body": "Podelite ekran: meni levo, vreme gore, traka vesti dole."
+      },
+      {
+        "title": "Rad offline",
+        "body": "Sadržaj se kešira i vrti i bez interneta; sinhronizuje se čim se veza vrati."
+      }
+    ]
+  },
+  "faq": {
+    "title": "Česta pitanja",
+    "items": [
+      {
+        "q": "Da li mi treba poseban hardver?",
+        "a": "Ne. EdgeRize radi na običnom Android TV-u, mini-PC-u ili desktop računaru koji već imate."
+      },
+      {
+        "q": "Šta ako padne internet?",
+        "a": "Plejer nastavlja da prikazuje poslednji sadržaj iz keša. Čim se veza vrati, automatski se sinhronizuje."
+      },
+      {
+        "q": "Koliko ekrana mogu da povežem?",
+        "a": "Od jednog do hiljadu — svima upravljate sa istog mesta, bez dodatne komplikacije."
+      },
+      {
+        "q": "Da li je potrebno tehničko znanje?",
+        "a": "Ne. Ako umete da napravite objavu na društvenoj mreži, umete i da upravljate svojim ekranima."
+      }
+    ]
+  }
+}

@@ -1,12 +1,5 @@
-import {
-  CheckIcon,
-  DownloadIcon,
-  InfoIcon,
-  MoreHorizontalIcon,
-  Trash2Icon,
-} from 'lucide-react'
+import { CheckIcon, DownloadIcon, InfoIcon, MoreHorizontalIcon, Trash2Icon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -24,7 +17,7 @@ import { cn } from '@/lib/utils'
 
 interface AppCardProps {
   app: EdgeApp
-  /** Opens the "App details" drawer. */
+  /** Opens the app drawer (details + its saved setups). */
   onShowDetails: (app: EdgeApp) => void
   /** Requests uninstall confirmation for the app. */
   onRequestUninstall: (app: EdgeApp) => void
@@ -32,32 +25,25 @@ interface AppCardProps {
 
 export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps) {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const installApp = useInstallApp()
-
-  const handleActivate = () => {
-    if (app.isInstalled) {
-      void navigate(`/apps/${app.id}/instances`)
-    } else {
-      onShowDetails(app)
-    }
-  }
 
   return (
     <div
       role="button"
       tabIndex={0}
-      onClick={handleActivate}
+      onClick={() => {
+        onShowDetails(app)
+      }}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault()
-          handleActivate()
+          onShowDetails(app)
         }
       }}
       className={cn(
-        'group relative flex cursor-pointer flex-col gap-5 overflow-hidden rounded-2xl bg-panel p-5 text-left ring-1 ring-quaternary transition',
-        'hover:-translate-y-0.5 hover:ring-tertiary',
-        'focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none',
+        'group bg-panel ring-quaternary relative flex cursor-pointer flex-col gap-5 overflow-hidden rounded-2xl p-5 text-left ring-1 transition',
+        'hover:ring-tertiary hover:-translate-y-0.5',
+        'focus-visible:ring-brand focus-visible:ring-2 focus-visible:outline-none',
       )}
     >
       <div className="relative flex items-start justify-between gap-3">
@@ -69,7 +55,7 @@ export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps
 
         <div className="flex items-center gap-2">
           {app.isInstalled ? (
-            <span className="inline-flex items-center gap-1 rounded-md bg-success/10 px-2 py-0.5 text-[11px] font-medium text-success">
+            <span className="bg-success/10 text-success inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium">
               <CheckIcon className="size-3" />
               {t('apps.installed')}
             </span>
@@ -81,7 +67,7 @@ export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="shrink-0 text-secondary"
+                className="text-secondary shrink-0"
                 onClick={(event) => {
                   event.stopPropagation()
                 }}
@@ -121,7 +107,7 @@ export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps
                   onClick={() => {
                     installApp.mutate(app.id, {
                       onSuccess: () => {
-                        void navigate(`/apps/${app.id}/instances`)
+                        onShowDetails(app)
                       },
                     })
                   }}
@@ -136,8 +122,8 @@ export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps
       </div>
 
       <div className="relative flex flex-col gap-1.5">
-        <h3 className="text-base font-semibold text-primary">{app.name}</h3>
-        <p className="line-clamp-2 text-sm text-secondary">{appTagline(t, app.slug)}</p>
+        <h3 className="text-primary text-base font-semibold">{app.name}</h3>
+        <p className="text-secondary line-clamp-2 text-sm">{appTagline(t, app.slug)}</p>
       </div>
     </div>
   )

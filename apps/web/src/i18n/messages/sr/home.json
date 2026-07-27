@@ -1,0 +1,130 @@
+{
+  "hero": {
+    "eyebrow": "Digitalni ekrani za vaš prostor",
+    "title": "Ekrani koji rade koliko i vi.",
+    "subtitle": "Upravljajte svime što se prikazuje u vašem prostoru — meni, ponude, najave, atmosfera — sa jednog mesta, u realnom vremenu.",
+    "ctaPrimary": "Zakažite demo",
+    "ctaSecondary": "Pogledajte aplikacije"
+  },
+  "stats": {
+    "items": [
+      { "value": "38", "label": "aplikacija spremnih za ekran" },
+      { "value": "Sekunde", "label": "do izmene na svim ekranima" },
+      { "value": "Android + desktop", "label": "plejer za bilo koji ekran" },
+      { "value": "Offline", "label": "radi i bez interneta" }
+    ]
+  },
+  "features": {
+    "eyebrow": "Mogućnosti",
+    "title": "Sve za vaše ekrane, na jednom mestu.",
+    "subtitle": "Od prvog ekrana do cele mreže — EdgeRize vam daje kontrolu, brzinu i miran san.",
+    "items": [
+      {
+        "title": "Upravljanje na daljinu",
+        "body": "Menjajte sadržaj na jednom ili sto ekrana, sa telefona ili računara — gde god da ste."
+      },
+      {
+        "title": "Zakazivanje unapred",
+        "body": "Pripremite ponude i najave i pustite ih tačno kad treba. Bez štampe i čekanja."
+      },
+      {
+        "title": "38 aplikacija",
+        "body": "Meni, vreme, kursna lista, vesti, društvene mreže — spremno za par klikova."
+      },
+      {
+        "title": "Radi i bez interneta",
+        "body": "Plejer nastavlja da prikazuje sadržaj i kada veza padne. Bez praznih ekrana."
+      },
+      {
+        "title": "Bilo koji ekran",
+        "body": "Običan TV, monitor ili profesionalni displej. Android ili desktop — svejedno."
+      },
+      {
+        "title": "Vaš izgled",
+        "body": "Prilagodite boje, raspored i brend tako da sve izgleda kao vaše, a ne kao šablon."
+      }
+    ]
+  },
+  "useCases": {
+    "eyebrow": "Rešenja",
+    "title": "Napravljeno za svaki prostor.",
+    "subtitle": "Isti alat, prilagođen onome što vi radite.",
+    "cta": "Sva rešenja",
+    "items": [
+      {
+        "title": "Ugostiteljstvo",
+        "body": "Digitalni meniji, ponuda dana i cene koje menjate u hodu."
+      },
+      {
+        "title": "Maloprodaja",
+        "body": "Promocije, novi artikli i brend poruke na svakom ekranu."
+      },
+      {
+        "title": "Kancelarije",
+        "body": "Najave, kalendari i ključni podaci za tim na vidnom mestu."
+      },
+      { "title": "Zdravstvo", "body": "Redovi, obaveštenja i mirnija čekaonica za pacijente." },
+      { "title": "Hoteli", "body": "Dobrodošlica, informacije i događaji za goste." },
+      { "title": "Teretane", "body": "Raspored časova, motivacija i najave — uvek aktuelno." }
+    ]
+  },
+  "steps": {
+    "eyebrow": "Kako radi",
+    "title": "Za par minuta ste na ekranu.",
+    "items": [
+      {
+        "title": "Povežite ekran",
+        "body": "Uključite EdgeRize na bilo kom TV-u ili računaru i uparite ga u par sekundi."
+      },
+      {
+        "title": "Sastavite sadržaj",
+        "body": "Izaberite aplikacije ili otpremite svoje i složite ih onako kako želite."
+      },
+      {
+        "title": "Objavite i zaboravite",
+        "body": "Pošaljite na jedan ekran ili celu mrežu. Menjajte kad god poželite, odakle god."
+      }
+    ]
+  },
+  "apps": {
+    "eyebrow": "Aplikacije",
+    "title": "38 aplikacija, spremnih za ekran.",
+    "body": "Sve što ekranu treba — bez pisanja koda. Dodajte aplikaciju, podesite je i objavite.",
+    "cta": "Istražite sve aplikacije",
+    "categories": [
+      "Meniji i maloprodaja",
+      "Vreme i okruženje",
+      "Finansije i tržišta",
+      "Vesti i informacije",
+      "Društvene mreže",
+      "Kalendari i posao",
+      "Video i striming",
+      "Najave i poruke"
+    ]
+  },
+  "platform": {
+    "eyebrow": "Platforma",
+    "title": "Panel, plejer, ekran — jedna celina.",
+    "subtitle": "Tri dela koja rade besprekorno zajedno.",
+    "items": [
+      {
+        "title": "Kontrolna tabla",
+        "body": "Upravljajte sadržajem, ekranima i timom iz jednog preglednog panela."
+      },
+      {
+        "title": "Plejer",
+        "body": "Lagana aplikacija za Android i desktop koja pouzdano vrti sadržaj 0–24."
+      },
+      {
+        "title": "Ekrani",
+        "body": "Povežite jedan ili hiljadu ekrana i upravljajte svima sa jednog mesta."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Pokažimo vam EdgeRize na delu.",
+    "body": "Zakažite kratak demo i vidite kako EdgeRize radi na vašem prostoru — bez obaveza.",
+    "primary": "Zakažite demo",
+    "secondary": "Kontaktirajte nas"
+  }
+}

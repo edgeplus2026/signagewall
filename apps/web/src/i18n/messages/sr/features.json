@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "title": "Mogućnosti",
+    "description": "Upravljanje na daljinu, zakazivanje, 38 aplikacija, rad offline, zone na ekranu i vaš brend — sve što ekranu treba."
+  },
+  "hero": {
+    "eyebrow": "Mogućnosti",
+    "title": "Sve što ekranu treba — i ništa što mu smeta.",
+    "subtitle": "EdgeRize spaja jednostavnost i kontrolu: napravite sadržaj za par minuta, a zadržite moć nad celom mrežom ekrana."
+  },
+  "grid": {
+    "title": "Napravljeno da svakodnevni rad bude lak.",
+    "items": [
+      {
+        "title": "Upravljanje na daljinu",
+        "body": "Menjajte sve sa telefona ili računara, sa bilo kog mesta."
+      },
+      {
+        "title": "Zakazivanje",
+        "body": "Sadržaj po satu, danu ili prilici — pripremljen unapred."
+      },
+      {
+        "title": "38 aplikacija",
+        "body": "Meni, vreme, kursna lista, vesti, kalendari, društvene mreže."
+      },
+      { "title": "Zone i rasporedi", "body": "Podelite ekran na više zona i kombinujte sadržaj." },
+      { "title": "Rad offline", "body": "Sadržaj se kešira i vrti i kada padne internet." },
+      {
+        "title": "Upravljanje flotom",
+        "body": "Grupišite ekrane po lokaciji i objavljujte masovno."
+      },
+      { "title": "Vaš brend", "body": "Boje, logo, fontovi i rasporedi po vašoj meri." },
+      {
+        "title": "Bilo koji ekran",
+        "body": "Android ili desktop, običan TV ili profesionalni displej."
+      },
+      { "title": "Pouzdanost", "body": "Automatska ažuriranja i oporavak — ekran se sam vraća." }
+    ]
+  },
+  "spotlight": {
+    "eyebrow": "Kontrola",
+    "title": "Cela mreža ekrana, iz jednog panela.",
+    "body": "Bez obzira da li imate jedan ekran ili sto lokacija, sve je na jednom mestu — pregledno, brzo i pod kontrolom.",
+    "points": [
+      "Objavite na sve ekrane odjednom ili ciljano po grupi",
+      "Vidite šta se trenutno prikazuje na svakom ekranu",
+      "Vratite prethodni sadržaj jednim klikom"
+    ]
+  },
+  "faq": {
+    "title": "Česta pitanja",
+    "items": [
+      {
+        "q": "Mogu li da prilagodim izgled svom brendu?",
+        "a": "Da. Menjate boje, logo, fontove i rasporede tako da sve izgleda kao deo vašeg brenda."
+      },
+      {
+        "q": "Da li mogu da zakažem sadržaj unapred?",
+        "a": "Da. Pripremite ponude i najave i pustite ih tačno kad treba — po satu, danu ili prilici."
+      },
+      {
+        "q": "Kako izgleda kada imam više lokacija?",
+        "a": "Grupišete ekrane po lokaciji i objavljujete na sve odjednom ili pojedinačno, iz istog panela."
+      }
+    ]
+  }
+}

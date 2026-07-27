@@ -2,7 +2,7 @@
  * Host-agnostic native bridge. The same web bundle runs unchanged in a plain
  * browser, the Tauri desktop shell, or the Android WebView shell — this module
  * selects the right IPC transport (or none) and exposes the invoke helpers the
- * `native/*` modules use. Those modules speak only the 8 command strings; they
+ * `native/*` modules use. Those modules speak only the 9 command strings; they
  * never know which host answered, and in a browser every call cleanly no-ops.
  *
  * Two transports today, both reaching the same command contract:

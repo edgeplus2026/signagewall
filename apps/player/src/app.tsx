@@ -6,6 +6,7 @@ import {
   bootstrapNativeIdentity,
   bootstrapNativeRuntime,
 } from './native/bootstrap'
+import { startLiveness } from './native/liveness'
 import {
   reportHealthy,
   startMaintenanceUpdates,
@@ -104,6 +105,7 @@ export function App() {
     let stopPrefetch: (() => void) | undefined
     let stopStandbyUpdate: (() => void) | undefined
     let stopMaintenanceUpdates: (() => void) | undefined
+    let stopLiveness: (() => void) | undefined
 
     void (async () => {
       await bootstrapNativeIdentity()
@@ -129,6 +131,11 @@ export function App() {
       })
 
       connectPlayer()
+
+      // Liveness beat for the native keep-alive supervisor — started as early as
+      // the bridge allows so a freeze at any later point is still caught. No-op in
+      // a browser / on Android (no desktop watchdog).
+      stopLiveness = startLiveness()
 
       // Enforce the kiosk lockdown before the content loops so the device locks
       // as early as possible; reads the persisted mode, so it re-locks even while
@@ -162,6 +169,7 @@ export function App() {
       stopAvailability?.()
       stopDailyReload?.()
       stopKioskLock?.()
+      stopLiveness?.()
       disconnectPlayer()
     }
   }, [])

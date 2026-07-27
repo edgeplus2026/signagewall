@@ -1,10 +1,28 @@
-# Edge Player — native shell (Tauri v2)
+# EdgeRize Player — native shell (Tauri v2)
 
 Fullscreen, unattended kiosk shell that wraps the **remote** web player, keeps it
 alive on boot, and persists the device identity natively. Windows is the MVP
-target (WebView2). This is the **Phase 1** scaffold: shell + kiosk window +
-autostart + single-instance + identity/version commands. OTA updater,
-watchdog/health-check, and CEC display-power come in later phases.
+target (WebView2). Implemented: shell + kiosk window + autostart + single-instance
++ identity/version commands, the OTA updater with a post-update health-check +
+rollback, and an out-of-process **keep-alive supervisor** (`edge-watchdog`) that
+restarts the player on crash **or hang**. CEC display-power comes later.
+
+### Keep-alive supervisor (`edge-watchdog`)
+
+A second small binary (same crate; `src/bin/edge-watchdog.rs`) bundled beside the
+shell via `bundle.externalBin`. It reconciles toward "exactly one healthy player
+running": it respawns the player on crash and kills+respawns it on a **hang**
+(process alive but the web-JS liveness beat — `report_liveness` → `watchdog/liveness.json`
+— goes stale). It defers during an OTA install via the timestamped `updates/updating.json`
+sentinel so it never relaunches a stale binary mid-update. The OS keeps the
+*watchdog* alive (macOS launchd `KeepAlive`; Windows a Scheduled Task with
+restart-on-failure — registered in the shell's release `setup()`); the player's
+own legacy login item is removed on upgrade. The sidecar is built + staged by
+`scripts/prepare-watchdog.mjs` (wired into before{Dev,Build}Command), so a plain
+`tauri dev` / `tauri build` "just works"; CI cross-stages it per matrix leg via
+`WATCHDOG_TARGET`. NOTE: `externalBin` makes tauri-build fail any cargo build
+until the sidecar is staged — run `node scripts/prepare-watchdog.mjs` first if you
+invoke `cargo` directly.
 
 > ⚠️ Tauri does **not** cross-compile. The **Windows installer** must be built on a
 > Windows host (or the `windows-latest` CI runner). But you can fully **run and
@@ -54,7 +72,7 @@ The shell loads `EDGE_PLAYER_URL` (defaults to `http://localhost:5174`).
 # point the shell at the real player origin, then build
 EDGE_PLAYER_URL="https://player.vecom.rs" \
 pnpm --filter @edge/player tauri:build
-# → src-tauri/target/release/bundle/nsis/Edge Player_<ver>_x64-setup.exe
+# → src-tauri/target/release/bundle/nsis/EdgeRize Player_<ver>_x64-setup.exe
 ```
 
 Also add `https://player.vecom.rs` to `capabilities/default.json` → `remote.urls`
@@ -132,8 +150,8 @@ pnpm --filter @edge/player tauri build --target aarch64-apple-darwin --bundles a
 # 3. Serve it as a real update channel (reuse the CI generator so the manifest is
 #    byte-identical to what ships).
 mkdir -p /tmp/ota/release-darwin-aarch64 && cd /tmp/ota
-cp ".../bundle/macos/Edge Player.app.tar.gz"     release-darwin-aarch64/edge-player.app.tar.gz
-cp ".../bundle/macos/Edge Player.app.tar.gz.sig" release-darwin-aarch64/edge-player.app.tar.gz.sig
+cp ".../bundle/macos/EdgeRize Player.app.tar.gz"     release-darwin-aarch64/edge-player.app.tar.gz
+cp ".../bundle/macos/EdgeRize Player.app.tar.gz.sig" release-darwin-aarch64/edge-player.app.tar.gz.sig
 node <repo>/apps/player/scripts/release/build-latest-json.mjs \
   --version 0.2.0 --artifacts . --public-base http://localhost:9099 --out latest.json
 python3 -m http.server 9099
@@ -149,7 +167,7 @@ await window.__TAURI__.core.invoke('run_update')
 
 **What must be true:** it downloads, verifies the signature, installs, relaunches
 into **0.2.0**; `report_healthy` then promotes 0.2.0 to last-known-good in
-`~/Library/Application Support/rs.futureforward.edge.player/updates/state.json`
+`~/Library/Application Support/com.edgerize.player/updates/state.json`
 and prunes the old cached installer. To exercise the **watchdog**, block
 `report_healthy` (comment out the call in `app.tsx`) and confirm that after 90 s
 the state flips to `unhealthy`.
@@ -173,6 +191,6 @@ them in a small in-repo Tauri plugin (plugins get first-class permissions).
 ## Identity persistence
 
 `get_device_id` / `set_device_id` read/write
-`%APPDATA%\rs.futureforward.edge.player\device.json`, which survives a WebView2
+`%APPDATA%\com.edgerize.player\device.json`, which survives a WebView2
 storage wipe and shell updates. The web side (`apps/player/src/native/`) prefers
 this over localStorage/URL — see `apps/player/src/native/bootstrap.ts`.

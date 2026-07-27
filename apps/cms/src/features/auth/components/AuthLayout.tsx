@@ -1,9 +1,9 @@
-import { GalleryVerticalEnd } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import heroImage from '@/assets/auth.jpg'
+import brandMark from '@/assets/sidebar-logo.svg'
 import { LanguageSwitcher } from '@/features/auth/components/LanguageSwitcher'
 
 interface AuthLayoutProps {
@@ -19,9 +19,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <Link to="/" className="flex items-center gap-2 font-medium">
-            <div className="bg-brand text-brand-contrast flex size-6 items-center justify-center rounded-md">
-              <GalleryVerticalEnd className="size-4" />
-            </div>
+            <img src={brandMark} alt="" className="size-6 rounded-md" />
             {t('common.appName')}
           </Link>
         </div>

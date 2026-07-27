@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "title": "Contact",
+    "description": "Book a demo or drop us a line — we'll show you how EdgeRize works in your space."
+  },
+  "hero": {
+    "eyebrow": "Contact",
+    "title": "Let's bring your screens to life.",
+    "subtitle": "Book a demo or write to us — we reply fast, in your language, with no strings attached."
+  },
+  "info": {
+    "title": "Get in touch",
+    "body": "Tell us a little about your space and screens, and we'll suggest the best way to get started.",
+    "emailLabel": "Email",
+    "email": "office@edgerize.rs",
+    "responseTime": "We reply within one business day."
+  },
+  "form": {
+    "name": "Full name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailPlaceholder": "you@email.com",
+    "company": "Company (optional)",
+    "companyPlaceholder": "Company name",
+    "message": "Message",
+    "messagePlaceholder": "Tell us a little about your space and screens…",
+    "submit": "Send message",
+    "sending": "Sending…",
+    "success": "Thanks! We'll get back to you soon.",
+    "error": "Something went wrong. Please try again or email us directly.",
+    "invalid": "Please check the fields and try again."
+  }
+}

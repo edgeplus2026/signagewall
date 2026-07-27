@@ -9,7 +9,7 @@
     "acceptLegalRequired": "Morate prihvatiti Uslove korišćenja i Politiku privatnosti."
   },
   "common": {
-    "appName": "Edge",
+    "appName": "EdgeRize",
     "email": "Email",
     "password": "Lozinka",
     "name": "Ime",
@@ -1774,6 +1774,15 @@
       "clearFilters": "Obriši filtere"
     },
     "openApp": "Otvori aplikaciju",
+    "itemNouns": {
+      "countdown": { "one": "odbrojavanje", "other": "odbrojavanja" },
+      "menu": { "one": "meni", "other": "meniji" },
+      "wisdom": { "one": "prikaz", "other": "prikazi" },
+      "weather": { "one": "lokacija", "other": "lokacije" },
+      "clock": { "one": "sat", "other": "satovi" },
+      "ticker": { "one": "traka", "other": "trake" },
+      "currency": { "one": "tabla", "other": "table" }
+    },
     "breadcrumb": {
       "root": "Aplikacije"
     },
@@ -1793,6 +1802,14 @@
     "instances": {
       "description": "Instanca je gotova kopija aplikacije {{app}} sa sopstvenim sadržajem i podešavanjima. Napravite posebnu za svaki ekran ili poruku, pa je dodajte na svoje ekrane.",
       "count": "{{count}} instanci",
+      "explain": "Svaka je sačuvana verzija aplikacije {{app}} sa vašim sadržajem. Otvorite je da je izmenite, ili je dodajte na ekran da se prikazuje.",
+      "overlayNote": "Ova aplikacija prekriva ekrane, pa svoje ekrane bira u podešavanjima iznad.",
+      "newItem": "Dodaj novo",
+      "whatIsThis": "Jedna sačuvana kopija aplikacije {{app}} sa svojim sadržajem, spremna da je stavite na ekran.",
+      "emptyTitle": "Ovde još nema ničega",
+      "emptyDescription": "Napravite prvu kopiju da prikažete {{app}} na ekranu.",
+      "itemNoun": "postavka",
+      "itemNounPlural": "postavke",
       "create": {
         "title": "Nova instanca",
         "description": "Napravite novu kopiju ove aplikacije za konfiguraciju i dodavanje na ekrane."

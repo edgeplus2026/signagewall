@@ -1,0 +1,127 @@
+{
+  "hero": {
+    "eyebrow": "Digital screens for your space",
+    "title": "Screens that work as hard as you do.",
+    "subtitle": "Manage everything that shows in your space — menus, offers, announcements, atmosphere — from one place, in real time.",
+    "ctaPrimary": "Book a demo",
+    "ctaSecondary": "Explore apps"
+  },
+  "stats": {
+    "items": [
+      { "value": "38", "label": "apps ready for the screen" },
+      { "value": "Seconds", "label": "to update every screen" },
+      { "value": "Android + desktop", "label": "player for any screen" },
+      { "value": "Offline", "label": "keeps running without internet" }
+    ]
+  },
+  "features": {
+    "eyebrow": "Features",
+    "title": "Everything for your screens, in one place.",
+    "subtitle": "From your first screen to a whole network — EdgeRize gives you control, speed and peace of mind.",
+    "items": [
+      {
+        "title": "Manage remotely",
+        "body": "Change what plays on one screen or a hundred, from your phone or laptop — wherever you are."
+      },
+      {
+        "title": "Schedule ahead",
+        "body": "Prepare offers and announcements and run them exactly when they matter. No printing, no waiting."
+      },
+      {
+        "title": "38 apps",
+        "body": "Menus, weather, exchange rates, news, social feeds — ready in a few clicks."
+      },
+      {
+        "title": "Works offline",
+        "body": "The player keeps showing content even when the connection drops. No blank screens."
+      },
+      {
+        "title": "Any screen",
+        "body": "A regular TV, a monitor or a pro display. Android or desktop — it doesn't matter."
+      },
+      {
+        "title": "Your look",
+        "body": "Tune colours, layout and branding so it all looks like you, not a template."
+      }
+    ]
+  },
+  "useCases": {
+    "eyebrow": "Solutions",
+    "title": "Built for every kind of space.",
+    "subtitle": "The same tool, shaped around what you do.",
+    "cta": "All solutions",
+    "items": [
+      {
+        "title": "Hospitality",
+        "body": "Digital menus, daily specials and prices you change on the fly."
+      },
+      { "title": "Retail", "body": "Promotions, new arrivals and brand messages on every screen." },
+      {
+        "title": "Offices",
+        "body": "Announcements, calendars and key numbers in plain sight for the team."
+      },
+      { "title": "Healthcare", "body": "Queues, notices and a calmer waiting room for patients." },
+      { "title": "Hotels", "body": "Welcomes, information and events for your guests." },
+      { "title": "Gyms", "body": "Class schedules, motivation and announcements — always current." }
+    ]
+  },
+  "steps": {
+    "eyebrow": "How it works",
+    "title": "On screen in a few minutes.",
+    "items": [
+      {
+        "title": "Connect a screen",
+        "body": "Turn on EdgeRize on any TV or computer and pair it in seconds."
+      },
+      {
+        "title": "Compose the content",
+        "body": "Pick apps or upload your own and arrange them exactly how you want."
+      },
+      {
+        "title": "Publish and forget",
+        "body": "Send it to one screen or a whole network. Change it anytime, from anywhere."
+      }
+    ]
+  },
+  "apps": {
+    "eyebrow": "Apps",
+    "title": "38 apps, ready for the screen.",
+    "body": "Everything a screen needs — without writing code. Add an app, set it up and publish.",
+    "cta": "Explore all apps",
+    "categories": [
+      "Menus & retail",
+      "Weather & environment",
+      "Finance & markets",
+      "News & information",
+      "Social media",
+      "Calendars & workplace",
+      "Video & streaming",
+      "Announcements & messages"
+    ]
+  },
+  "platform": {
+    "eyebrow": "Platform",
+    "title": "Dashboard, player, screen — one whole.",
+    "subtitle": "Three parts that work seamlessly together.",
+    "items": [
+      {
+        "title": "Dashboard",
+        "body": "Manage content, screens and your team from one clear control panel."
+      },
+      {
+        "title": "Player",
+        "body": "A lightweight Android and desktop app that runs your content reliably, around the clock."
+      },
+      {
+        "title": "Screens",
+        "body": "Connect one screen or a thousand and manage them all from one place."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Let us show you EdgeRize in action.",
+    "body": "Book a short demo and see how EdgeRize works in your space — no strings attached.",
+    "primary": "Book a demo",
+    "secondary": "Get in touch"
+  }
+}

@@ -35,9 +35,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Edge Player',
-        short_name: 'Edge Player',
-        description: 'Edge digital signage player',
+        name: 'EdgeRize Player',
+        short_name: 'EdgeRize',
+        description: 'EdgeRize digital signage player',
         theme_color: '#000000',
         background_color: '#000000',
         display: 'fullscreen',

@@ -1,0 +1,98 @@
+{
+  "privacy": {
+    "meta": {
+      "title": "Politika privatnosti",
+      "description": "Kako EdgeRize prikuplja, koristi i štiti vaše podatke."
+    },
+    "title": "Politika privatnosti",
+    "updated": "Poslednje ažuriranje: jul 2026.",
+    "intro": "Ova politika objašnjava koje podatke prikupljamo kada koristite naš sajt i usluge, kako ih koristimo i koja su vaša prava.",
+    "sections": [
+      {
+        "heading": "Podaci koje prikupljamo",
+        "body": "Prikupljamo podatke koje nam sami dostavite (npr. ime, email i poruku putem kontakt forme) i osnovne tehničke podatke o poseti sajtu (uz vaš pristanak za analitiku)."
+      },
+      {
+        "heading": "Kako koristimo podatke",
+        "body": "Podatke koristimo da odgovorimo na vaše upite, pružimo i unapredimo usluge i, uz pristanak, razumemo kako se sajt koristi. Ne prodajemo vaše podatke."
+      },
+      {
+        "heading": "Kolačići i analitika",
+        "body": "Analitičke kolačiće (Google Analytics) postavljamo tek nakon vašeg pristanka. Više detalja potražite u našoj Politici kolačića."
+      },
+      {
+        "heading": "Deljenje sa trećim stranama",
+        "body": "Podatke delimo samo sa pouzdanim obrađivačima koji nam pomažu u radu (npr. email i analitika), i to u meri neophodnoj za pružanje usluge."
+      },
+      {
+        "heading": "Vaša prava",
+        "body": "Imate pravo na pristup, ispravku, brisanje i prigovor na obradu vaših podataka, u skladu sa važećim propisima o zaštiti podataka. Za ostvarivanje prava, kontaktirajte nas."
+      },
+      {
+        "heading": "Kontakt",
+        "body": "Za sva pitanja o privatnosti pišite nam na office@edgerize.rs."
+      }
+    ],
+    "disclaimer": "Ovaj dokument je informativnog karaktera i ne predstavlja pravni savet."
+  },
+  "terms": {
+    "meta": {
+      "title": "Uslovi korišćenja",
+      "description": "Uslovi pod kojima koristite EdgeRize sajt i usluge."
+    },
+    "title": "Uslovi korišćenja",
+    "updated": "Poslednje ažuriranje: jul 2026.",
+    "intro": "Korišćenjem ovog sajta i usluga prihvatate ove uslove. Ako se ne slažete sa njima, molimo vas da ne koristite sajt.",
+    "sections": [
+      {
+        "heading": "Korišćenje usluga",
+        "body": "Usluge smete koristiti u skladu sa zakonom i ovim uslovima. Zadržavamo pravo da ograničimo pristup u slučaju zloupotrebe."
+      },
+      {
+        "heading": "Nalozi",
+        "body": "Ako kreirate nalog, odgovorni ste za čuvanje pristupnih podataka i za aktivnosti na svom nalogu."
+      },
+      {
+        "heading": "Intelektualna svojina",
+        "body": "EdgeRize, njegov sadržaj i brend su naše vlasništvo i zaštićeni su odgovarajućim pravima. Vaš sadržaj ostaje vaš."
+      },
+      {
+        "heading": "Ograničenje odgovornosti",
+        "body": "Usluge pružamo „takve kakve jesu“. U meri dozvoljenoj zakonom, ne odgovaramo za posrednu ili posledičnu štetu nastalu korišćenjem usluga."
+      },
+      {
+        "heading": "Izmene",
+        "body": "Ove uslove možemo povremeno ažurirati. Nastavak korišćenja nakon izmena znači prihvatanje novih uslova."
+      },
+      {
+        "heading": "Kontakt",
+        "body": "Za pitanja o uslovima pišite nam na office@edgerize.rs."
+      }
+    ],
+    "disclaimer": "Ovaj dokument je informativnog karaktera i ne predstavlja pravni savet."
+  },
+  "cookies": {
+    "meta": {
+      "title": "Politika kolačića",
+      "description": "Koje kolačiće EdgeRize koristi i kako da njima upravljate."
+    },
+    "title": "Politika kolačića",
+    "updated": "Poslednje ažuriranje: jul 2026.",
+    "intro": "Kolačići su male datoteke koje sajt čuva na vašem uređaju. Koristimo ih da sajt radi kako treba i, uz vaš pristanak, da razumemo kako se koristi.",
+    "sections": [
+      {
+        "heading": "Neophodni kolačići",
+        "body": "Omogućavaju osnovne funkcije sajta, poput pamćenja izbora jezika i teme. Oni su uvek aktivni."
+      },
+      {
+        "heading": "Analitički kolačići",
+        "body": "Google Analytics nam pomaže da razumemo posete i unapredimo sajt. Postavljamo ih tek nakon vašeg pristanka."
+      },
+      {
+        "heading": "Upravljanje kolačićima",
+        "body": "Pristanak možete promeniti u bilo kom trenutku putem podešavanja kolačića na sajtu, kao i u podešavanjima vašeg pregledača."
+      }
+    ],
+    "disclaimer": "Ovaj dokument je informativnog karaktera i ne predstavlja pravni savet."
+  }
+}

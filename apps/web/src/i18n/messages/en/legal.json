@@ -1,0 +1,98 @@
+{
+  "privacy": {
+    "meta": {
+      "title": "Privacy Policy",
+      "description": "How EdgeRize collects, uses and protects your data."
+    },
+    "title": "Privacy Policy",
+    "updated": "Last updated: July 2026.",
+    "intro": "This policy explains what data we collect when you use our site and services, how we use it, and your rights.",
+    "sections": [
+      {
+        "heading": "Data we collect",
+        "body": "We collect data you provide (e.g. your name, email and message via the contact form) and basic technical data about your visit (with your consent for analytics)."
+      },
+      {
+        "heading": "How we use data",
+        "body": "We use data to respond to your enquiries, provide and improve our services and, with consent, understand how the site is used. We do not sell your data."
+      },
+      {
+        "heading": "Cookies and analytics",
+        "body": "We set analytics cookies (Google Analytics) only after you consent. See our Cookie Policy for details."
+      },
+      {
+        "heading": "Sharing with third parties",
+        "body": "We share data only with trusted processors who help us operate (e.g. email and analytics), and only as necessary to provide the service."
+      },
+      {
+        "heading": "Your rights",
+        "body": "You have the right to access, correct, delete and object to the processing of your data, in line with applicable data protection law. To exercise these rights, contact us."
+      },
+      {
+        "heading": "Contact",
+        "body": "For any privacy questions, write to us at office@edgerize.rs."
+      }
+    ],
+    "disclaimer": "This document is for information only and does not constitute legal advice."
+  },
+  "terms": {
+    "meta": {
+      "title": "Terms of Service",
+      "description": "The terms under which you use the EdgeRize site and services."
+    },
+    "title": "Terms of Service",
+    "updated": "Last updated: July 2026.",
+    "intro": "By using this site and services you accept these terms. If you do not agree with them, please do not use the site.",
+    "sections": [
+      {
+        "heading": "Use of the services",
+        "body": "You may use the services in accordance with the law and these terms. We reserve the right to restrict access in case of misuse."
+      },
+      {
+        "heading": "Accounts",
+        "body": "If you create an account, you are responsible for keeping your credentials safe and for activity on your account."
+      },
+      {
+        "heading": "Intellectual property",
+        "body": "EdgeRize, its content and brand are our property and protected by applicable rights. Your content remains yours."
+      },
+      {
+        "heading": "Limitation of liability",
+        "body": "We provide the services \"as is\". To the extent permitted by law, we are not liable for indirect or consequential damages arising from use of the services."
+      },
+      {
+        "heading": "Changes",
+        "body": "We may update these terms from time to time. Continued use after changes means you accept the new terms."
+      },
+      {
+        "heading": "Contact",
+        "body": "For questions about these terms, write to us at office@edgerize.rs."
+      }
+    ],
+    "disclaimer": "This document is for information only and does not constitute legal advice."
+  },
+  "cookies": {
+    "meta": {
+      "title": "Cookie Policy",
+      "description": "Which cookies EdgeRize uses and how to manage them."
+    },
+    "title": "Cookie Policy",
+    "updated": "Last updated: July 2026.",
+    "intro": "Cookies are small files a site stores on your device. We use them to make the site work and, with your consent, to understand how it's used.",
+    "sections": [
+      {
+        "heading": "Essential cookies",
+        "body": "These enable core site functions, like remembering your language and theme choice. They are always active."
+      },
+      {
+        "heading": "Analytics cookies",
+        "body": "Google Analytics helps us understand visits and improve the site. We set them only after you consent."
+      },
+      {
+        "heading": "Managing cookies",
+        "body": "You can change your consent at any time via the cookie settings on the site, as well as in your browser settings."
+      }
+    ],
+    "disclaimer": "This document is for information only and does not constitute legal advice."
+  }
+}

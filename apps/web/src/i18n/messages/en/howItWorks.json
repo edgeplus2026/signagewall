@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "title": "How it works",
+    "description": "From a blank screen to a living display in minutes — connect a screen, compose the content and publish remotely."
+  },
+  "hero": {
+    "eyebrow": "How it works",
+    "title": "From a blank screen to a living display — in minutes.",
+    "subtitle": "No cables, no technician, no code. Three steps stand between you and screens that work for you."
+  },
+  "steps": {
+    "title": "Three steps to your first screen.",
+    "items": [
+      {
+        "title": "Connect a screen",
+        "body": "Install the EdgeRize player on an Android TV box, mini-PC or desktop you already have. Open the screen, scan the QR code from your dashboard — and it's paired. No cables, no technician."
+      },
+      {
+        "title": "Compose the content",
+        "body": "Pick from 38 ready-made apps — menus, weather, exchange rates, social feeds — or upload your own images and video. Arrange them into a playlist and split the screen into zones if you like."
+      },
+      {
+        "title": "Publish remotely",
+        "body": "Send it to one screen or a whole network. Schedule changes ahead and edit anything in real time — from your phone or laptop, wherever you are."
+      }
+    ]
+  },
+  "capabilities": {
+    "eyebrow": "What you get",
+    "title": "Control over the whole network, from one panel.",
+    "items": [
+      {
+        "title": "Fleet management",
+        "body": "Group screens by location and publish to all at once or one at a time."
+      },
+      {
+        "title": "Scheduling",
+        "body": "Different content by hour, day or occasion — prepared in advance."
+      },
+      {
+        "title": "On-screen zones",
+        "body": "Split the screen: menu on the left, weather on top, a news ticker below."
+      },
+      {
+        "title": "Works offline",
+        "body": "Content is cached and keeps playing without internet; it syncs the moment the connection returns."
+      }
+    ]
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "items": [
+      {
+        "q": "Do I need special hardware?",
+        "a": "No. EdgeRize runs on an ordinary Android TV, mini-PC or desktop computer you already have."
+      },
+      {
+        "q": "What happens if the internet drops?",
+        "a": "The player keeps showing the last content from cache. As soon as the connection returns, it syncs automatically."
+      },
+      {
+        "q": "How many screens can I connect?",
+        "a": "From one to a thousand — you manage them all from the same place, with no added complexity."
+      },
+      {
+        "q": "Is technical knowledge required?",
+        "a": "No. If you can make a social media post, you can manage your screens."
+      }
+    ]
+  }
+}

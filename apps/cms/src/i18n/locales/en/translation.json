@@ -9,7 +9,7 @@
     "acceptLegalRequired": "You must accept the Terms of Service and Privacy Policy."
   },
   "common": {
-    "appName": "Edge",
+    "appName": "EdgeRize",
     "email": "Email",
     "password": "Password",
     "name": "Name",
@@ -1792,6 +1792,15 @@
       "clearFilters": "Clear filters"
     },
     "openApp": "Open app",
+    "itemNouns": {
+      "countdown": { "one": "countdown", "other": "countdowns" },
+      "menu": { "one": "menu", "other": "menus" },
+      "wisdom": { "one": "display", "other": "displays" },
+      "weather": { "one": "location", "other": "locations" },
+      "clock": { "one": "clock", "other": "clocks" },
+      "ticker": { "one": "ticker", "other": "tickers" },
+      "currency": { "one": "board", "other": "boards" }
+    },
     "breadcrumb": {
       "root": "Apps"
     },
@@ -1811,6 +1820,14 @@
     "instances": {
       "description": "An instance is a ready-to-use copy of {{app}} with its own content and settings. Set up a separate one for each screen or message, then add it to your screens.",
       "count": "{{count}} instances",
+      "explain": "Each one is a saved {{app}} you set up with your own content. Open it to make changes, or add it to a screen to show it.",
+      "overlayNote": "This app overlays your screens, so it picks its screens in the settings above.",
+      "newItem": "New {{noun}}",
+      "whatIsThis": "One saved copy of {{app}} with its own content, ready to put on any screen.",
+      "emptyTitle": "Nothing here yet",
+      "emptyDescription": "Create your first {{noun}} to show {{app}} on a screen.",
+      "itemNoun": "setup",
+      "itemNounPlural": "setups",
       "create": {
         "title": "New instance",
         "description": "Set up a new copy of this app to configure and add to your screens."

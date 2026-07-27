@@ -1,4 +1,4 @@
-//! Edge Player native shell (Tauri v2).
+//! EdgeRize Player native shell (Tauri v2).
 //!
 //! Wraps the REMOTE web player in a fullscreen, unattended kiosk window and
 //! persists the stable `deviceId` in the OS app-config dir (surviving a WebView2
@@ -10,6 +10,8 @@
 //! health-check watchdog with rollback (see `updater.rs`). CEC display-power is
 //! a later phase.
 
+pub mod paths;
+pub mod state;
 mod updater;
 
 use std::fs;
@@ -90,9 +92,169 @@ fn set_device_id(app: tauri::AppHandle, id: String) -> Result<(), String> {
         device_id: Some(id),
     };
     let raw = serde_json::to_string_pretty(&record).map_err(|e| e.to_string())?;
-    updater::write_atomic(&path, raw.as_bytes()).map_err(|e| e.to_string())?;
+    state::write_atomic(&path, raw.as_bytes()).map_err(|e| e.to_string())?;
     Ok(())
 }
+
+/// The `watchdog/` subdir under the app-config dir (created on demand). Shared by
+/// the liveness beat and the player-info handshake the supervisor reads.
+fn watchdog_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let dir = app
+        .path()
+        .app_config_dir()
+        .map_err(|e| e.to_string())?
+        .join(paths::WATCHDOG_SUBDIR);
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    Ok(dir)
+}
+
+/// Records which on-disk binary this player is, so the watchdog can spawn/kill it
+/// by its real path/name instead of a hardcoded install-name (only confirmable on
+/// Windows). Written once at startup; best-effort — a failure just falls the
+/// watchdog back to scanning the install dir.
+fn write_player_info(app: &tauri::AppHandle) {
+    let Ok(dir) = watchdog_dir(app) else {
+        return;
+    };
+    let Ok(exe) = std::env::current_exe() else {
+        return;
+    };
+    let info = state::PlayerInfo {
+        exe_path: exe.to_string_lossy().into_owned(),
+        image_name: exe
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default(),
+    };
+    let _ = state::write_player_info(&dir.join(paths::PLAYER_INFO_FILE), &info);
+}
+
+/// Liveness beat from the web layer, proving the WebView is running JS right now.
+/// The supervisor reads this file's freshness to tell a healthy player from a
+/// frozen one (process alive but JS stalled → gray screen). Best-effort: a dropped
+/// beat just looks briefly stale and the web side beats again a few seconds later.
+#[tauri::command]
+fn report_liveness(app: tauri::AppHandle) {
+    let Ok(dir) = watchdog_dir(&app) else {
+        return;
+    };
+    let rec = state::LivenessRecord {
+        pid: std::process::id(),
+        ts_ms: state::now_ms(),
+    };
+    let _ = state::write_liveness(&dir.join(paths::LIVENESS_FILE), &rec);
+}
+
+// --- Keep-alive supervision registration (release only) ---------------------
+// The watchdog is the process the OS autostarts AND keeps alive; it restarts the
+// player on crash/hang. macOS uses a launchd LaunchAgent with KeepAlive; Windows
+// a Scheduled Task with restart-on-failure. Windows is the fleet, macOS is
+// dev/test. Everything below is best-effort and idempotent (safe every boot).
+
+/// The bundled watchdog binary, installed next to us (Tauri `externalBin` strips
+/// the target-triple suffix and drops it beside the main exe).
+#[cfg(not(debug_assertions))]
+fn watchdog_exe_path() -> Option<PathBuf> {
+    let dir = std::env::current_exe().ok()?.parent()?.to_path_buf();
+    let name = if cfg!(windows) {
+        "edge-watchdog.exe"
+    } else {
+        "edge-watchdog"
+    };
+    let exe = dir.join(name);
+    exe.exists().then_some(exe)
+}
+
+/// macOS: a launchd LaunchAgent with `RunAtLoad` + `KeepAlive` — starts the
+/// watchdog at login and restarts it if it ever dies. Idempotent: overwrites the
+/// plist and re-kickstarts.
+#[cfg(all(not(debug_assertions), target_os = "macos"))]
+fn ensure_watchdog_supervision(watchdog: &std::path::Path) {
+    let label = "com.edgerize.player.watchdog";
+    let Some(home) = dirs::home_dir() else {
+        return;
+    };
+    let plist_path = home
+        .join("Library/LaunchAgents")
+        .join(format!("{label}.plist"));
+    let plist = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key><string>{label}</string>
+    <key>ProgramArguments</key><array><string>{exe}</string></array>
+    <key>RunAtLoad</key><true/>
+    <key>KeepAlive</key><true/>
+  </dict>
+</plist>
+"#,
+        exe = watchdog.display()
+    );
+    if let Some(parent) = plist_path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    if fs::write(&plist_path, plist).is_err() {
+        return;
+    }
+    // Load + (re)start now; at next login `RunAtLoad` handles it regardless.
+    if let Ok(out) = std::process::Command::new("id").arg("-u").output() {
+        let uid = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if !uid.is_empty() {
+            let target = format!("gui/{uid}");
+            let _ = std::process::Command::new("launchctl")
+                .args(["bootstrap", &target, &plist_path.to_string_lossy()])
+                .status();
+            let _ = std::process::Command::new("launchctl")
+                .args(["kickstart", "-k", &format!("{target}/{label}")])
+                .status();
+        }
+    }
+}
+
+/// Windows (the fleet): a Scheduled Task with an at-logon trigger and
+/// restart-on-failure — the closest equivalent to launchd KeepAlive (Task
+/// Scheduler restarts a FAILED run; the watchdog never exits cleanly, so a crash
+/// is a non-zero exit it catches). currentUser / LeastPrivilege to keep the
+/// no-UAC model. VERIFY-ON-WINDOWS: schtasks XML encoding + logon-trigger
+/// principal behaviour can only be confirmed on a real box.
+#[cfg(all(not(debug_assertions), windows))]
+fn ensure_watchdog_supervision(watchdog: &std::path::Path) {
+    let task = "EdgeRizePlayerWatchdog";
+    let xml = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo><Description>EdgeRize Player keep-alive supervisor</Description></RegistrationInfo>
+  <Triggers><LogonTrigger><Enabled>true</Enabled></LogonTrigger></Triggers>
+  <Principals><Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
+    <RestartOnFailure><Interval>PT1M</Interval><Count>999</Count></RestartOnFailure>
+  </Settings>
+  <Actions Context="Author"><Exec><Command>{exe}</Command></Exec></Actions>
+</Task>"#,
+        exe = watchdog.display()
+    );
+    let tmp = std::env::temp_dir().join("edge-watchdog-task.xml");
+    if fs::write(&tmp, xml).is_err() {
+        return;
+    }
+    let _ = std::process::Command::new("schtasks")
+        .args(["/Create", "/TN", task, "/XML", &tmp.to_string_lossy(), "/F"])
+        .status();
+    let _ = std::process::Command::new("schtasks")
+        .args(["/Run", "/TN", task])
+        .status();
+    let _ = fs::remove_file(&tmp);
+}
+
+/// Other targets (Linux is not a fleet target): no OS supervisor wired yet.
+#[cfg(all(not(debug_assertions), not(any(target_os = "macos", windows))))]
+fn ensure_watchdog_supervision(_watchdog: &std::path::Path) {}
 
 /// The native shell version (distinct from the web bundle's `appVersion`).
 #[tauri::command]
@@ -178,6 +340,7 @@ pub fn run() {
             get_device_id,
             set_device_id,
             shell_version,
+            report_liveness,
             check_update,
             updater::run_update,
             updater::report_alive,
@@ -185,6 +348,26 @@ pub fn run() {
             updater::get_update_state
         ])
         .setup(|app| {
+            // Path parity: the standalone watchdog resolves state/liveness paths
+            // from `paths::config_root()` (dirs + identifier) with no AppHandle.
+            // Pin it against Tauri's own `app_config_dir()` so a divergence fails
+            // loudly in dev/CI on each platform instead of silently splitting the
+            // two processes across different files.
+            #[cfg(debug_assertions)]
+            if let (Ok(tauri_dir), Some(ours)) =
+                (app.path().app_config_dir(), crate::paths::config_root())
+            {
+                debug_assert_eq!(
+                    tauri_dir, ours,
+                    "paths::config_root() must equal Tauri app_config_dir()"
+                );
+            }
+
+            // Tell the keep-alive supervisor which binary we are (path + image
+            // name), so it can restart exactly this player without a hardcoded
+            // install-name. Harmless in dev; the watchdog only acts in release.
+            write_player_info(app.handle());
+
             // OTA updater (desktop only): register the plugin at runtime so the
             // `check_update` command — and the later download/install path — can
             // reach `app.updater()`. Registering here (vs the builder chain) is
@@ -200,13 +383,19 @@ pub fn run() {
             updater::spawn_health_watchdog(app.handle().clone(), &guards);
             app.manage(guards);
 
-            // Register autostart-on-boot only in release: a dev build shouldn't
-            // add itself to the OS login items.
+            // Keep-alive supervision (release only). The standalone watchdog is now
+            // what the OS autostarts AND keeps alive (launchd KeepAlive / Task
+            // Scheduler restart-on-failure); it in turn restarts the player on
+            // crash/hang — the gap the old autostart-on-boot could not cover. Also
+            // drop the player's OWN legacy login item so, on a box upgraded from an
+            // older build, the two don't both claim autostart.
             #[cfg(not(debug_assertions))]
             {
                 use tauri_plugin_autostart::ManagerExt;
-                // Best-effort: don't fail boot if autostart registration is denied.
-                let _ = app.autolaunch().enable();
+                let _ = app.autolaunch().disable();
+                if let Some(watchdog) = watchdog_exe_path() {
+                    ensure_watchdog_supervision(&watchdog);
+                }
             }
 
             // Build the window pointing at the (remote) player. The URL is baked
@@ -217,7 +406,7 @@ pub fn run() {
                 .map_err(|_| format!("invalid EDGE_PLAYER_URL: {url}"))?;
 
             let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(target))
-                .title("Edge Player");
+                .title("EdgeRize Player");
 
             // Kiosk only in release; a plain resizable window in dev so it's easy
             // to work with (not fullscreen / always-on-top on the dev machine).
@@ -263,7 +452,7 @@ pub fn run() {
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running Edge Player shell");
+        .expect("error while running EdgeRize Player shell");
 }
 
 #[cfg(test)]

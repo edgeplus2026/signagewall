@@ -22,6 +22,18 @@ export function appAbout(t: TFunction, slug: string): string {
   return t(`apps.catalog.${slug}.about`, { defaultValue: '' })
 }
 
+/**
+ * The user-facing noun for one configured copy of an app — "countdown", "menu",
+ * "location". Per-app override under `apps.itemNouns.<slug>`, falling back to the
+ * generic `apps.instances.itemNoun(Plural)` so every app reads naturally without
+ * the word "instance". `plural` picks the heading/count form.
+ */
+export function appItemNoun(t: TFunction, slug: string, plural = false): string {
+  const form = plural ? 'other' : 'one'
+  const generic = t(`apps.instances.${plural ? 'itemNounPlural' : 'itemNoun'}`)
+  return t(`apps.itemNouns.${slug}.${form}`, { defaultValue: generic })
+}
+
 export function categoryName(t: TFunction, slug: string): string {
   return t(`apps.categories.names.${slug}`, { defaultValue: slug })
 }

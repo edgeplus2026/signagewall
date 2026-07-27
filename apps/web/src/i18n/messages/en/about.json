@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "title": "About",
+    "description": "EdgeRize is software for digital screens, made in Serbia, for businesses that want their space to speak."
+  },
+  "hero": {
+    "eyebrow": "About",
+    "title": "Software for screens, built in Serbia.",
+    "subtitle": "EdgeRize is built by a team that believes every screen in your space can work for you, without the hassle and without a big budget."
+  },
+  "story": {
+    "title": "Why we build EdgeRize.",
+    "paragraphs": [
+      "We've seen too many screens left switched off or showing the same image for years — while the menu changes by hand, promotions run late, and information goes stale. All because existing tools are expensive, complicated, or built for someone else.",
+      "We built EdgeRize to change that: a platform anyone can use to run their screens — as simple as a social media post, as powerful as a tool for a whole network of locations. Locally built, with support in your language."
+    ]
+  },
+  "values": {
+    "title": "What we believe.",
+    "items": [
+      {
+        "title": "Simplicity first",
+        "body": "If it's complicated, we're not done. Every feature has to be clear at a glance."
+      },
+      {
+        "title": "Reliable around the clock",
+        "body": "A frozen screen is worse than a blank one. We build it to run non-stop, even when no one's watching."
+      },
+      {
+        "title": "By your side",
+        "body": "Support in your language and people who understand your business — not a ticket that waits for weeks."
+      },
+      {
+        "title": "No hidden costs",
+        "body": "Fair terms and a price that doesn't change overnight. No surprises on the invoice."
+      }
+    ]
+  }
+}

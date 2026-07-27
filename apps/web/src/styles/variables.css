@@ -1,0 +1,58 @@
+:root {
+  /* Text */
+  --text-primary: rgb(20 20 20 / 94%);
+  --text-secondary: rgb(20 20 20 / 70%);
+
+  /* Borders */
+  --border-primary: rgb(20 20 20 / 20%);
+  --border-secondary: rgb(20 20 20 / 12%);
+  --border-tertiary: rgb(20 20 20 / 8%);
+  --border-quaternary: rgb(20 20 20 / 4%);
+
+  /* Surfaces */
+  --page: #f7f7f7;
+  --panel: #fcfcfc;
+  --sidebar: #f3f3f3;
+  /* Elevated surface for floating UI (e.g. chart tooltips) that must read as
+     opaque and distinct from the panel it overlays, in both themes. */
+  --panel-raised: #ffffff;
+
+  /* Interactive */
+  --highlight: rgb(20 20 20 / 6%);
+
+  /* Brand */
+  --brand: #141414;
+  --brand-contrast: #fcfcfc;
+
+  /* Semantic */
+  --danger: #cf2d56;
+  --success: #1f8a65;
+  --warning: #c08532;
+
+  /* The brand draws with straight lines only — every `rounded-*` step is wired
+     to this in globals.css, so a stray `rounded-xl` can't sneak a soft corner
+     back in. `rounded-full` is deliberately left out (pills, avatars). */
+  --radius: 0rem;
+
+  /* Width of the drawn column every block, rail and hatch band aligns to. */
+  --frame: 90rem;
+}
+
+.dark {
+  --text-primary: rgb(228 228 228 / 94%);
+  --text-secondary: rgb(228 228 228 / 70%);
+  --border-primary: rgb(228 228 228 / 20%);
+  --border-secondary: rgb(228 228 228 / 12%);
+  --border-tertiary: rgb(228 228 228 / 8%);
+  --border-quaternary: rgb(228 228 228 / 4%);
+  --highlight: rgb(228 228 228 / 6%);
+  --page: #141414;
+  --panel: #181818;
+  --sidebar: #141414;
+  --panel-raised: #2a2a2a;
+  --brand: #e4e4e4;
+  --brand-contrast: #181818;
+  --danger: #cf2d56;
+  --success: #1f8a65;
+  --warning: #c08532;
+}

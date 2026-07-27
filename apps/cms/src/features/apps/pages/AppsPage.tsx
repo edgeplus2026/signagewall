@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { AppDetailDrawer } from '@/features/apps/components/AppDetailDrawer'
+import { AppDrawer } from '@/features/apps/components/AppDrawer'
 import { AppGrid } from '@/features/apps/components/AppGrid'
 import { UninstallAppDialog } from '@/features/apps/components/UninstallAppDialog'
-import { useApps } from '@/features/apps/hooks/useApps'
+import { useApp, useApps } from '@/features/apps/hooks/useApps'
 import type { EdgeApp } from '@/features/apps/types/app.types'
 
 type AppsTab = 'store' | 'my-apps'
@@ -23,17 +23,31 @@ export default function AppsPage() {
   const { data: apps = [], isLoading } = useApps()
   const myApps = useMemo(() => apps.filter((app) => app.isInstalled), [apps])
 
-  const [detailsApp, setDetailsApp] = useState<EdgeApp | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  // The open app drawer is driven by `?app=<id>` so it survives navigating into
+  // the config editor and back (the editor links back with the same param).
+  const drawerAppId = searchParams.get('app')
+  const appFromList = apps.find((app) => app.id === drawerAppId)
+  // Fall back to a direct fetch for an installed app that's no longer public and
+  // thus missing from the catalog list.
+  const { data: fetchedApp } = useApp(appFromList ? undefined : (drawerAppId ?? undefined))
+  const drawerApp = appFromList ?? fetchedApp ?? null
+
   const [uninstallApp, setUninstallApp] = useState<EdgeApp | null>(null)
   const [uninstallOpen, setUninstallOpen] = useState(false)
 
-  const handleShowDetails = (app: EdgeApp) => {
-    setDetailsApp(app)
-    setDrawerOpen(true)
+  const setAppParam = (appId: string | null) => {
+    const next = new URLSearchParams(searchParams)
+    if (appId === null) {
+      next.delete('app')
+    } else {
+      next.set('app', appId)
+    }
+    setSearchParams(next)
   }
 
   const handleRequestUninstall = (app: EdgeApp) => {
+    // Leave the app's drawer before confirming, so the dialog stands on its own.
+    setAppParam(null)
     setUninstallApp(app)
     setUninstallOpen(true)
   }
@@ -42,9 +56,7 @@ export default function AppsPage() {
     <div className="flex w-full min-w-0 flex-col gap-7 lg:px-10">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-primary text-xl font-medium tracking-tight">
-            {t('apps.title')}
-          </h1>
+          <h1 className="text-primary text-xl font-medium tracking-tight">{t('apps.title')}</h1>
           <span className="bg-success/10 text-success inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium">
             {t('apps.count', { count: apps.length })}
           </span>
@@ -84,7 +96,9 @@ export default function AppsPage() {
             isLoading={isLoading}
             emptyTitle={t('apps.empty.store.title')}
             emptyDescription={t('apps.empty.store.description')}
-            onShowDetails={handleShowDetails}
+            onShowDetails={(app) => {
+              setAppParam(app.id)
+            }}
             onRequestUninstall={handleRequestUninstall}
           />
         </TabsContent>
@@ -95,23 +109,24 @@ export default function AppsPage() {
             isLoading={isLoading}
             emptyTitle={t('apps.empty.myApps.title')}
             emptyDescription={t('apps.empty.myApps.description')}
-            onShowDetails={handleShowDetails}
+            onShowDetails={(app) => {
+              setAppParam(app.id)
+            }}
             onRequestUninstall={handleRequestUninstall}
           />
         </TabsContent>
       </Tabs>
 
-      <AppDetailDrawer
-        app={detailsApp}
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
+      <AppDrawer
+        app={drawerApp}
+        open={Boolean(drawerApp)}
+        onOpenChange={(open) => {
+          if (!open) setAppParam(null)
+        }}
+        onRequestUninstall={handleRequestUninstall}
       />
 
-      <UninstallAppDialog
-        app={uninstallApp}
-        open={uninstallOpen}
-        onOpenChange={setUninstallOpen}
-      />
+      <UninstallAppDialog app={uninstallApp} open={uninstallOpen} onOpenChange={setUninstallOpen} />
     </div>
   )
 }

@@ -1,10 +1,15 @@
 [package]
 name = "edge-player"
 version = "0.1.0"
-description = "Edge Player native shell"
-authors = ["Future Forward"]
+description = "EdgeRize Player native shell"
+authors = ["EdgeRize"]
 edition = "2021"
 rust-version = "1.77.2"
+# This crate ships two bins: the player shell (src/main.rs) and the watchdog
+# sidecar (src/bin/edge-watchdog.rs). Tauri's dev/build run a bare `cargo run`/
+# `cargo build`, which is ambiguous with >1 bin — name the default explicitly or
+# `tauri dev`/`tauri build` fail with "could not determine which binary to run".
+default-run = "edge-player"
 
 # The Tauri v2 convention: a thin bin that calls into a lib crate (keeps the door
 # open for the mobile targets later, which require the lib layout).
@@ -29,6 +34,11 @@ sha2 = "0.10"
 # `time` only — bounds the update check/download so a stalled transfer on a
 # flaky signage link can't wedge the update path forever.
 tokio = { version = "1", features = ["time"] }
+# OS config-dir resolution shared by the shell and the standalone watchdog. The
+# watchdog has no Tauri runtime, so it resolves `app_config_dir()` itself as
+# `dirs::config_dir()/<identifier>` — the exact formula Tauri v2 uses. Already in
+# the lock (a transitive dep); promoted to a direct dep here.
+dirs = "6"
 
 # OTA updater (Phase 2). Desktop-only: the updater ships as installer artifacts
 # per OS; mobile (Android, later) updates through its own store channel, so the

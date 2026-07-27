@@ -160,7 +160,7 @@ export const DeviceProfileSchema = SchemaFactory.createForClass(DeviceProfile);
 /**
  * A physical display device, bound 1:1 to a Screen. In this product a screen IS
  * the player: there is no separate "player pulls a screen" indirection like the
- * legacy Castit (one screen → many players). The `deviceId` is a stable UUID the
+ * legacy (one screen → many players). The `deviceId` is a stable UUID the
  * player persists locally; the opaque pairing token (stored hashed) authorizes
  * reconnects without re-pairing.
  */

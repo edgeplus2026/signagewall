@@ -179,7 +179,7 @@ export default function AppInstanceConfigPage() {
   }
 
   if (!app?.isInstalled || !instance) {
-    return <Navigate to={app ? `/apps/${app.id}/instances` : '/apps'} replace />
+    return <Navigate to={app ? `/apps?app=${app.id}` : '/apps'} replace />
   }
 
   // A `connected` app with no account yet: show only the centered connect prompt
@@ -342,7 +342,7 @@ export default function AppInstanceConfigPage() {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         onDeleted={() => {
-          void navigate(`/apps/${app.id}/instances`)
+          void navigate(`/apps?app=${app.id}`)
         }}
       />
 

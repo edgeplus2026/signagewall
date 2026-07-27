@@ -1,0 +1,18 @@
+{
+  "bookDemo": "Book a demo",
+  "contactUs": "Contact us",
+  "getInTouch": "Get in touch",
+  "exploreApps": "Explore apps",
+  "seeAllApps": "See all apps",
+  "allSolutions": "All solutions",
+  "learnMore": "Learn more",
+  "backHome": "Back home",
+  "readMore": "Read more",
+  "download": "Download",
+  "cookie": {
+    "message": "We use cookies for analytics, with your consent.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "more": "Learn more"
+  }
+}

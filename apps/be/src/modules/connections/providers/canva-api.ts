@@ -142,7 +142,7 @@ export type CanvaOrientation = 'horizontal' | 'vertical';
 /**
  * The Canva export `format` payload for a chosen format + orientation. mp4 needs
  * an orientation-specific quality; jpg/png take a quality + a width sized to the
- * orientation. (Mirrors the priorities the Castit integration settled on.)
+ * orientation. (Mirrors the priorities the integration settled on.)
  */
 function buildFormatOptions(
   format: CanvaExportFormat,

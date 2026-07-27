@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "title": "Features",
+    "description": "Remote management, scheduling, 38 apps, offline playback, on-screen zones and your own branding — everything a screen needs."
+  },
+  "hero": {
+    "eyebrow": "Features",
+    "title": "Everything a screen needs — and nothing that gets in the way.",
+    "subtitle": "EdgeRize pairs simplicity with control: build content in minutes, keep real power over your whole network of screens."
+  },
+  "grid": {
+    "title": "Built to make the everyday easy.",
+    "items": [
+      {
+        "title": "Manage remotely",
+        "body": "Change everything from your phone or laptop, from anywhere."
+      },
+      { "title": "Scheduling", "body": "Content by hour, day or occasion — prepared in advance." },
+      {
+        "title": "38 apps",
+        "body": "Menus, weather, exchange rates, news, calendars, social feeds."
+      },
+      { "title": "Zones & layouts", "body": "Split the screen into zones and combine content." },
+      {
+        "title": "Works offline",
+        "body": "Content is cached and keeps playing when the internet drops."
+      },
+      { "title": "Fleet management", "body": "Group screens by location and publish in bulk." },
+      { "title": "Your brand", "body": "Colours, logo, fonts and layouts made to measure." },
+      { "title": "Any screen", "body": "Android or desktop, a regular TV or a pro display." },
+      {
+        "title": "Reliable",
+        "body": "Automatic updates and recovery — the screen brings itself back."
+      }
+    ]
+  },
+  "spotlight": {
+    "eyebrow": "Control",
+    "title": "Your whole network of screens, from one panel.",
+    "body": "Whether you run one screen or a hundred locations, it's all in one place — clear, fast and under control.",
+    "points": [
+      "Publish to every screen at once, or target a group",
+      "See what's playing on each screen right now",
+      "Roll back to previous content in one click"
+    ]
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "items": [
+      {
+        "q": "Can I match the look to my brand?",
+        "a": "Yes. Change colours, logo, fonts and layouts so everything looks like part of your brand."
+      },
+      {
+        "q": "Can I schedule content ahead?",
+        "a": "Yes. Prepare offers and announcements and run them exactly when they matter — by hour, day or occasion."
+      },
+      {
+        "q": "What does it look like with multiple locations?",
+        "a": "You group screens by location and publish to all at once or one at a time, from the same panel."
+      }
+    ]
+  }
+}

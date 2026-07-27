@@ -29,7 +29,7 @@ export function AppsBreadcrumb({ app, instanceName }: AppsBreadcrumbProps) {
         items.push({
           kind: 'link',
           label: app.name,
-          href: `/apps/${app.id}/instances`,
+          href: `/apps?app=${app.id}`,
         })
         items.push({ kind: 'current', label: instanceName })
       } else {

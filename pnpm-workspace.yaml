@@ -27,5 +27,12 @@ allowBuilds:
   "@ffprobe-installer/win32-ia32": true
   unrs-resolver: true
   esbuild: true
+  # sharp powers Next.js image optimization (apps/web); pnpm 11 strictDepBuilds
+  # would otherwise abort the install when it's pulled in as a build-scripted dep.
+  sharp: true
+  # Native tooling Next.js 16 pulls in: @parcel/watcher (dev file-watching) and
+  # @swc/core (compiler). Both ship prebuilt binaries but carry install scripts.
+  "@parcel/watcher": true
+  "@swc/core": true
   "@scarf/scarf": false
   msgpackr-extract: false

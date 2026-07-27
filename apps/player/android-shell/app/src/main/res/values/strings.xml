@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Edge Player</string>
+    <string name="app_name">EdgeRize Player</string>
     <string name="device_admin_description">Enables kiosk lockdown and silent updates for unattended signage.</string>
 </resources>

@@ -1,0 +1,30 @@
+{
+  "tagline": "Give your space a voice, and your business room to grow.",
+  "rights": "All rights reserved.",
+  "product": {
+    "title": "Product",
+    "howItWorks": "How it works",
+    "features": "Features",
+    "apps": "Apps",
+    "download": "Download"
+  },
+  "solutions": {
+    "title": "Solutions",
+    "hospitality": "Hospitality",
+    "retail": "Retail",
+    "office": "Offices",
+    "all": "All solutions"
+  },
+  "company": {
+    "title": "Company",
+    "about": "About",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+  "legal": {
+    "title": "Legal",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "cookies": "Cookies"
+  }
+}

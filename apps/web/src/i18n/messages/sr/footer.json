@@ -1,0 +1,30 @@
+{
+  "tagline": "Dajte svom prostoru glas, a poslovanju prostor da raste.",
+  "rights": "Sva prava zadržana.",
+  "product": {
+    "title": "Proizvod",
+    "howItWorks": "Kako radi",
+    "features": "Mogućnosti",
+    "apps": "Aplikacije",
+    "download": "Preuzimanje"
+  },
+  "solutions": {
+    "title": "Rešenja",
+    "hospitality": "Ugostiteljstvo",
+    "retail": "Maloprodaja",
+    "office": "Kancelarije",
+    "all": "Sva rešenja"
+  },
+  "company": {
+    "title": "Kompanija",
+    "about": "O nama",
+    "blog": "Blog",
+    "contact": "Kontakt"
+  },
+  "legal": {
+    "title": "Pravno",
+    "privacy": "Privatnost",
+    "terms": "Uslovi",
+    "cookies": "Kolačići"
+  }
+}

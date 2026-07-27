@@ -78,6 +78,14 @@ jobs:
           pnpm turbo run build --filter=@edge/player^...
           pnpm --filter @edge/player build
 
+      # `externalBin` makes tauri-build fail EVERY cargo build until the sidecar is
+      # staged (it validates existence in build.rs) — build + stage it for the host
+      # triple before fmt/clippy/test. The script placeholder-bootstraps around the
+      # same-package chicken-and-egg.
+      - name: Stage the watchdog sidecar
+        working-directory: apps/player/src-tauri
+        run: node scripts/prepare-watchdog.mjs
+
       - name: Format
         working-directory: apps/player/src-tauri
         run: cargo fmt --check

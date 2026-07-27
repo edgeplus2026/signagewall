@@ -12,7 +12,6 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { FullPageLoader } from '@/components/common/FullPageLoader'
 import AppLayout from '@/components/layout/AppLayout'
 import AppInstanceConfigPage from '@/features/apps/pages/AppInstanceConfigPage'
-import AppInstancesPage from '@/features/apps/pages/AppInstancesPage'
 import AppsPage from '@/features/apps/pages/AppsPage'
 import { ProtectedLayout } from '@/features/auth/components/ProtectedLayout'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
@@ -163,7 +162,6 @@ export const router = createBrowserRouter([
                 element: <AppsPage />,
                 handle: { breadcrumb: { labelKey: 'layout.apps' } },
               },
-              { path: '/apps/:appId/instances', element: <AppInstancesPage /> },
               {
                 path: '/apps/:appId/instances/:instanceId',
                 element: <AppInstanceConfigPage />,

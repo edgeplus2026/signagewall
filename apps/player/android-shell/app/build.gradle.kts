@@ -16,13 +16,13 @@ val appVersionCode: Int =
     (project.findProperty("versionCode") as String?)?.toInt() ?: 1
 
 android {
-    namespace = "rs.futureforward.edge.player"
+    namespace = "com.edgerize.player"
     compileSdk = 35
 
     defaultConfig {
         // Reused from the Tauri shell (`tauri.conf.json` identifier) so the device
         // identity + R2 release pathing stay consistent across desktop and mobile.
-        applicationId = "rs.futureforward.edge.player"
+        applicationId = "com.edgerize.player"
         // 26 (Android 8.0): adaptive icons are pure-XML (no binary mipmaps needed),
         // and Device Owner / LockTask / silent PackageInstaller are all robust from
         // here. Lowering it requires adding PNG launcher densities — see README.

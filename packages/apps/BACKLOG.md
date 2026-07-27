@@ -7,7 +7,7 @@
 
 ## 0. Current state
 
-Edge-plus is a digital-signage platform (edge-be NestJS + edge-cms React + edge-player Preact PWA).
+EdgeRize is a digital-signage platform (edge-be NestJS + edge-cms React + edge-player Preact PWA).
 "Apps" are the content-widget plugins that play on screens. The system is **fully data-driven**: the
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
 (`edge/packages/apps/`) plus an optional backend connector.

@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "title": "Download",
+    "description": "Download the EdgeRize player for Android or desktop and pair a screen in seconds."
+  },
+  "hero": {
+    "eyebrow": "Download",
+    "title": "Download the EdgeRize player.",
+    "subtitle": "A lightweight app that turns any TV or computer into a smart screen. Install it, scan the QR code, and the screen is paired."
+  },
+  "platforms": {
+    "title": "Choose your platform.",
+    "android": {
+      "name": "Android",
+      "body": "For Android TV, TV boxes and Android devices. Ideal for screens around your space.",
+      "requirements": "Android 8.0 or newer",
+      "cta": "Download APK"
+    },
+    "desktop": {
+      "name": "Desktop",
+      "body": "For Windows and macOS computers and mini-PCs connected to a screen.",
+      "requirements": "Windows 10+ or macOS 12+",
+      "cta": "Download for desktop"
+    }
+  },
+  "steps": {
+    "title": "Install in three steps.",
+    "items": [
+      {
+        "title": "Install",
+        "body": "Download and run the EdgeRize player on the device connected to your screen."
+      },
+      {
+        "title": "Pair",
+        "body": "Scan the QR code from your dashboard to link the screen to your account."
+      },
+      {
+        "title": "Publish",
+        "body": "Send content from the panel — and the screen comes to life instantly."
+      }
+    ]
+  },
+  "note": "No account yet? Book a demo and we'll help you set up your first screen."
+}
