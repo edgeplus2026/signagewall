@@ -1,4 +1,4 @@
-//! EdgeRize Player native shell (Tauri v2).
+//! SignageWall Player native shell (Tauri v2).
 //!
 //! Wraps the REMOTE web player in a fullscreen, unattended kiosk window and
 //! persists the stable `deviceId` in the OS app-config dir (surviving a WebView2
@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
 /// Fallback player origin for local dev. Production is baked in at build time via
-/// `EDGE_PLAYER_URL` (CI sets it); it must also be listed in
+/// `SIGNAGEWALL_PLAYER_URL` (CI sets it); it must also be listed in
 /// `capabilities/default.json` `remote.urls` for IPC to reach the remote page.
 const DEFAULT_PLAYER_URL: &str = "http://localhost:5174";
 
@@ -157,9 +157,9 @@ fn report_liveness(app: tauri::AppHandle) {
 fn watchdog_exe_path() -> Option<PathBuf> {
     let dir = std::env::current_exe().ok()?.parent()?.to_path_buf();
     let name = if cfg!(windows) {
-        "edge-watchdog.exe"
+        "signagewall-watchdog.exe"
     } else {
-        "edge-watchdog"
+        "signagewall-watchdog"
     };
     let exe = dir.join(name);
     exe.exists().then_some(exe)
@@ -170,7 +170,7 @@ fn watchdog_exe_path() -> Option<PathBuf> {
 /// plist and re-kickstarts.
 #[cfg(all(not(debug_assertions), target_os = "macos"))]
 fn ensure_watchdog_supervision(watchdog: &std::path::Path) {
-    let label = "com.edgerize.player.watchdog";
+    let label = "com.signagewall.player.watchdog";
     let Some(home) = dirs::home_dir() else {
         return;
     };
@@ -220,11 +220,11 @@ fn ensure_watchdog_supervision(watchdog: &std::path::Path) {
 /// principal behaviour can only be confirmed on a real box.
 #[cfg(all(not(debug_assertions), windows))]
 fn ensure_watchdog_supervision(watchdog: &std::path::Path) {
-    let task = "EdgeRizePlayerWatchdog";
+    let task = "SignageWallPlayerWatchdog";
     let xml = format!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-  <RegistrationInfo><Description>EdgeRize Player keep-alive supervisor</Description></RegistrationInfo>
+  <RegistrationInfo><Description>SignageWall Player keep-alive supervisor</Description></RegistrationInfo>
   <Triggers><LogonTrigger><Enabled>true</Enabled></LogonTrigger></Triggers>
   <Principals><Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals>
   <Settings>
@@ -239,7 +239,7 @@ fn ensure_watchdog_supervision(watchdog: &std::path::Path) {
 </Task>"#,
         exe = watchdog.display()
     );
-    let tmp = std::env::temp_dir().join("edge-watchdog-task.xml");
+    let tmp = std::env::temp_dir().join("signagewall-watchdog-task.xml");
     if fs::write(&tmp, xml).is_err() {
         return;
     }
@@ -399,14 +399,14 @@ pub fn run() {
             }
 
             // Build the window pointing at the (remote) player. The URL is baked
-            // in per-environment via `EDGE_PLAYER_URL` (CI sets it for prod).
-            let url = option_env!("EDGE_PLAYER_URL").unwrap_or(DEFAULT_PLAYER_URL);
+            // in per-environment via `SIGNAGEWALL_PLAYER_URL` (CI sets it for prod).
+            let url = option_env!("SIGNAGEWALL_PLAYER_URL").unwrap_or(DEFAULT_PLAYER_URL);
             let target = url
                 .parse()
-                .map_err(|_| format!("invalid EDGE_PLAYER_URL: {url}"))?;
+                .map_err(|_| format!("invalid SIGNAGEWALL_PLAYER_URL: {url}"))?;
 
             let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(target))
-                .title("EdgeRize Player");
+                .title("SignageWall Player");
 
             // Kiosk only in release; a plain resizable window in dev so it's easy
             // to work with (not fullscreen / always-on-top on the dev machine).
@@ -452,7 +452,7 @@ pub fn run() {
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running EdgeRize Player shell");
+        .expect("error while running SignageWall Player shell");
 }
 
 #[cfg(test)]

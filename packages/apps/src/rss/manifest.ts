@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 import { DEFAULT_DISPLAY_MODE, displayModeOptions } from './display-modes.js'
 import { ITEM_COUNT, SECONDS_PER_STORY } from './limits.js'

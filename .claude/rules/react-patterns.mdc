@@ -1,6 +1,6 @@
 ---
-description: React component and hook patterns for Edge frontend
-globs: edge-fe/**/*.{tsx,ts}
+description: React component and hook patterns for SignageWall frontend
+globs: apps/cms/**/*.{tsx,ts}
 alwaysApply: false
 ---
 

@@ -1,20 +1,20 @@
 [package]
-name = "edge-player"
+name = "signagewall-player"
 version = "0.1.0"
-description = "EdgeRize Player native shell"
-authors = ["EdgeRize"]
+description = "SignageWall Player native shell"
+authors = ["SignageWall"]
 edition = "2021"
 rust-version = "1.77.2"
 # This crate ships two bins: the player shell (src/main.rs) and the watchdog
-# sidecar (src/bin/edge-watchdog.rs). Tauri's dev/build run a bare `cargo run`/
+# sidecar (src/bin/signagewall-watchdog.rs). Tauri's dev/build run a bare `cargo run`/
 # `cargo build`, which is ambiguous with >1 bin — name the default explicitly or
 # `tauri dev`/`tauri build` fail with "could not determine which binary to run".
-default-run = "edge-player"
+default-run = "signagewall-player"
 
 # The Tauri v2 convention: a thin bin that calls into a lib crate (keeps the door
 # open for the mobile targets later, which require the lib layout).
 [lib]
-name = "edge_player_lib"
+name = "signagewall_player_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

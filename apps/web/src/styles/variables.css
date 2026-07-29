@@ -1,28 +1,51 @@
+/* SignageWall palette. The brand pair is ink #141413 / cream #F2F0EA with coral
+   #D85A30 as the single accent — see the logo pack's README. Greys are tinted
+   off the ink rather than neutral, so the cream page and the type read as one
+   warm family instead of beige-on-grey. */
 :root {
   /* Text */
-  --text-primary: rgb(20 20 20 / 94%);
-  --text-secondary: rgb(20 20 20 / 70%);
+  --text-primary: rgb(20 20 19 / 94%);
+  --text-secondary: rgb(20 20 19 / 68%);
 
   /* Borders */
-  --border-primary: rgb(20 20 20 / 20%);
-  --border-secondary: rgb(20 20 20 / 12%);
-  --border-tertiary: rgb(20 20 20 / 8%);
-  --border-quaternary: rgb(20 20 20 / 4%);
+  --border-primary: rgb(20 20 19 / 22%);
+  --border-secondary: rgb(20 20 19 / 13%);
+  --border-tertiary: rgb(20 20 19 / 8%);
+  --border-quaternary: rgb(20 20 19 / 4%);
 
   /* Surfaces */
-  --page: #f7f7f7;
-  --panel: #fcfcfc;
-  --sidebar: #f3f3f3;
+  --page: #f2f0ea;
+  --panel: #f8f7f3;
+  --sidebar: #edeae2;
   /* Elevated surface for floating UI (e.g. chart tooltips) that must read as
      opaque and distinct from the panel it overlays, in both themes. */
   --panel-raised: #ffffff;
 
   /* Interactive */
-  --highlight: rgb(20 20 20 / 6%);
+  --highlight: rgb(20 20 19 / 6%);
 
   /* Brand */
-  --brand: #141414;
-  --brand-contrast: #fcfcfc;
+  --brand: #141413;
+  --brand-contrast: #f2f0ea;
+
+  /* Accent — the coral screen from the mark.
+   *
+   * WHERE IT GOES: graphic weight only — icon tiles, rules and underlines,
+   * category marks, big numerals (step counters), hover states on interactive
+   * cards, and the focus ring. One accent moment per section is the ceiling;
+   * coral spread across a whole page stops reading as an accent at all.
+   *
+   * WHERE IT DOES NOT: body copy, small links, anything under ~24px. Measured
+   * against the cream page it is 3.40:1 — over the 3:1 bar for large text and
+   * non-text, under the 4.5:1 bar for small text.
+   *
+   * `--accent-contrast` is what sits ON a coral surface. It is the warm ink,
+   * not white: white on this coral measures 3.87:1 and fails small text, while
+   * the ink measures 4.91:1 and passes. The dark theme already did this; the
+   * light theme was the one still using white. */
+  --accent: #d85a30;
+  --accent-contrast: #1a0d07;
+  --accent-soft: rgb(216 90 48 / 12%);
 
   /* Semantic */
   --danger: #cf2d56;
@@ -39,19 +62,23 @@
 }
 
 .dark {
-  --text-primary: rgb(228 228 228 / 94%);
-  --text-secondary: rgb(228 228 228 / 70%);
-  --border-primary: rgb(228 228 228 / 20%);
-  --border-secondary: rgb(228 228 228 / 12%);
-  --border-tertiary: rgb(228 228 228 / 8%);
-  --border-quaternary: rgb(228 228 228 / 4%);
-  --highlight: rgb(228 228 228 / 6%);
-  --page: #141414;
-  --panel: #181818;
-  --sidebar: #141414;
-  --panel-raised: #2a2a2a;
-  --brand: #e4e4e4;
-  --brand-contrast: #181818;
+  --text-primary: rgb(242 240 234 / 94%);
+  --text-secondary: rgb(242 240 234 / 68%);
+  --border-primary: rgb(242 240 234 / 22%);
+  --border-secondary: rgb(242 240 234 / 13%);
+  --border-tertiary: rgb(242 240 234 / 8%);
+  --border-quaternary: rgb(242 240 234 / 4%);
+  --highlight: rgb(242 240 234 / 6%);
+  --page: #141413;
+  --panel: #1c1b19;
+  --sidebar: #141413;
+  --panel-raised: #262421;
+  --brand: #f2f0ea;
+  --brand-contrast: #141413;
+  /* Lifted a step so the coral keeps its bite against ink. */
+  --accent: #e2724a;
+  --accent-contrast: #1a0d07;
+  --accent-soft: rgb(226 114 74 / 16%);
   --danger: #cf2d56;
   --success: #1f8a65;
   --warning: #c08532;

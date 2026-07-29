@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ReportedProfile } from '@edge/player-contract';
+import { ReportedProfile } from '@signagewall/player-contract';
 import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -29,7 +29,7 @@ import {
 } from './schemas/device.schema';
 
 // `ReportedProfile` (what the player reports on connect/heartbeat) is the shared
-// contract type from `@edge/player-contract` — imported above and re-exported so
+// contract type from `@signagewall/player-contract` — imported above and re-exported so
 // existing importers (e.g. player.gateway) keep resolving it from here.
 export type { ReportedProfile };
 

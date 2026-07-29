@@ -1,13 +1,13 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { APP_MANIFESTS } from '@edge/apps';
+import { APP_MANIFESTS } from '@signagewall/apps';
 import type {
   AppConnector,
   AppDataMeta,
   ConnectorLogger,
   ResolvedConnection,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 import { ConnectionsService } from '../connections/connections.service';
 import { AppDataChangedEvent, PlayerEvents } from '../player/player.events';

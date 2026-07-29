@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const POWERBI_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="5" y="10" width="3.5" height="8" rx="1"/><rect x="10.25" y="4" width="3.5" height="14" rx="1"/><rect x="15.5" y="13" width="3.5" height="5" rx="1"/></svg>'

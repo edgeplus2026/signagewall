@@ -1,4 +1,4 @@
-import type { Field } from '@edge/apps-contract'
+import type { Field } from '@signagewall/apps-contract'
 
 import { Field as FieldRow, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { FIELD_CONTROLS, INLINE_FIELD_TYPES } from '@/features/apps/config-form/fieldRegistry'

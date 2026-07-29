@@ -1,4 +1,4 @@
-package com.edgerize.player
+package com.signagewall.player
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -19,16 +19,18 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import com.edgerize.player.boot.WatchdogService
-import com.edgerize.player.bridge.AndroidBridge
-import com.edgerize.player.bridge.BridgeDispatcher
-import com.edgerize.player.bridge.BridgeInjection
-import com.edgerize.player.identity.DeviceIdStore
-import com.edgerize.player.kiosk.EscapeHatch
-import com.edgerize.player.kiosk.KioskController
-import com.edgerize.player.update.NoopUpdater
-import com.edgerize.player.update.OtaUpdater
-import com.edgerize.player.update.Updater
+import com.signagewall.player.boot.WatchdogService
+import com.signagewall.player.bridge.AndroidBridge
+import com.signagewall.player.bridge.BridgeDispatcher
+import com.signagewall.player.bridge.BridgeInjection
+import com.signagewall.player.identity.DeviceIdStore
+import com.signagewall.player.kiosk.EscapeHatch
+import com.signagewall.player.kiosk.KioskController
+import com.signagewall.player.update.NoopUpdater
+import com.signagewall.player.update.OtaUpdater
+import com.signagewall.player.update.Updater
+import com.signagewall.player.webview.KioskWebChromeClient
+import com.signagewall.player.webview.KioskWebViewClient
 import java.io.File
 import java.security.MessageDigest
 
@@ -114,7 +116,7 @@ class KioskActivity : AppCompatActivity() {
         setContentView(view)
         enterImmersive()
         view.requestFocus()
-        view.loadUrl(BuildConfig.EDGE_PLAYER_URL)
+        view.loadUrl(BuildConfig.SIGNAGEWALL_PLAYER_URL)
     }
 
     /**
@@ -151,7 +153,7 @@ class KioskActivity : AppCompatActivity() {
      *  a no-op updater in dev. Shares the App's HealthWatchdog (single alive/healthy owner). */
     private fun buildUpdater(): Updater {
         val manifestUrl = BuildConfig.UPDATE_MANIFEST_URL
-        val health = (application as? EdgePlayerApp)?.postUpdateHealth
+        val health = (application as? PlayerApp)?.postUpdateHealth
         return if (manifestUrl.isBlank() || health == null) {
             NoopUpdater(BuildConfig.VERSION_NAME)
         } else {

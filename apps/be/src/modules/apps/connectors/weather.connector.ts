@@ -3,8 +3,12 @@ import type {
   ConnectorContext,
   ConnectorResult,
   LocationValue,
-} from '@edge/apps-contract';
-import type { WeatherDaily, WeatherHour, WeatherPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type {
+  WeatherDaily,
+  WeatherHour,
+  WeatherPayload,
+} from '@signagewall/apps';
 
 interface WeatherConfig {
   /** A resolved place (lat/lng + label) or a legacy city string to geocode. */

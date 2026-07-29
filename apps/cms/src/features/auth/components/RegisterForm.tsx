@@ -26,11 +26,12 @@ import { resolveAuthFormError, resolveRegisterErrorField } from '@/features/auth
 import { createRegisterSchema, type RegisterSchema } from '@/features/auth/schemas/authSchemas'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { isPendingVerification } from '@/features/auth/types/auth.types'
+import { legalUrl } from '@/features/legal/legalUrls'
 import { organizationApi } from '@/features/organizations/api/organizationApi'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
 
 export function RegisterForm() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const inviteToken = searchParams.get('invite') ?? undefined
@@ -250,16 +251,18 @@ export function RegisterForm() {
                 i18nKey="auth.register.acceptLegal"
                 components={{
                   terms: (
-                    <Link
-                      to="/legal/terms"
+                    <a
+                      href={legalUrl('tos', i18n.language)}
                       target="_blank"
+                      rel="noreferrer"
                       className="text-primary underline underline-offset-4"
                     />
                   ),
                   privacy: (
-                    <Link
-                      to="/legal/privacy"
+                    <a
+                      href={legalUrl('privacy', i18n.language)}
                       target="_blank"
+                      rel="noreferrer"
                       className="text-primary underline underline-offset-4"
                     />
                   ),

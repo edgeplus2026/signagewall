@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const GSLIDES_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><rect x="7" y="8" width="10" height="6" rx="1"/><path d="M8 21h8M12 18v3"/></svg>'
@@ -39,7 +39,7 @@ export const gslidesManifest: AppManifest = {
       label: 'Google account',
       required: true,
       provider: 'google',
-      help: 'Sign in once — Edge then lists your presentations to choose from.',
+      help: 'Sign in once — SignageWall then lists your presentations to choose from.',
     },
     {
       key: 'presentation',

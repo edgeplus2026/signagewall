@@ -2,7 +2,7 @@ import type {
   ConfigSchema,
   DataSource,
   RuntimeKind,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 import { AppDocument } from '../schemas/app.schema';
 

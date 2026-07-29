@@ -2,7 +2,7 @@
 
 ## Workflow
 
-1. Read `.claude/rules/` for conventions before editing `edge-fe/`
+1. Read `.claude/rules/` for conventions before editing `apps/cms/`
 2. Confirm backend contract in `API_CONTRACT.md` (paths are under `/api/v1`)
 3. Add types in `features/<name>/types/`
 4. Add Zod schema factory in `features/<name>/schemas/`
@@ -59,11 +59,11 @@ Do not put server data in Zustand once the real API is wired — use React Query
 
 ## Backend integration
 
-- Set `VITE_API_URL=http://localhost:3000/api/v1` in `edge-fe/.env`
+- Set `VITE_API_URL=http://localhost:3000/api/v1` in `apps/cms/.env`
 - Axios (`lib/axios.ts`) unwraps `{ success, data }`, sends `Accept-Language` and `X-Organization-Id`, refreshes on 401
 - Real APIs: auth, settings, organizations, members, invitations, super-admin — see `state-and-api.mdc` and `FRONTEND_BACKEND_INTEGRATION.md`
 - Mock APIs (store + delay): screens, playlists, media — keep function signatures when migrating to axios
-- **OpenAPI types:** after backend API changes, run `cd edge-be && npm run openapi:export` then `npm run generate:api-types`. Generated types: `src/lib/api/schema.d.ts`; helpers: `@/lib/api/types`.
+- **OpenAPI types:** after backend API changes, run `cd apps/be && npm run openapi:export` then `npm run generate:api-types`. Generated types: `src/lib/api/schema.d.ts`; helpers: `@/lib/api/types`.
 
 ## Testing strategy
 
@@ -74,7 +74,7 @@ Do not put server data in Zustand once the real API is wired — use React Query
 | E2E | Playwright | Auth, org onboarding, members, super-admin |
 | Manual | Local stack | Invite flows (`MAIL_ENABLED=false` logs links) |
 
-No automated test setup in CI yet — manual verification against `edge-be` + `edge-fe` dev servers.
+No automated test setup in CI yet — manual verification against `apps/be` + `apps/cms` dev servers.
 
 ## Git conventions
 

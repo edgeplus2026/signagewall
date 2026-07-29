@@ -1,4 +1,4 @@
-import { type DeviceUpdateStatus } from '@edge/player-contract'
+import { type DeviceUpdateStatus } from '@signagewall/player-contract'
 import { io, type Socket } from 'socket.io-client'
 
 import { useAuthStore } from '@/features/auth/store/authStore'

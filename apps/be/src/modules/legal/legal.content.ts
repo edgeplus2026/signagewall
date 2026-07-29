@@ -7,7 +7,7 @@ export interface LegalBody {
 }
 
 /**
- * Legal copy for Edge, served by `GET /legal/documents`. Comprehensive draft
+ * Legal copy for SignageWall, served by `GET /legal/documents`. Comprehensive draft
  * covering the standard sections; **have it reviewed by legal counsel and fill
  * the bracketed company details before public launch.** When the wording changes
  * materially, bump the matching `version` in `legal.constants.ts` so users are
@@ -19,10 +19,10 @@ const TOS_EN = `# Terms of Service
 
 _Last updated: 1 July 2026._
 
-These Terms of Service ("Terms") govern your access to and use of the Edge
+These Terms of Service ("Terms") govern your access to and use of the SignageWall
 digital-signage platform, including the content-management dashboard, the player
 application and related APIs and services (together, the "Service"), operated by
-[Company legal name, address and registration number] ("Edge", "we", "us"). By
+[Company legal name, address and registration number] ("SignageWall", "we", "us"). By
 creating an account or using the Service you agree to these Terms. If you do not
 agree, do not use the Service.
 
@@ -44,7 +44,7 @@ Account. Notify us promptly of any unauthorized use. You are responsible for the
 acts and omissions of every user you invite to your Organization.
 
 ## 4. The Service
-Edge lets you manage screens, build playlists, upload media, configure apps and
+SignageWall lets you manage screens, build playlists, upload media, configure apps and
 publish Content to Players. Features may change, improve or be discontinued over
 time. We may set reasonable technical limits (for example on file size, storage or
 request rate).
@@ -74,7 +74,7 @@ third-party services, and connecting them is at your discretion. You may disconn
 an integration at any time.
 
 ## 8. Intellectual property
-The Service, including its software, design and trademarks, is owned by Edge and
+The Service, including its software, design and trademarks, is owned by SignageWall and
 its licensors and is protected by intellectual-property laws. Except for the rights
 expressly granted to you, no rights are transferred. You may not use our trademarks
 without our prior written consent.
@@ -109,7 +109,7 @@ fitness for a particular purpose and non-infringement, to the maximum extent
 permitted by law.
 
 ## 14. Limitation of liability
-To the maximum extent permitted by law, Edge will not be liable for any indirect,
+To the maximum extent permitted by law, SignageWall will not be liable for any indirect,
 incidental, special, consequential or punitive damages, or for any loss of profits,
 revenue, data or goodwill. Our aggregate liability arising out of or relating to the
 Service will not exceed the amounts you paid to us for the Service in the twelve
@@ -117,7 +117,7 @@ months preceding the event giving rise to the claim, or, where the Service is
 provided free of charge, a nominal amount permitted by law.
 
 ## 15. Indemnification
-You agree to indemnify and hold Edge harmless from claims, damages and expenses
+You agree to indemnify and hold SignageWall harmless from claims, damages and expenses
 (including reasonable legal fees) arising out of your Content, your use of the
 Service, or your breach of these Terms.
 
@@ -145,7 +145,7 @@ const PRIVACY_EN = `# Privacy Policy
 
 _Last updated: 1 July 2026._
 
-This Privacy Policy explains how the Edge digital-signage platform ("Edge", "we",
+This Privacy Policy explains how the SignageWall digital-signage platform ("SignageWall", "we",
 "us") collects, uses and protects personal data, and the rights you have. The data
 controller is [Company legal name, registered address and contact]. We process data
 in accordance with the Serbian Law on Personal Data Protection (ZZPL) and, where it
@@ -239,10 +239,10 @@ const TOS_SR = `# Uslovi korišćenja
 
 _Poslednje ažuriranje: 1. jul 2026._
 
-Ovi Uslovi korišćenja ("Uslovi") uređuju pristup i korišćenje Edge platforme za
+Ovi Uslovi korišćenja ("Uslovi") uređuju pristup i korišćenje SignageWall platforme za
 digitalnu signalizaciju, uključujući kontrolnu tablu za upravljanje sadržajem,
 plejer aplikaciju i povezane API-je i usluge (zajedno, "Usluga"), kojom upravlja
-[pun pravni naziv društva, adresa i matični broj] ("Edge", "mi"). Kreiranjem naloga
+[pun pravni naziv društva, adresa i matični broj] ("SignageWall", "mi"). Kreiranjem naloga
 ili korišćenjem Usluge prihvatate ove Uslove. Ako se ne slažete, nemojte koristiti
 Uslugu.
 
@@ -264,7 +264,7 @@ o svakoj neovlašćenoj upotrebi. Odgovorni ste za postupke svih korisnika koje
 pozovete u svoju Organizaciju.
 
 ## 4. Usluga
-Edge vam omogućava da upravljate ekranima, pravite plejliste, otpremate medije,
+SignageWall vam omogućava da upravljate ekranima, pravite plejliste, otpremate medije,
 konfigurišete aplikacije i objavljujete Sadržaj na Plejerima. Funkcionalnosti se
 vremenom mogu menjati, unapređivati ili ukidati. Možemo postaviti razumna tehnička
 ograničenja (npr. veličinu fajla, prostor za skladištenje ili učestalost zahteva).
@@ -293,7 +293,7 @@ i praksama privatnosti te treće strane. Nismo odgovorni za usluge trećih stran
 povezivanje je po vašem izboru. Integraciju možete prekinuti u svakom trenutku.
 
 ## 8. Intelektualna svojina
-Usluga, uključujući softver, dizajn i žigove, vlasništvo je Edge-a i njegovih
+Usluga, uključujući softver, dizajn i žigove, vlasništvo je SignageWall-a i njegovih
 davalaca licenci i zaštićena je propisima o intelektualnoj svojini. Osim izričito
 datih prava, nikakva prava se ne prenose. Ne smete koristiti naše žigove bez naše
 prethodne pisane saglasnosti.
@@ -327,14 +327,14 @@ prodaju, pogodnosti za određenu svrhu i nepovrede prava, u najvećoj meri dozvo
 zakonom.
 
 ## 14. Ograničenje odgovornosti
-U najvećoj meri dozvoljenoj zakonom, Edge neće biti odgovoran za posrednu, slučajnu,
+U najvećoj meri dozvoljenoj zakonom, SignageWall neće biti odgovoran za posrednu, slučajnu,
 posebnu ili posledičnu štetu, niti za gubitak dobiti, prihoda, podataka ili ugleda.
 Naša ukupna odgovornost neće preći iznose koje ste nam platili za Uslugu u dvanaest
 meseci pre događaja koji je doveo do zahteva, ili, kada je Usluga besplatna,
 simboličan iznos dozvoljen zakonom.
 
 ## 15. Obeštećenje
-Saglasni ste da obeštetite Edge od zahteva, štete i troškova (uključujući razumne
+Saglasni ste da obeštetite SignageWall od zahteva, štete i troškova (uključujući razumne
 pravne troškove) koji proizilaze iz vašeg Sadržaja, korišćenja Usluge ili kršenja
 ovih Uslova.
 
@@ -361,8 +361,8 @@ const PRIVACY_SR = `# Politika privatnosti
 
 _Poslednje ažuriranje: 1. jul 2026._
 
-Ova Politika privatnosti objašnjava kako Edge platforma za digitalnu signalizaciju
-("Edge", "mi") prikuplja, koristi i štiti lične podatke, kao i prava koja imate.
+Ova Politika privatnosti objašnjava kako SignageWall platforma za digitalnu signalizaciju
+("SignageWall", "mi") prikuplja, koristi i štiti lične podatke, kao i prava koja imate.
 Rukovalac podacima je [pun pravni naziv, sedište i kontakt društva]. Podatke
 obrađujemo u skladu sa Zakonom o zaštiti podataka o ličnosti Republike Srbije
 (ZZPL) i, kada se na vas primenjuje, Opštom uredbom EU o zaštiti podataka (GDPR).

@@ -5,7 +5,7 @@ import { ClientSession, Model, Types } from 'mongoose';
 import type {
   AiGeneratedContent,
   AiGenerationInput,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 import {
   AiGeneration,

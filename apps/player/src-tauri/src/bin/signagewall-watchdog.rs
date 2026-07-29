@@ -1,4 +1,4 @@
-//! `edge-watchdog` — out-of-process keep-alive supervisor for the desktop player.
+//! `signagewall-watchdog` — out-of-process keep-alive supervisor for the desktop player.
 //!
 //! The player shell can crash, be killed, or HANG (WebView frozen: process alive,
 //! gray/white screen). The in-process "refuse to close" guard covers none of
@@ -73,19 +73,19 @@ impl Config {
     fn from_env() -> Self {
         Config {
             check_interval: Duration::from_secs(env_secs(
-                "EDGE_WATCHDOG_CHECK_INTERVAL_SECS",
+                "SIGNAGEWALL_WATCHDOG_CHECK_INTERVAL_SECS",
                 DEFAULT_CHECK_INTERVAL_SECS,
             )),
-            hang_timeout_ms: env_secs("EDGE_WATCHDOG_HANG_TIMEOUT_SECS", DEFAULT_HANG_TIMEOUT_SECS)
+            hang_timeout_ms: env_secs("SIGNAGEWALL_WATCHDOG_HANG_TIMEOUT_SECS", DEFAULT_HANG_TIMEOUT_SECS)
                 * 1000,
             startup_grace_ms: env_secs(
-                "EDGE_WATCHDOG_STARTUP_GRACE_SECS",
+                "SIGNAGEWALL_WATCHDOG_STARTUP_GRACE_SECS",
                 DEFAULT_STARTUP_GRACE_SECS,
             ) * 1000,
-            update_grace_ms: env_secs("EDGE_WATCHDOG_UPDATE_GRACE_SECS", DEFAULT_UPDATE_GRACE_SECS)
+            update_grace_ms: env_secs("SIGNAGEWALL_WATCHDOG_UPDATE_GRACE_SECS", DEFAULT_UPDATE_GRACE_SECS)
                 * 1000,
             update_hang_cap_ms: env_secs(
-                "EDGE_WATCHDOG_UPDATE_HANG_CAP_SECS",
+                "SIGNAGEWALL_WATCHDOG_UPDATE_HANG_CAP_SECS",
                 DEFAULT_UPDATE_HANG_CAP_SECS,
             ) * 1000,
         }
@@ -213,11 +213,11 @@ fn kill_pid(pid: u32, image: &str) {
 }
 
 /// Resolves the player executable to supervise:
-///  1. `EDGE_WATCHDOG_PLAYER_EXE` (test/override escape hatch),
+///  1. `SIGNAGEWALL_WATCHDOG_PLAYER_EXE` (test/override escape hatch),
 ///  2. `watchdog/player.json` written by the player at startup (the real path),
 ///  3. fallback: the sole other executable next to us in the install dir.
 fn resolve_player_exe() -> Option<PathBuf> {
-    if let Ok(over) = std::env::var("EDGE_WATCHDOG_PLAYER_EXE") {
+    if let Ok(over) = std::env::var("SIGNAGEWALL_WATCHDOG_PLAYER_EXE") {
         let p = PathBuf::from(over);
         if p.exists() {
             return Some(p);
@@ -305,7 +305,7 @@ fn acquire_lock() {
 fn main() {
     let cfg = Config::from_env();
     acquire_lock();
-    log("edge-watchdog started");
+    log("signagewall-watchdog started");
 
     let mut child: Option<Child> = None;
     // Grace + backoff timing is MONOTONIC (Instant), immune to wall-clock/NTP steps

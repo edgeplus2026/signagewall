@@ -1,4 +1,4 @@
-import type { AppDataMeta } from '@edge/apps-contract'
+import type { AppDataMeta } from '@signagewall/apps-contract'
 import { useQuery } from '@tanstack/react-query'
 import { PencilIcon, RefreshCwIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'

@@ -4,5 +4,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    edge_player_lib::run()
+    signagewall_player_lib::run()
 }

@@ -5,7 +5,7 @@ export default () => ({
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
   playerUrl: process.env.PLAYER_URL ?? 'http://localhost:5174',
   mongodb: {
-    uri: process.env.MONGODB_URI ?? 'mongodb://localhost:27017/edge',
+    uri: process.env.MONGODB_URI ?? 'mongodb://localhost:27017/signagewall',
   },
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET,
@@ -49,7 +49,7 @@ export default () => ({
   webhookPublicUrl: process.env.WEBHOOK_PUBLIC_URL,
   mail: {
     enabled: process.env.MAIL_ENABLED === 'true',
-    from: process.env.MAIL_FROM ?? 'Edge <onboarding@resend.dev>',
+    from: process.env.MAIL_FROM ?? 'SignageWall <onboarding@resend.dev>',
     resendApiKey: process.env.RESEND_API_KEY,
     supportTo: process.env.MAIL_SUPPORT_TO,
     // Inbox that receives a notification on every new user registration.
@@ -143,7 +143,7 @@ export default () => ({
     timeoutMs: parseInt(process.env.OPENROUTER_TIMEOUT_MS ?? '60000', 10),
     // Optional attribution headers OpenRouter recommends for API traffic.
     appUrl: process.env.OPENROUTER_APP_URL,
-    appTitle: process.env.OPENROUTER_APP_TITLE ?? 'Edge CMS',
+    appTitle: process.env.OPENROUTER_APP_TITLE ?? 'SignageWall CMS',
   },
   aiContent: {
     // Max generations per user per UTC day.

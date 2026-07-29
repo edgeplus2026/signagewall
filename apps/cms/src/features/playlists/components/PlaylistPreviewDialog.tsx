@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog'
 import { AppPreviewFrame } from '@/features/apps/components/AppPreviewFrame'
 import { useAppPreviewData } from '@/features/apps/hooks/useAppPreviewData'
-import type { AppInstance, EdgeApp } from '@/features/apps/types/app.types'
+import type { AppInstance, CatalogApp } from '@/features/apps/types/app.types'
 import { useContentMetadata } from '@/features/content/hooks/useContentMetadata'
 import type { ContentDraftItem } from '@/features/content/types/contentDraft.types'
 import type { MediaItem } from '@/features/media/types/media.types'
@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils'
 /** Resolved metadata shape for an app draft item (see `appContentType`). */
 interface AppMeta {
   instance: AppInstance
-  app: EdgeApp | undefined
+  app: CatalogApp | undefined
 }
 
 /**
@@ -340,7 +340,7 @@ function AppSlideInner({
   app,
 }: {
   instance: AppInstance
-  app: EdgeApp
+  app: CatalogApp
 }) {
   const { data, meta } = useAppPreviewData(app, instance.config)
   return (

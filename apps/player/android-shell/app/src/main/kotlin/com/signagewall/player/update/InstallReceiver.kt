@@ -1,4 +1,4 @@
-package com.edgerize.player.update
+package com.signagewall.player.update
 
 import android.content.BroadcastReceiver
 import android.content.Context

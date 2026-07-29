@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const POWERPOINT_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 20h10M12 18v2"/><path d="M8 8h4a2 2 0 010 4H8V8v4"/></svg>'
@@ -40,7 +40,7 @@ export const powerpointManifest: AppManifest = {
       // answered before handing over a Microsoft account. It is true — the OAuth
       // scopes are read-only (Files.Read.All / Sites.Read.All; see
       // powerpoint.connector.ts). Keep the two in step if the scopes ever widen.
-      help: 'Sign in once. Edge only reads your files — it never changes or deletes anything.',
+      help: 'Sign in once. SignageWall only reads your files — it never changes or deletes anything.',
     },
     {
       key: 'presentation',

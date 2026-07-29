@@ -1,4 +1,4 @@
-import type { Field, FieldOption } from '@edge/apps-contract'
+import type { Field, FieldOption } from '@signagewall/apps-contract'
 
 /**
  * The shared typography fields every app offers: font, size, line height and

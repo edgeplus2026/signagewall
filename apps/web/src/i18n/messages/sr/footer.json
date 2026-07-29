@@ -6,13 +6,12 @@
     "howItWorks": "Kako radi",
     "features": "Mogućnosti",
     "apps": "Aplikacije",
-    "download": "Preuzimanje"
+    "download": "Preuzimanje",
+    "pricing": "Cene",
+    "hardware": "Hardver"
   },
   "solutions": {
     "title": "Rešenja",
-    "hospitality": "Ugostiteljstvo",
-    "retail": "Maloprodaja",
-    "office": "Kancelarije",
     "all": "Sva rešenja"
   },
   "company": {

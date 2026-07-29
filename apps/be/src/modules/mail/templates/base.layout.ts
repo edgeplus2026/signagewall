@@ -30,7 +30,7 @@ export const renderEmailLayout = ({
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e4e4e7;">
             <tr>
               <td style="padding:28px 32px 12px;">
-                <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em;">Edge</div>
+                <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em;">SignageWall</div>
               </td>
             </tr>
             <tr>

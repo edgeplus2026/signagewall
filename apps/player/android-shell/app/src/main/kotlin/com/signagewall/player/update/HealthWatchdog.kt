@@ -1,4 +1,4 @@
-package com.edgerize.player.update
+package com.signagewall.player.update
 
 import android.os.Handler
 import android.os.Looper
@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Post-update health gate — the analogue of the Tauri shell's `spawn_health_watchdog`
  * (HEALTH_TIMEOUT 90s, MAX_OFFLINE_DEFERS 3). Created once per process in
- * [com.edgerize.player.EdgePlayerApp] and armed BEFORE the WebView loads, so
+ * [com.signagewall.player.PlayerApp] and armed BEFORE the WebView loads, so
  * a freshly-installed build that never even loads the page is still caught.
  *
  * It is the SINGLE owner of the `alive`/`healthy` flags and of the promote/poison

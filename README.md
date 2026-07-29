@@ -1,6 +1,6 @@
-# Edge
+# SignageWall
 
-Monorepo for the Edge digital-signage platform.
+Monorepo for the SignageWall digital-signage platform.
 
 ## Layout
 
@@ -31,7 +31,7 @@ pnpm install          # install all workspaces
 pnpm build            # turbo: build everything
 pnpm type-check       # turbo: type-check everything
 pnpm lint             # turbo: lint everything
-pnpm --filter @edge/cms dev   # run a cms
-pnpm --filter @edge/player dev #run a player
-pnpm --filter @edge/be start:dev #run a be
+pnpm --filter @signagewall/cms dev   # run a cms
+pnpm --filter @signagewall/player dev #run a player
+pnpm --filter @signagewall/be start:dev #run a be
 ```

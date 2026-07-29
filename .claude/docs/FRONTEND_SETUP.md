@@ -8,7 +8,7 @@
 ## Quick start
 
 ```bash
-cd edge-fe
+cd apps/cms
 npm install
 npm run dev
 ```
@@ -17,7 +17,7 @@ App runs at `http://localhost:5173`.
 
 ## Environment variables
 
-Create `edge-fe/.env` for local development (copy from `.env.example`). Do not commit `.env`.
+Create `apps/cms/.env` for local development (copy from `.env.example`). Do not commit `.env`.
 
 | Variable | Description | Local default |
 |----------|-------------|---------------|
@@ -38,7 +38,7 @@ If unset, axios falls back to `/api/v1` (same-origin proxy in production builds)
 ## Project structure
 
 ```
-edge-fe/src/
+apps/cms/src/
 ├── components/
 │   ├── layout/       # AppLayout, sidebar, org switcher
 │   ├── ui/           # shadcn primitives
@@ -58,8 +58,8 @@ edge-fe/src/
 
 ## Connecting to the backend
 
-1. Start backend: `cd edge-be && npm run start:dev` (MongoDB replica set required — see `BACKEND_SETUP.md`)
-2. Set `VITE_API_URL=http://localhost:3000/api/v1` in `edge-fe/.env`
+1. Start backend: `cd apps/be && npm run start:dev` (MongoDB replica set required — see `BACKEND_SETUP.md`)
+2. Set `VITE_API_URL=http://localhost:3000/api/v1` in `apps/cms/.env`
 3. Register or log in at `/login`
 4. Create an organization when prompted (`/create-organization`)
 

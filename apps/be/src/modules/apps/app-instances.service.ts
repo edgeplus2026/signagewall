@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { buildConfigZod, buildDefaultConfig } from '@edge/apps-contract';
+import { buildConfigZod, buildDefaultConfig } from '@signagewall/apps-contract';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';

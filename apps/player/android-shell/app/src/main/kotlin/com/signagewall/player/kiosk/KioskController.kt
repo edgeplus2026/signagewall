@@ -1,4 +1,4 @@
-package com.edgerize.player.kiosk
+package com.signagewall.player.kiosk
 
 import android.app.Activity
 import android.app.ActivityManager
@@ -8,7 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
-import com.edgerize.player.KioskActivity
+import com.signagewall.player.KioskActivity
 
 /**
  * The kiosk-lockdown state machine, driven by the web via `AndroidBridge.setKioskLock`
@@ -35,7 +35,7 @@ class KioskController(private val activity: Activity) {
         activity.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
     private val activityManager =
         activity.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-    private val admin = ComponentName(activity, EdgeDeviceAdminReceiver::class.java)
+    private val admin = ComponentName(activity, PlayerDeviceAdminReceiver::class.java)
 
     @Volatile
     var current: Mode = Mode.OFF

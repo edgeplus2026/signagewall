@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "EdgeRize Player",
+  "productName": "SignageWall Player",
   "version": "0.1.0",
-  "identifier": "com.edgerize.player",
+  "identifier": "com.signagewall.player",
   "build": {
-    "beforeDevCommand": "node src-tauri/scripts/prepare-watchdog.mjs && pnpm --filter @edge/player dev",
+    "beforeDevCommand": "node src-tauri/scripts/prepare-watchdog.mjs && pnpm --filter @signagewall/player dev",
     "devUrl": "http://localhost:5174",
-    "beforeBuildCommand": "node src-tauri/scripts/prepare-watchdog.mjs --release && pnpm --filter @edge/player build",
+    "beforeBuildCommand": "node src-tauri/scripts/prepare-watchdog.mjs --release && pnpm --filter @signagewall/player build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -29,7 +29,7 @@
     "active": true,
     "createUpdaterArtifacts": true,
     "targets": ["nsis"],
-    "externalBin": ["binaries/edge-watchdog"],
+    "externalBin": ["binaries/signagewall-watchdog"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

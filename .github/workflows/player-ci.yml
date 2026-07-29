@@ -1,4 +1,4 @@
-# Edge Player — quality gate for the web player and the native (Tauri) shell.
+# SignageWall Player — quality gate for the web player and the native (Tauri) shell.
 #
 # Runs on every push/PR that touches the player, and is CALLED by
 # player-release.yml so a release can never ship code that doesn't lint, compile,
@@ -40,13 +40,13 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build workspace dependencies
-        run: pnpm turbo run build --filter=@edge/player^...
+        run: pnpm turbo run build --filter=@signagewall/player^...
       - name: Typecheck
-        run: pnpm --filter @edge/player exec tsc --noEmit
+        run: pnpm --filter @signagewall/player exec tsc --noEmit
       - name: Unit tests
-        run: pnpm --filter @edge/player test
+        run: pnpm --filter @signagewall/player test
       - name: Lint
-        run: pnpm --filter @edge/player lint
+        run: pnpm --filter @signagewall/player lint
 
   rust:
     name: rust (${{ matrix.os }})
@@ -75,8 +75,8 @@ jobs:
       # bundle must exist before cargo can even parse the crate.
       - name: Build the frontend (required to compile the shell)
         run: |
-          pnpm turbo run build --filter=@edge/player^...
-          pnpm --filter @edge/player build
+          pnpm turbo run build --filter=@signagewall/player^...
+          pnpm --filter @signagewall/player build
 
       # `externalBin` makes tauri-build fail EVERY cargo build until the sidecar is
       # staged (it validates existence in build.rs) — build + stage it for the host

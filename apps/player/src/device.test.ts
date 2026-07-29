@@ -37,16 +37,16 @@ afterEach(() => {
 describe('getStoredVolume', () => {
   it('defaults to 100 when absent or unparseable', () => {
     expect(getStoredVolume()).toBe(100)
-    storage.setItem('edge.player.volume', 'abc')
+    storage.setItem('signagewall.player.volume', 'abc')
     expect(getStoredVolume()).toBe(100)
   })
 
   it('clamps a stored value into 0–100', () => {
-    storage.setItem('edge.player.volume', '150')
+    storage.setItem('signagewall.player.volume', '150')
     expect(getStoredVolume()).toBe(100)
-    storage.setItem('edge.player.volume', '-20')
+    storage.setItem('signagewall.player.volume', '-20')
     expect(getStoredVolume()).toBe(0)
-    storage.setItem('edge.player.volume', '37')
+    storage.setItem('signagewall.player.volume', '37')
     expect(getStoredVolume()).toBe(37)
   })
 
@@ -60,14 +60,14 @@ describe('getStoredVolume', () => {
 
 describe('getStoredOrientation / getStoredScale', () => {
   it('returns a valid stored value, else the default', () => {
-    storage.setItem('edge.player.orientation', 'portrait')
+    storage.setItem('signagewall.player.orientation', 'portrait')
     expect(getStoredOrientation()).toBe('portrait')
-    storage.setItem('edge.player.orientation', 'diagonal')
+    storage.setItem('signagewall.player.orientation', 'diagonal')
     expect(getStoredOrientation()).toBe('landscape')
 
-    storage.setItem('edge.player.scale', 'zoom')
+    storage.setItem('signagewall.player.scale', 'zoom')
     expect(getStoredScale()).toBe('zoom')
-    storage.setItem('edge.player.scale', 'nope')
+    storage.setItem('signagewall.player.scale', 'nope')
     expect(getStoredScale()).toBe('fit')
   })
 })
@@ -75,19 +75,19 @@ describe('getStoredOrientation / getStoredScale', () => {
 describe('getStoredDailyReload', () => {
   it('returns the default when absent or malformed JSON', () => {
     expect(getStoredDailyReload()).toEqual({ enabled: true, time: '03:00' })
-    storage.setItem('edge.player.dailyReload', 'not json')
+    storage.setItem('signagewall.player.dailyReload', 'not json')
     expect(getStoredDailyReload()).toEqual({ enabled: true, time: '03:00' })
   })
 
   it('normalizes a stored setting (honors enabled, repairs a bad time)', () => {
     storage.setItem(
-      'edge.player.dailyReload',
+      'signagewall.player.dailyReload',
       JSON.stringify({ enabled: false, time: '05:30' }),
     )
     expect(getStoredDailyReload()).toEqual({ enabled: false, time: '05:30' })
 
     storage.setItem(
-      'edge.player.dailyReload',
+      'signagewall.player.dailyReload',
       JSON.stringify({ enabled: true, time: '9:9' }),
     )
     expect(getStoredDailyReload()).toEqual({ enabled: true, time: '03:00' })

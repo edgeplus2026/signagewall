@@ -1,4 +1,4 @@
-import type { FieldOption } from '@edge/apps-contract'
+import type { FieldOption } from '@signagewall/apps-contract'
 
 /**
  * The designs the menu board can render in — the single source of truth shared

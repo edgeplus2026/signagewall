@@ -1,4 +1,4 @@
-import { APP_CATEGORIES, APP_CATEGORY_MEMBERSHIP } from '@edge/apps'
+import { APP_CATEGORIES, APP_CATEGORY_MEMBERSHIP } from '@signagewall/apps'
 import type { TFunction } from 'i18next'
 
 /**
@@ -6,7 +6,7 @@ import type { TFunction } from 'i18next'
  * code-defined and translated in the CMS i18n bundle — the backend no longer
  * serves them. Copy is keyed by app slug under `apps.catalog.<slug>.*`; category
  * names under `apps.categories.names.<slug>`. The category set + each app's
- * membership come from the `@edge/apps` code registry.
+ * membership come from the `@signagewall/apps` code registry.
  */
 export { APP_CATEGORIES, APP_CATEGORY_MEMBERSHIP }
 

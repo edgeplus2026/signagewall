@@ -1,5 +1,5 @@
 /**
- * Player-side contract. The cross-app types now live in `@edge/player-contract`
+ * Player-side contract. The cross-app types now live in `@signagewall/player-contract`
  * (the single source of truth shared with the backend + CMS); this barrel
  * re-exports them so existing intra-app imports keep working, and adds the
  * player-only UI state that has no place in the cross-app contract.
@@ -22,7 +22,7 @@ export type {
   Renderable,
   ReportedProfile,
   VideoRenderable,
-} from '@edge/player-contract'
+} from '@signagewall/player-contract'
 
 export type ConnectionState =
   | 'connecting'

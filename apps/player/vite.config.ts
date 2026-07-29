@@ -35,9 +35,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'EdgeRize Player',
-        short_name: 'EdgeRize',
-        description: 'EdgeRize digital signage player',
+        name: 'SignageWall Player',
+        short_name: 'SignageWall',
+        description: 'SignageWall digital signage player',
         theme_color: '#000000',
         background_color: '#000000',
         display: 'fullscreen',
@@ -64,7 +64,7 @@ export default defineConfig({
               /\.(?:png|jpe?g|webp|gif|avif)$/i.test(url.pathname),
             handler: 'CacheFirst',
             options: {
-              cacheName: 'edge-media',
+              cacheName: 'signagewall-media',
               expiration: {
                 maxEntries: 400,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
@@ -79,7 +79,7 @@ export default defineConfig({
               /\.(?:mp4|webm|mov|m4v|ogg)$/i.test(url.pathname),
             handler: 'CacheFirst',
             options: {
-              cacheName: 'edge-video',
+              cacheName: 'signagewall-video',
               expiration: {
                 maxEntries: 60,
                 maxAgeSeconds: 60 * 60 * 24 * 30,

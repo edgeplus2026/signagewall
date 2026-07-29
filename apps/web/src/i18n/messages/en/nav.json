@@ -3,7 +3,9 @@
   "features": "Features",
   "apps": "Apps",
   "solutions": "Solutions",
+  "pricing": "Pricing",
   "blog": "Blog",
   "signIn": "Sign in",
-  "getStarted": "Book a demo"
+  "register": "Register",
+  "primary": "Main navigation"
 }

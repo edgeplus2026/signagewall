@@ -4,8 +4,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { RssItem, RssPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { RssItem, RssPayload } from '@signagewall/apps';
 import { XMLParser } from 'fast-xml-parser';
 
 import { safeFetchText } from './safe-fetch.util';

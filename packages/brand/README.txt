@@ -60,7 +60,7 @@ REGENERATING
   (apps/web/src/components/brand/logo.tsx) cannot drift apart.
 
     pip install fonttools brotli pillow
-    pnpm --filter @edge/web build     # the script reads Inter from the .next cache
+    pnpm --filter @signagewall/web build     # the script reads Inter from the .next cache
     python3 packages/brand/generate.py
 
   It prints the copy commands from out/ into apps/*/public when it finishes.

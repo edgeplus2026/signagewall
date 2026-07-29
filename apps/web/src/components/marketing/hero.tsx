@@ -6,6 +6,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { Section } from '@/components/ui/section'
 import { Eyebrow, Heading, Lead } from '@/components/ui/typography'
 import { Link } from '@/i18n/navigation'
+import { REGISTER_URL } from '@/lib/app-url'
+import { TRIAL_DAYS } from '@/lib/pricing'
 import { cn } from '@/lib/utils'
 
 export async function Hero() {
@@ -29,13 +31,22 @@ export async function Hero() {
         <Eyebrow>{t('eyebrow')}</Eyebrow>
         <Heading>{t('title')}</Heading>
         <Lead className="max-w-xl">{t('subtitle')}</Lead>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <Link href="/contact" className={cn(buttonVariants({ size: 'lg' }))}>
-            {t('ctaPrimary')}
-          </Link>
-          <Link href="/apps" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>
-            {t('ctaSecondary')}
-          </Link>
+        {/* Two paths, not one. The single-screen buyer signs up; the buyer
+            with fifty screens wants a call. A demo-only hero asked the first
+            one for a meeting they were never going to book. */}
+        <div className="mt-2 flex flex-col items-start gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <a href={REGISTER_URL} className={cn(buttonVariants({ size: 'lg' }))}>
+              {t('ctaPrimary', { trialDays: TRIAL_DAYS })}
+            </a>
+            <Link
+              href="/contact"
+              className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}
+            >
+              {t('ctaSecondary')}
+            </Link>
+          </div>
+          <p className="text-sm text-secondary">{t('trialNote', { trialDays: TRIAL_DAYS })}</p>
         </div>
       </Reveal>
 

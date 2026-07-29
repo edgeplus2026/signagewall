@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   GOALS,
   INDUSTRIES,
@@ -8,8 +9,7 @@ import {
   type ContentLanguage,
   type ContentTone,
   type Industry,
-} from '@edge/apps-contract'
-import { zodResolver } from '@hookform/resolvers/zod'
+} from '@signagewall/apps-contract'
 import {
   AlertCircleIcon,
   ArrowLeftIcon,

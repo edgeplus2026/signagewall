@@ -1,9 +1,9 @@
-# Edge Player — Android native shell release pipeline.
+# SignageWall Player — Android native shell release pipeline.
 #
 # Builds + signs the Android kiosk APK (a standalone Gradle project — NOT
 # `tauri android`), assembles the Android update-channel manifest, and publishes
 # both to the SAME public Cloudflare R2 bucket as the desktop pipeline, under a
-# SEPARATE prefix `edge-player/android/`. The desktop `latest.json` is untouched:
+# SEPARATE prefix `signagewall-player/android/`. The desktop `latest.json` is untouched:
 # an APK's trust anchor is its signing certificate (PackageInstaller refuses a
 # different cert) + the sha256 in this manifest, NOT minisign.
 #
@@ -23,7 +23,7 @@
 #   Secrets:   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
 #              ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD,
 #              R2_ACCOUNT_ID, R2_RELEASES_ACCESS_KEY_ID, R2_RELEASES_SECRET_ACCESS_KEY
-#   Variables: EDGE_PLAYER_URL, R2_RELEASES_BUCKET, R2_RELEASES_PUBLIC_URL,
+#   Variables: SIGNAGEWALL_PLAYER_URL, R2_RELEASES_BUCKET, R2_RELEASES_PUBLIC_URL,
 #              KIOSK_PIN_SHA256 (optional)
 name: player-android-release
 
@@ -89,24 +89,30 @@ jobs:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           set -euo pipefail
-          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/edge-release.jks"
-          echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/edge-release.jks" >> "$GITHUB_ENV"
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/signagewall-release.jks"
+          echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/signagewall-release.jks" >> "$GITHUB_ENV"
 
       - name: Test + assemble release APK
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          EDGE_PLAYER_URL: ${{ vars.EDGE_PLAYER_URL }}
+          SIGNAGEWALL_PLAYER_URL: ${{ vars.SIGNAGEWALL_PLAYER_URL }}
           R2_PUBLIC: ${{ vars.R2_RELEASES_PUBLIC_URL }}
           VERSION: ${{ needs.meta.outputs.version }}
           CODE: ${{ needs.meta.outputs.versioncode }}
           PIN_SHA: ${{ vars.KIOSK_PIN_SHA256 }}
         run: |
           set -euo pipefail
-          manifest="${R2_PUBLIC%/}/edge-player/android/latest.json"
+          # Without it gradle falls back to the emulator loopback default and the
+          # release APK ships pointing at 10.0.2.2 — silently, on every box.
+          if [ -z "${SIGNAGEWALL_PLAYER_URL:-}" ]; then
+            echo "::error::SIGNAGEWALL_PLAYER_URL variable is not set — the APK would bake the dev default."
+            exit 1
+          fi
+          manifest="${R2_PUBLIC%/}/signagewall-player/android/latest.json"
           gradle :app:testDebugUnitTest :app:assembleRelease \
-            -PedgePlayerUrl="$EDGE_PLAYER_URL" \
+            -PsignagewallPlayerUrl="$SIGNAGEWALL_PLAYER_URL" \
             -PupdateManifestUrl="$manifest" \
             -PversionName="$VERSION" \
             -PversionCode="$CODE" \
@@ -118,7 +124,7 @@ jobs:
           mkdir -p dist-android
           apk="$(ls app/build/outputs/apk/release/*.apk | head -n1)"
           test -n "$apk" || { echo "::error::no release APK produced (is the keystore configured?)"; exit 1; }
-          cp "$apk" "dist-android/edge-player-${{ needs.meta.outputs.version }}.apk"
+          cp "$apk" "dist-android/signagewall-player-${{ needs.meta.outputs.version }}.apk"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -151,7 +157,7 @@ jobs:
           node apps/player/scripts/release/build-android-latest-json.mjs \
             --version "$VERSION" \
             --version-code "$CODE" \
-            --apk "dist-android/edge-player-${VERSION}.apk" \
+            --apk "dist-android/signagewall-player-${VERSION}.apk" \
             --public-base "$R2_PUBLIC" \
             --out dist-android/latest.json
 
@@ -170,23 +176,23 @@ jobs:
           endpoint="https://${ACCOUNT_ID}.r2.cloudflarestorage.com"
 
           # Published versions are IMMUTABLE (same rationale as the desktop pipeline).
-          existing=$(aws s3 ls "s3://${BUCKET}/edge-player/android/${VERSION}/" --endpoint-url "$endpoint" || true)
+          existing=$(aws s3 ls "s3://${BUCKET}/signagewall-player/android/${VERSION}/" --endpoint-url "$endpoint" || true)
           if [ -n "$existing" ]; then
-            echo "::error::edge-player/android/${VERSION}/ already exists on R2 — versions are immutable, bump the version"
+            echo "::error::signagewall-player/android/${VERSION}/ already exists on R2 — versions are immutable, bump the version"
             echo "$existing"
             exit 1
           fi
 
           # APK first (versioned path) so the manifest never points at a missing file.
-          aws s3 cp "dist-android/edge-player-${VERSION}.apk" \
-            "s3://${BUCKET}/edge-player/android/${VERSION}/edge-player-${VERSION}.apk" \
+          aws s3 cp "dist-android/signagewall-player-${VERSION}.apk" \
+            "s3://${BUCKET}/signagewall-player/android/${VERSION}/signagewall-player-${VERSION}.apk" \
             --endpoint-url "$endpoint" \
             --content-type application/vnd.android.package-archive
 
           # Manifest last, at a stable key, un-cached so devices see it promptly.
           aws s3 cp dist-android/latest.json \
-            "s3://${BUCKET}/edge-player/android/latest.json" \
+            "s3://${BUCKET}/signagewall-player/android/latest.json" \
             --endpoint-url "$endpoint" \
             --content-type application/json \
             --cache-control "no-cache"
-          echo "Published edge-player android ${VERSION} to R2 bucket ${BUCKET}."
+          echo "Published signagewall-player android ${VERSION} to R2 bucket ${BUCKET}."

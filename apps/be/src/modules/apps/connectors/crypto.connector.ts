@@ -2,9 +2,9 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import { COIN_LIST } from '@edge/apps';
-import type { CryptoCoin, CryptoPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import { COIN_LIST } from '@signagewall/apps';
+import type { CryptoCoin, CryptoPayload } from '@signagewall/apps';
 
 interface CryptoConfig {
   coins?: string[];

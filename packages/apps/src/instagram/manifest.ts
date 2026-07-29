@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const INSTAGRAM_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>'
@@ -36,7 +36,7 @@ export const instagramManifest: AppManifest = {
       label: 'Facebook account',
       required: true,
       provider: 'meta',
-      help: 'Sign in with the Facebook account that manages your Instagram. Edge only reads posts — it never posts, likes or messages.',
+      help: 'Sign in with the Facebook account that manages your Instagram. SignageWall only reads posts — it never posts, likes or messages.',
     },
     {
       key: 'account',

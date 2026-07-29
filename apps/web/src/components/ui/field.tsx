@@ -6,8 +6,10 @@ export function Label({ className, ...props }: ComponentProps<'label'>) {
   return <label className={cn('text-sm font-medium', className)} {...props} />
 }
 
+/* Focus is coral, matching the catalogue's search field — the contact form was
+   the one input on the site that lit up grey instead. */
 const fieldBase =
-  'border-secondary bg-page placeholder:text-secondary/60 focus-visible:border-tertiary focus-visible:ring-tertiary w-full rounded-md border px-3.5 text-sm outline-none transition-colors focus-visible:ring-2 disabled:opacity-60'
+  'w-full border border-secondary bg-page px-3.5 text-sm outline-none transition-colors placeholder:text-secondary/60 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30 disabled:opacity-60'
 
 export function Input({ className, ...props }: ComponentProps<'input'>) {
   return <input className={cn(fieldBase, 'h-11', className)} {...props} />

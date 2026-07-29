@@ -2,8 +2,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { SocialPayload, SocialPost } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { SocialPayload, SocialPost } from '@signagewall/apps';
 
 import { linkedinHeaders } from '../../connections/providers/linkedin-api';
 
@@ -89,7 +89,7 @@ function toPost(post: LiPost): SocialPost | null {
   }
   const text = textOf(post);
   // Image-only posts leave no text: their pictures are URNs the Images API only
-  // resolves for a token with WRITE access to the Page, which Edge never asks
+  // resolves for a token with WRITE access to the Page, which SignageWall never asks
   // for — so there is nothing to render and we skip them.
   if (!text) {
     return null;

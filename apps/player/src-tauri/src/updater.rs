@@ -27,7 +27,7 @@ use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Manager};
 
 // `UpdaterState`, the updating sentinel, and the atomic-write primitives live in
-// `state.rs` (pure std + serde, no Tauri) so the standalone `edge-watchdog`
+// `state.rs` (pure std + serde, no Tauri) so the standalone `signagewall-watchdog`
 // binary can read the same files. This module keeps the AppHandle-based wrappers.
 use crate::state::{
     clear_sentinel, now_ms, read_state_at, write_atomic, write_sentinel, write_state_at,
@@ -61,7 +61,7 @@ pub(crate) const UPDATE_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 
 /// Prefix of every cached installer file; also what [`prune_installers`] matches
 /// so it can never delete `state.json`.
-const INSTALLER_PREFIX: &str = "edge-player-";
+const INSTALLER_PREFIX: &str = "signagewall-player-";
 
 /// Cross-thread update flags, registered as Tauri managed state.
 #[derive(Default)]
@@ -802,12 +802,12 @@ mod tests {
 
     #[test]
     fn promote_records_last_known_good_and_clears_pending() {
-        let installer = PathBuf::from("/tmp/edge-player-0.2.0.exe");
+        let installer = PathBuf::from("/tmp/signagewall-player-0.2.0.exe");
         let next = promote(&state_with(Some("0.2.0")), "0.2.0", Some(&installer));
         assert_eq!(next.last_good_version.as_deref(), Some("0.2.0"));
         assert_eq!(
             next.last_good_installer.as_deref(),
-            Some("/tmp/edge-player-0.2.0.exe")
+            Some("/tmp/signagewall-player-0.2.0.exe")
         );
         assert_eq!(next.pending_version, None);
         assert_eq!(next.last_result.as_deref(), Some("up-to-date"));
@@ -816,8 +816,8 @@ mod tests {
 
     #[test]
     fn prune_never_matches_the_state_file() {
-        assert!(is_installer_name("edge-player-0.2.0.exe"));
-        assert!(is_installer_name("edge-player-0.2.0.app.tar.gz"));
+        assert!(is_installer_name("signagewall-player-0.2.0.exe"));
+        assert!(is_installer_name("signagewall-player-0.2.0.app.tar.gz"));
         assert!(!is_installer_name("state.json"));
         assert!(!is_installer_name("state.json.tmp"));
     }

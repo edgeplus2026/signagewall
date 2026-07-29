@@ -1,4 +1,4 @@
-import type { FieldOption } from '@edge/apps-contract'
+import type { FieldOption } from '@signagewall/apps-contract'
 
 /**
  * The currencies a price-list app can format with — the single source of truth

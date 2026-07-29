@@ -32,7 +32,7 @@ below are relative to `/api/v1` unless noted otherwise.
 
 ### Frontend integration
 
-`edge-fe/src/lib/axios.ts` unwraps `{ success, data }` on success responses. For errors, use `getApiErrorMessage()` which reads `error.response.data.error.message`.
+`apps/cms/src/lib/axios.ts` unwraps `{ success, data }` on success responses. For errors, use `getApiErrorMessage()` which reads `error.response.data.error.message`.
 
 ## i18n
 
@@ -124,7 +124,7 @@ call `assertMembership`/`assertAdmin` for guarded routes.
 
 The header is optional on user-scoped routes (`/auth/*`, `/settings/*` except feedback, `/admin/*`). `/organizations/*` write routes use the `:id` param via the guard's `idParam`.
 
-## Auth (`edge-fe/src/features/auth`)
+## Auth (`apps/cms/src/features/auth`)
 
 | Method | Path | Request body | Response `data` |
 |--------|------|--------------|-----------------|
@@ -172,7 +172,7 @@ Impersonation tokens include `impersonatorId` in the JWT payload (access + refre
 - `POST /auth/exit-impersonation` returns fresh super-admin tokens
 - `/admin/*` routes are blocked (`SuperAdminGuard` rejects `impersonatorId`)
 
-## Settings (`edge-fe/src/features/settings`)
+## Settings (`apps/cms/src/features/settings`)
 
 | Method | Path | Request body | Response `data` |
 |--------|------|--------------|-----------------|
@@ -192,7 +192,7 @@ interface AccountSettings {
 }
 ```
 
-## Organizations (`edge-fe/src/features/organizations`)
+## Organizations (`apps/cms/src/features/organizations`)
 
 | Method | Path | Request body | Response `data` |
 |--------|------|--------------|-----------------|
@@ -215,7 +215,7 @@ Rules:
 - Frontend blocks deleting the active organization or the only organization.
 - Org create/rename/delete requires `admin` role in that organization.
 
-## Members (`edge-fe/src/features/users`)
+## Members (`apps/cms/src/features/users`)
 
 Org-scoped team management. Distinct from super-admin global user management.
 
@@ -253,7 +253,7 @@ interface Member {
 
 When `MAIL_ENABLED=false`, invite links are logged to the backend console.
 
-## Super Admin (`edge-fe/src/features/super-admin`)
+## Super Admin (`apps/cms/src/features/super-admin`)
 
 Requires `user.role === 'super-admin'` in MongoDB. Set manually:
 

@@ -10,7 +10,7 @@ import {
   type DeviceUpdateStatus,
   type KioskMode,
   type PlayerRuntime,
-} from '@edge/player-contract'
+} from '@signagewall/player-contract'
 
 export type ScreenViewMode = 'grid' | 'list'
 
@@ -37,7 +37,7 @@ export interface ScreenDeviceProfile {
   updateStatus?: DeviceUpdateStatus
 }
 
-// Device display + power settings come from @edge/player-contract — the single
+// Device display + power settings come from @signagewall/player-contract — the single
 // source of truth shared with the backend + player. Aliased to the historical
 // `ScreenDevice*` names so the rest of the CMS keeps importing from here.
 export type ScreenDeviceOrientation = DeviceOrientation

@@ -4,8 +4,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { GcalEvent, GcalPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { GcalEvent, GcalPayload } from '@signagewall/apps';
 
 interface GcalConfig {
   connectionId?: string;

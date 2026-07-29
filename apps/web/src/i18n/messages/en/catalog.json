@@ -2,17 +2,17 @@
   "text": {
     "tagline": "Show a message or announcement",
     "description": "Display a short message or announcement on your screens.",
-    "about": "Put a short message or announcement on screen, styled the way you want. Write the text with basic formatting, then set the text and background colours, or drop in a full-screen background photo by URL with a light or dark overlay to keep the words readable. It is the quickest way to post a welcome, an opening-hours note or a staff notice in lobbies, offices and shops."
+    "about": "Put a short message or announcement on screen, styled the way you want. Write the text with basic formatting, then set the text and background colors, or drop in a full-screen background photo by URL with a light or dark overlay to keep the words readable. It is the quickest way to post a welcome, an opening-hours note or a staff notice in lobbies, offices and shops."
   },
   "alert": {
     "tagline": "Full-screen urgent message",
-    "description": "Show a high-visibility alert full-screen — a headline, optional details and a severity colour. Works offline.",
+    "description": "Show a high-visibility alert full-screen — a headline, optional details and a severity color. Works offline.",
     "about": "When something needs everyone's attention, this takes over the whole screen with a bold headline and optional details. Type your message, choose a severity — critical red, warning amber or information blue — and turn the icon and slow pulsing edge on or off. It keeps working even if the network drops, so it is ready for evacuations, safety notices and other urgent moments in offices, factories and public spaces."
   },
   "qr": {
     "tagline": "Show a scannable QR code",
     "description": "Turn a link or text into a QR code your audience can scan from the screen.",
-    "about": "Display a large QR code that people can scan from across the room. Choose what it does — open a website, dial a number, start a text or email, join a Wi-Fi network, or leave a Google review — then fill in the details and add a caption inviting people to scan. You can even set the code and background colours. Perfect for collecting reviews, sharing guest Wi-Fi and promoting offers."
+    "about": "Display a large QR code that people can scan from across the room. Choose what it does — open a website, dial a number, start a text or email, join a Wi-Fi network, or leave a Google review — then fill in the details and add a caption inviting people to scan. You can even set the code and background colors. Perfect for collecting reviews, sharing guest Wi-Fi and promoting offers."
   },
   "countdown": {
     "tagline": "Count down to a moment — or up since one",
@@ -22,7 +22,7 @@
   "ticker": {
     "tagline": "Scroll announcements across the screen",
     "description": "A moving band of short messages — news, notices, opening hours. Add a row per message.",
-    "about": "A moving band of text that scrolls along the top or bottom of the screen, staying visible over whatever else is playing. Choose the screens to show it on, then feed it your own messages row by row or a live RSS feed of headlines, and set the speed, direction, position and colours. It is a handy way to layer notices, opening hours and news over your regular content."
+    "about": "A moving band of text that scrolls along the top or bottom of the screen, staying visible over whatever else is playing. Choose the screens to show it on, then feed it your own messages row by row or a live RSS feed of headlines, and set the speed, direction, position and colors. It is a handy way to layer notices, opening hours and news over your regular content."
   },
   "powerpoint": {
     "tagline": "Show a PowerPoint deck on your screens",
@@ -72,32 +72,32 @@
   "gcal": {
     "tagline": "Show upcoming events from a Google Calendar",
     "description": "Display the next events from a connected Google Calendar — great for meeting rooms and lobbies.",
-    "about": "See what's coming up straight from a Google Calendar, laid out as a day, week, month or rolling schedule. Connect your Google account, choose the calendar to show, and set options like upcoming-only, gentle auto-scroll for long lists, and the on-screen language. EdgeRize only reads the calendar, never changes it — perfect outside meeting rooms, in reception areas and staff spaces."
+    "about": "See what's coming up straight from a Google Calendar, laid out as a day, week, month or rolling schedule. Connect your Google account, choose the calendar to show, and set options like upcoming-only, gentle auto-scroll for long lists, and the on-screen language. SignageWall only reads the calendar, never changes it — perfect outside meeting rooms, in reception areas and staff spaces."
   },
   "outlook": {
     "tagline": "Show an Outlook calendar on your screens",
     "description": "Display a connected Microsoft Outlook / Microsoft 365 calendar as a day, week, month or schedule view.",
-    "about": "Put a Microsoft Outlook or Microsoft 365 calendar on screen as a day, week, month or rolling schedule. Sign in with your Microsoft account, choose the calendar, and set options such as upcoming-only, gentle auto-scroll and the on-screen language. EdgeRize only reads the calendar and never changes it, which makes it ideal outside meeting rooms and in reception areas."
+    "about": "Put a Microsoft Outlook or Microsoft 365 calendar on screen as a day, week, month or rolling schedule. Sign in with your Microsoft account, choose the calendar, and set options such as upcoming-only, gentle auto-scroll and the on-screen language. SignageWall only reads the calendar and never changes it, which makes it ideal outside meeting rooms and in reception areas."
   },
   "teams": {
     "tagline": "Show a Teams channel on your screens",
     "description": "Connect a Microsoft account and display a Teams channel's latest messages and announcements as a spotlight or a grid.",
-    "about": "Surface the latest messages and announcements from a Microsoft Teams channel on screen, one at a time in a rotating spotlight or several in a grid. Sign in with a work or school account, choose the team and channel, and set the timing and whether author names show. EdgeRize only reads messages and never posts, and your Microsoft admin approves access the first time — great for keeping staff areas and internal spaces informed."
+    "about": "Surface the latest messages and announcements from a Microsoft Teams channel on screen, one at a time in a rotating spotlight or several in a grid. Sign in with a work or school account, choose the team and channel, and set the timing and whether author names show. SignageWall only reads messages and never posts, and your Microsoft admin approves access the first time — great for keeping staff areas and internal spaces informed."
   },
   "facebook": {
     "tagline": "Show a Facebook Page feed on your screens",
     "description": "Connect a Facebook account and display a Page's latest posts as a rotating spotlight or a grid.",
-    "about": "Turn a Facebook Page's latest posts into on-screen content, either one post at a time in a rotating spotlight or several together in a grid. Sign in with the account that manages the Page, choose which Page to show, set how long each post stays up and whether to include the post text. EdgeRize only reads posts, never writes them — ideal for showing your social presence in shops, lobbies and reception areas."
+    "about": "Turn a Facebook Page's latest posts into on-screen content, either one post at a time in a rotating spotlight or several together in a grid. Sign in with the account that manages the Page, choose which Page to show, set how long each post stays up and whether to include the post text. SignageWall only reads posts, never writes them — ideal for showing your social presence in shops, lobbies and reception areas."
   },
   "instagram": {
     "tagline": "Show an Instagram feed on your screens",
     "description": "Connect a professional Instagram account and display its latest posts as a rotating spotlight or a grid.",
-    "about": "Bring a professional Instagram account's latest posts to your screens, either one at a time in a rotating spotlight or together in a grid. Sign in with the Facebook account that manages the Instagram profile, select the account, and choose the layout, timing and whether captions show. EdgeRize only reads posts — a polished way to showcase your brand and campaigns in retail, cafés and reception areas."
+    "about": "Bring a professional Instagram account's latest posts to your screens, either one at a time in a rotating spotlight or together in a grid. Sign in with the Facebook account that manages the Instagram profile, select the account, and choose the layout, timing and whether captions show. SignageWall only reads posts — a polished way to showcase your brand and campaigns in retail, cafés and reception areas."
   },
   "linkedin": {
     "tagline": "Show a LinkedIn Page feed on your screens",
     "description": "Connect a LinkedIn account and display a Page's latest posts as a rotating spotlight or a grid.",
-    "about": "Put your company's latest LinkedIn posts on screen, one at a time in a rotating spotlight or several together in a grid. Sign in with the account that administers the Page, choose which Page to show, and set the layout and timing. Posts appear as text, since LinkedIn only releases post images to apps that can also publish on your behalf — access EdgeRize never asks for. Ideal for office walls, reception areas and recruitment displays."
+    "about": "Put your company's latest LinkedIn posts on screen, one at a time in a rotating spotlight or several together in a grid. Sign in with the account that administers the Page, choose which Page to show, and set the layout and timing. Posts appear as text, since LinkedIn only releases post images to apps that can also publish on your behalf — access SignageWall never asks for. Ideal for office walls, reception areas and recruitment displays."
   },
   "rss": {
     "tagline": "Show the latest stories from any feed",
@@ -162,7 +162,7 @@
   "airquality": {
     "tagline": "Live air quality for any location",
     "description": "Show the current air-quality index and key pollutants for a place — updated automatically.",
-    "about": "This app reports the current air-quality index alongside key pollutants, colour-coded from good to hazardous. Search for a city, choose the European (EAQI) or US (AQI) scale, and pick a light or dark theme; the readings refresh on their own throughout the day. It suits building lobbies, gyms, clinics and any workplace where indoor or outdoor air matters."
+    "about": "This app reports the current air-quality index alongside key pollutants, color-coded from good to hazardous. Search for a city, choose the European (EAQI) or US (AQI) scale, and pick a light or dark theme; the readings refresh on their own throughout the day. It suits building lobbies, gyms, clinics and any workplace where indoor or outdoor air matters."
   },
   "crypto": {
     "tagline": "Live cryptocurrency prices",
@@ -182,7 +182,7 @@
   "clock": {
     "tagline": "Show the current time on your screens",
     "description": "Display a live clock — 12- or 24-hour, with optional seconds and date.",
-    "about": "A live clock for your screens, in whichever style fits the room: digital numbers, an analogue face, a split-flap board, the time spelled out in words, or closing orbit rings. Choose 12- or 24-hour time, show or hide seconds and the date, and set the background, text and accent colours. It looks at home in receptions, studios, meeting rooms and anywhere the time should be easy to read."
+    "about": "A live clock for your screens, in whichever style fits the room: digital numbers, an analogue face, a split-flap board, the time spelled out in words, or closing orbit rings. Choose 12- or 24-hour time, show or hide seconds and the date, and set the background, text and accent colors. It looks at home in receptions, studios, meeting rooms and anywhere the time should be easy to read."
   },
   "menu": {
     "tagline": "Show a menu or price list",

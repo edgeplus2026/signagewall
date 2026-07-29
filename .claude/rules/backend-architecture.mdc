@@ -1,6 +1,6 @@
 ---
 description: NestJS backend architecture and module conventions
-globs: edge-be/**/*
+globs: apps/be/**/*
 alwaysApply: false
 ---
 
@@ -9,7 +9,7 @@ alwaysApply: false
 ## Directory layout
 
 ```
-edge-be/src/
+apps/be/src/
   common/          # Cross-cutting: filters, interceptors, decorators, guards, services, DTOs
     decorators/    # @CurrentUser, @CurrentMembership, @RequireOrgRole, @Public, @NormalizeEmail, @AuthThrottle
     guards/        # OrgMembershipGuard

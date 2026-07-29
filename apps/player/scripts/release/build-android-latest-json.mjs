@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Assembles the Android update-channel manifest (`edge-player/android/latest.json`).
+ * Assembles the Android update-channel manifest (`signagewall-player/android/latest.json`).
  * Mirrors build-latest-json.mjs's fail-closed ethos, but the Android trust anchor is
  * the APK signing certificate (PackageInstaller refuses a different cert) plus the
  * sha256 computed here — NOT minisign. Fails closed on any missing input.
@@ -8,7 +8,7 @@
  * Usage:
  *   node build-android-latest-json.mjs \
  *     --version 0.2.0 --version-code 200 \
- *     --apk dist-android/edge-player-0.2.0.apk \
+ *     --apk dist-android/signagewall-player-0.2.0.apk \
  *     --public-base https://releases.example.com --out dist-android/latest.json
  */
 import { createHash } from 'node:crypto'
@@ -47,7 +47,7 @@ if (!Number.isInteger(code) || code <= 0) {
 }
 
 const sha256 = createHash('sha256').update(readFileSync(apk)).digest('hex')
-const url = `${publicBase.replace(/\/$/, '')}/edge-player/android/${version}/${basename(apk)}`
+const url = `${publicBase.replace(/\/$/, '')}/signagewall-player/android/${version}/${basename(apk)}`
 
 const manifest = {
   versionName: version,

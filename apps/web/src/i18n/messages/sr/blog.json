@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Blog",
+    "title": "Vodiči i saveti za digitalne ekrane",
     "description": "Saveti, vodiči i novosti o digitalnim ekranima — kako da izvučete najviše iz svojih ekrana."
   },
   "hero": {
@@ -10,5 +10,8 @@
   },
   "empty": "Uskoro stižu prvi članci. Vratite se uskoro.",
   "back": "Nazad na blog",
-  "readMore": "Pročitajte"
+  "readMore": "Pročitajte",
+  "photoCredit": "Foto: {credit} / Pexels",
+  "relatedTitle": "Nastavite da čitate",
+  "readingTime": "{minutes} min čitanja"
 }

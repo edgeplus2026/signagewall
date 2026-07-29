@@ -28,17 +28,17 @@ import {
   appTagline,
   categoryName,
 } from '@/features/apps/lib/appCopy'
-import type { EdgeApp } from '@/features/apps/types/app.types'
+import type { CatalogApp } from '@/features/apps/types/app.types'
 
 type InstallFilter = 'all' | 'installed' | 'not-installed'
 
 interface AppGridProps {
-  apps: EdgeApp[]
+  apps: CatalogApp[]
   isLoading?: boolean
   emptyTitle: string
   emptyDescription: string
-  onShowDetails: (app: EdgeApp) => void
-  onRequestUninstall: (app: EdgeApp) => void
+  onShowDetails: (app: CatalogApp) => void
+  onRequestUninstall: (app: CatalogApp) => void
 }
 
 const UNCATEGORIZED = '__uncategorized__'
@@ -47,7 +47,7 @@ interface AppSection {
   /** Category id, or UNCATEGORIZED for apps without one. */
   id: string
   title: string
-  apps: EdgeApp[]
+  apps: CatalogApp[]
 }
 
 function AppCardSkeleton() {
@@ -70,7 +70,7 @@ function AppCardSkeleton() {
  * Group apps into ordered category sections from the code registry; an app is
  * shown under each category it belongs to. Category names come from i18n.
  */
-function buildSections(apps: EdgeApp[], t: TFunction): AppSection[] {
+function buildSections(apps: CatalogApp[], t: TFunction): AppSection[] {
   const ordered = [...APP_CATEGORIES].sort((a, b) => a.order - b.order)
   const sections: AppSection[] = []
 

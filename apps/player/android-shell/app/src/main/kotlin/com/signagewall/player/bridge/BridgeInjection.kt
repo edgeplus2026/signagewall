@@ -1,15 +1,15 @@
-package com.edgerize.player.bridge
+package com.signagewall.player.bridge
 
 /**
  * The document-start JS that defines `window.AndroidBridge` from the raw
- * `@JavascriptInterface` host (`__edgeHost__`) — the Android analogue of Tauri's
+ * `@JavascriptInterface` host (`__signagewallHost__`) — the Android analogue of Tauri's
  * `withGlobalTauri`. Installed before any page script runs (via
  * `WebViewCompat.addDocumentStartJavaScript`, or an `onPageStarted` fallback on old
  * TV-box WebViews). Defensive: if the host object is somehow absent it leaves
  * `window.AndroidBridge` undefined and the web layer cleanly no-ops.
  */
 object BridgeInjection {
-    const val HOST_NAME = "__edgeHost__"
+    const val HOST_NAME = "__signagewallHost__"
 
     val SCRIPT: String = """
         (function () {

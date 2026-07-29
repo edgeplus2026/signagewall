@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 /**
- * Renders an app's inline-SVG icon (from the `@edge/apps` manifest, `currentColor`
+ * Renders an app's inline-SVG icon (from the `@signagewall/apps` manifest, `currentColor`
  * stroke). The markup is trusted — it comes from our own code registry, not user
  * input — so `dangerouslySetInnerHTML` is safe here.
  */

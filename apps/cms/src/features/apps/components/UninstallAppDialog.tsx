@@ -11,11 +11,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useUninstallApp } from '@/features/apps/hooks/useApps'
-import type { EdgeApp } from '@/features/apps/types/app.types'
+import type { CatalogApp } from '@/features/apps/types/app.types'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 interface UninstallAppDialogProps {
-  app: EdgeApp | null
+  app: CatalogApp | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onUninstalled?: () => void

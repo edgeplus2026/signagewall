@@ -1,4 +1,4 @@
-package com.edgerize.player.update
+package com.signagewall.player.update
 
 /**
  * Pure OTA state transitions — the Kotlin port of the Tauri shell's decision helpers

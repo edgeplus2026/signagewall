@@ -9,14 +9,31 @@ import { LanguageSwitcher } from '@/components/layout/language-switcher'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { buttonVariants } from '@/components/ui/button'
 import { Link } from '@/i18n/navigation'
+import type { AppPathname } from '@/i18n/routing'
+import { LOGIN_URL, REGISTER_URL } from '@/lib/app-url'
 import { cn } from '@/lib/utils'
 
+/* Only the static routes: a dynamic pathname like `/blog/[slug]` needs params
+   alongside it, which a flat nav list has nowhere to put. */
+type StaticPathname = Exclude<AppPathname, `${string}[${string}`>
+
 interface NavLink {
-  href: string
+  /* The internal pathname, not the rendered URL — `Link` localises it. Typed
+     against the pathnames map so an href that is not a real route fails here
+     rather than 404ing in Serbian only. */
+  href: StaticPathname
   label: string
 }
 
-export function MobileNav({ links, ctaLabel }: { links: NavLink[]; ctaLabel: string }) {
+export function MobileNav({
+  links,
+  signInLabel,
+  registerLabel,
+}: {
+  links: readonly NavLink[]
+  signInLabel: string
+  registerLabel: string
+}) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -61,15 +78,17 @@ export function MobileNav({ links, ctaLabel }: { links: NavLink[]; ctaLabel: str
             <ThemeToggle />
           </div>
 
-          <Link
-            href="/contact"
-            onClick={() => {
-              setOpen(false)
-            }}
-            className={cn(buttonVariants({ size: 'lg' }), 'mt-4 w-full')}
+          {/* Leaving for the app, so no router involved and no need to close
+              the sheet on the way out. */}
+          <a href={REGISTER_URL} className={cn(buttonVariants({ size: 'lg' }), 'mt-4 w-full')}>
+            {registerLabel}
+          </a>
+          <a
+            href={LOGIN_URL}
+            className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'mt-2 w-full')}
           >
-            {ctaLabel}
-          </Link>
+            {signInLabel}
+          </a>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

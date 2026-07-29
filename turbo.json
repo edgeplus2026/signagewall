@@ -6,11 +6,11 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "@edge/apps#build": {
+    "@signagewall/apps#build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "../../apps/player/public/apps/**"]
     },
-    "@edge/web#build": {
+    "@signagewall/web#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**"]
     },

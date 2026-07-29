@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 /**
  * The wizard form. Select fields are validated as non-empty strings (the actual
- * allow-list lives in the shared `@edge/apps-contract` options and is re-checked
+ * allow-list lives in the shared `@signagewall/apps-contract` options and is re-checked
  * by the backend DTO). `keyPoints` is a free-text area, one point per line, that
  * is split into an array on submit. No duration / slide-count fields by design.
  */

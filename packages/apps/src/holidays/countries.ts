@@ -1,4 +1,4 @@
-import type { FieldOption } from '@edge/apps-contract'
+import type { FieldOption } from '@signagewall/apps-contract'
 
 /**
  * Countries offered in the holidays picker. Every entry is a country Nager.Date

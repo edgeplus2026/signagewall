@@ -1,7 +1,7 @@
-package com.edgerize.player.update
+package com.signagewall.player.update
 
-import com.edgerize.player.util.AtomicFile
-import com.edgerize.player.util.json
+import com.signagewall.player.util.AtomicFile
+import com.signagewall.player.util.json
 import java.io.File
 
 /**

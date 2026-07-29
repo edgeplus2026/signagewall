@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { FieldType } from '@edge/apps-contract'
+import type { FieldType } from '@signagewall/apps-contract'
 import { FileUpIcon, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'

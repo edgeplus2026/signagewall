@@ -1,5 +1,5 @@
-// Builds the `edge-watchdog` sidecar and stages it where Tauri's `externalBin`
-// expects it: binaries/edge-watchdog-<target-triple>[.exe].
+// Builds the `signagewall-watchdog` sidecar and stages it where Tauri's `externalBin`
+// expects it: binaries/signagewall-watchdog-<target-triple>[.exe].
 //
 // Run automatically by tauri's before{Dev,Build}Command (cwd = this src-tauri
 // dir), so a plain `tauri dev` / `tauri build` "just works". Profile: debug for
@@ -9,7 +9,7 @@
 //
 // Bootstrap note: `externalBin` is a same-package sibling bin, and tauri-build's
 // build script validates that the staged sidecar EXISTS for every cargo build of
-// this package — including the very `cargo build --bin edge-watchdog` we use to
+// this package — including the very `cargo build --bin signagewall-watchdog` we use to
 // produce it. So we drop an empty PLACEHOLDER at the staged path first (satisfies
 // the existence check), build, then overwrite it with the real binary.
 import { execFileSync } from 'node:child_process'
@@ -37,17 +37,17 @@ const profile = release ? 'release' : 'debug'
 const ext = triple.includes('windows') ? '.exe' : ''
 
 mkdirSync('binaries', { recursive: true })
-const dest = join('binaries', `edge-watchdog-${triple}${ext}`)
+const dest = join('binaries', `signagewall-watchdog-${triple}${ext}`)
 // Placeholder so tauri-build's externalBin existence check passes DURING the
 // build below (chicken-and-egg: the bin lives in the package it's a sidecar of).
 if (!existsSync(dest)) writeFileSync(dest, '')
 
-const args = ['build', '--bin', 'edge-watchdog']
+const args = ['build', '--bin', 'signagewall-watchdog']
 if (release) args.push('--release')
 if (explicit) args.push('--target', triple)
 console.log(`[prepare-watchdog] cargo ${args.join(' ')}`)
 execFileSync('cargo', args, { stdio: 'inherit' })
 
 const builtDir = explicit ? join('target', triple, profile) : join('target', profile)
-copyFileSync(join(builtDir, `edge-watchdog${ext}`), dest)
+copyFileSync(join(builtDir, `signagewall-watchdog${ext}`), dest)
 console.log(`[prepare-watchdog] staged ${dest}`)

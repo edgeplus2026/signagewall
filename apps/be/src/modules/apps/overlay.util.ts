@@ -1,4 +1,4 @@
-import { APP_MANIFESTS } from '@edge/apps';
+import { APP_MANIFESTS } from '@signagewall/apps';
 
 /** Slugs of overlay apps (manifest `overlay: true`), e.g. the ticker band. */
 export const OVERLAY_SLUGS: ReadonlySet<string> = new Set(

@@ -7,6 +7,7 @@ import { Reveal } from '@/components/motion/reveal'
 import { Card } from '@/components/ui/card'
 import { IconBadge } from '@/components/ui/icon-badge'
 import { Section } from '@/components/ui/section'
+import { Subtitle } from '@/components/ui/typography'
 
 const ICONS: LucideIcon[] = [LayoutDashboard, MonitorPlay, Tv]
 
@@ -27,9 +28,7 @@ export async function Platform() {
                 <IconBadge>
                   <Icon />
                 </IconBadge>
-                <p className="mt-6 font-heading text-lg font-semibold tracking-tight text-balance">
-                  {item.title}
-                </p>
+                <Subtitle className="mt-6">{item.title}</Subtitle>
                 <p className="mt-3 text-sm text-secondary">{item.body}</p>
               </Card>
             </Reveal>

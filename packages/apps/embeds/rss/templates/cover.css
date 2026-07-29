@@ -311,7 +311,7 @@
   .cv .rs-qr {
     left: 0;
     right: 0;
-    bottom: var(--rs-edge);
+    bottom: var(--rs-inset);
     align-self: center;
     margin: 0 auto;
     width: fit-content;

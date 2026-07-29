@@ -21,14 +21,14 @@ import type {
   ReportedProfile,
 } from './types'
 
-const DEVICE_ID_KEY = 'edge.player.deviceId'
-const TOKEN_KEY = 'edge.player.token'
-const PAIRING_CODE_KEY = 'edge.player.pairingCode'
-const VOLUME_KEY = 'edge.player.volume'
-const ORIENTATION_KEY = 'edge.player.orientation'
-const SCALE_KEY = 'edge.player.scale'
-const KIOSK_MODE_KEY = 'edge.player.kioskMode'
-const DAILY_RELOAD_KEY = 'edge.player.dailyReload'
+const DEVICE_ID_KEY = 'signagewall.player.deviceId'
+const TOKEN_KEY = 'signagewall.player.token'
+const PAIRING_CODE_KEY = 'signagewall.player.pairingCode'
+const VOLUME_KEY = 'signagewall.player.volume'
+const ORIENTATION_KEY = 'signagewall.player.orientation'
+const SCALE_KEY = 'signagewall.player.scale'
+const KIOSK_MODE_KEY = 'signagewall.player.kioskMode'
+const DAILY_RELOAD_KEY = 'signagewall.player.dailyReload'
 
 /**
  * In-memory copy of the device id, held for the lifetime of the page. It lets a
@@ -246,7 +246,7 @@ export function getPlatform(): PlayerPlatform {
  * fields are the web-only profile; `runtime`/`shellVersion`/`updateStatus` are
  * populated by the native shell (undefined in a browser). `appVersion` is the
  * WEB bundle version — the distinct native `shellVersion` is never folded into it.
- * The shape lives in `@edge/player-contract` (`ReportedProfile`).
+ * The shape lives in `@signagewall/player-contract` (`ReportedProfile`).
  */
 export function getProfile(): ReportedProfile {
   return {

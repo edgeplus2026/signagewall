@@ -11,7 +11,7 @@ const root = document.getElementById('app')
  * would blare sound while the previous item is still on screen. `muted` follows
  * the screen volume (0 ⇒ muted) and is always true in the preview. `mute` is a
  * load-time embed param, so a mute change remounts the iframe. See the
- * `app-active` protocol in `@edge/apps-contract`.
+ * `app-active` protocol in `@signagewall/apps-contract`.
  */
 let videoUrl = ''
 let active = false

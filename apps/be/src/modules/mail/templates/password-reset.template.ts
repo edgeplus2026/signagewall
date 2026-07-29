@@ -4,9 +4,9 @@ export const renderPasswordResetEmail = (params: {
   name: string;
   resetUrl: string;
 }): { subject: string; html: string } => ({
-  subject: 'Reset your Edge password',
+  subject: 'Reset your SignageWall password',
   html: renderEmailLayout({
-    previewText: 'Reset your Edge account password',
+    previewText: 'Reset your SignageWall account password',
     title: 'Reset your password',
     bodyHtml: `
       <p style="margin:0 0 12px;">Hi ${params.name},</p>

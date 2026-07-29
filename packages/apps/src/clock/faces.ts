@@ -1,4 +1,4 @@
-import type { FieldOption } from '@edge/apps-contract'
+import type { FieldOption } from '@signagewall/apps-contract'
 
 /**
  * The faces the Clock app can render — the single source of truth shared by the

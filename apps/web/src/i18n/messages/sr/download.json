@@ -1,11 +1,11 @@
 {
   "meta": {
-    "title": "Preuzimanje",
-    "description": "Preuzmite EdgeRize plejer za Android ili desktop i uparite ekran za nekoliko sekundi."
+    "title": "Preuzmite plejer za Android i desktop",
+    "description": "Preuzmite SignageWall plejer za Android ili desktop i uparite ekran za nekoliko sekundi."
   },
   "hero": {
     "eyebrow": "Preuzimanje",
-    "title": "Preuzmite EdgeRize plejer.",
+    "title": "Preuzmite SignageWall plejer.",
     "subtitle": "Lagana aplikacija koja pretvara bilo koji TV ili računar u pametan ekran. Instalirajte, skenirajte QR kod i ekran je uparen."
   },
   "platforms": {
@@ -21,20 +21,25 @@
       "body": "Za Windows i macOS računare i mini-PC uređaje povezane na ekran.",
       "requirements": "Windows 10+ ili macOS 12+",
       "cta": "Preuzmite za desktop"
-    }
+    },
+    "ctaUnavailable": "Zatražite pristup",
+    "unavailableNote": "Instalacija još nije javno dostupna — javite nam se i poslaćemo vam je."
   },
   "steps": {
     "title": "Instalacija u tri koraka.",
     "items": [
       {
         "title": "Instalirajte",
-        "body": "Preuzmite i pokrenite EdgeRize plejer na uređaju povezanom na ekran."
+        "body": "Preuzmite i pokrenite SignageWall plejer na uređaju povezanom na ekran."
       },
       {
         "title": "Uparite",
         "body": "Skenirajte QR kod iz kontrolne table da povežete ekran sa nalogom."
       },
-      { "title": "Objavite", "body": "Pošaljite sadržaj sa panela — i ekran odmah oživi." }
+      {
+        "title": "Objavite",
+        "body": "Pošaljite sadržaj sa panela — i ekran odmah oživi."
+      }
     ]
   },
   "note": "Nemate nalog? Zakažite demo i pomoći ćemo vam da postavite prvi ekran."

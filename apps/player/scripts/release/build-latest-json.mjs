@@ -57,7 +57,7 @@ function main() {
   const artifactsDir = args.artifacts
   const publicBase = args['public-base']
   const out = args.out
-  const notes = args.notes ?? `EdgeRize Player ${version ?? ''}`.trim()
+  const notes = args.notes ?? `SignageWall Player ${version ?? ''}`.trim()
   const required = (args.require ?? '')
     .split(',')
     .map((k) => k.trim())
@@ -101,7 +101,7 @@ function main() {
 
     platforms[key] = {
       signature,
-      url: `${base}/edge-player/${version}/${installer}`,
+      url: `${base}/signagewall-player/${version}/${installer}`,
     }
     console.log(`+ ${key}: ${installer}`)
   }

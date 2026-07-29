@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const GCAL_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
@@ -34,7 +34,7 @@ export const gcalManifest: AppManifest = {
       // answered before they hand over a Google account. It is true — the OAuth
       // scope is `calendar.readonly` (see gcal.connector.ts). Keep the two in
       // step: if the scope ever widens, this sentence has to go.
-      help: 'Sign in once. Edge only reads your calendars — it never adds, changes or deletes anything.',
+      help: 'Sign in once. SignageWall only reads your calendars — it never adds, changes or deletes anything.',
     },
     {
       key: 'calendar',

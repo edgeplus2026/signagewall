@@ -1,4 +1,4 @@
-import type { ColumnMappingTarget } from '@edge/apps-contract'
+import type { ColumnMappingTarget } from '@signagewall/apps-contract'
 import { useTranslation } from 'react-i18next'
 
 import {

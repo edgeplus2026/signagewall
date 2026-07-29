@@ -1,6 +1,6 @@
 ---
-description: MongoDB and Mongoose patterns for Edge backend
-globs: edge-be/**/*
+description: MongoDB and Mongoose patterns for SignageWall backend
+globs: apps/be/**/*
 alwaysApply: false
 ---
 

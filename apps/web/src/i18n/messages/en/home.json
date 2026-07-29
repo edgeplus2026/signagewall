@@ -1,47 +1,70 @@
 {
-  "hero": {
-    "eyebrow": "Digital screens for your space",
-    "title": "Screens that work as hard as you do.",
-    "subtitle": "Manage everything that shows in your space — menus, offers, announcements, atmosphere — from one place, in real time.",
-    "ctaPrimary": "Book a demo",
-    "ctaSecondary": "Explore apps"
+  "meta": {
+    "title": "Digital signage software for your screens",
+    "description": "Digital signage software for menus, prices and announcements. Change what is on screen in 30 seconds — on one screen or a hundred, from your phone."
   },
-  "stats": {
+  "hero": {
+    "eyebrow": "Digital signage",
+    "title": "Change what's on your screens in 30 seconds.",
+    "subtitle": "Menus, prices, offers and announcements — edited from your phone, on one screen or a hundred. No printing, no waiting.",
+    "ctaPrimary": "Start free for {trialDays} days",
+    "ctaSecondary": "Book a demo",
+    "trialNote": "{trialDays} days free · no credit card · no contract"
+  },
+  "trust": {
     "items": [
-      { "value": "38", "label": "apps ready for the screen" },
-      { "value": "Seconds", "label": "to update every screen" },
-      { "value": "Android + desktop", "label": "player for any screen" },
-      { "value": "Offline", "label": "keeps running without internet" }
+      {
+        "value": "{trialDays} days",
+        "label": "Free trial, every feature on"
+      },
+      {
+        "value": "{price}",
+        "label": "Per screen, per month — one price"
+      },
+      {
+        "value": "No contract",
+        "label": "Monthly, cancel any time"
+      },
+      {
+        "value": "Works offline",
+        "label": "Screens keep playing without a connection"
+      }
     ]
+  },
+  "whatIs": {
+    "eyebrow": "New to this?",
+    "title": "Digital signage, in three sentences.",
+    "body": "A digital sign is a screen that shows what you tell it to — a menu, a price list, an offer, a notice — and changes the moment you change your mind. You need three things: a screen you probably already own, a small player device behind it, and software to control it from anywhere. SignageWall is the third one.",
+    "cta": "What is digital signage?"
   },
   "features": {
     "eyebrow": "Features",
     "title": "Everything for your screens, in one place.",
-    "subtitle": "From your first screen to a whole network — EdgeRize gives you control, speed and peace of mind.",
+    "subtitle": "No technical know-how, no agency, no waiting. Open SignageWall, change what needs changing — and it is already on the screen.",
     "items": [
       {
-        "title": "Manage remotely",
-        "body": "Change what plays on one screen or a hundred, from your phone or laptop — wherever you are."
+        "title": "Change it from your phone",
+        "body": "A new price, a new offer, a notice — type it and it is up. On one screen or on a hundred, from wherever you happen to be."
       },
       {
-        "title": "Schedule ahead",
-        "body": "Prepare offers and announcements and run them exactly when they matter. No printing, no waiting."
+        "title": "Runs on your timetable",
+        "body": "Breakfast in the morning, lunch at noon, cocktails in the evening. Set it once and it keeps changing itself, without you."
       },
       {
-        "title": "38 apps",
-        "body": "Menus, weather, exchange rates, news, social feeds — ready in a few clicks."
+        "title": "{count} ready-made apps",
+        "body": "Menus, weather, exchange rates, news, social feeds. Pick one, fill in your own details and publish."
       },
       {
-        "title": "Works offline",
-        "body": "The player keeps showing content even when the connection drops. No blank screens."
+        "title": "The screen is never blank",
+        "body": "If the internet drops, the screen carries on showing what you sent. Your guests never notice a thing."
       },
       {
-        "title": "Any screen",
-        "body": "A regular TV, a monitor or a pro display. Android or desktop — it doesn't matter."
+        "title": "Works on any screen",
+        "body": "A TV, a monitor or a professional display — use whatever is already up in the room."
       },
       {
-        "title": "Your look",
-        "body": "Tune colours, layout and branding so it all looks like you, not a template."
+        "title": "Looks like you",
+        "body": "Your colors, your logo, your layout. The screen reads as part of the room, not as someone else's template."
       }
     ]
   },
@@ -49,21 +72,7 @@
     "eyebrow": "Solutions",
     "title": "Built for every kind of space.",
     "subtitle": "The same tool, shaped around what you do.",
-    "cta": "All solutions",
-    "items": [
-      {
-        "title": "Hospitality",
-        "body": "Digital menus, daily specials and prices you change on the fly."
-      },
-      { "title": "Retail", "body": "Promotions, new arrivals and brand messages on every screen." },
-      {
-        "title": "Offices",
-        "body": "Announcements, calendars and key numbers in plain sight for the team."
-      },
-      { "title": "Healthcare", "body": "Queues, notices and a calmer waiting room for patients." },
-      { "title": "Hotels", "body": "Welcomes, information and events for your guests." },
-      { "title": "Gyms", "body": "Class schedules, motivation and announcements — always current." }
-    ]
+    "cta": "All solutions"
   },
   "steps": {
     "eyebrow": "How it works",
@@ -71,7 +80,7 @@
     "items": [
       {
         "title": "Connect a screen",
-        "body": "Turn on EdgeRize on any TV or computer and pair it in seconds."
+        "body": "Turn on SignageWall on any TV or computer and pair it in seconds."
       },
       {
         "title": "Compose the content",
@@ -85,19 +94,10 @@
   },
   "apps": {
     "eyebrow": "Apps",
-    "title": "38 apps, ready for the screen.",
+    "title": "{count} apps, ready for the screen.",
     "body": "Everything a screen needs — without writing code. Add an app, set it up and publish.",
     "cta": "Explore all apps",
-    "categories": [
-      "Menus & retail",
-      "Weather & environment",
-      "Finance & markets",
-      "News & information",
-      "Social media",
-      "Calendars & workplace",
-      "Video & streaming",
-      "Announcements & messages"
-    ]
+    "all": "All apps"
   },
   "platform": {
     "eyebrow": "Platform",
@@ -118,10 +118,124 @@
       }
     ]
   },
+  "why": {
+    "eyebrow": "Why SignageWall",
+    "title": "What we do differently.",
+    "subtitle": "There are good signage platforms. Here is where we are not the same.",
+    "items": [
+      {
+        "title": "One price, not six plans",
+        "body": "{price} per screen with every feature switched on. No climbing tiers to find the one that has scheduling, and no enterprise plan holding back what you actually need."
+      },
+      {
+        "title": "Built to survive a dead connection",
+        "body": "The player keeps showing the last content it downloaded and a watchdog restarts it if it stalls. A blank screen in your window is worse than no screen at all."
+      },
+      {
+        "title": "The price is on the website",
+        "body": "You can budget for this without a sales call, at any network size. If a platform will not tell you what it costs until you talk to someone, that is the answer."
+      },
+      {
+        "title": "Your brand, not ours",
+        "body": "No watermark, ever — not on a trial, not on any plan. The screen reads as part of your space rather than an advertisement for our software."
+      }
+    ]
+  },
+  "pricingPreview": {
+    "eyebrow": "Pricing",
+    "title": "{price} per screen, per month.",
+    "body": "Everything included, at every size. Start with one screen or two hundred — the rate does not change and neither does the feature set.",
+    "cta": "See what is included",
+    "ctaSecondary": "Compare with Yodeck"
+  },
+  "faq": {
+    "title": "Common questions",
+    "items": [
+      {
+        "q": "What do I need to get started?",
+        "a": "A screen, a small player device and an account. The screen can be an ordinary TV you already own. The player is an Android box, a mini-PC or a computer that is already sitting there — you install our app on it, scan the code that appears on screen, and it is paired."
+      },
+      {
+        "q": "Do I need technical knowledge?",
+        "a": "No. If you can make a social media post, you can run a screen. Everything happens in a browser: pick content, choose which screens get it, publish. There is no server to install and nobody has to come out to you."
+      },
+      {
+        "q": "What happens when the internet drops?",
+        "a": "The screen carries on showing the last content it downloaded, and syncs again the moment the connection returns. A watchdog restarts the player if it ever stalls, so a frozen screen recovers on its own rather than waiting for someone to notice."
+      },
+      {
+        "q": "How much does it cost?",
+        "a": "{price} per screen per month, with every feature included. There are no tiers and no enterprise plan — a single café pays the same rate per screen as a chain of two hundred."
+      },
+      {
+        "q": "Can I try it before paying?",
+        "a": "Yes — {trialDays} days with everything switched on, no credit card. Nothing is charged automatically when the trial ends; if you do not continue, your content simply waits in the account."
+      },
+      {
+        "q": "Can I run just one screen?",
+        "a": "Yes, and many customers do. Nothing about the product is switched off at the low end, and there is no minimum you have to reach before it makes sense."
+      },
+      {
+        "q": "Does it work on my existing screens?",
+        "a": "Almost certainly. Any TV, monitor or professional display with an HDMI input works. Purpose-built signage displays earn their price if you run sixteen hours a day or put a screen in direct sunlight — for everything else, an ordinary TV lasts years."
+      },
+      {
+        "q": "How many screens can I manage?",
+        "a": "One to several hundred, from the same dashboard. Screens group by location so you publish to a group rather than to devices one at a time, which is the difference that starts to matter around screen number ten."
+      }
+    ]
+  },
   "cta": {
-    "title": "Let us show you EdgeRize in action.",
-    "body": "Book a short demo and see how EdgeRize works in your space — no strings attached.",
-    "primary": "Book a demo",
-    "secondary": "Get in touch"
+    "title": "Put something on your screens today.",
+    "body": "Start free for {trialDays} days with every feature switched on, or book a short demo and we will show you how it works in your space.",
+    "primary": "Start free trial",
+    "secondary": "Book a demo"
+  },
+  "bento": {
+    "weather": {
+      "place": "Belgrade · Today",
+      "condition": "Sunny, light wind",
+      "temp": "23°",
+      "forecast": ["Thu 24°", "Fri 21°", "Sat 19°"]
+    },
+    "clock": {
+      "label": "Time",
+      "time": "09:41"
+    },
+    "fx": {
+      "label": "Rates",
+      "rows": [
+        {
+          "code": "EUR",
+          "value": "117.4"
+        },
+        {
+          "code": "USD",
+          "value": "108.2"
+        },
+        {
+          "code": "CHF",
+          "value": "125.0"
+        }
+      ]
+    },
+    "news": {
+      "label": "News",
+      "headline": "New city bus route opens to passengers",
+      "time": "12 minutes ago"
+    },
+    "calendar": {
+      "label": "Today",
+      "events": [
+        {
+          "time": "10:00",
+          "title": "Team stand-up"
+        },
+        {
+          "time": "13:30",
+          "title": "Client presentation"
+        }
+      ]
+    }
   }
 }

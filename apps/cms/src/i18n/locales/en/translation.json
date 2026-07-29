@@ -9,7 +9,7 @@
     "acceptLegalRequired": "You must accept the Terms of Service and Privacy Policy."
   },
   "common": {
-    "appName": "EdgeRize",
+    "appName": "SignageWall",
     "email": "Email",
     "password": "Password",
     "name": "Name",
@@ -154,7 +154,7 @@
       "cancel": "Cancel",
       "confirm": "Log out"
     },
-    "welcome": "Welcome to Edge.",
+    "welcome": "Welcome to SignageWall.",
     "dashboardPlaceholder": "Your dashboard content goes here."
   },
   "dashboard": {
@@ -233,7 +233,7 @@
       "empty": "No media yet."
     },
     "gettingStarted": {
-      "title": "Get started with Edge",
+      "title": "Get started with SignageWall",
       "subtitle": "Three quick steps to put content on your screens.",
       "dismiss": "Dismiss",
       "steps": {
@@ -363,7 +363,7 @@
       "leaveFeedback": "Leave feedback",
       "open": "Leave feedback",
       "title": "Leave feedback",
-      "description": "Tell us how we're doing. Your feedback helps us improve Edge.",
+      "description": "Tell us how we're doing. Your feedback helps us improve SignageWall.",
       "rating": "Rating",
       "ratingRequired": "Please select a rating",
       "message": "Feedback",
@@ -396,7 +396,7 @@
       "deleteError": "Could not delete account. Please try again.",
       "deleteConfirm": {
         "title": "Delete account?",
-        "description": "This will permanently delete your Edge account.",
+        "description": "This will permanently delete your SignageWall account.",
         "cancel": "Cancel",
         "confirm": "Delete account",
         "point1": "Your account is deactivated immediately and all your sessions are ended.",
@@ -1608,14 +1608,14 @@
   },
   "faq": {
     "title": "FAQ",
-    "description": "Answers to common questions about using Edge.",
+    "description": "Answers to common questions about using SignageWall.",
     "categories": {
       "general": {
         "title": "General",
         "items": [
           {
-            "question": "What is Edge?",
-            "answer": "Edge is a digital signage platform for managing screens, playlists, and media within an organization. Everything you do in the app is scoped to the organization selected in the sidebar."
+            "question": "What is SignageWall?",
+            "answer": "SignageWall is a digital signage platform for managing screens, playlists, and media within an organization. Everything you do in the app is scoped to the organization selected in the sidebar."
           },
           {
             "question": "How do I get started after signing up?",
@@ -1728,7 +1728,7 @@
         "items": [
           {
             "question": "How do I send feedback or report a problem?",
-            "answer": "Open Settings → Help. Use Leave feedback to rate your experience and share comments, or Report a problem to describe something that is not working. Messages are sent to the Edge support team with your account and active organization details."
+            "answer": "Open Settings → Help. Use Leave feedback to rate your experience and share comments, or Report a problem to describe something that is not working. Messages are sent to the SignageWall support team with your account and active organization details."
           },
           {
             "question": "Where can I find these answers again?",
@@ -1741,7 +1741,7 @@
   "apps": {
     "title": "Apps",
     "count": "{{count}} apps",
-    "description": "Extend your screens with custom apps from the Edge app store.",
+    "description": "Extend your screens with custom apps from the SignageWall app store.",
     "getApp": "Get app",
     "installed": "Installed",
     "aboutTitle": "About this app",
@@ -2082,32 +2082,32 @@
       "gcal": {
         "tagline": "Show upcoming events from a Google Calendar",
         "description": "Display the next events from a connected Google Calendar — great for meeting rooms and lobbies.",
-        "about": "See what's coming up straight from a Google Calendar, laid out as a day, week, month or rolling schedule. Connect your Google account, choose the calendar to show, and set options like upcoming-only, gentle auto-scroll for long lists, and the on-screen language. Edge only reads the calendar, never changes it — perfect outside meeting rooms, in reception areas and staff spaces."
+        "about": "See what's coming up straight from a Google Calendar, laid out as a day, week, month or rolling schedule. Connect your Google account, choose the calendar to show, and set options like upcoming-only, gentle auto-scroll for long lists, and the on-screen language. SignageWall only reads the calendar, never changes it — perfect outside meeting rooms, in reception areas and staff spaces."
       },
       "outlook": {
         "tagline": "Show an Outlook calendar on your screens",
         "description": "Display a connected Microsoft Outlook / Microsoft 365 calendar as a day, week, month or schedule view.",
-        "about": "Put a Microsoft Outlook or Microsoft 365 calendar on screen as a day, week, month or rolling schedule. Sign in with your Microsoft account, choose the calendar, and set options such as upcoming-only, gentle auto-scroll and the on-screen language. Edge only reads the calendar and never changes it, which makes it ideal outside meeting rooms and in reception areas."
+        "about": "Put a Microsoft Outlook or Microsoft 365 calendar on screen as a day, week, month or rolling schedule. Sign in with your Microsoft account, choose the calendar, and set options such as upcoming-only, gentle auto-scroll and the on-screen language. SignageWall only reads the calendar and never changes it, which makes it ideal outside meeting rooms and in reception areas."
       },
       "teams": {
         "tagline": "Show a Teams channel on your screens",
         "description": "Connect a Microsoft account and display a Teams channel's latest messages and announcements as a spotlight or a grid.",
-        "about": "Surface the latest messages and announcements from a Microsoft Teams channel on screen, one at a time in a rotating spotlight or several in a grid. Sign in with a work or school account, choose the team and channel, and set the timing and whether author names show. Edge only reads messages and never posts, and your Microsoft admin approves access the first time — great for keeping staff areas and internal spaces informed."
+        "about": "Surface the latest messages and announcements from a Microsoft Teams channel on screen, one at a time in a rotating spotlight or several in a grid. Sign in with a work or school account, choose the team and channel, and set the timing and whether author names show. SignageWall only reads messages and never posts, and your Microsoft admin approves access the first time — great for keeping staff areas and internal spaces informed."
       },
       "facebook": {
         "tagline": "Show a Facebook Page feed on your screens",
         "description": "Connect a Facebook account and display a Page's latest posts as a rotating spotlight or a grid.",
-        "about": "Turn a Facebook Page's latest posts into on-screen content, either one post at a time in a rotating spotlight or several together in a grid. Sign in with the account that manages the Page, choose which Page to show, set how long each post stays up and whether to include the post text. Edge only reads posts, never writes them — ideal for showing your social presence in shops, lobbies and reception areas."
+        "about": "Turn a Facebook Page's latest posts into on-screen content, either one post at a time in a rotating spotlight or several together in a grid. Sign in with the account that manages the Page, choose which Page to show, set how long each post stays up and whether to include the post text. SignageWall only reads posts, never writes them — ideal for showing your social presence in shops, lobbies and reception areas."
       },
       "instagram": {
         "tagline": "Show an Instagram feed on your screens",
         "description": "Connect a professional Instagram account and display its latest posts as a rotating spotlight or a grid.",
-        "about": "Bring a professional Instagram account's latest posts to your screens, either one at a time in a rotating spotlight or together in a grid. Sign in with the Facebook account that manages the Instagram profile, select the account, and choose the layout, timing and whether captions show. Edge only reads posts — a polished way to showcase your brand and campaigns in retail, cafés and reception areas."
+        "about": "Bring a professional Instagram account's latest posts to your screens, either one at a time in a rotating spotlight or together in a grid. Sign in with the Facebook account that manages the Instagram profile, select the account, and choose the layout, timing and whether captions show. SignageWall only reads posts — a polished way to showcase your brand and campaigns in retail, cafés and reception areas."
       },
       "linkedin": {
         "tagline": "Show a LinkedIn Page feed on your screens",
         "description": "Connect a LinkedIn account and display a Page's latest posts as a rotating spotlight or a grid.",
-        "about": "Put your company's latest LinkedIn posts on screen, one at a time in a rotating spotlight or several together in a grid. Sign in with the account that administers the Page, choose which Page to show, and set the layout and timing. Posts appear as text, since LinkedIn only releases post images to apps that can also publish on your behalf — access Edge never asks for. Ideal for office walls, reception areas and recruitment displays."
+        "about": "Put your company's latest LinkedIn posts on screen, one at a time in a rotating spotlight or several together in a grid. Sign in with the account that administers the Page, choose which Page to show, and set the layout and timing. Posts appear as text, since LinkedIn only releases post images to apps that can also publish on your behalf — access SignageWall never asks for. Ideal for office walls, reception areas and recruitment displays."
       },
       "rss": {
         "tagline": "Show the latest stories from any feed",

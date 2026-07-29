@@ -14,5 +14,10 @@
     "accept": "Accept",
     "decline": "Decline",
     "more": "Learn more"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This address does not exist, or it has moved. Try the home page, or get in touch.",
+    "cta": "Back home"
   }
 }

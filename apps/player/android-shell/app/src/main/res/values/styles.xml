@@ -1,11 +1,11 @@
 <resources>
     <!-- Black-background, no-action-bar base so first paint (before the WebView
          draws) is black rather than a white flash — signage should never flash. -->
-    <style name="Theme.EdgePlayer" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.Player" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
     </style>
 
-    <style name="Theme.EdgePlayer.Fullscreen" parent="Theme.EdgePlayer">
+    <style name="Theme.Player.Fullscreen" parent="Theme.Player">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>

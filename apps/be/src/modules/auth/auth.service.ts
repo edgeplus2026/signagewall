@@ -150,7 +150,7 @@ export class AuthService {
   }
 
   /**
-   * Fire-and-forget internal notification to the Edge team that a new user
+   * Fire-and-forget internal notification to the SignageWall team that a new user
    * signed up, echoing what they entered on the form (never the password). Must
    * never block or fail registration on a mail error.
    */

@@ -2,8 +2,8 @@ import {
   oauthDescriptorFor,
   type ConnectorContext,
   type ResolvedConnection,
-} from '@edge/apps-contract';
-import type { RssPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { RssPayload } from '@signagewall/apps';
 
 import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';

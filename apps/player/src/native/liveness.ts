@@ -1,5 +1,5 @@
 /**
- * Liveness beat for the native keep-alive supervisor (`edge-watchdog`).
+ * Liveness beat for the native keep-alive supervisor (`signagewall-watchdog`).
  *
  * The supervisor restarts the player if it crashes OR hangs. A crash it detects
  * from the process vanishing; a HANG (WebView frozen, gray/white screen, process

@@ -1,4 +1,4 @@
-package com.edgerize.player.bridge
+package com.signagewall.player.bridge
 
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject

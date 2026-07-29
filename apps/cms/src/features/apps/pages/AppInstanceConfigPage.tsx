@@ -1,4 +1,4 @@
-import { buildConfigZod, buildDefaultConfig } from '@edge/apps-contract'
+import { buildConfigZod, buildDefaultConfig } from '@signagewall/apps-contract'
 import {
   ListVideoIcon,
   MonitorIcon,

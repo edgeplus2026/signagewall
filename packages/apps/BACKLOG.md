@@ -1,4 +1,4 @@
-# Edge Apps — Integration Backlog
+# SignageWall Apps — Integration Backlog
 
 > How to add new signage "apps", plus a prioritized catalog of apps to build.
 > Companion to [`README.md`](./README.md) (the package layout) and
@@ -7,10 +7,10 @@
 
 ## 0. Current state
 
-EdgeRize is a digital-signage platform (edge-be NestJS + edge-cms React + edge-player Preact PWA).
+SignageWall is a digital-signage platform (NestJS API + React CMS + Preact PWA player).
 "Apps" are the content-widget plugins that play on screens. The system is **fully data-driven**: the
 CMS and player contain **zero per-app code**. Adding an app is done almost entirely in this package
-(`edge/packages/apps/`) plus an optional backend connector.
+(`packages/apps/`) plus an optional backend connector.
 
 **37 apps ship today** (all `runtimeKind: 'embed'`):
 - `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
@@ -46,9 +46,9 @@ An app is split across at most three places, joined **only by its `slug`**:
 
 | Layer | Location | Needed for |
 |---|---|---|
-| Manifest + render bundle | `edge/packages/apps/` (`@edge/apps`) | **every** app |
-| Backend connector | `edge/apps/be/src/modules/apps/connectors/` | `server` + `connected` apps |
-| OAuth provider | `edge/apps/be/src/modules/connections/providers/` | `connected` apps (only if a *new* provider) |
+| Manifest + render bundle | `packages/apps/` (`@signagewall/apps`) | **every** app |
+| Backend connector | `apps/be/src/modules/apps/connectors/` | `server` + `connected` apps |
+| OAuth provider | `apps/be/src/modules/connections/providers/` | `connected` apps (only if a *new* provider) |
 
 - **`runtimeKind`** is `'embed'` for every shipped app (a sandboxed iframe HTML/TS bundle). `'native'`
   exists in the type but is unused — ignore it.
@@ -57,7 +57,7 @@ An app is split across at most three places, joined **only by its `slug`**:
 - The **CMS config form is generic** — it renders from the manifest's `configSchema` and validates with
   the same `buildConfigZod` the backend uses. **No per-app form code.**
 - The **CMS live preview and the player renderer both mount the same embed bundle** over a shared
-  `postMessage` protocol (`@edge/apps-contract/host-protocol.ts`). **No per-app render component.**
+  `postMessage` protocol (`@signagewall/apps-contract/host-protocol.ts`). **No per-app render component.**
 - App data reaches the player inside the **snapshot** (`AppRenderable.data`), populated from a
   **global, cross-org connector cache** keyed by `cacheKey` — so N screens on the same feed cost one
   upstream fetch. The scheduler (`app-data.scheduler.ts`, every 60s) refreshes due cache keys at each
@@ -67,7 +67,7 @@ An app is split across at most three places, joined **only by its `slug`**:
 
 > Every catalog item below only lists what's *app-specific*; the mechanics are here.
 
-### A. Shared package (all apps) — `edge/packages/apps/`
+### A. Shared package (all apps) — `packages/apps/`
 1. **Manifest** `src/<slug>/manifest.ts` — export `const <slug>Manifest: AppManifest` with `slug`,
    `name`, `tagline`, `description`, `runtimeKind: 'embed'`, `dataSource`, `version: 1`, `configSchema`
    (see field types below), inline SVG `icon`, hex `color`. Add `refreshSeconds` for server/connected;
@@ -88,7 +88,7 @@ An app is split across at most three places, joined **only by its `slug`**:
      `_shared/freshness.ts` (stale/"updated X ago" footer), `_shared/qr.ts`, `_shared/color.ts`.
    - **No build-config edit** — `vite.embeds.config.ts` auto-discovers any `embeds/<slug>/index.html`.
 
-### B. Backend connector (server / connected only) — `edge/apps/be/src/modules/apps/connectors/`
+### B. Backend connector (server / connected only) — `apps/be/src/modules/apps/connectors/`
 5. `<slug>.connector.ts` — export `const <slug>Connector: AppConnector<Config, Payload>`:
    - `cacheKey(config)` — **coarse & display-agnostic** for `server` (e.g. `fx:EUR:USD,GBP`); **must
      include `connectionId`** for `connected` (private data must never be shared across accounts).
@@ -116,7 +116,7 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 `features/apps/config-form/fieldRegistry.ts` + a component. See **Enabler E4**.
 
 ### E. Publish, build & verify (per app)
-10. **Build embeds:** `pnpm --filter @edge/apps build` (bundles → `apps/player/public/apps` and
+10. **Build embeds:** `pnpm --filter @signagewall/apps build` (bundles → `apps/player/public/apps` and
     mirrored to `apps/cms/public/apps`).
 11. **If backend endpoints changed** (new browse route, etc.): `pnpm --filter be openapi:export` then
     `pnpm --filter cms generate:api-types`.
@@ -128,12 +128,12 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
 
 ### F. End-to-end verification
 - `pnpm dev` (turbo runs be + cms + player), or per-app: be `start:dev`, cms `dev`, player `dev`, and
-  `pnpm --filter @edge/apps build:embeds` after bundle edits.
+  `pnpm --filter @signagewall/apps build:embeds` after bundle edits.
 - CMS → open app → create instance → fill config → **live preview renders** (identical to player); for
   data apps confirm `POST /apps/:slug/preview-data` returns data.
 - Publish → org **install** → create instance → **add to a screen/playlist** → open the player → confirm
   it renders and (data apps) refreshes on cadence.
-- `pnpm --filter @edge/apps type-check` and `pnpm --filter be test`.
+- `pnpm --filter @signagewall/apps type-check` and `pnpm --filter be test`.
 
 ## 3. Enabler tasks (cross-cutting — unblock multiple apps)
 

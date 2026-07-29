@@ -1,13 +1,13 @@
 ---
-description: Edge monorepo overview and engineering principles
+description: SignageWall monorepo overview and engineering principles
 alwaysApply: true
 ---
 
-# Edge Project Overview
+# SignageWall Project Overview
 
-Edge is a digital signage CMS with:
-- `edge-fe/` — React 19 + Vite frontend (feature-sliced)
-- `edge-be/` — NestJS 11 + MongoDB backend
+SignageWall is a digital signage CMS with:
+- `apps/cms/` — React 19 + Vite frontend (feature-sliced)
+- `apps/be/` — NestJS 11 + MongoDB backend
 
 ## Documentation
 
@@ -21,10 +21,10 @@ Key implemented domains: **auth**, **settings**, **organizations**, **members/in
 ## Principles
 
 1. **Foundation first** — API contracts, error handling, and i18n before feature velocity.
-2. **Frontend-aligned contracts** — Match `edge-fe/src/features/*/api` request/response shapes.
+2. **Frontend-aligned contracts** — Match `apps/cms/src/features/*/api` request/response shapes.
 3. **Thin controllers** — Business logic in services; persistence in repositories.
 4. **Explicit modules** — One NestJS module per domain (`auth`, `users`, `media`, etc.).
-5. **Feature slices** — Frontend domains live in `edge-fe/src/features/<name>/` with consistent folder layout.
+5. **Feature slices** — Frontend domains live in `apps/cms/src/features/<name>/` with consistent folder layout.
 6. **No secrets in code** — Use `.env` and `.env.example` only.
 
 ## API base & versioning

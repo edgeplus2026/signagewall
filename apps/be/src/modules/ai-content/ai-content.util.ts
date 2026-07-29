@@ -1,7 +1,7 @@
 import {
   aiGeneratedContentSchema,
   type AiGeneratedContent,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 /**
  * Turn a model's raw text response into validated {@link AiGeneratedContent}.

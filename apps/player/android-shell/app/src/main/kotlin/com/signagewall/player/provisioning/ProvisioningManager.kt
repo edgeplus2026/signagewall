@@ -1,4 +1,4 @@
-package com.edgerize.player.provisioning
+package com.signagewall.player.provisioning
 
 import android.app.admin.DevicePolicyManager
 import android.content.Context
@@ -6,11 +6,11 @@ import android.content.Context
 /**
  * Device-Owner status + the provisioning contract (documented here; the act of
  * provisioning happens out-of-band). The shell is its own DPC
- * (`kiosk.EdgeDeviceAdminReceiver`):
+ * (`kiosk.PlayerDeviceAdminReceiver`):
  *  - **QR** (hard-kiosk boxes): factory-reset → 6-tap on the setup wizard → scan a QR
  *    that carries this APK's download URL + checksum → Android sets it as Device Owner.
  *  - **Bench (adb)**:
- *    `adb shell dpm set-device-owner com.edgerize.player/.kiosk.EdgeDeviceAdminReceiver`
+ *    `adb shell dpm set-device-owner com.signagewall.player/.kiosk.PlayerDeviceAdminReceiver`
  *  - **Tablets**: skip provisioning entirely and run SOFT only.
  */
 class ProvisioningManager(private val context: Context) {

@@ -1,8 +1,8 @@
 import { SchemaForm } from '@/features/apps/config-form'
-import type { AppInstanceConfig, EdgeApp } from '@/features/apps/types/app.types'
+import type { AppInstanceConfig, CatalogApp } from '@/features/apps/types/app.types'
 
 interface AppInstanceConfigSidebarProps {
-  app: EdgeApp
+  app: CatalogApp
   /** Used as the SchemaForm reset key so switching instances reinitialises it. */
   instanceId: string
   config: AppInstanceConfig

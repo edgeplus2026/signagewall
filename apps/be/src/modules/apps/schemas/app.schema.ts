@@ -5,7 +5,7 @@ import type {
   ConfigSchema,
   DataSource,
   RuntimeKind,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 /**
  * Catalog entry for a code-defined app. Presentation COPY (tagline, description,

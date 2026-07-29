@@ -4,8 +4,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { GslidesPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { GslidesPayload } from '@signagewall/apps';
 
 import {
   type AssetMirror,

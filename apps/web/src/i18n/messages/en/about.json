@@ -1,39 +1,68 @@
 {
   "meta": {
-    "title": "About",
-    "description": "EdgeRize is software for digital screens, made in Serbia, for businesses that want their space to speak."
+    "title": "About SignageWall — one price, screens that stay up",
+    "description": "Why we built SignageWall: signage software with one price, every feature included, and a player designed to keep running when the network does not."
   },
   "hero": {
     "eyebrow": "About",
-    "title": "Software for screens, built in Serbia.",
-    "subtitle": "EdgeRize is built by a team that believes every screen in your space can work for you, without the hassle and without a big budget."
+    "title": "Screens should be the boring part of your day.",
+    "subtitle": "Not a thing you check on. Not a thing that needs a technician. SignageWall exists because signage software kept getting that backwards."
   },
   "story": {
-    "title": "Why we build EdgeRize.",
+    "title": "Why we built it.",
     "paragraphs": [
-      "We've seen too many screens left switched off or showing the same image for years — while the menu changes by hand, promotions run late, and information goes stale. All because existing tools are expensive, complicated, or built for someone else.",
-      "We built EdgeRize to change that: a platform anyone can use to run their screens — as simple as a social media post, as powerful as a tool for a whole network of locations. Locally built, with support in your language."
+      "We kept walking into the same room. A screen switched off, or frozen on an image from last spring, or showing an error nobody had noticed for a week. Not because the business did not care — because changing it meant remembering a password, opening a tool built for someone else, and finding that the thing you wanted was in a plan you had not bought.",
+      "So the product is shaped around two ideas. The price is one number with everything switched on, because a feature matrix is just a way of charging you twice. And the player assumes the network will fail, because it will: it keeps a local copy, plays through the outage, and restarts itself if it ever stalls."
+    ]
+  },
+  "build": {
+    "eyebrow": "How it is built",
+    "title": "The parts we spent the most time on.",
+    "subtitle": "Not the parts that demo well — the parts that decide whether a screen is still right in six months.",
+    "items": [
+      {
+        "title": "Offline first, not offline-tolerant",
+        "body": "The player downloads and stores content, then plays from disk. The network is how content arrives, never how it plays. A dropped connection is invisible to anyone standing in front of the screen."
+      },
+      {
+        "title": "A watchdog that does not wait for you",
+        "body": "A separate process checks that the player is not just running but actually drawing frames, and restarts it if it stalls. Most signage outages are not crashes — they are a frozen picture nobody reports for days."
+      },
+      {
+        "title": "Updates that cannot brick a screen",
+        "body": "Players update themselves over the air, verify what they downloaded before switching to it, and roll back if the new version does not come up healthy. A screen in a shop window is not somewhere you want a failed update."
+      },
+      {
+        "title": "One price, held to",
+        "body": "Every feature is on for every account. There is no plan matrix to maintain, which also means there is no incentive for us to move something you rely on into a higher tier next year."
+      }
     ]
   },
   "values": {
     "title": "What we believe.",
     "items": [
       {
-        "title": "Simplicity first",
-        "body": "If it's complicated, we're not done. Every feature has to be clear at a glance."
+        "title": "Simple wins",
+        "body": "If it needs explaining, it is not finished. Anyone who can post to social media should be able to run a screen without training."
       },
       {
-        "title": "Reliable around the clock",
-        "body": "A frozen screen is worse than a blank one. We build it to run non-stop, even when no one's watching."
+        "title": "Reliable beats featureful",
+        "body": "A frozen screen is worse than a blank one. We would rather ship fewer things that never need checking on."
       },
       {
-        "title": "By your side",
-        "body": "Support in your language and people who understand your business — not a ticket that waits for weeks."
+        "title": "Say the price",
+        "body": "Published, at every size. If you have to ask what software costs, the answer is usually that it depends on how much they think you can pay."
       },
       {
-        "title": "No hidden costs",
-        "body": "Fair terms and a price that doesn't change overnight. No surprises on the invoice."
+        "title": "No watermark, ever",
+        "body": "Not on a trial, not on any plan. Your screen advertises your business, not our software."
       }
     ]
+  },
+  "contact": {
+    "title": "Talk to us.",
+    "body": "Questions about how it works, whether it fits, or what it would cost for your network — we answer within one business day.",
+    "cta": "Get in touch",
+    "ctaSecondary": "Start free trial"
   }
 }

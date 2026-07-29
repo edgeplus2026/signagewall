@@ -1,4 +1,4 @@
-import type { Field } from '@edge/apps-contract'
+import type { Field } from '@signagewall/apps-contract'
 import { FileUpIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'

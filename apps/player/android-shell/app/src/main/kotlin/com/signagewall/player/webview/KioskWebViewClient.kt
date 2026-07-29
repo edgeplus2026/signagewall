@@ -1,10 +1,10 @@
-package com.edgerize.player.webview
+package com.signagewall.player.webview
 
 import android.graphics.Bitmap
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.edgerize.player.bridge.BridgeInjection
+import com.signagewall.player.bridge.BridgeInjection
 
 /**
  * Keeps the kiosk WebView resilient. On a render-process death (WebView OOM / GPU

@@ -2,8 +2,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { OnThisDayEvent, OnThisDayPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { OnThisDayEvent, OnThisDayPayload } from '@signagewall/apps';
 
 interface OnThisDayConfig {
   language?: string;
@@ -59,7 +59,8 @@ export const onthisdayConnector: AppConnector<
     const response = await fetch(url, {
       headers: {
         // Wikimedia requires a descriptive User-Agent or it may reject the request.
-        'User-Agent': 'edge-signage/1.0 (https://verdo.co; digital signage)',
+        'User-Agent':
+          'signagewall/1.0 (https://signagewall.com; digital signage)',
         accept: 'application/json',
       },
       ...(ctx.signal ? { signal: ctx.signal } : {}),

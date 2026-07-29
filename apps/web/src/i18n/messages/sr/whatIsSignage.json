@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "title": "Šta je digital signage? Vodič bez žargona | SignageWall",
+    "description": "Digital signage objašnjen jednostavno: šta je, koje tri stvari su vam potrebne, koliko košta i kako da postavite prvi ekran. Pisano za one koji kreću od nule."
+  },
+  "hero": {
+    "eyebrow": "Vodič",
+    "title": "Šta je digital signage?",
+    "subtitle": "Ekran koji prikazuje ono što mu kažete i menja se čim se vi predomislite. Ovaj vodič objašnjava celu priču od početka — bez žargona i bez prodaje."
+  },
+  "sections": [
+    {
+      "heading": "Kratak odgovor",
+      "body": "Digital signage je ekran u fizičkom prostoru koji prikazuje sadržaj kojim upravljate na daljinu — meni, cenovnik, ponudu, obaveštenje u čekaonici, tablu sa polascima. Razlika u odnosu na plakat je što ga menjate sa telefona za nekoliko sekundi umesto da štampate novi. Razlika u odnosu na televizor je što niko ne mora da ga dira: pušta ono što ste zakazali, sam, ceo dan."
+    },
+    {
+      "heading": "Gde ste ga već videli",
+      "body": "Tabla sa menijem iznad pulta u lancu brze hrane. Ekran u apoteci koji pokazuje koji broj je na redu. Tabla u hotelskom holu sa današnjim salama. Izlog agencije za nekretnine koji smenjuje ponude. Sve je to istih troje delova koji rade isti posao u različitim veličinama."
+    },
+    {
+      "heading": "Tri stvari koje su vam potrebne",
+      "body": "Ekran, plejer i softver. Ekran je najčešće televizor koji već imate — radi svaki displej sa HDMI ulazom. Plejer je mali uređaj koji se u njega uključi: Android boks veličine šake, mini-PC ili računar koji već stoji tu. Softver je ono čime odlučujete šta se pušta i kada, iz pregledača, sa bilo kog mesta. To je ceo spisak za kupovinu."
+    },
+    {
+      "heading": "Šta plejer zapravo radi",
+      "body": "Preuzima vaš sadržaj, čuva ga lokalno i pušta u petlji. Lokalno čuvanje je deo koji je bitan: kad padne internet, plejer sa kopijom nastavlja, dok plejer koji strimuje pokazuje prazan ekran ili grešku svakome ko prođe. Pitajte za ovo pre nego što bilo šta kupite — to je najčešći način na koji signage postavka osramoti svog vlasnika."
+    },
+    {
+      "heading": "Koliko košta",
+      "body": "Tri odvojena broja, a prodavci ih rado pomešaju. Ekran verovatno već imate. Plejer je jednokratna kupovina, obično između 50 i 200 evra zavisno od toga da li vam treba jeftin Android boks ili mini-PC koji radi šesnaest sati dnevno. Softver je mesečna pretplata po ekranu — tržište je između 8 i 45 evra, a raspon uglavnom odražava koliko proizvođač zadržava za više planove. SignageWall je {price} po ekranu sa svim uključenim."
+    },
+    {
+      "heading": "Koliko traje postavljanje",
+      "body": "Prvi ekran traje minute, ne dane. Uključite plejer u ekran i u struju, instalirate aplikaciju, skenirate kod koji se pojavi i uparen je sa vašim nalogom. Pravljenje prvog sadržaja — menija, cenovnika, poruke dobrodošlice — obično traje duže od samog uparivanja. Svaki sledeći ekran je brži, jer sadržaj već postoji pa ga samo usmerite na novi uređaj."
+    },
+    {
+      "heading": "Šta staviti na ekran",
+      "body": "Manje nego što mislite. Ekran koji pokušava da kaže šest stvari ne kaže nijednu: prolaznik mu da sekundu ili dve. Jedna poruka po slajdu, tekst dovoljno veliki da se pročita odande gde ljudi stvarno stoje, i neka raspored radi posao — doručak ujutru, ručak u podne, večernja ponuda u šest. Najefikasniji ekrani su oni koji se menjaju sa dobom dana, a ne oni na kojima ima najviše toga."
+    },
+    {
+      "heading": "Kako da znate da li radi",
+      "body": "Ekran nema stopu klikova, ali nije nemerljiv. Pratite prodaju artikla koji ističete i uporedite je sa prethodnim nedeljama. Brojte koliko često osoblje dobija pitanje na koje je ekran trebalo da odgovori. Ako ekran prikazuje QR kod, skeniranja se broje direktno. Izaberite jedan broj pre nego što počnete, da ne biste posle odlučivali da li je uspelo."
+    },
+    {
+      "heading": "Česte greške",
+      "body": "Isti sadržaj na svim ekranima u objektu, iako kupac u izlogu i kupac u redu razmišljaju o različitim stvarima. Tekst dimenzionisan za dizajnerov monitor, a ne za četiri metra udaljenosti. Statičan logo urezan u ugao panela posle godinu dana. Kupovina profesionalnog displeja tamo gde bi običan televizor trajao godinama — ili obrnuto, običan televizor u osunčanom izlogu, gde nikad neće biti dovoljno svetao."
+    },
+    {
+      "heading": "Gde dalje",
+      "body": "Ako želite da vidite kako to izgleda za vašu delatnost, stranice sa rešenjima prolaze kroz konkretne postavke po industrijama. Ako vas zanimaju brojevi, cenovnik ih ima bez poziva sa prodajom. Ako biste radije samo probali, proba traje par minuta i ne traži karticu."
+    }
+  ],
+  "faq": {
+    "title": "Pitanja koja se prva postave",
+    "items": [
+      {
+        "q": "Je li digital signage isto što i smart TV?",
+        "a": "Nije. Smart TV pušta ono što neko na njemu izabere. Digital signage pušta ono što ste zakazali sa drugog mesta, sam se restartuje posle nestanka struje i nastavlja bez da iko dira daljinski. Signage možete voziti i na smart TV-u, ali softver je ono što ga čini signage-om."
+      },
+      {
+        "q": "Treba li mi poseban ekran?",
+        "a": "Najčešće ne. Običan televizor je sasvim dovoljan za normalno radno vreme u zatvorenom. Namenski displeji su svetliji, građeni za šesnaestočasovne dane i često dolaze u vertikalnoj orijentaciji — isplate se za osunčan izlog ili ekran koji se nikad ne gasi, a nepotrebni su za zid u kafiću."
+      },
+      {
+        "q": "Mora li da bude stalno povezan?",
+        "a": "Veza mu treba da primi novi sadržaj, ne da ga pušta. Dobar signage softver preuzima i čuva sadržaj lokalno, pa ekran nastavlja da radi kroz prekid i nadoknadi kad se veza vrati."
+      },
+      {
+        "q": "Koliko ekrana treba da bi se isplatilo?",
+        "a": "Jedan. Jedan ekran iznad pulta zamenjuje štampani cenovnik koji ste ionako preštampavali. Računica postaje bolja sa više ekrana jer je sadržaj već napravljen, ali ne postoji prag koji morate da pređete."
+      },
+      {
+        "q": "Može li za izlog?",
+        "a": "Može, uz pravi displej. Ekran u izlogu se takmiči sa dnevnim svetlom, pa mora da bude znatno svetliji od unutrašnjeg, i trebalo bi da se gasi preko noći osim ako ima prolaznika. Softver je isti."
+      },
+      {
+        "q": "Šta ako nemam dizajnera?",
+        "a": "Većina platformi, uključujući našu, nudi gotove rasporede koje popunite svojim tekstom i cenama. Za meni ili cenovnik dizajner vam uopšte ne treba — treba vam dosledna tipografija i dovoljan kontrast."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Probajte na jednom ekranu.",
+    "body": "{trialDays} dana besplatno, bez kartice, sve mogućnosti uključene.",
+    "primary": "Počnite besplatno",
+    "secondary": "Pogledajte cene"
+  }
+}

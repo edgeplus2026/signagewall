@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const LINKEDIN_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="7.5" cy="7.5" r="1" fill="currentColor" stroke="none"/><path d="M7.5 10.5v7"/><path d="M11.5 17.5v-7"/><path d="M11.5 13.5a2.5 2.5 0 0 1 5 0v4"/></svg>'
@@ -15,7 +15,7 @@ const LINKEDIN_ICON =
  * TEXT-ONLY, deliberately. LinkedIn's post payload references images as URNs
  * (`urn:li:image:…`) and resolving one to a URL means a GET on the Images API,
  * which LinkedIn gates behind a WRITE permission (`w_organization_social` /
- * `rw_ads`). Edge never asks for write access to an operator's Page, so posts
+ * `rw_ads`). SignageWall never asks for write access to an operator's Page, so posts
  * render as text heroes — the same treatment the social-feed embed already gives
  * Teams messages and Facebook text statuses. Article posts fold their title and
  * description into that text. Hence also NO `showCaption` field: with no image
@@ -56,7 +56,7 @@ export const linkedinManifest: AppManifest = {
       label: 'LinkedIn account',
       required: true,
       provider: 'linkedin',
-      help: "Sign in with the LinkedIn account that administers the Page. LinkedIn's consent screen says “manage your Pages” because that is the only permission it offers for listing them — Edge only reads posts and never publishes.",
+      help: "Sign in with the LinkedIn account that administers the Page. LinkedIn's consent screen says “manage your Pages” because that is the only permission it offers for listing them — SignageWall only reads posts and never publishes.",
     },
     {
       key: 'organization',

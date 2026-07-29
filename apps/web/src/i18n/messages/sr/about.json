@@ -1,39 +1,68 @@
 {
   "meta": {
-    "title": "O nama",
-    "description": "EdgeRize je softver za digitalne ekrane napravljen u Srbiji, za biznise koji žele da njihov prostor progovori."
+    "title": "O SignageWall-u — jedna cena, ekrani koji ne padaju",
+    "description": "Zašto smo napravili SignageWall: signage softver sa jednom cenom, svim uključenim, i plejerom koji nastavlja da radi i kad mreža ne radi."
   },
   "hero": {
     "eyebrow": "O nama",
-    "title": "Softver za ekrane, napravljen u Srbiji.",
-    "subtitle": "EdgeRize razvija tim koji veruje da svaki ekran u vašem prostoru može da radi za vas, bez komplikacija i bez velikog budžeta."
+    "title": "Ekrani treba da budu dosadan deo vašeg dana.",
+    "subtitle": "Ne nešto što proveravate. Ne nešto zbog čega zovete tehničara. SignageWall postoji zato što je signage softver to stalno okretao naopako."
   },
   "story": {
-    "title": "Zašto pravimo EdgeRize.",
+    "title": "Zašto smo ga napravili.",
     "paragraphs": [
-      "Videli smo previše ekrana koji stoje ugašeni ili prikazuju istu sliku godinama — dok se meni menja ručno, promocije kasne, a informacije zastarevaju. Sve to zato što su postojeća rešenja skupa, komplikovana ili napravljena za nekog drugog.",
-      "Napravili smo EdgeRize da to promenimo: platformu kojom svako može da upravlja svojim ekranima — jednostavno kao objava na društvenoj mreži, a moćno kao alat za celu mrežu lokacija. Lokalno napravljeno, uz podršku na vašem jeziku."
+      "Stalno smo ulazili u istu prostoriju. Ekran ugašen, ili zamrznut na slici iz prošlog proleća, ili sa greškom koju nedelju dana niko nije primetio. Ne zato što firmu nije bilo briga — nego zato što je promena značila prisetiti se lozinke, otvoriti alat pravljen za nekog drugog, i otkriti da je ono što vam treba u planu koji niste kupili.",
+      "Zato je proizvod oblikovan oko dve ideje. Cena je jedan broj sa svim uključenim, jer je matrica funkcija samo način da vam se naplati dvaput. A plejer pretpostavlja da će mreža pasti, jer hoće: drži lokalnu kopiju, radi kroz prekid, i sam se restartuje ako se zaglavi."
+    ]
+  },
+  "build": {
+    "eyebrow": "Kako je napravljen",
+    "title": "Delovi na kojima smo proveli najviše vremena.",
+    "subtitle": "Ne oni koji dobro izgledaju na demou — oni koji odlučuju da li je ekran ispravan i posle šest meseci.",
+    "items": [
+      {
+        "title": "Offline prvo, ne offline-podnošljivo",
+        "body": "Plejer preuzme i sačuva sadržaj, pa ga pušta sa diska. Mreža je način na koji sadržaj stiže, nikad način na koji se pušta. Prekid veze je nevidljiv svakome ko stoji ispred ekrana."
+      },
+      {
+        "title": "Watchdog koji ne čeka na vas",
+        "body": "Odvojen proces proverava da plejer ne samo radi, nego stvarno iscrtava sliku — i restartuje ga ako se zaglavi. Većina signage kvarova nisu padovi, nego zamrznuta slika koju danima niko ne prijavi."
+      },
+      {
+        "title": "Ažuriranja koja ne mogu da ugase ekran",
+        "body": "Plejeri se ažuriraju sami, provere preuzeto pre nego što pređu na njega, i vrate se na staru verziju ako se nova ne podigne ispravno. Ekran u izlogu nije mesto gde želite neuspelo ažuriranje."
+      },
+      {
+        "title": "Jedna cena, i tako ostaje",
+        "body": "Sve mogućnosti su uključene na svakom nalogu. Nema matrice planova za održavanje — što ujedno znači da nemamo interes da ono na šta se oslanjate sledeće godine premestimo u viši nivo."
+      }
     ]
   },
   "values": {
     "title": "U šta verujemo.",
     "items": [
       {
-        "title": "Jednostavnost prva",
-        "body": "Ako je komplikovano, nismo završili posao. Svaka funkcija mora da bude jasna na prvi pogled."
+        "title": "Jednostavno pobeđuje",
+        "body": "Ako mora da se objašnjava, nije završeno. Ko ume da objavi nešto na društvenoj mreži, treba da ume da vodi ekran bez obuke."
       },
       {
-        "title": "Pouzdanost 0–24",
-        "body": "Ekran koji se zamrzne je gori od praznog. Gradimo da radi neprekidno, i kad niko ne gleda."
+        "title": "Pouzdano ispred bogatog",
+        "body": "Zamrznut ekran je gori od praznog. Radije objavimo manje stvari koje nikad ne moraju da se proveravaju."
       },
       {
-        "title": "Uz vas",
-        "body": "Podrška na vašem jeziku i ljudi koji razumeju vaš posao — ne tiket koji čeka nedeljama."
+        "title": "Recite cenu",
+        "body": "Objavljenu, na svakoj veličini. Ako morate da pitate koliko softver košta, odgovor je obično da zavisi od toga koliko misle da možete da platite."
       },
       {
-        "title": "Bez skrivenih troškova",
-        "body": "Pošteni uslovi i cena koja se ne menja preko noći. Bez iznenađenja na računu."
+        "title": "Nikad vodenog žiga",
+        "body": "Ni na probi, ni na jednom planu. Vaš ekran reklamira vaš posao, ne naš softver."
       }
     ]
+  },
+  "contact": {
+    "title": "Javite nam se.",
+    "body": "Pitanja o tome kako radi, da li vam odgovara, ili koliko bi koštalo za vašu mrežu — odgovaramo u roku od jednog radnog dana.",
+    "cta": "Kontaktirajte nas",
+    "ctaSecondary": "Počnite besplatno"
   }
 }

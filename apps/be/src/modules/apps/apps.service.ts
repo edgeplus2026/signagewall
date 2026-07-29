@@ -1,5 +1,5 @@
 import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
-import { APP_MANIFESTS } from '@edge/apps';
+import { APP_MANIFESTS } from '@signagewall/apps';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { AppInstancesService } from './app-instances.service';

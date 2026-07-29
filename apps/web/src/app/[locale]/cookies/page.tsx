@@ -15,5 +15,5 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CookiesPage({ params }: PageProps) {
   const { locale } = await params
   setRequestLocale(locale)
-  return <LegalDoc doc="cookies" />
+  return <LegalDoc doc="cookies" locale={locale} />
 }

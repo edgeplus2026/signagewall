@@ -3,8 +3,8 @@ import type {
   ConnectorContext,
   ConnectorResult,
   LocationValue,
-} from '@edge/apps-contract';
-import type { AirQualityPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { AirQualityPayload } from '@signagewall/apps';
 
 interface AirQualityConfig {
   /** A resolved place (lat/lng + label) or a legacy city string to geocode. */

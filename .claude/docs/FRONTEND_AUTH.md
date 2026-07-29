@@ -1,10 +1,10 @@
 # Frontend Auth Guide
 
-How authentication, session management, and impersonation work in the Edge frontend.
+How authentication, session management, and impersonation work in the SignageWall frontend.
 
 ## Auth store
 
-**File:** `edge-fe/src/features/auth/store/authStore.ts`
+**File:** `apps/cms/src/features/auth/store/authStore.ts`
 
 | State | Type | Persisted |
 |-------|------|-----------|

@@ -29,7 +29,7 @@
      font-size, so a clock set at 2.1em quietly sits twice as far from the edge as
      the panel beside it. A viewport-relative length is the same length everywhere,
      whatever the type is doing. */
-  --wx-edge: calc(0.88vw + 1.2vh);
+  --wx-inset: calc(0.88vw + 1.2vh);
 }
 
 /* Display type on a bright day sky sits on lower contrast than it would on black.
@@ -65,8 +65,8 @@
    whole clock twitches sideways every time the minute rolls over. */
 .wx-clock {
   position: absolute;
-  top: calc(var(--wx-edge) * 0.75);
-  right: var(--wx-edge);
+  top: calc(var(--wx-inset) * 0.75);
+  right: var(--wx-inset);
   z-index: 4;
   display: flex;
   align-items: baseline;

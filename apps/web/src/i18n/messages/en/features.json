@@ -1,12 +1,12 @@
 {
   "meta": {
-    "title": "Features",
-    "description": "Remote management, scheduling, 38 apps, offline playback, on-screen zones and your own branding — everything a screen needs."
+    "title": "Digital signage software features",
+    "description": "Remote management, scheduling, {count} apps, offline playback, on-screen zones and your own branding — everything a screen needs."
   },
   "hero": {
     "eyebrow": "Features",
     "title": "Everything a screen needs — and nothing that gets in the way.",
-    "subtitle": "EdgeRize pairs simplicity with control: build content in minutes, keep real power over your whole network of screens."
+    "subtitle": "SignageWall pairs simplicity with control: build content in minutes, keep real power over your whole network of screens."
   },
   "grid": {
     "title": "Built to make the everyday easy.",
@@ -15,19 +15,34 @@
         "title": "Manage remotely",
         "body": "Change everything from your phone or laptop, from anywhere."
       },
-      { "title": "Scheduling", "body": "Content by hour, day or occasion — prepared in advance." },
       {
-        "title": "38 apps",
+        "title": "Scheduling",
+        "body": "Content by hour, day or occasion — prepared in advance."
+      },
+      {
+        "title": "{count} apps",
         "body": "Menus, weather, exchange rates, news, calendars, social feeds."
       },
-      { "title": "Zones & layouts", "body": "Split the screen into zones and combine content." },
+      {
+        "title": "Zones & layouts",
+        "body": "Split the screen into zones and combine content."
+      },
       {
         "title": "Works offline",
         "body": "Content is cached and keeps playing when the internet drops."
       },
-      { "title": "Fleet management", "body": "Group screens by location and publish in bulk." },
-      { "title": "Your brand", "body": "Colours, logo, fonts and layouts made to measure." },
-      { "title": "Any screen", "body": "Android or desktop, a regular TV or a pro display." },
+      {
+        "title": "Fleet management",
+        "body": "Group screens by location and publish in bulk."
+      },
+      {
+        "title": "Your brand",
+        "body": "Colors, logo, fonts and layouts made to measure."
+      },
+      {
+        "title": "Any screen",
+        "body": "Android or desktop, a regular TV or a pro display."
+      },
       {
         "title": "Reliable",
         "body": "Automatic updates and recovery — the screen brings itself back."
@@ -49,15 +64,103 @@
     "items": [
       {
         "q": "Can I match the look to my brand?",
-        "a": "Yes. Change colours, logo, fonts and layouts so everything looks like part of your brand."
+        "a": "Yes — colors, logo, fonts and layouts. There is no watermark on any plan, including the trial, so nothing on the screen says which software is behind it."
       },
       {
-        "q": "Can I schedule content ahead?",
-        "a": "Yes. Prepare offers and announcements and run them exactly when they matter — by hour, day or occasion."
+        "q": "Can I schedule content in advance?",
+        "a": "Yes, by hour, day, date or season. A campaign can be built weeks ahead and switch itself on at the minute you choose, across every screen at once."
       },
       {
-        "q": "What does it look like with multiple locations?",
-        "a": "You group screens by location and publish to all at once or one at a time, from the same panel."
+        "q": "What does it look like with several locations?",
+        "a": "Screens group by location or type, and you publish to a group rather than to devices. Head office can own a shared campaign while each site keeps its own opening hours, and you can see what every screen is playing right now."
+      },
+      {
+        "q": "What happens if the internet drops?",
+        "a": "Nothing visible. The player is showing content it already downloaded, so it carries on and syncs again when the connection returns. A watchdog restarts it if it ever stalls."
+      },
+      {
+        "q": "Do I need a designer?",
+        "a": "No. The apps ship with layouts you fill in — a menu, a price list, a notice. What matters is large type and strong contrast, and the templates already handle both."
+      },
+      {
+        "q": "Can I split the screen?",
+        "a": "Yes. Zones let you run a menu, a weather widget and a news ticker on one display, each with its own content and schedule, in landscape or portrait."
+      },
+      {
+        "q": "Which devices does the player run on?",
+        "a": "Android boxes and Android TV, Windows, macOS and Linux. Any screen with an HDMI input works, so in most cases you use the television that is already on the wall."
+      },
+      {
+        "q": "How do updates work?",
+        "a": "Players update themselves over the air, check the download before switching to it, and roll back if the new version does not come up healthy. You do not schedule anything and nobody visits the site."
+      },
+      {
+        "q": "Can I control who publishes what?",
+        "a": "Yes. Roles and permissions let head office own brand campaigns while a local manager edits only their own screens."
+      },
+      {
+        "q": "Is any of this in a higher plan?",
+        "a": "No. Everything on this page is included at {price} per screen. There is one plan and one feature set."
+      }
+    ]
+  },
+  "deep": {
+    "title": "How each one works",
+    "exampleLab": "In practice",
+    "items": [
+      {
+        "id": "remote",
+        "title": "Change a screen from wherever you are",
+        "body": "Everything happens in a browser. Edit a price, swap an offer, post a notice — it is on the screen before you have put the phone down. There is no app to install for the person doing the editing, no VPN, and nobody has to be in the building. For a network across several sites this is the whole difference between content that stays current and content that ages until somebody drives over.",
+        "example": "A café changes the lunch price at 11:40 from the kitchen. Every screen in three locations shows the new one before the first order."
+      },
+      {
+        "id": "scheduling",
+        "title": "Content that changes without you",
+        "body": "Set it once and the day runs itself: breakfast until eleven, lunch until four, the evening list after that. Schedules work by hour, day, date or season, so a Christmas campaign can be built in October and switch itself on at midnight. The best screen is the one nobody has touched in three weeks and is still right.",
+        "example": "A bakery builds a morning, midday and evening range once. It rotates on its own for the rest of the year."
+      },
+      {
+        "id": "apps",
+        "title": "{appCount} apps, no code",
+        "body": "Menus, price lists, weather, exchange rates, news, calendars, social feeds, QR codes, countdowns, PDF and PowerPoint, live dashboards from Google Sheets and Power BI. You pick one, fill in your own details, and publish. Every app is on every account — there is no plan where the useful ones live.",
+        "example": "A gym puts its class timetable on screen straight from the Google Sheet the manager already maintains. Change the sheet, the screen follows."
+      },
+      {
+        "id": "offline",
+        "title": "Screens that survive the network",
+        "body": "The player downloads content and plays it from local storage, so a dropped connection changes nothing for anyone standing in front of the screen. A watchdog checks the player is actually drawing frames and restarts it if it stalls — because the common failure is not a crash, it is a frozen picture nobody reports for days.",
+        "example": "The internet goes down at a petrol station for six hours. The screens keep running and pick up the new campaign the moment it returns."
+      },
+      {
+        "id": "zones",
+        "title": "More than one thing on a screen",
+        "body": "Split the display into zones: the menu across two thirds, the weather in a corner, a news ticker along the bottom. Layouts work in landscape and portrait, and each zone runs its own content on its own schedule rather than everything changing at once.",
+        "example": "A reception screen shows the day's meetings on the left, a welcome message top right, and the local forecast underneath."
+      },
+      {
+        "id": "fleet",
+        "title": "Managing thirty screens is not managing thirty devices",
+        "body": "Screens group by location, room or type. You publish to a group — all cafés, all window displays, everything in Berlin — instead of picking devices one at a time. The dashboard shows what each screen is playing right now and which ones have gone quiet, so a dead screen is something you notice rather than something a customer mentions.",
+        "example": "A retail chain sends a campaign to forty window screens at once, while each store keeps its own opening hours on the till screen."
+      },
+      {
+        "id": "branding",
+        "title": "It looks like your business",
+        "body": "Your colors, your logo, your type, your layouts. No watermark on any plan, including the trial — the screen is advertising for you, and a signage vendor's badge in the corner of it is advertising for them.",
+        "example": "A hotel runs the same typeface and palette on screens as on its printed collateral. Nothing on the wall says which software made it."
+      },
+      {
+        "id": "hardware",
+        "title": "Runs on what you already own",
+        "body": "Any TV, monitor or professional display with an HDMI input. The player runs on Android boxes, mini-PCs, Windows, macOS and Linux, so the hardware decision is yours and you buy it wherever it is cheapest. We do not resell hardware, which means we have no reason to tell you that you need more of it than you do.",
+        "example": "A waiting room reuses the television that was already on the wall, plus a $60 Android box behind it."
+      },
+      {
+        "id": "reliable",
+        "title": "It fixes itself before you notice",
+        "body": "Players update over the air, verify the download before switching to it, and roll back if the new version does not come up healthy. They restart after a power cut and resume where they were. The goal is a screen you stop thinking about, which is a harder thing to build than a screen with more features.",
+        "example": "A power cut hits overnight. Every screen is back on the right content before opening, with nobody on site."
       }
     ]
   }

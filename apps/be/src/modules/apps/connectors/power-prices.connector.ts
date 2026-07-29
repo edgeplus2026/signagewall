@@ -2,9 +2,9 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import { powerAreaByValue } from '@edge/apps';
-import type { PowerHour, PowerPricesPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import { powerAreaByValue } from '@signagewall/apps';
+import type { PowerHour, PowerPricesPayload } from '@signagewall/apps';
 
 interface PowerPricesConfig {
   area?: string;

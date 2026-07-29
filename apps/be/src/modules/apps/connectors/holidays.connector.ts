@@ -2,9 +2,9 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import { holidayCountryName } from '@edge/apps';
-import type { Holiday, HolidaysPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import { holidayCountryName } from '@signagewall/apps';
+import type { Holiday, HolidaysPayload } from '@signagewall/apps';
 
 interface HolidaysConfig {
   country?: string;

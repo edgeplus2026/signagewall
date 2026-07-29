@@ -1,7 +1,7 @@
 import {
   isAvailabilityOn,
   nextAvailabilityBoundary,
-} from '@edge/player-contract'
+} from '@signagewall/player-contract'
 import { effect } from '@preact/signals'
 
 import { availabilityOn, snapshot } from '../store'

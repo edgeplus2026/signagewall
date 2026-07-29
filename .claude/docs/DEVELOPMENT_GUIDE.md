@@ -59,7 +59,7 @@ Organizations scope resources (`media`, `playlists`, `screens`, `members`).
 - Org CRUD at `/api/v1/organizations` (admin writes use `:id` param via `OrgMembershipGuard` `idParam`)
 - Members at `/api/v1/members` (requires `X-Organization-Id`)
 - Frontend org switcher + onboarding (`/create-organization`)
-- `X-Organization-Id` request header (set by `edge-fe/src/lib/axios.ts`)
+- `X-Organization-Id` request header (set by `apps/cms/src/lib/axios.ts`)
 - Declarative authorization: `@UseGuards(OrgMembershipGuard)` + `@RequireOrgRole({ roles?, idParam? })` + `@CurrentMembership()`
 
 **Next domain modules must:**
@@ -83,7 +83,7 @@ Organizations scope resources (`media`, `playlists`, `screens`, `members`).
 
 ## Email templates
 
-Templates live in `edge-be/src/modules/mail/templates/`. Use `base.layout.ts` for consistent branding.
+Templates live in `apps/be/src/modules/mail/templates/`. Use `base.layout.ts` for consistent branding.
 
 When adding a new email:
 1. Create `*.template.ts` using `renderEmailLayout()`

@@ -1,4 +1,4 @@
-import type { Field } from '@edge/apps-contract'
+import type { Field } from '@signagewall/apps-contract'
 
 import { Checkbox } from '@/components/ui/checkbox'
 import { Combobox } from '@/components/ui/combobox'

@@ -16,11 +16,11 @@ import { Input } from '@/components/ui/input'
 import { AppIcon } from '@/features/apps/components/AppIcon'
 import { AppDrawerNestedOverlayContext } from '@/features/apps/components/appDrawerNestedContext'
 import { useRenameInstance } from '@/features/apps/hooks/useApps'
-import type { AppInstance, EdgeApp } from '@/features/apps/types/app.types'
+import type { AppInstance, CatalogApp } from '@/features/apps/types/app.types'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 interface InstanceRowProps {
-  app: EdgeApp
+  app: CatalogApp
   instance: AppInstance
   /** Requests delete confirmation — the dialog lives in the parent section. */
   onRequestDelete: (instance: AppInstance) => void

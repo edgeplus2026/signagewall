@@ -1,11 +1,11 @@
-import type { ConfigSchema, DataSource } from '@edge/apps-contract'
+import type { ConfigSchema, DataSource } from '@signagewall/apps-contract'
 
 /**
  * An app in the catalog. Copy (tagline/description/about) and category
  * membership are NOT on this shape — they're code + i18n, resolved by `slug`
  * via `@/features/apps/lib/appCopy`.
  */
-export interface EdgeApp {
+export interface CatalogApp {
   id: string
   /** Stable identifier; the player registry key. */
   slug: string
@@ -51,7 +51,7 @@ export interface AppInstance {
 export type AppInstanceConfig = Record<string, unknown>
 
 /** Full catalog shape for super-admin management (adds the public toggle). */
-export interface AdminApp extends EdgeApp {
+export interface AdminApp extends CatalogApp {
   runtimeKind: 'native' | 'embed'
   version: number
   isPublic: boolean

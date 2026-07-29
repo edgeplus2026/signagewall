@@ -1,5 +1,5 @@
-import { APP_CATEGORIES, APP_CATEGORY_MEMBERSHIP, APP_MANIFESTS } from '@edge/apps'
-import type { AppManifest } from '@edge/apps-contract'
+import { APP_CATEGORIES, APP_CATEGORY_MEMBERSHIP, APP_MANIFESTS } from '@signagewall/apps'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 /** Catalog data (registry + membership) reused from the product's shared package. */
 export const appManifestBySlug = new Map<string, AppManifest>(APP_MANIFESTS.map((m) => [m.slug, m]))

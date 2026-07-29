@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type ReactNode } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -15,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { legalApi } from '@/features/legal/api/legalApi'
+import { legalUrl } from '@/features/legal/legalUrls'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 const ACCEPTANCE_QUERY_KEY = ['legal', 'acceptance-status'] as const
@@ -25,7 +25,7 @@ const ACCEPTANCE_QUERY_KEY = ['legal', 'acceptance-status'] as const
  * app renders underneath; the modal can't be dismissed without accepting.
  */
 export function ReConsentGate({ children }: { children: ReactNode }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
   const [checked, setChecked] = useState(false)
 
@@ -69,16 +69,18 @@ export function ReConsentGate({ children }: { children: ReactNode }) {
                 i18nKey="legal.reconsent.accept"
                 components={{
                   terms: (
-                    <Link
-                      to="/legal/terms"
+                    <a
+                      href={legalUrl('tos', i18n.language)}
                       target="_blank"
+                      rel="noreferrer"
                       className="underline underline-offset-4"
                     />
                   ),
                   privacy: (
-                    <Link
-                      to="/legal/privacy"
+                    <a
+                      href={legalUrl('privacy', i18n.language)}
                       target="_blank"
+                      rel="noreferrer"
                       className="underline underline-offset-4"
                     />
                   ),

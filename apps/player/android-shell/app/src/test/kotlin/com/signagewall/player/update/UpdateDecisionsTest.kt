@@ -1,4 +1,4 @@
-package com.edgerize.player.update
+package com.signagewall.player.update
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

@@ -13,7 +13,7 @@ export function initSentry(): void {
 
   Sentry.init({
     dsn: config.sentryDsn,
-    release: `edge-player@${config.appVersion}`,
+    release: `signagewall-player@${config.appVersion}`,
     tracesSampleRate: 0,
   })
 }

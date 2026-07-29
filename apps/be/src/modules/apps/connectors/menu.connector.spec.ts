@@ -1,4 +1,7 @@
-import type { ConnectorContext, ResolvedConnection } from '@edge/apps-contract';
+import type {
+  ConnectorContext,
+  ResolvedConnection,
+} from '@signagewall/apps-contract';
 
 import { menuConnector } from './menu.connector';
 
@@ -127,7 +130,7 @@ describe('menuConnector.fetchData (gsheets)', () => {
     const result = await menuConnector.fetchData(
       gsheetsConfig,
       makeCtx({
-        webhookUrl: 'https://edge.example/api/v1/webhooks/google/drive',
+        webhookUrl: 'https://signagewall.example/api/v1/webhooks/google/drive',
       }),
     );
 
@@ -136,7 +139,7 @@ describe('menuConnector.fetchData (gsheets)', () => {
     expect(result.secrets).toEqual({
       channel: expect.objectContaining({
         resourceId: 'res-1',
-        address: 'https://edge.example/api/v1/webhooks/google/drive',
+        address: 'https://signagewall.example/api/v1/webhooks/google/drive',
       }),
     });
   });
@@ -150,7 +153,7 @@ describe('menuConnector.fetchData (gsheets)', () => {
     const result = await menuConnector.fetchData(
       gsheetsConfig,
       makeCtx({
-        webhookUrl: 'https://edge.example/api/v1/webhooks/google/drive',
+        webhookUrl: 'https://signagewall.example/api/v1/webhooks/google/drive',
       }),
     );
     expect(result.playerPayload?.items).toEqual([{ name: 'Espresso' }]);

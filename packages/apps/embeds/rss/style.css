@@ -30,7 +30,7 @@
      code beside it, and no amount of staring at the two identical `1.6em`s
      explained why they didn't line up. A viewport-relative length is the same
      length everywhere, whatever the type is doing. Value = 1.6 × the root size. */
-  --rs-edge: calc(0.88vw + 1.2vh);
+  --rs-inset: calc(0.88vw + 1.2vh);
 }
 
 .rs-empty {
@@ -67,13 +67,13 @@
 .rs-clock {
   position: absolute;
   /* Tucked up under the progress tiles, which are pinned across the top at
-     `0.85 × --rs-edge` in every layout. That rail is the floor the clock cannot go
+     `0.85 × --rs-inset` in every layout. That rail is the floor the clock cannot go
      above — the digits would land on it — and it is the whole reason this sits a
      little lower than the same clock in Weather, which has no rail to clear.
      Right edge shared with the QR code below, so the two read as one column of
      chrome. */
-  top: calc(var(--rs-edge) * 1.35);
-  right: var(--rs-edge);
+  top: calc(var(--rs-inset) * 1.35);
+  right: var(--rs-inset);
   z-index: 3;
   display: flex;
   align-items: baseline;
@@ -182,8 +182,8 @@
 
 .rs-qr {
   position: absolute;
-  right: var(--rs-edge);
-  bottom: var(--rs-edge);
+  right: var(--rs-inset);
+  bottom: var(--rs-inset);
   display: flex;
   flex-direction: column;
   align-items: center;

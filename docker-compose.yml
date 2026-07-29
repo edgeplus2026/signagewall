@@ -4,7 +4,7 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: edge-redis
+    container_name: signagewall-redis
     restart: unless-stopped
     ports:
       - '6379:6379'

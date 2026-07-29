@@ -7,7 +7,7 @@ export const SWAGGER_JSON_PATH = 'docs-json';
 
 export const createSwaggerDocument = (app: INestApplication): OpenAPIObject => {
   const config = new DocumentBuilder()
-    .setTitle('Edge API')
+    .setTitle('SignageWall API')
     .setDescription(
       'Digital signage CMS API. Success responses use `{ success: true, data }`. ' +
         'Errors use `{ success: false, error: { code, message, details? } }`.',

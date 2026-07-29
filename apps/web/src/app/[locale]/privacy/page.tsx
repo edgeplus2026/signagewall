@@ -15,5 +15,5 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PrivacyPage({ params }: PageProps) {
   const { locale } = await params
   setRequestLocale(locale)
-  return <LegalDoc doc="privacy" />
+  return <LegalDoc doc="privacy" locale={locale} />
 }

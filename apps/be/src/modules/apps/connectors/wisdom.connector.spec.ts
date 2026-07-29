@@ -1,9 +1,9 @@
-import type { ConnectorContext } from '@edge/apps-contract';
+import type { ConnectorContext } from '@signagewall/apps-contract';
 import {
   UPSTREAM_QUOTES,
   WISDOM_CATEGORIES,
   type WisdomPayload,
-} from '@edge/apps';
+} from '@signagewall/apps';
 
 import { poolFor, wisdomConnector } from './wisdom.connector';
 

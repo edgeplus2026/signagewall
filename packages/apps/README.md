@@ -1,4 +1,4 @@
-# @edge/apps
+# @signagewall/apps
 
 The signage app catalog. One folder per app under `src/<slug>/`, and its player
 runtime as a sandboxed iframe bundle under `embeds/<slug>/`:
@@ -17,7 +17,7 @@ embeds/
   _shared/              host-bridge, base.css, style-fields, theme, freshness, …
 ```
 
-All build on `@edge/apps-contract`. **Three kinds of app** (`dataSource`):
+All build on `@signagewall/apps-contract`. **Three kinds of app** (`dataSource`):
 `static` (config only), `server` (a backend connector fetches public data), and
 `connected` (a backend connector + OAuth). The backend connectors live in
 `apps/be/src/modules/apps/connectors/`, not here — network I/O and secrets never

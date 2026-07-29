@@ -14,7 +14,7 @@ hand — see the instructions the script prints when it finishes. The apps' copi
 are the tracked ones; this folder only holds the source of truth and the guide.
 
 The wordmark is cut from the same Inter that the site serves: the script finds the
-variable woff2 in apps/web/.next/static/media/, so `pnpm --filter @edge/web build`
+variable woff2 in apps/web/.next/static/media/, so `pnpm --filter @signagewall/web build`
 must have run at least once. brotli is what lets fontTools open a woff2.
 """
 import pathlib
@@ -65,7 +65,7 @@ RUNS = [("Signage", 400), ("Wall", 500)]
 def find_inter():
     """The Inter variable face the site actually ships, by name and coverage."""
     if not FONT_CACHE.is_dir():
-        sys.exit(f"no font cache at {FONT_CACHE} — build @edge/web once first")
+        sys.exit(f"no font cache at {FONT_CACHE} — build @signagewall/web once first")
     for p in sorted(FONT_CACHE.glob("*.woff2")):
         try:
             f = TTFont(p, lazy=True)

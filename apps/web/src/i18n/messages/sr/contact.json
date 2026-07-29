@@ -1,18 +1,18 @@
 {
   "meta": {
-    "title": "Kontakt",
-    "description": "Zakažite demo ili nam pišite — pokazaćemo vam kako EdgeRize radi na vašem prostoru."
+    "title": "Kontakt — zakažite demo",
+    "description": "Zakažite demo ili nam pišite — pokazaćemo vam kako SignageWall radi na vašem prostoru."
   },
   "hero": {
     "eyebrow": "Kontakt",
     "title": "Hajde da oživimo vaše ekrane.",
-    "subtitle": "Zakažite demo ili nam pišite — odgovaramo brzo, na vašem jeziku i bez obaveza."
+    "subtitle": "Zakažite demo ili nam pišite — odgovaramo u roku od jednog radnog dana, bez obaveza."
   },
   "info": {
     "title": "Javite nam se",
     "body": "Recite nam nešto o vašem prostoru i ekranima, a mi ćemo predložiti najbolji način da krenete.",
     "emailLabel": "Email",
-    "email": "office@edgerize.rs",
+    "email": "office@signagewall.com",
     "responseTime": "Odgovaramo u roku od jednog radnog dana."
   },
   "form": {

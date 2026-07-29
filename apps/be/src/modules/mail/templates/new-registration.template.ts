@@ -9,7 +9,7 @@ const escapeHtml = (value: string): string =>
     .replace(/"/g, '&quot;');
 
 /**
- * Internal notification sent to the Edge team whenever a new user registers,
+ * Internal notification sent to the SignageWall team whenever a new user registers,
  * listing exactly what they entered on the sign-up form (never the password).
  */
 export const renderNewRegistrationEmail = (params: {
@@ -28,10 +28,10 @@ export const renderNewRegistrationEmail = (params: {
   return {
     subject: `New registration: ${params.name}`,
     html: renderEmailLayout({
-      previewText: `${params.name} just registered on Edge`,
+      previewText: `${params.name} just registered on SignageWall`,
       title: 'New user registration',
       bodyHtml: `
-        <p style="margin:0 0 16px;">A new user has just registered on Edge:</p>
+        <p style="margin:0 0 16px;">A new user has just registered on SignageWall:</p>
         <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;">
           ${row('Name', params.name)}
           ${row('Email', params.email)}
@@ -40,7 +40,7 @@ export const renderNewRegistrationEmail = (params: {
           ${row('Sign-up', params.viaInvite ? 'Via organization invite' : 'Standard sign-up')}
         </table>
       `,
-      footerNote: 'Automated notification from Edge.',
+      footerNote: 'Automated notification from SignageWall.',
     }),
   };
 };

@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 import { DEFAULT_CATEGORIES, categoryOptions } from './categories.js'
 import { QUOTE_COUNT, SECONDS_PER_QUOTE } from './limits.js'

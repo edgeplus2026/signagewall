@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Blog",
+    "title": "Digital signage guides and tips",
     "description": "Tips, guides and news about digital screens — how to get the most out of your displays."
   },
   "hero": {
@@ -10,5 +10,8 @@
   },
   "empty": "The first articles are coming soon. Check back shortly.",
   "back": "Back to blog",
-  "readMore": "Read"
+  "readMore": "Read",
+  "photoCredit": "Photo: {credit} / Pexels",
+  "relatedTitle": "Keep reading",
+  "readingTime": "{minutes} min read"
 }

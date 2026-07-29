@@ -1,4 +1,4 @@
-package com.edgerize.player.bridge
+package com.signagewall.player.bridge
 
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -6,9 +6,9 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import com.edgerize.player.identity.DeviceIdStore
-import com.edgerize.player.update.Updater
-import com.edgerize.player.util.json
+import com.signagewall.player.identity.DeviceIdStore
+import com.signagewall.player.update.Updater
+import com.signagewall.player.util.json
 
 /**
  * Routes a bridge command to its handler and produces the `value` JsonElement — or

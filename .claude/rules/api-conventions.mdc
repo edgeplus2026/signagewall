@@ -1,6 +1,6 @@
 ---
 description: REST API conventions and response standards
-globs: edge-be/**/*
+globs: apps/be/**/*
 alwaysApply: false
 ---
 

@@ -1,118 +1,140 @@
 'use client'
 
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { AppIcon } from '@/components/apps/app-icon'
-import { Link } from '@/i18n/navigation'
+import { AppCard, type AppCardData } from '@/components/apps/app-card'
 import { cn } from '@/lib/utils'
 
-interface AppItem {
+export interface AppGroup {
   slug: string
   name: string
-  tagline: string
-  icon: string
-  categories: string[]
-}
-
-interface Category {
-  slug: string
-  name: string
+  apps: AppCardData[]
 }
 
 interface Labels {
   placeholder: string
   all: string
   empty: string
+  results: string
 }
 
-export function AppsBrowser({
-  apps,
-  categories,
-  labels,
-}: {
-  apps: AppItem[]
-  categories: Category[]
-  labels: Labels
-}) {
+/**
+ * The catalogue reads as a sectioned index — a heading per category, then its
+ * grid — rather than one undifferentiated wall of cards filtered by badges.
+ * Searching collapses the sections into a single result set, because at that
+ * point the taxonomy is not what the reader is scanning by.
+ */
+export function AppsBrowser({ groups, labels }: { groups: AppGroup[]; labels: Labels }) {
   const [query, setQuery] = useState('')
   const [cat, setCat] = useState<string | null>(null)
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return apps.filter((a) => {
-      const inCat = cat === null || a.categories.includes(cat)
-      const inQuery =
-        q === '' || a.name.toLowerCase().includes(q) || a.tagline.toLowerCase().includes(q)
-      return inCat && inQuery
-    })
-  }, [apps, query, cat])
+  const trimmed = query.trim().toLowerCase()
+  const searching = trimmed !== ''
 
-  const pill = (active: boolean) =>
+  const visible = useMemo(() => {
+    const scoped = cat === null ? groups : groups.filter((g) => g.slug === cat)
+    if (!searching) return scoped
+
+    const hits = scoped
+      .flatMap((g) => g.apps)
+      .filter(
+        (a) => a.name.toLowerCase().includes(trimmed) || a.tagline.toLowerCase().includes(trimmed),
+      )
+    // Dedupe: an app in two categories would otherwise appear twice in results.
+    const seen = new Set<string>()
+    const apps = hits.filter((a) => (seen.has(a.slug) ? false : (seen.add(a.slug), true)))
+    return apps.length ? [{ slug: '__results', name: labels.results, apps }] : []
+  }, [groups, cat, searching, trimmed, labels.results])
+
+  const chip = (active: boolean) =>
     cn(
-      'rounded-full border px-3.5 py-1.5 text-sm transition-colors',
+      'border px-3.5 py-1.5 text-sm transition-colors',
       active
-        ? 'border-primary bg-brand text-brand-contrast'
-        : 'border-secondary text-secondary hover:text-primary hover:border-primary',
+        ? 'border-accent bg-accent text-accent-contrast'
+        : 'border-secondary text-secondary hover:border-accent hover:text-accent',
     )
 
   return (
     <div>
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-secondary" />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value)
-          }}
-          placeholder={labels.placeholder}
-          className="h-11 w-full rounded-md border border-secondary bg-page pr-4 pl-10 text-sm transition-colors outline-none placeholder:text-secondary/60 focus-visible:border-tertiary focus-visible:ring-2 focus-visible:ring-tertiary"
-        />
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative w-full max-w-md">
+          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-secondary" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value)
+            }}
+            placeholder={labels.placeholder}
+            className="h-11 w-full border border-secondary bg-page pr-10 pl-10 text-sm transition-colors outline-none placeholder:text-secondary/60 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30"
+          />
+          {searching ? (
+            <button
+              type="button"
+              aria-label="Clear"
+              onClick={() => {
+                setQuery('')
+              }}
+              className="absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center text-secondary transition-colors hover:text-primary"
+            >
+              <X className="size-4" />
+            </button>
+          ) : null}
+        </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => {
             setCat(null)
           }}
-          className={pill(cat === null)}
+          className={chip(cat === null)}
         >
           {labels.all}
         </button>
-        {categories.map((c) => (
+        {groups.map((g) => (
           <button
-            key={c.slug}
+            key={g.slug}
             type="button"
             onClick={() => {
-              setCat(c.slug)
+              setCat(g.slug)
             }}
-            className={pill(cat === c.slug)}
+            className={chip(cat === g.slug)}
           >
-            {c.name}
+            {g.name}
           </button>
         ))}
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="mt-16 text-center text-secondary">{labels.empty}</p>
+      {visible.length === 0 ? (
+        <p className="mt-20 text-center text-secondary">{labels.empty}</p>
       ) : (
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((a) => (
-            <Link
-              key={a.slug}
-              href={`/apps/${a.slug}`}
-              className="group flex items-start gap-4 rounded-xl border border-secondary bg-panel p-5 transition-colors hover:border-primary"
-            >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-secondary bg-page text-primary">
-                <AppIcon svg={a.icon} className="size-5" />
-              </span>
-              <span className="min-w-0">
-                <span className="block font-medium">{a.name}</span>
-                <span className="mt-0.5 block text-sm text-secondary">{a.tagline}</span>
-              </span>
-            </Link>
+        <div className="mt-14 flex flex-col gap-16">
+          {visible.map((group) => (
+            /* The id is the anchor the home page's category grid links to;
+               scroll-mt clears the sticky header so the heading isn't left
+               tucked underneath it after the jump. */
+            <section key={group.slug} id={group.slug} className="scroll-mt-28">
+              {/* Coral tick, title, then a rule to the far edge — the same
+                  registration language the block frames use. */}
+              <div className="flex items-center gap-4">
+                <span aria-hidden className="size-2.5 shrink-0 bg-accent" />
+                <h2 className="font-heading text-xl font-semibold tracking-tight">{group.name}</h2>
+                <span className="text-sm text-secondary tabular-nums">{group.apps.length}</span>
+                <span aria-hidden className="h-px flex-1 bg-rule" />
+              </div>
+
+              {/* Separate framed cells rather than a shared-hairline grid: a
+                  category with a part-full last row would otherwise leave the
+                  rule colour showing through as empty grey boxes. */}
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {group.apps.map((a) => (
+                  <AppCard key={a.slug} {...a} />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}

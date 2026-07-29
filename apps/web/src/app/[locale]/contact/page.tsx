@@ -8,6 +8,7 @@ import { PageHero } from '@/components/marketing/page-hero'
 import { Card } from '@/components/ui/card'
 import { Section, SectionStack } from '@/components/ui/section'
 import { Title } from '@/components/ui/typography'
+import { localeAlternates } from '@/lib/seo'
 
 interface PageProps {
   params: Promise<{ locale: string }>
@@ -16,7 +17,11 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'contact.meta' })
-  return { title: t('title'), description: t('description') }
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: localeAlternates(locale, '/contact'),
+  }
 }
 
 export default async function ContactPage({ params }: PageProps) {
@@ -35,9 +40,9 @@ export default async function ContactPage({ params }: PageProps) {
           <p className="mt-5 text-lg text-secondary">{t('info.body')}</p>
           <a
             href={`mailto:${email}`}
-            className="mt-8 inline-flex items-center gap-4 border border-secondary p-4 text-primary transition-colors hover:bg-highlight"
+            className="group mt-8 inline-flex items-center gap-4 border border-secondary p-4 text-primary transition-colors hover:border-accent"
           >
-            <span className="flex size-11 items-center justify-center bg-brand text-brand-contrast">
+            <span className="flex size-11 items-center justify-center bg-brand text-brand-contrast transition-colors group-hover:bg-accent group-hover:text-accent-contrast">
               <Mail className="size-5" />
             </span>
             <span>

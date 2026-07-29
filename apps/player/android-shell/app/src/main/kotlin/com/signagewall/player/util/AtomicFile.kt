@@ -1,4 +1,4 @@
-package com.edgerize.player.util
+package com.signagewall.player.util
 
 import java.io.File
 import java.io.FileOutputStream

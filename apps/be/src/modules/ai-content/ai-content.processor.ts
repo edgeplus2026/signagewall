@@ -7,7 +7,7 @@ import { Job } from 'bullmq';
 import type {
   AiGeneratedContent,
   AiGenerationInput,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 import {
   StockMediaTypeFilter,

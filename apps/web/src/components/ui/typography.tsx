@@ -32,6 +32,21 @@ export function Title({ className, ...props }: ComponentProps<'h2'>) {
   )
 }
 
+/**
+ * Card- and item-level H3. Every title inside a section used to be a styled
+ * `<p>`, which left pages like /features reading H1 → H2 → H2 → H2 with the
+ * nine feature names invisible to the outline. Anything that names a thing
+ * *within* a section belongs here.
+ */
+export function Subtitle({ className, ...props }: ComponentProps<'h3'>) {
+  return (
+    <h3
+      className={cn('font-heading text-lg font-semibold tracking-tight text-balance', className)}
+      {...props}
+    />
+  )
+}
+
 export function Lead({ className, ...props }: ComponentProps<'p'>) {
   return <p className={cn('text-lg text-pretty text-secondary md:text-xl', className)} {...props} />
 }

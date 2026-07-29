@@ -10,7 +10,7 @@ import {
   type DeviceUpdateStatus as DeviceUpdateStatusValue,
   type KioskMode as KioskModeValue,
   type PlayerRuntime,
-} from '@edge/player-contract';
+} from '@signagewall/player-contract';
 
 export { DEFAULT_DAILY_RELOAD_TIME };
 
@@ -23,7 +23,7 @@ export enum DeviceStatus {
  * How the player rotates its output relative to the physical display. A const
  * object (not a TS `enum`) so the value type IS the shared-contract string union
  * — keeping `.LANDSCAPE` member access and `@IsEnum`/`@Prop` validation while
- * staying assignable to `@edge/player-contract` payloads. The allowed values
+ * staying assignable to `@signagewall/player-contract` payloads. The allowed values
  * (DB + Swagger validation) derive from the contract's `ORIENTATIONS`, so they
  * can never drift.
  */

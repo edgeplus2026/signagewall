@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
  * fresh so device.ts's in-memory cache never leaks across cases.
  */
 
-const DEVICE_ID_KEY = 'edge.player.deviceId'
+const DEVICE_ID_KEY = 'signagewall.player.deviceId'
 const NATIVE_ID = '11111111-1111-1111-1111-111111111111'
 const LOCAL_ID = '22222222-2222-2222-2222-222222222222'
 const URL_ID = '33333333-3333-3333-3333-333333333333'

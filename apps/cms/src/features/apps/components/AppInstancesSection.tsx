@@ -9,10 +9,10 @@ import { InstanceRow } from '@/features/apps/components/InstanceRow'
 import { AppDrawerNestedOverlayContext } from '@/features/apps/components/appDrawerNestedContext'
 import { useAppInstances, useCreateInstance } from '@/features/apps/hooks/useApps'
 import { appItemNoun } from '@/features/apps/lib/appCopy'
-import type { AppInstance, EdgeApp } from '@/features/apps/types/app.types'
+import type { AppInstance, CatalogApp } from '@/features/apps/types/app.types'
 
 interface AppInstancesSectionProps {
-  app: EdgeApp
+  app: CatalogApp
 }
 
 /**

@@ -1,4 +1,4 @@
-package com.edgerize.player.bridge
+package com.signagewall.player.bridge
 
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
@@ -7,20 +7,22 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import com.edgerize.player.identity.DeviceIdStore
-import com.edgerize.player.update.NoopUpdater
+import com.signagewall.player.identity.DeviceIdStore
+import com.signagewall.player.update.NoopUpdater
 import java.io.File
 import java.nio.file.Files
 
 /**
  * Verifies the eight commands produce the exact JSON `value` shapes the Tauri Rust
- * commands do — the contract the web `native/*` layer depends on.
+ * commands do — the contract the web `native/` layer depends on. (Do not write
+ * that path with a star: Kotlin nests block comments, so a `/*` inside KDoc
+ * swallows the closing `*/` and the file stops parsing.)
  */
 class BridgeDispatcherTest {
     private val uuid = "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
 
     private fun dispatcher(): BridgeDispatcher {
-        val dir = Files.createTempDirectory("edge").toFile()
+        val dir = Files.createTempDirectory("signagewall").toFile()
         return BridgeDispatcher(
             shellVersion = "0.1.0",
             deviceIdStore = DeviceIdStore(File(dir, "device.json")),

@@ -1,8 +1,8 @@
 'use client'
 
 import { Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
 
+import { useTheme } from '@/components/theme-provider'
 import { Button } from '@/components/ui/button'
 
 export function ThemeToggle() {
@@ -18,7 +18,7 @@ export function ThemeToggle() {
       }}
     >
       {/* Both icons render identically on server + client (no hydration gate);
-          the `.dark` class next-themes sets pre-paint picks which is visible. */}
+          the `.dark` class set pre-paint picks which one is visible. */}
       <Sun className="dark:hidden" />
       <Moon className="hidden dark:block" />
     </Button>

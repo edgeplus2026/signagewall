@@ -1,6 +1,6 @@
-package com.edgerize.player.identity
+package com.signagewall.player.identity
 
-import com.edgerize.player.util.AtomicFile
+import com.signagewall.player.util.AtomicFile
 import java.io.File
 
 /**

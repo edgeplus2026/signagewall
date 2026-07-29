@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { AppIcon } from '@/features/apps/components/AppIcon'
 import { useStartConnection } from '@/features/apps/hooks/useConnections'
 import { getOAuthField } from '@/features/apps/lib/connectedApp'
-import type { EdgeApp } from '@/features/apps/types/app.types'
+import type { CatalogApp } from '@/features/apps/types/app.types'
 import type { ConnectionProvider } from '@/features/apps/types/connection.types'
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -19,7 +19,7 @@ const PROVIDER_LABELS: Record<string, string> = {
 }
 
 interface ConnectAppPromptProps {
-  app: EdgeApp
+  app: CatalogApp
   instanceId: string
 }
 

@@ -1,4 +1,4 @@
-import type { ColumnMappingSpec, ColumnMappingTarget, Field } from '@edge/apps-contract'
+import type { ColumnMappingSpec, ColumnMappingTarget, Field } from '@signagewall/apps-contract'
 
 /**
  * The reusable "where do the rows come from" config block for apps whose
@@ -62,7 +62,7 @@ export function tabularSourceFields(options: TabularSourceOptions): Field[] {
       ...section,
       visibleWhen: syncVisible,
       providerFrom: { field: 'source', map: { gsheets: 'google', excel: 'microsoft' } },
-      help: 'Sign in once — Edge then lists your files to choose from.',
+      help: 'Sign in once — SignageWall then lists your files to choose from.',
     },
     {
       key: 'spreadsheet',
@@ -100,7 +100,7 @@ export function tabularSourceFields(options: TabularSourceOptions): Field[] {
       ...section,
       visibleWhen: syncVisible,
       columnMapping: mappingSpec,
-      help: 'Tell Edge which spreadsheet column holds what. The first row is read as headers.',
+      help: 'Tell SignageWall which spreadsheet column holds what. The first row is read as headers.',
     },
     {
       key: 'syncedItems',

@@ -6,7 +6,7 @@ dist/
 build/
 .turbo/
 
-# generated app embed bundles (built by @edge/apps `build:embeds`)
+# generated app embed bundles (built by @signagewall/apps `build:embeds`)
 apps/player/public/apps/
 apps/cms/public/apps/
 

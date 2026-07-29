@@ -2,8 +2,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { CanvaPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { CanvaPayload } from '@signagewall/apps';
 
 import {
   type CanvaExportFormat,

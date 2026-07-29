@@ -1,4 +1,4 @@
-package com.edgerize.player.identity
+package com.signagewall.player.identity
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -24,7 +24,7 @@ class DeviceIdStoreTest {
 
     @Test
     fun `absent with no file, present after write, round-trips`() {
-        val dir = Files.createTempDirectory("edge").toFile()
+        val dir = Files.createTempDirectory("signagewall").toFile()
         val store = DeviceIdStore(File(dir, "device.json"))
         assertEquals(DeviceIdStore.ReadResult.Absent, store.read())
         store.write(validUuid)
@@ -33,7 +33,7 @@ class DeviceIdStoreTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun `write rejects a non-uuid`() {
-        val dir = Files.createTempDirectory("edge").toFile()
+        val dir = Files.createTempDirectory("signagewall").toFile()
         DeviceIdStore(File(dir, "device.json")).write("garbage")
     }
 }

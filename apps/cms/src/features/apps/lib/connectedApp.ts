@@ -1,6 +1,6 @@
-import { isFieldVisible, type ConfigSchema, type Field } from '@edge/apps-contract'
+import { isFieldVisible, type ConfigSchema, type Field } from '@signagewall/apps-contract'
 
-import type { AppInstanceConfig, EdgeApp } from '@/features/apps/types/app.types'
+import type { AppInstanceConfig, CatalogApp } from '@/features/apps/types/app.types'
 
 /** The schema's OAuth field (which provider/connection the app authenticates with). */
 export function getOAuthField(schema: ConfigSchema): Field | undefined {
@@ -26,7 +26,7 @@ export function resolveOAuthProvider(
 
 /** The connectionId currently stored under the app's OAuth field, if any. */
 export function getConnectionId(
-  app: EdgeApp,
+  app: CatalogApp,
   config: AppInstanceConfig,
 ): string | undefined {
   const field = getOAuthField(app.configSchema)
@@ -44,7 +44,7 @@ export function getConnectionId(
  * account at all.
  */
 export function needsConnection(
-  app: EdgeApp,
+  app: CatalogApp,
   config: AppInstanceConfig,
 ): boolean {
   if (app.dataSource !== 'connected' || getConnectionId(app, config)) {

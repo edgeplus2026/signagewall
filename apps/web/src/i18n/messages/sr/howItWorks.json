@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Kako radi",
+    "title": "Kako radi digital signage — u 3 koraka",
     "description": "Od praznog ekrana do žive izloge za par minuta — povežite ekran, sastavite sadržaj i objavite na daljinu."
   },
   "hero": {
@@ -13,11 +13,11 @@
     "items": [
       {
         "title": "Povežite ekran",
-        "body": "Instalirajte EdgeRize plejer na Android TV boks, mini-PC ili desktop koji već imate. Otvorite ekran, skenirajte QR kod iz kontrolne table — i ekran je uparen. Bez kablova i bez tehničara."
+        "body": "Instalirajte SignageWall plejer na Android TV boks, mini-PC ili desktop koji već imate. Otvorite ekran, skenirajte QR kod iz kontrolne table — i ekran je uparen. Bez kablova i bez tehničara."
       },
       {
         "title": "Sastavite sadržaj",
-        "body": "Birajte iz 38 gotovih aplikacija — meni, vreme, kursna lista, društvene mreže — ili otpremite svoje slike i video. Složite ih u plejlistu i podelite ekran na zone ako treba."
+        "body": "Birajte iz {count} gotovih aplikacija — meni, vreme, kursna lista, društvene mreže — ili otpremite svoje slike i video. Složite ih u plejlistu i podelite ekran na zone ako treba."
       },
       {
         "title": "Objavite na daljinu",
@@ -52,7 +52,7 @@
     "items": [
       {
         "q": "Da li mi treba poseban hardver?",
-        "a": "Ne. EdgeRize radi na običnom Android TV-u, mini-PC-u ili desktop računaru koji već imate."
+        "a": "Ne. SignageWall radi na običnom Android TV-u, mini-PC-u ili desktop računaru koji već imate."
       },
       {
         "q": "Šta ako padne internet?",

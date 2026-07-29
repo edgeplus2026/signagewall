@@ -37,7 +37,7 @@
 
 .ed .rs-qr {
   right: auto;
-  left: var(--rs-edge);
+  left: var(--rs-inset);
 }
 
 .ed-column {

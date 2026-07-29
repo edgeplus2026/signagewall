@@ -54,7 +54,7 @@ export function PairingScreen() {
   return (
     <div class="player-pairing">
       <div class="player-pairing__panel">
-        <div class="player-pairing__brand">Edge</div>
+        <div class="player-pairing__brand">SignageWall</div>
 
         {paired.value ? (
           <>
@@ -89,7 +89,7 @@ export function PairingScreen() {
             <p class="player-pairing__hint" aria-live="polite">
               {copied
                 ? "Code copied to clipboard."
-                : "Enter this code in your Edge dashboard to connect this screen."}
+                : "Enter this code in your SignageWall dashboard to connect this screen."}
             </p>
           </>
         )}
@@ -101,7 +101,7 @@ export function PairingScreen() {
       </div>
 
       <div class="player-pairing__visual">
-        <img class="player-pairing__image" src={splashImage} alt="Edge" />
+        <img class="player-pairing__image" src={splashImage} alt="SignageWall" />
       </div>
     </div>
   );

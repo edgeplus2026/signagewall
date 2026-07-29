@@ -1,4 +1,4 @@
-import type { FieldType } from '@edge/apps-contract'
+import type { FieldType } from '@signagewall/apps-contract'
 import type { ReactNode } from 'react'
 
 import { LocationControl } from '@/features/apps/config-form/LocationControl'

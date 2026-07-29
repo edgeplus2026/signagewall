@@ -1,9 +1,9 @@
-package com.edgerize.player.boot
+package com.signagewall.player.boot
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.edgerize.player.KioskActivity
+import com.signagewall.player.KioskActivity
 
 /**
  * Autostart on power-up: relaunch the kiosk Activity on boot (plus common OEM

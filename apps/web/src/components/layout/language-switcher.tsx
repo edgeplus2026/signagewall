@@ -1,6 +1,7 @@
 'use client'
 
 import { Check, Globe } from 'lucide-react'
+import { useParams } from 'next/navigation'
 import { useLocale } from 'next-intl'
 import { DropdownMenu } from 'radix-ui'
 import { useTransition } from 'react'
@@ -18,14 +19,22 @@ export function LanguageSwitcher() {
   const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
+  const params = useParams()
   const [isPending, startTransition] = useTransition()
 
+  /* With localised pathnames `usePathname` returns the *template*
+     (`/blog/[slug]`), so the route params have to travel with it — replacing
+     the bare template would navigate to a literal "[slug]" URL. The slug itself
+     stays in the old language; the page 301s it to the right one. */
+
   return (
-    <DropdownMenu.Root>
+    /* Non-modal: a two-item language menu has no business locking the page's
+       scroll, and the lock is what shifts the layout underneath it. */
+    <DropdownMenu.Root modal={false}>
       <DropdownMenu.Trigger
         disabled={isPending}
         aria-label="Promeni jezik"
-        className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm text-secondary transition-colors outline-none hover:bg-highlight hover:text-primary focus-visible:ring-2 focus-visible:ring-tertiary"
+        className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm text-secondary transition-colors outline-none hover:bg-highlight hover:text-primary focus-visible:ring-2 focus-visible:ring-accent"
       >
         <Globe className="size-4" />
         <span className="uppercase">{locale}</span>
@@ -41,7 +50,7 @@ export function LanguageSwitcher() {
               key={l}
               onSelect={() => {
                 startTransition(() => {
-                  router.replace(pathname, { locale: l })
+                  router.replace({ pathname, params } as never, { locale: l })
                 })
               }}
               className="flex cursor-pointer items-center justify-between gap-4 rounded-md px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-highlight"

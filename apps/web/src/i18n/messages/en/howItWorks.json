@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "How it works",
+    "title": "How digital signage works — in 3 steps",
     "description": "From a blank screen to a living display in minutes — connect a screen, compose the content and publish remotely."
   },
   "hero": {
@@ -13,11 +13,11 @@
     "items": [
       {
         "title": "Connect a screen",
-        "body": "Install the EdgeRize player on an Android TV box, mini-PC or desktop you already have. Open the screen, scan the QR code from your dashboard — and it's paired. No cables, no technician."
+        "body": "Install the SignageWall player on an Android TV box, mini-PC or desktop you already have. Open the screen, scan the QR code from your dashboard — and it's paired. No cables, no technician."
       },
       {
         "title": "Compose the content",
-        "body": "Pick from 38 ready-made apps — menus, weather, exchange rates, social feeds — or upload your own images and video. Arrange them into a playlist and split the screen into zones if you like."
+        "body": "Pick from {count} ready-made apps — menus, weather, exchange rates, social feeds — or upload your own images and video. Arrange them into a playlist and split the screen into zones if you like."
       },
       {
         "title": "Publish remotely",
@@ -52,7 +52,7 @@
     "items": [
       {
         "q": "Do I need special hardware?",
-        "a": "No. EdgeRize runs on an ordinary Android TV, mini-PC or desktop computer you already have."
+        "a": "No. SignageWall runs on an ordinary Android TV, mini-PC or desktop computer you already have."
       },
       {
         "q": "What happens if the internet drops?",

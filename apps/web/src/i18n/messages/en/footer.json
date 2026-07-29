@@ -6,13 +6,12 @@
     "howItWorks": "How it works",
     "features": "Features",
     "apps": "Apps",
-    "download": "Download"
+    "download": "Download",
+    "pricing": "Pricing",
+    "hardware": "Hardware"
   },
   "solutions": {
     "title": "Solutions",
-    "hospitality": "Hospitality",
-    "retail": "Retail",
-    "office": "Offices",
     "all": "All solutions"
   },
   "company": {

@@ -1,4 +1,4 @@
-package com.edgerize.player.webview
+package com.signagewall.player.webview
 
 import android.util.Log
 import android.webkit.ConsoleMessage
@@ -9,7 +9,7 @@ class KioskWebChromeClient : WebChromeClient() {
     override fun onConsoleMessage(message: ConsoleMessage?): Boolean {
         if (message != null) {
             Log.d(
-                "EdgePlayerWeb",
+                "PlayerWeb",
                 "${message.message()} @${message.sourceId()}:${message.lineNumber()}",
             )
         }

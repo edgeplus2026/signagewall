@@ -9,7 +9,7 @@ interface PlayerDB extends DBSchema {
   }
 }
 
-const DB_NAME = 'edge-player'
+const DB_NAME = 'signagewall-player'
 const STORE = 'state'
 const SNAPSHOT_KEY = 'snapshot'
 
@@ -56,7 +56,7 @@ export async function clearSnapshot(): Promise<void> {
 }
 
 /** Workbox runtime caches that hold downloaded media bytes. */
-const MEDIA_CACHE_NAMES = ['edge-media', 'edge-video']
+const MEDIA_CACHE_NAMES = ['signagewall-media', 'signagewall-video']
 
 /**
  * Purges every cached media byte (images + video). Called on revoke so an

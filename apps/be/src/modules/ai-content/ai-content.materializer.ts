@@ -7,7 +7,7 @@ import {
   type AiGenerationInput,
   type AiSlide,
   type ConfigSchema,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';

@@ -1,8 +1,8 @@
-package com.edgerize.player
+package com.signagewall.player
 
 import android.app.Application
-import com.edgerize.player.update.HealthWatchdog
-import com.edgerize.player.update.UpdaterStateStore
+import com.signagewall.player.update.HealthWatchdog
+import com.signagewall.player.update.UpdaterStateStore
 import java.io.File
 
 /**
@@ -12,7 +12,7 @@ import java.io.File
  * [postUpdateHealth]) so `report_alive`/`report_healthy` reach the one owner of the
  * alive/healthy flags. On dev / non-OTA builds this is a no-op.
  */
-class EdgePlayerApp : Application() {
+class PlayerApp : Application() {
 
     var postUpdateHealth: HealthWatchdog? = null
         private set

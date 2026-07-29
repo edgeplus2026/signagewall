@@ -11,7 +11,7 @@
 ## Quick start
 
 ```bash
-cd edge-be
+cd apps/be
 cp .env.example .env
 # Edit .env — set MONGODB_URI, JWT secrets, optional Google/Resend keys
 npm run start:dev
@@ -119,7 +119,7 @@ Default page size: 20. Max limit: 100.
 ## Project structure
 
 ```
-edge-be/src/
+apps/be/src/
 ├── common/           # Filters, interceptors, decorators, shared DTOs
 ├── config/           # configuration.ts + Joi validation
 ├── database/         # Mongoose root module
@@ -161,7 +161,7 @@ Regenerate the committed spec after API changes:
 npm run openapi:export
 ```
 
-Then regenerate frontend types from `edge-fe/`:
+Then regenerate frontend types from `apps/cms/`:
 
 ```bash
 npm run generate:api-types
@@ -171,7 +171,7 @@ Set `SWAGGER_ENABLED=false` in production unless you intentionally expose docs.
 
 ## Connecting the frontend
 
-1. Set `VITE_API_URL=http://localhost:3000/api/v1` in `edge-fe/.env`
+1. Set `VITE_API_URL=http://localhost:3000/api/v1` in `apps/cms/.env`
 2. Register or log in at `/login`
 3. Create an organization at `/create-organization` if prompted
 4. For super-admin UI: set role in MongoDB and re-login

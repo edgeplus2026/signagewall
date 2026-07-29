@@ -1,156 +1,20 @@
 {
   "meta": {
-    "title": "Solutions",
-    "description": "The same tool, shaped around your industry — hospitality, retail, offices, healthcare, hotels and gyms."
+    "title": "Digital signage by industry",
+    "description": "Digital signage for your industry: hospitality, retail, offices, healthcare, hotels and gyms. The same tool, shaped around what you actually do."
   },
   "hero": {
     "eyebrow": "Solutions",
     "title": "Built for every kind of space.",
-    "subtitle": "Whatever you do, EdgeRize adapts to you. Pick your industry and see how it looks in practice."
+    "subtitle": "Whatever you do, SignageWall adapts to you. Pick your industry and see how it looks in practice."
   },
   "overview": {
     "title": "Choose your industry."
   },
   "detail": {
     "scenariosTitle": "What you can show",
-    "benefitsTitle": "Why it makes sense"
-  },
-  "industries": {
-    "hospitality": {
-      "name": "Hospitality",
-      "tagline": "Menus that change on the fly.",
-      "title": "Digital menus and offers for restaurants and cafés.",
-      "subtitle": "Replace printed menus with screens you update in seconds — prices, daily specials and seasonal promotions, always current.",
-      "scenarios": [
-        {
-          "title": "Digital menu",
-          "body": "Dishes, prices and the daily special with no reprinting or sticker patching."
-        },
-        {
-          "title": "Promotions",
-          "body": "Happy hour, seasonal deals and the chef's picks — scheduled in advance."
-        },
-        {
-          "title": "Brand & atmosphere",
-          "body": "Visuals and music for your space's identity, at every moment."
-        }
-      ],
-      "benefits": ["No reprinting costs", "Real-time changes", "A professional, modern look"]
-    },
-    "retail": {
-      "name": "Retail",
-      "tagline": "Promotions that catch the eye.",
-      "title": "Prices, promotions and brand on every screen.",
-      "subtitle": "Grab attention at the entrance and on the shelf — highlight deals, new arrivals and campaigns, and change them instantly across all stores.",
-      "scenarios": [
-        {
-          "title": "Promotions & sales",
-          "body": "Highlight offers right where the buying decision happens."
-        },
-        {
-          "title": "New arrivals",
-          "body": "Introduce a new collection the moment it lands, no waiting on print."
-        },
-        {
-          "title": "Brand & campaigns",
-          "body": "Show one consistent message across every store at once."
-        }
-      ],
-      "benefits": [
-        "More impulse purchases",
-        "Instant price changes",
-        "Consistency across locations"
-      ]
-    },
-    "office": {
-      "name": "Offices",
-      "tagline": "Information the team sees.",
-      "title": "Announcements, calendars and data for a modern workplace.",
-      "subtitle": "Keep the team informed and make a great impression on visitors — notices, room bookings and key numbers in plain sight.",
-      "scenarios": [
-        { "title": "Announcements", "body": "Internal news and important messages no one misses." },
-        {
-          "title": "Rooms & calendars",
-          "body": "Room availability and the meeting schedule in real time."
-        },
-        { "title": "KPIs & dashboards", "body": "Key numbers and team goals on the big screen." }
-      ],
-      "benefits": [
-        "Better internal communication",
-        "Fewer missed messages",
-        "A professional impression for guests"
-      ]
-    },
-    "healthcare": {
-      "name": "Healthcare",
-      "tagline": "A calmer waiting room.",
-      "title": "Queues, notices and information for patients.",
-      "subtitle": "Ease the load at reception and make waiting more pleasant — clear information, a call-up queue and helpful tips.",
-      "scenarios": [
-        {
-          "title": "Queues & call-up",
-          "body": "Who's next and at which desk, clearly and without asking."
-        },
-        {
-          "title": "Health tips",
-          "body": "Useful information and prevention while patients wait."
-        },
-        {
-          "title": "Hours & directions",
-          "body": "Offices, opening hours and directions in one place."
-        }
-      ],
-      "benefits": [
-        "Fewer questions at reception",
-        "A calmer atmosphere",
-        "Always up-to-date information"
-      ]
-    },
-    "hotels": {
-      "name": "Hotels",
-      "tagline": "A welcome at every step.",
-      "title": "Information and experience for your guests.",
-      "subtitle": "From the lobby to the lift — greet guests, guide them and showcase the hotel's amenities on elegant screens.",
-      "scenarios": [
-        {
-          "title": "Welcome & wayfinding",
-          "body": "Greet guests, show a map and point the way to amenities."
-        },
-        {
-          "title": "Events & amenities",
-          "body": "The programme, restaurant, spa and offers — clear and beautiful."
-        },
-        {
-          "title": "Weather & local guide",
-          "body": "Forecast and nearby recommendations for a better stay."
-        }
-      ],
-      "benefits": [
-        "A better guest impression",
-        "Less load on reception",
-        "A chance to promote services"
-      ]
-    },
-    "gyms": {
-      "name": "Gyms",
-      "tagline": "Energy on the screen.",
-      "title": "Schedules, motivation and announcements for fitness.",
-      "subtitle": "Keep members in the loop and motivated — class schedules, tips and offers on screens throughout the space.",
-      "scenarios": [
-        {
-          "title": "Class schedule",
-          "body": "Times and trainers, always current and visible to everyone."
-        },
-        {
-          "title": "Motivation & tips",
-          "body": "Messages, challenges and tips that lift the energy."
-        },
-        {
-          "title": "Memberships & offers",
-          "body": "Deals and new packages right where members see them."
-        }
-      ],
-      "benefits": ["Better-informed members", "Fuller class slots", "A modern look for the space"]
-    }
+    "benefitsTitle": "Why it makes sense",
+    "faqTitle": "Frequently asked questions",
+    "appsTitle": "Apps this industry uses"
   }
 }

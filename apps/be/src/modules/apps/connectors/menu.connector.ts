@@ -2,8 +2,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { MenuItem, MenuSyncPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { MenuItem, MenuSyncPayload } from '@signagewall/apps';
 
 import { fetchSheetTable } from '../../connections/providers/google-api';
 import {

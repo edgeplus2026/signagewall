@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     posts: Post;
+    solutions: Solution;
     categories: Category;
     media: Media;
     users: User;
@@ -79,6 +80,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     posts: PostsSelect<false> | PostsSelect<true>;
+    solutions: SolutionsSelect<false> | SolutionsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -128,8 +130,19 @@ export interface UserAuthOperations {
 export interface Post {
   id: string;
   title: string;
+  /**
+   * URL segment, per language — /blog/<slug> and /en/blog/<slug>. Write it in the language of the post. Changing it breaks existing links.
+   */
   slug: string;
   excerpt?: string | null;
+  /**
+   * Search-result title. Falls back to the post title. Aim for under ~60 characters and lead with the term people search for.
+   */
+  metaTitle?: string | null;
+  /**
+   * Falls back to the excerpt. Aim for 140–160 characters.
+   */
+  metaDescription?: string | null;
   coverImage?: (string | null) | Media;
   category?: (string | null) | Category;
   author?: (string | null) | User;
@@ -160,6 +173,22 @@ export interface Post {
 export interface Media {
   id: string;
   alt?: string | null;
+  /**
+   * Shown under the image in article bodies.
+   */
+  caption?: string | null;
+  /**
+   * Photographer name.
+   */
+  credit?: string | null;
+  /**
+   * Photographer profile URL.
+   */
+  creditUrl?: string | null;
+  /**
+   * Original photo page.
+   */
+  sourceUrl?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -211,6 +240,104 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "solutions".
+ */
+export interface Solution {
+  id: string;
+  name: string;
+  /**
+   * URL segment, per language — /solutions/<slug> and /en/solutions/<slug>. Changing it breaks existing links.
+   */
+  slug: string;
+  /**
+   * Ascending. Ties fall back to name.
+   */
+  order?: number | null;
+  /**
+   * Resolved to a Lucide icon in src/lib/solution-icons.ts.
+   */
+  icon:
+    | 'utensils'
+    | 'shopping-bag'
+    | 'building'
+    | 'heart-pulse'
+    | 'hotel'
+    | 'dumbbell'
+    | 'graduation-cap'
+    | 'landmark'
+    | 'pill'
+    | 'car'
+    | 'key-round'
+    | 'scissors'
+    | 'croissant'
+    | 'clapperboard'
+    | 'bus'
+    | 'factory'
+    | 'laptop'
+    | 'paw-print'
+    | 'shopping-cart'
+    | 'party-popper';
+  /**
+   * Two sentences. Shown on the overview card — make it earn the click.
+   */
+  tagline: string;
+  title: string;
+  subtitle?: string | null;
+  /**
+   * Falls back to the page title. Aim for under ~60 characters.
+   */
+  metaTitle?: string | null;
+  /**
+   * Falls back to the subtitle. Aim for 140–160 characters.
+   */
+  metaDescription?: string | null;
+  /**
+   * Two or three paragraphs (blank line between them) on why a screen belongs in this industry — the context before the scenarios. This is most of what makes the page rank; without it the page is a list.
+   */
+  intro?: string | null;
+  /**
+   * Aim for five or six. Three reads as a stub.
+   */
+  scenarios?:
+    | {
+        title: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * One concrete calculation for this industry — what the old way costs per year against the subscription. Specific numbers are what a reader repeats to a colleague.
+   */
+  proof?: {
+    title?: string | null;
+    body?: string | null;
+  };
+  /**
+   * Comma-separated app slugs from the @signagewall/apps catalog, e.g. "menu,weather,currency". Renders as links to /apps/<slug> — the internal linking the industry pages currently have none of. Not localised: slugs are the same in both languages.
+   */
+  recommendedApps?: string | null;
+  benefits?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Eight to ten. Write them as they get asked on a sales call, and answer at a length worth reading — a one-line answer is the shape nothing ever cites. Avoid reusing an answer across industries: twenty pages carrying the same sentence is what thin content looks like to a crawler.
+   */
+  faq?:
+    | {
+        q: string;
+        a: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -236,6 +363,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'posts';
         value: string | Post;
+      } | null)
+    | ({
+        relationTo: 'solutions';
+        value: string | Solution;
       } | null)
     | ({
         relationTo: 'categories';
@@ -299,11 +430,59 @@ export interface PostsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   excerpt?: T;
+  metaTitle?: T;
+  metaDescription?: T;
   coverImage?: T;
   category?: T;
   author?: T;
   publishedAt?: T;
   content?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "solutions_select".
+ */
+export interface SolutionsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  order?: T;
+  icon?: T;
+  tagline?: T;
+  title?: T;
+  subtitle?: T;
+  metaTitle?: T;
+  metaDescription?: T;
+  intro?: T;
+  scenarios?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  proof?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+      };
+  recommendedApps?: T;
+  benefits?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  faq?:
+    | T
+    | {
+        q?: T;
+        a?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -324,6 +503,10 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  caption?: T;
+  credit?: T;
+  creditUrl?: T;
+  sourceUrl?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const STREAM_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 0-14.14"/></svg>'
@@ -50,7 +50,7 @@ export const streamManifest: AppManifest = {
       key: 'source',
       type: 'select',
       label: 'Source',
-      help: 'Leave on Auto-detect — Edge reads the format from the link. Only override it if a link is unusual (e.g. a WHEP endpoint with no .mpd/.m3u8 ending).',
+      help: 'Leave on Auto-detect — SignageWall reads the format from the link. Only override it if a link is unusual (e.g. a WHEP endpoint with no .mpd/.m3u8 ending).',
       default: 'auto',
       options: [
         { label: 'Auto-detect (recommended)', value: 'auto' },

@@ -1,10 +1,10 @@
-package com.edgerize.player.bridge
+package com.signagewall.player.bridge
 
 import android.webkit.JavascriptInterface
 
 /**
  * The `@JavascriptInterface` host the web player calls. Registered on the WebView
- * as `__edgeHost__` and re-exposed as `window.AndroidBridge` by [BridgeInjection].
+ * as `__signagewallHost__` and re-exposed as `window.AndroidBridge` by [BridgeInjection].
  * THREE synchronous methods only — a `@JavascriptInterface` call blocks the JS
  * thread, so every handler must do sub-millisecond work (the long `run_update` path
  * returns immediately and continues on a background thread inside the updater):

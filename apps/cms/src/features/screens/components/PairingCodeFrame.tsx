@@ -75,7 +75,7 @@ export function PairingCodeFrame({
         {/* Brand etched into the bottom bezel */}
         <div className="flex items-center justify-center pt-1.5 pb-0.5">
           <span className="text-[10px] font-semibold tracking-[0.3em] text-white/25 uppercase">
-            Edge
+            SignageWall
           </span>
         </div>
       </div>

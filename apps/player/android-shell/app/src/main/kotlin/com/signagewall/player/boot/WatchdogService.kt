@@ -1,4 +1,4 @@
-package com.edgerize.player.boot
+package com.signagewall.player.boot
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -7,8 +7,8 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import com.edgerize.player.KioskActivity
-import com.edgerize.player.R
+import com.signagewall.player.KioskActivity
+import com.signagewall.player.R
 
 /**
  * Keep-alive watchdog. A foreground service so the OS is far less likely to kill the
@@ -41,12 +41,12 @@ class WatchdogService : Service() {
         mgr.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
-                "EdgeRize Player",
+                "SignageWall Player",
                 NotificationManager.IMPORTANCE_MIN,
             ),
         )
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("EdgeRize Player")
+            .setContentTitle("SignageWall Player")
             .setContentText("Signage player is running")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
@@ -54,7 +54,7 @@ class WatchdogService : Service() {
     }
 
     companion object {
-        private const val CHANNEL_ID = "edge-player-watchdog"
+        private const val CHANNEL_ID = "signagewall-player-watchdog"
         private const val NOTIF_ID = 1
 
         fun start(context: Context) {

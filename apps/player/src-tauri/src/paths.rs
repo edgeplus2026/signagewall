@@ -1,4 +1,4 @@
-//! Filesystem paths shared by the player shell and the standalone `edge-watchdog`
+//! Filesystem paths shared by the player shell and the standalone `signagewall-watchdog`
 //! supervisor.
 //!
 //! The watchdog has no Tauri runtime, so it cannot call `app.path().app_config_dir()`.
@@ -16,7 +16,7 @@ use std::path::PathBuf;
 
 /// The Tauri app identifier (`tauri.conf.json` → `identifier`). `app_config_dir()`
 /// is `dirs::config_dir()/<identifier>`, so this must match the config verbatim.
-pub const APP_IDENTIFIER: &str = "com.edgerize.player";
+pub const APP_IDENTIFIER: &str = "com.signagewall.player";
 
 /// Updater subdir + files (owned by `updater.rs`; the watchdog only reads them).
 pub const UPDATES_SUBDIR: &str = "updates";

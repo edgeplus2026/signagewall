@@ -1,4 +1,4 @@
-import type { AiGenerationInput } from '@edge/apps-contract';
+import type { AiGenerationInput } from '@signagewall/apps-contract';
 
 /**
  * DI token for the AI content provider. Bind it to a concrete implementation in

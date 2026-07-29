@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "title": "Digital signage player hardware — what to buy",
+    "description": "What a digital signage player is, whether to buy an Android box or a mini PC, what screen you actually need, and roughly what each costs. No hardware sold here."
+  },
+  "hero": {
+    "eyebrow": "Hardware",
+    "title": "What you actually need to buy.",
+    "subtitle": "Three things, and you probably own one of them. We do not sell hardware, which means we have no reason to tell you that you need more of it than you do."
+  },
+  "intro": "Every signage setup is a screen, a player and software. The software is us; the other two you buy wherever it is cheapest. This page is what we would tell a friend who asked, including the parts that cost us a sale.",
+  "sections": [
+    {
+      "title": "The screen",
+      "body": "Any TV, monitor or professional display with an HDMI input works. An ordinary consumer television is genuinely fine for a wall indoors during normal opening hours, and it will last years. Two situations change that: running sixteen hours a day or more, where a commercial panel is built for the duty cycle and a consumer set is not; and daylight falling on the screen, where you need brightness a living-room television does not have. Everything else is a preference, not a requirement.",
+      "rows": [
+        ["Indoors, under 12 hours a day", "Consumer TV", "$250–600"],
+        ["16+ hours a day, every day", "Commercial panel", "$700–1,500"],
+        ["Shop window, direct sun", "High-brightness display", "$1,500–4,000"],
+        ["Narrow column (menu, listings)", "Portrait-capable panel", "add ~20%"]
+      ]
+    },
+    {
+      "title": "The player",
+      "body": "A small device behind the screen that stores your content and plays it. This is the part most people have never bought and the part where the wrong choice costs most later, because it fails quietly rather than obviously. An Android box is right for images, text and menus on one to three screens you can easily reach. A mini PC earns its price for video, on-screen zones, continuous running, or anywhere you visit rarely.",
+      "rows": [
+        ["1–3 screens, images and text", "Android TV box", "$50–120"],
+        ["Video, zones, or 16+ hours", "Mini PC", "$150–350"],
+        ["A computer already sitting there", "Reuse it", "$0"],
+        ["Screen you rarely visit", "Mini PC", "$150–350"]
+      ]
+    },
+    {
+      "title": "Mounting and cables",
+      "body": "Easy to forget and annoying to discover. A VESA bracket, an HDMI cable long enough to reach, and a power socket within range of both. Portrait mounting needs a bracket that rotates, which not all of them do. Budget $30–80 per screen and check the socket before the delivery arrives, not after.",
+      "rows": []
+    },
+    {
+      "title": "What you do not need",
+      "body": "You do not need a server, a dedicated internet line, a signage-branded player, or a three-year hardware contract. If a supplier tells you their software only runs on their box, that is a hardware business with software attached — a valid model, but price it as one: their margin, their replacement cycle, their timeline.",
+      "rows": []
+    }
+  ],
+  "faq": {
+    "title": "Hardware questions",
+    "items": [
+      {
+        "q": "Do you sell hardware?",
+        "a": "No, and that is deliberate. It means we have no incentive to tell you that you need a commercial panel for a café wall, and you can buy the same box we would have sold you for less than we would have charged."
+      },
+      {
+        "q": "Will it run on the TV I already have?",
+        "a": "Almost certainly, if it has an HDMI input. The television does not need to be smart — the player behind it does the work, and a plain screen is arguably better because there is no interface trying to take over."
+      },
+      {
+        "q": "Android box or mini PC?",
+        "a": "Android box for one to three screens showing images and text somewhere you can reach. Mini PC for video, zones, continuous running, or a screen you would rather not visit. We wrote a longer comparison, because the difference only shows after six months."
+      },
+      {
+        "q": "Can I use a Raspberry Pi?",
+        "a": "It will run, and for a static image it is fine. For video or zones it struggles, and the storage card is a common failure point under constant writing. It is a good choice for a prototype and a poor one for forty screens."
+      },
+      {
+        "q": "What about smart TVs with built-in players?",
+        "a": "Some work. The problem is that the TV maker controls the platform, and an operating system update you did not ask for can break your setup on a Tuesday. An external player is one more box and one less dependency."
+      },
+      {
+        "q": "How long does the hardware last?",
+        "a": "A commercial panel is typically rated for 50,000 hours or more; a consumer television is not rated for continuous use at all but commonly lasts several years at normal hours. Players vary more — a cheap Android box under constant load is a two-to-three year part."
+      },
+      {
+        "q": "What happens after a power cut?",
+        "a": "The player should boot straight back into the content without anybody touching a remote. Check this on the device you buy, because not every box does it by default — some wake to a home screen and wait."
+      },
+      {
+        "q": "Do I need a different player per screen?",
+        "a": "One player drives one screen. Splitters exist but show identical content, which defeats most of the point of grouping screens by role."
+      }
+    ]
+  },
+  "cta": {
+    "title": "The software side is {price} a screen.",
+    "body": "Every feature included, {trialDays} days free, no card. Buy the hardware wherever you like.",
+    "primary": "Start free trial",
+    "secondary": "See pricing"
+  }
+}

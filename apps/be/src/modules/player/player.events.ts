@@ -12,10 +12,10 @@ import {
   type DeviceSettingsPayload,
   type DeviceUpdateStatus,
   type PlayerCommand,
-} from '@edge/player-contract';
+} from '@signagewall/player-contract';
 
 // Re-exported so the rest of the backend keeps importing these from the player
-// module while the single source of truth lives in @edge/player-contract.
+// module while the single source of truth lives in @signagewall/player-contract.
 export { PlayerSocketEvents };
 export type { DeviceSettingsPayload, PlayerCommand };
 

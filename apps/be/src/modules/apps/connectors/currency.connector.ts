@@ -2,8 +2,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { FxPayload, FxRate } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { FxPayload, FxRate } from '@signagewall/apps';
 
 interface CurrencyConfig {
   base?: string;

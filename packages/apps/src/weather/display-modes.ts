@@ -1,4 +1,4 @@
-import type { FieldOption } from '@edge/apps-contract'
+import type { FieldOption } from '@signagewall/apps-contract'
 
 /**
  * The layouts the Weather app can render a forecast in — the single source of

@@ -2,7 +2,7 @@
  * Iframe (app) side of the player ↔ app handshake. The app-side mirror of the
  * hosts (the player's `apps/player/src/apps/host-bridge.ts` and the CMS preview
  * host), which both implement the shared wire protocol in
- * `@edge/apps-contract` (`host-protocol.ts`).
+ * `@signagewall/apps-contract` (`host-protocol.ts`).
  *
  * Sequence:
  *   1. app → parent:  `{ type: 'app-ready' }` once we are listening, so the host
@@ -15,7 +15,7 @@
  * the app share an origin; we still pin the message source to the parent frame.
  *
  * NOTE: the constants below are the wire format and MUST match
- * `@edge/apps-contract` (`APP_READY_TYPE` / `APP_CONFIG_TYPE`). They are kept
+ * `@signagewall/apps-contract` (`APP_READY_TYPE` / `APP_CONFIG_TYPE`). They are kept
  * inline (not imported) so the embed bundles stay tiny and dependency-free —
  * importing the contract barrel would pull `zod` into every app bundle.
  */

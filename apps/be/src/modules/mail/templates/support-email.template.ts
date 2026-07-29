@@ -28,7 +28,7 @@ export const renderFeedbackEmail = (
   rating: number,
   message: string,
 ): { subject: string; html: string } => ({
-  subject: `Edge feedback (${rating}/5) from ${context.userName}`,
+  subject: `SignageWall feedback (${rating}/5) from ${context.userName}`,
   html: renderEmailLayout({
     previewText: `New feedback from ${context.userName}`,
     title: 'New user feedback',
@@ -38,7 +38,8 @@ export const renderFeedbackEmail = (
       <p style="margin:0 0 8px;"><strong>Message:</strong></p>
       <p style="margin:0;white-space:pre-wrap;">${escapeHtml(message)}</p>
     `,
-    footerNote: 'This message was sent from Edge Settings → Leave feedback.',
+    footerNote:
+      'This message was sent from SignageWall Settings → Leave feedback.',
   }),
 });
 
@@ -46,7 +47,7 @@ export const renderReportProblemEmail = (
   context: SupportEmailContext,
   message: string,
 ): { subject: string; html: string } => ({
-  subject: `Edge problem report from ${context.userName}`,
+  subject: `SignageWall problem report from ${context.userName}`,
   html: renderEmailLayout({
     previewText: `New problem report from ${context.userName}`,
     title: 'New problem report',
@@ -55,6 +56,7 @@ export const renderReportProblemEmail = (
       <p style="margin:0 0 8px;"><strong>Message:</strong></p>
       <p style="margin:0;white-space:pre-wrap;">${escapeHtml(message)}</p>
     `,
-    footerNote: 'This message was sent from Edge Settings → Report a problem.',
+    footerNote:
+      'This message was sent from SignageWall Settings → Report a problem.',
   }),
 });

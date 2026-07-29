@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import {
   oauthDescriptorFor,
   type ResolvedConnection,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { EncryptionService } from '../../common/services/encryption.service';

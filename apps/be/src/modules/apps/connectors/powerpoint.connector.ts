@@ -4,8 +4,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { PowerPointPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { PowerPointPayload } from '@signagewall/apps';
 
 import { unpackDriveItem } from '../../connections/providers/graph-api';
 import {

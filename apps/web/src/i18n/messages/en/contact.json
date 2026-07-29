@@ -1,18 +1,18 @@
 {
   "meta": {
-    "title": "Contact",
-    "description": "Book a demo or drop us a line — we'll show you how EdgeRize works in your space."
+    "title": "Contact — book a demo",
+    "description": "Book a demo or drop us a line — we'll show you how SignageWall works in your space."
   },
   "hero": {
     "eyebrow": "Contact",
     "title": "Let's bring your screens to life.",
-    "subtitle": "Book a demo or write to us — we reply fast, in your language, with no strings attached."
+    "subtitle": "Book a demo or write to us — we reply within one business day, with no strings attached."
   },
   "info": {
     "title": "Get in touch",
     "body": "Tell us a little about your space and screens, and we'll suggest the best way to get started.",
     "emailLabel": "Email",
-    "email": "office@edgerize.rs",
+    "email": "office@signagewall.com",
     "responseTime": "We reply within one business day."
   },
   "form": {

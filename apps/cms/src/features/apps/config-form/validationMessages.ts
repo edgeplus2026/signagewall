@@ -1,4 +1,4 @@
-import type { Field } from '@edge/apps-contract'
+import type { Field } from '@signagewall/apps-contract'
 
 /**
  * The subset of a Zod (v4) issue we key friendly messages off. Structural (not

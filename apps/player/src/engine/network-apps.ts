@@ -1,4 +1,4 @@
-import { APP_MANIFESTS } from '@edge/apps'
+import { APP_MANIFESTS } from '@signagewall/apps'
 
 import type { Renderable } from '../types'
 

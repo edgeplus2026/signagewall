@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
 
-import type { AppInstanceConfig } from '@edge/apps-contract';
+import type { AppInstanceConfig } from '@signagewall/apps-contract';
 
 @Schema({ timestamps: true, collection: 'appinstances' })
 export class AppInstance {

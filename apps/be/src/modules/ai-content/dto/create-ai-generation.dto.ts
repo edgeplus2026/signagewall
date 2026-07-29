@@ -18,11 +18,11 @@ import {
   type ContentLanguage,
   type ContentTone,
   type Industry,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 /**
  * The business context collected by the multi-step wizard. Allowed values for
- * the select fields come from the shared `@edge/apps-contract` const arrays, so
+ * the select fields come from the shared `@signagewall/apps-contract` const arrays, so
  * the frontend options and this allow-list can never drift apart. Deliberately
  * no playlist-duration or slide-count fields — those are defaulted server-side.
  */

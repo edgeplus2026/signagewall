@@ -11,7 +11,10 @@ import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { IconBadge } from '@/components/ui/icon-badge'
 import { Section, SectionStack } from '@/components/ui/section'
+import { StepNumber } from '@/components/ui/step-number'
+import { Subtitle } from '@/components/ui/typography'
 import { Link } from '@/i18n/navigation'
+import { localeAlternates } from '@/lib/seo'
 import { cn } from '@/lib/utils'
 
 interface PageProps {
@@ -33,7 +36,11 @@ const PLATFORMS: { key: 'android' | 'desktop'; icon: LucideIcon }[] = [
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'download.meta' })
-  return { title: t('title'), description: t('description') }
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: localeAlternates(locale, '/download'),
+  }
 }
 
 export default async function DownloadPage({ params }: PageProps) {
@@ -59,9 +66,7 @@ export default async function DownloadPage({ params }: PageProps) {
                   <IconBadge className="size-14 [&_svg]:size-7">
                     <Icon />
                   </IconBadge>
-                  <p className="mt-6 font-heading text-xl font-semibold tracking-tight">
-                    {t(`platforms.${key}.name`)}
-                  </p>
+                  <Subtitle className="mt-6 text-xl">{t(`platforms.${key}.name`)}</Subtitle>
                   <p className="mt-3 text-secondary">{t(`platforms.${key}.body`)}</p>
                   <p className="mt-4 text-sm text-secondary">
                     {t(`platforms.${key}.requirements`)}
@@ -73,10 +78,17 @@ export default async function DownloadPage({ params }: PageProps) {
                       {t(`platforms.${key}.cta`)}
                     </a>
                   ) : (
-                    <Link href="/contact" className={ctaClass}>
-                      <Download />
-                      {t(`platforms.${key}.cta`)}
-                    </Link>
+                    /* No release URL configured. The button used to keep saying
+                       "Download APK" while quietly going to the contact form —
+                       a promise the click does not keep. Say what it does. */
+                    <>
+                      <Link href="/contact" className={ctaClass}>
+                        {t('platforms.ctaUnavailable')}
+                      </Link>
+                      <p className="mt-3 text-xs text-secondary">
+                        {t('platforms.unavailableNote')}
+                      </p>
+                    </>
                   )}
                 </Card>
               </Reveal>
@@ -97,10 +109,8 @@ export default async function DownloadPage({ params }: PageProps) {
           {steps.map((s, i) => (
             <Reveal key={s.title} delay={i * 70}>
               <Card className="h-full bg-page">
-                <span className="font-heading text-5xl leading-none font-semibold tracking-tight text-primary/25 tabular-nums">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <p className="mt-8 font-heading text-lg font-semibold tracking-tight">{s.title}</p>
+                <StepNumber index={i} />
+                <Subtitle className="mt-8">{s.title}</Subtitle>
                 <p className="mt-3 text-sm text-secondary">{s.body}</p>
               </Card>
             </Reveal>

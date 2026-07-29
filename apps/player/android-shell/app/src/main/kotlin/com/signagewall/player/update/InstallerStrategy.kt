@@ -1,4 +1,4 @@
-package com.edgerize.player.update
+package com.signagewall.player.update
 
 import android.app.PendingIntent
 import android.app.admin.DevicePolicyManager
@@ -29,7 +29,7 @@ class InstallerStrategy(private val context: Context) {
         val sessionId = installer.createSession(params)
         installer.openSession(sessionId).use { session ->
             apk.inputStream().use { input ->
-                session.openWrite("edge-player.apk", 0, apk.length()).use { output ->
+                session.openWrite("signagewall-player.apk", 0, apk.length()).use { output ->
                     input.copyTo(output)
                     session.fsync(output)
                 }

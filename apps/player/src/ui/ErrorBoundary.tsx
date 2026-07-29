@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.crashed) {
       return (
         <div class="player-fallback">
-          <div class="player-fallback__brand">Edge</div>
+          <div class="player-fallback__brand">SignageWall</div>
           <div class="player-fallback__hint">Recovering…</div>
         </div>
       )

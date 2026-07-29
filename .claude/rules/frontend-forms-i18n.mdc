@@ -1,6 +1,6 @@
 ---
 description: Forms, Zod validation, and i18n conventions
-globs: edge-fe/**/*
+globs: apps/cms/**/*
 alwaysApply: false
 ---
 

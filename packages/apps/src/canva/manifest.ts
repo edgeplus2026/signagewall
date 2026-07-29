@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const CANVA_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9.5a3.5 3.5 0 10-1 5.8"/></svg>'
@@ -34,7 +34,7 @@ export const canvaManifest: AppManifest = {
       label: 'Canva account',
       required: true,
       provider: 'canva',
-      help: 'Sign in once — Edge then finds your designs for you.',
+      help: 'Sign in once — SignageWall then finds your designs for you.',
     },
     {
       key: 'design',

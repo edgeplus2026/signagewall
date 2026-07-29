@@ -4,7 +4,7 @@ import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
 import type {
   AiGeneratedContent,
   AiGenerationInput,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 
 export enum AiGenerationStatus {
   QUEUED = 'queued',

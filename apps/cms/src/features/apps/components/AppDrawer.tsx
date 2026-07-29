@@ -16,13 +16,13 @@ import { AppInstancesSection } from '@/features/apps/components/AppInstancesSect
 import { AppDrawerNestedOverlayContext } from '@/features/apps/components/appDrawerNestedContext'
 import { useCreateInstance, useInstallApp } from '@/features/apps/hooks/useApps'
 import { appAbout, appTagline } from '@/features/apps/lib/appCopy'
-import type { EdgeApp } from '@/features/apps/types/app.types'
+import type { CatalogApp } from '@/features/apps/types/app.types'
 
 interface AppDrawerProps {
-  app: EdgeApp | null
+  app: CatalogApp | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onRequestUninstall: (app: EdgeApp) => void
+  onRequestUninstall: (app: CatalogApp) => void
 }
 
 /**
@@ -70,7 +70,7 @@ export function AppDrawer({ app, open, onOpenChange, onRequestUninstall }: AppDr
 
   // "Get app" installs, spins up the first setup, and drops the operator straight
   // into its editor — no extra clicks to start configuring.
-  const handleGetApp = (target: EdgeApp) => {
+  const handleGetApp = (target: CatalogApp) => {
     installApp.mutate(target.id, {
       onSuccess: () => {
         createInstance.mutate(

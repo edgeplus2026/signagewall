@@ -12,15 +12,15 @@ import {
 import { AppIcon } from '@/features/apps/components/AppIcon'
 import { useInstallApp } from '@/features/apps/hooks/useApps'
 import { appTagline } from '@/features/apps/lib/appCopy'
-import type { EdgeApp } from '@/features/apps/types/app.types'
+import type { CatalogApp } from '@/features/apps/types/app.types'
 import { cn } from '@/lib/utils'
 
 interface AppCardProps {
-  app: EdgeApp
+  app: CatalogApp
   /** Opens the app drawer (details + its saved setups). */
-  onShowDetails: (app: EdgeApp) => void
+  onShowDetails: (app: CatalogApp) => void
   /** Requests uninstall confirmation for the app. */
-  onRequestUninstall: (app: EdgeApp) => void
+  onRequestUninstall: (app: CatalogApp) => void
 }
 
 export function AppCard({ app, onShowDetails, onRequestUninstall }: AppCardProps) {

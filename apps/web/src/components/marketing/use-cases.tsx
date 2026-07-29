@@ -1,20 +1,28 @@
-import { Building2, Dumbbell, HeartPulse, Hotel, ShoppingBag, Utensils } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { ArrowRight } from 'lucide-react'
+import { getLocale, getTranslations } from 'next-intl/server'
 
 import { SectionHeader } from '@/components/marketing/section-header'
 import { Reveal } from '@/components/motion/reveal'
+import { SolutionIcon } from '@/components/solutions/solution-icon'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Section } from '@/components/ui/section'
+import { Subtitle } from '@/components/ui/typography'
 import { Link } from '@/i18n/navigation'
+import { listTopSolutions } from '@/lib/solutions'
 import { cn } from '@/lib/utils'
 
-const ICONS: LucideIcon[] = [Utensils, ShoppingBag, Building2, HeartPulse, Hotel, Dumbbell]
+/** Two full rows of the three-column grid; the other industries live on /solutions. */
+const SHOWN = 6
 
 export async function UseCases() {
+  const locale = await getLocale()
   const t = await getTranslations('home.useCases')
-  const items = t.raw('items') as { title: string; body: string }[]
+  const tc = await getTranslations('common')
+  /* The industries come from Payload, same as /solutions — a second hand-kept
+     copy on the home page is a copy that goes stale the first time an editor
+     renames one. */
+  const solutions = await listTopSolutions(locale, SHOWN)
 
   return (
     <Section tone="panel">
@@ -30,20 +38,30 @@ export async function UseCases() {
       />
 
       <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((item, i) => {
-          const Icon = ICONS[i] ?? Building2
-          return (
-            <Reveal key={item.title} delay={(i % 3) * 80}>
-              <Card className="group h-full bg-page transition-colors hover:border-primary">
-                <Icon className="size-6 text-secondary transition-colors group-hover:text-primary" />
-                <p className="mt-6 font-heading text-lg font-semibold tracking-tight text-balance">
-                  {item.title}
-                </p>
-                <p className="mt-3 text-sm text-secondary">{item.body}</p>
+        {solutions.map((s, i) => (
+          <Reveal key={s.slug} delay={(i % 3) * 80}>
+            <Link
+              href={{ pathname: '/solutions/[industry]', params: { industry: s.slug } }}
+              className="block h-full"
+            >
+              <Card className="group flex h-full flex-col bg-page transition-colors hover:border-accent">
+                <SolutionIcon
+                  icon={s.icon}
+                  className="size-6 text-secondary transition-colors group-hover:text-accent"
+                />
+                <Subtitle className="mt-6">{s.name}</Subtitle>
+                {/* Taglines are written for the industry page, where they get a
+                    full card to themselves — clamped here so six of them don't
+                    turn the section into a wall of prose. */}
+                <p className="mt-3 line-clamp-3 text-sm text-pretty text-secondary">{s.tagline}</p>
+                <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-medium transition-colors group-hover:text-accent">
+                  {tc('learnMore')}
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
               </Card>
-            </Reveal>
-          )
-        })}
+            </Link>
+          </Reveal>
+        ))}
       </div>
     </Section>
   )

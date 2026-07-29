@@ -1,9 +1,9 @@
 import { AppPreviewFrame } from '@/features/apps/components/AppPreviewFrame'
 import { useAppPreviewData } from '@/features/apps/hooks/useAppPreviewData'
-import type { AppInstanceConfig, EdgeApp } from '@/features/apps/types/app.types'
+import type { AppInstanceConfig, CatalogApp } from '@/features/apps/types/app.types'
 
 interface AppInstanceScreenProps {
-  app: EdgeApp
+  app: CatalogApp
   config: AppInstanceConfig
 }
 

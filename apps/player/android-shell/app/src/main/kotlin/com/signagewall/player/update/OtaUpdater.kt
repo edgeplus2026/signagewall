@@ -1,10 +1,10 @@
-package com.edgerize.player.update
+package com.signagewall.player.update
 
 import android.content.Context
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import com.edgerize.player.util.json
+import com.signagewall.player.util.json
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -31,7 +31,7 @@ class OtaUpdater(
     private val currentVersionCode: Int,
     private val manifestUrl: String,
     // The process-wide health gate owns alive/healthy + promote/poison (single writer
-    // of those state fields), armed at process start in EdgePlayerApp.
+    // of those state fields), armed at process start in PlayerApp.
     private val health: HealthWatchdog,
     private val stateStore: UpdaterStateStore =
         UpdaterStateStore(File(context.filesDir, "updates/state.json")),
@@ -110,7 +110,7 @@ class OtaUpdater(
 
     private fun downloadAndInstall(m: UpdateManifest) {
         val dir = File(context.filesDir, "updates").apply { mkdirs() }
-        val apk = File(dir, "edge-player-${m.versionCode}.apk")
+        val apk = File(dir, "signagewall-player-${m.versionCode}.apk")
         try {
             download(m.url, apk)
             require(sha256Hex(apk).equals(m.sha256, ignoreCase = true)) {
@@ -135,9 +135,9 @@ class OtaUpdater(
     /** Keep only the running version's cached APK (the previous one stays for rollback). */
     private fun pruneOldApks() {
         val dir = File(context.filesDir, "updates")
-        val keep = "edge-player-$currentVersionCode.apk"
+        val keep = "signagewall-player-$currentVersionCode.apk"
         dir.listFiles()
-            ?.filter { it.name.startsWith("edge-player-") && it.name != keep }
+            ?.filter { it.name.startsWith("signagewall-player-") && it.name != keep }
             ?.forEach { it.delete() }
     }
 

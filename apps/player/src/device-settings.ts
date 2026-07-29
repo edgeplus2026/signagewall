@@ -1,6 +1,6 @@
 /**
  * Re-exports the shared device-setting contract (valid values, defaults, and
- * validators) from `@edge/player-contract`, the single source of truth shared
+ * validators) from `@signagewall/player-contract`, the single source of truth shared
  * with the backend + CMS. Kept as a barrel so the rest of the player keeps
  * importing these from one stable path.
  */
@@ -19,4 +19,4 @@ export {
   isScale,
   isValidReloadTime,
   normalizeDailyReload,
-} from '@edge/player-contract'
+} from '@signagewall/player-contract'

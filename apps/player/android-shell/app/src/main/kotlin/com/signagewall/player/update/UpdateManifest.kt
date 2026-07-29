@@ -1,9 +1,9 @@
-package com.edgerize.player.update
+package com.signagewall.player.update
 
 import kotlinx.serialization.Serializable
 
 /**
- * The Android update channel manifest (`edge-player/android/latest.json` on R2).
+ * The Android update channel manifest (`signagewall-player/android/latest.json` on R2).
  * Distinct from the desktop Tauri `latest.json` (whose signature is minisign): the
  * Android trust anchor is the **APK signing certificate** (PackageInstaller refuses
  * an update signed by a different key), backed by the `sha256` integrity check here

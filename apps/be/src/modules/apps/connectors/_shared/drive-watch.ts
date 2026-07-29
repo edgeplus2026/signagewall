@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import type { ConnectorContext } from '@edge/apps-contract';
+import type { ConnectorContext } from '@signagewall/apps-contract';
 
 /**
  * Google Drive `files.watch` push channels for file-backed connectors (Google

@@ -1,0 +1,199 @@
+{
+  "meta": {
+    "title": "{competitor} alternative — one flat price | SignageWall",
+    "description": "How SignageWall compares to {competitor}: {price} per screen with every feature included, {trialDays}-day trial, and playback that keeps running when the connection drops."
+  },
+  "hero": {
+    "eyebrow": "Comparison",
+    "ctaPrimary": "Start free for {trialDays} days",
+    "ctaSecondary": "See pricing"
+  },
+  "tableTitle": "Side by side",
+  "tableNote": "{competitor} figures read from their public pricing page on {verifiedOn}. Prices move — check the source before you decide.",
+  "sourceLab": "Source",
+  "col": {
+    "feature": "",
+    "us": "SignageWall",
+    "them": "{competitor}"
+  },
+  "fairTitle": "Where {competitor} is stronger",
+  "pickTitle": "Which one to pick",
+  "faqTitle": "Questions",
+  "yodeck": {
+    "title": "A Yodeck alternative with no plan to climb",
+    "subtitle": "Yodeck is a solid product with a large customer base. The difference is how the price is shaped: we charge one rate per screen with everything switched on, rather than a range that starts low.",
+    "rows": [
+      {
+        "label": "Price per screen",
+        "signagewall": "{price} flat, every feature",
+        "competitor": "From $8/month — “Prices start at $8”"
+      },
+      {
+        "label": "Free tier",
+        "signagewall": "{trialDays}-day trial, all features",
+        "competitor": "One screen free, permanently"
+      },
+      {
+        "label": "Apps included",
+        "signagewall": "{appCount}, all on every account",
+        "competitor": "160+"
+      },
+      {
+        "label": "Offline playback",
+        "signagewall": "Yes, with a watchdog that restarts a stalled player",
+        "competitor": "Yes"
+      },
+      {
+        "label": "Feature tiers",
+        "signagewall": "None — one price",
+        "competitor": "Plans, priced from the entry rate upward"
+      },
+      {
+        "label": "Scale",
+        "signagewall": "New platform",
+        "competitor": "65,000+ companies, 350,000+ screens"
+      }
+    ],
+    "fair": [
+      "A permanently free screen, which we do not match — if you need exactly one screen and nothing else, Yodeck costs nothing and we cost {price}.",
+      "Far more apps and templates: 160+ apps and 800+ templates against our {appCount} apps.",
+      "Years of track record and thousands of public reviews. We are new, and you should weigh that."
+    ],
+    "pick": [
+      "**Pick Yodeck** if you want one free screen, or if the template library is what you are buying.",
+      "**Pick SignageWall** if you would rather not think about which plan a feature sits in, and if screens that keep playing through a dropped connection matter more than template count."
+    ],
+    "faq": [
+      {
+        "q": "Can I move my content from Yodeck?",
+        "a": "There is no one-click import. Media files transfer directly, and playlists are quick to rebuild — most networks under twenty screens are moved in an afternoon. Tell us the size of your network and we will be honest about the effort."
+      },
+      {
+        "q": "Is SignageWall cheaper than Yodeck?",
+        "a": "Not at the entry point. Yodeck starts at $8 and gives one screen free; we are {price} from the first screen. The comparison changes on larger networks where features sit in higher plans, because ours are all included at the same rate."
+      },
+      {
+        "q": "Do you have as many apps?",
+        "a": "No — {appCount} against their 160+. Ours cover menus, dashboards, calendars, social feeds, news, weather and exchange rates. If you need something specific, ask before you commit rather than after."
+      }
+    ]
+  },
+  "optisigns": {
+    "title": "An OptiSigns alternative without five tiers",
+    "subtitle": "OptiSigns prices in bands, from $9 up to $45 per screen depending on which features you need. We charge one rate and include everything.",
+    "rows": [
+      {
+        "label": "Price per screen",
+        "signagewall": "{price} flat, every feature",
+        "competitor": "$9–$45 depending on tier"
+      },
+      {
+        "label": "Number of plans",
+        "signagewall": "One",
+        "competitor": "Free, Standard, Pro, Pro Plus, Engage, Enterprise"
+      },
+      {
+        "label": "Free tier",
+        "signagewall": "{trialDays}-day trial, all features",
+        "competitor": "Up to 3 screens, with their logo on screen and 25 apps"
+      },
+      {
+        "label": "Apps included",
+        "signagewall": "{appCount}, all on every account",
+        "competitor": "25 on free, 140+ on paid"
+      },
+      {
+        "label": "Branding on screen",
+        "signagewall": "Yours only",
+        "competitor": "Their logo on the free tier"
+      },
+      {
+        "label": "Enterprise minimum",
+        "signagewall": "None",
+        "competitor": "25 screens on Enterprise"
+      }
+    ],
+    "fair": [
+      "A free tier covering up to three screens, which is more generous than any trial — as long as you accept their logo on your screen.",
+      "A much larger app and integration catalog: 140+ against our {appCount}.",
+      "A far bigger installed base — 190,000+ screens across 30,000+ organizations."
+    ],
+    "pick": [
+      "**Pick OptiSigns** if three free screens with a watermark solves your problem, or if you need an integration only they have.",
+      "**Pick SignageWall** if you do not want to work out which of six plans holds the feature you need, or if a logo that is not yours on your screen is not acceptable."
+    ],
+    "faq": [
+      {
+        "q": "Why is your entry price higher than their free plan?",
+        "a": "Because we do not run a free plan. Their free tier puts the OptiSigns logo on your screen and limits you to 25 apps; we would rather charge {price} and leave every feature on than give you a version of the product with our name on your wall."
+      },
+      {
+        "q": "What does the tier difference actually cost?",
+        "a": "It depends entirely on which features you need. Their Standard is $9 and their Enterprise is $45 with a 25-screen minimum. Ours is {price} at any size, so the gap grows the more you need."
+      },
+      {
+        "q": "Do you have an enterprise plan?",
+        "a": "No, and that is deliberate. There is one price and one feature set. Large networks get the same software as a single café; what changes is that we help you set it up."
+      }
+    ]
+  },
+  "screencloud": {
+    "title": "A ScreenCloud alternative you can price in advance",
+    "subtitle": "ScreenCloud is built and priced for large enterprise rollouts. If your network does not need that, most of what you would pay for is governance you will not use.",
+    "rows": [
+      {
+        "label": "Price per screen",
+        "signagewall": "{price} flat",
+        "competitor": "Enterprise pricing, from around $200/month"
+      },
+      {
+        "label": "Published price",
+        "signagewall": "Yes, on this site",
+        "competitor": "Quote-based for most plans"
+      },
+      {
+        "label": "Free tier",
+        "signagewall": "{trialDays}-day trial, all features",
+        "competitor": "None"
+      },
+      {
+        "label": "Minimum commitment",
+        "signagewall": "One screen, monthly",
+        "competitor": "Built around larger deployments"
+      },
+      {
+        "label": "Offline playback",
+        "signagewall": "Yes, with self-recovery",
+        "competitor": "Yes"
+      },
+      {
+        "label": "Sign-in",
+        "signagewall": "Google account or email",
+        "competitor": "SSO, SAML, role-based access"
+      }
+    ],
+    "fair": [
+      "Genuine enterprise governance: SSO, role-based access, audit trails and compliance certifications, which large organizations are required to have.",
+      "A mature integration catalog and a professional-services team for complex rollouts.",
+      "If your procurement process needs SOC 2 and a signed DPA before anything else, they are set up for that and we are a smaller company."
+    ],
+    "pick": [
+      "**Pick ScreenCloud** if compliance certification and single sign-on are hard requirements, or if you need a partner to run the rollout for you.",
+      "**Pick SignageWall** if you want to know the price before a sales call, and your network does not need enterprise governance to run well."
+    ],
+    "faq": [
+      {
+        "q": "Do you offer single sign-on?",
+        "a": "Partly, and the distinction matters. You can sign in with a Google account today. What we do not have is federated SSO against your own identity provider — SAML or OIDC with Entra ID or Okta, and SCIM to create and remove accounts automatically when someone joins or leaves. If your IT department requires that, we are not the right fit yet and would rather say so now."
+      },
+      {
+        "q": "What does ScreenCloud actually cost?",
+        "a": "They price by quote for most plans, with entry points commonly cited around $200 a month. We publish {price} per screen because we think you should be able to budget without talking to anyone."
+      },
+      {
+        "q": "Can you handle a few hundred screens?",
+        "a": "Yes. Screens group by location, publishing is bulk or targeted, and players recover on their own. What we do not have is the compliance paperwork a regulated enterprise usually needs."
+      }
+    ]
+  }
+}

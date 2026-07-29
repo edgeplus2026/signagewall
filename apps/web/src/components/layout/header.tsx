@@ -8,18 +8,22 @@ import { Block } from '@/components/ui/block'
 import { buttonVariants } from '@/components/ui/button'
 import { Container } from '@/components/ui/container'
 import { Link } from '@/i18n/navigation'
+import { LOGIN_URL, REGISTER_URL } from '@/lib/app-url'
 import { cn } from '@/lib/utils'
 
 export async function Header() {
   const t = await getTranslations('nav')
 
+  /* `as const` so each href stays the literal the pathnames map is keyed by
+     rather than widening to `string`. */
   const links = [
     { href: '/how-it-works', label: t('howItWorks') },
     { href: '/features', label: t('features') },
     { href: '/apps', label: t('apps') },
     { href: '/solutions', label: t('solutions') },
+    { href: '/pricing', label: t('pricing') },
     { href: '/blog', label: t('blog') },
-  ]
+  ] as const
 
   return (
     /* Stickiness lives on the wrapper in the layout, which carries the leading
@@ -28,11 +32,14 @@ export async function Header() {
       {/* Three columns on wide viewports so the nav sits dead centre between the
           rails, with the logo and the action anchoring each edge. */}
       <Container className="flex h-16 items-center justify-between gap-6 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-        <Link href="/" aria-label="EdgeRize" className="lg:justify-self-start">
+        <Link href="/" aria-label="SignageWall" className="lg:justify-self-start">
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-8 text-sm text-secondary lg:flex">
+        <nav
+          aria-label={t('primary')}
+          className="hidden items-center gap-8 text-sm text-secondary lg:flex"
+        >
           {links.map((l) => (
             <Link key={l.href} href={l.href} className="transition-colors hover:text-primary">
               {l.label}
@@ -44,11 +51,18 @@ export async function Header() {
           <div className="hidden items-center gap-1 lg:flex">
             <LanguageSwitcher />
             <ThemeToggle />
-            <Link href="/contact" className={cn(buttonVariants({ size: 'sm' }), 'ml-2 h-10 px-5')}>
-              {t('getStarted')}
-            </Link>
+            {/* Both point at the app, not this site — see lib/app-url. */}
+            <a
+              href={LOGIN_URL}
+              className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'ml-2 h-10 px-4')}
+            >
+              {t('signIn')}
+            </a>
+            <a href={REGISTER_URL} className={cn(buttonVariants({ size: 'sm' }), 'h-10 px-5')}>
+              {t('register')}
+            </a>
           </div>
-          <MobileNav links={links} ctaLabel={t('getStarted')} />
+          <MobileNav links={links} signInLabel={t('signIn')} registerLabel={t('register')} />
         </div>
       </Container>
     </Block>

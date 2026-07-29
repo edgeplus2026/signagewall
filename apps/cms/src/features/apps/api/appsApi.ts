@@ -1,10 +1,10 @@
-import type { AppDataMeta } from '@edge/apps-contract'
+import type { AppDataMeta } from '@signagewall/apps-contract'
 
 import type {
   AdminApp,
   AppInstance,
   AppInstanceConfig,
-  EdgeApp,
+  CatalogApp,
 } from '@/features/apps/types/app.types'
 import { ApiError } from '@/lib/api-error'
 import { api } from '@/lib/axios'
@@ -50,17 +50,17 @@ export interface AvailableManifest {
 export const appsApi = {
   // ----- Organization catalog -----
 
-  listCatalog: async (): Promise<EdgeApp[]> => {
-    const { data } = await api.get<EdgeApp[]>(APPS_BASE)
+  listCatalog: async (): Promise<CatalogApp[]> => {
+    const { data } = await api.get<CatalogApp[]>(APPS_BASE)
     return data
   },
 
-  getApp: async (id: string): Promise<EdgeApp | null> => {
-    return getOrNull<EdgeApp>(`${APPS_BASE}/${id}`)
+  getApp: async (id: string): Promise<CatalogApp | null> => {
+    return getOrNull<CatalogApp>(`${APPS_BASE}/${id}`)
   },
 
-  install: async (id: string): Promise<EdgeApp> => {
-    const { data } = await api.post<EdgeApp>(`${APPS_BASE}/${id}/install`)
+  install: async (id: string): Promise<CatalogApp> => {
+    const { data } = await api.post<CatalogApp>(`${APPS_BASE}/${id}/install`)
     return data
   },
 

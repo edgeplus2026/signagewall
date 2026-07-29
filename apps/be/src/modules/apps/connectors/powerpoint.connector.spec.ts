@@ -1,4 +1,7 @@
-import type { ConnectorContext, ResolvedConnection } from '@edge/apps-contract';
+import type {
+  ConnectorContext,
+  ResolvedConnection,
+} from '@signagewall/apps-contract';
 
 import { powerpointConnector } from './powerpoint.connector';
 import {

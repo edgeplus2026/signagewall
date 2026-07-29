@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const TEAMS_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8a3 3 0 1 0 0-.01"/><path d="M4 20v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2"/><path d="M16 3.5a2.5 2.5 0 1 1 0 5"/><path d="M15 14h4a2 2 0 0 1 2 2v1a3 3 0 0 1-3 3h-1"/></svg>'
@@ -36,7 +36,7 @@ export const teamsManifest: AppManifest = {
       label: 'Microsoft account',
       required: true,
       provider: 'microsoft',
-      help: 'Sign in with a work or school account. Edge only reads channel messages — it never posts. Your Microsoft admin must approve message access the first time.',
+      help: 'Sign in with a work or school account. SignageWall only reads channel messages — it never posts. Your Microsoft admin must approve message access the first time.',
     },
     {
       key: 'channel',

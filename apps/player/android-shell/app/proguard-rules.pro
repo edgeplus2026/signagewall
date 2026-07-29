@@ -1,6 +1,6 @@
 # The @JavascriptInterface host is called by name from injected JS — R8 must not
 # rename or strip its methods, or the whole native bridge silently disappears.
--keepclassmembers class com.edgerize.player.bridge.AndroidBridge {
+-keepclassmembers class com.signagewall.player.bridge.AndroidBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
 

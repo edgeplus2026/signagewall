@@ -3,7 +3,7 @@
 Status of mock vs real API integration and migration patterns for remaining features.
 
 All backend paths are under `/api/v1` (see `API_CONTRACT.md`). Set
-`VITE_API_URL=http://localhost:3000/api/v1` in `edge-fe/.env`.
+`VITE_API_URL=http://localhost:3000/api/v1` in `apps/cms/.env`.
 
 ## Current state
 
@@ -138,10 +138,10 @@ When backend adds fields, update frontend types first, then backend schema.
 
 ```bash
 # Terminal 1 — backend (MongoDB replica set / Atlas required)
-cd edge-be && npm run start:dev
+cd apps/be && npm run start:dev
 
 # Terminal 2 — frontend
-cd edge-fe && npm run dev
+cd apps/cms && npm run dev
 ```
 
 Verify:

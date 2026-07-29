@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "edge-player-android"
+rootProject.name = "signagewall-player-android"
 include(":app")

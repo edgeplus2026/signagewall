@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const GSHEETS_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg>'
@@ -33,7 +33,7 @@ export const gsheetsManifest: AppManifest = {
       label: 'Google account',
       required: true,
       provider: 'google',
-      help: 'Sign in once — Edge then lists your spreadsheets to choose from.',
+      help: 'Sign in once — SignageWall then lists your spreadsheets to choose from.',
     },
     {
       key: 'spreadsheet',

@@ -8,7 +8,7 @@ const root = document.getElementById('app')
  * on-screen item). The player preloads the next item into a hidden slot, and a
  * `display:none` iframe still loads and can play audio — so mounting on config
  * alone would let a preloaded dashboard/page make sound behind the current item.
- * See the `app-active` protocol in `@edge/apps-contract`.
+ * See the `app-active` protocol in `@signagewall/apps-contract`.
  */
 let pageUrl: string | null = null
 let invalid = false

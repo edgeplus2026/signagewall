@@ -38,8 +38,8 @@
 .bc-live {
   position: absolute;
   z-index: 3;
-  top: calc(var(--rs-edge) * 1.7);
-  left: var(--rs-edge);
+  top: calc(var(--rs-inset) * 1.7);
+  left: var(--rs-inset);
   display: flex;
   align-items: center;
   gap: 0.5em;
@@ -174,8 +174,8 @@
    "directly above it", whatever it turns out to be. */
 .bc .rs-qr {
   position: absolute;
-  bottom: calc(100% + var(--rs-edge));
-  right: var(--rs-edge);
+  bottom: calc(100% + var(--rs-inset));
+  right: var(--rs-inset);
 }
 
 /* ----- Portrait ----- */

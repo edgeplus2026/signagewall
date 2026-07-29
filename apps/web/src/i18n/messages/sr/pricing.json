@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "title": "Cene — {price} po ekranu mesečno",
+    "description": "Jedna cena, sve uključeno: {price} po ekranu mesečno. {trialDays} dana besplatno, bez kartice i bez ugovora. Digital signage softver od jednog ekrana do hiljadu."
+  },
+  "hero": {
+    "eyebrow": "Cene",
+    "title": "Jedna cena. Sve uključeno.",
+    "subtitle": "{price} po ekranu, mesečno. Sve mogućnosti, sve aplikacije, sve integracije — bez planova kroz koje se penjete i bez funkcija čuvanih za „enterprise\".",
+    "ctaPrimary": "Probajte besplatno {trialDays} dana",
+    "ctaSecondary": "Zakažite demo",
+    "note": "Bez kartice na startu. Otkazujete kad god."
+  },
+  "plan": {
+    "name": "SignageWall",
+    "price": "{price}",
+    "unit": "po ekranu / mesečno",
+    "trial": "{trialDays} dana besplatno, bez kartice",
+    "includedTitle": "Šta je uključeno",
+    "included": [
+      "Sve aplikacije iz kataloga — njih {appCount}, ne ograničen izbor",
+      "Neograničen sadržaj, plejliste i zakazivanje",
+      "Rad offline — ekran nastavlja da radi i kad padne veza",
+      "Plejer za Android, Windows, macOS i Linux",
+      "Zone i rasporedi na ekranu",
+      "Vaš brend, bez vodenog žiga na ekranu",
+      "Uloge i prava pristupa za vaš tim",
+      "Automatska ažuriranja i samostalan oporavak",
+      "Podrška mejlom, od ljudi koji prave proizvod"
+    ],
+    "cta": "Počnite besplatno"
+  },
+  "calculator": {
+    "title": "Koliko košta za vašu mrežu",
+    "subtitle": "Pomerite broj ekrana; cena je {price} po ekranu, mesečno.",
+    "screensLabel": "Ekrana",
+    "monthly": "mesečno",
+    "yearly": "godišnje"
+  },
+  "faq": {
+    "title": "Pitanja o ceni",
+    "items": [
+      {
+        "q": "Da li postoji ugovor?",
+        "a": "Ne. Plaćate mesečno i prestajete kad poželite. Ništa nije vezano za dvanaestomesečnu obavezu i nema naknade za raskid. Ako prestanete da plaćate, ekrani nastavljaju da prikazuju poslednji preuzeti sadržaj dok ih ne ugasite."
+      },
+      {
+        "q": "Treba li kartica za probni period?",
+        "a": "Ne. Otvorite nalog, uparite ekran i koristite sve {trialDays} dana. Podatke za plaćanje tražimo tek ako odlučite da nastavite, i ništa se ne naplaćuje automatski kad proba istekne."
+      },
+      {
+        "q": "Šta se dešava posle {trialDays} dana?",
+        "a": "Proba se jednostavno završi. Sadržaj i podešavanja ostaju u nalogu, pa ako se vratite za mesec dana sve je tu gde ste stali. Ekrani prestaju da preuzimaju novi sadržaj dok se ne pretplatite."
+      },
+      {
+        "q": "Mogu li sa samo jednim ekranom?",
+        "a": "Da, i mnogi tako i rade — pekara, salon, čekaonica. Cena je istih {price} po ekranu bilo da imate jedan ili dvesta, i ništa u proizvodu nije isključeno na donjem kraju."
+      },
+      {
+        "q": "Ima li popusta za više ekrana?",
+        "a": "Ne — {price} je ravna cena, a ne početna od koje se pregovara naniže. Ista je bilo da imate jedan ekran ili trista, što ujedno znači da nikad ne morate da pitate koliko bi koštalo na većem broju."
+      },
+      {
+        "q": "Šta nije uključeno u cenu?",
+        "a": "Hardver. Treba vam ekran i mali plejer uređaj — Android boks, mini-PC ili računar koji već imate. Ne preprodajemo hardver, pa ga kupujete tamo gde je vama najpovoljnije."
+      },
+      {
+        "q": "Da li se naplaćuje po korisniku?",
+        "a": "Ne. Pozovite koliko god ljudi iz tima želite; plaćate ekrane, ne naloge."
+      },
+      {
+        "q": "Mogu li da pauziram van sezone?",
+        "a": "Da. Uklonite ekrane koje ne koristite i račun se smanjuje istog meseca. Vratite ih kad sezona krene, a sadržaj je i dalje tu."
+      },
+      {
+        "q": "Koje valute i načini plaćanja?",
+        "a": "Plaćanje karticom u evrima i dolarima. Firmama u Srbiji možemo da izdamo račun u dinarima sa PDV-om, po uobičajenim uslovima."
+      },
+      {
+        "q": "Postoji li besplatan plan?",
+        "a": "Postoji probni period od {trialDays} dana, a ne trajno besplatan plan. Radije držimo sve mogućnosti uključene za svakoga tokom probe, nego da vodimo besplatan plan sa vodenim žigom na vašem ekranu."
+      }
+    ]
+  }
+}

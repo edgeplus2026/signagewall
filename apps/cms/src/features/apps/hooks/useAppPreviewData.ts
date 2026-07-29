@@ -1,9 +1,9 @@
-import type { AppDataMeta } from '@edge/apps-contract'
+import type { AppDataMeta } from '@signagewall/apps-contract'
 import { useQuery } from '@tanstack/react-query'
 
 import { appsApi } from '@/features/apps/api/appsApi'
 import { appsQueryKey } from '@/features/apps/lib/appsQueryKeys'
-import type { AppInstanceConfig, EdgeApp } from '@/features/apps/types/app.types'
+import type { AppInstanceConfig, CatalogApp } from '@/features/apps/types/app.types'
 import { useDebouncedValue } from '@/features/media/stock/hooks/useDebouncedValue'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
 
@@ -23,7 +23,7 @@ export interface AppPreviewData {
  * the cache key, so previewing data real screens already use is an instant hit.
  */
 export function useAppPreviewData(
-  app: EdgeApp,
+  app: CatalogApp,
   config: AppInstanceConfig,
 ): AppPreviewData {
   const organizationId = useOrganizationStore(

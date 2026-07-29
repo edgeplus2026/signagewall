@@ -5,14 +5,14 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
+} from '@signagewall/apps-contract';
 import {
   MAX_QUOTE_LENGTH,
   UPSTREAM_QUOTES,
   normalizeCategories,
   type WisdomPayload,
   type WisdomQuote,
-} from '@edge/apps';
+} from '@signagewall/apps';
 
 /**
  * Daily Wisdom connector.

@@ -1,4 +1,4 @@
-import type { Field } from '@edge/apps-contract'
+import type { Field } from '@signagewall/apps-contract'
 
 /**
  * Small client-side CSV reader for the repeater "Import CSV" flow. Handles

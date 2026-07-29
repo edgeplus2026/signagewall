@@ -9,7 +9,7 @@ import type {
   PlayerSnapshot,
   Renderable,
   VideoRenderable,
-} from '@edge/player-contract';
+} from '@signagewall/player-contract';
 
 import {
   getPublicBaseUrl,
@@ -41,7 +41,7 @@ const DEFAULT_DURATION_SECONDS = 15;
 
 /**
  * The snapshot/renderable shapes are the canonical contract types from
- * `@edge/player-contract` — the single source of truth shared with the player
+ * `@signagewall/player-contract` — the single source of truth shared with the player
  * and CMS. `PlayerRenderable` is re-exported under its historical BE name.
  */
 export type { PlayerSnapshot };

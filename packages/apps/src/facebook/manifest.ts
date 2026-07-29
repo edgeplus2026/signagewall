@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 const FACEBOOK_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M15 8h-2a2 2 0 0 0-2 2v2m-2 0h6m-4 0v6"/></svg>'
@@ -36,7 +36,7 @@ export const facebookManifest: AppManifest = {
       label: 'Facebook account',
       required: true,
       provider: 'meta',
-      help: 'Sign in with the Facebook account that manages the Page. Edge only reads posts — it never posts on your behalf.',
+      help: 'Sign in with the Facebook account that manages the Page. SignageWall only reads posts — it never posts on your behalf.',
     },
     {
       key: 'page',

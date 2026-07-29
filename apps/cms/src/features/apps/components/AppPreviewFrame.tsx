@@ -1,4 +1,4 @@
-import type { AppDataMeta } from '@edge/apps-contract'
+import type { AppDataMeta } from '@signagewall/apps-contract'
 import { Volume2Icon, VolumeXIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 

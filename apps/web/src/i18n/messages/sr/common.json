@@ -14,5 +14,10 @@
     "accept": "Prihvatam",
     "decline": "Odbijam",
     "more": "Saznajte više"
+  },
+  "notFound": {
+    "title": "Stranica nije pronađena",
+    "body": "Ova adresa ne postoji ili je premeštena. Probajte sa početne strane ili nam se javite.",
+    "cta": "Nazad na početnu"
   }
 }

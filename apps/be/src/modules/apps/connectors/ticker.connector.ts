@@ -4,8 +4,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { TickerPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { TickerPayload } from '@signagewall/apps';
 
 import { rssConnector } from './rss.connector';
 

@@ -9,7 +9,11 @@ export const buttonVariants = cva(
     // `ink` (globals.css) wipes a pane of `--ink` up from the bottom edge on
     // hover; each variant picks that colour and the label colour it flips to.
     'ink',
-    'focus-visible:ring-2 focus-visible:ring-tertiary focus-visible:outline-none',
+    /* Coral ring, not `ring-tertiary`: that token is an 8%-opacity hairline
+       meant for dividers, so the keyboard focus state was very nearly
+       invisible. The accent clears the 3:1 non-text bar against both surfaces
+       and is the one colour that reads as deliberate on every variant. */
+    'focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-page focus-visible:outline-none',
     'disabled:pointer-events-none disabled:opacity-50',
     '[&_svg]:size-4 [&_svg]:shrink-0',
   ],

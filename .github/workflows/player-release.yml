@@ -1,4 +1,4 @@
-# Edge Player — native shell (Tauri) release pipeline.
+# SignageWall Player — native shell (Tauri) release pipeline.
 #
 # Builds + minisign-signs the kiosk installers on an OS matrix (Tauri does NOT
 # cross-compile), assembles the updater `latest.json`, and publishes the
@@ -20,7 +20,7 @@
 # Required repo config (Settings -> Secrets and variables -> Actions):
 #   Secrets:   TAURI_SIGNING_PRIVATE_KEY, R2_ACCOUNT_ID,
 #              R2_RELEASES_ACCESS_KEY_ID, R2_RELEASES_SECRET_ACCESS_KEY
-#   Variables: EDGE_PLAYER_URL, R2_RELEASES_BUCKET, R2_RELEASES_PUBLIC_URL
+#   Variables: SIGNAGEWALL_PLAYER_URL, R2_RELEASES_BUCKET, R2_RELEASES_PUBLIC_URL
 name: player-release
 
 on:
@@ -135,10 +135,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # `tauri build`'s beforeBuildCommand only builds the player itself, not its
-      # workspace deps (@edge/apps writes into apps/player/public/apps/**, and
+      # workspace deps (@signagewall/apps writes into apps/player/public/apps/**, and
       # the TS contracts must exist). Build the dependency graph first.
       - name: Build workspace dependencies
-        run: pnpm turbo run build --filter=@edge/player^...
+        run: pnpm turbo run build --filter=@signagewall/player^...
 
       # Stamp the release-specific, non-committed values, then FAIL CLOSED if any
       # dev placeholder survived. A silently-unsubstituted origin would ship a
@@ -147,12 +147,12 @@ jobs:
         shell: bash
         env:
           VERSION: ${{ needs.meta.outputs.version }}
-          EDGE_PLAYER_URL: ${{ vars.EDGE_PLAYER_URL }}
+          SIGNAGEWALL_PLAYER_URL: ${{ vars.SIGNAGEWALL_PLAYER_URL }}
           R2_PUBLIC: ${{ vars.R2_RELEASES_PUBLIC_URL }}
         run: |
           set -euo pipefail
-          if [ -z "${EDGE_PLAYER_URL:-}" ]; then
-            echo "::error::EDGE_PLAYER_URL variable is not set — the shell would bake localhost."
+          if [ -z "${SIGNAGEWALL_PLAYER_URL:-}" ]; then
+            echo "::error::SIGNAGEWALL_PLAYER_URL variable is not set — the shell would bake localhost."
             exit 1
           fi
           if [ -z "${R2_PUBLIC:-}" ]; then
@@ -161,8 +161,8 @@ jobs:
           fi
           conf=apps/player/src-tauri/tauri.conf.json
           caps=apps/player/src-tauri/capabilities/default.json
-          endpoint="${R2_PUBLIC%/}/edge-player/latest.json"
-          origin=$(node -e 'process.stdout.write(new URL(process.env.EDGE_PLAYER_URL).origin)')
+          endpoint="${R2_PUBLIC%/}/signagewall-player/latest.json"
+          origin=$(node -e 'process.stdout.write(new URL(process.env.SIGNAGEWALL_PLAYER_URL).origin)')
 
           jq --arg v "$VERSION" --arg ep "$endpoint" \
             '.version = $v | .plugins.updater.endpoints = [$ep]' "$conf" > "$conf.tmp"
@@ -197,7 +197,7 @@ jobs:
           WATCHDOG_TARGET: ${{ matrix.watchdog_target }}
           # option_env! bakes this at Rust compile time; the shell loads this
           # remote player URL at runtime.
-          EDGE_PLAYER_URL: ${{ vars.EDGE_PLAYER_URL }}
+          SIGNAGEWALL_PLAYER_URL: ${{ vars.SIGNAGEWALL_PLAYER_URL }}
           # Minisign signing key — must be real process env (.env files do not
           # work). The key has no passphrase, so no PASSWORD secret exists: an
           # absent secret expands to "", which Tauri reads as "no password".
@@ -297,7 +297,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
         run: |
           set -euo pipefail
-          pnpm --filter @edge/player exec tauri signer sign dist-release/latest.json
+          pnpm --filter @signagewall/player exec tauri signer sign dist-release/latest.json
           test -f dist-release/latest.json.sig \
             || { echo "::error::no latest.json.sig produced — is TAURI_SIGNING_PRIVATE_KEY set?"; exit 1; }
           echo "--- latest.json.sig ---"
@@ -317,13 +317,13 @@ jobs:
           set -euo pipefail
           endpoint="https://${ACCOUNT_ID}.r2.cloudflarestorage.com"
 
-          # Published versions are IMMUTABLE. Overwriting edge-player/<version>/
+          # Published versions are IMMUTABLE. Overwriting signagewall-player/<version>/
           # would hand devices that already took that version different bytes
           # under the same version number — and they'd never re-pull, leaving the
           # fleet split-brained on one version string.
-          existing=$(aws s3 ls "s3://${BUCKET}/edge-player/${VERSION}/" --endpoint-url "$endpoint" || true)
+          existing=$(aws s3 ls "s3://${BUCKET}/signagewall-player/${VERSION}/" --endpoint-url "$endpoint" || true)
           if [ -n "$existing" ]; then
-            echo "::error::edge-player/${VERSION}/ already exists on R2 — versions are immutable, bump the version"
+            echo "::error::signagewall-player/${VERSION}/ already exists on R2 — versions are immutable, bump the version"
             echo "$existing"
             exit 1
           fi
@@ -337,7 +337,7 @@ jobs:
                 *.sig) continue ;;
               esac
               name="$(basename "$f")"
-              aws s3 cp "$f" "s3://${BUCKET}/edge-player/${VERSION}/${name}" \
+              aws s3 cp "$f" "s3://${BUCKET}/signagewall-player/${VERSION}/${name}" \
                 --endpoint-url "$endpoint"
             done
           done
@@ -346,14 +346,14 @@ jobs:
           # `latest.json.sig` and verifies it before trusting the manifest.
           # Upload it BEFORE the manifest so a device can never fetch a new
           # manifest whose signature isn't up yet.
-          aws s3 cp dist-release/latest.json.sig "s3://${BUCKET}/edge-player/latest.json.sig" \
+          aws s3 cp dist-release/latest.json.sig "s3://${BUCKET}/signagewall-player/latest.json.sig" \
             --endpoint-url "$endpoint" \
             --content-type text/plain \
             --cache-control "no-cache"
 
           # Manifest last, at a stable key, un-cached so devices see it promptly.
-          aws s3 cp dist-release/latest.json "s3://${BUCKET}/edge-player/latest.json" \
+          aws s3 cp dist-release/latest.json "s3://${BUCKET}/signagewall-player/latest.json" \
             --endpoint-url "$endpoint" \
             --content-type application/json \
             --cache-control "no-cache"
-          echo "Published edge-player ${VERSION} to R2 bucket ${BUCKET}."
+          echo "Published signagewall-player ${VERSION} to R2 bucket ${BUCKET}."

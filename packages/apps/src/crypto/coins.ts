@@ -1,4 +1,4 @@
-import type { FieldOption } from '@edge/apps-contract'
+import type { FieldOption } from '@signagewall/apps-contract'
 
 /** A coin we offer in the picker: CoinGecko id + ticker + display name. */
 export interface Coin {

@@ -6,7 +6,7 @@ export const renderOrganizationInviteEmail = (params: {
   inviteUrl: string;
   isExistingUser: boolean;
 }): { subject: string; html: string } => ({
-  subject: `Invitation to join ${params.organizationName} on Edge`,
+  subject: `Invitation to join ${params.organizationName} on SignageWall`,
   html: renderEmailLayout({
     previewText: `You have been invited to join ${params.organizationName}`,
     title: `Join ${params.organizationName}`,
@@ -15,8 +15,8 @@ export const renderOrganizationInviteEmail = (params: {
       <p style="margin:0;">
         ${
           params.isExistingUser
-            ? `You have been invited to join <strong>${params.organizationName}</strong> on Edge. Sign in to review and accept the invitation.`
-            : `You have been invited to join <strong>${params.organizationName}</strong> on Edge. Create your account to get started.`
+            ? `You have been invited to join <strong>${params.organizationName}</strong> on SignageWall. Sign in to review and accept the invitation.`
+            : `You have been invited to join <strong>${params.organizationName}</strong> on SignageWall. Create your account to get started.`
         }
       </p>
     `,

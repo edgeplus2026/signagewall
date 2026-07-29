@@ -1,63 +1,67 @@
 import { cn } from '@/lib/utils'
 
-/* The mark is a pixel-grid "R" on an 8px lattice — same geometry as the CMS
-   favicon so the product and the site read as one brand. Coordinates are the
-   top-left of each cell in the 48×48 viewBox. */
-type Cell = [x: number, y: number]
-
-const STEM: Cell[] = [5, 13, 21, 29, 37].map((y) => [5, y])
-const BOWL: Cell[] = [
-  [13, 5],
-  [21, 5],
-  [29, 5],
-  [37, 13],
-  [13, 21],
-  [21, 21],
-  [29, 21],
-]
-/** The kick — the one place the brand allows colour. */
-const LEG: Cell[] = [
-  [29, 29],
-  [37, 37],
-]
-
+/**
+ * The mark: four screens laid in two staggered courses, like brickwork, with
+ * the wide upper-right one lit. Geometry is verbatim from the brand pack's
+ * `signagewall-mark.svg`; only the colours are swapped for theme tokens, so it
+ * inverts on a dark page instead of disappearing into it.
+ *
+ * The gaps between screens are load-bearing: they read as separate displays in
+ * separate places rather than one seamless video wall, which is the opposite of
+ * what we sell.
+ */
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className={className} aria-hidden>
-      {/* Tile and pixels ride the brand pair, so the mark inverts with the
-          theme instead of vanishing into a dark page. */}
-      <rect width="48" height="48" rx="11" fill="var(--brand)" />
-      {[...STEM, ...BOWL].map(([x, y]) => (
-        <rect
-          key={`${x.toString()}-${y.toString()}`}
-          x={x}
-          y={y}
-          width="6"
-          height="6"
-          rx="1.6"
-          fill="var(--brand-contrast)"
-        />
-      ))}
-      {LEG.map(([x, y]) => (
-        <rect
-          key={`${x.toString()}-${y.toString()}`}
-          x={x}
-          y={y}
-          width="6"
-          height="6"
-          rx="1.6"
-          fill="#cc0000"
-        />
-      ))}
+    <svg viewBox="0 0 60 60" fill="none" className={className} aria-hidden>
+      <rect
+        x="4"
+        y="12"
+        width="18"
+        height="14"
+        rx="1.5"
+        fill="none"
+        stroke="var(--brand)"
+        strokeWidth="4"
+      />
+      <rect x="28" y="10" width="30" height="18" rx="3.5" fill="var(--accent)" />
+      <rect
+        x="4"
+        y="34"
+        width="26"
+        height="14"
+        rx="1.5"
+        fill="none"
+        stroke="var(--brand)"
+        strokeWidth="4"
+      />
+      <rect
+        x="38"
+        y="34"
+        width="18"
+        height="14"
+        rx="1.5"
+        fill="none"
+        stroke="var(--brand)"
+        strokeWidth="4"
+      />
     </svg>
   )
 }
 
+/**
+ * Horizontal lockup. The wordmark is set in live Inter to the brand guide's
+ * spec — Regular "Signage", Medium "Wall", −2% tracking — rather than the pack's
+ * outlined paths, so it inherits the theme colour, stays selectable, and costs
+ * no extra asset weight.
+ */
 export function Logo({ className, markClassName }: { className?: string; markClassName?: string }) {
   return (
     <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <LogoMark className={cn('size-7', markClassName)} />
-      <span className="font-heading text-lg font-bold tracking-tight">EdgeRize</span>
+      <LogoMark className={cn('size-8', markClassName)} />
+      <span className="font-wordmark text-xl leading-none tracking-[-0.02em] text-primary">
+        <span className="font-normal">Signage</span>
+        <span className="font-medium">Wall</span>
+      </span>
     </span>
   )
 }

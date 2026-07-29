@@ -1,12 +1,12 @@
 {
   "meta": {
-    "title": "Mogućnosti",
-    "description": "Upravljanje na daljinu, zakazivanje, 38 aplikacija, rad offline, zone na ekranu i vaš brend — sve što ekranu treba."
+    "title": "Mogućnosti digital signage softvera",
+    "description": "Upravljanje na daljinu, zakazivanje, {count} aplikacija, rad offline, zone na ekranu i vaš brend — sve što ekranu treba."
   },
   "hero": {
     "eyebrow": "Mogućnosti",
     "title": "Sve što ekranu treba — i ništa što mu smeta.",
-    "subtitle": "EdgeRize spaja jednostavnost i kontrolu: napravite sadržaj za par minuta, a zadržite moć nad celom mrežom ekrana."
+    "subtitle": "SignageWall spaja jednostavnost i kontrolu: napravite sadržaj za par minuta, a zadržite moć nad celom mrežom ekrana."
   },
   "grid": {
     "title": "Napravljeno da svakodnevni rad bude lak.",
@@ -20,21 +20,33 @@
         "body": "Sadržaj po satu, danu ili prilici — pripremljen unapred."
       },
       {
-        "title": "38 aplikacija",
+        "title": "{count} aplikacija",
         "body": "Meni, vreme, kursna lista, vesti, kalendari, društvene mreže."
       },
-      { "title": "Zone i rasporedi", "body": "Podelite ekran na više zona i kombinujte sadržaj." },
-      { "title": "Rad offline", "body": "Sadržaj se kešira i vrti i kada padne internet." },
+      {
+        "title": "Zone i rasporedi",
+        "body": "Podelite ekran na više zona i kombinujte sadržaj."
+      },
+      {
+        "title": "Rad offline",
+        "body": "Sadržaj se kešira i vrti i kada padne internet."
+      },
       {
         "title": "Upravljanje flotom",
         "body": "Grupišite ekrane po lokaciji i objavljujte masovno."
       },
-      { "title": "Vaš brend", "body": "Boje, logo, fontovi i rasporedi po vašoj meri." },
+      {
+        "title": "Vaš brend",
+        "body": "Boje, logo, fontovi i rasporedi po vašoj meri."
+      },
       {
         "title": "Bilo koji ekran",
         "body": "Android ili desktop, običan TV ili profesionalni displej."
       },
-      { "title": "Pouzdanost", "body": "Automatska ažuriranja i oporavak — ekran se sam vraća." }
+      {
+        "title": "Pouzdanost",
+        "body": "Automatska ažuriranja i oporavak — ekran se sam vraća."
+      }
     ]
   },
   "spotlight": {
@@ -52,15 +64,103 @@
     "items": [
       {
         "q": "Mogu li da prilagodim izgled svom brendu?",
-        "a": "Da. Menjate boje, logo, fontove i rasporede tako da sve izgleda kao deo vašeg brenda."
+        "a": "Da — boje, logo, fontovi i rasporedi. Nema vodenog žiga ni na jednom planu, uključujući probu, pa ništa na ekranu ne govori koji je softver iza njega."
       },
       {
-        "q": "Da li mogu da zakažem sadržaj unapred?",
-        "a": "Da. Pripremite ponude i najave i pustite ih tačno kad treba — po satu, danu ili prilici."
+        "q": "Mogu li da zakažem sadržaj unapred?",
+        "a": "Da, po satu, danu, datumu ili sezoni. Kampanja se napravi nedeljama ranije i sama se upali u minut koji izaberete, na svim ekranima odjednom."
       },
       {
-        "q": "Kako izgleda kada imam više lokacija?",
-        "a": "Grupišete ekrane po lokaciji i objavljujete na sve odjednom ili pojedinačno, iz istog panela."
+        "q": "Kako izgleda sa više lokacija?",
+        "a": "Ekrani se grupišu po lokaciji ili tipu, pa objavljujete grupi, a ne uređajima. Centrala može da drži zajedničku kampanju dok svaka lokacija zadržava svoje radno vreme, i u svakom trenutku vidite šta koji ekran pušta."
+      },
+      {
+        "q": "Šta ako padne internet?",
+        "a": "Ništa vidljivo. Plejer prikazuje sadržaj koji je već preuzeo, pa nastavlja i sinhronizuje se kad se veza vrati. Watchdog ga restartuje ako se zaglavi."
+      },
+      {
+        "q": "Treba li mi dizajner?",
+        "a": "Ne. Aplikacije dolaze sa rasporedima koje popunite — meni, cenovnik, obaveštenje. Bitni su krupna tipografija i jak kontrast, a šabloni to već rešavaju."
+      },
+      {
+        "q": "Mogu li da podelim ekran?",
+        "a": "Da. Zone omogućavaju da na jednom ekranu idu meni, prognoza i klizne vesti, svaka sa svojim sadržajem i rasporedom, horizontalno ili vertikalno."
+      },
+      {
+        "q": "Na kojim uređajima radi plejer?",
+        "a": "Android boksovi i Android TV, Windows, macOS i Linux. Radi svaki ekran sa HDMI ulazom, pa najčešće koristite televizor koji je već na zidu."
+      },
+      {
+        "q": "Kako rade ažuriranja?",
+        "a": "Plejeri se ažuriraju sami, provere preuzeto pre nego što pređu na njega, i vrate se na staru verziju ako se nova ne podigne ispravno. Ništa ne zakazujete i niko ne dolazi na lokaciju."
+      },
+      {
+        "q": "Mogu li da kontrolišem ko šta objavljuje?",
+        "a": "Da. Uloge i prava pristupa omogućavaju da centrala drži brend kampanje, a lokalni menadžer menja samo svoje ekrane."
+      },
+      {
+        "q": "Da li je nešto od ovoga u višem planu?",
+        "a": "Ne. Sve sa ove stranice je uključeno po ceni od {price} po ekranu. Postoji jedan plan i jedan skup mogućnosti."
+      }
+    ]
+  },
+  "deep": {
+    "title": "Kako svaka radi",
+    "exampleLab": "U praksi",
+    "items": [
+      {
+        "id": "remote",
+        "title": "Promenite ekran odakle god da ste",
+        "body": "Sve se dešava u pregledaču. Izmenite cenu, zamenite ponudu, okačite obaveštenje — na ekranu je pre nego što ste spustili telefon. Nema aplikacije za instalaciju, nema VPN-a, i niko ne mora da bude u objektu. Za mrežu po više lokacija to je cela razlika između sadržaja koji je aktuelan i sadržaja koji stari dok neko ne dođe kolima.",
+        "example": "Kafić menja cenu ručka u 11:40 iz kuhinje. Svi ekrani na tri lokacije pokazuju novu pre prve porudžbine."
+      },
+      {
+        "id": "scheduling",
+        "title": "Sadržaj koji se menja bez vas",
+        "body": "Podesite jednom i dan se vrti sam: doručak do jedanaest, ručak do četiri, večernja ponuda posle. Raspored radi po satu, danu, datumu ili sezoni, pa se novogodišnja kampanja napravi u oktobru i sama se upali u ponoć. Najbolji ekran je onaj koji tri nedelje niko nije dirao a i dalje je ispravan.",
+        "example": "Pekara jednom napravi jutarnju, podnevnu i večernju ponudu. Smenjuje se sama do kraja godine."
+      },
+      {
+        "id": "apps",
+        "title": "{appCount} aplikacija, bez koda",
+        "body": "Meniji, cenovnici, vremenska prognoza, kursna lista, vesti, kalendari, društvene mreže, QR kodovi, odbrojavanja, PDF i PowerPoint, žive table iz Google Sheets-a i Power BI-ja. Izaberete jednu, unesete svoje podatke i objavite. Sve aplikacije su na svakom nalogu — ne postoji plan u kom žive one korisne.",
+        "example": "Teretana stavlja raspored treninga na ekran direktno iz Google tabele koju menadžer ionako održava. Promeni se tabela, ekran prati."
+      },
+      {
+        "id": "offline",
+        "title": "Ekrani koji prežive mrežu",
+        "body": "Plejer preuzme sadržaj i pušta ga sa lokalnog diska, pa prekid veze ne menja ništa za onog ko stoji ispred ekrana. Watchdog proverava da plejer stvarno iscrtava sliku i restartuje ga ako se zaglavi — jer čest kvar nije pad, nego zamrznuta slika koju danima niko ne prijavi.",
+        "example": "Internet na pumpi padne na šest sati. Ekrani nastavljaju da rade i pokupe novu kampanju čim se veza vrati."
+      },
+      {
+        "id": "zones",
+        "title": "Više od jedne stvari na ekranu",
+        "body": "Podelite ekran na zone: meni preko dve trećine, prognoza u uglu, klizne vesti duž donje ivice. Rasporedi rade i horizontalno i vertikalno, a svaka zona vrti svoj sadržaj po svom rasporedu umesto da se sve menja odjednom.",
+        "example": "Ekran na recepciji pokazuje današnje sastanke levo, poruku dobrodošlice gore desno, i lokalnu prognozu ispod."
+      },
+      {
+        "id": "fleet",
+        "title": "Trideset ekrana nije trideset uređaja",
+        "body": "Ekrani se grupišu po lokaciji, prostoriji ili tipu. Objavljujete grupi — svi kafići, svi izlozi, sve u Beogradu — umesto da birate uređaj po uređaj. Kontrolna tabla pokazuje šta svaki ekran trenutno pušta i koji su utihnuli, pa je mrtav ekran nešto što primetite, a ne nešto što vam kupac kaže.",
+        "example": "Lanac šalje kampanju na četrdeset izloga odjednom, dok svaka radnja zadržava svoje radno vreme na ekranu kod kase."
+      },
+      {
+        "id": "branding",
+        "title": "Izgleda kao vaš posao",
+        "body": "Vaše boje, vaš logo, vaša tipografija, vaši rasporedi. Bez vodenog žiga ni na jednom planu, uključujući probu — ekran je reklama za vas, a značka signage proizvođača u njegovom uglu je reklama za njih.",
+        "example": "Hotel vodi isti font i paletu na ekranima kao i na štampanim materijalima. Ništa na zidu ne govori koji ga je softver napravio."
+      },
+      {
+        "id": "hardware",
+        "title": "Radi na onome što već imate",
+        "body": "Bilo koji televizor, monitor ili profesionalni displej sa HDMI ulazom. Plejer radi na Android boksovima, mini-PC-jevima, Windows-u, macOS-u i Linux-u, pa je odluka o hardveru vaša i kupujete ga gde je najpovoljnije. Ne preprodajemo hardver, što znači da nemamo razlog da vam kažemo da vam ga treba više nego što stvarno treba.",
+        "example": "Čekaonica ponovo koristi televizor koji je već bio na zidu, plus Android boks od 60 evra iza njega."
+      },
+      {
+        "id": "reliable",
+        "title": "Popravi se pre nego što primetite",
+        "body": "Plejeri se ažuriraju sami, provere preuzeto pre nego što pređu na njega, i vrate se na staru verziju ako se nova ne podigne ispravno. Restartuju se posle nestanka struje i nastavljaju odakle su stali. Cilj je ekran o kome prestanete da razmišljate — a to je teže napraviti nego ekran sa više funkcija.",
+        "example": "Struja nestane preko noći. Svi ekrani su pre otvaranja opet na ispravnom sadržaju, bez ikoga na licu mesta."
       }
     ]
   }

@@ -3,7 +3,7 @@ import { AppWindowIcon, PencilIcon } from "lucide-react"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { AppIcon } from "@/features/apps/components/AppIcon"
 import { useAllAppInstances, useApps } from "@/features/apps/hooks/useApps"
-import type { AppInstance, EdgeApp } from "@/features/apps/types/app.types"
+import type { AppInstance, CatalogApp } from "@/features/apps/types/app.types"
 import {
   AppLibraryDragOverlayRow,
   LibraryAppCardOverlay,
@@ -14,7 +14,7 @@ import type { ContentTypeDefinition } from "@/features/content/registry/contentT
 /** Instance plus its resolved catalog app, so the card can show the app icon. */
 interface AppMeta {
   instance: AppInstance
-  app: EdgeApp | undefined
+  app: CatalogApp | undefined
 }
 
 /**

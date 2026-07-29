@@ -72,32 +72,32 @@
   "gcal": {
     "tagline": "Prikažite događaje iz Google Calendar-a",
     "description": "Prikažite naredne događaje iz povezanog Google Calendar-a — odlično za sale za sastanke i holove.",
-    "about": "Pogledajte šta sledi direktno iz Google Calendar-a, prikazano kao dan, nedelja, mesec ili tekući raspored. Povežite svoj Google nalog, izaberite kalendar i podesite opcije poput prikaza samo predstojećih događaja, laganog automatskog pomeranja za duže liste i jezika na ekranu. EdgeRize samo čita kalendar, nikada ga ne menja — savršeno ispred sala za sastanke, na recepcijama i u prostorima za osoblje."
+    "about": "Pogledajte šta sledi direktno iz Google Calendar-a, prikazano kao dan, nedelja, mesec ili tekući raspored. Povežite svoj Google nalog, izaberite kalendar i podesite opcije poput prikaza samo predstojećih događaja, laganog automatskog pomeranja za duže liste i jezika na ekranu. SignageWall samo čita kalendar, nikada ga ne menja — savršeno ispred sala za sastanke, na recepcijama i u prostorima za osoblje."
   },
   "outlook": {
     "tagline": "Prikažite Outlook kalendar na ekranima",
     "description": "Prikažite povezani Microsoft Outlook / Microsoft 365 kalendar kao dan, nedelju, mesec ili raspored.",
-    "about": "Postavite Microsoft Outlook ili Microsoft 365 kalendar na ekran kao dan, nedelju, mesec ili tekući raspored. Prijavite se svojim Microsoft nalogom, izaberite kalendar i podesite opcije poput prikaza samo predstojećih događaja, laganog automatskog pomeranja i jezika na ekranu. EdgeRize samo čita kalendar i nikada ga ne menja, pa je idealan ispred sala za sastanke i na recepcijama."
+    "about": "Postavite Microsoft Outlook ili Microsoft 365 kalendar na ekran kao dan, nedelju, mesec ili tekući raspored. Prijavite se svojim Microsoft nalogom, izaberite kalendar i podesite opcije poput prikaza samo predstojećih događaja, laganog automatskog pomeranja i jezika na ekranu. SignageWall samo čita kalendar i nikada ga ne menja, pa je idealan ispred sala za sastanke i na recepcijama."
   },
   "teams": {
     "tagline": "Prikažite Teams kanal na ekranima",
     "description": "Povežite Microsoft nalog i prikažite najnovije poruke i obaveštenja iz Teams kanala kao rotirajući izbor ili mrežu.",
-    "about": "Prikažite najnovije poruke i obaveštenja iz Microsoft Teams kanala na ekranu, jednu po jednu u rotirajućem prikazu ili više njih u mreži. Prijavite se poslovnim ili školskim nalogom, izaberite tim i kanal i podesite trajanje i da li se prikazuju imena autora. EdgeRize samo čita poruke i nikada ne objavljuje, a vaš Microsoft administrator prvi put odobrava pristup — odlično za informisanje prostora za osoblje i internih prostora."
+    "about": "Prikažite najnovije poruke i obaveštenja iz Microsoft Teams kanala na ekranu, jednu po jednu u rotirajućem prikazu ili više njih u mreži. Prijavite se poslovnim ili školskim nalogom, izaberite tim i kanal i podesite trajanje i da li se prikazuju imena autora. SignageWall samo čita poruke i nikada ne objavljuje, a vaš Microsoft administrator prvi put odobrava pristup — odlično za informisanje prostora za osoblje i internih prostora."
   },
   "facebook": {
     "tagline": "Prikažite Facebook stranicu na ekranima",
     "description": "Povežite Facebook nalog i prikažite najnovije objave neke stranice kao rotirajući izbor ili mrežu.",
-    "about": "Pretvorite najnovije objave sa Facebook stranice u sadržaj za ekran, bilo jednu po jednu u rotirajućem prikazu ili više njih zajedno u mreži. Prijavite se nalogom koji upravlja stranicom, izaberite koju stranicu da prikažete, podesite koliko dugo svaka objava stoji i da li da se vidi tekst objave. EdgeRize samo čita objave, nikada ne piše — idealno za prikaz vašeg prisustva na mrežama u radnjama, holovima i na recepcijama."
+    "about": "Pretvorite najnovije objave sa Facebook stranice u sadržaj za ekran, bilo jednu po jednu u rotirajućem prikazu ili više njih zajedno u mreži. Prijavite se nalogom koji upravlja stranicom, izaberite koju stranicu da prikažete, podesite koliko dugo svaka objava stoji i da li da se vidi tekst objave. SignageWall samo čita objave, nikada ne piše — idealno za prikaz vašeg prisustva na mrežama u radnjama, holovima i na recepcijama."
   },
   "instagram": {
     "tagline": "Prikažite Instagram feed na ekranima",
     "description": "Povežite profesionalni Instagram nalog i prikažite njegove najnovije objave kao rotirajući izbor ili mrežu.",
-    "about": "Prikažite najnovije objave profesionalnog Instagram naloga na ekranima, bilo jednu po jednu u rotirajućem prikazu ili zajedno u mreži. Prijavite se Facebook nalogom koji upravlja Instagram profilom, izaberite nalog i odaberite raspored, trajanje i da li se prikazuju opisi. EdgeRize samo čita objave — elegantan način da predstavite brend i kampanje u maloprodaji, kafićima i na recepcijama."
+    "about": "Prikažite najnovije objave profesionalnog Instagram naloga na ekranima, bilo jednu po jednu u rotirajućem prikazu ili zajedno u mreži. Prijavite se Facebook nalogom koji upravlja Instagram profilom, izaberite nalog i odaberite raspored, trajanje i da li se prikazuju opisi. SignageWall samo čita objave — elegantan način da predstavite brend i kampanje u maloprodaji, kafićima i na recepcijama."
   },
   "linkedin": {
     "tagline": "Prikažite LinkedIn stranicu na ekranima",
     "description": "Povežite LinkedIn nalog i prikažite najnovije objave neke stranice kao rotirajući izbor ili mrežu.",
-    "about": "Prikažite najnovije LinkedIn objave svoje kompanije na ekranu, jednu po jednu u rotirajućem prikazu ili više njih zajedno u mreži. Prijavite se nalogom koji administrira stranicu, izaberite koju stranicu da prikažete i podesite raspored i trajanje. Objave se prikazuju kao tekst, jer LinkedIn slike iz objava daje samo aplikacijama koje mogu i da objavljuju u vaše ime — pristup koji EdgeRize nikada ne traži. Idealno za kancelarijske zidove, recepcije i prikaze za zapošljavanje."
+    "about": "Prikažite najnovije LinkedIn objave svoje kompanije na ekranu, jednu po jednu u rotirajućem prikazu ili više njih zajedno u mreži. Prijavite se nalogom koji administrira stranicu, izaberite koju stranicu da prikažete i podesite raspored i trajanje. Objave se prikazuju kao tekst, jer LinkedIn slike iz objava daje samo aplikacijama koje mogu i da objavljuju u vaše ime — pristup koji SignageWall nikada ne traži. Idealno za kancelarijske zidove, recepcije i prikaze za zapošljavanje."
   },
   "rss": {
     "tagline": "Najnovije priče iz bilo kog feeda",

@@ -75,7 +75,7 @@ function discoverInputs(): Record<string, string> {
  * Builds the app embed bundles into the player's static dir so they are served
  * same-origin under `/apps/<slug>/` (the player's `config.appsBase`). Relative
  * `base` keeps every asset path app-local, so the bundles work from any mount
- * point. Run before the player build (wired via the `@edge/apps` build script).
+ * point. Run before the player build (wired via the `@signagewall/apps` build script).
  */
 export default defineConfig({
   root: embedsRoot,

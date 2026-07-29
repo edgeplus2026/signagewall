@@ -2,8 +2,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { SocialPayload, SocialPost } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { SocialPayload, SocialPost } from '@signagewall/apps';
 
 import { getPageAccessToken } from '../../connections/providers/meta-api';
 

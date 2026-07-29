@@ -1,5 +1,5 @@
-import { NEWS_PRESETS } from '@edge/apps';
-import type { AppConnector } from '@edge/apps-contract';
+import { NEWS_PRESETS } from '@signagewall/apps';
+import type { AppConnector } from '@signagewall/apps-contract';
 
 import { airqualityConnector } from './airquality.connector';
 import { canvaConnector } from './canva.connector';
@@ -28,7 +28,7 @@ import { wisdomConnector } from './wisdom.connector';
  * connector here; `static` apps do not. The scheduler and the player content
  * resolver look up connectors by slug to compute `cacheKey`s and (for the
  * scheduler) to `fetchData`. Connectors live in the backend — network I/O and
- * any secrets never reach the shared `@edge/apps` package or the player.
+ * any secrets never reach the shared `@signagewall/apps` package or the player.
  */
 const CONNECTORS: Record<string, AppConnector> = {
   weather: weatherConnector,

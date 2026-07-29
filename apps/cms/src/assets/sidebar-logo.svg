@@ -1,22 +1,6 @@
-<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="11" fill="#141414"/>
-  <!-- stem -->
-  <rect x="5"  y="5"  width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <rect x="5"  y="13" width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <rect x="5"  y="21" width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <rect x="5"  y="29" width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <rect x="5"  y="37" width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <!-- bowl top -->
-  <rect x="13" y="5"  width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <rect x="21" y="5"  width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <rect x="29" y="5"  width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <!-- bowl right -->
-  <rect x="37" y="13" width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <!-- bowl bottom -->
-  <rect x="13" y="21" width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <rect x="21" y="21" width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <rect x="29" y="21" width="6" height="6" rx="1.6" fill="#FCFCFC"/>
-  <!-- leg (red kick) -->
-  <rect x="29" y="29" width="6" height="6" rx="1.6" fill="#CC0000"/>
-  <rect x="37" y="37" width="6" height="6" rx="1.6" fill="#CC0000"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" fill="none">
+  <rect x="4.00" y="12.00" width="18.00" height="14.00" rx="1.50" fill="none" stroke="currentColor" stroke-width="4.00"/>
+  <rect x="28.00" y="10.00" width="30.00" height="18.00" rx="3.50" fill="#D85A30"/>
+  <rect x="4.00" y="34.00" width="26.00" height="14.00" rx="1.50" fill="none" stroke="currentColor" stroke-width="4.00"/>
+  <rect x="38.00" y="34.00" width="18.00" height="14.00" rx="1.50" fill="none" stroke="currentColor" stroke-width="4.00"/>
 </svg>

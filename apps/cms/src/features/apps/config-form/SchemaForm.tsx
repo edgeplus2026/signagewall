@@ -3,7 +3,7 @@ import {
   isFieldVisible,
   type ConfigSchema,
   type Field,
-} from '@edge/apps-contract'
+} from '@signagewall/apps-contract'
 import { useMemo, useState } from 'react'
 
 import { FieldGroup } from '@/components/ui/field'

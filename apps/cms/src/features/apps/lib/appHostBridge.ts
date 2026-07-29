@@ -3,7 +3,7 @@ import {
   APP_CONFIG_TYPE,
   type AppDataMeta,
   isAppReadyMessage,
-} from '@edge/apps-contract'
+} from '@signagewall/apps-contract'
 
 /**
  * CMS-side generic iframe app host — the live-preview counterpart of the
@@ -12,7 +12,7 @@ import {
  * with the operator's *draft* config from the config form, so the preview is
  * pixel-identical to playback with zero per-app code.
  *
- * The wire protocol is the shared one in `@edge/apps-contract`:
+ * The wire protocol is the shared one in `@signagewall/apps-contract`:
  *   1. app → host:  `{ type: 'app-ready' }` once the bundle is listening.
  *   2. host → app:  `{ type: 'app-config', config, data, meta }`.
  *

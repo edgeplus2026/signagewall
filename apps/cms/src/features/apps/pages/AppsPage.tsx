@@ -7,7 +7,7 @@ import { AppDrawer } from '@/features/apps/components/AppDrawer'
 import { AppGrid } from '@/features/apps/components/AppGrid'
 import { UninstallAppDialog } from '@/features/apps/components/UninstallAppDialog'
 import { useApp, useApps } from '@/features/apps/hooks/useApps'
-import type { EdgeApp } from '@/features/apps/types/app.types'
+import type { CatalogApp } from '@/features/apps/types/app.types'
 
 type AppsTab = 'store' | 'my-apps'
 
@@ -32,7 +32,7 @@ export default function AppsPage() {
   const { data: fetchedApp } = useApp(appFromList ? undefined : (drawerAppId ?? undefined))
   const drawerApp = appFromList ?? fetchedApp ?? null
 
-  const [uninstallApp, setUninstallApp] = useState<EdgeApp | null>(null)
+  const [uninstallApp, setUninstallApp] = useState<CatalogApp | null>(null)
   const [uninstallOpen, setUninstallOpen] = useState(false)
 
   const setAppParam = (appId: string | null) => {
@@ -45,7 +45,7 @@ export default function AppsPage() {
     setSearchParams(next)
   }
 
-  const handleRequestUninstall = (app: EdgeApp) => {
+  const handleRequestUninstall = (app: CatalogApp) => {
     // Leave the app's drawer before confirming, so the dialog stands on its own.
     setAppParam(null)
     setUninstallApp(app)

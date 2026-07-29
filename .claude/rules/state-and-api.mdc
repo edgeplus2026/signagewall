@@ -1,6 +1,6 @@
 ---
 description: State management and API layer patterns
-globs: edge-fe/**/*
+globs: apps/cms/**/*
 alwaysApply: false
 ---
 

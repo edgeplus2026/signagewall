@@ -6,8 +6,13 @@ import { CtaBand } from '@/components/marketing/cta-band'
 import { PageHero } from '@/components/marketing/page-hero'
 import { Section, SectionStack } from '@/components/ui/section'
 import { getPayloadClient } from '@/lib/payload'
+import { localeAlternates } from '@/lib/seo'
 
-export const dynamic = 'force-dynamic'
+/* ISR rather than `force-dynamic`. The content behind this page changes when
+   an editor publishes, not per request, so re-rendering on every hit spent a
+   database round trip to produce the same HTML. An hour is well inside how
+   often this copy actually moves. */
+export const revalidate = 3600
 
 interface PageProps {
   params: Promise<{ locale: string }>
@@ -16,7 +21,11 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'blog.meta' })
-  return { title: t('title'), description: t('description') }
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: localeAlternates(locale, '/blog'),
+  }
 }
 
 export default async function BlogPage({ params }: PageProps) {

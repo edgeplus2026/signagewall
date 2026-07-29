@@ -3,7 +3,9 @@
   "features": "Mogućnosti",
   "apps": "Aplikacije",
   "solutions": "Rešenja",
+  "pricing": "Cene",
   "blog": "Blog",
   "signIn": "Prijava",
-  "getStarted": "Zakažite demo"
+  "register": "Registracija",
+  "primary": "Glavna navigacija"
 }

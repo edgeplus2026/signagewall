@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, Types } from 'mongoose';
 
-import type { AppInstanceConfig } from '@edge/apps-contract';
+import type { AppInstanceConfig } from '@signagewall/apps-contract';
 
 import {
   AppInstance,

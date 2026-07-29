@@ -1,6 +1,6 @@
 ---
 description: Error handling and API i18n guidelines
-globs: edge-be/**/*
+globs: apps/be/**/*
 alwaysApply: false
 ---
 

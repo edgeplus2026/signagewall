@@ -1,4 +1,4 @@
-# Edge Digital Signage — Operator Setup Guide (Apps)
+# SignageWall Digital Signage — Operator Setup Guide (Apps)
 
 This guide tells an operator EXACTLY what to do to make each of the 37 signage apps work: which environment variables to set, which OAuth apps/API keys to register externally, which approvals to obtain, and the per-instance steps done in the CMS. Most apps need **zero** backend setup — they are configured entirely per-instance. A small number need an **API key**, and the "connected" apps each need an **OAuth application** registered with the provider plus `ENCRYPTION_KEY` set on the server. Where a fact is not established here, it says **see manifest** rather than guessing.
 
@@ -27,7 +27,7 @@ This guide tells an operator EXACTLY what to do to make each of the 37 signage a
 | `MEDIA_MAX_FILE_SIZE_BYTES` / `MEDIA_MAX_FILES_PER_UPLOAD` | No | Upload size and count limits. | Optional; defaults `10485760` (10MB) and `10`. |
 | `MAIL_ENABLED` | No | Master switch for outbound mail (invites, password reset, notifications). Disabled by default. | Set `true` in production; leave `false` locally. |
 | `RESEND_API_KEY` | No | Resend API key for transactional mail when mail is enabled. | Sign up at https://resend.com (free tier ~3000 emails/month) and create an API key. Required when `MAIL_ENABLED=true`. |
-| `MAIL_FROM` | No | From header for outbound mail. | Optional; default `Edge <onboarding@resend.dev>`. Use a verified sender/domain in production. |
+| `MAIL_FROM` | No | From header for outbound mail. | Optional; default `SignageWall <onboarding@resend.dev>`. Use a verified sender/domain in production. |
 | `MAIL_SUPPORT_TO` | No | Inbox that receives feedback and problem reports. | Optional; set to your support inbox (valid email per Joi). |
 | `MAIL_REGISTRATIONS_NOTIFY_TO` | No | Inbox notified on every new-user registration. | Optional; default `edgeplus2026@gmail.com`. Override with your ops inbox. |
 | `REDIS_URL` | No* | Full Redis URL backing the BullMQ queue for the AI content generator. Takes precedence over discrete `REDIS_HOST/PORT`. | *Required only if you run the AI content generator (`OPENROUTER_API_KEY` set).* Prefer a full URL e.g. `rediss://:password@host:6379` and set `REDIS_TLS=true`. Locally `docker compose up -d redis`. |
@@ -39,7 +39,7 @@ This guide tells an operator EXACTLY what to do to make each of the 37 signage a
 
 ### 0.2 Publish flow — how an app reaches an org's catalog
 
-Apps live in code as manifests (`APP_MANIFESTS` from `@edge/apps`). A **super-admin** (all `/admin/apps` routes are behind `SuperAdminGuard`) must publish each one before organizations can use it:
+Apps live in code as manifests (`APP_MANIFESTS` from `@signagewall/apps`). A **super-admin** (all `/admin/apps` routes are behind `SuperAdminGuard`) must publish each one before organizations can use it:
 
 1. **Sync on boot.** On every boot `AppsService.onModuleInit()` runs `syncManifestDefinitions()`: for each catalog entry matched to a manifest **by slug**, it keeps the technical fields (`configSchema`, `version`, `runtimeKind`, `dataSource`) in lockstep with code. Editing a manifest (new fields/sections, version bump) reaches the CMS and validation with no manual re-add. Presentation/governance (name, copy, icon, color, visibility, categories) is operator-owned and never overwritten. **New manifests are NOT auto-added.**
 2. **Discover addable apps.** `GET /admin/apps/manifests` (`listAvailableManifests`) returns slug/name/tagline/description and an `alreadyInCatalog` flag.
@@ -383,7 +383,7 @@ where `<provider>` is one of `google | microsoft | meta | linkedin | canva`, `/v
 - **Approvals — REQUIRED:** the **Community Management API** product must be granted before `rw_organization_admin` / `r_organization_social` / `r_basicprofile` exist on the app; requesting a scope the app does not hold fails the whole authorization with *invalid scope*. Unlike Meta there is **no unreviewed dev mode** — even reading a Page you own needs the product. Approval has two tiers, and **both are applied for**:
   - **Development tier** (the default on approval) — for registered legal organizations, commercial use cases, verified business email + verified Page-associated app. Hard limits: **500 app calls / 24h**, **100 calls per member / 24h**, **BATCH_GET disabled entirely**, and the integration is expected to be finished within 12 months.
   - **Standard tier** — production, no limits. Requires a screencast of the OAuth flow and the app's core functionality, plus a valid privacy policy.
-  > `rw_organization_admin` is a **read/write-named** scope, which is why the consent screen says "manage your Pages". Community Management offers no read-only admin scope (`r_organization_admin` belongs to the Advertising API product), and it is the only way to enumerate a member's Pages. Edge never writes; the config-form help text tells the operator the same thing.
+  > `rw_organization_admin` is a **read/write-named** scope, which is why the consent screen says "manage your Pages". Community Management offers no read-only admin scope (`r_organization_admin` belongs to the Advertising API product), and it is the only way to enumerate a member's Pages. SignageWall never writes; the config-form help text tells the operator the same thing.
   >
   > BATCH_GET being disabled on the Development tier is why the Page-name lookup is best-effort: the picker retries names one Page at a time (capped at 10) and otherwise labels entries `Page <id>`.
 - **Token note:** LinkedIn issues **60-day access tokens** and a **refresh token only for apps approved for "Programmatic Refresh Tokens"**. With one, the scheduler's proactive pass renews the connection indefinitely; without one the connection simply **lapses after 60 days** and the operator reconnects (there is no re-extension trick like Meta's `fb_exchange_token`). Account label from `https://api.linkedin.com/v2/me`.
@@ -406,7 +406,7 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
 - **Google Calendar** (`gcal`, provider google) — refresh 300s, `requiresNetwork: false` (push via `events.watch` when `PUBLIC_API_URL` set, else polling).
   - **Scope:** `https://www.googleapis.com/auth/calendar.readonly`
   - **Env:** `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-  1. Connect a Google account via the **Google account** OAuth field — Edge only reads calendars.
+  1. Connect a Google account via the **Google account** OAuth field — SignageWall only reads calendars.
   2. Pick the **Calendar** from the searchable async dropdown (`remoteSource: google-calendars`).
   3. Display-only options: Calendar view (day/week/month/schedule), "Only show upcoming events" (schedule only), Auto scroll, Language (en/sr), Theme (light/dark).
 
@@ -468,7 +468,7 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   1. Connect the LinkedIn account that administers the Page via the **LinkedIn account** OAuth field — read-only, never posts (despite the "manage your Pages" wording LinkedIn shows; see the provider note above).
   2. Pick the **Page** (`remoteSource: linkedin-orgs`). The picker reads the member's `ADMINISTRATOR`/`APPROVED` role assignments (`organizationAcls`) and titles them via `organizationsLookup`, falling back to per-Page GETs where that batch call is unavailable (Development tier) and to `Page <id>` labels where both are — the selection still works, since the id is what the connector fetches with.
   3. Display-only: Layout (Spotlight / Grid), Seconds per post (spotlight only, 2–120), Theme.
-  > **Text-only, deliberately.** LinkedIn returns post images as `urn:li:image:…` URNs, and resolving one to a URL requires a GET on the Images API — which LinkedIn permits only for tokens holding a **write** scope (`w_organization_social` / `rw_ads`). Edge never asks an operator for permission to publish to their Page, so posts render as text heroes (same as Teams messages), article posts fold in their title + description, and image-only posts are skipped. There is therefore no "Show post text" toggle: with no image posts it would toggle nothing.
+  > **Text-only, deliberately.** LinkedIn returns post images as `urn:li:image:…` URNs, and resolving one to a URL requires a GET on the Images API — which LinkedIn permits only for tokens holding a **write** scope (`w_organization_social` / `rw_ads`). SignageWall never asks an operator for permission to publish to their Page, so posts render as text heroes (same as Teams messages), article posts fold in their title + description, and image-only posts are skipped. There is therefore no "Show post text" toggle: with no image posts it would toggle nothing.
 
 - **Canva** (`canva`, provider canva) — refresh 900s, `requiresNetwork: true` (renders exported asset from Canva CDN).
   - **Scopes:** `design:meta:read`, `design:content:read`, `profile:read`
@@ -513,7 +513,7 @@ MEDIA_MAX_FILES_PER_UPLOAD=     # default 10
 # Outbound mail
 MAIL_ENABLED=                   # true in prod (default false)
 RESEND_API_KEY=                 # Resend key; required when MAIL_ENABLED=true
-MAIL_FROM=                      # default "Edge <onboarding@resend.dev>"
+MAIL_FROM=                      # default "SignageWall <onboarding@resend.dev>"
 MAIL_SUPPORT_TO=                # feedback/problem-report inbox
 MAIL_REGISTRATIONS_NOTIFY_TO=   # new-registration inbox (default edgeplus2026@gmail.com)
 

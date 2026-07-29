@@ -1,6 +1,6 @@
 ---
 description: React frontend architecture and feature-sliced conventions
-globs: edge-fe/**/*
+globs: apps/cms/**/*
 alwaysApply: false
 ---
 
@@ -9,7 +9,7 @@ alwaysApply: false
 ## Layout
 
 ```
-edge-fe/src/
+apps/cms/src/
   components/     # App shell (layout/) + shadcn UI (ui/) + shared (common/)
   features/<name>/  # Domain slices
   lib/            # axios, cn(), shared utilities

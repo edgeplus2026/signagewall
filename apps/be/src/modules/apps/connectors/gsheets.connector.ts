@@ -2,8 +2,8 @@ import type {
   AppConnector,
   ConnectorContext,
   ConnectorResult,
-} from '@edge/apps-contract';
-import type { GsheetsPayload } from '@edge/apps';
+} from '@signagewall/apps-contract';
+import type { GsheetsPayload } from '@signagewall/apps';
 
 import { ensureDriveChannel } from './_shared/drive-watch';
 

@@ -28,7 +28,7 @@ export class MailService implements OnModuleInit {
     this.resend = apiKey ? new Resend(apiKey) : null;
     this.from = this.configService.get<string>(
       'mail.from',
-      'Edge <onboarding@resend.dev>',
+      'SignageWall <onboarding@resend.dev>',
     );
     this.supportTo = this.configService.get<string>('mail.supportTo');
     this.registrationsNotifyTo = this.configService.get<string>(
@@ -54,7 +54,7 @@ export class MailService implements OnModuleInit {
     if (fromEmail && !fromEmail.endsWith('@resend.dev')) {
       this.logger.warn(
         `MAIL_FROM uses "${fromEmail}" which is not verified in Resend. ` +
-          'For local dev use: Edge <onboarding@resend.dev>',
+          'For local dev use: SignageWall <onboarding@resend.dev>',
       );
     }
   }
@@ -146,7 +146,7 @@ export class MailService implements OnModuleInit {
     await this.send({ to: params.to, subject, html });
   }
 
-  /** Notifies the Edge team that a new user registered (internal). */
+  /** Notifies the SignageWall team that a new user registered (internal). */
   async sendNewRegistrationEmail(params: {
     name: string;
     email: string;

@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AppIcon } from "@/features/apps/components/AppIcon"
-import type { AppInstance, EdgeApp } from "@/features/apps/types/app.types"
+import type { AppInstance, CatalogApp } from "@/features/apps/types/app.types"
 import {
   appLibraryDragId,
   mediaLibraryDragId,
@@ -171,7 +171,7 @@ export function AppLibraryDragOverlayRow({
   height,
 }: {
   instance: AppInstance
-  app: EdgeApp | undefined
+  app: CatalogApp | undefined
   width?: number
   height?: number
 }) {
@@ -395,7 +395,7 @@ export function LibraryAppCardView({
   dragHandleProps,
 }: {
   instance: AppInstance
-  app: EdgeApp | undefined
+  app: CatalogApp | undefined
   isDragging?: boolean
   onAddToContent?: (appInstanceId: string) => void
   onUpdateApp?: (() => void) | undefined
@@ -495,7 +495,7 @@ export function LibraryAppCardOverlay({
   app,
 }: {
   instance: AppInstance
-  app: EdgeApp | undefined
+  app: CatalogApp | undefined
 }) {
   return (
     <div className="bg-panel ring-secondary pointer-events-none w-35 rotate-0 overflow-hidden rounded-xl shadow-lg ring-1">
@@ -510,7 +510,7 @@ export function LibraryAppCard({
   onAddToContent,
 }: {
   instance: AppInstance
-  app: EdgeApp | undefined
+  app: CatalogApp | undefined
   onAddToContent: (appInstanceId: string) => void
 }) {
   const navigate = useNavigate()

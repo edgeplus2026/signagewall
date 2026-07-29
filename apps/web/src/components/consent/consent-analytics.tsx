@@ -7,7 +7,7 @@ import { useSyncExternalStore } from 'react'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/navigation'
 
-const KEY = 'edge-cookie-consent'
+const KEY = 'signagewall-cookie-consent'
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 type Consent = 'granted' | 'denied' | null

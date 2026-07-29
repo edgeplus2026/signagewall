@@ -4,9 +4,9 @@ export const renderEmailVerificationEmail = (params: {
   name: string;
   verifyUrl: string;
 }): { subject: string; html: string } => ({
-  subject: 'Verify your Edge email',
+  subject: 'Verify your SignageWall email',
   html: renderEmailLayout({
-    previewText: 'Confirm your email to activate your Edge account',
+    previewText: 'Confirm your email to activate your SignageWall account',
     title: 'Verify your email',
     bodyHtml: `
       <p style="margin:0 0 12px;">Hi ${params.name},</p>

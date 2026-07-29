@@ -56,7 +56,7 @@ const POSTS = [
         head('Ekran koji već imate'),
         para('Bilo koji TV ili monitor je dovoljan. Ne morate da kupujete posebne „signage" ekrane da biste počeli.'),
         head('Plejer i softver'),
-        para('Mali Android boks ili računar pokreće Edge plejer. Vi upravljate sadržajem iz pregledne kontrolne table — kao što biste objavili nešto na društvenoj mreži.'),
+        para('Mali Android boks ili računar pokreće SignageWall plejer. Vi upravljate sadržajem iz pregledne kontrolne table — kao što biste objavili nešto na društvenoj mreži.'),
       ]),
     },
     en: {
@@ -67,7 +67,7 @@ const POSTS = [
         head('A screen you already have'),
         para("Any TV or monitor will do. You don't need to buy special \"signage\" displays to begin."),
         head('A player and software'),
-        para('A small Android box or computer runs the Edge player. You manage content from a clear dashboard — as easily as posting to social media.'),
+        para('A small Android box or computer runs the SignageWall player. You manage content from a clear dashboard — as easily as posting to social media.'),
       ]),
     },
   },
@@ -81,7 +81,7 @@ const POSTS = [
       content: doc([
         para('Zamislite prazan ili zamrznut ekran u punom restoranu baš u špicu. Loš internet ne bi smeo da bude razlog za to.'),
         head('Sadržaj koji se kešira'),
-        para('Edge plejer čuva sadržaj lokalno i nastavlja da ga prikazuje i kada veza padne. Gosti ni ne primete prekid.'),
+        para('SignageWall plejer čuva sadržaj lokalno i nastavlja da ga prikazuje i kada veza padne. Gosti ni ne primete prekid.'),
         head('Sinhronizacija kad se veza vrati'),
         para('Čim se internet vrati, plejer automatski povuče najnovije izmene. Vi ne radite ništa — sve se dešava u pozadini.'),
       ]),
@@ -92,7 +92,7 @@ const POSTS = [
       content: doc([
         para('Picture a blank or frozen screen in a full restaurant right at peak time. A flaky connection should never be the reason.'),
         head('Content that is cached'),
-        para('The Edge player stores content locally and keeps showing it even when the connection drops. Guests never notice the outage.'),
+        para('The SignageWall player stores content locally and keeps showing it even when the connection drops. Guests never notice the outage.'),
         head('Syncing when the connection returns'),
         para('The moment the internet is back, the player pulls the latest changes automatically. You do nothing — it all happens in the background.'),
       ]),
@@ -108,9 +108,9 @@ const payload = await getPayload({ config })
   if (!admin) {
     admin = await payload.create({
       collection: 'users',
-      data: { email: 'admin@edge.local', password: 'changeme123', name: 'Edge tim' },
+      data: { email: 'admin@signagewall.local', password: 'changeme123', name: 'SignageWall tim' },
     })
-    payload.logger.info('Created admin user admin@edge.local / changeme123')
+    payload.logger.info('Created admin user admin@signagewall.local / changeme123')
   }
 
   // Categories (localized title, single slug)

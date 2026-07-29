@@ -1,4 +1,4 @@
-import type { AppInstanceConfig } from '@edge/apps-contract';
+import type { AppInstanceConfig } from '@signagewall/apps-contract';
 
 import { AppInstanceDocument } from '../schemas/app-instance.schema';
 

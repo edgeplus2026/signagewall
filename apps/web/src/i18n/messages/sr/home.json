@@ -1,47 +1,70 @@
 {
-  "hero": {
-    "eyebrow": "Digitalni ekrani za vaš prostor",
-    "title": "Ekrani koji rade koliko i vi.",
-    "subtitle": "Upravljajte svime što se prikazuje u vašem prostoru — meni, ponude, najave, atmosfera — sa jednog mesta, u realnom vremenu.",
-    "ctaPrimary": "Zakažite demo",
-    "ctaSecondary": "Pogledajte aplikacije"
+  "meta": {
+    "title": "Digital signage softver za vaše ekrane",
+    "description": "Digital signage softver za menije, cene i najave. Promenite šta piše na ekranu za 30 sekundi — na jednom ekranu ili na svih sto, sa telefona."
   },
-  "stats": {
+  "hero": {
+    "eyebrow": "Digital signage",
+    "title": "Promenite ono što piše na ekranu za 30 sekundi.",
+    "subtitle": "Meni, cene, ponude i najave menjate sa telefona — na jednom ekranu ili na svih sto. Bez štampe i bez čekanja.",
+    "ctaPrimary": "Probajte besplatno {trialDays} dana",
+    "ctaSecondary": "Zakažite demo",
+    "trialNote": "{trialDays} dana besplatno · bez kartice · bez ugovora"
+  },
+  "trust": {
     "items": [
-      { "value": "38", "label": "aplikacija spremnih za ekran" },
-      { "value": "Sekunde", "label": "do izmene na svim ekranima" },
-      { "value": "Android + desktop", "label": "plejer za bilo koji ekran" },
-      { "value": "Offline", "label": "radi i bez interneta" }
+      {
+        "value": "{trialDays} dana",
+        "label": "Besplatno, sve mogućnosti uključene"
+      },
+      {
+        "value": "{price}",
+        "label": "Po ekranu mesečno — jedna cena"
+      },
+      {
+        "value": "Bez ugovora",
+        "label": "Mesečno, otkazujete kad god"
+      },
+      {
+        "value": "Radi offline",
+        "label": "Ekran nastavlja i bez veze"
+      }
     ]
+  },
+  "whatIs": {
+    "eyebrow": "Prvi put se srećete sa ovim?",
+    "title": "Digital signage, u tri rečenice.",
+    "body": "Digitalni ekran prikazuje ono što mu kažete — meni, cenovnik, ponudu, obaveštenje — i menja se onog trenutka kad se vi predomislite. Treba vam troje: ekran koji verovatno već imate, mali plejer uređaj iza njega, i softver kojim upravljate sa bilo kog mesta. SignageWall je to treće.",
+    "cta": "Šta je digital signage?"
   },
   "features": {
     "eyebrow": "Mogućnosti",
     "title": "Sve za vaše ekrane, na jednom mestu.",
-    "subtitle": "Od prvog ekrana do cele mreže — EdgeRize vam daje kontrolu, brzinu i miran san.",
+    "subtitle": "Bez tehničkog znanja, bez agencije i bez čekanja. Otvorite SignageWall, promenite šta treba — i to je već na ekranu.",
     "items": [
       {
-        "title": "Upravljanje na daljinu",
-        "body": "Menjajte sadržaj na jednom ili sto ekrana, sa telefona ili računara — gde god da ste."
+        "title": "Menjate sa telefona",
+        "body": "Nova cena, nova ponuda, obaveštenje — otkucate i odmah je gore. Na jednom ekranu ili na svih sto, odakle god da ste."
       },
       {
-        "title": "Zakazivanje unapred",
-        "body": "Pripremite ponude i najave i pustite ih tačno kad treba. Bez štampe i čekanja."
+        "title": "Sadržaj po vašem satu",
+        "body": "Doručak ujutru, ručak u podne, koktel karta uveče. Podesite jednom i dalje se smenjuje samo, bez vas."
       },
       {
-        "title": "38 aplikacija",
-        "body": "Meni, vreme, kursna lista, vesti, društvene mreže — spremno za par klikova."
+        "title": "{count} gotovih aplikacija",
+        "body": "Meni, prognoza, kursna lista, vesti, društvene mreže. Izaberete jednu, upišete svoje podatke i objavite."
       },
       {
-        "title": "Radi i bez interneta",
-        "body": "Plejer nastavlja da prikazuje sadržaj i kada veza padne. Bez praznih ekrana."
+        "title": "Ekran nikad nije prazan",
+        "body": "I kad internet nestane, ekran nastavlja da prikazuje ono što ste poslali. Gost ne primeti ništa."
       },
       {
-        "title": "Bilo koji ekran",
-        "body": "Običan TV, monitor ili profesionalni displej. Android ili desktop — svejedno."
+        "title": "Radi na svakom ekranu",
+        "body": "Televizor, monitor ili profesionalni displej — koristite ono što već stoji u prostoru."
       },
       {
-        "title": "Vaš izgled",
-        "body": "Prilagodite boje, raspored i brend tako da sve izgleda kao vaše, a ne kao šablon."
+        "title": "Izgleda kao vaše",
+        "body": "Vaše boje, vaš logo, vaš raspored. Ekran deluje kao deo prostora, a ne kao tuđi šablon."
       }
     ]
   },
@@ -49,24 +72,7 @@
     "eyebrow": "Rešenja",
     "title": "Napravljeno za svaki prostor.",
     "subtitle": "Isti alat, prilagođen onome što vi radite.",
-    "cta": "Sva rešenja",
-    "items": [
-      {
-        "title": "Ugostiteljstvo",
-        "body": "Digitalni meniji, ponuda dana i cene koje menjate u hodu."
-      },
-      {
-        "title": "Maloprodaja",
-        "body": "Promocije, novi artikli i brend poruke na svakom ekranu."
-      },
-      {
-        "title": "Kancelarije",
-        "body": "Najave, kalendari i ključni podaci za tim na vidnom mestu."
-      },
-      { "title": "Zdravstvo", "body": "Redovi, obaveštenja i mirnija čekaonica za pacijente." },
-      { "title": "Hoteli", "body": "Dobrodošlica, informacije i događaji za goste." },
-      { "title": "Teretane", "body": "Raspored časova, motivacija i najave — uvek aktuelno." }
-    ]
+    "cta": "Sva rešenja"
   },
   "steps": {
     "eyebrow": "Kako radi",
@@ -74,7 +80,7 @@
     "items": [
       {
         "title": "Povežite ekran",
-        "body": "Uključite EdgeRize na bilo kom TV-u ili računaru i uparite ga u par sekundi."
+        "body": "Uključite SignageWall na bilo kom TV-u ili računaru i uparite ga u par sekundi."
       },
       {
         "title": "Sastavite sadržaj",
@@ -88,19 +94,10 @@
   },
   "apps": {
     "eyebrow": "Aplikacije",
-    "title": "38 aplikacija, spremnih za ekran.",
+    "title": "{count} aplikacija, spremnih za ekran.",
     "body": "Sve što ekranu treba — bez pisanja koda. Dodajte aplikaciju, podesite je i objavite.",
     "cta": "Istražite sve aplikacije",
-    "categories": [
-      "Meniji i maloprodaja",
-      "Vreme i okruženje",
-      "Finansije i tržišta",
-      "Vesti i informacije",
-      "Društvene mreže",
-      "Kalendari i posao",
-      "Video i striming",
-      "Najave i poruke"
-    ]
+    "all": "Sve aplikacije"
   },
   "platform": {
     "eyebrow": "Platforma",
@@ -121,10 +118,124 @@
       }
     ]
   },
+  "why": {
+    "eyebrow": "Zašto SignageWall",
+    "title": "Šta radimo drugačije.",
+    "subtitle": "Postoje dobre signage platforme. Evo gde nismo isti.",
+    "items": [
+      {
+        "title": "Jedna cena, ne šest planova",
+        "body": "{price} po ekranu sa svim uključenim. Bez penjanja kroz nivoe da biste našli onaj sa zakazivanjem, i bez enterprise plana koji drži ono što vam stvarno treba."
+      },
+      {
+        "title": "Napravljeno da preživi prekid veze",
+        "body": "Plejer nastavlja da prikazuje poslednji preuzeti sadržaj, a watchdog ga restartuje ako se zaglavi. Prazan ekran u izlogu je gori nego nikakav ekran."
+      },
+      {
+        "title": "Cena piše na sajtu",
+        "body": "Možete da planirate budžet bez poziva sa prodajom, na bilo kojoj veličini mreže. Ako vam platforma ne kaže cenu dok ne popričate sa nekim — to je odgovor."
+      },
+      {
+        "title": "Vaš brend, ne naš",
+        "body": "Nikad vodenog žiga — ni na probi, ni na jednom planu. Ekran deluje kao deo vašeg prostora, a ne kao reklama za naš softver."
+      }
+    ]
+  },
+  "pricingPreview": {
+    "eyebrow": "Cene",
+    "title": "{price} po ekranu, mesečno.",
+    "body": "Sve uključeno, na svakoj veličini. Počnite sa jednim ekranom ili sa dvesta — cena se ne menja, a ni skup mogućnosti.",
+    "cta": "Šta je uključeno",
+    "ctaSecondary": "Poredite sa Yodeck-om"
+  },
+  "faq": {
+    "title": "Česta pitanja",
+    "items": [
+      {
+        "q": "Šta mi treba da počnem?",
+        "a": "Ekran, mali plejer uređaj i nalog. Ekran može biti običan televizor koji već imate. Plejer je Android boks, mini-PC ili računar koji već stoji tu — instalirate našu aplikaciju na njega, skenirate kod koji se pojavi na ekranu, i uparen je."
+      },
+      {
+        "q": "Treba li mi tehničko znanje?",
+        "a": "Ne. Ako umete da napravite objavu na društvenoj mreži, umete da vodite ekran. Sve se dešava u pregledaču: izaberete sadržaj, izaberete ekrane, objavite. Nema servera za instalaciju i niko ne mora da dolazi kod vas."
+      },
+      {
+        "q": "Šta se dešava kad padne internet?",
+        "a": "Ekran nastavlja da prikazuje poslednji preuzeti sadržaj i sinhronizuje se čim se veza vrati. Watchdog restartuje plejer ako se zaglavi, pa se zamrznut ekran oporavlja sam umesto da čeka da neko primeti."
+      },
+      {
+        "q": "Koliko košta?",
+        "a": "{price} po ekranu mesečno, sa svim mogućnostima uključenim. Nema nivoa ni enterprise plana — jedan kafić plaća istu cenu po ekranu kao i lanac od dvesta."
+      },
+      {
+        "q": "Mogu li da probam pre plaćanja?",
+        "a": "Da — {trialDays} dana sa svim uključenim, bez kartice. Ništa se ne naplaćuje automatski kad proba istekne; ako ne nastavite, sadržaj jednostavno ostaje da čeka u nalogu."
+      },
+      {
+        "q": "Mogu li sa samo jednim ekranom?",
+        "a": "Da, i mnogi tako rade. Ništa u proizvodu nije isključeno na donjem kraju, i nema minimuma koji morate da dostignete da bi imalo smisla."
+      },
+      {
+        "q": "Radi li na mojim postojećim ekranima?",
+        "a": "Skoro sigurno. Bilo koji televizor, monitor ili profesionalni displej sa HDMI ulazom radi. Namenski signage ekrani se isplate ako radite šesnaest sati dnevno ili stavljate ekran na direktno sunce — za sve ostalo, običan TV traje godinama."
+      },
+      {
+        "q": "Koliko ekrana mogu da vodim?",
+        "a": "Od jednog do nekoliko stotina, iz iste kontrolne table. Ekrani se grupišu po lokaciji pa objavljujete grupi umesto uređaj po uređaj — a to je razlika koja počinje da se oseća negde oko desetog ekrana."
+      }
+    ]
+  },
   "cta": {
-    "title": "Pokažimo vam EdgeRize na delu.",
-    "body": "Zakažite kratak demo i vidite kako EdgeRize radi na vašem prostoru — bez obaveza.",
-    "primary": "Zakažite demo",
-    "secondary": "Kontaktirajte nas"
+    "title": "Stavite nešto na svoje ekrane već danas.",
+    "body": "Počnite besplatno {trialDays} dana sa svim uključenim, ili zakažite kratak demo pa ćemo vam pokazati kako radi u vašem prostoru.",
+    "primary": "Počnite besplatno",
+    "secondary": "Zakažite demo"
+  },
+  "bento": {
+    "weather": {
+      "place": "Beograd · Danas",
+      "condition": "Sunčano, malo vetra",
+      "temp": "23°",
+      "forecast": ["Čet 24°", "Pet 21°", "Sub 19°"]
+    },
+    "clock": {
+      "label": "Vreme",
+      "time": "09:41"
+    },
+    "fx": {
+      "label": "Kurs",
+      "rows": [
+        {
+          "code": "EUR",
+          "value": "117,4"
+        },
+        {
+          "code": "USD",
+          "value": "108,2"
+        },
+        {
+          "code": "CHF",
+          "value": "125,0"
+        }
+      ]
+    },
+    "news": {
+      "label": "Vesti",
+      "headline": "Nova linija gradskog prevoza počinje sa radom",
+      "time": "pre 12 minuta"
+    },
+    "calendar": {
+      "label": "Danas",
+      "events": [
+        {
+          "time": "10:00",
+          "title": "Sastanak tima"
+        },
+        {
+          "time": "13:30",
+          "title": "Prezentacija za klijenta"
+        }
+      ]
+    }
   }
 }

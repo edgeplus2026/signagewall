@@ -1,4 +1,4 @@
-import type { AppManifest } from '@edge/apps-contract'
+import type { AppManifest } from '@signagewall/apps-contract'
 
 /** White play glyph — sits on the red brand tile. */
 const YOUTUBE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 7.5v9l7-4.5-7-4.5z"/></svg>'
@@ -8,7 +8,7 @@ const YOUTUBE_URL_PATTERN =
   '^https?://(www\\.|m\\.)?(youtube\\.com/(watch\\?v=|embed/|shorts/|v/)|youtu\\.be/).+'
 
 /**
- * YouTube — the first real Edge app. Users paste a YouTube link; the player
+ * YouTube — the first real SignageWall app. Users paste a YouTube link; the player
  * plays the video on screen. Pure client-side (no server connector), so its
  * data source is `static` and its only config is the video URL.
  *

@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "title": "Hardver za digital signage — šta kupiti",
+    "description": "Šta je plejer za digital signage, da li Android boks ili mini-PC, kakav ekran vam stvarno treba i koliko šta otprilike košta. Hardver ne prodajemo."
+  },
+  "hero": {
+    "eyebrow": "Hardver",
+    "title": "Šta vam stvarno treba da kupite.",
+    "subtitle": "Tri stvari, a jednu verovatno već imate. Ne prodajemo hardver, što znači da nemamo razlog da vam kažemo da vam ga treba više nego što treba."
+  },
+  "intro": "Svaka signage postavka je ekran, plejer i softver. Softver smo mi; druga dva kupujete gde je najpovoljnije. Ova stranica je ono što bismo rekli prijatelju koji pita, uključujući i delove koji nas koštaju prodaje.",
+  "sections": [
+    {
+      "title": "Ekran",
+      "body": "Radi bilo koji televizor, monitor ili profesionalni displej sa HDMI ulazom. Običan televizor je stvarno sasvim u redu za zid u zatvorenom tokom normalnog radnog vremena i trajaće godinama. Dve situacije to menjaju: rad od šesnaest sati dnevno naviše, gde je komercijalni panel pravljen za taj režim a običan televizor nije; i dnevno svetlo koje pada na ekran, gde vam treba svetlina kakvu televizor iz dnevne sobe nema. Sve ostalo je preferencija, ne zahtev.",
+      "rows": [
+        ["U zatvorenom, ispod 12 sati dnevno", "Običan TV", "250–600 €"],
+        ["16+ sati dnevno, svaki dan", "Komercijalni panel", "700–1.500 €"],
+        ["Izlog, direktno sunce", "Displej visoke svetline", "1.500–4.000 €"],
+        ["Uzak stubac (meni, repertoar)", "Panel za vertikalu", "+20%"]
+      ]
+    },
+    {
+      "title": "Plejer",
+      "body": "Mali uređaj iza ekrana koji čuva vaš sadržaj i pušta ga. To je deo koji većina nikad nije kupovala i deo gde pogrešan izbor kasnije najviše košta, jer otkazuje tiho a ne očigledno. Android boks je pravi za slike, tekst i menije na jednom do tri ekrana do kojih lako dolazite. Mini-PC zarađuje svoju cenu za video, zone na ekranu, neprekidan rad, ili bilo gde gde retko svraćate.",
+      "rows": [
+        ["1–3 ekrana, slike i tekst", "Android TV boks", "50–120 €"],
+        ["Video, zone, ili 16+ sati", "Mini-PC", "150–350 €"],
+        ["Računar koji već stoji tu", "Iskoristite ga", "0 €"],
+        ["Ekran koji retko obilazite", "Mini-PC", "150–350 €"]
+      ]
+    },
+    {
+      "title": "Nosač i kablovi",
+      "body": "Lako se zaboravi i nezgodno se otkriva. VESA nosač, HDMI kabl dovoljne dužine, i utičnica u dometu oba. Vertikalna montaža traži nosač koji se rotira, a to ne rade svi. Računajte 30–80 € po ekranu i proverite utičnicu pre nego što isporuka stigne, a ne posle.",
+      "rows": []
+    },
+    {
+      "title": "Šta vam ne treba",
+      "body": "Ne treba vam server, poseban internet, plejer sa logom proizvođača signage softvera, ni trogodišnji ugovor za hardver. Ako vam dobavljač kaže da njihov softver radi samo na njihovoj kutiji, to je hardverski posao sa softverom u prilogu — legitiman model, ali ga tako i izračunajte: njihova marža, njihov ciklus zamene, njihov rok.",
+      "rows": []
+    }
+  ],
+  "faq": {
+    "title": "Pitanja o hardveru",
+    "items": [
+      {
+        "q": "Da li prodajete hardver?",
+        "a": "Ne, i to je namerno. To znači da nemamo interes da vam kažemo da vam treba komercijalni panel za zid u kafiću, a istu kutiju koju bismo vam prodali kupujete jeftinije nego što bismo je naplatili."
+      },
+      {
+        "q": "Hoće li raditi na televizoru koji već imam?",
+        "a": "Skoro sigurno, ako ima HDMI ulaz. Televizor ne mora da bude smart — plejer iza njega radi posao, a običan ekran je čak i bolji, jer nema interfejsa koji pokušava da preuzme."
+      },
+      {
+        "q": "Android boks ili mini-PC?",
+        "a": "Android boks za jedan do tri ekrana sa slikama i tekstom, negde gde možete da dođete. Mini-PC za video, zone, neprekidan rad, ili ekran koji radije ne biste obilazili. Napisali smo duže poređenje, jer se razlika vidi tek posle šest meseci."
+      },
+      {
+        "q": "Može li Raspberry Pi?",
+        "a": "Radiće, i za statičnu sliku je sasvim u redu. Za video ili zone se muči, a memorijska kartica je česta tačka otkaza pod stalnim upisom. Dobar izbor za prototip, loš za četrdeset ekrana."
+      },
+      {
+        "q": "Šta sa smart televizorima koji imaju ugrađen plejer?",
+        "a": "Neki rade. Problem je što proizvođač televizora kontroliše platformu, pa ažuriranje koje niste tražili može da vam pokvari postavku u utorak. Spoljni plejer je jedna kutija više i jedna zavisnost manje."
+      },
+      {
+        "q": "Koliko hardver traje?",
+        "a": "Komercijalni panel je obično deklarisan na 50.000 sati i više; običan televizor uopšte nije deklarisan za neprekidan rad ali obično traje nekoliko godina pri normalnim satima. Plejeri više variraju — jeftin Android boks pod stalnim opterećenjem je deo za dve do tri godine."
+      },
+      {
+        "q": "Šta se dešava posle nestanka struje?",
+        "a": "Plejer bi trebalo da se sam podigne pravo u sadržaj, bez da iko dira daljinski. Proverite to na uređaju koji kupujete, jer to ne radi svaka kutija podrazumevano — neke se probude na početni ekran i čekaju."
+      },
+      {
+        "q": "Treba li mi poseban plejer po ekranu?",
+        "a": "Jedan plejer vozi jedan ekran. Splitteri postoje ali prikazuju identičan sadržaj, čime se gubi najveći deo poente grupisanja ekrana po ulozi."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Softverska strana je {price} po ekranu.",
+    "body": "Sve mogućnosti uključene, {trialDays} dana besplatno, bez kartice. Hardver kupujete gde hoćete.",
+    "primary": "Počnite besplatno",
+    "secondary": "Pogledajte cene"
+  }
+}

@@ -370,7 +370,7 @@
         "label": "Canva account",
         "required": true,
         "provider": "canva",
-        "help": "Sign in once — Edge then finds your designs for you."
+        "help": "Sign in once — SignageWall then finds your designs for you."
       },
       {
         "key": "design",
@@ -1378,7 +1378,7 @@
         "label": "Facebook account",
         "required": true,
         "provider": "meta",
-        "help": "Sign in with the Facebook account that manages the Page. Edge only reads posts — it never posts on your behalf."
+        "help": "Sign in with the Facebook account that manages the Page. SignageWall only reads posts — it never posts on your behalf."
       },
       {
         "key": "page",
@@ -1470,7 +1470,7 @@
         "label": "Google account",
         "required": true,
         "provider": "google",
-        "help": "Sign in once. Edge only reads your calendars — it never adds, changes or deletes anything."
+        "help": "Sign in once. SignageWall only reads your calendars — it never adds, changes or deletes anything."
       },
       {
         "key": "calendar",
@@ -1585,7 +1585,7 @@
         "label": "Google account",
         "required": true,
         "provider": "google",
-        "help": "Sign in once — Edge then lists your spreadsheets to choose from."
+        "help": "Sign in once — SignageWall then lists your spreadsheets to choose from."
       },
       {
         "key": "spreadsheet",
@@ -1782,7 +1782,7 @@
         "label": "Google account",
         "required": true,
         "provider": "google",
-        "help": "Sign in once — Edge then lists your presentations to choose from."
+        "help": "Sign in once — SignageWall then lists your presentations to choose from."
       },
       {
         "key": "presentation",
@@ -2127,7 +2127,7 @@
         "label": "Facebook account",
         "required": true,
         "provider": "meta",
-        "help": "Sign in with the Facebook account that manages your Instagram. Edge only reads posts — it never posts, likes or messages."
+        "help": "Sign in with the Facebook account that manages your Instagram. SignageWall only reads posts — it never posts, likes or messages."
       },
       {
         "key": "account",
@@ -2491,7 +2491,7 @@
             "excel": "microsoft"
           }
         },
-        "help": "Sign in once — Edge then lists your files to choose from."
+        "help": "Sign in once — SignageWall then lists your files to choose from."
       },
       {
         "key": "spreadsheet",
@@ -2575,7 +2575,7 @@
           "worksheetKey": "worksheet",
           "itemsKey": "items"
         },
-        "help": "Tell Edge which spreadsheet column holds what. The first row is read as headers."
+        "help": "Tell SignageWall which spreadsheet column holds what. The first row is read as headers."
       },
       {
         "key": "syncedItems",
@@ -3229,7 +3229,7 @@
         "label": "Microsoft account",
         "required": true,
         "provider": "microsoft",
-        "help": "Sign in once. Edge only reads your calendars — it never adds, changes or deletes anything."
+        "help": "Sign in once. SignageWall only reads your calendars — it never adds, changes or deletes anything."
       },
       {
         "key": "calendar",
@@ -3633,7 +3633,7 @@
         "label": "Microsoft account",
         "required": true,
         "provider": "microsoft",
-        "help": "Sign in once. Edge only reads your files — it never changes or deletes anything."
+        "help": "Sign in once. SignageWall only reads your files — it never changes or deletes anything."
       },
       {
         "key": "presentation",
@@ -4746,7 +4746,7 @@
         "label": "Microsoft account",
         "required": true,
         "provider": "microsoft",
-        "help": "Sign in with a work or school account. Edge only reads channel messages — it never posts. Your Microsoft admin must approve message access the first time."
+        "help": "Sign in with a work or school account. SignageWall only reads channel messages — it never posts. Your Microsoft admin must approve message access the first time."
       },
       {
         "key": "channel",

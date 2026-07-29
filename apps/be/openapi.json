@@ -17884,7 +17884,7 @@
     }
   },
   "info": {
-    "title": "Edge API",
+    "title": "SignageWall API",
     "description": "Digital signage CMS API. Success responses use `{ success: true, data }`. Errors use `{ success: false, error: { code, message, details? } }`.",
     "version": "1",
     "contact": {}
@@ -19473,7 +19473,6 @@
         "type": "object",
         "properties": {
           "industry": {
-            "type": "string",
             "enum": [
               "retail",
               "hospitality",
@@ -19490,7 +19489,8 @@
               "events",
               "nonprofit",
               "other"
-            ]
+            ],
+            "type": "string"
           },
           "businessName": {
             "type": "string",
@@ -19502,7 +19502,6 @@
             "maxLength": 200
           },
           "primaryGoal": {
-            "type": "string",
             "enum": [
               "promotion",
               "announcement",
@@ -19510,10 +19509,10 @@
               "awareness",
               "welcome",
               "info"
-            ]
+            ],
+            "type": "string"
           },
           "tone": {
-            "type": "string",
             "enum": [
               "professional",
               "friendly",
@@ -19521,7 +19520,8 @@
               "playful",
               "luxurious",
               "minimal"
-            ]
+            ],
+            "type": "string"
           },
           "keyPoints": {
             "maxItems": 10,
@@ -19532,11 +19532,11 @@
             }
           },
           "language": {
-            "type": "string",
             "enum": [
               "en",
               "sr"
-            ]
+            ],
+            "type": "string"
           }
         },
         "required": [

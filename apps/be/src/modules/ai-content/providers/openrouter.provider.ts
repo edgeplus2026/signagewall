@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import type { AiGenerationInput } from '@edge/apps-contract';
+import type { AiGenerationInput } from '@signagewall/apps-contract';
 
 import { AiContentProvider, AiGenerateOptions } from './ai-provider.interface';
 

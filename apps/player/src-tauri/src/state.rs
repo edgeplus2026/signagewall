@@ -1,5 +1,5 @@
 //! On-disk state types + atomic IO shared by the player shell and the standalone
-//! `edge-watchdog` supervisor.
+//! `signagewall-watchdog` supervisor.
 //!
 //! Everything here is pure `std` + `serde` — NO Tauri — so the watchdog binary
 //! can include this file via `#[path = "../state.rs"] mod state;` without linking
@@ -219,7 +219,7 @@ mod tests {
     fn state_round_trips_through_json() {
         let state = UpdaterState {
             last_good_version: Some("0.1.0".into()),
-            last_good_installer: Some("/tmp/edge-player-0.1.0.exe".into()),
+            last_good_installer: Some("/tmp/signagewall-player-0.1.0.exe".into()),
             last_good_sha256: Some("deadbeef".into()),
             pending_version: Some("0.2.0".into()),
             last_result: Some("installing".into()),
@@ -274,8 +274,8 @@ mod tests {
         assert_eq!(lv, back);
 
         let pi = PlayerInfo {
-            exe_path: "/Applications/EdgeRize Player.app/edge-player".into(),
-            image_name: "edge-player".into(),
+            exe_path: "/Applications/SignageWall Player.app/signagewall-player".into(),
+            image_name: "signagewall-player".into(),
         };
         let raw = serde_json::to_string(&pi).unwrap();
         assert!(
@@ -291,7 +291,7 @@ mod tests {
         // PID-suffixed: this file is also `#[path]`-included by the watchdog bin,
         // so its tests run in a second test process — a shared dir name would race.
         let dir =
-            std::env::temp_dir().join(format!("edge-player-atomic-test-{}", std::process::id()));
+            std::env::temp_dir().join(format!("signagewall-player-atomic-test-{}", std::process::id()));
         let _ = fs::create_dir_all(&dir);
         let target = dir.join("state.json");
         write_atomic(&target, b"{\"lastResult\":\"one\"}").unwrap();
@@ -306,7 +306,7 @@ mod tests {
     #[test]
     fn read_and_write_state_at_round_trip() {
         let dir =
-            std::env::temp_dir().join(format!("edge-player-state-at-test-{}", std::process::id()));
+            std::env::temp_dir().join(format!("signagewall-player-state-at-test-{}", std::process::id()));
         let _ = fs::create_dir_all(&dir);
         let target = dir.join("state.json");
         let state = UpdaterState {

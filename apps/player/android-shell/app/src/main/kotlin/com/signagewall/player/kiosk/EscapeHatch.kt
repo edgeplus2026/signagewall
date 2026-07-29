@@ -1,4 +1,4 @@
-package com.edgerize.player.kiosk
+package com.signagewall.player.kiosk
 
 import android.os.Handler
 import android.os.Looper

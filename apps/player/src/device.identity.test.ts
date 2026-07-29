@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
  * fresh so the in-memory `cachedDeviceId` never leaks across tests.
  */
 
-const DEVICE_ID_KEY = 'edge.player.deviceId'
+const DEVICE_ID_KEY = 'signagewall.player.deviceId'
 const URL_UUID = '3f2a1b4c-5d6e-7a8b-9c0d-1e2f3a4b5c6d'
 const STORED_UUID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 const MINTED_UUID = '11111111-2222-3333-4444-555555555555'

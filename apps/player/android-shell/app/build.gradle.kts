@@ -4,11 +4,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-// Per-environment config, injected by CI (`-PedgePlayerUrl=… -PversionName=… -PversionCode=…`).
+// Per-environment config, injected by CI (`-PsignagewallPlayerUrl=… -PversionName=… -PversionCode=…`).
 // Dev defaults mirror the Tauri shell's DEFAULT_PLAYER_URL so `./gradlew installDebug`
 // just works against a local vite player (10.0.2.2 = host loopback from the emulator).
-val edgePlayerUrl: String =
-    (project.findProperty("edgePlayerUrl") as String?) ?: "http://10.0.2.2:5174"
+val signagewallPlayerUrl: String =
+    (project.findProperty("signagewallPlayerUrl") as String?) ?: "http://10.0.2.2:5174"
 val updateManifestUrl: String =
     (project.findProperty("updateManifestUrl") as String?) ?: ""
 val appVersionName: String = (project.findProperty("versionName") as String?) ?: "0.1.0"
@@ -16,13 +16,13 @@ val appVersionCode: Int =
     (project.findProperty("versionCode") as String?)?.toInt() ?: 1
 
 android {
-    namespace = "com.edgerize.player"
+    namespace = "com.signagewall.player"
     compileSdk = 35
 
     defaultConfig {
         // Reused from the Tauri shell (`tauri.conf.json` identifier) so the device
         // identity + R2 release pathing stay consistent across desktop and mobile.
-        applicationId = "com.edgerize.player"
+        applicationId = "com.signagewall.player"
         // 26 (Android 8.0): adaptive icons are pure-XML (no binary mipmaps needed),
         // and Device Owner / LockTask / silent PackageInstaller are all robust from
         // here. Lowering it requires adding PNG launcher densities — see README.
@@ -31,7 +31,7 @@ android {
         versionCode = appVersionCode
         versionName = appVersionName
 
-        buildConfigField("String", "EDGE_PLAYER_URL", "\"$edgePlayerUrl\"")
+        buildConfigField("String", "SIGNAGEWALL_PLAYER_URL", "\"$signagewallPlayerUrl\"")
         buildConfigField("String", "UPDATE_MANIFEST_URL", "\"$updateManifestUrl\"")
         // Hashed admin PIN for the hidden settings / escape hatch (SHA-256 hex).
         // Overridden per-fleet via -PkioskPinSha256; default is the hash of "0000".

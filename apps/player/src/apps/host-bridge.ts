@@ -2,7 +2,7 @@ import {
   APP_ACTIVE_TYPE,
   APP_CONFIG_TYPE,
   isAppReadyMessage,
-} from '@edge/apps-contract'
+} from '@signagewall/apps-contract'
 
 import type { AppRenderable } from '../types'
 
@@ -13,7 +13,7 @@ import type { AppRenderable } from '../types'
  * `${appsBase}/<slug>/index.html`. The player has no per-app code: it mounts a
  * sandboxed iframe, waits for the bundle to announce itself, then hands it the
  * instance config + connector payload over `postMessage`. The message protocol
- * is the shared one in `@edge/apps-contract` (`host-protocol.ts`):
+ * is the shared one in `@signagewall/apps-contract` (`host-protocol.ts`):
  *
  *   1. app → host:  `{ type: 'app-ready' }` once the bundle is listening.
  *   2. host → app:  `{ type: 'app-config', config, data, meta }` addressed to

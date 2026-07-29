@@ -1,6 +1,6 @@
 ---
 description: Tailwind CSS and shadcn UI styling conventions
-globs: edge-fe/**/*
+globs: apps/cms/**/*
 alwaysApply: false
 ---
 
