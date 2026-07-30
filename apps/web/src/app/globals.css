@@ -103,6 +103,31 @@
   }
 }
 
+/* The 404 illustration's dead screen searching for a signal. Motion is opt-out,
+   not opt-in: without it the line simply rests at the top of the panel. */
+@keyframes screen-scan {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(96px);
+  }
+}
+
+.screen-scan {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: screen-scan 3.2s ease-in-out infinite;
+  }
+}
+
 /* The hero television turns to face you as the page scrolls.
  *
  * Scroll-driven, so it is the scrollbar that moves it rather than a timer — no
