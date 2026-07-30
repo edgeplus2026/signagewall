@@ -2,6 +2,11 @@
 /* Seed the blog: categories, stock photography and 20 bilingual posts.
    Run with env loaded:  pnpm payload run scripts/seed-posts.ts
 
+   If object storage is temporarily unavailable, `text-only` explicitly skips
+   media without changing the canonical image manifest. A later normal run
+   uploads the images and updates the same post records in place:
+     pnpm payload run scripts/seed-posts.ts text-only
+
    Idempotent on slug. Cover and figure photography comes from Pexels (see
    scripts/data/post-images.ts for the per-image search terms) and is downloaded
    and re-uploaded into our own Media collection rather than hot-linked, so
@@ -18,11 +23,19 @@ import { getPayload } from 'payload'
 import config from '../src/payload.config'
 import { POST_IMAGES } from './data/post-images'
 import { CATEGORIES, POSTS } from './data/posts'
-import { POSTS_DEEP } from './data/posts-deep'
-import { downloadPhoto, findPhoto } from './lib/pexels'
+import { POSTS_FULL } from './data/posts-full'
 
 const payload = await getPayload({ config })
 const workDir = mkdtempSync(join(tmpdir(), 'signagewall-covers-'))
+const CONTENT_REVIEWED_AT = '2026-07-30T00:00:00.000Z'
+const TEXT_ONLY = process.argv.includes('text-only')
+const pexels = TEXT_ONLY ? null : await import('./lib/pexels')
+
+if (TEXT_ONLY) {
+  console.warn(
+    'text-only mode: skipping Blog cover and inline image uploads; rerun the normal seed when object storage is available',
+  )
+}
 
 // --- lexical helpers --------------------------------------------------------
 const text = (t) => ({
@@ -96,36 +109,63 @@ const doc = (nodes) => ({
 /** Turns the compact block tuples in data/posts.ts into a lexical document. */
 function toLexical(blocks, figureIds) {
   return doc(
-    blocks.map((b) => {
-      const [kind, value] = b
-      if (kind === 'h') return head(value)
-      if (kind === 'h3') return head(value, 'h3')
-      if (kind === 'ul') return list(value, false)
-      if (kind === 'ol') return list(value, true)
-      if (kind === 'quote') return quote(value)
-      if (kind === 'fig') return upload(figureIds[value])
-      return para(value)
-    }),
+    blocks
+      .map((b) => {
+        const [kind, value] = b
+        if (kind === 'h') return head(value)
+        if (kind === 'h3') return head(value, 'h3')
+        if (kind === 'ul') return list(value, false)
+        if (kind === 'ol') return list(value, true)
+        if (kind === 'quote') return quote(value)
+        if (kind === 'fig') {
+          const figureId = figureIds[value]
+          return figureId ? upload(figureId) : null
+        }
+        return para(value)
+      })
+      .filter(Boolean),
   )
 }
 
 async function upsertPhoto(filename, spec, locale = 'sr') {
+  if (!pexels) throw new Error('photo upload called in text-only mode')
   const existing = await payload.find({
     collection: 'media',
     where: { filename: { equals: filename } },
     limit: 1,
     depth: 0,
   })
-  if (existing.docs[0]) return existing.docs[0].id
+  if (existing.docs[0]) {
+    const id = existing.docs[0].id
+    await payload.update({
+      collection: 'media',
+      id,
+      data: {
+        alt: spec.alt.sr,
+        ...(spec.caption ? { caption: spec.caption.sr } : {}),
+      },
+      locale: 'sr',
+    })
+    await payload.update({
+      collection: 'media',
+      id,
+      data: {
+        alt: spec.alt.en,
+        ...(spec.caption ? { caption: spec.caption.en } : {}),
+      },
+      locale: 'en',
+    })
+    return id
+  }
 
-  const photo = await findPhoto(spec.query)
+  const photo = await pexels.findPhoto(spec.query)
   if (!photo) {
     // Loud rather than silent: a post with no image is a content problem the
     // seed can't solve, and a fallback would hide which query needs rewriting.
     throw new Error(`no Pexels result for "${spec.query}" (${filename})`)
   }
 
-  const buffer = await downloadPhoto(photo.url)
+  const buffer = await pexels.downloadPhoto(photo.url)
   const filePath = join(workDir, filename)
   writeFileSync(filePath, buffer)
 
@@ -194,16 +234,18 @@ for (const post of POSTS) {
   const images = POST_IMAGES[post.slug]
   if (!images) throw new Error(`no image manifest for ${post.slug}`)
 
-  const coverId = await upsertPhoto(`${post.slug}-cover.jpg`, images.cover)
+  const coverId = TEXT_ONLY ? null : await upsertPhoto(`${post.slug}-cover.jpg`, images.cover)
 
   const figureIds = []
-  for (const [i, figure] of (images.figures ?? []).entries()) {
-    figureIds.push(await upsertPhoto(`${post.slug}-fig-${String(i + 1)}.jpg`, figure))
+  if (!TEXT_ONLY) {
+    for (const [i, figure] of (images.figures ?? []).entries()) {
+      figureIds.push(await upsertPhoto(`${post.slug}-fig-${String(i + 1)}.jpg`, figure))
+    }
   }
 
   const base = {
     slug: post.slug,
-    coverImage: coverId,
+    ...(coverId ? { coverImage: coverId } : {}),
     category: categoryIds[post.category],
     publishedAt: post.publishedAt,
     _status: 'published',
@@ -223,10 +265,9 @@ for (const post of POSTS) {
   let id = existing.docs[0]?.id
   const existed = Boolean(id)
 
-  /* Full-length replacement, where one has been written. Only `content` is
-     overridden — title, excerpt and meta stay in the base file so there is one
-     place to edit them. */
-  const deep = POSTS_DEEP[post.slug]
+  const editorial = POSTS_FULL[post.slug]
+  if (!editorial) throw new Error(`no full editorial content for ${post.slug}`)
+  const existingSrSeo = existing.docs[0]?.seo ?? {}
 
   const srData = {
     ...base,
@@ -234,8 +275,30 @@ for (const post of POSTS) {
     metaTitle: post.sr.metaTitle,
     metaDescription: post.sr.metaDescription,
     excerpt: post.sr.excerpt,
-    content: toLexical(deep?.sr?.content ?? post.sr.content, figureIds),
+    content: toLexical(editorial.sr.content, figureIds),
+    keyTakeaways: editorial.sr.takeaways.map((text) => ({ text })),
+    references: (editorial.sr.references ?? []).map((reference) => ({ ...reference })),
+    intent: editorial.sr.intent,
+    seoWorkflowVersion: 1,
+    seo: {
+      ...existingSrSeo,
+      metaTitle: post.sr.metaTitle,
+      metaDescription: post.sr.metaDescription,
+      indexable: true,
+    },
+    localeReady: true,
+    lastReviewedAt: CONTENT_REVIEWED_AT,
   }
+
+  const existingEn = id
+    ? await payload.findByID({
+        collection: 'posts',
+        id,
+        locale: 'en',
+        fallbackLocale: false,
+        depth: 0,
+      })
+    : null
   const enData = {
     /* The English slug has to be written explicitly. `slug` is localised with
        fallback, so omitting it here does not leave the field empty — it serves
@@ -247,7 +310,19 @@ for (const post of POSTS) {
     metaTitle: post.en.metaTitle,
     metaDescription: post.en.metaDescription,
     excerpt: post.en.excerpt,
-    content: toLexical(deep?.en?.content ?? post.en.content, figureIds),
+    content: toLexical(editorial.en.content, figureIds),
+    keyTakeaways: editorial.en.takeaways.map((text) => ({ text })),
+    references: (editorial.en.references ?? []).map((reference) => ({ ...reference })),
+    intent: editorial.en.intent,
+    seoWorkflowVersion: 1,
+    seo: {
+      ...(existingEn?.seo ?? {}),
+      metaTitle: post.en.metaTitle,
+      metaDescription: post.en.metaDescription,
+      indexable: true,
+    },
+    localeReady: true,
+    lastReviewedAt: CONTENT_REVIEWED_AT,
     _status: 'published',
   }
 

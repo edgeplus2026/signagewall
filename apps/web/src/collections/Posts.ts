@@ -1,13 +1,31 @@
 import type { CollectionConfig } from 'payload'
 
+import { publishedOrAuthenticated } from '../access/published-or-authenticated'
+import { intentField } from '../fields/content-intent'
+import {
+  initializeSeoWorkflow,
+  publishingFields,
+  seoWorkflowVersionField,
+} from '../fields/publishing'
+import { relatedContentFields } from '../fields/related-content'
+import { legacyMetaFields, seoField } from '../fields/seo'
+import { validateSlug } from '../fields/slug'
+import { validateAbsoluteHttpUrl } from '../fields/url'
+import { contentRevalidationHooks } from '../lib/content-revalidation'
+
 export const Posts: CollectionConfig = {
   slug: 'posts',
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'category', 'publishedAt', '_status'],
+    group: 'Content',
   },
-  access: { read: () => true },
+  access: { read: publishedOrAuthenticated },
   versions: { drafts: true },
+  hooks: {
+    ...contentRevalidationHooks('posts'),
+    beforeValidate: [initializeSeoWorkflow],
+  },
   fields: [
     { name: 'title', type: 'text', required: true, localized: true },
     {
@@ -17,34 +35,54 @@ export const Posts: CollectionConfig = {
       unique: true,
       index: true,
       localized: true,
+      validate: validateSlug,
       admin: {
         description:
-          'URL segment, per language — /blog/<slug> and /en/blog/<slug>. Write it in the language of the post. Changing it breaks existing links.',
+          'URL segment, per language — /blog/<slug> and /sr/blog/<slug>. Write it in the language of the post. Changing it requires a redirect.',
       },
     },
     { name: 'excerpt', type: 'textarea', localized: true },
-    /* Same pair as Solutions. Without them the <title> was the raw headline —
-       written to be read on the page, not to win a click in a result list —
-       and the description was whatever the excerpt happened to be. */
-    {
-      name: 'metaTitle',
-      type: 'text',
-      localized: true,
-      admin: {
-        description:
-          'Search-result title. Falls back to the post title. Aim for under ~60 characters and lead with the term people search for.',
-      },
-    },
-    {
-      name: 'metaDescription',
-      type: 'textarea',
-      localized: true,
-      admin: { description: 'Falls back to the excerpt. Aim for 140–160 characters.' },
-    },
+    ...legacyMetaFields({
+      titleFallback:
+        'Search-result title. Falls back to the post title and should lead with the term people search for.',
+      descriptionFallback: 'Falls back to the excerpt.',
+    }),
     { name: 'coverImage', type: 'upload', relationTo: 'media' },
     { name: 'category', type: 'relationship', relationTo: 'categories' },
     { name: 'author', type: 'relationship', relationTo: 'users' },
     { name: 'publishedAt', type: 'date' },
     { name: 'content', type: 'richText', localized: true },
+    {
+      name: 'keyTakeaways',
+      type: 'array',
+      localized: true,
+      labels: { singular: 'Key takeaway', plural: 'Key takeaways' },
+      admin: {
+        description:
+          'Optional concise conclusions for readers. Do not use these to repeat the introduction.',
+      },
+      fields: [{ name: 'text', type: 'text', required: true }],
+    },
+    {
+      name: 'references',
+      type: 'array',
+      localized: true,
+      labels: { singular: 'Reference', plural: 'References' },
+      admin: {
+        description: 'Primary sources and evidence used for claims in this language version.',
+      },
+      fields: [
+        { name: 'title', type: 'text', required: true },
+        { name: 'url', type: 'text', required: true, validate: validateAbsoluteHttpUrl },
+      ],
+    },
+    intentField(),
+    seoWorkflowVersionField(),
+    seoField({
+      contentFields: ['excerpt', 'content', 'keyTakeaways'],
+      minimumWords: 350,
+    }),
+    ...publishingFields(),
+    ...relatedContentFields(),
   ],
 }

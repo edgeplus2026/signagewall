@@ -26,6 +26,11 @@ export function absoluteUrl(locale: string, route: Route = '/'): string {
   return `${SITE_URL}${pathname}`
 }
 
+/** Public pathname for route-level redirects and diagnostics. */
+export function publicPath(locale: string, route: Route = '/'): string {
+  return new URL(absoluteUrl(locale, route)).pathname
+}
+
 /**
  * A pair of *slugs*, one per language — Payload slugs are localised, so a post
  * is a different segment in each. This is data, not a route: `lib/posts` and
@@ -44,6 +49,9 @@ export interface LocaleRoutes {
   sr: Route
   en: Route
 }
+
+export type SeoLocale = 'sr' | 'en'
+export type LocaleAvailability = Partial<Record<SeoLocale, boolean>>
 
 function isLocaleRoutes(route: Route | LocaleRoutes): route is LocaleRoutes {
   return typeof route === 'object' && 'sr' in route
@@ -64,6 +72,8 @@ export interface OpenGraphOptions {
   image?: string | undefined
   publishedTime?: string | undefined
   modifiedTime?: string | undefined
+  /** Resolved canonical URL for consolidated or syndicated content. */
+  canonical?: string | undefined
 }
 
 /**
@@ -84,6 +94,7 @@ export function openGraphMeta({
   image,
   publishedTime,
   modifiedTime,
+  canonical,
 }: OpenGraphOptions): Metadata['openGraph'] {
   const paths: LocaleRoutes = isLocaleRoutes(path) ? path : { sr: path, en: path }
   const self = locale === 'en' ? paths.en : paths.sr
@@ -98,13 +109,47 @@ export function openGraphMeta({
     siteName: 'SignageWall',
     locale: OG_LOCALES[locale] ?? OG_LOCALES.en,
     alternateLocale: locale === 'en' ? OG_LOCALES.sr : OG_LOCALES.en,
-    url: absoluteUrl(locale, self),
+    url: resolveCanonicalUrl(canonical) ?? absoluteUrl(locale, self),
     title,
     ...(description ? { description } : {}),
     // Falls back to the generated locale card rather than to nothing.
-    images: [image ?? generatedCard],
+    images: [absoluteAssetUrl(image ?? generatedCard)],
     ...(type === 'article' && publishedTime ? { publishedTime } : {}),
     ...(type === 'article' && modifiedTime ? { modifiedTime } : {}),
+  }
+}
+
+/**
+ * Turns a media/file path into an absolute public URL.
+ *
+ * Next's `metadataBase` resolves relative values inside the Metadata API, but
+ * it cannot reach strings embedded in JSON-LD. Keeping this helper public lets
+ * both metadata and structured data use the exact same origin handling.
+ */
+export function absoluteAssetUrl(value: string): string {
+  if (/^https?:\/\//i.test(value)) return value
+  return `${SITE_URL}/${value.replace(/^\/+/, '')}`
+}
+
+/**
+ * Accepts only an absolute HTTP(S) canonical.
+ *
+ * Payload validates the field on write, but this remains a defensive boundary
+ * for legacy records and keeps metadata and JSON-LD resolution identical.
+ */
+export function resolveCanonicalUrl(value: string | undefined): string | undefined {
+  const candidate = value?.trim()
+  if (!candidate) return undefined
+
+  try {
+    const parsed = new URL(candidate)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return undefined
+    // Canonical link targets are document URLs; fragments are not part of the
+    // resource identity and would also break JSON-LD fragment IDs.
+    parsed.hash = ''
+    return parsed.toString()
+  } catch {
+    return undefined
   }
 }
 
@@ -123,18 +168,99 @@ export function openGraphMeta({
 export function localeAlternates(
   locale: string,
   path: Route | LocaleRoutes = '/',
+  availability: LocaleAvailability = { en: true, sr: true },
 ): Metadata['alternates'] {
   const paths: LocaleRoutes = isLocaleRoutes(path) ? path : { sr: path, en: path }
-  const self = locale === 'en' ? paths.en : paths.sr
+  const currentLocale: SeoLocale = locale === 'sr' ? 'sr' : 'en'
+  const self = currentLocale === 'en' ? paths.en : paths.sr
+  const languages: Record<string, string> = {}
+
+  if (availability.en !== false) languages.en = absoluteUrl('en', paths.en)
+  if (availability.sr !== false) languages.sr = absoluteUrl('sr', paths.sr)
+
+  // English is the default locale. If that translation is not ready, point
+  // unmatched visitors at Serbian rather than advertising a missing URL.
+  if (availability.en !== false) {
+    languages['x-default'] = absoluteUrl('en', paths.en)
+  } else if (availability.sr !== false) {
+    languages['x-default'] = absoluteUrl('sr', paths.sr)
+  }
+
+  return { canonical: absoluteUrl(currentLocale, self), languages }
+}
+
+export interface PageMetadataOptions extends OpenGraphOptions {
+  /** A page may stay usable while editorial work is unfinished. */
+  indexable?: boolean
+  /** Hreflang must not advertise an untranslated/fallback page. */
+  availability?: LocaleAvailability
+  /** Rare escape hatch for syndicated/consolidated content. Self is the default. */
+  canonical?: string | undefined
+  /** Social copy can be more descriptive than the search-result title. */
+  ogTitle?: string | undefined
+  ogDescription?: string | undefined
+}
+
+/**
+ * Complete metadata for an indexable page.
+ *
+ * Open Graph and Twitter deliberately come from one input. Previously a child
+ * route could replace Open Graph while silently inheriting the site's generic
+ * Twitter title and description from the locale layout.
+ */
+export function pageMetadata({
+  locale,
+  path,
+  title,
+  description,
+  type = 'website',
+  image,
+  publishedTime,
+  modifiedTime,
+  indexable = true,
+  availability,
+  canonical,
+  ogTitle,
+  ogDescription,
+}: PageMetadataOptions): Metadata {
+  const alternates = localeAlternates(locale, path, availability)
+  const canonicalUrl = resolveCanonicalUrl(canonical)
+  const localeRoot = absoluteUrl(locale, '/').replace(/\/$/, '')
+  const resolvedImage = image
+    ? absoluteAssetUrl(image)
+    : absoluteAssetUrl(`${localeRoot}/opengraph-image`)
+  const socialDescription = ogDescription ?? description
 
   return {
-    canonical: absoluteUrl(locale, self),
-    languages: {
-      en: absoluteUrl('en', paths.en),
-      sr: absoluteUrl('sr', paths.sr),
-      // English is the default locale, so it is where an unmatched language
-      // lands. Must stay in step with the sitemap's x-default.
-      'x-default': absoluteUrl('en', paths.en),
+    title,
+    ...(description ? { description } : {}),
+    // A consolidated URL must not advertise local hreflang siblings unless
+    // the canonical target supplies a reciprocal cluster of its own. The CMS
+    // cannot verify that external contract, so canonical override is fail-safe:
+    // one canonical and no alternate-language claims.
+    alternates: canonicalUrl ? { canonical: canonicalUrl } : alternates,
+    robots: {
+      index: indexable,
+      // Links from an editorially unfinished page still help discovery of the
+      // finished pages it references.
+      follow: true,
+    },
+    openGraph: openGraphMeta({
+      locale,
+      path,
+      title: ogTitle ?? title,
+      description: ogDescription ?? description,
+      type,
+      image: resolvedImage,
+      publishedTime,
+      modifiedTime,
+      canonical: canonicalUrl,
+    }),
+    twitter: {
+      card: 'summary_large_image',
+      title: ogTitle ?? title,
+      ...(socialDescription ? { description: socialDescription } : {}),
+      images: [resolvedImage],
     },
   }
 }

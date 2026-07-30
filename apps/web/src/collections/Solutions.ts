@@ -1,5 +1,16 @@
 import type { CollectionConfig } from 'payload'
 
+import { publishedOrAuthenticated } from '../access/published-or-authenticated'
+import { intentField } from '../fields/content-intent'
+import {
+  initializeSeoWorkflow,
+  publishingFields,
+  seoWorkflowVersionField,
+} from '../fields/publishing'
+import { relatedContentFields } from '../fields/related-content'
+import { legacyMetaFields, seoField } from '../fields/seo'
+import { validateSlug } from '../fields/slug'
+import { contentRevalidationHooks } from '../lib/content-revalidation'
 import { SOLUTION_ICON_KEYS } from '../lib/solution-icons'
 
 /**
@@ -7,8 +18,8 @@ import { SOLUTION_ICON_KEYS } from '../lib/solution-icons'
  * be edited without a deploy; the *icon* stays a code-side key because a React
  * component can't be stored in Mongo.
  *
- * `faq` is not decoration — it renders as FAQPage structured data, which is the
- * cheapest rich result an industry page can earn.
+ * `faq` is not decoration: the same factual answers feed the visible page and
+ * structured data, so the two representations cannot drift apart.
  */
 export const Solutions: CollectionConfig = {
   slug: 'solutions',
@@ -17,8 +28,12 @@ export const Solutions: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'order', '_status'],
     group: 'Content',
   },
-  access: { read: () => true },
+  access: { read: publishedOrAuthenticated },
   versions: { drafts: true },
+  hooks: {
+    ...contentRevalidationHooks('solutions'),
+    beforeValidate: [initializeSeoWorkflow],
+  },
   defaultSort: 'order',
   fields: [
     { name: 'name', type: 'text', required: true, localized: true },
@@ -29,9 +44,10 @@ export const Solutions: CollectionConfig = {
       unique: true,
       index: true,
       localized: true,
+      validate: validateSlug,
       admin: {
         description:
-          'URL segment, per language — /solutions/<slug> and /en/solutions/<slug>. Changing it breaks existing links.',
+          'URL segment, per language — /solutions/<slug> and /sr/resenja/<slug>. Changing it requires a redirect.',
       },
     },
     {
@@ -56,18 +72,10 @@ export const Solutions: CollectionConfig = {
     },
     { name: 'title', type: 'text', required: true, localized: true },
     { name: 'subtitle', type: 'textarea', localized: true },
-    {
-      name: 'metaTitle',
-      type: 'text',
-      localized: true,
-      admin: { description: 'Falls back to the page title. Aim for under ~60 characters.' },
-    },
-    {
-      name: 'metaDescription',
-      type: 'textarea',
-      localized: true,
-      admin: { description: 'Falls back to the subtitle. Aim for 140–160 characters.' },
-    },
+    ...legacyMetaFields({
+      titleFallback: 'Falls back to the page title.',
+      descriptionFallback: 'Falls back to the subtitle.',
+    }),
     {
       name: 'intro',
       type: 'textarea',
@@ -93,10 +101,10 @@ export const Solutions: CollectionConfig = {
       name: 'proof',
       type: 'group',
       localized: true,
-      label: 'Worked example',
+      label: 'Practical example',
       admin: {
         description:
-          'One concrete calculation for this industry — what the old way costs per year against the subscription. Specific numbers are what a reader repeats to a colleague.',
+          'A clearly labelled illustrative workflow or calculation. Never present an invented example as a customer result, and do not promise an outcome that has not been measured.',
       },
       fields: [
         { name: 'title', type: 'text' },
@@ -108,7 +116,7 @@ export const Solutions: CollectionConfig = {
       type: 'text',
       admin: {
         description:
-          'Comma-separated app slugs from the @signagewall/apps catalog, e.g. "menu,weather,currency". Renders as links to /apps/<slug> — the internal linking the industry pages currently have none of. Not localised: slugs are the same in both languages.',
+          'Legacy comma-separated app keys. Existing pages still read this field; migrate values to Related apps before retiring it.',
       },
     },
     {
@@ -132,5 +140,16 @@ export const Solutions: CollectionConfig = {
         { name: 'a', type: 'textarea', required: true },
       ],
     },
+    intentField(),
+    seoWorkflowVersionField(),
+    seoField({
+      contentFields: ['tagline', 'subtitle', 'intro', 'scenarios', 'proof', 'benefits', 'faq'],
+      minimumWords: 300,
+    }),
+    ...publishingFields(),
+    ...relatedContentFields({
+      appsDescription:
+        'Structured replacement for the legacy Recommended apps keys. Select the app pages that genuinely support this industry.',
+    }),
   ],
 }

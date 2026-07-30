@@ -1,12 +1,20 @@
-import { getPayloadClient } from '@/lib/payload'
-import type { LocalePaths } from '@/lib/seo'
+import {
+  contentRecordIsApproved,
+  editorialStateFromDocument,
+  getPayloadClient,
+  legacyContentDefaults,
+  STRICT_CONTENT_GATES,
+} from '@/lib/payload'
+import type { LocaleAvailability, LocalePaths } from '@/lib/seo'
 
 /**
  * Slug pair + last-modified for every published post — the sitemap's view of the
  * blog. Slugs are localised, so each post contributes a different URL per
  * language and both have to come back from one pass.
  */
-export async function listPostRefs(): Promise<{ slug: LocalePaths; updatedAt: string }[]> {
+export async function listPostRefs(): Promise<
+  { slug: LocalePaths; availability: LocaleAvailability; updatedAt: string }[]
+> {
   const payload = await getPayloadClient()
   const { docs } = await payload.find({
     collection: 'posts',
@@ -16,9 +24,18 @@ export async function listPostRefs(): Promise<{ slug: LocalePaths; updatedAt: st
     sort: '-publishedAt',
     depth: 0,
     limit: 1000,
-    select: { slug: true, updatedAt: true },
+    select: { slug: true, localeReady: true, seo: true, updatedAt: true },
   })
-  return docs.map((d) => ({ slug: d.slug as unknown as LocalePaths, updatedAt: d.updatedAt }))
+  return docs
+    .map((d) => {
+      const state = editorialStateFromDocument(d, legacyContentDefaults())
+      return {
+        slug: state.slugs,
+        availability: state.availability,
+        updatedAt: d.updatedAt,
+      }
+    })
+    .filter((post) => [post.availability.en, post.availability.sr].some(Boolean))
 }
 
 export interface RelatedPost {
@@ -43,19 +60,28 @@ export async function listRelatedPosts(
   locale: string,
   currentId: string,
   categoryId: string | null,
+  preferredIds: string[] = [],
   limit = 3,
 ): Promise<RelatedPost[]> {
   const payload = await getPayloadClient()
 
-  const query = async (sameCategory: boolean, take: number) => {
+  const query = async (sameCategory: boolean, take: number, ids: string[] = []) => {
     if (take <= 0) return []
     const { docs } = await payload.find({
       collection: 'posts',
       locale: locale as 'sr' | 'en',
+      fallbackLocale: false,
       where: {
         and: [
           { _status: { equals: 'published' } },
+          {
+            localeReady: STRICT_CONTENT_GATES ? { equals: true } : { not_equals: false },
+          },
+          {
+            'seo.indexable': STRICT_CONTENT_GATES ? { equals: true } : { not_equals: false },
+          },
           { id: { not_equals: currentId } },
+          ...(ids.length > 0 ? [{ id: { in: ids } }] : []),
           ...(sameCategory && categoryId ? [{ category: { equals: categoryId } }] : []),
         ],
       },
@@ -63,14 +89,23 @@ export async function listRelatedPosts(
       depth: 1,
       limit: take,
     })
-    return docs
+    return docs.filter((doc) => contentRecordIsApproved(doc))
   }
 
-  const primary = categoryId ? await query(true, limit) : []
-  const seen = new Set(primary.map((d) => d.id))
-  const filler = (await query(false, limit + primary.length)).filter((d) => !seen.has(d.id))
+  const explicitlyRelated = preferredIds.length > 0 ? await query(false, limit, preferredIds) : []
+  const byId = new Map(explicitlyRelated.map((doc) => [doc.id, doc]))
+  const orderedExplicit = preferredIds.map((id) => byId.get(id)).filter((doc) => doc !== undefined)
 
-  return [...primary, ...filler].slice(0, limit).map((d) => ({
+  const primary =
+    orderedExplicit.length < limit && categoryId
+      ? await query(true, limit - orderedExplicit.length)
+      : []
+  const explicitIds = new Set(orderedExplicit.map((d) => d.id))
+  const dedupedPrimary = primary.filter((d) => !explicitIds.has(d.id))
+  const seen = new Set([...explicitIds, ...dedupedPrimary.map((d) => d.id)])
+  const filler = (await query(false, limit + seen.size)).filter((d) => !seen.has(d.id))
+
+  return [...orderedExplicit, ...dedupedPrimary, ...filler].slice(0, limit).map((d) => ({
     slug: d.slug,
     title: d.title,
     excerpt: d.excerpt ?? '',

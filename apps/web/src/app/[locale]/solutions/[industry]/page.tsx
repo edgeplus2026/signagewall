@@ -3,21 +3,27 @@ import { notFound } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import { AppCard } from '@/components/apps/app-card'
+import { BlogCard } from '@/components/blog/blog-card'
+import { ContentBreadcrumbs, ContentFaq, ProofBlock, RelatedContent } from '@/components/content'
 import { CtaBand } from '@/components/marketing/cta-band'
 import { PageHero } from '@/components/marketing/page-hero'
 import { SectionHeader } from '@/components/marketing/section-header'
 import { Reveal } from '@/components/motion/reveal'
-import { BreadcrumbJsonLd, FaqJsonLd, ServiceJsonLd } from '@/components/seo/json-ld'
+import { BreadcrumbJsonLd, ServiceJsonLd } from '@/components/seo/json-ld'
 import { SolutionIcon } from '@/components/solutions/solution-icon'
-import { Faq } from '@/components/ui/faq'
+import { CatalogCard } from '@/components/ui/catalog-card'
 import { IconBadge } from '@/components/ui/icon-badge'
 import { Prose } from '@/components/ui/prose'
 import { Section, SectionStack } from '@/components/ui/section'
 import { StepNumber } from '@/components/ui/step-number'
-import { Subtitle, Title } from '@/components/ui/typography'
-import { permanentRedirect } from '@/i18n/navigation'
-import { appManifestBySlug } from '@/lib/apps'
-import { localeAlternates, openGraphMeta } from '@/lib/seo'
+import { Subtitle } from '@/components/ui/typography'
+import { listAppCatalog } from '@/lib/apps'
+import {
+  executeContentRedirect,
+  findContentRedirect,
+  type ContentSearchParams,
+} from '@/lib/redirects'
+import { pageMetadata, publicPath } from '@/lib/seo'
 import { getSolution, listSolutionSlugs } from '@/lib/solutions'
 
 /* ISR rather than `force-dynamic`. The content behind this page changes when
@@ -29,11 +35,15 @@ export const revalidate = 3600
 /* See the blog route: one call per locale, that locale's slugs only. */
 export async function generateStaticParams({ params }: { params: { locale: string } }) {
   const industries = await listSolutionSlugs()
-  return industries.map((s) => ({ industry: params.locale === 'en' ? s.slug.en : s.slug.sr }))
+  const locale = params.locale === 'sr' ? 'sr' : 'en'
+  return industries
+    .filter((solution) => solution.availability[locale] === true)
+    .map((solution) => ({ industry: solution.slug[locale] }))
 }
 
 interface PageProps {
   params: Promise<{ locale: string; industry: string }>
+  searchParams: Promise<ContentSearchParams>
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -45,58 +55,82 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     sr: { pathname: '/solutions/[industry]' as const, params: { industry: solution.slugs.sr } },
     en: { pathname: '/solutions/[industry]' as const, params: { industry: solution.slugs.en } },
   }
-  return {
+  return pageMetadata({
+    locale,
+    path: paths,
     title: solution.metaTitle,
     description: solution.metaDescription,
-    alternates: localeAlternates(locale, paths),
-    openGraph: openGraphMeta({
-      locale,
-      path: paths,
-      type: 'article',
-      title: solution.metaTitle,
-      description: solution.metaDescription,
-    }),
-  }
+    ogTitle: solution.ogTitle,
+    ogDescription: solution.ogDescription,
+    image: solution.ogImage,
+    canonical: solution.canonical,
+    availability: solution.availability,
+    indexable: solution.indexable,
+  })
 }
 
-export default async function IndustryPage({ params }: PageProps) {
+export default async function IndustryPage({ params, searchParams }: PageProps) {
   const { locale, industry } = await params
   setRequestLocale(locale)
 
   const solution = await getSolution(locale, industry)
-  /* Slugs are localised, so /en/solutions/ugostiteljstvo names a real page in
+  /* Slugs are localised, so /solutions/ugostiteljstvo names a real page in
      the wrong language. Send it to that page's English URL rather than a 404 —
      a language switch or an old shared link should not dead-end. */
   if (!solution) {
     const other = await getSolution(locale === 'en' ? 'sr' : 'en', industry)
     if (other) {
-      permanentRedirect({
-        href: {
-          pathname: '/solutions/[industry]',
-          params: { industry: locale === 'en' ? other.slugs.en : other.slugs.sr },
-        },
-        locale,
-      })
+      const targetSlug = locale === 'en' ? other.slugs.en : other.slugs.sr
+      if (targetSlug) {
+        executeContentRedirect(
+          {
+            toPath: publicPath(locale, {
+              pathname: '/solutions/[industry]',
+              params: { industry: targetSlug },
+            }),
+            statusCode: 308,
+            preserveQuery: true,
+          },
+          await searchParams,
+        )
+      }
     }
+    const redirect = await findContentRedirect(
+      publicPath(locale, {
+        pathname: '/solutions/[industry]',
+        params: { industry },
+      }),
+    )
+    if (redirect) executeContentRedirect(redirect, await searchParams)
     notFound()
   }
 
   const tCat = await getTranslations('catalog')
-  const relatedApps = solution.recommendedApps
-    .map((slug) => appManifestBySlug.get(slug))
-    .filter((m) => m !== undefined)
+  const appCatalog = await listAppCatalog(locale)
+  const appByKey = new Map(appCatalog.map((app) => [app.appKey, app]))
+  const relatedApps = solution.recommendedApps.flatMap((appKey) => {
+    const app = appByKey.get(appKey)
+    return app?.indexable && !app.canonical ? [app] : []
+  })
   const t = await getTranslations('solutions')
+  const tc = await getTranslations('common')
 
   return (
     <>
-      <ServiceJsonLd
-        service={{
-          locale,
-          path: { pathname: '/solutions/[industry]', params: { industry } },
-          name: solution.metaTitle,
-          description: solution.metaDescription,
-        }}
-      />
+      {solution.indexable ? (
+        <ServiceJsonLd
+          service={{
+            locale,
+            path: { pathname: '/solutions/[industry]', params: { industry } },
+            name: solution.metaTitle,
+            description: solution.metaDescription,
+            audience: solution.audience,
+            industry: solution.name,
+            image: solution.ogImage,
+            canonical: solution.canonical,
+          }}
+        />
+      ) : null}
       <BreadcrumbJsonLd
         locale={locale}
         items={[
@@ -105,13 +139,19 @@ export default async function IndustryPage({ params }: PageProps) {
           { name: solution.name },
         ]}
       />
-      {/* Only emitted because the same questions are rendered below — FAQ markup
-          that isn't visible on the page is a manual-action risk. */}
-      <FaqJsonLd items={solution.faq} />
-
       <SectionStack>
         {/* No buttons in this hero on purpose: the page closes with CtaBand, and
             a second pair up here competed with it rather than adding a route. */}
+        <Section innerClassName="pb-0 pt-8">
+          <ContentBreadcrumbs
+            ariaLabel={tc('breadcrumbs')}
+            items={[
+              { id: 'home', label: 'SignageWall', href: '/' },
+              { id: 'solutions', label: t('hero.eyebrow'), href: '/solutions' },
+              { id: solution.slug, label: solution.name },
+            ]}
+          />
+        </Section>
         <PageHero eyebrow={solution.name} title={solution.title} subtitle={solution.subtitle} />
 
         {solution.intro.length > 0 && (
@@ -159,41 +199,79 @@ export default async function IndustryPage({ params }: PageProps) {
 
         {solution.proof && (
           <Section innerClassName="max-w-3xl">
-            {/* A number a reader can repeat to a colleague does more than any
-                adjective on this page. */}
-            <Title className="text-2xl md:text-3xl">{solution.proof.title}</Title>
-            <p className="mt-5 border-l-2 border-accent pl-5 text-lg text-pretty">
-              {solution.proof.body}
-            </p>
+            <ProofBlock title={solution.proof.title} body={solution.proof.body} />
           </Section>
         )}
 
         {relatedApps.length > 0 && (
           <Section tone="panel">
-            <SectionHeader title={t('detail.appsTitle')} />
-            {/* The industry pages had no internal links at all; these are the
-                natural ones — the apps this industry actually uses. */}
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <RelatedContent title={t('detail.appsTitle')}>
               {relatedApps.map((app) => (
                 <AppCard
                   key={app.slug}
                   slug={app.slug}
                   name={app.name}
-                  tagline={tCat(`${app.slug}.tagline`)}
-                  icon={app.icon ?? ''}
+                  tagline={
+                    app.source === 'editorial' && app.localeReady
+                      ? app.tagline
+                      : tCat(`${app.appKey}.tagline`)
+                  }
+                  icon={app.manifest.icon ?? ''}
                   className="bg-page"
                 />
               ))}
-            </div>
+            </RelatedContent>
           </Section>
         )}
 
+        {solution.relatedPosts.length > 0 ? (
+          <Section>
+            <RelatedContent title={t('detail.guidesTitle')} gridClassName="gap-6">
+              {solution.relatedPosts.map((post) => (
+                <BlogCard
+                  key={post.id}
+                  locale={locale}
+                  post={{
+                    slug: post.slug,
+                    title: post.title,
+                    excerpt: post.excerpt,
+                    date: null,
+                    coverUrl: post.coverUrl,
+                    categoryTitle: null,
+                  }}
+                />
+              ))}
+            </RelatedContent>
+          </Section>
+        ) : null}
+
+        {solution.relatedSolutions.length > 0 ? (
+          <Section tone="panel">
+            <RelatedContent title={t('detail.relatedSolutionsTitle')}>
+              {solution.relatedSolutions.map((related) => (
+                <CatalogCard
+                  key={related.slug}
+                  href={{
+                    pathname: '/solutions/[industry]',
+                    params: { industry: related.slug },
+                  }}
+                  icon={<SolutionIcon icon={related.icon} className="size-5" />}
+                  name={related.name}
+                  tagline={related.tagline}
+                  className="bg-page"
+                />
+              ))}
+            </RelatedContent>
+          </Section>
+        ) : null}
+
         {solution.faq.length > 0 && (
           <Section innerClassName="max-w-3xl">
-            <Title className="text-2xl md:text-3xl">{t('detail.faqTitle')}</Title>
-            <div className="mt-10">
-              <Faq items={solution.faq} />
-            </div>
+            <ContentFaq
+              title={t('detail.faqTitle')}
+              items={solution.faq}
+              includeStructuredData={solution.indexable}
+            />
           </Section>
         )}
 

@@ -1,11 +1,86 @@
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
-import type { LocalePaths } from '@/lib/seo'
+import type { LocaleAvailability, LocalePaths, SeoLocale } from '@/lib/seo'
+import type { Media } from '@/payload-types'
 
 /** Cached Payload local-API client for server-side data access (blog). */
 export function getPayloadClient() {
   return getPayload({ config })
+}
+
+export interface EditorialSeo {
+  metaTitle?: string | null
+  metaDescription?: string | null
+  ogTitle?: string | null
+  ogDescription?: string | null
+  ogImage?: string | Media | null
+  indexable?: boolean | null
+  canonicalOverride?: string | null
+}
+
+export interface EditorialState {
+  slugs: LocalePaths
+  availability: LocaleAvailability
+  indexable: LocaleAvailability
+  seo: Partial<Record<SeoLocale, EditorialSeo>>
+}
+
+export function mediaUrl(value: string | Media | null | undefined): string | undefined {
+  return typeof value === 'object' && value ? (value.url ?? undefined) : undefined
+}
+
+interface EditorialDefaults {
+  indexable: boolean
+  localeReady: boolean
+}
+
+/** Rollout switch: new documents always default closed in the schema, while
+ * legacy Posts/Solutions can remain indexed until the explicit backfill has
+ * been reviewed and applied. */
+export const STRICT_CONTENT_GATES = process.env.SEO_STRICT_CONTENT_GATES === 'true'
+
+export function legacyContentDefaults(): EditorialDefaults {
+  return {
+    indexable: !STRICT_CONTENT_GATES,
+    localeReady: !STRICT_CONTENT_GATES,
+  }
+}
+
+export function contentRecordMayBeIndexed(value: {
+  localeReady?: boolean | null
+  seo?: { indexable?: boolean | null } | null
+}): boolean {
+  return STRICT_CONTENT_GATES
+    ? value.localeReady === true && value.seo?.indexable === true
+    : value.localeReady !== false && value.seo?.indexable !== false
+}
+
+export function contentRecordIsApproved(value: {
+  localeReady?: boolean | null
+  seo?: { indexable?: boolean | null; canonicalOverride?: string | null } | null
+}): boolean {
+  return contentRecordMayBeIndexed(value) && !value.seo?.canonicalOverride?.trim()
+}
+
+type LocalizedUnknown = Partial<Record<SeoLocale, unknown>>
+
+function isLocalizedMap(value: unknown): value is LocalizedUnknown {
+  return value !== null && typeof value === 'object' && ('sr' in value || 'en' in value)
+}
+
+function localizedValue(value: unknown, locale: SeoLocale): unknown {
+  return isLocalizedMap(value) ? value[locale] : value
+}
+
+function localizedBoolean(value: unknown, locale: SeoLocale, fallback: boolean): boolean {
+  const resolved = localizedValue(value, locale)
+  return typeof resolved === 'boolean' ? resolved : fallback
+}
+
+function localizedSeo(value: unknown, locale: SeoLocale): EditorialSeo {
+  const resolved = localizedValue(value, locale)
+  return resolved !== null && typeof resolved === 'object' ? resolved : {}
 }
 
 /**
@@ -20,13 +95,68 @@ export async function slugPair(
   collection: 'posts' | 'solutions',
   id: string | number,
 ): Promise<LocalePaths> {
+  const state = await getEditorialState(collection, id, legacyContentDefaults())
+  return state.slugs
+}
+
+/**
+ * Reads the localised publishing and SEO state in one query.
+ *
+ * Payload's generated types describe a localised field as its value for one
+ * locale. With `locale: 'all'`, however, the Local API returns `{sr, en}` maps.
+ * Keeping that unavoidable cast here prevents every route from inventing a
+ * slightly different interpretation of missing legacy values.
+ */
+export function editorialStateFromDocument(
+  doc: unknown,
+  defaults: EditorialDefaults,
+): EditorialState {
+  const raw = doc as {
+    localeReady?: unknown
+    seo?: unknown
+    slug: unknown
+  }
+
+  const rawSlugs = isLocalizedMap(raw.slug) ? raw.slug : { sr: raw.slug, en: raw.slug }
+  const slugs: LocalePaths = {
+    sr: typeof rawSlugs.sr === 'string' ? rawSlugs.sr : '',
+    en: typeof rawSlugs.en === 'string' ? rawSlugs.en : '',
+  }
+
+  const seo = {
+    sr: localizedSeo(raw.seo, 'sr'),
+    en: localizedSeo(raw.seo, 'en'),
+  }
+  const availability: LocaleAvailability = {}
+  const indexableByLocale: LocaleAvailability = {}
+
+  for (const locale of ['sr', 'en'] as const) {
+    const ready = localizedBoolean(raw.localeReady, locale, defaults.localeReady)
+    const allowed =
+      typeof seo[locale].indexable === 'boolean' ? seo[locale].indexable : defaults.indexable
+    const indexable = Boolean(slugs[locale]) && ready && allowed
+    const hasCanonicalOverride = Boolean(seo[locale].canonicalOverride?.trim())
+    indexableByLocale[locale] = indexable
+    // Consolidated URLs stay accessible and canonicalized, but are not listed
+    // as independent sitemap/hreflang destinations.
+    availability[locale] = indexable && !hasCanonicalOverride
+  }
+
+  return { slugs, availability, indexable: indexableByLocale, seo }
+}
+
+export async function getEditorialState(
+  collection: 'posts' | 'solutions' | 'app-pages',
+  id: string | number,
+  defaults: EditorialDefaults,
+): Promise<EditorialState> {
   const payload = await getPayloadClient()
   const doc = await payload.findByID({
     collection,
     id,
     locale: 'all',
-    depth: 0,
-    select: { slug: true },
+    depth: 1,
+    select: { slug: true, localeReady: true, seo: true },
   })
-  return doc.slug as unknown as LocalePaths
+  return editorialStateFromDocument(doc, defaults)
 }

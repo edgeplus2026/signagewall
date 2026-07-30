@@ -24,6 +24,22 @@
       "server": "Automatski povlači žive podatke.",
       "connected": "Poveže se sa vašim nalogom (npr. Google ili Microsoft)."
     },
-    "industriesTitle": "Delatnosti koje je koriste"
+    "industriesTitle": "Delatnosti koje je koriste",
+    "benefitsTitle": "Zašto timovi biraju ovu aplikaciju",
+    "featuresTitle": "Šta omogućava",
+    "useCasesTitle": "Gde se koristi",
+    "setupTitle": "Kako se podešava",
+    "requirementsTitle": "Uslovi i ograničenja",
+    "screenshotsTitle": "Kako izgleda na ekranu",
+    "guidesTitle": "Povezani vodiči",
+    "faqTitle": "Česta pitanja",
+    "requirements": {
+      "account": "Nalog",
+      "dataSource": "Izvor podataka",
+      "network": "Mreža",
+      "refreshBehavior": "Osvežavanje",
+      "offlineBehavior": "Rad van mreže",
+      "limitations": "Ograničenja"
+    }
   }
 }

@@ -24,6 +24,22 @@
       "server": "Pulls live data automatically.",
       "connected": "Connects to your account (e.g. Google or Microsoft)."
     },
-    "industriesTitle": "Industries that use it"
+    "industriesTitle": "Industries that use it",
+    "benefitsTitle": "Why teams choose this app",
+    "featuresTitle": "What it does",
+    "useCasesTitle": "Where it fits",
+    "setupTitle": "How to set it up",
+    "requirementsTitle": "Requirements and limitations",
+    "screenshotsTitle": "See it on screen",
+    "guidesTitle": "Related guides",
+    "faqTitle": "Frequently asked questions",
+    "requirements": {
+      "account": "Account",
+      "dataSource": "Data source",
+      "network": "Network",
+      "refreshBehavior": "Refresh",
+      "offlineBehavior": "Offline behavior",
+      "limitations": "Limitations"
+    }
   }
 }

@@ -1,115 +1,100 @@
 import type { MetadataRoute } from 'next'
 
-import { catalogApps } from '@/lib/apps'
+import { listAppPageRefs } from '@/lib/apps'
 import { listPostRefs } from '@/lib/posts'
-import type { LocaleRoutes, Route } from '@/lib/seo'
+import type { LocaleAvailability, LocaleRoutes, Route } from '@/lib/seo'
 import { absoluteUrl } from '@/lib/seo'
 import { listSolutionSlugs } from '@/lib/solutions'
 
 type Entry = MetadataRoute.Sitemap[number]
 
 interface EntryOptions {
+  availability?: LocaleAvailability
   lastModified?: string
-  /**
-   * Google ignores both `priority` and `changeFrequency` outright, and Bing
-   * treats them as hints at best. They are here because they cost nothing, the
-   * rest of the ecosystem (smaller crawlers, audit tools) still reads them, and
-   * an absent `lastmod` is the one field that genuinely matters. Do not expect
-   * a ranking change from tuning these numbers.
-   */
-  priority?: number
-  changeFrequency?: Entry['changeFrequency']
 }
 
 /**
- * One sitemap entry, in both languages.
+ * One sitemap entry per language, each carrying the complete alternate set.
  *
- * URLs come from `absoluteUrl`, which resolves them through the pathnames map —
- * this used to concatenate `${SITE_URL}/${path}` and `${SITE_URL}/en/${path}`
- * by hand, which quietly published English URLs for the Serbian site the moment
- * the two stopped matching.
+ * Merely hanging Serbian off the English `<loc>` as an alternate is not a
+ * complete multilingual sitemap. Every localized URL needs its own `<url>`
+ * element, and every element repeats the same reciprocal hreflang set.
  */
-function entry(route: Route | LocaleRoutes, options: EntryOptions = {}): Entry {
+function entries(route: Route | LocaleRoutes, options: EntryOptions = {}): Entry[] {
   const routes: LocaleRoutes =
     typeof route === 'object' && 'sr' in route ? route : { sr: route, en: route }
-  const sr = absoluteUrl('sr', routes.sr)
-  const en = absoluteUrl('en', routes.en)
+  const availability = options.availability ?? { en: true, sr: true }
+  const sr = availability.sr !== false ? absoluteUrl('sr', routes.sr) : undefined
+  const en = availability.en !== false ? absoluteUrl('en', routes.en) : undefined
+  const languages: Record<string, string> = {}
+  if (en) languages.en = en
+  if (sr) languages.sr = sr
+  if (en) languages['x-default'] = en
+  else if (sr) languages['x-default'] = sr
 
-  const { lastModified, priority, changeFrequency } = options
-
-  return {
-    // The English URL is the entry — it is the default locale; Serbian rides
-    // along as an alternate.
-    url: en,
-    ...(lastModified ? { lastModified } : {}),
-    ...(changeFrequency ? { changeFrequency } : {}),
-    ...(priority !== undefined ? { priority } : {}),
-    alternates: {
-      // Matches the x-default in each page's hreflang set.
-      languages: { en, sr, 'x-default': en },
-    },
+  const common = {
+    ...(options.lastModified ? { lastModified: options.lastModified } : {}),
+    alternates: { languages },
   }
+
+  return [...(en ? [{ url: en, ...common }] : []), ...(sr ? [{ url: sr, ...common }] : [])]
 }
 
-/**
- * Static routes with the weight we want to give them. The commercial pages a
- * buyer lands on rank above the supporting ones; legal sits at the bottom
- * because it exists to be found, not to be promoted.
- */
-const STATIC_ROUTES: {
-  route: Route
-  priority: number
-  changeFrequency: Entry['changeFrequency']
-}[] = [
-  { route: '/', priority: 1, changeFrequency: 'weekly' },
-  { route: '/how-it-works', priority: 0.8, changeFrequency: 'monthly' },
-  { route: '/features', priority: 0.8, changeFrequency: 'monthly' },
-  { route: '/pricing', priority: 0.9, changeFrequency: 'monthly' },
-  { route: '/what-is-digital-signage', priority: 0.8, changeFrequency: 'yearly' },
-  { route: '/apps', priority: 0.8, changeFrequency: 'monthly' },
-  { route: '/solutions', priority: 0.8, changeFrequency: 'monthly' },
-  { route: '/blog', priority: 0.7, changeFrequency: 'weekly' },
-  { route: '/about', priority: 0.6, changeFrequency: 'yearly' },
-  { route: '/hardware', priority: 0.7, changeFrequency: 'yearly' },
-  { route: '/download', priority: 0.6, changeFrequency: 'monthly' },
-  { route: '/contact', priority: 0.6, changeFrequency: 'yearly' },
-  { route: '/privacy', priority: 0.3, changeFrequency: 'yearly' },
-  { route: '/terms', priority: 0.3, changeFrequency: 'yearly' },
-  { route: '/cookies', priority: 0.3, changeFrequency: 'yearly' },
+const STATIC_ROUTES: Route[] = [
+  '/',
+  '/how-it-works',
+  '/features',
+  '/pricing',
+  '/what-is-digital-signage',
+  '/apps',
+  '/solutions',
+  '/blog',
+  '/about',
+  '/hardware',
+  '/download',
+  '/contact',
+  '/privacy',
+  '/terms',
+  '/cookies',
 ]
+
+export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const industries = await listSolutionSlugs()
   const posts = await listPostRefs()
+  const apps = await listAppPageRefs()
 
   return [
-    ...STATIC_ROUTES.map(({ route, priority, changeFrequency }) =>
-      entry(route, { priority, changeFrequency }),
-    ),
-    // App slugs come from the code registry and are the same in both languages.
-    ...catalogApps.map((m) =>
-      entry(
-        { pathname: '/apps/[slug]', params: { slug: m.slug } },
-        { priority: 0.6, changeFrequency: 'monthly' },
+    ...STATIC_ROUTES.flatMap((route) => entries(route)),
+    // A technical app manifest is not editorial approval. Only reviewed,
+    // indexable App Page locale versions are eligible for discovery here.
+    ...apps.flatMap((app) =>
+      entries(
+        {
+          sr: { pathname: '/apps/[slug]', params: { slug: app.slug.sr } },
+          en: { pathname: '/apps/[slug]', params: { slug: app.slug.en } },
+        },
+        { availability: app.availability, lastModified: app.updatedAt },
       ),
     ),
     ...industries.map((s) =>
-      entry(
+      entries(
         {
           sr: { pathname: '/solutions/[industry]', params: { industry: s.slug.sr } },
           en: { pathname: '/solutions/[industry]', params: { industry: s.slug.en } },
         },
-        { lastModified: s.updatedAt, priority: 0.7, changeFrequency: 'monthly' },
+        { availability: s.availability, lastModified: s.updatedAt },
       ),
     ),
     ...posts.map((p) =>
-      entry(
+      entries(
         {
           sr: { pathname: '/blog/[slug]', params: { slug: p.slug.sr } },
           en: { pathname: '/blog/[slug]', params: { slug: p.slug.en } },
         },
-        { lastModified: p.updatedAt, priority: 0.6, changeFrequency: 'monthly' },
+        { availability: p.availability, lastModified: p.updatedAt },
       ),
     ),
-  ]
+  ].flat()
 }

@@ -13,5 +13,9 @@
   "readMore": "Pročitajte",
   "photoCredit": "Foto: {credit} / Pexels",
   "relatedTitle": "Nastavite da čitate",
+  "relatedSolutionsTitle": "Primena u vašoj delatnosti",
+  "relatedAppsTitle": "Aplikacije za ovaj zadatak",
+  "keyTakeawaysTitle": "Najvažnije",
+  "referencesTitle": "Izvori i dodatno čitanje",
   "readingTime": "{minutes} min čitanja"
 }

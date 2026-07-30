@@ -22,9 +22,23 @@ function resolveSiteUrl(): string {
     return 'http://localhost:3002'
   }
 
-  // A trailing slash here turns every path into a double-slashed URL, and
-  // `https://site.com//blog` is a different URL to Google than `/blog`.
-  return raw.replace(/\/+$/, '')
+  try {
+    const url = new URL(raw)
+    const isHttp = url.protocol === 'http:' || url.protocol === 'https:'
+    const isOriginOnly =
+      (url.pathname === '/' || url.pathname === '') &&
+      !url.search &&
+      !url.hash &&
+      !url.username &&
+      !url.password
+    if (!isHttp || !isOriginOnly) throw new Error('invalid public origin')
+    return url.origin
+  } catch {
+    throw new Error(
+      'NEXT_PUBLIC_SITE_URL must be an HTTP(S) origin without a path, query, ' +
+        'fragment or credentials (for example https://www.signagewall.com).',
+    )
+  }
 }
 
 export const SITE_URL = resolveSiteUrl()
