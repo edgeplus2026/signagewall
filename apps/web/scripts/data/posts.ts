@@ -52,7 +52,7 @@ const POSTS_1 = [
     en: {
       metaTitle: 'How a digital menu increases sales',
       metaDescription:
-        'What changes when a menu board becomes a screen: the order guests read the offer in, what sits in the top-left third, and why the item you feature outsells the one you do not.',
+        'What changes when a menu board becomes a screen: the order guests read it in, what belongs in the top-left third, and why a featured item outsells the rest.',
       slug: 'digital-menu-increases-sales',
       title: 'How a digital menu increases sales',
       excerpt:

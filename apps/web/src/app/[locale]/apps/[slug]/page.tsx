@@ -16,6 +16,7 @@ import { Section, SectionStack } from '@/components/ui/section'
 import { Heading, Title } from '@/components/ui/typography'
 import { Link } from '@/i18n/navigation'
 import { appManifestBySlug, catalogApps, categoriesForApp, relatedApps } from '@/lib/apps'
+import { formattedPrice } from '@/lib/pricing'
 import { localeAlternates, openGraphMeta } from '@/lib/seo'
 import { listSolutionsUsingApp } from '@/lib/solutions'
 import { cn } from '@/lib/utils'
@@ -33,14 +34,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const manifest = appManifestBySlug.get(slug)
   if (!manifest) return {}
   const tCat = await getTranslations({ locale, namespace: 'catalog' })
+  const tMeta = await getTranslations({ locale, namespace: 'apps.meta' })
   const path = { pathname: '/apps/[slug]' as const, params: { slug } }
-  const description = tCat(`${slug}.tagline`)
+  /* The tagline is four words — it made a 25-character meta description, which
+     is a search result with nothing in it. The catalogue's longer `description`
+     plus what it costs fills the snippet without padding it. */
+  const title = tMeta('detailTitle', { name: manifest.name })
+  const base = tCat(`${slug}.description`)
+  /* Append what it costs only when the app's own description leaves room: a
+     snippet Google cuts mid-sentence is worse than a short one that ends. */
+  const withPrice = tMeta('detailDescription', { description: base, price: formattedPrice(locale) })
+  const description = withPrice.length <= 160 ? withPrice : base
 
   return {
-    title: manifest.name,
+    title,
     description,
     alternates: localeAlternates(locale, path),
-    openGraph: openGraphMeta({ locale, path, title: manifest.name, description }),
+    openGraph: openGraphMeta({ locale, path, title, description }),
   }
 }
 

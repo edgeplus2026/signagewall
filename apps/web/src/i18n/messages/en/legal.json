@@ -2,19 +2,19 @@
   "privacy": {
     "meta": {
       "title": "Privacy Policy",
-      "description": "How SignageWall collects, uses and protects your data."
+      "description": "How SignageWall collects, uses and stores personal data — what a screen sends, how long we keep it, and the rights you can exercise at any time."
     }
   },
   "terms": {
     "meta": {
       "title": "Terms of Service",
-      "description": "The terms under which you use the SignageWall site and services."
+      "description": "The terms for using SignageWall: what the service covers, how billing and cancellation work, and what we are and are not responsible for."
     }
   },
   "cookies": {
     "meta": {
       "title": "Cookie Policy",
-      "description": "Which cookies SignageWall uses and how to manage them."
+      "description": "Which cookies SignageWall sets, what each one is for, how long it lasts, and how to change your consent at any point."
     }
   }
 }

@@ -168,7 +168,7 @@ export const SOLUTIONS = [
       title: 'Interna komunikacija koja ne završi u nepročitanoj pošti.',
       subtitle:
         'Mejl se preskače, oglasna tabla se ne čita. Ekran u hodniku i kuhinji vidi svako, svaki dan, bez ijednog klika.',
-      metaTitle: 'Digitalni ekrani za kancelarije i interne komunikacije',
+      metaTitle: 'Digitalni ekrani za kancelarije i radna mesta',
       metaDescription:
         'Interna komunikacija na ekranima: najave, KPI dashboardi, rasporedi sala i dobrodošlica gostima — vidljivo celom timu bez otvaranja mejla.',
       scenarios: [
@@ -203,7 +203,7 @@ export const SOLUTIONS = [
       title: 'Internal comms that don’t die in an unread inbox.',
       subtitle:
         'Email gets skipped and the noticeboard goes unread. A screen in the corridor and the kitchen is seen by everyone, every day, without a single click.',
-      metaTitle: 'Digital signage for offices and internal communications',
+      metaTitle: 'Digital signage for offices and workplaces',
       metaDescription:
         'Internal communication on screens: announcements, live KPI dashboards, meeting-room schedules and visitor welcomes — seen by the whole team, no inbox required.',
       scenarios: [
@@ -244,7 +244,7 @@ export const SOLUTIONS = [
       title: 'Čekaonica u kojoj pacijent zna šta ga čeka.',
       subtitle:
         'Najveći deo nervoze u čekaonici dolazi od neizvesnosti. Ekran koji pokazuje red i procenu čekanja rešava to bez ijedne dodatne reči osoblja.',
-      metaTitle: 'Digitalni ekrani za ordinacije, klinike i domove zdravlja',
+      metaTitle: 'Digitalni ekrani za ordinacije i klinike',
       metaDescription:
         'Ekrani za zdravstvene ustanove: prikaz reda i procene čekanja, uputstva za pacijente, radno vreme lekara i zdravstveni saveti u čekaonici.',
       scenarios: [
@@ -279,7 +279,7 @@ export const SOLUTIONS = [
       title: 'A waiting room where patients know where they stand.',
       subtitle:
         'Most of the tension in a waiting room comes from not knowing. A screen showing the queue and an estimated wait settles it without staff saying a word.',
-      metaTitle: 'Digital signage for clinics and medical practices',
+      metaTitle: 'Digital signage for clinics and practices',
       metaDescription:
         'Screens for healthcare: show the queue and estimated wait, patient preparation instructions, doctor hours and health guidance in the waiting room.',
       scenarios: [
@@ -355,7 +355,7 @@ export const SOLUTIONS = [
       title: 'Guests who find their own way, from arrival to checkout.',
       subtitle:
         'The same questions come every day: when is breakfast, what’s the weather, how do I get to the centre. A screen answers them before anyone reaches the desk.',
-      metaTitle: 'Digital signage for hotels and serviced apartments',
+      metaTitle: 'Digital signage for hotels and apartments',
       metaDescription:
         'Screens for hotels: guest welcomes, the day’s program, breakfast and spa hours, weather, flight arrivals and local recommendations.',
       scenarios: [
@@ -735,7 +735,7 @@ export const SOLUTIONS = [
       title: 'A showroom and workshop that work while the customer waits.',
       subtitle:
         'Buying a car takes weeks to decide. A screen in the showroom keeps the range, the terms and the models in view exactly when the customer is weighing them up.',
-      metaTitle: 'Digital signage for car dealerships and workshops',
+      metaTitle: 'Digital signage for dealerships and workshops',
       metaDescription:
         'Screens for automotive: model and trim displays, finance and leasing terms, vehicle service status and showroom promotions.',
       scenarios: [
@@ -1039,7 +1039,7 @@ export const SOLUTIONS = [
       title: 'Listings that change faster than a poster can print.',
       subtitle:
         'New showtimes every Wednesday, sold-out screenings and trailers to pull — the screen handles all of it while the poster is still at the printer.',
-      metaTitle: 'Digital signage for cinemas and entertainment venues',
+      metaTitle: 'Digital signage for cinemas and venues',
       metaDescription:
         'Screens for cinemas: listings and showtimes, trailers, sold-out status and concession offers — updated without printing.',
       scenarios: [
@@ -1384,7 +1384,7 @@ export const SOLUTIONS = [
       title: 'Akcija koja kreće u isto vreme u svakoj prodavnici.',
       subtitle:
         'Kada kampanja kreće u ponedeljak u šest, ekrani moraju da se prebace u šest — u svim objektima, bez ijednog telefonskog poziva.',
-      metaTitle: 'Digitalni ekrani za supermarkete i lance prodavnica',
+      metaTitle: 'Digitalni ekrani za supermarkete',
       metaDescription:
         'Ekrani za supermarkete: akcije i cene po odeljenjima, kampanje sinhronizovane na svim objektima, informacije o poreklu i sezonskoj ponudi.',
       scenarios: [
@@ -1419,7 +1419,7 @@ export const SOLUTIONS = [
       title: 'A promotion that starts at the same minute in every store.',
       subtitle:
         'When a campaign starts at six on Monday, the screens have to turn at six — in every store, without a single phone call.',
-      metaTitle: 'Digital signage for supermarkets and grocery chains',
+      metaTitle: 'Digital signage for supermarkets',
       metaDescription:
         'Screens for supermarkets: aisle-level promotions and prices, campaigns synchronised across every store, provenance and seasonal information.',
       scenarios: [
@@ -1460,7 +1460,7 @@ export const SOLUTIONS = [
       title: 'Sala koja se prilagodi svakom događaju za pet minuta.',
       subtitle:
         'Isti prostor ujutru drži konferenciju, uveče svadbu. Ekrani se prebace na novi program dok se stolovi još raspoređuju.',
-      metaTitle: 'Digitalni ekrani za konferencijske i event prostore',
+      metaTitle: 'Digitalni ekrani za konferencije i evente',
       metaDescription:
         'Ekrani za događaje i sale: program i raspored sesija, smerovi i dobrodošlica, prikaz sponzora i najave — izmenjeno u trenutku.',
       scenarios: [

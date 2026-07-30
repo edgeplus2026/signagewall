@@ -1,7 +1,9 @@
 {
   "meta": {
     "title": "{count} aplikacija za digitalne ekrane",
-    "description": "{count} aplikacija spremnih za ekran — meni, vreme, kursna lista, vesti, kalendari, društvene mreže i još mnogo toga."
+    "description": "{count} aplikacija spremnih za ekran — meni, vreme, kursna lista, vesti, kalendari, društvene mreže i još mnogo toga.",
+    "detailTitle": "{name} za digital signage",
+    "detailDescription": "{description} Uključeno u SignageWall po ceni od {price} po ekranu mesečno."
   },
   "hero": {
     "eyebrow": "Aplikacije",

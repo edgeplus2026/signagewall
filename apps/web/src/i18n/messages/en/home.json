@@ -135,7 +135,7 @@
       },
       {
         "q": "How much does it cost?",
-        "a": "{price} per screen per month, with every feature included. There are no tiers and no enterprise plan — a single café pays the same rate per screen as a chain of two hundred."
+        "a": "{price} per screen per month up to five screens, with every feature included — a café pays the same rate per screen as a small chain. Above five screens the price is quoted for the size of your network."
       },
       {
         "q": "Can I try it before paying?",

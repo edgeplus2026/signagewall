@@ -2,19 +2,19 @@
   "privacy": {
     "meta": {
       "title": "Politika privatnosti",
-      "description": "Kako SignageWall prikuplja, koristi i štiti vaše podatke."
+      "description": "Kako SignageWall prikuplja, koristi i čuva lične podatke — šta ekran šalje, koliko dugo to čuvamo i koja prava možete da ostvarite u svakom trenutku."
     }
   },
   "terms": {
     "meta": {
       "title": "Uslovi korišćenja",
-      "description": "Uslovi pod kojima koristite SignageWall sajt i usluge."
+      "description": "Uslovi korišćenja SignageWall-a: šta usluga obuhvata, kako idu naplata i raskid, i za šta odgovaramo a za šta ne."
     }
   },
   "cookies": {
     "meta": {
       "title": "Politika kolačića",
-      "description": "Koje kolačiće SignageWall koristi i kako da njima upravljate."
+      "description": "Koje kolačiće SignageWall postavlja, čemu svaki služi, koliko traje i kako da promenite pristanak u bilo kom trenutku."
     }
   }
 }

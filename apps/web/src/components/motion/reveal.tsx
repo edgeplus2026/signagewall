@@ -34,6 +34,10 @@ export function Reveal({ className, delay = 0, style, ...props }: RevealProps) {
   return (
     <div
       ref={ref}
+      /* Marks the element for the no-JavaScript fallback in the layout: without
+         it, a visitor (or a crawler) without JS gets a page of empty sections,
+         because the reveal never fires and opacity stays at 0. */
+      data-reveal=""
       style={delay ? { ...style, transitionDelay: `${delay.toString()}ms` } : style}
       className={cn(
         'transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none',

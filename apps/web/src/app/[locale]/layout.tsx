@@ -116,6 +116,11 @@ export default async function LocaleLayout({
         {/* Injects the pre-paint theme script into <head> during SSR only, so
             it never re-renders as a client-side <script> on navigation. */}
         <ThemeInit />
+        {/* Sections fade in on scroll via JavaScript. With JS off that never
+            happens, so unhide everything rather than serve blank plates. */}
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         <OrganizationJsonLd />
         <ThemeProvider>
           <NextIntlClientProvider>
