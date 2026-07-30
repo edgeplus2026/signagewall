@@ -27,7 +27,7 @@ The other half is what a guest does while waiting. A queue is dead time you alre
       ],
       proof: {
         title: 'What reprinting actually costs',
-        body: 'A café with three menu boards reprinting quarterly at $80 a board spends $960 a year, plus the day somebody spends laying it out — and the menu is still wrong for the two weeks between a price change and the next print run. Three screens on SignageWall cost $27 a month, and the price is right the same afternoon it changes.',
+        body: 'A café with three menu boards reprinting quarterly at €80 a board spends €960 a year, plus the day somebody spends laying it out — and the menu is still wrong for the two weeks between a price change and the next print run. Three screens on SignageWall cost €24 a month, and the price is right the same afternoon it changes.',
       },
       faq: [
         { q: 'Do I need a special menu display?', a: 'No. It runs on an ordinary TV you already own — all it needs is a small Android box or PC running the SignageWall player. Purpose-built displays are worth it if the screen faces a window or runs sixteen hours a day; for a wall behind the counter, a consumer television lasts years.' },
@@ -83,7 +83,7 @@ What makes this pay is not the screen. It is that the marginal cost of a campaig
       ],
       proof: {
         title: 'What a print campaign costs to change',
-        body: 'A twelve-store chain running monthly window posters at $40 a store in print and courier spends about $5,800 a year, and a mid-month change means eating the cost or living with the old poster. Twelve screens cost $108 a month — and a change mid-campaign costs nothing but the decision.',
+        body: 'A twelve-store chain running monthly window posters at €35 a store in print and courier spends about €5,000 a year, and a mid-month change means eating the cost or living with the old poster. Twelve screens cost €96 a month — and a change mid-campaign costs nothing but the decision.',
       },
       faq: [
         { q: 'Can I show different content per location?', a: 'Yes. Group screens by location, city, store format or position in the shop, and send each group its own content — or one message to all of them at once. A group is a saved target, so you set it up once and publish to it forever after.' },
@@ -139,7 +139,7 @@ The constraint that shapes everything here is sound. A waiting-room screen runs 
       ],
       proof: {
         title: 'What the reception desk gets back',
-        body: 'A practice where reception fields "how much longer?" thirty times a day at roughly forty seconds each loses about twenty minutes of staff time daily — some eighty hours a year. A queue screen removes most of that. The software for two screens costs $18 a month.',
+        body: 'A practice where reception fields "how much longer?" thirty times a day at roughly forty seconds each loses about twenty minutes of staff time daily — some eighty hours a year. A queue screen removes most of that. The software for two screens costs €16 a month.',
       },
       faq: [
         { q: 'Does it display patient data?', a: 'It does not have to. Most practices show only a number or an appointment code, so no personal data reaches the screen at all. What you show is entirely your decision, and the safest design is usually the simplest one.' },
@@ -195,7 +195,7 @@ The other job is quieter. A room-booking display outside a meeting room settles 
       ],
       proof: {
         title: 'What an unread email costs',
-        body: 'A company of 80 sending two all-staff emails a week at a 45% open rate leaves roughly 90 people-notifications unread every week. A screen in the two rooms everybody passes reaches all of them, for $18 a month.',
+        body: 'A company of 80 sending two all-staff emails a week at a 45% open rate leaves roughly 90 people-notifications unread every week. A screen in the two rooms everybody passes reaches all of them, for €16 a month.',
       },
       faq: [
         { q: 'Can it show our existing dashboards?', a: 'Yes. Power BI, Google Sheets and any web page render directly and refresh on their own, so the number on the wall is the number in the system rather than a screenshot somebody pasted last month.' },
@@ -247,7 +247,7 @@ Language is the other half. A hotel serves guests who do not share one, and a sc
       ],
       proof: {
         title: 'What the front desk gets back',
-        body: 'A 60-room hotel fielding the same four questions 40 times a day at half a minute each spends about 20 minutes of desk time daily, or 120 hours a year. Two lobby screens cost $18 a month.',
+        body: 'A 60-room hotel fielding the same four questions 40 times a day at half a minute each spends about 20 minutes of desk time daily, or 120 hours a year. Two lobby screens cost €16 a month.',
       },
       faq: [
         { q: 'Can content run in several languages?', a: 'Yes. A screen can cycle through languages on a timer, or different screens around the hotel can each hold a different one — useful when a floor or a wing serves a particular group.' },
@@ -299,7 +299,7 @@ The other thing worth planning for is the message you hope never to send. A lock
       ],
       proof: {
         title: 'What it replaces',
-        body: 'A school printing a weekly notice sheet for 30 classrooms at 5 cents a page spends about $60 a year in paper alone, and the sheet is wrong the moment a lesson moves. Three hall screens cost $27 a month — and the value is not the paper, it is that the information is right.',
+        body: 'A school printing a weekly notice sheet for 30 classrooms at 5 cents a page spends about €50 a year in paper alone, and the sheet is wrong the moment a lesson moves. Three hall screens cost €24 a month — and the value is not the paper, it is that the information is right.',
       },
       faq: [
         { q: 'Who can publish content?', a: 'You decide. The office can own official notices while a teacher or the student council edits only their own section, with approval before anything goes live if that is the policy.' },
@@ -351,7 +351,7 @@ Beyond the timetable, a gym screen does something a poster cannot: it fills the 
       ],
       proof: {
         title: 'What a wrong timetable costs',
-        body: 'A club with 900 members where ten a week turn up for a moved class loses roughly 500 wasted visits a year, each one a small reason to cancel. Four screens fed from the existing spreadsheet cost $36 a month.',
+        body: 'A club with 900 members where ten a week turn up for a moved class loses roughly 500 wasted visits a year, each one a small reason to cancel. Four screens fed from the existing spreadsheet cost €32 a month.',
       },
       faq: [
         { q: 'Can we pull the schedule from a spreadsheet?', a: 'Yes. Google Sheets or Excel load directly and refresh on their own, so you edit the timetable where you already edit it and the screens follow.' },
@@ -403,7 +403,7 @@ That last point is why the reliability side matters more here than the design si
       ],
       proof: {
         title: 'What a visible target changes',
-        body: 'The reason to put the number on the wall is not reporting — the report already exists. It is that a line running to a target it can see corrects within the hour rather than at the end of the shift. Six floor screens cost $54 a month.',
+        body: 'The reason to put the number on the wall is not reporting — the report already exists. It is that a line running to a target it can see corrects within the hour rather than at the end of the shift. Six floor screens cost €48 a month.',
       },
       faq: [
         { q: 'Can it show data from our MES or ERP?', a: 'Yes, if the system can output a web page or a spreadsheet — it renders directly and refreshes on its own. That covers most shop-floor dashboards without a bespoke integration.' },
@@ -455,7 +455,7 @@ The second thing it buys is the aisle. A shelf-edge or aisle screen reaches some
       ],
       proof: {
         title: 'What a late campaign costs',
-        body: 'A 25-store chain where a print campaign lands two days late in a fifth of stores loses ten store-days of a promotion every cycle. At twelve cycles a year that is 120 store-days. Screens turn at the same second everywhere, for $9 per screen.',
+        body: 'A 25-store chain where a print campaign lands two days late in a fifth of stores loses ten store-days of a promotion every cycle. At twelve cycles a year that is 120 store-days. Screens turn at the same second everywhere, for €8 per screen.',
       },
       faq: [
         { q: 'How many screens can it handle?', a: 'From one store to a whole chain. Screens group by store, region and position, so you manage groups rather than devices — which is what makes forty stores no harder than four.' },
@@ -502,7 +502,7 @@ What makes banking signage different is that the content is genuinely useful rat
         { title: 'Rates that are never wrong', body: 'Read from your own internal sheet or a public feed, refreshed automatically. A printed rate card is a compliance problem the moment it is stale.' },
         { title: 'Teaching the app in the queue', body: 'The transactions that do not need a branch, shown to the person standing in one. This reduces queue length, which is the point.' },
       ],
-      proof: { title: 'What the queue is worth', body: 'A branch serving 120 clients a day with a four-minute average wait holds roughly 480 minutes of undivided attention daily. Two screens cost $18 a month.' },
+      proof: { title: 'What the queue is worth', body: 'A branch serving 120 clients a day with a four-minute average wait holds roughly 480 minutes of undivided attention daily. Two screens cost €16 a month.' },
       faq: [
         { q: 'Where do the rates come from?', a: 'From a source you choose — your own internal sheet or a public feed — refreshed automatically, so the number on the wall and the number in the system cannot diverge.' },
         { q: 'Can content differ per branch?', a: 'Yes. A shared campaign goes to everyone while local information appears only where it is relevant, and roles decide who can publish which.' },
@@ -539,7 +539,7 @@ The counter then handles the half that needs a person. That is the whole trade, 
         { title: 'Seasonal advice, scheduled months ahead', body: 'Ticks in spring, sun in summer, flu in autumn. Build it once in January and it switches itself on at the right week.' },
         { title: 'The duty rota, always current', body: 'Which pharmacy is open tonight, updated from the source rather than retyped onto a card in the window.' },
       ],
-      proof: { title: 'What the counter gets back', body: 'A pharmacy answering the same seasonal question 25 times a day at 20 seconds each spends over 8 minutes daily on it — around 50 hours a year. One screen costs $9 a month.' },
+      proof: { title: 'What the counter gets back', body: 'A pharmacy answering the same seasonal question 25 times a day at 20 seconds each spends over 8 minutes daily on it — around 50 hours a year. One screen costs €8 a month.' },
       faq: [
         { q: 'Can we prepare content in advance?', a: 'Yes. Seasonal topics can be scheduled months ahead and switch themselves on at the date you set, which is the only way this survives a busy season.' },
         { q: 'Does the screen need to be large?', a: 'No. A smaller screen above the counter often works better than a big one on the wall, because it sits in the line of sight of somebody already facing you.' },
@@ -576,7 +576,7 @@ The screen earns its place on schedule alone. Set the three ranges once and the 
         { title: 'Three ranges, one schedule', body: 'Morning, midday and evening rotate on their own. The board is right at four in the afternoon without anyone having touched it since six.' },
         { title: 'Allergens beside the price', body: 'Part of the same product card, so the information cannot get separated from the item it belongs to — which on a printed board it always eventually does.' },
       ],
-      proof: { title: 'What reprinting a board costs', body: 'A bakery reprinting its board six times a year at $60 spends $360 annually and still has the wrong prices between runs. One screen costs $9 a month.' },
+      proof: { title: 'What reprinting a board costs', body: 'A bakery reprinting its board six times a year at €50 spends €300 annually and still has the wrong prices between runs. One screen costs €8 a month.' },
       faq: [
         { q: 'Can the offer change automatically by hour?', a: 'Yes. Set the schedule once and the screen moves from the morning to the midday and evening range on its own, every day.' },
         { q: 'How do we show allergens?', a: 'As part of the product card, next to the price. That is both easier to maintain and harder to lose than a separate list.' },
@@ -613,7 +613,7 @@ The second job is the price list. A salon price list changes more often than it 
         { title: 'Your own work, on a loop', body: 'Instagram posts pulled straight through, so the portfolio updates itself every time you post. No second gallery to maintain.' },
         { title: 'The price list that is actually current', body: 'Change it in one place and both the wall and the reception screen follow — no gap between what is displayed and what is charged.' },
       ],
-      proof: { title: 'What the chair is worth', body: 'A salon with four chairs running eight hours holds roughly 32 client-hours of undivided attention a day. One screen in front of the chairs costs $9 a month.' },
+      proof: { title: 'What the chair is worth', body: 'A salon with four chairs running eight hours holds roughly 32 client-hours of undivided attention a day. One screen in front of the chairs costs €8 a month.' },
       faq: [
         { q: 'Do we need a big screen?', a: 'No. One smaller screen in the waiting area or facing the chairs is usually plenty — the viewing distance is short, which is unusual for signage and makes everything easier.' },
         { q: 'Can we show photos of our work?', a: 'Yes, including Instagram posts pulled in automatically, so the content refreshes itself with no extra work.' },
@@ -651,7 +651,7 @@ The workshop is the other half, and it is the half most dealers ignore. A custom
         { title: 'Manufacturer video without the ad breaks', body: 'Full resolution, played locally, no pre-roll and no recommendations panel at the end. That last part is why a YouTube tab on a smart TV is not the same thing.' },
         { title: 'Job status in the waiting area', body: 'If your workshop system can output a list, the screen shows where each car is — which removes the question customers ask most and cannot otherwise answer.' },
       ],
-      proof: { title: 'What the waiting room is worth', body: 'A workshop serving 15 cars a day with a 90-minute average wait holds over 22 customer-hours daily. One screen costs $9 a month.' },
+      proof: { title: 'What the waiting room is worth', body: 'A workshop serving 15 cars a day with a 90-minute average wait holds over 22 customer-hours daily. One screen costs €8 a month.' },
       faq: [
         { q: 'Can we show manufacturer video?', a: 'Yes. Video plays locally at full resolution with no advertising and no end-card, which is the difference between a brand asset and a YouTube page.' },
         { q: 'Can it pull status from our system?', a: 'Yes, if the system can output a spreadsheet or a web page — it renders directly and refreshes itself.' },
@@ -688,7 +688,7 @@ A window screen removes that failure mode entirely. A sold property comes off th
         { title: 'Stock that matches the system', body: 'Read from your listings database, spreadsheet or feed, so what is in the window is what is actually available.' },
         { title: 'A window that works after closing', body: 'Evening is when people walk past estate agents with time to look. Schedule brightness and content for the hours that have footfall, and power down when they do not.' },
       ],
-      proof: { title: 'What a sold listing in the window costs', body: 'An agency with eight window slots turning over 30% of stock monthly has roughly two and a half stale listings in the window at any time. Two window screens cost $18 a month.' },
+      proof: { title: 'What a sold listing in the window costs', body: 'An agency with eight window slots turning over 30% of stock monthly has roughly two and a half stale listings in the window at any time. Two window screens cost €16 a month.' },
       faq: [
         { q: 'Can we pull listings from our database?', a: 'Yes, if they are available as a spreadsheet, feed or web page — the screen then stays in step with your system rather than being a second place to update.' },
         { q: 'Is a window screen readable in daylight?', a: 'Only if it is built for it. Window installations need high-brightness displays; a consumer television behind glass in the afternoon is unreadable, and that is a hardware problem no software fixes.' },
@@ -725,7 +725,7 @@ The foyer is also a concessions business wearing a cinema's clothes. Margin live
         { title: 'Listings that change when the schedule does', body: 'Read from the same source your booking system uses. Sold-out marks itself, and a late addition appears without anyone printing anything.' },
         { title: 'Trailers without the platform', body: 'Played locally at full resolution — no pre-roll advertising, no recommendations, no buffering in front of a queue.' },
       ],
-      proof: { title: 'What the concessions queue is worth', body: 'A four-screen cinema with 600 admissions a day puts most of them through a concessions queue at some point. One screen above the counter costs $9 a month.' },
+      proof: { title: 'What the concessions queue is worth', body: 'A four-screen cinema with 600 admissions a day puts most of them through a concessions queue at some point. One screen above the counter costs €8 a month.' },
       faq: [
         { q: 'Can it show sold-out screenings?', a: 'Yes, if the data comes from a spreadsheet or a web source — the status then updates itself rather than waiting for somebody to notice.' },
         { q: 'How does trailer playback work?', a: 'Locally or from a stream, at full resolution, with no pre-roll advertising and no end-cards.' },
@@ -800,7 +800,7 @@ A screen takes over the induction you would otherwise repeat to each of them. Th
         { title: 'Room availability at the door', body: 'A small display outside each room reading your calendar. Read-only — the booking stays in your system and the screen just settles the question.' },
         { title: 'What is on this week', body: 'Talks, workshops, the Friday thing. Members find out without being emailed, which is the only way it reaches the ones who joined yesterday.' },
       ],
-      proof: { title: 'What it replaces', body: 'A space with 60 members turning over 15% a month is inducting nine new people every month, each asking roughly the same five questions. A lobby screen and two door displays cost $27 a month.' },
+      proof: { title: 'What it replaces', body: 'A space with 60 members turning over 15% a month is inducting nine new people every month, each asking roughly the same five questions. A lobby screen and two door displays cost €24 a month.' },
       faq: [
         { q: 'Can it show room bookings from a calendar?', a: 'Yes — Google Calendar and Microsoft 365. The display is read-only; bookings stay in your system, which is the arrangement most operators want.' },
         { q: 'Do we need a screen outside every room?', a: 'No. A small display by the door works best, but a single central screen listing all rooms also works and costs a great deal less.' },
@@ -837,7 +837,7 @@ That sets the design constraint: calm. No abrupt transitions, no sound, nothing 
         { title: 'Seasonal advice, on schedule', body: 'Ticks in spring, heat in summer, fireworks in autumn. Written once, scheduled to appear the week it becomes relevant.' },
         { title: 'Something to look at other than the door', body: 'Slow, quiet content that gives an anxious owner somewhere else to put their attention. This is the part that is hard to justify on a spreadsheet and obvious in the room.' },
       ],
-      proof: { title: 'What it replaces', body: 'A practice answering the same seasonal question 15 times a day at half a minute each spends about 45 hours a year on it. One waiting-room screen costs $9 a month.' },
+      proof: { title: 'What it replaces', body: 'A practice answering the same seasonal question 15 times a day at half a minute each spends about 45 hours a year on it. One waiting-room screen costs €8 a month.' },
       faq: [
         { q: 'Does the screen disturb the animals?', a: 'Not if the content is built for the room. Silent, no abrupt transitions, low contrast movement — it reads as calming rather than as another thing to react to.' },
         { q: 'Can we change content by season?', a: 'Yes. Seasonal topics — ticks, heat, fireworks — are scheduled ahead and switch themselves on at the week you set.' },
@@ -874,7 +874,7 @@ A screen switches in seconds. Build the schedule for both events in advance, and
         { title: 'Two events, one switch', body: 'Prepared schedules that swap on a timer or on a click. Every screen in the building relabels at once, including the ones nobody would have remembered.' },
         { title: 'Sponsor slots you can sell', body: 'Controlled rotation with a defined share of screen time — which turns the screens from a cost into a line item you can invoice.' },
       ],
-      proof: { title: 'What a room turnover costs in signage', body: "A venue turning four rooms twice a day reprints or reprints-and-swaps eight signs daily. At even five minutes each that is 40 minutes a day of somebody's time. Eight screens cost $72 a month." },
+      proof: { title: 'What a room turnover costs in signage', body: "A venue turning four rooms twice a day reprints or reprints-and-swaps eight signs daily. At even five minutes each that is 40 minutes a day of somebody's time. Eight screens cost €64 a month." },
       faq: [
         { q: 'How fast can we switch between two events?', a: 'Seconds. Switching to a prepared schedule happens across every screen at once, so the building is never half-relabelled.' },
         { q: 'Can we prepare everything in advance?', a: 'Yes. A schedule can be built days ahead and switches itself on at the date and hour you set, which is how a busy weekend gets survivable.' },

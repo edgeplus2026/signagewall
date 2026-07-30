@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { AppCard } from '@/components/apps/app-card'
 import { AppIcon } from '@/components/apps/app-icon'
 import { CtaBand } from '@/components/marketing/cta-band'
+import { GetInTouch } from '@/components/quote/get-in-touch'
 import { BreadcrumbJsonLd, SoftwareAppJsonLd } from '@/components/seo/json-ld'
 import { SolutionIcon } from '@/components/solutions/solution-icon'
 import { Badge } from '@/components/ui/badge'
@@ -100,9 +101,7 @@ export default async function AppDetailPage({ params }: PageProps) {
                 ))}
               </div>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/contact" className={cn(buttonVariants())}>
-                  {tc('bookDemo')}
-                </Link>
+                <GetInTouch label={tc('getInTouch')} />
                 <Link href="/apps" className={cn(buttonVariants({ variant: 'outline' }))}>
                   {tc('seeAllApps')}
                 </Link>

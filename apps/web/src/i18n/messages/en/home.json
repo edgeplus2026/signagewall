@@ -4,11 +4,11 @@
     "description": "Digital signage software for menus, prices and announcements. Change what is on screen in 30 seconds — on one screen or a hundred, from your phone."
   },
   "hero": {
-    "eyebrow": "Digital signage",
-    "title": "Change what's on your screens in 30 seconds.",
-    "subtitle": "Menus, prices, offers and announcements — edited from your phone, on one screen or a hundred. No printing, no waiting.",
+    "eyebrow": "Digital signage software",
+    "title": "Run every screen in your business from your phone.",
+    "subtitle": "SignageWall turns any TV into a screen you update in seconds — menus, offers, announcements. One screen or two hundred, and they keep playing when the internet drops.",
     "ctaPrimary": "Start free for {trialDays} days",
-    "ctaSecondary": "Book a demo",
+    "ctaSecondary": "Get in touch",
     "trialNote": "{trialDays} days free · no credit card · no contract"
   },
   "trust": {
@@ -18,16 +18,16 @@
         "label": "Free trial, every feature on"
       },
       {
-        "value": "{price}",
-        "label": "Per screen, per month — one price"
+        "value": "200+",
+        "label": "Screens online right now"
       },
       {
-        "value": "No contract",
-        "label": "Monthly, cancel any time"
+        "value": "6+",
+        "label": "Countries running SignageWall"
       },
       {
-        "value": "Works offline",
-        "label": "Screens keep playing without a connection"
+        "value": "40+",
+        "label": "Organizations on the platform"
       }
     ]
   },
@@ -118,36 +118,6 @@
       }
     ]
   },
-  "why": {
-    "eyebrow": "Why SignageWall",
-    "title": "What we do differently.",
-    "subtitle": "There are good signage platforms. Here is where we are not the same.",
-    "items": [
-      {
-        "title": "One price, not six plans",
-        "body": "{price} per screen with every feature switched on. No climbing tiers to find the one that has scheduling, and no enterprise plan holding back what you actually need."
-      },
-      {
-        "title": "Built to survive a dead connection",
-        "body": "The player keeps showing the last content it downloaded and a watchdog restarts it if it stalls. A blank screen in your window is worse than no screen at all."
-      },
-      {
-        "title": "The price is on the website",
-        "body": "You can budget for this without a sales call, at any network size. If a platform will not tell you what it costs until you talk to someone, that is the answer."
-      },
-      {
-        "title": "Your brand, not ours",
-        "body": "No watermark, ever — not on a trial, not on any plan. The screen reads as part of your space rather than an advertisement for our software."
-      }
-    ]
-  },
-  "pricingPreview": {
-    "eyebrow": "Pricing",
-    "title": "{price} per screen, per month.",
-    "body": "Everything included, at every size. Start with one screen or two hundred — the rate does not change and neither does the feature set.",
-    "cta": "See what is included",
-    "ctaSecondary": "Compare with Yodeck"
-  },
   "faq": {
     "title": "Common questions",
     "items": [
@@ -187,55 +157,11 @@
   },
   "cta": {
     "title": "Put something on your screens today.",
-    "body": "Start free for {trialDays} days with every feature switched on, or book a short demo and we will show you how it works in your space.",
+    "body": "Start free for {trialDays} days with every feature switched on, or get in touch and we will show you how it works in your space.",
     "primary": "Start free trial",
-    "secondary": "Book a demo"
+    "secondary": "Get in touch"
   },
-  "bento": {
-    "weather": {
-      "place": "Belgrade · Today",
-      "condition": "Sunny, light wind",
-      "temp": "23°",
-      "forecast": ["Thu 24°", "Fri 21°", "Sat 19°"]
-    },
-    "clock": {
-      "label": "Time",
-      "time": "09:41"
-    },
-    "fx": {
-      "label": "Rates",
-      "rows": [
-        {
-          "code": "EUR",
-          "value": "117.4"
-        },
-        {
-          "code": "USD",
-          "value": "108.2"
-        },
-        {
-          "code": "CHF",
-          "value": "125.0"
-        }
-      ]
-    },
-    "news": {
-      "label": "News",
-      "headline": "New city bus route opens to passengers",
-      "time": "12 minutes ago"
-    },
-    "calendar": {
-      "label": "Today",
-      "events": [
-        {
-          "time": "10:00",
-          "title": "Team stand-up"
-        },
-        {
-          "time": "13:30",
-          "title": "Client presentation"
-        }
-      ]
-    }
+  "showcase": {
+    "goTo": "Show screen {n}"
   }
 }

@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next'
 
-import { COMPETITOR_KEYS } from '@/content/alternatives'
 import { catalogApps } from '@/lib/apps'
 import { listPostRefs } from '@/lib/posts'
 import type { LocaleRoutes, Route } from '@/lib/seo'
@@ -86,13 +85,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...STATIC_ROUTES.map(({ route, priority, changeFrequency }) =>
       entry(route, { priority, changeFrequency }),
-    ),
-    // Comparison pages: high commercial intent, low competition.
-    ...COMPETITOR_KEYS.map((competitor) =>
-      entry(
-        { pathname: '/alternatives/[competitor]', params: { competitor } },
-        { priority: 0.8, changeFrequency: 'monthly' },
-      ),
     ),
     // App slugs come from the code registry and are the same in both languages.
     ...catalogApps.map((m) =>

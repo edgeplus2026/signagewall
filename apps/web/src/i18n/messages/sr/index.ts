@@ -1,5 +1,4 @@
 import about from './about.json'
-import alternatives from './alternatives.json'
 import apps from './apps.json'
 import blog from './blog.json'
 import catalog from './catalog.json'
@@ -16,6 +15,7 @@ import legal from './legal.json'
 import meta from './meta.json'
 import nav from './nav.json'
 import pricing from './pricing.json'
+import quote from './quote.json'
 import solutions from './solutions.json'
 import whatIsSignage from './whatIsSignage.json'
 
@@ -31,7 +31,7 @@ const messages = {
   howItWorks,
   features,
   pricing,
-  alternatives,
+  quote,
   whatIsSignage,
   hardware,
   solutions,

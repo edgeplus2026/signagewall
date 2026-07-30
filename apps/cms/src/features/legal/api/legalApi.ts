@@ -1,21 +1,13 @@
-import type {
-  LegalAcceptanceStatus,
-  LegalDocType,
-  LegalDocument,
-} from '@/features/legal/types/legal.types'
+import type { LegalAcceptanceStatus, LegalDocType } from '@/features/legal/types/legal.types'
 import { api } from '@/lib/axios'
 
 const BASE = '/legal'
 
-export const legalApi = {
-  /** Public: current Terms/Privacy documents for a locale. */
-  getDocuments: async (locale: string): Promise<LegalDocument[]> => {
-    const { data } = await api.get<LegalDocument[]>(`${BASE}/documents`, {
-      params: { locale },
-    })
-    return data
-  },
+/* No `getDocuments` here any more: the Terms and Privacy text is published on
+   the marketing site (see `legalUrls`), and the backend only tracks the version
+   number and who accepted it. `GET /legal/documents` still exists server-side. */
 
+export const legalApi = {
   getAcceptanceStatus: async (): Promise<LegalAcceptanceStatus> => {
     const { data } = await api.get<LegalAcceptanceStatus>(
       `${BASE}/acceptance-status`,

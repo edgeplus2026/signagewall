@@ -7,6 +7,7 @@ import { CtaBand } from '@/components/marketing/cta-band'
 import { PageHero } from '@/components/marketing/page-hero'
 import { SectionHeader } from '@/components/marketing/section-header'
 import { Reveal } from '@/components/motion/reveal'
+import { GetInTouch } from '@/components/quote/get-in-touch'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { IconBadge } from '@/components/ui/icon-badge'
@@ -97,9 +98,7 @@ export default async function DownloadPage({ params }: PageProps) {
         </div>
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <p className="max-w-xl text-sm text-secondary">{t('note')}</p>
-          <Link href="/contact" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
-            {tc('bookDemo')}
-          </Link>
+          <GetInTouch label={tc('getInTouch')} variant="outline" size="sm" />
         </div>
       </Section>
 

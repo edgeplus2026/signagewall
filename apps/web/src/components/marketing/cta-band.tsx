@@ -1,10 +1,10 @@
 import { getTranslations } from 'next-intl/server'
 
 import { Reveal } from '@/components/motion/reveal'
+import { GetInTouch } from '@/components/quote/get-in-touch'
 import { buttonVariants } from '@/components/ui/button'
 import { Section } from '@/components/ui/section'
 import { Title } from '@/components/ui/typography'
-import { Link } from '@/i18n/navigation'
 import { REGISTER_URL } from '@/lib/app-url'
 import { TRIAL_DAYS } from '@/lib/pricing'
 import { cn } from '@/lib/utils'
@@ -26,12 +26,7 @@ export async function CtaBand() {
           <a href={REGISTER_URL} className={cn(buttonVariants({ variant: 'inverse', size: 'lg' }))}>
             {t('primary')}
           </a>
-          <Link
-            href="/contact"
-            className={cn(buttonVariants({ variant: 'inverseOutline', size: 'lg' }))}
-          >
-            {t('secondary')}
-          </Link>
+          <GetInTouch label={t('secondary')} variant="inverseOutline" size="lg" />
         </div>
       </Reveal>
     </Section>

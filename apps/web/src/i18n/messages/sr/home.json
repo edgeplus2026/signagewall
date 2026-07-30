@@ -4,30 +4,30 @@
     "description": "Digital signage softver za menije, cene i najave. Promenite šta piše na ekranu za 30 sekundi — na jednom ekranu ili na svih sto, sa telefona."
   },
   "hero": {
-    "eyebrow": "Digital signage",
-    "title": "Promenite ono što piše na ekranu za 30 sekundi.",
-    "subtitle": "Meni, cene, ponude i najave menjate sa telefona — na jednom ekranu ili na svih sto. Bez štampe i bez čekanja.",
+    "eyebrow": "Digital signage softver",
+    "title": "Vodite svaki ekran u firmi sa telefona.",
+    "subtitle": "SignageWall pretvara bilo koji TV u ekran koji menjate za nekoliko sekundi — meni, ponude, obaveštenja. Jedan ekran ili dvesta, i rade i kad internet padne.",
     "ctaPrimary": "Probajte besplatno {trialDays} dana",
-    "ctaSecondary": "Zakažite demo",
+    "ctaSecondary": "Javite nam se",
     "trialNote": "{trialDays} dana besplatno · bez kartice · bez ugovora"
   },
   "trust": {
     "items": [
       {
         "value": "{trialDays} dana",
-        "label": "Besplatno, sve mogućnosti uključene"
+        "label": "Besplatno, sa svim funkcijama"
       },
       {
-        "value": "{price}",
-        "label": "Po ekranu mesečno — jedna cena"
+        "value": "200+",
+        "label": "Ekrana trenutno online"
       },
       {
-        "value": "Bez ugovora",
-        "label": "Mesečno, otkazujete kad god"
+        "value": "6+",
+        "label": "Zemalja koristi SignageWall"
       },
       {
-        "value": "Radi offline",
-        "label": "Ekran nastavlja i bez veze"
+        "value": "40+",
+        "label": "Organizacija na platformi"
       }
     ]
   },
@@ -118,36 +118,6 @@
       }
     ]
   },
-  "why": {
-    "eyebrow": "Zašto SignageWall",
-    "title": "Šta radimo drugačije.",
-    "subtitle": "Postoje dobre signage platforme. Evo gde nismo isti.",
-    "items": [
-      {
-        "title": "Jedna cena, ne šest planova",
-        "body": "{price} po ekranu sa svim uključenim. Bez penjanja kroz nivoe da biste našli onaj sa zakazivanjem, i bez enterprise plana koji drži ono što vam stvarno treba."
-      },
-      {
-        "title": "Napravljeno da preživi prekid veze",
-        "body": "Plejer nastavlja da prikazuje poslednji preuzeti sadržaj, a watchdog ga restartuje ako se zaglavi. Prazan ekran u izlogu je gori nego nikakav ekran."
-      },
-      {
-        "title": "Cena piše na sajtu",
-        "body": "Možete da planirate budžet bez poziva sa prodajom, na bilo kojoj veličini mreže. Ako vam platforma ne kaže cenu dok ne popričate sa nekim — to je odgovor."
-      },
-      {
-        "title": "Vaš brend, ne naš",
-        "body": "Nikad vodenog žiga — ni na probi, ni na jednom planu. Ekran deluje kao deo vašeg prostora, a ne kao reklama za naš softver."
-      }
-    ]
-  },
-  "pricingPreview": {
-    "eyebrow": "Cene",
-    "title": "{price} po ekranu, mesečno.",
-    "body": "Sve uključeno, na svakoj veličini. Počnite sa jednim ekranom ili sa dvesta — cena se ne menja, a ni skup mogućnosti.",
-    "cta": "Šta je uključeno",
-    "ctaSecondary": "Poredite sa Yodeck-om"
-  },
   "faq": {
     "title": "Česta pitanja",
     "items": [
@@ -187,55 +157,11 @@
   },
   "cta": {
     "title": "Stavite nešto na svoje ekrane već danas.",
-    "body": "Počnite besplatno {trialDays} dana sa svim uključenim, ili zakažite kratak demo pa ćemo vam pokazati kako radi u vašem prostoru.",
+    "body": "Počnite besplatno {trialDays} dana sa svim uključenim, ili nam se javite pa ćemo vam pokazati kako radi u vašem prostoru.",
     "primary": "Počnite besplatno",
-    "secondary": "Zakažite demo"
+    "secondary": "Javite nam se"
   },
-  "bento": {
-    "weather": {
-      "place": "Beograd · Danas",
-      "condition": "Sunčano, malo vetra",
-      "temp": "23°",
-      "forecast": ["Čet 24°", "Pet 21°", "Sub 19°"]
-    },
-    "clock": {
-      "label": "Vreme",
-      "time": "09:41"
-    },
-    "fx": {
-      "label": "Kurs",
-      "rows": [
-        {
-          "code": "EUR",
-          "value": "117,4"
-        },
-        {
-          "code": "USD",
-          "value": "108,2"
-        },
-        {
-          "code": "CHF",
-          "value": "125,0"
-        }
-      ]
-    },
-    "news": {
-      "label": "Vesti",
-      "headline": "Nova linija gradskog prevoza počinje sa radom",
-      "time": "pre 12 minuta"
-    },
-    "calendar": {
-      "label": "Danas",
-      "events": [
-        {
-          "time": "10:00",
-          "title": "Sastanak tima"
-        },
-        {
-          "time": "13:30",
-          "title": "Prezentacija za klijenta"
-        }
-      ]
-    }
+  "showcase": {
+    "goTo": "Prikaži ekran {n}"
   }
 }

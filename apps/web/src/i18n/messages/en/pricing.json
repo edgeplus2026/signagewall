@@ -5,37 +5,11 @@
   },
   "hero": {
     "eyebrow": "Pricing",
-    "title": "One price. Everything included.",
-    "subtitle": "{price} per screen, per month. Every feature, every app, every integration — no tiers to climb and nothing held back for an enterprise plan.",
+    "title": "Published pricing.",
+    "subtitle": "{price} per screen, per month, with every feature switched on — up to five screens. Above five, the price is quoted for the size of your network.",
     "ctaPrimary": "Start free for {trialDays} days",
-    "ctaSecondary": "Book a demo",
-    "note": "No credit card to start. Cancel any time."
-  },
-  "plan": {
-    "name": "SignageWall",
-    "price": "{price}",
-    "unit": "per screen / month",
-    "trial": "{trialDays} days free, no card required",
-    "includedTitle": "What is included",
-    "included": [
-      "Every app in the catalog — {appCount} of them, not a limited subset",
-      "Unlimited content, playlists and scheduling",
-      "Offline playback — screens keep running when the connection drops",
-      "Android, Windows, macOS and Linux players",
-      "On-screen zones and layouts",
-      "Your own branding, with no watermark on the screen",
-      "Roles and permissions for your team",
-      "Automatic updates and self-recovery",
-      "Email support, answered by the people who build it"
-    ],
-    "cta": "Start free trial"
-  },
-  "calculator": {
-    "title": "What it costs for your network",
-    "subtitle": "Move the number of screens; the total is {price} per screen, per month.",
-    "screensLabel": "Screens",
-    "monthly": "per month",
-    "yearly": "per year"
+    "ctaSecondary": "Get in touch",
+    "note": "No credit card to start. We invoice monthly."
   },
   "faq": {
     "title": "Pricing questions",
@@ -46,7 +20,7 @@
       },
       {
         "q": "Do I need a credit card to start the trial?",
-        "a": "No. You create an account, pair a screen and use everything for {trialDays} days. We ask for payment details only if you decide to continue, and we do not charge anything automatically when the trial ends."
+        "a": "No. You create an account, pair a screen and use everything for {trialDays} days. There is no card to enter at any point — if you continue, the first invoice arrives after the trial."
       },
       {
         "q": "What happens after the {trialDays} days?",
@@ -54,11 +28,11 @@
       },
       {
         "q": "Can I run just one screen?",
-        "a": "Yes, and plenty of customers do — a bakery, a salon, a waiting room. The price is the same {price} per screen whether you run one or two hundred, and nothing about the product is switched off at the low end."
+        "a": "Yes, and plenty of customers do — a bakery, a salon, a waiting room. One screen is {price} a month, and nothing about the product is switched off at the low end."
       },
       {
-        "q": "Is there a discount for more screens?",
-        "a": "No — {price} is the flat rate, not a headline price you negotiate down from. It is the same whether you run one screen or three hundred, which also means you never have to ask what it would cost at scale."
+        "q": "What happens above five screens?",
+        "a": "You move to Enterprise: the same product, with a price quoted for the size of your network rather than taken off this page. Tell us how many screens you run and we will send a number — there is nothing to unlock and no feature waiting behind it."
       },
       {
         "q": "What is not included in the price?",
@@ -73,13 +47,50 @@
         "a": "Yes. Remove the screens you are not using and the bill drops the same month. Add them back when the season turns and your content is still there."
       },
       {
-        "q": "Which currencies and payment methods?",
-        "a": "Card payments in USD and EUR. We can also invoice companies directly on the usual terms if your finance team prefers that to a card."
+        "q": "How does payment work?",
+        "a": "Everything is priced in euros, and there is no card to enter — we do not run a payment gateway. You get an invoice each month and pay it by bank transfer, on the terms your finance team works with."
       },
       {
         "q": "Is there a free plan?",
         "a": "There is a {trialDays}-day free trial rather than a permanently free tier. We would rather keep every feature switched on for everyone during the trial than run a free plan with a watermark on your screen."
       }
     ]
+  },
+  "plans": {
+    "title": "Two ways to buy",
+    "subtitle": "The same product either way — the number of screens decides which one you are on.",
+    "billing": "Monthly invoice, paid by bank transfer. No card details, no payment gateway.",
+    "basic": {
+      "name": "Basic",
+      "price": "{price}",
+      "unit": "per screen / month",
+      "limit": "Up to 5 screens",
+      "trial": "{trialDays} days free, no card required",
+      "cta": "Start free trial",
+      "included": [
+        "Every app in the catalog — {appCount} of them, not a limited subset",
+        "Unlimited content, playlists and scheduling",
+        "Offline playback — screens keep running when the connection drops",
+        "Android, Windows, macOS and Linux players",
+        "On-screen zones and layouts",
+        "Your own branding, with no watermark on the screen",
+        "Roles and permissions for your team",
+        "Automatic updates and self-recovery",
+        "Email support, answered by the people who build it"
+      ]
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "On request",
+      "limit": "More than 5 screens",
+      "body": "Tell us how many screens you run and we will send a price, usually within one business day.",
+      "cta": "Get in touch",
+      "included": [
+        "Everything in Basic — the product is identical",
+        "A price quoted for the size of your network",
+        "One monthly invoice covering every screen",
+        "No minimum term, exactly as in Basic"
+      ]
+    }
   }
 }

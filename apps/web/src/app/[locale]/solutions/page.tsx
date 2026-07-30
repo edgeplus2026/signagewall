@@ -1,4 +1,3 @@
-import { ArrowRight } from 'lucide-react'
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
@@ -8,10 +7,8 @@ import { SectionHeader } from '@/components/marketing/section-header'
 import { Reveal } from '@/components/motion/reveal'
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld'
 import { SolutionIcon } from '@/components/solutions/solution-icon'
-import { Card } from '@/components/ui/card'
+import { CatalogCard } from '@/components/ui/catalog-card'
 import { Section, SectionStack } from '@/components/ui/section'
-import { Subtitle } from '@/components/ui/typography'
-import { Link } from '@/i18n/navigation'
 import { localeAlternates } from '@/lib/seo'
 import { listSolutions } from '@/lib/solutions'
 
@@ -39,7 +36,6 @@ export default async function SolutionsPage({ params }: PageProps) {
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('solutions')
-  const tc = await getTranslations('common')
   const solutions = await listSolutions(locale)
 
   return (
@@ -57,32 +53,19 @@ export default async function SolutionsPage({ params }: PageProps) {
 
         <Section>
           <SectionHeader title={t('overview.title')} />
-          <div className="mt-16 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {/* Same card as /apps — see CatalogCard. The industry grid used to
+              lead with a filled coral band, which made this page read as a
+              different site from the app catalogue. */}
+          <div className="mt-16 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {solutions.map((s, i) => (
               <Reveal key={s.slug} delay={(i % 3) * 70}>
-                <Link
+                <CatalogCard
                   href={{ pathname: '/solutions/[industry]', params: { industry: s.slug } }}
-                  className="block h-full"
-                >
-                  <Card className="group flex h-full flex-col p-0 transition-colors hover:border-accent">
-                    {/* The coral band is the card's only mass — it names the
-                          industry and carries the icon, so the body below can
-                          stay pure text and actually be read. */}
-                    <span className="flex items-center gap-4 border-b border-secondary bg-accent-soft px-6 py-5 transition-colors group-hover:bg-accent group-hover:text-accent-contrast">
-                      <span className="flex size-11 shrink-0 items-center justify-center bg-accent text-accent-contrast transition-colors group-hover:bg-accent-contrast group-hover:text-accent">
-                        <SolutionIcon icon={s.icon} className="size-5" />
-                      </span>
-                      <Subtitle>{s.name}</Subtitle>
-                    </span>
-                    <span className="flex flex-1 flex-col px-6 pt-5 pb-6">
-                      <span className="text-sm text-pretty text-secondary">{s.tagline}</span>
-                      <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium transition-colors group-hover:text-accent">
-                        {tc('learnMore')}
-                        <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                      </span>
-                    </span>
-                  </Card>
-                </Link>
+                  icon={<SolutionIcon icon={s.icon} className="size-6" />}
+                  name={s.name}
+                  tagline={s.tagline}
+                  className="h-full"
+                />
               </Reveal>
             ))}
           </div>

@@ -22,7 +22,6 @@ export async function Header() {
     { href: '/apps', label: t('apps') },
     { href: '/solutions', label: t('solutions') },
     { href: '/pricing', label: t('pricing') },
-    { href: '/blog', label: t('blog') },
   ] as const
 
   return (

@@ -1,0 +1,21 @@
+{
+  "title": "Zatražite ponudu",
+  "subtitle": "Recite nam koliko ekrana imate i javićemo se sa cenom — obično u roku od jednog radnog dana.",
+  "name": "Ime i prezime",
+  "email": "Email",
+  "phone": "Broj telefona",
+  "screens": "Broj ekrana",
+  "city": "Grad",
+  "country": "Država",
+  "countryPlaceholder": "Izaberite državu",
+  "message": "Poruka",
+  "messagePlaceholder": "Sve što nam pomaže da odgovorimo — šta ekrani prikazuju, gde su, kada želite da počnete.",
+  "submit": "Pošaljite upit",
+  "sending": "Šaljemo…",
+  "successTitle": "Upit je poslat",
+  "success": "Hvala — primili smo ga i javljamo se u roku od jednog radnog dana.",
+  "close": "Zatvorite",
+  "invalid": "Proverite ime, email i broj ekrana.",
+  "error": "Nešto nije prošlo kako treba. Pokušajte ponovo ili nam pišite direktno.",
+  "note": "Bez obaveza. Fakturišemo mesečno — nema unosa kartice."
+}

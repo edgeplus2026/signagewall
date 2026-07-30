@@ -9,18 +9,16 @@ import { SectionHeader } from '@/components/marketing/section-header'
 import { Reveal } from '@/components/motion/reveal'
 import { BreadcrumbJsonLd, FaqJsonLd, ServiceJsonLd } from '@/components/seo/json-ld'
 import { SolutionIcon } from '@/components/solutions/solution-icon'
-import { buttonVariants } from '@/components/ui/button'
 import { Faq } from '@/components/ui/faq'
 import { IconBadge } from '@/components/ui/icon-badge'
 import { Prose } from '@/components/ui/prose'
 import { Section, SectionStack } from '@/components/ui/section'
 import { StepNumber } from '@/components/ui/step-number'
 import { Subtitle, Title } from '@/components/ui/typography'
-import { Link, permanentRedirect } from '@/i18n/navigation'
+import { permanentRedirect } from '@/i18n/navigation'
 import { appManifestBySlug } from '@/lib/apps'
 import { localeAlternates, openGraphMeta } from '@/lib/seo'
 import { getSolution, listSolutionSlugs } from '@/lib/solutions'
-import { cn } from '@/lib/utils'
 
 /* ISR rather than `force-dynamic`. The content behind this page changes when
    an editor publishes, not per request, so re-rendering on every hit spent a
@@ -88,7 +86,6 @@ export default async function IndustryPage({ params }: PageProps) {
     .map((slug) => appManifestBySlug.get(slug))
     .filter((m) => m !== undefined)
   const t = await getTranslations('solutions')
-  const tc = await getTranslations('common')
 
   return (
     <>
@@ -113,14 +110,9 @@ export default async function IndustryPage({ params }: PageProps) {
       <FaqJsonLd items={solution.faq} />
 
       <SectionStack>
-        <PageHero eyebrow={solution.name} title={solution.title} subtitle={solution.subtitle}>
-          <Link href="/contact" className={cn(buttonVariants({ size: 'lg' }))}>
-            {tc('bookDemo')}
-          </Link>
-          <Link href="/apps" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>
-            {tc('exploreApps')}
-          </Link>
-        </PageHero>
+        {/* No buttons in this hero on purpose: the page closes with CtaBand, and
+            a second pair up here competed with it rather than adding a route. */}
+        <PageHero eyebrow={solution.name} title={solution.title} subtitle={solution.subtitle} />
 
         {solution.intro.length > 0 && (
           <Section innerClassName="max-w-3xl">

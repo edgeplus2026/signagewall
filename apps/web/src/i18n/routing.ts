@@ -23,10 +23,6 @@ const pathnames = {
     sr: '/sta-je-digital-signage',
     en: '/what-is-digital-signage',
   },
-  '/alternatives/[competitor]': {
-    sr: '/alternative/[competitor]',
-    en: '/alternatives/[competitor]',
-  },
   '/apps': { sr: '/aplikacije', en: '/apps' },
   '/apps/[slug]': { sr: '/aplikacije/[slug]', en: '/apps/[slug]' },
   '/solutions': { sr: '/resenja', en: '/solutions' },

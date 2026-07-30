@@ -5,13 +5,13 @@ import { CtaBand } from '@/components/marketing/cta-band'
 import { PageHero } from '@/components/marketing/page-hero'
 import { SectionHeader } from '@/components/marketing/section-header'
 import { Reveal } from '@/components/motion/reveal'
+import { GetInTouch } from '@/components/quote/get-in-touch'
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Prose } from '@/components/ui/prose'
 import { Section, SectionStack } from '@/components/ui/section'
 import { Subtitle, Title } from '@/components/ui/typography'
-import { Link } from '@/i18n/navigation'
 import { REGISTER_URL } from '@/lib/app-url'
 import { localeAlternates, openGraphMeta } from '@/lib/seo'
 import { cn } from '@/lib/utils'
@@ -112,9 +112,7 @@ export default async function AboutPage({ params }: PageProps) {
           <Title className="text-2xl md:text-3xl">{t('contact.title')}</Title>
           <p className="mt-4 text-lg text-secondary">{t('contact.body')}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/contact" className={cn(buttonVariants({ size: 'lg' }))}>
-              {t('contact.cta')}
-            </Link>
+            <GetInTouch label={t('contact.cta')} size="lg" />
             <a
               href={REGISTER_URL}
               className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}

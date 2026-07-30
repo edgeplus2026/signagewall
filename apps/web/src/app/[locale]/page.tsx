@@ -8,11 +8,10 @@ import { Hero } from '@/components/marketing/hero'
 import { HomeFaq } from '@/components/marketing/home-faq'
 import { HowItWorks } from '@/components/marketing/how-it-works'
 import { Platform } from '@/components/marketing/platform'
-import { PricingPreview } from '@/components/marketing/pricing-preview'
 import { TrustStrip } from '@/components/marketing/trust-strip'
 import { UseCases } from '@/components/marketing/use-cases'
 import { WhatIsSignage } from '@/components/marketing/what-is-signage'
-import { WhySignageWall } from '@/components/marketing/why-signagewall'
+import { Plans } from '@/components/pricing/plans'
 import { SectionStack } from '@/components/ui/section'
 import { localeAlternates, openGraphMeta } from '@/lib/seo'
 
@@ -46,11 +45,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { locale } = await params
   setRequestLocale(locale)
 
-  /* The old order ran Hero → Stats → Features → UseCases → HowItWorks → Apps →
-     Platform → CTA: four consecutive sections all listing capabilities, no
-     explanation for anyone who does not know the term, no differentiation and
-     no price. The shape now is: hook, orient, prove, show, differentiate,
-     price, answer. */
+  /* The shape is: hook, orient, prove, show, answer. `whatIs` earns its slot by
+     explaining the term for anyone who arrives not knowing it — without it the
+     page is four consecutive capability lists.
+
+     Differentiation and the price used to sit between Platform and the FAQ;
+     both sections were cut deliberately. The price now lives only on /pricing,
+     so the home page no longer states it — keep it that way on purpose, or put
+     it back as a section rather than smuggling it into a nearby one. */
   return (
     <SectionStack>
       <Hero />
@@ -61,8 +63,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <HowItWorks />
       <AppsShowcase />
       <Platform />
-      <WhySignageWall locale={locale} />
-      <PricingPreview locale={locale} />
+      <Plans locale={locale} />
       <HomeFaq locale={locale} />
       <CtaBand />
     </SectionStack>

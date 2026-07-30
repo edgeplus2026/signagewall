@@ -4,13 +4,12 @@ import { Section } from '@/components/ui/section'
 import { formattedPrice, TRIAL_DAYS } from '@/lib/pricing'
 
 /**
- * Replaces the old stat band.
+ * The band under the hero: the free trial, then what is actually running.
  *
- * That band led with "25+ organizations" and "100+ screens online". Against
- * Yodeck's 65,000 companies and OptiSigns' 190,000 screens those numbers argue
- * for the competition — a small true number is worse than no number. These are
- * commitments instead, which are true on day one and do not shrink in
- * comparison with anyone.
+ * These numbers are counted, not aspirational — keep them that way. The band
+ * briefly carried commitments instead ("no contract", "works offline") because
+ * the counts were too small to help; they are worth showing now, and the same
+ * test applies next time: a number goes here only while it argues for us.
  */
 export async function TrustStrip({ locale }: { locale: string }) {
   const t = await getTranslations('home.trust')

@@ -1,18 +1,10 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 
 import { Logo } from '@/components/brand/logo'
-import { FacebookIcon, InstagramIcon, LinkedinIcon } from '@/components/brand/social-icons'
 import { Block } from '@/components/ui/block'
 import { Container } from '@/components/ui/container'
 import { Link } from '@/i18n/navigation'
 import { listTopSolutions } from '@/lib/solutions'
-
-// TODO: point these at the real SignageWall profiles before launch.
-const SOCIALS = [
-  { label: 'Instagram', href: 'https://www.instagram.com/signagewall', Icon: InstagramIcon },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/signagewall', Icon: LinkedinIcon },
-  { label: 'Facebook', href: 'https://www.facebook.com/signagewall', Icon: FacebookIcon },
-]
 
 /* Exactly the routes this footer links to. Wider than that and Link can no
    longer check that a dynamic route was given its params. */
@@ -127,27 +119,13 @@ export async function Footer() {
       </Container>
 
       <Container>
-        {/* Three tracks so the notice sits on the true centre line; the empty
-            first track is what balances the socials on the right. */}
-        <div className="grid gap-4 border-t border-secondary py-5 sm:grid-cols-3 sm:items-center">
-          <div className="hidden sm:block" />
+        {/* The notice is the whole bottom rule now — the social icons that used
+            to balance it on the right are gone, so the three-track grid that
+            existed only to centre it against them went with them. */}
+        <div className="border-t border-secondary py-5">
           <p className="text-center text-xs text-secondary">
             © {year} SignageWall. {t('rights')}
           </p>
-          <div className="flex items-center justify-center gap-1 sm:justify-end">
-            {SOCIALS.map(({ label, href, Icon }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={label}
-                className="flex size-9 items-center justify-center text-secondary transition-colors hover:bg-highlight hover:text-primary"
-              >
-                <Icon className="size-4.5" />
-              </a>
-            ))}
-          </div>
         </div>
       </Container>
     </Block>

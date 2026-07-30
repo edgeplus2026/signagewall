@@ -16,7 +16,6 @@ import AppsPage from '@/features/apps/pages/AppsPage'
 import { ProtectedLayout } from '@/features/auth/components/ProtectedLayout'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import FaqPage from '@/features/faq/pages/FaqPage'
-import LegalPage from '@/features/legal/pages/LegalPage'
 import MediaPage from '@/features/media/pages/MediaPage'
 import CreateOrganizationPage from '@/features/organizations/pages/CreateOrganizationPage'
 import PlaylistPage from '@/features/playlists/pages/PlaylistPage'
@@ -110,8 +109,6 @@ export const router = createBrowserRouter([
           </PublicPage>
         ),
       },
-      { path: '/legal/terms', element: <LegalPage docType="tos" /> },
-      { path: '/legal/privacy', element: <LegalPage docType="privacy" /> },
       {
         element: <ProtectedLayout />,
         children: [

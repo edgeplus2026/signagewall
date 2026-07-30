@@ -103,6 +103,33 @@
   }
 }
 
+/* The hero television turns to face you as the page scrolls.
+ *
+ * Scroll-driven, so it is the scrollbar that moves it rather than a timer — no
+ * JavaScript, no scroll listener, and nothing to run on a browser that does not
+ * support it: without `animation-timeline` the element simply keeps the resting
+ * transform below, which is a finished state and not a broken one. */
+@keyframes tv-turn {
+  from {
+    transform: perspective(1600px) rotateY(-16deg) rotateX(7deg) scale(0.9);
+  }
+  to {
+    transform: perspective(1600px) rotateY(-4deg) rotateX(1deg) scale(1);
+  }
+}
+
+@utility tv-turn {
+  transform: perspective(1600px) rotateY(-9deg) rotateX(3deg);
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: tv-turn linear both;
+      animation-timeline: view();
+      animation-range: entry 15% cover 55%;
+    }
+  }
+}
+
 /* Buttons ink themselves on hover: a pane of the opposite colour wipes up from
    the bottom edge while the label flips with it.
 

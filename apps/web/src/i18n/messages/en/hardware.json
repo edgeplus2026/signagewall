@@ -14,9 +14,9 @@
       "title": "The screen",
       "body": "Any TV, monitor or professional display with an HDMI input works. An ordinary consumer television is genuinely fine for a wall indoors during normal opening hours, and it will last years. Two situations change that: running sixteen hours a day or more, where a commercial panel is built for the duty cycle and a consumer set is not; and daylight falling on the screen, where you need brightness a living-room television does not have. Everything else is a preference, not a requirement.",
       "rows": [
-        ["Indoors, under 12 hours a day", "Consumer TV", "$250–600"],
-        ["16+ hours a day, every day", "Commercial panel", "$700–1,500"],
-        ["Shop window, direct sun", "High-brightness display", "$1,500–4,000"],
+        ["Indoors, under 12 hours a day", "Consumer TV", "€250–600"],
+        ["16+ hours a day, every day", "Commercial panel", "€700–1,500"],
+        ["Shop window, direct sun", "High-brightness display", "€1,500–4,000"],
         ["Narrow column (menu, listings)", "Portrait-capable panel", "add ~20%"]
       ]
     },
@@ -24,15 +24,15 @@
       "title": "The player",
       "body": "A small device behind the screen that stores your content and plays it. This is the part most people have never bought and the part where the wrong choice costs most later, because it fails quietly rather than obviously. An Android box is right for images, text and menus on one to three screens you can easily reach. A mini PC earns its price for video, on-screen zones, continuous running, or anywhere you visit rarely.",
       "rows": [
-        ["1–3 screens, images and text", "Android TV box", "$50–120"],
-        ["Video, zones, or 16+ hours", "Mini PC", "$150–350"],
-        ["A computer already sitting there", "Reuse it", "$0"],
-        ["Screen you rarely visit", "Mini PC", "$150–350"]
+        ["1–3 screens, images and text", "Android TV box", "€50–120"],
+        ["Video, zones, or 16+ hours", "Mini PC", "€150–350"],
+        ["A computer already sitting there", "Reuse it", "€0"],
+        ["Screen you rarely visit", "Mini PC", "€150–350"]
       ]
     },
     {
       "title": "Mounting and cables",
-      "body": "Easy to forget and annoying to discover. A VESA bracket, an HDMI cable long enough to reach, and a power socket within range of both. Portrait mounting needs a bracket that rotates, which not all of them do. Budget $30–80 per screen and check the socket before the delivery arrives, not after.",
+      "body": "Easy to forget and annoying to discover. A VESA bracket, an HDMI cable long enough to reach, and a power socket within range of both. Portrait mounting needs a bracket that rotates, which not all of them do. Budget €30–80 per screen and check the socket before the delivery arrives, not after.",
       "rows": []
     },
     {

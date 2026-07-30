@@ -1,11 +1,11 @@
 import { getTranslations } from 'next-intl/server'
 
-import { AppBento } from '@/components/marketing/app-bento'
+import { HeroCarousel } from '@/components/marketing/hero-carousel'
 import { Reveal } from '@/components/motion/reveal'
+import { GetInTouch } from '@/components/quote/get-in-touch'
 import { buttonVariants } from '@/components/ui/button'
 import { Section } from '@/components/ui/section'
 import { Eyebrow, Heading, Lead } from '@/components/ui/typography'
-import { Link } from '@/i18n/navigation'
 import { REGISTER_URL } from '@/lib/app-url'
 import { TRIAL_DAYS } from '@/lib/pricing'
 import { cn } from '@/lib/utils'
@@ -39,19 +39,14 @@ export async function Hero() {
             <a href={REGISTER_URL} className={cn(buttonVariants({ size: 'lg' }))}>
               {t('ctaPrimary', { trialDays: TRIAL_DAYS })}
             </a>
-            <Link
-              href="/contact"
-              className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}
-            >
-              {t('ctaSecondary')}
-            </Link>
+            <GetInTouch label={t('ctaSecondary')} variant="outline" size="lg" />
           </div>
           <p className="text-sm text-secondary">{t('trialNote', { trialDays: TRIAL_DAYS })}</p>
         </div>
       </Reveal>
 
       <Reveal delay={120}>
-        <AppBento />
+        <HeroCarousel />
       </Reveal>
     </Section>
   )
