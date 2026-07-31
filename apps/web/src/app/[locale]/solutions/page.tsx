@@ -5,11 +5,11 @@ import { CtaBand } from '@/components/marketing/cta-band'
 import { PageHero } from '@/components/marketing/page-hero'
 import { SectionHeader } from '@/components/marketing/section-header'
 import { Reveal } from '@/components/motion/reveal'
-import { BreadcrumbJsonLd } from '@/components/seo/json-ld'
+import { BreadcrumbJsonLd, CollectionPageJsonLd } from '@/components/seo/json-ld'
 import { SolutionIcon } from '@/components/solutions/solution-icon'
 import { CatalogCard } from '@/components/ui/catalog-card'
 import { Section, SectionStack } from '@/components/ui/section'
-import { localeAlternates } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 import { listSolutions } from '@/lib/solutions'
 
 /* ISR rather than `force-dynamic`. The content behind this page changes when
@@ -25,11 +25,12 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'solutions.meta' })
-  return {
+  return pageMetadata({
+    locale,
+    path: '/solutions',
     title: t('title'),
     description: t('description'),
-    alternates: localeAlternates(locale, '/solutions'),
-  }
+  })
 }
 
 export default async function SolutionsPage({ params }: PageProps) {
@@ -43,6 +44,24 @@ export default async function SolutionsPage({ params }: PageProps) {
       <BreadcrumbJsonLd
         locale={locale}
         items={[{ name: 'SignageWall', path: '/' }, { name: t('hero.title') }]}
+      />
+      <CollectionPageJsonLd
+        page={{
+          locale,
+          path: '/solutions',
+          name: t('hero.title'),
+          description: t('meta.description'),
+          itemListName: t('overview.title'),
+          items: solutions.map((solution) => ({
+            name: solution.name,
+            description: solution.tagline,
+            path: {
+              pathname: '/solutions/[industry]',
+              params: { industry: solution.slug },
+            },
+            type: 'Service',
+          })),
+        }}
       />
       <SectionStack>
         <PageHero

@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     posts: Post;
     solutions: Solution;
+    'app-pages': AppPage;
+    redirects: Redirect;
     categories: Category;
     media: Media;
     users: User;
@@ -81,6 +83,8 @@ export interface Config {
   collectionsSelect: {
     posts: PostsSelect<false> | PostsSelect<true>;
     solutions: SolutionsSelect<false> | SolutionsSelect<true>;
+    'app-pages': AppPagesSelect<false> | AppPagesSelect<true>;
+    redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -131,12 +135,12 @@ export interface Post {
   id: string;
   title: string;
   /**
-   * URL segment, per language — /blog/<slug> and /en/blog/<slug>. Write it in the language of the post. Changing it breaks existing links.
+   * URL segment, per language — /blog/<slug> and /sr/blog/<slug>. Write it in the language of the post. Changing it requires a redirect.
    */
   slug: string;
   excerpt?: string | null;
   /**
-   * Search-result title. Falls back to the post title. Aim for under ~60 characters and lead with the term people search for.
+   * Search-result title. Falls back to the post title and should lead with the term people search for. Aim for under ~60 characters.
    */
   metaTitle?: string | null;
   /**
@@ -162,6 +166,106 @@ export interface Post {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Optional concise conclusions for readers. Do not use these to repeat the introduction.
+   */
+  keyTakeaways?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Primary sources and evidence used for claims in this language version.
+   */
+  references?:
+    | {
+        title: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Define the search need before writing. Indexable pages should have a distinct query, job-to-be-done and promise.
+   */
+  intent?: {
+    /**
+     * The main query this page should answer. Use one natural-language query, not a list of keywords.
+     */
+    primaryQuery?: string | null;
+    intentType?: ('informational' | 'commercial-investigation' | 'transactional' | 'navigational') | null;
+    /**
+     * Who is searching, including their role or level of experience.
+     */
+    audience?: string | null;
+    /**
+     * What the visitor needs to decide, understand or complete.
+     */
+    jobToBeDone?: string | null;
+    /**
+     * The value this page provides that no sibling Blog, Solution or App page provides.
+     */
+    uniquePromise?: string | null;
+    /**
+     * Nearby queries this page deliberately does not target. Use this to prevent cannibalisation.
+     */
+    notTargeting?: string | null;
+  };
+  seoWorkflowVersion?: number | null;
+  /**
+   * Search and social metadata for this language. Keep canonical override empty unless consolidating a known duplicate.
+   */
+  seo?: {
+    /**
+     * Search-result title. Aim for under ~60 characters.
+     */
+    metaTitle?: string | null;
+    /**
+     * Search-result description. Aim for 140–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    ogImage?: (string | null) | Media;
+    /**
+     * Allow this language version to be indexed once its content is complete and distinct.
+     */
+    indexable?: boolean | null;
+    /**
+     * Advanced: an absolute canonical URL for deliberate consolidation. Normally leave empty for a self-canonical.
+     */
+    canonicalOverride?: string | null;
+  };
+  /**
+   * This language version is complete, reviewed and safe to expose on its public URL.
+   */
+  localeReady?: boolean | null;
+  /**
+   * When this language version was last checked for accuracy.
+   */
+  lastReviewedAt?: string | null;
+  /**
+   * Editor responsible for the latest review of this language version.
+   */
+  reviewedBy?: (string | null) | User;
+  /**
+   * Editorially selected guides that deepen or support this page.
+   */
+  relatedPosts?: (string | Post)[] | null;
+  /**
+   * Industries for which this content is directly useful.
+   */
+  relatedSolutions?: (string | Solution)[] | null;
+  /**
+   * Apps that directly help the reader complete the job described on this page.
+   */
+  relatedApps?: (string | AppPage)[] | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -189,6 +293,7 @@ export interface Media {
    * Original photo page.
    */
   sourceUrl?: string | null;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -246,7 +351,7 @@ export interface Solution {
   id: string;
   name: string;
   /**
-   * URL segment, per language — /solutions/<slug> and /en/solutions/<slug>. Changing it breaks existing links.
+   * URL segment, per language — /solutions/<slug> and /sr/resenja/<slug>. Changing it requires a redirect.
    */
   slug: string;
   /**
@@ -306,14 +411,14 @@ export interface Solution {
       }[]
     | null;
   /**
-   * One concrete calculation for this industry — what the old way costs per year against the subscription. Specific numbers are what a reader repeats to a colleague.
+   * A clearly labelled illustrative workflow or calculation. Never present an invented example as a customer result, and do not promise an outcome that has not been measured.
    */
   proof?: {
     title?: string | null;
     body?: string | null;
   };
   /**
-   * Comma-separated app slugs from the @signagewall/apps catalog, e.g. "menu,weather,currency". Renders as links to /apps/<slug> — the internal linking the industry pages currently have none of. Not localised: slugs are the same in both languages.
+   * Legacy comma-separated app keys. Existing pages still read this field; migrate values to Related apps before retiring it.
    */
   recommendedApps?: string | null;
   benefits?:
@@ -332,6 +437,296 @@ export interface Solution {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Define the search need before writing. Indexable pages should have a distinct query, job-to-be-done and promise.
+   */
+  intent?: {
+    /**
+     * The main query this page should answer. Use one natural-language query, not a list of keywords.
+     */
+    primaryQuery?: string | null;
+    intentType?: ('informational' | 'commercial-investigation' | 'transactional' | 'navigational') | null;
+    /**
+     * Who is searching, including their role or level of experience.
+     */
+    audience?: string | null;
+    /**
+     * What the visitor needs to decide, understand or complete.
+     */
+    jobToBeDone?: string | null;
+    /**
+     * The value this page provides that no sibling Blog, Solution or App page provides.
+     */
+    uniquePromise?: string | null;
+    /**
+     * Nearby queries this page deliberately does not target. Use this to prevent cannibalisation.
+     */
+    notTargeting?: string | null;
+  };
+  seoWorkflowVersion?: number | null;
+  /**
+   * Search and social metadata for this language. Keep canonical override empty unless consolidating a known duplicate.
+   */
+  seo?: {
+    /**
+     * Search-result title. Aim for under ~60 characters.
+     */
+    metaTitle?: string | null;
+    /**
+     * Search-result description. Aim for 140–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    ogImage?: (string | null) | Media;
+    /**
+     * Allow this language version to be indexed once its content is complete and distinct.
+     */
+    indexable?: boolean | null;
+    /**
+     * Advanced: an absolute canonical URL for deliberate consolidation. Normally leave empty for a self-canonical.
+     */
+    canonicalOverride?: string | null;
+  };
+  /**
+   * This language version is complete, reviewed and safe to expose on its public URL.
+   */
+  localeReady?: boolean | null;
+  /**
+   * When this language version was last checked for accuracy.
+   */
+  lastReviewedAt?: string | null;
+  /**
+   * Editor responsible for the latest review of this language version.
+   */
+  reviewedBy?: (string | null) | User;
+  /**
+   * Editorially selected guides that deepen or support this page.
+   */
+  relatedPosts?: (string | Post)[] | null;
+  /**
+   * Industries for which this content is directly useful.
+   */
+  relatedSolutions?: (string | Solution)[] | null;
+  /**
+   * Structured replacement for the legacy Recommended apps keys. Select the app pages that genuinely support this industry.
+   */
+  relatedApps?: (string | AppPage)[] | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "app-pages".
+ */
+export interface AppPage {
+  id: string;
+  /**
+   * Stable key from @signagewall/apps. It joins this page to product behaviour and must not change when the SEO slug changes.
+   */
+  appKey: string;
+  /**
+   * Ascending order on curated app lists.
+   */
+  order?: number | null;
+  name: string;
+  /**
+   * Localised marketing URL segment. It is independent from appKey so a technical key such as "gcal" can use "google-calendar".
+   */
+  slug: string;
+  /**
+   * Page heading. Falls back to the app name.
+   */
+  heroTitle?: string | null;
+  /**
+   * A concise statement of the problem this app solves and who it solves it for.
+   */
+  summary?: string | null;
+  /**
+   * Unique narrative content. Explain the workflow and value instead of paraphrasing the product manifest.
+   */
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  benefits?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  features?:
+    | {
+        title: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Concrete jobs and settings for this app. These should not repeat the generic feature list.
+   */
+  useCases?:
+    | {
+        title: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  setupSteps?:
+    | {
+        title: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * User-facing account, data, network and playback constraints. Keep these factual and consistent with the technical manifest.
+   */
+  requirements?: {
+    account?: string | null;
+    dataSource?: string | null;
+    network?: string | null;
+    refreshBehavior?: string | null;
+    offlineBehavior?: string | null;
+    limitations?: string | null;
+  };
+  /**
+   * Real interface or output images. Avoid decorative mockups that imply unsupported behaviour.
+   */
+  screenshots?: (string | Media)[] | null;
+  faq?:
+    | {
+        q: string;
+        a: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Define the search need before writing. Indexable pages should have a distinct query, job-to-be-done and promise.
+   */
+  intent?: {
+    /**
+     * The main query this page should answer. Use one natural-language query, not a list of keywords.
+     */
+    primaryQuery?: string | null;
+    intentType?: ('informational' | 'commercial-investigation' | 'transactional' | 'navigational') | null;
+    /**
+     * Who is searching, including their role or level of experience.
+     */
+    audience?: string | null;
+    /**
+     * What the visitor needs to decide, understand or complete.
+     */
+    jobToBeDone?: string | null;
+    /**
+     * The value this page provides that no sibling Blog, Solution or App page provides.
+     */
+    uniquePromise?: string | null;
+    /**
+     * Nearby queries this page deliberately does not target. Use this to prevent cannibalisation.
+     */
+    notTargeting?: string | null;
+  };
+  /**
+   * Search and social metadata for this language. Keep canonical override empty unless consolidating a known duplicate.
+   */
+  seo?: {
+    /**
+     * Search-result title. Aim for under ~60 characters.
+     */
+    metaTitle?: string | null;
+    /**
+     * Search-result description. Aim for 140–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    ogImage?: (string | null) | Media;
+    /**
+     * Allow this language version to be indexed once its content is complete and distinct.
+     */
+    indexable?: boolean | null;
+    /**
+     * Advanced: an absolute canonical URL for deliberate consolidation. Normally leave empty for a self-canonical.
+     */
+    canonicalOverride?: string | null;
+  };
+  /**
+   * This language version is complete, reviewed and safe to expose on its public URL.
+   */
+  localeReady?: boolean | null;
+  /**
+   * When this language version was last checked for accuracy.
+   */
+  lastReviewedAt?: string | null;
+  /**
+   * Editor responsible for the latest review of this language version.
+   */
+  reviewedBy?: (string | null) | User;
+  /**
+   * Editorially selected guides that deepen or support this page.
+   */
+  relatedPosts?: (string | Post)[] | null;
+  /**
+   * Industries for which this content is directly useful.
+   */
+  relatedSolutions?: (string | Solution)[] | null;
+  /**
+   * Alternative or complementary apps. Do not select this page itself and do not create a generic app carousel.
+   */
+  relatedApps?: (string | AppPage)[] | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects".
+ */
+export interface Redirect {
+  id: string;
+  /**
+   * Old path including any locale prefix, without domain, query or fragment.
+   */
+  fromPath: string;
+  /**
+   * Canonical destination path including any locale prefix.
+   */
+  toPath: string;
+  statusCode: '308' | '307';
+  active?: boolean | null;
+  /**
+   * Pass the incoming query string to the destination.
+   */
+  preserveQuery?: boolean | null;
+  /**
+   * Why this redirect exists, for example a slug change or merged thin page.
+   */
+  note?: string | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -367,6 +762,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'solutions';
         value: string | Solution;
+      } | null)
+    | ({
+        relationTo: 'app-pages';
+        value: string | AppPage;
+      } | null)
+    | ({
+        relationTo: 'redirects';
+        value: string | Redirect;
       } | null)
     | ({
         relationTo: 'categories';
@@ -437,6 +840,47 @@ export interface PostsSelect<T extends boolean = true> {
   author?: T;
   publishedAt?: T;
   content?: T;
+  keyTakeaways?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  references?:
+    | T
+    | {
+        title?: T;
+        url?: T;
+        id?: T;
+      };
+  intent?:
+    | T
+    | {
+        primaryQuery?: T;
+        intentType?: T;
+        audience?: T;
+        jobToBeDone?: T;
+        uniquePromise?: T;
+        notTargeting?: T;
+      };
+  seoWorkflowVersion?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        ogImage?: T;
+        indexable?: T;
+        canonicalOverride?: T;
+      };
+  localeReady?: T;
+  lastReviewedAt?: T;
+  reviewedBy?: T;
+  relatedPosts?: T;
+  relatedSolutions?: T;
+  relatedApps?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -483,6 +927,137 @@ export interface SolutionsSelect<T extends boolean = true> {
         a?: T;
         id?: T;
       };
+  intent?:
+    | T
+    | {
+        primaryQuery?: T;
+        intentType?: T;
+        audience?: T;
+        jobToBeDone?: T;
+        uniquePromise?: T;
+        notTargeting?: T;
+      };
+  seoWorkflowVersion?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        ogImage?: T;
+        indexable?: T;
+        canonicalOverride?: T;
+      };
+  localeReady?: T;
+  lastReviewedAt?: T;
+  reviewedBy?: T;
+  relatedPosts?: T;
+  relatedSolutions?: T;
+  relatedApps?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "app-pages_select".
+ */
+export interface AppPagesSelect<T extends boolean = true> {
+  appKey?: T;
+  order?: T;
+  name?: T;
+  slug?: T;
+  heroTitle?: T;
+  summary?: T;
+  content?: T;
+  benefits?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  features?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  useCases?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  setupSteps?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  requirements?:
+    | T
+    | {
+        account?: T;
+        dataSource?: T;
+        network?: T;
+        refreshBehavior?: T;
+        offlineBehavior?: T;
+        limitations?: T;
+      };
+  screenshots?: T;
+  faq?:
+    | T
+    | {
+        q?: T;
+        a?: T;
+        id?: T;
+      };
+  intent?:
+    | T
+    | {
+        primaryQuery?: T;
+        intentType?: T;
+        audience?: T;
+        jobToBeDone?: T;
+        uniquePromise?: T;
+        notTargeting?: T;
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        ogImage?: T;
+        indexable?: T;
+        canonicalOverride?: T;
+      };
+  localeReady?: T;
+  lastReviewedAt?: T;
+  reviewedBy?: T;
+  relatedPosts?: T;
+  relatedSolutions?: T;
+  relatedApps?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects_select".
+ */
+export interface RedirectsSelect<T extends boolean = true> {
+  fromPath?: T;
+  toPath?: T;
+  statusCode?: T;
+  active?: T;
+  preserveQuery?: T;
+  note?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -507,6 +1082,7 @@ export interface MediaSelect<T extends boolean = true> {
   credit?: T;
   creditUrl?: T;
   sourceUrl?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

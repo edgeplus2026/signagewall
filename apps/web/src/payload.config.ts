@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -7,9 +8,11 @@ import { s3Storage } from '@payloadcms/storage-s3'
 import { buildConfig, type Plugin } from 'payload'
 import sharp from 'sharp'
 
+import { AppPages } from './collections/AppPages'
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { Posts } from './collections/Posts'
+import { Redirects } from './collections/Redirects'
 import { Solutions } from './collections/Solutions'
 import { Users } from './collections/Users'
 
@@ -33,6 +36,10 @@ function r2StoragePlugin(): Plugin | null {
   // The early return is what narrows all four to `string` below, without an
   // assertion the linter would reject either way it is written.
   if (!bucket || !accountId || !accessKeyId || !secretAccessKey) return null
+  const resolvedSecretAccessKey =
+    secretAccessKey.startsWith('cfat_') || secretAccessKey.startsWith('cfut_')
+      ? createHash('sha256').update(secretAccessKey).digest('hex')
+      : secretAccessKey
 
   return s3Storage({
     collections: {
@@ -44,7 +51,11 @@ function r2StoragePlugin(): Plugin | null {
       endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       // R2 ignores the region but the S3 client insists on one.
       region: 'auto',
-      credentials: { accessKeyId, secretAccessKey },
+      credentials: { accessKeyId, secretAccessKey: resolvedSecretAccessKey },
+      forcePathStyle: true,
+      // R2 does not support the AWS SDK's newer default CRC32 behavior.
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     },
   })
 }
@@ -57,7 +68,7 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
   },
-  collections: [Posts, Solutions, Categories, Media, Users],
+  collections: [Posts, Solutions, AppPages, Redirects, Categories, Media, Users],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET ?? '',
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },

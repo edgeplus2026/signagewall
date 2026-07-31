@@ -12,7 +12,12 @@
     },
     "@signagewall/web#build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "NEXT_PUBLIC_SITE_URL",
+        "SEO_INDEXING_ENABLED",
+        "SEO_STRICT_CONTENT_GATES"
+      ]
     },
     "type-check": {
       "dependsOn": ["^build"]

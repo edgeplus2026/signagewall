@@ -20,8 +20,8 @@ export const POST_IMAGES = {
         query: 'cafe menu board customer choosing',
         alt: { sr: 'Gost čita meni u kafiću', en: 'A guest reading a menu in a café' },
         caption: {
-          sr: 'Pogled ide gore levo pa dijagonalno nadole — to je najskuplje mesto na ekranu.',
-          en: 'The eye goes top-left then diagonally down — the most valuable spot on the screen.',
+          sr: 'Raspored treba proveriti sa mesta na kom gost zaista čita meni, ne samo na laptopu.',
+          en: 'Check the layout from where a guest actually reads the menu, not only on a laptop.',
         },
       },
     ],
@@ -52,8 +52,8 @@ export const POST_IMAGES = {
         query: 'person reviewing spreadsheet costs laptop',
         alt: { sr: 'Pregled troškova u tabeli', en: 'Reviewing costs in a spreadsheet' },
         caption: {
-          sr: 'Softver je jedina stavka koja raste sa brojem ekrana — računajte je na tri godine.',
-          en: 'Software is the only line that scales with screen count — model it over three years.',
+          sr: 'Odvojite jednokratne i ponavljajuće stavke, pa ceo sistem računajte za isti vremenski period.',
+          en: 'Separate one-off and recurring lines, then model the whole system over the same time period.',
         },
       },
     ],
@@ -68,8 +68,8 @@ export const POST_IMAGES = {
         query: 'android tv box streaming device',
         alt: { sr: 'Android boks povezan na televizor', en: 'An Android box connected to a TV' },
         caption: {
-          sr: 'Ista cena, dva različita životna veka — razliku pravi koliko sati dnevno uređaj radi.',
-          en: 'Same price, different lifespans — hours per day is what decides between them.',
+          sr: 'Pilot na stvarnom ekranu pokazuje da li uređaj pouzdano dekodira vaš najzahtevniji sadržaj.',
+          en: 'A pilot on the real display shows whether the device reliably decodes your heaviest content.',
         },
       },
     ],
@@ -84,8 +84,8 @@ export const POST_IMAGES = {
         query: 'wifi router network cables office',
         alt: { sr: 'Mrežna oprema', en: 'Network equipment' },
         caption: {
-          sr: 'Plejer koji drži sadržaj lokalno preživi pad veze bez ijednog vidljivog traga.',
-          en: 'A player that caches locally rides out a dropped connection with nothing visible.',
+          sr: 'Keširani mediji nastavljaju da rade bez mreže; web, YouTube i druge mrežne aplikacije ne mogu.',
+          en: 'Cached media keeps playing offline; Web, YouTube and other network-only apps cannot.',
         },
       },
     ],
@@ -100,8 +100,8 @@ export const POST_IMAGES = {
         query: 'calendar week planning hand writing',
         alt: { sr: 'Planiranje nedelje u kalendaru', en: 'Planning a week in a calendar' },
         caption: {
-          sr: 'Podelite dan na blokove — jutro, špic, veče. Svaki ima drugu publiku.',
-          en: 'Split the day into blocks — morning, rush, evening. Each has a different audience.',
+          sr: 'Radno vreme pali i gasi prikaz celog ekrana; aplikacije sa podacima osvežavaju svoj sadržaj odvojeno.',
+          en: 'Working hours control the whole screen; data-backed apps refresh their own content separately.',
         },
       },
     ],
@@ -116,8 +116,8 @@ export const POST_IMAGES = {
         query: 'wide screen menu display restaurant counter',
         alt: { sr: 'Široki ekran iznad pulta', en: 'A wide screen above a counter' },
         caption: {
-          sr: 'Horizontalni format podnosi tabele i rasporede; vertikalni nosi jednu poruku.',
-          en: 'Landscape carries tables and schedules; portrait carries a single message.',
+          sr: 'Orijentaciju birajte prema prostoru, putanji pogleda i materijalu koji će se stvarno prikazivati.',
+          en: 'Choose orientation from the space, viewing path and assets that will actually be shown.',
         },
       },
     ],
@@ -146,7 +146,10 @@ export const POST_IMAGES = {
     figures: [
       {
         query: 'airport departure board travellers reading',
-        alt: { sr: 'Putnici čitaju tablu sa polascima', en: 'Travellers reading a departure board' },
+        alt: {
+          sr: 'Putnici čitaju tablu sa polascima',
+          en: 'Travellers reading a departure board',
+        },
         caption: {
           sr: 'Trajanje slajda krenite od toga koliko sekundi gledalac uopšte stoji ispred ekrana.',
           en: 'Start slide duration from how many seconds the viewer actually stands there.',
@@ -162,10 +165,13 @@ export const POST_IMAGES = {
     figures: [
       {
         query: 'retail shelf products customer choosing',
-        alt: { sr: 'Kupac bira proizvod sa police', en: 'A customer choosing a product from a shelf' },
+        alt: {
+          sr: 'Kupac bira proizvod sa police',
+          en: 'A customer choosing a product from a shelf',
+        },
         caption: {
-          sr: 'Istaknite jedan artikal nedelju dana i uporedite prodaju — najbliže kontrolisanom testu.',
-          en: 'Feature one item for a week and compare sales — as close to a controlled test as it gets.',
+          sr: 'Pre promene zabeležite početno stanje i spoljne faktore, pa rezultat tumačite kao signal, ne kao dokaz uzročnosti.',
+          en: 'Record a baseline and outside factors first, then treat the result as a signal rather than proof of causation.',
         },
       },
     ],
@@ -196,8 +202,8 @@ export const POST_IMAGES = {
         query: 'hospital reception desk patients waiting',
         alt: { sr: 'Pacijenti čekaju na recepciji', en: 'Patients waiting at a reception desk' },
         caption: {
-          sr: 'Neizvesno čekanje deluje duže od izvesnog, čak i kada traje kraće.',
-          en: 'Uncertain waiting feels longer than certain waiting, even when it is shorter.',
+          sr: 'Ekran može da prikaže opšte informacije, ali SignageWall nema integraciju za red čekanja ili podatke pacijenata.',
+          en: 'A screen can show general information, but SignageWall has no queue or patient-data integration.',
         },
       },
     ],
@@ -228,8 +234,8 @@ export const POST_IMAGES = {
         query: 'office kitchen coffee break colleagues talking',
         alt: { sr: 'Kolege na pauzi za kafu', en: 'Colleagues on a coffee break' },
         caption: {
-          sr: 'Tri minuta čekanja na kafu su više pažnje nego što ijedan mejl svima dobije.',
-          en: 'Three minutes waiting for coffee is more attention than any all-staff email gets.',
+          sr: 'Ekran dopunjuje mejl i timske kanale kratkim porukama koje se čitaju u prolazu.',
+          en: 'A screen complements email and team channels with short messages read in passing.',
         },
       },
     ],
@@ -244,8 +250,8 @@ export const POST_IMAGES = {
         query: 'storefront window display at night',
         alt: { sr: 'Izlog uveče', en: 'A storefront window at night' },
         caption: {
-          sr: 'Ista svetlina koja jedva probije u podne zaslepljuje u ponoć — zakazujte je.',
-          en: 'The brightness that barely cuts through at noon glares at midnight — schedule it.',
+          sr: 'Svetlinu podešavate na displeju ili operativnom sistemu; SignageWall zakazuje samo radno vreme prikaza.',
+          en: 'Brightness is set on the display or operating system; SignageWall schedules display working hours only.',
         },
       },
     ],
@@ -260,8 +266,8 @@ export const POST_IMAGES = {
         query: 'television screen pixels macro close up',
         alt: { sr: 'Pikseli ekrana izbliza', en: 'Screen pixels up close' },
         caption: {
-          sr: 'Nije problem svetao ekran, nego nepokretan element — logo koji mesecima stoji u istom uglu.',
-          en: 'A bright screen isn’t the problem; a motionless element is — a logo parked for months.',
+          sr: 'Dugotrajni statični elementi povećavaju rizik na OLED panelu; pratite pixel-care uputstvo proizvođača.',
+          en: 'Long-running static elements increase OLED risk; follow the panel maker’s pixel-care guidance.',
         },
       },
     ],
@@ -276,8 +282,8 @@ export const POST_IMAGES = {
         query: 'airport signage direction typography',
         alt: { sr: 'Aerodromska signalizacija', en: 'Airport wayfinding signage' },
         caption: {
-          sr: 'Otprilike santimetar visine velikog slova na svaka tri metra udaljenosti gledaoca.',
-          en: 'About a centimetre of cap height for every three metres of viewing distance.',
+          sr: 'Ne oslanjajte se na jednu formulu: pregledajte ekran sa najudaljenijeg stvarnog mesta čitanja.',
+          en: 'Do not trust one formula: inspect the screen from the farthest real reading position.',
         },
       },
     ],
@@ -292,8 +298,8 @@ export const POST_IMAGES = {
         query: 'network connection map technology abstract',
         alt: { sr: 'Mreža povezanih tačaka', en: 'A network of connected points' },
         caption: {
-          sr: 'Grupišite po ulozi i po geografiji — kampanja ide na ulogu, lokalna vest na geografiju.',
-          en: 'Group by role and by geography — campaigns go to a role, local news to a place.',
+          sr: 'Dosledna imena i zajedničke plejliste olakšavaju rad kada sadržaj dodeljujete izabranim ekranima.',
+          en: 'Consistent names and reusable playlists help when assigning content to selected screens.',
         },
       },
     ],
@@ -324,8 +330,8 @@ export const POST_IMAGES = {
         query: 'business people reviewing documents together',
         alt: { sr: 'Pregled dokumentacije na sastanku', en: 'Reviewing documents in a meeting' },
         caption: {
-          sr: 'Tražite da vam pokažu kontrolnu tablu klijenta sa više lokacija, ne pripremljeni demo.',
-          en: 'Ask to see a multi-location customer’s dashboard, not a prepared demo.',
+          sr: 'Pilot radite na svom ekranu i sa svojim sadržajem, uz unapred zapisane kriterijume prolaza.',
+          en: 'Run the pilot on your own screen and content, with pass criteria written down in advance.',
         },
       },
     ],

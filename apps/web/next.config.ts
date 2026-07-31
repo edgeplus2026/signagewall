@@ -37,6 +37,20 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     ...(remotePatterns.length > 0 ? { remotePatterns } : {}),
   },
+  async headers() {
+    const noIndex = {
+      key: 'X-Robots-Tag',
+      value: 'noindex, nofollow',
+    }
+
+    if (process.env.SEO_INDEXING_ENABLED === 'false') {
+      return [{ source: '/:path*', headers: [noIndex] }]
+    }
+
+    // Do not attach this header to all `/api` responses: locally stored Payload
+    // images live at `/api/media/file/*` and must remain eligible as page images.
+    return [{ source: '/admin/:path*', headers: [noIndex] }]
+  },
 }
 
 export default withPayload(withNextIntl(nextConfig))

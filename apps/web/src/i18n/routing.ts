@@ -50,9 +50,10 @@ export const routing = defineRouting({
   /* Never bounce a visitor to another language off their browser header.
      With detection on, `Accept-Language: en-US` made `/` 307 to `/en` — and an
      English-language browser is common enough in Serbia that people typing the
-     domain were landing on the English site. Google also advises against
-     redirecting by language, since it stops a crawler seeing every version.
-     `/` is Serbian for everyone; the switcher is how you change that. */
+     domain can otherwise be redirected somewhere they did not choose. Google
+     also advises against redirecting by language, since it can stop a crawler
+     seeing every version. `/` remains English because it is the configured
+     default; the switcher is how a visitor chooses Serbian. */
   localeDetection: false,
   pathnames,
 })

@@ -13,5 +13,9 @@
   "readMore": "Read",
   "photoCredit": "Photo: {credit} / Pexels",
   "relatedTitle": "Keep reading",
+  "relatedSolutionsTitle": "See it in your industry",
+  "relatedAppsTitle": "Apps for this workflow",
+  "keyTakeawaysTitle": "Key takeaways",
+  "referencesTitle": "Sources and further reading",
   "readingTime": "{minutes} min read"
 }
