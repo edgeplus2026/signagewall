@@ -10,6 +10,25 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "../../apps/player/public/apps/**"]
     },
+    "@signagewall/cms#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": [
+        "VITE_API_URL",
+        "VITE_WS_URL",
+        "VITE_WEB_URL",
+        "VITE_PLAYER_URL",
+        "VITE_APPS_BASE",
+        "VITE_SENTRY_DSN",
+        "VITE_SENTRY_ENVIRONMENT",
+        "VITE_GOOGLE_DRIVE_CLIENT_ID",
+        "VITE_GOOGLE_DRIVE_API_KEY",
+        "VITE_GOOGLE_APP_ID",
+        "VITE_MS_CLIENT_ID",
+        "VITE_MS_AUTHORITY",
+        "VITE_DROPBOX_APP_KEY"
+      ]
+    },
     "@signagewall/web#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**"],
