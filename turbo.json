@@ -16,8 +16,18 @@
       "env": [
         "NEXT_PUBLIC_SITE_URL",
         "SEO_INDEXING_ENABLED",
-        "SEO_STRICT_CONTENT_GATES"
-      ]
+        "SEO_STRICT_CONTENT_GATES",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_GA_MEASUREMENT_ID",
+        "DATABASE_URI",
+        "PAYLOAD_SECRET",
+        "R2_ACCOUNT_ID",
+        "R2_ACCESS_KEY_ID",
+        "R2_SECRET_ACCESS_KEY",
+        "R2_BUCKET",
+        "R2_PUBLIC_URL"
+      ],
+      "passThroughEnv": ["RESEND_API_KEY", "MAIL_FROM", "CONTACT_NOTIFY_TO"]
     },
     "type-check": {
       "dependsOn": ["^build"]
