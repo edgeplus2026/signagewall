@@ -35,6 +35,13 @@ const nextConfig: NextConfig = {
     /* The seeded photography averages 226 KB at ~1880px wide and was served
        untouched to every phone. AVIF first, WebP as the fallback. */
     formats: ['image/avif', 'image/webp'],
+    /* Payload streams uploads through its own route rather than exposing the
+       bucket, and the S3 adapter appends the key prefix it was configured with
+       (`prefix: 'web'` in payload.config.ts) as a query string. Next refuses to
+       optimise a local image whose URL carries a query string unless that exact
+       shape is declared, so the two have to agree — changing the prefix there
+       means changing the search string here. */
+    localPatterns: [{ pathname: '/api/media/file/**', search: '?prefix=web' }],
     ...(remotePatterns.length > 0 ? { remotePatterns } : {}),
   },
   async headers() {
