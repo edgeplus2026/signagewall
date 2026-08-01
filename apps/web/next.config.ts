@@ -44,19 +44,35 @@ const nextConfig: NextConfig = {
     localPatterns: [{ pathname: '/api/media/file/**', search: '?prefix=web' }],
     ...(remotePatterns.length > 0 ? { remotePatterns } : {}),
   },
+  /* Next announces itself in `X-Powered-By` by default. It tells an attacker
+     which stack to look up known issues for and tells a visitor nothing. */
+  poweredByHeader: false,
   async headers() {
     const noIndex = {
       key: 'X-Robots-Tag',
       value: 'noindex, nofollow',
     }
 
+    /* Applied to every response, indexing on or off. None of them constrain a
+       marketing site: nothing here is meant to be framed by another origin,
+       every asset is served with a correct content type, and referrers only
+       ever need to carry the origin once a visitor leaves. */
+    const security = [
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+    ]
+
     if (process.env.SEO_INDEXING_ENABLED === 'false') {
-      return [{ source: '/:path*', headers: [noIndex] }]
+      return [{ source: '/:path*', headers: [...security, noIndex] }]
     }
 
-    // Do not attach this header to all `/api` responses: locally stored Payload
-    // images live at `/api/media/file/*` and must remain eligible as page images.
-    return [{ source: '/admin/:path*', headers: [noIndex] }]
+    return [
+      { source: '/:path*', headers: security },
+      // Do not attach the noindex to all `/api` responses: locally stored Payload
+      // images live at `/api/media/file/*` and must remain eligible as page images.
+      { source: '/admin/:path*', headers: [noIndex] },
+    ]
   },
 }
 
