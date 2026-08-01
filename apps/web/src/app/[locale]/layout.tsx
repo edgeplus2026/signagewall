@@ -70,6 +70,10 @@ export async function generateMetadata({
         { url: '/favicon.svg', type: 'image/svg+xml' },
         { url: '/favicon.ico', sizes: '48x48' },
       ],
+      /* `rel="icon"` is what browsers read, but several auditing tools and older
+         crawlers still look only for the legacy `shortcut icon`. Declaring both
+         costs one tag and stops the site being reported as having no favicon. */
+      shortcut: '/favicon.ico',
       apple: '/apple-touch-icon.png',
     },
     /* Defaults every page inherits and may override. The og:image itself is
