@@ -33,6 +33,12 @@ function buildRedisConnection(config: ConfigService): RedisOptions {
     return {
       host: parsed.hostname,
       port: parsed.port ? parseInt(parsed.port, 10) : 6379,
+      /* Managed hosts reached over a provider's private network resolve to AAAA
+         records only (Railway's `*.railway.internal` is IPv6-only). ioredis
+         defaults its DNS lookup to IPv4, which fails there with ENOTFOUND;
+         `family: 0` accepts whichever record the host publishes and leaves
+         plain IPv4 hosts, including localhost in development, unchanged. */
+      family: 0,
       ...(parsed.username
         ? { username: decodeURIComponent(parsed.username) }
         : {}),

@@ -1,0 +1,17 @@
+# Railway build config for @signagewall/be.
+#
+# ffmpeg and ffprobe arrive as npm packages with bundled binaries
+# (`ffmpeg-static`, `@ffprobe-installer/ffprobe`), so only poppler needs to come
+# from the system: the PowerPoint renderer shells out to `pdftoppm` to rasterize
+# decks into slide images. Without it that one app errors clearly and the rest
+# of the API keeps working — but connected PowerPoint decks stay unrenderable.
+[phases.setup]
+aptPkgs = ["poppler-utils"]
+
+# The workspace root holds the lockfile, so install runs there; only the API and
+# its workspace dependencies are built.
+[phases.build]
+cmds = ["pnpm turbo run build --filter=@signagewall/be"]
+
+[start]
+cmd = "node apps/be/dist/main"
