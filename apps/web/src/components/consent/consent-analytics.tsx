@@ -64,16 +64,32 @@ export function ConsentAnalytics() {
 
   return (
     <>
-      {consent === 'granted' && GA_ID ? (
+      {/* Consent Mode v2. The tag loads for everyone but every storage type
+          starts denied, so nothing is written to the visitor's device until the
+          bar below is answered — the same guarantee the old "load only after
+          consent" version gave. Loading it up front is what buys the rest:
+          Google's own tag checker can see the install, and visitors who decline
+          still contribute cookieless pings instead of vanishing entirely.
+          `gtag` queues into dataLayer, so the inline call ordering holds
+          whenever the loader finishes downloading. */}
+      {GA_ID ? (
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
             strategy="afterInteractive"
           />
           <Script id="ga4-init" strategy="afterInteractive">
-            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`}
+            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});gtag('js',new Date());gtag('config','${GA_ID}');`}
           </Script>
         </>
+      ) : null}
+
+      {/* Rendered only once consent is stored, which covers both the click and
+          a returning visitor whose answer is already in localStorage. */}
+      {consent === 'granted' && GA_ID ? (
+        <Script id="ga4-consent-granted" strategy="afterInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','update',{analytics_storage:'granted'});`}
+        </Script>
       ) : null}
 
       {hydrated && consent === null ? (
