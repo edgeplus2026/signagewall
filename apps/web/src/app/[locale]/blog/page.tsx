@@ -7,7 +7,7 @@ import { PageHero } from '@/components/marketing/page-hero'
 import { CollectionPageJsonLd } from '@/components/seo/json-ld'
 import { Section, SectionStack } from '@/components/ui/section'
 import { contentRecordIsApproved, getPayloadClient } from '@/lib/payload'
-import { pageMetadata } from '@/lib/seo'
+import { absoluteUrl, pageMetadata } from '@/lib/seo'
 
 /* ISR rather than `force-dynamic`. The content behind this page changes when
    an editor publishes, not per request, so re-rendering on every hit spent a
@@ -25,12 +25,28 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'blog.meta' })
-  return pageMetadata({
+  const metadata = pageMetadata({
     locale,
     path: '/blog',
     title: t('title'),
     description: t('description'),
   })
+
+  /* Merged rather than passed through `pageMetadata`: the feed belongs to this
+     one route, and every other page would carry a link to something it has
+     nothing to do with. This is the tag browsers and feed readers look for —
+     without it the feed exists but nobody finds it. */
+  return {
+    ...metadata,
+    alternates: {
+      ...metadata.alternates,
+      types: {
+        'application/rss+xml': [
+          { url: `${absoluteUrl(locale, '/blog')}/feed.xml`, title: t('title') },
+        ],
+      },
+    },
+  }
 }
 
 export default async function BlogPage({ params }: PageProps) {

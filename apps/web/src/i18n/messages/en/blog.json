@@ -17,5 +17,17 @@
   "relatedAppsTitle": "Apps for this workflow",
   "keyTakeawaysTitle": "Key takeaways",
   "referencesTitle": "Sources and further reading",
-  "readingTime": "{minutes} min read"
+  "readingTime": "{minutes} min read",
+  "subscribe": {
+    "title": "New posts by email",
+    "body": "Short and infrequent — whenever something new goes up about screens, content and what actually pays off. No spam, one-click unsubscribe.",
+    "placeholder": "you@company.com",
+    "cta": "Subscribe",
+    "pending": "Sending…",
+    "success": "You are on the list. We will write when the next one is out.",
+    "invalid": "Enter a valid email address.",
+    "error": "Something went wrong. Try again in a moment.",
+    "privacy": "We use your address for this only.",
+    "privacyLink": "Privacy Policy"
+  }
 }

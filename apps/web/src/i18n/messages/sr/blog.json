@@ -17,5 +17,17 @@
   "relatedAppsTitle": "Aplikacije za ovaj zadatak",
   "keyTakeawaysTitle": "Najvažnije",
   "referencesTitle": "Izvori i dodatno čitanje",
-  "readingTime": "{minutes} min čitanja"
+  "readingTime": "{minutes} min čitanja",
+  "subscribe": {
+    "title": "Novi tekstovi na mejl",
+    "body": "Kratko i retko — kad izađe nov tekst o ekranima, sadržaju i tome šta se isplati. Bez spama, odjava jednim klikom.",
+    "placeholder": "vasa@adresa.com",
+    "cta": "Prijavi se",
+    "pending": "Šaljem…",
+    "success": "Prijavljeni ste. Javljamo se kad izađe nov tekst.",
+    "invalid": "Unesite ispravnu imejl adresu.",
+    "error": "Nešto nije uspelo. Pokušajte ponovo za koji trenutak.",
+    "privacy": "Adresu koristimo samo za ovu svrhu.",
+    "privacyLink": "Politika privatnosti"
+  }
 }

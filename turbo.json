@@ -57,7 +57,12 @@
         "R2_BUCKET",
         "R2_PUBLIC_URL"
       ],
-      "passThroughEnv": ["RESEND_API_KEY", "MAIL_FROM", "CONTACT_NOTIFY_TO"]
+      "passThroughEnv": [
+        "RESEND_API_KEY",
+        "RESEND_AUDIENCE_ID",
+        "MAIL_FROM",
+        "CONTACT_NOTIFY_TO"
+      ]
     },
     "type-check": {
       "dependsOn": ["^build"]

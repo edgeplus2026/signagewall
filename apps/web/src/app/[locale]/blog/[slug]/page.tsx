@@ -8,6 +8,7 @@ import { cache } from 'react'
 
 import { AppCard } from '@/components/apps/app-card'
 import { BlogCard } from '@/components/blog/blog-card'
+import { NewsletterSignup } from '@/components/blog/newsletter-signup'
 import { ContentBreadcrumbs, ContentMeta, KeyTakeaways, RelatedContent } from '@/components/content'
 import { CtaBand } from '@/components/marketing/cta-band'
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld'
@@ -324,6 +325,12 @@ export default async function PostPage({ params, searchParams }: PageProps) {
               </ul>
             </aside>
           ) : null}
+
+          {/* Between the last paragraph and the "read this next" grid: the
+              reader has finished and is deciding whether to leave. */}
+          <div className="mt-12">
+            <NewsletterSignup />
+          </div>
         </Section>
 
         {related.length > 0 && (
