@@ -10,6 +10,17 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "../../apps/player/public/apps/**"]
     },
+    "@signagewall/player#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": [
+        "VITE_API_URL",
+        "VITE_WS_URL",
+        "VITE_CMS_ORIGIN",
+        "VITE_APPS_BASE",
+        "VITE_SENTRY_DSN"
+      ]
+    },
     "@signagewall/cms#build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
