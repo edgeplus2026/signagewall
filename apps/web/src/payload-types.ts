@@ -293,6 +293,7 @@ export interface Media {
    * Original photo page.
    */
   sourceUrl?: string | null;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -1081,6 +1082,7 @@ export interface MediaSelect<T extends boolean = true> {
   credit?: T;
   creditUrl?: T;
   sourceUrl?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

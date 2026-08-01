@@ -88,6 +88,13 @@ export async function generateMetadata({
       title: t('title'),
       description: t('description'),
     },
+    /* Search Console proves ownership by finding this exact tag on the site.
+       Kept in source rather than an env var because it is a public constant
+       tied to this domain, and routing it through the host would only add a
+       way for the verification to disappear silently on a redeploy. */
+    verification: {
+      google: 'Ics0AooSvLIHv2tpJyDgxxwHX2vLJZf95JXCu39L-UU',
+    },
     /* No `alternates` here on purpose. Metadata inherits, so a layout-level
        hreflang becomes every page's hreflang unless that page overrides it —
        which pointed the whole site at the home page. Each route now sets its
