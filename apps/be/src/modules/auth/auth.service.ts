@@ -321,7 +321,13 @@ export class AuthService {
   }
 
   async forgotPassword(dto: ForgotPasswordDto): Promise<void> {
-    const user = await this.usersRepository.findByEmail(dto.email);
+    /* `password` is `select: false` on the schema, so it has to be asked for
+       explicitly — the guard below reads it to skip accounts that signed up
+       through a provider and have no password to reset. Without the select it
+       is always undefined and every reset silently does nothing. */
+    const user = await this.usersRepository.findByEmail(dto.email, {
+      select: ['password'],
+    });
 
     if (
       this.configService.get('nodeEnv') === 'development' &&
