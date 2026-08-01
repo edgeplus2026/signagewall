@@ -58,7 +58,9 @@ const STATIC_ROUTES: Route[] = [
   '/cookies',
 ]
 
-export const revalidate = 3600
+/* Matches the pages it lists. Crawlers refetch this far less often than the
+   window itself, so a shorter one would only buy database round trips. */
+export const revalidate = 172_800
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const industries = await listSolutionSlugs()

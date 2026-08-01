@@ -39,9 +39,12 @@ import type { Media } from '@/payload-types'
 
 /* ISR rather than `force-dynamic`. The content behind this page changes when
    an editor publishes, not per request, so re-rendering on every hit spent a
-   database round trip to produce the same HTML. An hour is well inside how
-   often this copy actually moves. */
-export const revalidate = 3600
+   database round trip to produce the same HTML. Two days is deliberately far
+   past how often this copy moves: the window costs one render per page rather
+   than one per hour, which is what keeps this inside the hosting plan. A
+   publish that needs to be live sooner is pushed with a redeploy instead of
+   making every reader pay for the check. */
+export const revalidate = 172_800
 
 /* Prebuild every published post for this locale. The parent segment already
    enumerates locales, so this runs once per locale and must return only that
