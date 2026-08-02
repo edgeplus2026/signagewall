@@ -32,57 +32,81 @@ function padded(values: string[][]): string[][] {
   })
 }
 
+/**
+ * Whether a column holds numbers, judged over the body rows.
+ *
+ * A figure read off a wall is compared against the one above it, and that only
+ * works when the digits line up — so numeric columns are right-aligned and set
+ * in tabular figures. Judged per column rather than per cell, because aligning
+ * some cells in a column and not others is worse than aligning none.
+ */
+function numericColumns(bodyRows: string[][], columns: number): boolean[] {
+  return Array.from({ length: columns }, (_, index) => {
+    const cells = bodyRows.map((row) => (row[index] ?? '').trim()).filter(Boolean)
+    if (cells.length === 0) return false
+    /* Currency, thousands separators and a trailing percent all still count. */
+    return cells.every((cell) => /^[^\p{L}]*\d[\d\s.,]*\s*%?$/u.test(cell))
+  })
+}
+
 function buildTable(values: string[][], hasHeader: boolean): HTMLElement {
   const rows = padded(values)
   const table = document.createElement('table')
   table.className = 'gs-table'
 
+  let headerRow: string[] | null = null
   let bodyRows = rows
   if (hasHeader && rows.length > 0) {
+    headerRow = rows[0] as string[]
+    bodyRows = rows.slice(1)
+  }
+
+  const columns = rows[0]?.length ?? 0
+  const numeric = numericColumns(bodyRows, columns)
+
+  /* Explicit widths: `table-layout: fixed` would otherwise split the width
+     evenly, which gives a column of one-digit numbers the same room as one of
+     long labels. Weighted by the longest cell, then clamped so no single
+     column can crowd out the rest. */
+  const weights = Array.from({ length: columns }, (_, index) => {
+    const longest = rows.reduce((max, row) => Math.max(max, (row[index] ?? '').length), 0)
+    return Math.min(Math.max(longest, 4), 28)
+  })
+  const total = weights.reduce((sum, weight) => sum + weight, 0) || 1
+  const colgroup = document.createElement('colgroup')
+  for (const weight of weights) {
+    const col = document.createElement('col')
+    col.style.width = `${((weight / total) * 100).toFixed(2)}%`
+    colgroup.append(col)
+  }
+  table.append(colgroup)
+
+  if (headerRow) {
     const thead = document.createElement('thead')
     const tr = document.createElement('tr')
-    for (const cell of rows[0] as string[]) {
+    headerRow.forEach((cell, index) => {
       const th = document.createElement('th')
       th.textContent = cell
+      if (numeric[index]) th.classList.add('gs-num')
       tr.append(th)
-    }
+    })
     thead.append(tr)
     table.append(thead)
-    bodyRows = rows.slice(1)
   }
 
   const tbody = document.createElement('tbody')
   for (const row of bodyRows) {
     const tr = document.createElement('tr')
-    for (const cell of row) {
+    row.forEach((cell, index) => {
       const td = document.createElement('td')
       td.textContent = cell
+      if (numeric[index]) td.classList.add('gs-num')
       tr.append(td)
-    }
+    })
     tbody.append(tr)
   }
   table.append(tbody)
   return table
-}
-
-function buildKpi(values: string[][], hasHeader: boolean): HTMLElement {
-  const kpi = document.createElement('div')
-  kpi.className = 'gs-kpi'
-  const valueRow = hasHeader ? values[1] : values[0]
-  const value = valueRow?.[0] ?? ''
-  const label = hasHeader ? (values[0]?.[0] ?? '') : ''
-
-  const valueEl = document.createElement('div')
-  valueEl.className = 'gs-kpi-value'
-  valueEl.textContent = value || '—'
-  kpi.append(valueEl)
-  if (label) {
-    const labelEl = document.createElement('div')
-    labelEl.className = 'gs-kpi-label'
-    labelEl.textContent = label
-    kpi.append(labelEl)
-  }
-  return kpi
 }
 
 function render(
@@ -99,7 +123,6 @@ function render(
   }
 
   const hasHeader = config.hasHeader !== false
-  const kpi = String(config.layout) === 'kpi'
 
   const wrap = document.createElement('div')
   wrap.className = 'gs'
@@ -111,9 +134,7 @@ function render(
     wrap.append(title)
   }
 
-  wrap.append(
-    kpi ? buildKpi(data.values, hasHeader) : buildTable(data.values, hasHeader),
-  )
+  wrap.append(buildTable(data.values, hasHeader))
 
   root.replaceChildren(wrap)
   root.insertAdjacentHTML('beforeend', freshnessFooterHtml(meta))

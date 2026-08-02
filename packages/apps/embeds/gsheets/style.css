@@ -1,14 +1,14 @@
-/* Google Sheets. Either a table of the read range (optional header row) or a
-   single big KPI value. Sizes are responsive so it stays legible on a wall. */
+/* Google Sheets. A table of the read range, sized so it stays legible from
+   across a room rather than looking like a spreadsheet shrunk onto a screen. */
 
 .gs {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 5vh 5vw;
+  padding: 4vh 4vw;
   display: flex;
   flex-direction: column;
-  gap: 2vh;
+  gap: 2.4vh;
   font-family: var(--app-font, inherit);
   font-weight: var(--app-font-weight, 400);
   letter-spacing: var(--app-letter-spacing, 0);
@@ -16,55 +16,68 @@
 }
 
 .gs-title {
-  font-size: calc(min(2.2vw, 3.6vh) * var(--app-font-scale, 1));
+  font-size: calc(min(1.9vw, 3vh) * var(--app-font-scale, 1));
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  opacity: 0.6;
+  letter-spacing: 0.14em;
+  opacity: 0.55;
   flex: none;
 }
 
+/* The table takes the remaining height and spreads it across the rows, so a
+   five-row sheet fills the screen instead of huddling under the title with a
+   third of the wall left empty — which is what a spreadsheet's own row height
+   looks like once it is projected. */
 .gs-table {
   width: 100%;
+  flex: 1;
   border-collapse: collapse;
-  table-layout: fixed;
 }
+
 .gs-table th,
 .gs-table td {
   text-align: left;
-  padding: 1.2vh 1vw;
-  font-size: calc(min(2.2vw, 3.8vh) * var(--app-font-scale, 1));
-  line-height: 1.2;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  padding: 0 1.2vw;
+  font-size: calc(min(2vw, 3.4vh) * var(--app-font-scale, 1));
+  line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Headings read as a label for the column, not as another row of data: smaller,
+   spaced, and in the body colour rather than the brand green, which at this
+   size competed with the values for attention. The rule under the row is what
+   separates them. */
 .gs-table th {
-  font-weight: 700;
-  color: var(--gs-accent, #0f9d58);
+  font-size: calc(min(1.4vw, 2.4vh) * var(--app-font-scale, 1));
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.55;
+  padding-bottom: 1.2vh;
+  border-bottom: 2px solid color-mix(in srgb, currentColor 28%, transparent);
 }
 
-/* KPI layout: one big value with an optional label. */
-.gs-kpi {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 1.5vh;
+.gs-table tbody td {
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
 }
-.gs-kpi-value {
+
+/* Alternating bands, very faint. Tracking a value back to its row across a wide
+   screen is the thing that actually fails at distance, and a hairline rule
+   alone stops helping once the viewer is a few metres away. */
+.gs-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.gs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Right-aligned tabular figures, so digits stack in columns and the eye can
+   compare magnitudes down the column without reading every number. */
+.gs-num {
+  text-align: right;
   font-variant-numeric: tabular-nums;
-  font-size: calc(min(20vw, 34vh) * var(--app-font-scale, 1));
-  line-height: 0.95;
-  font-weight: 700;
-  color: var(--gs-accent, #0f9d58);
-  overflow-wrap: anywhere;
-}
-.gs-kpi-label {
-  font-size: calc(min(4vw, 6vh) * var(--app-font-scale, 1));
-  opacity: 0.85;
 }
 
 .gs-empty {

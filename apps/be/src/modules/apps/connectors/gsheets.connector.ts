@@ -11,9 +11,9 @@ interface GsheetsConfig {
   connectionId?: string;
   /** The chosen spreadsheet: { id, label } from the `remote-select` picker. */
   spreadsheet?: { id?: string; label?: string } | string;
+  /** Only ever set by instances configured before the field was removed. */
   range?: string;
-  // `layout` / `hasHeader` are display-only (the bundle applies them); not in the key.
-  layout?: string;
+  // `hasHeader` is display-only (the bundle applies it); not in the key.
   hasHeader?: boolean;
 }
 
@@ -26,8 +26,22 @@ function spreadsheetIdOf(config: GsheetsConfig): string {
   return id.trim();
 }
 
+/**
+ * Columns A–Z of the first sheet, capped at 100 rows.
+ *
+ * Unqualified so Google resolves it against the first tab, which is where a
+ * spreadsheet picked from a list almost always keeps its data. The cap is not
+ * about the display — a wall shows a dozen rows at most — but about not pulling
+ * a ten-thousand-row sheet every five minutes to throw it away.
+ *
+ * Instances configured while the field still existed keep their own range until
+ * they are next saved — config validation strips keys the schema no longer
+ * declares, so the first save after this change moves them onto the default.
+ */
+const DEFAULT_RANGE = 'A1:Z100';
+
 function rangeOf(config: GsheetsConfig): string {
-  return (config.range ?? '').trim();
+  return (config.range ?? '').trim() || DEFAULT_RANGE;
 }
 
 /**
@@ -71,9 +85,6 @@ export const gsheetsConnector: AppConnector<GsheetsConfig, GsheetsPayload> = {
       throw new Error('gsheets: missing spreadsheet');
     }
     const range = rangeOf(config);
-    if (!range) {
-      throw new Error('gsheets: missing range');
-    }
 
     const url =
       `${SHEETS_API}/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(range)}` +

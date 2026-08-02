@@ -44,31 +44,15 @@ export const gsheetsManifest: AppManifest = {
       placeholder: 'Search your spreadsheets…',
       help: 'Pick a spreadsheet from your Google Drive.',
     },
-    {
-      key: 'range',
-      type: 'text',
-      label: 'Range',
-      // The A1 notation is the one thing operators may not know — give examples,
-      // including the tab-qualified form.
-      help: 'The cells to show in A1 notation, e.g. "A1:D20" or "Sheet1!A1:D20".',
-      required: true,
-      placeholder: 'Sheet1!A1:D20',
-    },
-    {
-      key: 'layout',
-      type: 'select',
-      label: 'Layout',
-      default: 'table',
-      options: [
-        { label: 'Table', value: 'table' },
-        { label: 'Single value (KPI)', value: 'kpi' },
-      ],
-    },
+    /* No range field. It asked the operator to know A1 notation to get anything
+       on screen at all, which is the wrong first question for someone who has
+       just picked a spreadsheet — and the answer was almost always "the sheet".
+       The connector reads a generous default instead. */
     {
       key: 'hasHeader',
       type: 'switch',
       label: 'First row is a header',
-      help: 'Style the first row as column headings (table), or use it as the KPI label.',
+      help: 'Style the first row as column headings.',
       default: true,
     },
     {
