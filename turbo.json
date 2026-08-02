@@ -8,7 +8,11 @@
     },
     "@signagewall/apps#build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "../../apps/player/public/apps/**"]
+      "outputs": [
+        "dist/**",
+        "../../apps/player/public/apps/**",
+        "../../apps/cms/public/apps/**"
+      ]
     },
     "@signagewall/player#build": {
       "dependsOn": ["^build"],
