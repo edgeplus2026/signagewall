@@ -190,12 +190,17 @@ describe('PlaybackController', () => {
     controller.destroy()
   })
 
-  it('still warms a non-video item behind a video', async () => {
+  // Warming still happens behind a video, just later: touching the other slot
+  // too soon after a video starts took its decode session down on real hardware.
+  it('still warms a non-video item behind a video, after the settle delay', async () => {
     const { controller, slots } = build()
     controller.load(snapshot([video('A'), img('B')]))
     await flush()
-    await vi.advanceTimersByTimeAsync(600)
 
+    await vi.advanceTimersByTimeAsync(600)
+    expect(slots[0]?.current).toBeNull() // the video is still settling
+
+    await vi.advanceTimersByTimeAsync(3000)
     expect(slots[0]?.current?.id).toBe('B')
     controller.destroy()
   })

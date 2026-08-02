@@ -39,6 +39,12 @@ const SKIP_DELAY_MS = 250
  * either cuts the exit short or leaves the buffers held longer than needed.
  */
 const TRANSITION_MS = 600
+/**
+ * Extra grace before the back buffer is touched while a video plays — see
+ * {@link PlaybackController.schedulePreload}. Long enough for a fresh decode
+ * session to settle, short enough that the next item is still warm in time.
+ */
+const VIDEO_SETTLE_MS = 3_000
 
 export interface ControllerCallbacks {
   onItem?: (item: Renderable) => void
@@ -458,10 +464,18 @@ export class PlaybackController {
     if (this.preloadTimer !== undefined) {
       window.clearTimeout(this.preloadTimer)
     }
+    // Warming the back buffer tears the previous item down first, and on modest
+    // hardware that teardown reaches across into the video that just started:
+    // an LG webOS TV answered it with MEDIA_ERR_DECODE 200ms later, killing a
+    // clip that had been playing happily. It survives once the new decode
+    // session has had a moment to settle, so a video gets that moment before we
+    // touch the other slot. Everything else warms as soon as the transition ends.
+    const settling =
+      this.items[this.cursor]?.kind === 'video' ? VIDEO_SETTLE_MS : 0
     this.preloadTimer = window.setTimeout(() => {
       this.preloadTimer = undefined
       this.preloadNext()
-    }, TRANSITION_MS)
+    }, TRANSITION_MS + settling)
   }
 
   private preloadNext(): void {
