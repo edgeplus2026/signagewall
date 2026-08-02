@@ -44,27 +44,43 @@ class KioskPresenceTest {
     }
 
     /**
-     * "Close application" in the service bar has to mean closed. Before this the
-     * watchdog put a locked player straight back, ~100ms later, and the menu item
-     * looked broken.
+     * A close asked for from the service bar does NOT suppress the keep-alive on a
+     * locked screen — self-healing is the whole of what the lock delivers, and the
+     * bar takes no PIN, so a permanent close would hand that to whoever holds the
+     * remote. What the flag buys is a DELAY (see WatchdogService.onTaskRemoved), so
+     * the operator sees the player actually go away instead of it blinking back
+     * ~100ms later, which is what made the menu item look broken.
      */
     @Test
-    fun `a deliberate close is never fought, even locked`() {
+    fun `a deliberate close on a locked screen still comes back`() {
         KioskPresence.setMode(KioskController.Mode.HARD)
+        KioskPresence.setResumed(false)
+        KioskPresence.setClosedByOperator(true)
+        assertTrue(KioskPresence.shouldReclaimForeground())
+    }
+
+    /** Unlocked means the operator is allowed to leave: the close is final. */
+    @Test
+    fun `a deliberate close on an unlocked screen stays closed`() {
+        KioskPresence.setMode(KioskController.Mode.OFF)
         KioskPresence.setResumed(false)
         KioskPresence.setClosedByOperator(true)
         assertFalse(KioskPresence.shouldReclaimForeground())
     }
 
-    /** The flag must not outlive the session that set it — a rebooted screen is
-     *  guarded again, which is what the Activity's onCreate reset provides. */
+    /**
+     * The distinction the watchdog's onTaskRemoved keys off: a swipe out of
+     * Recents is undone at once, a close from the bar is not. It must not outlive
+     * the session that set it — the Activity's onCreate clears it, so a rebooted
+     * screen is guarded again.
+     */
     @Test
-    fun `clearing the flag restores the keep-alive`() {
-        KioskPresence.setMode(KioskController.Mode.HARD)
-        KioskPresence.setResumed(false)
+    fun `the deliberate-close flag round-trips`() {
+        assertFalse(KioskPresence.wasClosedByOperator())
         KioskPresence.setClosedByOperator(true)
+        assertTrue(KioskPresence.wasClosedByOperator())
         KioskPresence.setClosedByOperator(false)
-        assertTrue(KioskPresence.shouldReclaimForeground())
+        assertFalse(KioskPresence.wasClosedByOperator())
     }
 
     @Test

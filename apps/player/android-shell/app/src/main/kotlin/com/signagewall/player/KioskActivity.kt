@@ -224,14 +224,22 @@ class KioskActivity : AppCompatActivity() {
 
     /**
      * Closes the player from the web service bar. Marshalled to the UI thread
-     * because it arrives on the WebView's JS thread, and the keep-alive is stood
-     * down first — otherwise its onTaskRemoved relaunches the player before the
-     * screen has even gone dark.
+     * because it arrives on the WebView's JS thread.
+     *
+     * Whether the close STICKS is the kiosk lock's call, not this menu's. An
+     * unlocked screen was asked to quit and stays quit, so the keep-alive is stood
+     * down with it. A locked one comes back a few seconds later: self-healing is
+     * the only thing the lock actually delivers, and this menu takes no PIN, so
+     * leaving a locked screen permanently closable would hand that away to whoever
+     * holds the remote. The switch to unlock is right there in the same bar for
+     * anyone who genuinely wants the player gone.
      */
     private fun closeApp() {
         runOnUiThread {
             KioskPresence.setClosedByOperator(true)
-            WatchdogService.stop(this)
+            if (kioskController.current == KioskController.Mode.OFF) {
+                WatchdogService.stop(this)
+            }
             finishAndRemoveTask()
         }
     }

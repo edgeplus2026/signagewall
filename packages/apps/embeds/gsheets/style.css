@@ -1,5 +1,19 @@
-/* Google Sheets. A table of the read range, sized so it stays legible from
-   across a room rather than looking like a spreadsheet shrunk onto a screen. */
+/* Google Sheets — a sheet read from across a room.
+
+   ONE TYPOGRAPHIC SYSTEM, TWO LAYOUTS. The grid ("table") and the menu ("modern")
+   are different shapes for the same rows, and they share every size, weight and
+   opacity below. What carries the reading is not lines or fills — it is a strict
+   hierarchy of four voices, assigned per COLUMN by `main.ts`:
+
+     primary      the headline (a region, a customer) — brightest, heaviest
+     num-strong   the figure the board is read FOR — equally bright, tabular
+     num / text   supporting figures and labels — stepped down, still legible
+     code         identifiers (WO-4471, 07:00) — monospaced, quiet
+
+   The rows themselves are deliberately almost unmarked. A rule under every row
+   turns a board into a ledger; the hierarchy is what lets the eye land on the
+   right cell, and it keeps working at six metres where a hairline has long since
+   disappeared. */
 
 .gs {
   width: 100%;
@@ -8,38 +22,79 @@
   padding: 4vh 4vw;
   display: flex;
   flex-direction: column;
-  gap: 2.4vh;
+  gap: 2.2vh;
   font-family: var(--app-font, inherit);
   font-weight: var(--app-font-weight, 400);
   letter-spacing: var(--app-letter-spacing, 0);
   overflow: hidden;
 }
 
+/* The spreadsheet's own name. Set apart from the column labels below it — same
+   family of quiet uppercase, but brighter and larger, or the two rows of small
+   caps read as one confused heading. */
 .gs-title {
-  font-size: calc(min(1.9vw, 3vh) * var(--app-font-scale, 1));
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  opacity: 0.55;
   flex: none;
+  font-size: calc(min(1.6vw, 2.8vh) * var(--app-font-scale, 1));
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  opacity: 0.75;
 }
 
-/* The table takes the remaining height and spreads it across the rows, so a
-   five-row sheet fills the screen instead of huddling under the title with a
-   third of the wall left empty — which is what a spreadsheet's own row height
-   looks like once it is projected. */
+/* The rows live here and nowhere else. `min-height: 0` is what makes the measured
+   page size honest: without it this box grows to fit its content, `clientHeight`
+   reports the height of all ninety rows, and every row "fits". */
+.gs-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ----- The column labels ----- */
+
+.gs-table th,
+.gs-list-head {
+  font-size: calc(min(1.15vw, 2vh) * var(--app-font-scale, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  opacity: 0.42;
+  white-space: nowrap;
+}
+
+/* ----- The grid ----- */
+
 .gs-table {
   width: 100%;
-  flex: 1;
   border-collapse: collapse;
+}
+
+/* Applied only once the page size is known. Until then the table must keep its
+   natural height, because that is the height being measured. */
+.gs-table.is-fitted {
+  height: 100%;
 }
 
 .gs-table th,
 .gs-table td {
   text-align: left;
-  padding: 0.6vh 1.2vw;
-  font-size: calc(min(2vw, 3.4vh) * var(--app-font-scale, 1));
-  line-height: 1.25;
+  padding: 1.1vh 1.1vw;
+  line-height: 1.2;
   overflow: hidden;
+}
+
+.gs-table th {
+  padding-bottom: 1.4vh;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.gs-table td {
+  font-size: calc(min(2.05vw, 3.7vh) * var(--app-font-scale, 1));
+  border-bottom: 1px solid color-mix(in srgb, currentColor 7%, transparent);
+}
+
+.gs-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 /* Wrap to two lines and stop, rather than cutting one line mid-word. On a
@@ -53,33 +108,17 @@
   overflow: hidden;
 }
 
-/* Headings read as a label for the column, not as another row of data: smaller,
-   spaced, and in the body colour rather than the brand green, which at this
-   size competed with the values for attention. The rule under the row is what
-   separates them. */
-.gs-table th {
-  font-size: calc(min(1.4vw, 2.4vh) * var(--app-font-scale, 1));
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.55;
-  padding-bottom: 1.2vh;
-  border-bottom: 2px solid color-mix(in srgb, currentColor 28%, transparent);
+/* ----- The four voices -----
+   Shared by both layouts; `main.ts` puts these classes on the cell. */
+
+.gs-primary {
+  font-weight: 700;
+  opacity: 1;
 }
 
-.gs-table tbody td {
-  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
-}
-
-/* Alternating bands, very faint. Tracking a value back to its row across a wide
-   screen is the thing that actually fails at distance, and a hairline rule
-   alone stops helping once the viewer is a few metres away. */
-.gs-table tbody tr:nth-child(even) td {
-  background: color-mix(in srgb, currentColor 5%, transparent);
-}
-
-.gs-table tbody tr:last-child td {
-  border-bottom: none;
+.gs-text {
+  font-weight: 400;
+  opacity: 0.62;
 }
 
 /* Right-aligned tabular figures, so digits stack in columns and the eye can
@@ -89,81 +128,151 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Modern: the same rows read as a menu — name, a muted line about it, and the
+.gs-table td.gs-num {
+  font-weight: 500;
+  opacity: 0.82;
+}
+
+.gs-table td.gs-num-strong {
+  font-weight: 700;
+  opacity: 1;
+}
+
+/* Identifiers, monospaced. A column of WO-4471 / WO-4472 is scanned for the digit
+   that differs, and in a proportional face those digits do not sit above one
+   another. The size is nudged down because a monospaced face at the same nominal
+   size reads visually larger than the text beside it. */
+.gs-code,
+.gs-code-strong {
+  font-family:
+    ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
+    Menlo, Consolas, monospace;
+  font-size: calc(min(1.8vw, 3.2vh) * var(--app-font-scale, 1));
+  letter-spacing: 0.01em;
+}
+
+.gs-code {
+  font-weight: 500;
+  opacity: 0.55;
+}
+
+.gs-code-strong {
+  font-weight: 700;
+  opacity: 0.95;
+}
+
+/* ----- The menu -----
+   The same rows read as a list: a name with one muted line under it, and the
    figure held to the right edge. Rows are the unit here, not cells, so a long
    description can take the width it needs instead of a column's share of it. */
+
 .gs-list {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
-  min-height: 0;
+}
+
+.gs-list.is-fitted {
+  height: 100%;
 }
 
 .gs-list-head {
-  font-size: calc(min(1.3vw, 2.2vh) * var(--app-font-scale, 1));
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  opacity: 0.4;
-  padding-bottom: 1vh;
-}
-
-/* No rule between items. A border on every row turns a menu into a ledger; the
-   space between them already separates them, and the dotted leader inside each
-   line is the only rule that earns its place. */
-.gs-item {
+  flex: none;
   display: flex;
-  flex-direction: column;
-  gap: 0.3vh;
-}
-
-.gs-item-line {
-  display: flex;
-  align-items: baseline;
+  justify-content: space-between;
   gap: 1vw;
+  padding-bottom: 1.4vh;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+/* Items share the height rather than being pushed apart by it: `space-between`
+   here left the first and last items pinned to the edges with a hole in the
+   middle whenever a page came up short. */
+.gs-item {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.4vw;
+  padding: 1.1vh 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 7%, transparent);
+}
+
+.gs-item:last-child {
+  border-bottom: none;
+}
+
+.gs-item-main {
+  min-width: 0;
 }
 
 .gs-item-name {
-  font-size: calc(min(2.3vw, 4vh) * var(--app-font-scale, 1));
-  font-weight: 600;
+  font-size: calc(min(2.05vw, 3.7vh) * var(--app-font-scale, 1));
+  font-weight: 700;
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: none;
-  max-width: 70%;
-}
-
-/* The dots that carry the eye from the dish to its price. */
-.gs-leader {
-  flex: 1;
-  height: 0;
-  align-self: center;
-  border-bottom: 1px dotted currentColor;
-  opacity: 0.28;
-  min-width: 2vw;
 }
 
 /* One line only. Two lines of blurb per item filled the screen with prose and
    left six dishes fighting for room — on a wall the description is a hint, not
    a paragraph, and the reader is walking past it. */
 .gs-item-detail {
-  font-size: calc(min(1.35vw, 2.3vh) * var(--app-font-scale, 1));
-  line-height: 1.3;
+  margin-top: 0.3vh;
+  font-size: calc(min(1.3vw, 2.3vh) * var(--app-font-scale, 1));
+  line-height: 1.25;
   opacity: 0.55;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 78%;
 }
 
-/* Held right and set in tabular figures so prices form a column the eye can run
-   down, even though nothing here is a table. */
 .gs-item-value {
   flex: none;
-  font-size: calc(min(2.3vw, 4vh) * var(--app-font-scale, 1));
+  font-size: calc(min(2.05vw, 3.7vh) * var(--app-font-scale, 1));
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ----- The page indicator -----
+   Only drawn when there is more than one page (see `main.ts`). */
+
+.gs-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2vw;
+  padding-top: 1.4vh;
+}
+
+.gs-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.6vw;
+}
+
+.gs-dot {
+  width: 2.6vw;
+  max-width: 52px;
+  height: 0.5vh;
+  min-height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.gs-dot.is-on {
+  background: var(--gs-accent, #0f9d58);
+}
+
+.gs-page {
+  font-size: calc(min(1.15vw, 2vh) * var(--app-font-scale, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  opacity: 0.42;
   white-space: nowrap;
 }
 
