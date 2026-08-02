@@ -442,7 +442,7 @@ describe('PlayerContentService', () => {
       kind: 'app',
       slug: 'weather',
       data: payload,
-      // Freshness meta lets the bundle show an "as of …" age; fresh → not stale.
+      // Freshness meta anchors the payload in time and flags staleness; fresh → not stale.
       dataMeta: { fetchedAt: '2024-03-01T12:00:00.000Z', stale: false },
     });
   });

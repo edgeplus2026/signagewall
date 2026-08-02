@@ -92,49 +92,100 @@
   text-overflow: ellipsis;
 }
 
+/* The date is the board's proof that it is today's board, and as 15px of 55%-opacity
+   grey in the far corner it read as a footnote — the one thing a passer-by has no
+   way to check for themselves was the least visible thing on the screen. A chip in
+   the accent, borrowing the medallion's tint-plus-hairline treatment, so it belongs
+   to the header rather than trailing off it. */
 .fx-date {
-  font-size: min(1.5vw, 2.6vh);
-  opacity: 0.55;
+  flex: none;
+  padding: min(0.9vh, 0.8vw) min(1.6vw, 2.2vh);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fx-accent) 12%, transparent);
+  border: 0.14vmin solid color-mix(in srgb, var(--fx-accent) 34%, transparent);
+  color: var(--fx-accent, #22c55e);
+  font-size: min(2vw, 3.4vh);
+  font-weight: 700;
+  letter-spacing: 0.01em;
   white-space: nowrap;
-  padding-bottom: 0.6vh;
 }
 
-/* ---- Rate cards ---- */
+/* ---- Rate cards ----
 
+   THE BOARD IS SIZED BY HOW MANY RATES ARE ON IT. Every length below is a fraction
+   of `--fx-u`, the height one row actually gets.
+
+   The failure this replaces: the rows were content-sized and the whole block was
+   centred, so a three-rate board drew three small cards in the middle of the screen
+   with a third of the wall left blank above and below — and the type stayed at the
+   size it would have been on a full board of eight. A rate board with fewer rates
+   should be BIGGER, not the same board with more nothing around it.
+
+   `--fx-rows` is set by the embed (`main.ts`) on this element, so it and everything
+   under it inherit the unit. The 22vh ceiling is what stops a one- or two-rate board
+   from turning into a pair of billboards, and it MUST match the `max-height` below —
+   they are the same number seen from the two ends: this one sizes the type, that one
+   sizes the box it has to fit in. */
 .fx-list {
+  flex: 1;
+  min-height: 0;
+  --fx-u: min(calc(64vh / var(--fx-rows, 6)), 22vh);
+  max-height: calc(var(--fx-rows, 6) * 22vh);
+
+  /* The ceilings are per COLUMN, not per screen. A two-column board gives each row
+     about half the width, and a `vw` ceiling that is right on a single-column board
+     then makes the rate wide enough to squeeze the currency name into an ellipsis —
+     "Norwegian …" — while the rate itself has room to spare. Each ceiling steps down
+     once when the second column appears; at one column they resolve to exactly the
+     numbers they were written as (4.2vw, 3.2vw, 1.9vw, 4.8vw). */
+  --fx-cap-rate: calc(5.4vw - 1.2vw * var(--fx-cols, 1));
+  --fx-cap-code: calc(4vw - 0.8vw * var(--fx-cols, 1));
+  --fx-cap-name: calc(2.4vw - 0.5vw * var(--fx-cols, 1));
+  --fx-cap-badge: calc(6vw - 1.2vw * var(--fx-cols, 1));
   display: grid;
-  grid-template-columns: repeat(var(--fx-cols, 1), 1fr);
-  grid-template-rows: repeat(var(--fx-rows, 6), 1fr);
+  /* `minmax(0, …)`, not the implicit `auto` minimum: a track floored at its items'
+     max-content lets one long currency name widen the whole column past the screen. */
+  grid-template-columns: repeat(var(--fx-cols, 1), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--fx-rows, 6), minmax(0, 1fr));
   grid-auto-flow: column;
   column-gap: 5vw;
-  row-gap: min(1.6vh, 1.4vw);
+  row-gap: min(calc(var(--fx-u) * 0.11), 2vh);
 }
 
 .fx-row {
   display: flex;
   align-items: center;
   gap: min(2vw, 3vh);
-  padding: min(1.5vh, 1.3vw) min(2.4vw, 3.2vh);
+  padding: min(calc(var(--fx-u) * 0.1), 1.5vh) min(2.4vw, 3.2vh);
   border-radius: 1.4vmin;
-  background: color-mix(in srgb, currentColor 5%, transparent);
+  /* 5% was too faint to read as a card at all — the board looked like loose text on
+     a gradient. The hairline is what gives each row an edge to scan down. */
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  box-shadow: inset 0 0 0 0.1vmin color-mix(in srgb, currentColor 10%, transparent);
 }
+
+/* Every size here is `min(a share of the row, a vw ceiling)`. The row share is what
+   makes a sparse board big; the vw ceiling is what keeps a row's contents on one
+   line when the screen is narrow, and it is the arm that binds in portrait. */
 
 .fx-badge {
   flex: none;
   display: grid;
   place-items: center;
-  width: min(4vw, 6.8vh);
-  height: min(4vw, 6.8vh);
+  width: min(calc(var(--fx-u) * 0.62), var(--fx-cap-badge));
+  height: min(calc(var(--fx-u) * 0.62), var(--fx-cap-badge));
   border-radius: 50%;
   background: color-mix(in srgb, var(--fx-accent) 14%, transparent);
   border: 0.14vmin solid color-mix(in srgb, var(--fx-accent) 40%, transparent);
   color: var(--fx-accent, #22c55e);
-  font-size: min(1.9vw, 3.2vh);
+  /* Derived from the badge's own ceiling rather than written again, so the symbol
+     keeps its proportion inside the circle however the circle is sized. */
+  font-size: min(calc(var(--fx-u) * 0.28), calc(var(--fx-cap-badge) * 0.46));
   font-weight: 700;
 }
 /* Three-letter fallbacks (RSD, DKK) need smaller type to sit inside the badge. */
 .fx-badge-long {
-  font-size: min(1.1vw, 1.9vh);
+  font-size: min(calc(var(--fx-u) * 0.17), calc(var(--fx-cap-badge) * 0.27));
   letter-spacing: 0.02em;
 }
 
@@ -145,13 +196,13 @@
   min-width: 0;
 }
 .fx-id b {
-  font-size: min(2.4vw, 4.2vh);
+  font-size: min(calc(var(--fx-u) * 0.4), var(--fx-cap-code));
   font-weight: 650;
   line-height: 1.05;
 }
 .fx-name {
-  font-size: min(1.4vw, 2.4vh);
-  opacity: 0.55;
+  font-size: min(calc(var(--fx-u) * 0.24), var(--fx-cap-name));
+  opacity: 0.62;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -160,7 +211,7 @@
 .fx-rate {
   margin-left: auto;
   font-variant-numeric: tabular-nums;
-  font-size: min(3vw, 5.1vh);
+  font-size: min(calc(var(--fx-u) * 0.5), var(--fx-cap-rate));
   font-weight: 750;
   white-space: nowrap;
   letter-spacing: 0.01em;
@@ -172,12 +223,20 @@
   opacity: 0.6;
 }
 
-/* Narrow zones (split-screen regions, portrait screens): the vw-based caps
-   above are tuned for landscape and leave the type too small — give every
-   size a wider vw budget so the board fills the region. */
+/* Narrow zones (split-screen regions, portrait screens): the vw ceilings above are
+   tuned for landscape, and on a narrow screen they are the arm that binds — which
+   left the type far smaller than the region had room for. Only the CEILINGS move
+   here; the `--fx-u` share is the same formula, so a sparse board still grows for
+   exactly the same reason it does in landscape. */
 @media (max-aspect-ratio: 5/4) {
   .fx {
     padding: 5vh 8vw;
+  }
+  /* Three things across a narrow header don't always fit; let the date chip drop to
+     its own line rather than squeezing the base currency. */
+  .fx-head {
+    flex-wrap: wrap;
+    gap: 1.6vh 4vw;
   }
   .fx-base-badge {
     width: min(13vw, 12vh);
@@ -194,23 +253,14 @@
     font-size: min(3.2vw, 3.2vh);
   }
   .fx-date {
-    font-size: min(2.6vw, 2.6vh);
+    font-size: min(4vw, 3.4vh);
   }
-  .fx-badge {
-    width: min(6.8vw, 6.8vh);
-    height: min(6.8vw, 6.8vh);
-    font-size: min(3.2vw, 3.2vh);
-  }
-  .fx-badge-long {
-    font-size: min(1.9vw, 1.9vh);
-  }
-  .fx-id b {
-    font-size: min(4.2vw, 4.2vh);
-  }
-  .fx-name {
-    font-size: min(2.4vw, 2.4vh);
-  }
-  .fx-rate {
-    font-size: min(5.1vw, 5.1vh);
+  /* A narrow board is always ONE column (`main.ts` refuses to split one), so these
+     are plain numbers rather than the per-column step-down used in landscape. */
+  .fx-list {
+    --fx-cap-rate: 8vw;
+    --fx-cap-code: 5.5vw;
+    --fx-cap-name: 3.2vw;
+    --fx-cap-badge: 8vw;
   }
 }

@@ -51,7 +51,7 @@
 }
 
 .wx-tile-label {
-  font-size: 0.95em;
+  font-size: 1.1em;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -69,7 +69,7 @@
 }
 
 .wx-tile-note {
-  font-size: 1em;
+  font-size: 1.15em;
   font-weight: 500;
   opacity: 0.6;
 }
@@ -99,7 +99,7 @@
 }
 
 .wx-tile-place {
-  font-size: 1.5em;
+  font-size: 1.65em;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -115,7 +115,7 @@
 }
 
 .wx-tile-condition {
-  font-size: 1.3em;
+  font-size: 1.45em;
   font-weight: 400;
   opacity: 0.85;
   white-space: nowrap;
@@ -152,12 +152,12 @@
 }
 
 .wx-tile-day-temps b {
-  font-size: 1.5em;
+  font-size: 1.7em;
   font-weight: 600;
 }
 
 .wx-tile-day-temps span {
-  font-size: 1.1em;
+  font-size: 1.25em;
   opacity: 0.6;
 }
 

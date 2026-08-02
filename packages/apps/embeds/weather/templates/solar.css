@@ -8,7 +8,12 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  padding: 3.6em 3.4em 2.8em;
+  /* Tighter top and bottom than the other layouts, and it buys the arc its size.
+     This is the only layout whose middle band is capped in `vh` rather than `em`,
+     so it is the only one where padding and type growing at the root's expense come
+     straight out of the thing the layout is named after. The head is centred and
+     the clock is hard right, so a smaller top inset costs nothing. */
+  padding: 2.8em 3.4em 2.2em;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -36,7 +41,7 @@
   display: flex;
   align-items: center;
   gap: 0.5em;
-  font-size: 1.5em;
+  font-size: 1.65em;
   font-weight: 400;
   opacity: 0.9;
 }
@@ -64,8 +69,20 @@
 
 .wx-solar .wx-sun-svg {
   /* The arc is a half-circle: its height is half its width, plus room for the dot's
-     glow to clear the top. The viewBox already carries that padding. */
-  max-height: 42vh;
+     glow to clear the top. The viewBox already carries that padding.
+
+     The cap is in `vh`, so unlike everything else here it did NOT grow when the root
+     type did — which is exactly why it had to come down. The header, the sunrise/
+     sunset times and the readings all got bigger around a band that stayed the same
+     height, and this is the layout with the least slack in it: at 42vh the three
+     bands added up to more than the screen and `overflow: hidden` on `.wx` would
+     have quietly eaten the bottom row of readings. The padding above is what bought
+     most of it back.
+
+     Note the cap is on HEIGHT while the box is full-width, and the arc keeps its
+     aspect ratio inside it — so this number, not the 62em max-width, is what sets
+     how wide the arc actually draws (at 40vh on a 1080p panel: ~770px). */
+  max-height: 40vh;
 }
 
 .wx-solar .wx-metrics {
@@ -85,13 +102,13 @@
 .wx-solar-bare {
   width: 15em;
   height: 15em;
-  max-height: 42vh;
+  max-height: 40vh;
 }
 
 /* ----- Portrait ----- */
 @media (max-aspect-ratio: 1/1) {
   .wx-solar {
-    padding: 3.6em 1.8em 2.4em;
+    padding: 2.8em 1.8em 2em;
   }
 
   .wx-solar-place {
@@ -103,7 +120,7 @@
   }
 
   .wx-solar .wx-sun-time {
-    font-size: 1.6em;
+    font-size: 1.8em;
   }
 }
 

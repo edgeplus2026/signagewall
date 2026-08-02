@@ -26,8 +26,9 @@ export class AppDataCache {
 
   /**
    * When {@link payload} was last *successfully* fetched. Unchanged by a failed
-   * attempt, so the player can show an accurate "as of …" age for the data it's
-   * still displaying.
+   * attempt, so it stays an honest instant for the payload the player is still
+   * displaying — which is what lets a bundle anchor that payload in time (the
+   * weather bundle derives the forecast place's local clock from it).
    */
   @Prop()
   fetchedAt?: Date;

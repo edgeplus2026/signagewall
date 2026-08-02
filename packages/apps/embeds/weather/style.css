@@ -13,15 +13,21 @@
    Sizing off `vw` alone is what breaks a signage app: half these screens are
    PORTRAIT, where the viewport is narrow and tall, and a temperature set in `vw`
    shrinks to nothing on the very screen that has the most room for it. Mixing both
-   axes gives a size that tracks whatever space the screen actually has — ~19px on
-   a 1080p landscape panel, ~20px on the same panel turned on its side. Every
-   length in a template is then plain `em`, so the layout scales as one. */
+   axes gives a size that tracks whatever space the screen actually has — ~24px on
+   a 1080p landscape panel, ~26px on the same panel turned on its side. Every
+   length in a template is then plain `em`, so the layout scales as one.
+
+   These coefficients were raised ~27% from where they started, and the reason is
+   the viewing distance. A weather app is read from across a room, not from a desk,
+   and at the old base the readings and the day cards landed around 18–26px on a
+   1080p wall — legible on a monitor at arm's length, and a grey smudge on a panel
+   six metres away, with a third of the screen left empty around it. */
 .wx {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-size: calc(0.55vw + 0.75vh);
+  font-size: calc(0.7vw + 0.95vh);
   line-height: 1.25;
 
   /* The margin for everything pinned to an edge. In vw/vh, NOT em: `right: 1.6em`
@@ -43,7 +49,7 @@
 }
 
 .wx-empty {
-  font-size: 2.2em;
+  font-size: 2.5em;
   font-weight: 300;
   opacity: 0.75;
 }
@@ -73,7 +79,7 @@
   font-family:
     ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
     Menlo, Consolas, monospace;
-  font-size: 1.9em;
+  font-size: 2.05em;
   font-weight: 700;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
@@ -105,7 +111,7 @@
 
 .wx-condition {
   margin-top: 0.15em;
-  font-size: 1.6em;
+  font-size: 1.8em;
   font-weight: 400;
   opacity: 0.85;
 }
@@ -216,8 +222,11 @@
   gap: 1.6em;
 }
 
+/* The labels are set in caps at low opacity, which costs legibility twice over —
+   so they cannot also be the smallest type on the screen. Below about 1.1em they
+   stop being a caption and start being texture. */
 .wx-metric-label {
-  font-size: 0.95em;
+  font-size: 1.1em;
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -227,7 +236,7 @@
 
 .wx-metric-value {
   margin-top: 0.15em;
-  font-size: 1.7em;
+  font-size: 1.9em;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -254,15 +263,15 @@
 }
 
 .wx-day-name {
-  font-size: 1.1em;
+  font-size: 1.25em;
   font-weight: 500;
   text-transform: capitalize;
   white-space: nowrap;
 }
 
 .wx-day-icon {
-  width: 3.4em;
-  height: 3.4em;
+  width: 3.6em;
+  height: 3.6em;
 }
 
 .wx-day-temps {
@@ -273,12 +282,12 @@
 }
 
 .wx-day-high {
-  font-size: 1.5em;
+  font-size: 1.7em;
   font-weight: 500;
 }
 
 .wx-day-low {
-  font-size: 1.1em;
+  font-size: 1.25em;
   font-weight: 400;
   opacity: 0.6;
 }
@@ -294,26 +303,30 @@
 
 .wx-week-row {
   display: grid;
-  grid-template-columns: 4.6em 2.6em 2.6em minmax(0, 1fr) 2.6em 3.2em;
+  /* The fixed columns are in ROOT em (the row sets no font-size of its own) while
+     their contents are 1.55–1.65em, so these numbers have to be carried up whenever
+     the type in them is — otherwise the cells' auto minimum quietly wins and eats
+     the track, which is the one column that has to stay comparable across rows. */
+  grid-template-columns: 5.1em 2.9em 2.9em minmax(0, 1fr) 2.9em 3.5em;
   align-items: center;
   gap: 0.9em;
   font-variant-numeric: tabular-nums;
 }
 
 .wx-week-name {
-  font-size: 1.5em;
+  font-size: 1.65em;
   font-weight: 500;
   text-transform: capitalize;
 }
 
 .wx-week-icon {
-  width: 2.4em;
-  height: 2.4em;
+  width: 2.6em;
+  height: 2.6em;
 }
 
 .wx-week-low,
 .wx-week-high {
-  font-size: 1.4em;
+  font-size: 1.55em;
   text-align: right;
 }
 
@@ -361,7 +374,7 @@
 }
 
 .wx-week-rain {
-  font-size: 1.05em;
+  font-size: 1.15em;
   text-align: right;
   opacity: 0.75;
   color: var(--wx-rain);
@@ -387,19 +400,19 @@
 }
 
 .wx-hour-time {
-  font-size: 1em;
+  font-size: 1.15em;
   font-weight: 500;
   opacity: 0.75;
   font-variant-numeric: tabular-nums;
 }
 
 .wx-hour-icon {
-  width: 2.6em;
-  height: 2.6em;
+  width: 2.8em;
+  height: 2.8em;
 }
 
 .wx-hour-temp {
-  font-size: 1.35em;
+  font-size: 1.5em;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
@@ -486,7 +499,7 @@
   left: 50%;
   bottom: 0.75em;
   transform: translateX(-50%);
-  font-size: 1.5em;
+  font-size: 1.65em;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -537,7 +550,7 @@
 }
 
 .wx-axis-hour {
-  font-size: 1.1em;
+  font-size: 1.25em;
   font-weight: 500;
   opacity: 0.7;
   font-variant-numeric: tabular-nums;
@@ -548,7 +561,7 @@
   align-items: center;
   gap: 0.25em;
   min-height: 1.3em;
-  font-size: 0.95em;
+  font-size: 1.1em;
   font-weight: 500;
   color: var(--wx-rain);
 }
@@ -632,7 +645,7 @@
 }
 
 .wx-sun-label {
-  font-size: 1em;
+  font-size: 1.15em;
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -640,13 +653,13 @@
 }
 
 .wx-sun-time {
-  font-size: 1.8em;
+  font-size: 2em;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .wx-sun-left {
-  font-size: 1.3em;
+  font-size: 1.45em;
   opacity: 0.8;
 }
 
@@ -848,11 +861,11 @@
    needs to change SHAPE does it in its own file. */
 @media (max-aspect-ratio: 1/1) {
   .wx-clock {
-    font-size: 1.75em;
+    font-size: 1.9em;
   }
 
   .wx-week-row {
-    grid-template-columns: 4.2em 2.4em 2.4em minmax(0, 1fr) 2.4em;
+    grid-template-columns: 4.7em 2.8em 2.8em minmax(0, 1fr) 2.8em;
     gap: 0.7em;
   }
 
@@ -863,7 +876,7 @@
   }
 
   .wx-day-icon {
-    width: 3em;
-    height: 3em;
+    width: 3.2em;
+    height: 3.2em;
   }
 }

@@ -1,37 +1,26 @@
 import type { AppDataMeta } from './host-bridge.js'
 
-/** Format an ISO timestamp as a short local `HH:MM`, or '' if unparseable. */
-function shortTime(iso: string): string {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-  return date.toLocaleTimeString(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
 /**
- * An unobtrusive freshness footer for `server`-app bundles (weather / fx / rss).
- * Shows when the data was last successfully fetched, and — when the latest fetch
- * failed — flags that the screen is showing last-known-good data, so hours-old
- * weather/rates can never masquerade as live.
+ * An offline notice for `server`-app bundles (weather / fx / rss / …).
  *
- * Returns '' when there is nothing meaningful to show (static apps, or a server
- * app before its first successful fetch). The output is built from controlled
- * values only (an ISO time and literals), so it carries no injection risk.
+ * It renders ONLY when the latest upstream fetch failed and the screen is showing
+ * last-known-good data. In the healthy case — which is virtually all of the time —
+ * it renders nothing at all: a wall in production carries no chrome, no timestamp,
+ * no badge. This used to print "as of HH:MM" on every screen permanently, and that
+ * came out; the warning did not, because it is the only thing on the wall
+ * distinguishing this morning's exchange rates from last Tuesday's.
+ *
+ * Deliberately no time in it either. "Offline · as of 14:20" invites a passer-by to
+ * work out how stale the data is from a clock they may not be able to see; the fact
+ * that it is NOT live is the whole message, and it fits in one word.
+ *
+ * Returns '' for static apps, for server apps whose fetches are healthy, and for
+ * one that has never fetched at all. The output is a literal, so it carries no
+ * injection risk.
  */
 export function freshnessFooterHtml(meta: AppDataMeta | null): string {
-  if (!meta?.fetchedAt) {
+  if (meta?.stale !== true) {
     return ''
   }
-  const time = shortTime(meta.fetchedAt)
-  if (!time) {
-    return ''
-  }
-  if (meta.stale === true) {
-    return `<div class="data-meta is-stale">Offline · as of ${time}</div>`
-  }
-  return `<div class="data-meta">as of ${time}</div>`
+  return '<div class="data-meta">Offline</div>'
 }

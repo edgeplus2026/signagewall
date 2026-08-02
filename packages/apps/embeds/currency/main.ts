@@ -140,8 +140,17 @@ function render(
 
   // One column reads best up to six rows; beyond that, split into two so every
   // row keeps its size instead of shrinking into an unreadable strip.
+  //
+  // But ONLY where two columns fit. A row is a badge, a code and a rate side by
+  // side, none of which can wrap, so it has a hard minimum width — and on a
+  // portrait screen two of them next to each other simply do not fit. Splitting
+  // anyway pushed the second column clean off the right-hand edge, and `.fx` clips:
+  // a nine-rate board on a portrait wall showed five rates and half a badge. The
+  // query MUST match the `max-aspect-ratio` breakpoint in `style.css` — a narrow
+  // screen keeps one column and takes more rows, which it has the height for.
   const count = data.rates.length
-  const columns = count > 6 ? 2 : 1
+  const narrow = window.matchMedia('(max-aspect-ratio: 5/4)').matches
+  const columns = count > 6 && !narrow ? 2 : 1
   const rowsPerColumn = Math.ceil(count / columns)
 
   const list = document.createElement('div')
@@ -185,7 +194,7 @@ function render(
   })
   wrap.append(list)
   root.replaceChildren(wrap)
-  // Controlled markup (an ISO time + literals) — see freshnessFooterHtml.
+  // Controlled markup (a literal) — see freshnessFooterHtml. Empty unless stale.
   root.insertAdjacentHTML('beforeend', freshnessFooterHtml(meta))
 }
 

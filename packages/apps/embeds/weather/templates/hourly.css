@@ -52,7 +52,7 @@
 
 .wx-hourly-place {
   margin-top: 0.1em;
-  font-size: 1.4em;
+  font-size: 1.55em;
   font-weight: 400;
   opacity: 0.8;
   overflow: hidden;
@@ -70,7 +70,7 @@
 }
 
 .wx-hourly-heading {
-  font-size: 1em;
+  font-size: 1.15em;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -122,7 +122,7 @@
 
   .wx-hourly .wx-curve-point b {
     /* Twelve labels across a narrow screen: smaller, or they touch. */
-    font-size: 1.2em;
+    font-size: 1.3em;
   }
 
   .wx-hourly .wx-axis-rain {

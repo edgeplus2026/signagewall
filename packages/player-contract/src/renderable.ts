@@ -39,8 +39,9 @@ export interface AppRenderable {
   data?: unknown
   /**
    * Freshness metadata for `server`-app payloads, handed to the bundle alongside
-   * `data` so it can show an honest "as of …" age and flag stale data. Absent
-   * for `static` apps.
+   * `data` so it can flag stale data on screen, and so an app can pin the payload
+   * to a real instant (the weather bundle derives the forecast place's local clock
+   * from it). Absent for `static` apps.
    */
   dataMeta?: {
     /** ISO time `data` was last successfully fetched, if ever. */

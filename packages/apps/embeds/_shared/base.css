@@ -24,25 +24,24 @@ body {
 #app {
   width: 100%;
   height: 100%;
-  /* Anchor the absolutely-positioned freshness footer (.data-meta). */
+  /* Anchor the absolutely-positioned offline notice (.data-meta). */
   position: relative;
 }
 
-/* Small freshness footer for server apps (weather/fx/rss): shows data age and,
-   when stale, that we're serving last-known-good data after a failed fetch. */
+/* Offline notice for server apps (weather/fx/rss). ONE state, and it is the failure
+   one: the app only emits this element when the latest upstream fetch failed and the
+   screen is serving last-known-good data. There is no healthy-case variant — the
+   permanent "as of HH:MM" footer this replaces was removed for production — so an
+   element on screen always means something is wrong, and it is coloured to say so. */
 .data-meta {
   position: absolute;
   right: 0.8em;
   bottom: 0.6em;
   font-size: 1.5vh;
-  opacity: 0.5;
   letter-spacing: 0.02em;
-}
-
-.data-meta.is-stale {
-  opacity: 0.95;
   /* Amber: the data is last-known-good while the upstream is currently failing. */
   color: #fbbf24;
+  opacity: 0.95;
 }
 
 /* Full-bleed iframe used by `web`/`youtube`. */

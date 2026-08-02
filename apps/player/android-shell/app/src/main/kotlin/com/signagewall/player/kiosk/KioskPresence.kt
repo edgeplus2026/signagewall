@@ -20,12 +20,17 @@ object KioskPresence {
     private val resumed = AtomicBoolean(false)
 
     /**
-     * Set when the operator closes the player from the service bar. The watchdog
-     * exists to fight ACCIDENTAL exits — a swipe out of Recents, an OEM launcher
-     * grabbing focus — and it must not fight the one exit that was asked for on
-     * purpose. Without this, "Close application" closed the player and the
-     * watchdog's onTaskRemoved put it straight back, ~100ms later, which reads as
-     * a device that refuses to quit.
+     * Set when the operator closes the player from the service bar, to tell that
+     * apart from an ACCIDENTAL exit — a swipe out of Recents, an OEM launcher
+     * grabbing focus — which the watchdog undoes instantly. A deliberate close has
+     * to actually be visible: putting the player back ~100ms later reads as a
+     * device that refuses to quit.
+     *
+     * It does NOT mean the close is permanent. That is decided by the kiosk lock:
+     * a locked screen comes back a few seconds later, because self-healing is the
+     * only thing the lock actually promises, and a PIN-less menu anyone can reach
+     * would otherwise hand that promise away to whoever holds the remote. An
+     * unlocked screen stays shut.
      *
      * Cleared when the Activity next starts, so it can never outlive the session
      * that set it and leave a rebooted screen unguarded.
@@ -55,11 +60,10 @@ object KioskPresence {
 
     /**
      * Whether the watchdog should pull the player back to the front right now.
-     * Only while locked, only when something else is actually in front, and never
-     * after the operator deliberately closed the player.
+     * Only while locked, and only when something else is actually in front — a
+     * deliberate close is handled by onTaskRemoved, which delays the return rather
+     * than suppressing it, so the operator sees the app actually go away.
      */
     fun shouldReclaimForeground(): Boolean =
-        !closedByOperator.get() &&
-            mode.get() != KioskController.Mode.OFF &&
-            !resumed.get()
+        mode.get() != KioskController.Mode.OFF && !resumed.get()
 }

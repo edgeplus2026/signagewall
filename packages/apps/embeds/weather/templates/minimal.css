@@ -37,11 +37,15 @@
 
 /* As big as the screen will take. `clamp` against the em size (which already tracks
    both axes) rather than a raw `vw`, so a portrait screen doesn't shrink the one
-   thing the layout exists to show. */
+   thing the layout exists to show.
+
+   On landscape it is the `vh` arm that binds, which means this number — alone in the
+   app — did NOT grow when the root type did, and the layout came out with a bigger
+   caption over a hero that had stood still. The cap is what had to move. */
 .wx-minimal-temp {
   display: flex;
   align-items: flex-start;
-  font-size: min(26em, 34vh);
+  font-size: min(30em, 42vh);
   font-weight: 200;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -81,9 +85,12 @@
   }
 
   .wx-minimal-temp {
-    /* A portrait screen has height to spare and no width. Let the number take the
-       height rather than clamping it to a narrow viewport's width. */
-    font-size: min(24em, 30vh);
+    /* A portrait screen has height to spare and no width — so here, unlike
+       landscape, WIDTH is the binding constraint and the `vw` arm is what actually
+       holds. Without it, raising the height cap pushed the number 50px past the
+       right edge of a 1080-wide panel, and `.wx` clips: the wall would have shown a
+       "2" and half a "1" with nothing to suggest a digit had gone missing. */
+    font-size: min(24em, 32vh, 55vw);
   }
 
   .wx-minimal-condition {

@@ -12,6 +12,7 @@ import android.os.Looper
 import android.util.Log
 import com.signagewall.player.KioskActivity
 import com.signagewall.player.R
+import com.signagewall.player.kiosk.KioskController
 import com.signagewall.player.kiosk.KioskPresence
 
 /**
@@ -92,17 +93,24 @@ class WatchdogService : Service() {
 
     /**
      * The task disappearing usually means somebody swiped the player out of
-     * Recents, which on a signage screen is exactly what this service is for. The
-     * one exception is a close the operator asked for from the service bar — that
-     * also removes the task, and relaunching it there made the menu's "Close
-     * application" look broken.
+     * Recents, which on a signage screen is exactly what this service is for, so
+     * the default is to undo it at once.
+     *
+     * A close asked for from the service bar is different. It removes the task the
+     * same way, but the operator must SEE the player go away — relaunching in the
+     * same breath made the menu's "Close application" look broken. So a locked
+     * screen gets the return on a delay instead, and an unlocked one keeps it.
+     *
+     * The delay is short on purpose. Android only lets a background app start an
+     * activity for about ten seconds after it was last in the foreground; waiting
+     * for the next watchdog tick would land outside that window and the return
+     * would simply be refused on any box that is not Device Owner.
      */
     override fun onTaskRemoved(rootIntent: Intent?) {
         if (!KioskPresence.wasClosedByOperator()) {
-            startActivity(
-                Intent(this, KioskActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            )
+            reclaimForeground()
+        } else if (KioskPresence.mode() != KioskController.Mode.OFF) {
+            handler.postDelayed(::reclaimForeground, OPERATOR_CLOSE_RETURN_MILLIS)
         }
         super.onTaskRemoved(rootIntent)
     }
@@ -132,6 +140,9 @@ class WatchdogService : Service() {
         /** ~30s of refusals before saying so — long enough not to fire on the normal
          *  one-tick lag between asking and the Activity actually resuming. */
         private const val REFUSALS_BEFORE_WARNING = 3
+        /** Long enough that the close is visibly real, short enough to stay inside
+         *  Android's ~10s background-activity-launch grace period. */
+        private const val OPERATOR_CLOSE_RETURN_MILLIS = 5_000L
         private const val CHANNEL_ID = "signagewall-player-watchdog"
         private const val NOTIF_ID = 1
 
