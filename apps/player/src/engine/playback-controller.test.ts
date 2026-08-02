@@ -175,6 +175,54 @@ describe('PlaybackController', () => {
     controller.destroy()
   })
 
+  // Modest hardware has a single video decode session — measured on an LG webOS
+  // TV, where warming the next video paused the one on screen where it stood,
+  // with no way to resume it. The back buffer stays cold for video-behind-video;
+  // everything else still warms.
+  it('leaves the back buffer cold rather than warm a video behind a video', async () => {
+    const { controller, slots } = build()
+    controller.load(snapshot([video('A'), video('B')]))
+    await flush()
+    await vi.advanceTimersByTimeAsync(600) // the preload window
+
+    expect(slots[1]?.current?.id).toBe('A') // on screen
+    expect(slots[0]?.current).toBeNull() // never prepared
+    controller.destroy()
+  })
+
+  it('still warms a non-video item behind a video', async () => {
+    const { controller, slots } = build()
+    controller.load(snapshot([video('A'), img('B')]))
+    await flush()
+    await vi.advanceTimersByTimeAsync(600)
+
+    expect(slots[0]?.current?.id).toBe('B')
+    controller.destroy()
+  })
+
+  it('still warms a video behind a non-video item', async () => {
+    const { controller, slots } = build()
+    controller.load(snapshot([img('A'), video('B')]))
+    await flush()
+    await vi.advanceTimersByTimeAsync(600)
+
+    expect(slots[0]?.current?.id).toBe('B')
+    controller.destroy()
+  })
+
+  // Skipping the warm-up must cost latency, never the item itself.
+  it('still reaches the next video without the preload', async () => {
+    const { controller, onItemIds } = build()
+    controller.load(snapshot([video('A'), video('B')]))
+    await flush()
+    await vi.advanceTimersByTimeAsync(600)
+    controller.next()
+    await flush()
+
+    expect(onItemIds).toEqual(['A', 'B'])
+    controller.destroy()
+  })
+
   it('skips a failed item forward under auto-advance', async () => {
     const { controller, media, onItemIds, errors } = build()
     media.failIds.add('B')

@@ -480,6 +480,22 @@ export class PlaybackController {
       return
     }
 
+    // Never bring a second video to readiness while one is on screen. Modest
+    // hardware — an LG webOS TV, measured; cheap Android sticks and older
+    // signage players behave the same — has a single video decode session, and
+    // the newcomer takes it: the playing element is paused where it stands and
+    // cannot be resumed (re-playing it, or even releasing the second element
+    // first, leaves it reset rather than running). Nothing in the engine can
+    // recover from that, so the only fix is not to cause it. The item is
+    // prepared just-in-time instead, which costs under a second of the outgoing
+    // frame holding — `showAt` awaits prepare either way, so there is still no
+    // black flash. Apps are exempt: an app is mounted silent and inert until
+    // `activate`, so a preloaded YouTube/stream never opens a decoder.
+    const current = this.items[this.cursor]
+    if (current?.kind === 'video' && item.kind === 'video') {
+      return
+    }
+
     const back = this.slots[this.activeIndex ^ 1]
     const promise = back.prepare(item, this.volume)
     this.preload = { index: next, promise }

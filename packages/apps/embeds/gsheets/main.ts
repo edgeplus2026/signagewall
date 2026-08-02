@@ -178,7 +178,12 @@ function buildModern(values: string[][], showHeader: boolean): HTMLElement {
 
     const hasValue = valueIndex >= 0 && (row[valueIndex] ?? '').trim() !== ''
     if (hasValue) {
-      line.append(document.createElement('span')).className = 'gs-leader'
+      // `append` returns undefined, so the class has to be set on the element
+      // itself — chaining off the call threw on every row that had a value,
+      // which took the whole list layout down with it.
+      const leader = document.createElement('span')
+      leader.className = 'gs-leader'
+      line.append(leader)
       const value = document.createElement('span')
       value.className = 'gs-item-value'
       value.textContent = row[valueIndex] as string
