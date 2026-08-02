@@ -49,17 +49,24 @@ function numericColumns(bodyRows: string[][], columns: number): boolean[] {
   })
 }
 
-function buildTable(values: string[][], hasHeader: boolean): HTMLElement {
+/**
+ * The header is always row one; `showHeader` only decides whether it is drawn.
+ *
+ * A menu board does not want "Product name / Price" written above the dishes,
+ * but the row is still a heading and must not be served as an item.
+ */
+function split(values: string[][]): { header: string[]; body: string[][] } {
+  const rows = padded(values)
+  return { header: (rows[0] ?? []) as string[], body: rows.slice(1) }
+}
+
+function buildTable(values: string[][], showHeader: boolean): HTMLElement {
   const rows = padded(values)
   const table = document.createElement('table')
   table.className = 'gs-table'
 
-  let headerRow: string[] | null = null
-  let bodyRows = rows
-  if (hasHeader && rows.length > 0) {
-    headerRow = rows[0] as string[]
-    bodyRows = rows.slice(1)
-  }
+  const { header, body: bodyRows } = split(values)
+  const headerRow = showHeader ? header : null
 
   const columns = rows[0]?.length ?? 0
   const numeric = numericColumns(bodyRows, columns)
@@ -109,6 +116,83 @@ function buildTable(values: string[][], hasHeader: boolean): HTMLElement {
   return table
 }
 
+/**
+ * Menu-board reading of the same rows.
+ *
+ * A spreadsheet grid is a poor shape for the thing people actually put on a
+ * screen — a list of items with a price and a sentence about each. The grid
+ * gives a forty-word description the same column width everywhere and then cuts
+ * it mid-sentence, which is what the table did.
+ *
+ * So: first column is the name, the last numeric column is the figure that goes
+ * right, and whatever is left becomes one muted line underneath. Nothing is
+ * truncated mid-word; the description is clamped to two lines.
+ */
+function buildModern(values: string[][], showHeader: boolean): HTMLElement {
+  const { header, body } = split(values)
+  const columns = header.length
+  const numeric = numericColumns(body, columns)
+
+  /* The rightmost numeric column reads as the price. Leftmost would collide
+     with an id or a quantity sitting next to the name. */
+  const valueIndex = numeric.lastIndexOf(true)
+  const nameIndex = 0
+  const detailIndexes = Array.from({ length: columns }, (_, i) => i).filter(
+    (i) => i !== nameIndex && i !== valueIndex,
+  )
+
+  const list = document.createElement('div')
+  list.className = 'gs-list'
+
+  if (showHeader && header.some(Boolean)) {
+    const caption = document.createElement('div')
+    caption.className = 'gs-list-head'
+    caption.textContent = [header[nameIndex], valueIndex >= 0 ? header[valueIndex] : '']
+      .filter(Boolean)
+      .join(' · ')
+    list.append(caption)
+  }
+
+  for (const row of body) {
+    if (!row.some((cell) => cell.trim())) continue
+
+    const item = document.createElement('div')
+    item.className = 'gs-item'
+
+    const main = document.createElement('div')
+    main.className = 'gs-item-main'
+
+    const name = document.createElement('div')
+    name.className = 'gs-item-name'
+    name.textContent = row[nameIndex] ?? ''
+    main.append(name)
+
+    const detail = detailIndexes
+      .map((i) => (row[i] ?? '').trim())
+      .filter(Boolean)
+      .join(' — ')
+    if (detail) {
+      const detailEl = document.createElement('div')
+      detailEl.className = 'gs-item-detail'
+      detailEl.textContent = detail
+      main.append(detailEl)
+    }
+
+    item.append(main)
+
+    if (valueIndex >= 0 && (row[valueIndex] ?? '').trim()) {
+      const value = document.createElement('div')
+      value.className = 'gs-item-value'
+      value.textContent = row[valueIndex] as string
+      item.append(value)
+    }
+
+    list.append(item)
+  }
+
+  return list
+}
+
 function render(
   config: Record<string, unknown>,
   data: GsheetsPayload | null,
@@ -122,7 +206,8 @@ function render(
     return
   }
 
-  const hasHeader = config.hasHeader !== false
+  const showHeader = config.showHeader !== false
+  const modern = String(config.layout ?? 'modern') !== 'table'
 
   const wrap = document.createElement('div')
   wrap.className = 'gs'
@@ -134,7 +219,11 @@ function render(
     wrap.append(title)
   }
 
-  wrap.append(buildTable(data.values, hasHeader))
+  wrap.append(
+    modern
+      ? buildModern(data.values, showHeader)
+      : buildTable(data.values, showHeader),
+  )
 
   root.replaceChildren(wrap)
   root.insertAdjacentHTML('beforeend', freshnessFooterHtml(meta))

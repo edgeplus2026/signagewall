@@ -13,8 +13,10 @@ interface GsheetsConfig {
   spreadsheet?: { id?: string; label?: string } | string;
   /** Only ever set by instances configured before the field was removed. */
   range?: string;
-  // `hasHeader` is display-only (the bundle applies it); not in the key.
-  hasHeader?: boolean;
+  // `layout` / `showHeader` are display-only (the bundle applies them); the
+  // same cells are fetched either way, so neither belongs in the cache key.
+  layout?: string;
+  showHeader?: boolean;
 }
 
 const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
@@ -47,7 +49,7 @@ function rangeOf(config: GsheetsConfig): string {
 /**
  * Google Sheets connector (`connected`). Like other connected apps its cache key
  * is PER-CONNECTION (a sheet is private) and also includes the spreadsheet id and
- * the range (the range changes the data); `layout`/`hasHeader` are display-only.
+ * the range (the range changes the data); `layout`/`showHeader` are display-only.
  * Reads the range with the resolved account's access token and normalizes the
  * cells to strings — Google omits trailing empty cells, so rows can be ragged and
  * the bundle pads them.

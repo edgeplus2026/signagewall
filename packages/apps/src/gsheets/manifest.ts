@@ -49,10 +49,23 @@ export const gsheetsManifest: AppManifest = {
        just picked a spreadsheet — and the answer was almost always "the sheet".
        The connector reads a generous default instead. */
     {
-      key: 'hasHeader',
+      key: 'layout',
+      type: 'select',
+      label: 'Layout',
+      default: 'modern',
+      options: [
+        { label: 'Modern', value: 'modern' },
+        { label: 'Table', value: 'table' },
+      ],
+      help: 'Modern reads as a menu or price list. Table keeps the spreadsheet grid.',
+    },
+    {
+      key: 'showHeader',
       type: 'switch',
-      label: 'First row is a header',
-      help: 'Style the first row as column headings.',
+      label: 'Show the header row',
+      // The first row is always read as the heading; this only decides whether
+      // it is drawn. A menu board rarely wants "Product name / Price" above it.
+      help: 'Turn off to hide the column headings and start straight at the first item.',
       default: true,
     },
     {
