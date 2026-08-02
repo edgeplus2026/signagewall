@@ -11,6 +11,11 @@
 #   - push tag `player-v<x.y.z>`  -> full build + publish
 #   - workflow_dispatch (version) -> build-only smoke test (no publish)
 #
+# `player-v*` is the ANDROID tag. The desktop pipeline answers to
+# `player-desktop-v*` instead: the two ship separate artifacts under separate
+# signing keys, and sharing one tag meant neither could be released without the
+# other's secrets being in place.
+#
 # The git tag is the single source of truth; `versionName` = the tag, and
 # `versionCode` is derived deterministically (major*10000 + minor*100 + patch) so
 # it never regresses (Android blocks a versionCode downgrade).
@@ -40,6 +45,14 @@ permissions:
   contents: read
 
 jobs:
+  # A release must never ship code that doesn't lint, compile, or pass its tests.
+  # The desktop pipeline has always gated on this; the Android one did not, so an
+  # APK could reach a customer's screen from a commit CI had never seen — and the
+  # APK is the artifact that is hardest to take back, since a device only accepts
+  # an update signed with the same certificate.
+  check:
+    uses: ./.github/workflows/player-ci.yml
+
   # Resolve version + monotonic versionCode once, shared by build + publish.
   meta:
     runs-on: ubuntu-latest
@@ -66,7 +79,7 @@ jobs:
           echo "Resolved $version (versionCode $code)"
 
   build:
-    needs: meta
+    needs: [meta, check]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: fleet-signing

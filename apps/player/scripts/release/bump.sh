@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 #
-# Bump the native shell version and create the release tag that drives the
-# `player-release` CI workflow. The tag is the source of truth — CI re-stamps
+# Bump the DESKTOP native shell version and create the release tag that drives
+# the `player-release` CI workflow. The tag is the source of truth — CI re-stamps
 # tauri.conf.json from it — so this helper just keeps the committed files honest
 # and cuts the tag for you.
+#
+# Desktop only. Android releases are cut straight from a `player-v<x.y.z>` tag
+# (`player-android-release`), which needs no committed version: `versionName` is
+# the tag and `versionCode` is derived from it. Nothing here applies to them, and
+# the two prefixes must not be mixed up — a `player-v` tag from this script would
+# publish an APK stamped with a version nothing else in the repo agrees with.
 #
 # Usage: apps/player/scripts/release/bump.sh 0.2.0
 set -euo pipefail
@@ -17,7 +23,7 @@ fi
 root="$(cd "$(dirname "$0")/../../../.." && pwd)"
 conf="$root/apps/player/src-tauri/tauri.conf.json"
 cargo="$root/apps/player/src-tauri/Cargo.toml"
-tag="player-v$version"
+tag="player-desktop-v$version"
 
 if git -C "$root" rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
   echo "tag $tag already exists" >&2

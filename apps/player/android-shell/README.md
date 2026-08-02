@@ -7,8 +7,20 @@ fullscreen kiosk, autostart, watchdog, durable deviceId, and self-update.
 
 Android is the **primary** signage target (boxes + tablets). This is **NOT** a
 `tauri android` build — a standalone Gradle project (`./gradlew`, its own CI job),
-reusing the desktop `applicationId` (`com.signagewall.player`) and the
-`player-vX.Y.Z` tag for versioning.
+reusing the desktop `applicationId` (`com.signagewall.player`).
+
+**Cut a release** — the tag is the only version input here: `versionName` is the
+tag and `versionCode` is derived from it (`major*10000 + minor*100 + patch`), so
+there is nothing to bump in a file first.
+
+```bash
+git tag player-v0.2.0
+git push origin player-v0.2.0    # -> player-android-release: CI, build, sign, publish
+```
+
+`player-v*` is the **Android** prefix; the desktop shell uses
+`player-desktop-v*` (`../scripts/release/bump.sh`). Keep them apart — they ship
+different artifacts under different signing keys.
 
 > ⚠️ **Unverified on-device.** The Kotlin here was authored against the Tauri
 > shell's contract but has **not** been compiled or run on an Android device in

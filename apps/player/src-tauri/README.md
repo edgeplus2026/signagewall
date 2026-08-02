@@ -93,9 +93,14 @@ bucket that `plugins.updater.endpoints` fetches over HTTPS.
 **Cut a release** (the git tag is the single source of truth for the version):
 
 ```bash
-apps/player/scripts/release/bump.sh 0.2.0   # bumps tauri.conf.json + tags player-v0.2.0
-git push && git push origin player-v0.2.0    # push the tag -> full build + publish
+apps/player/scripts/release/bump.sh 0.2.0            # bumps tauri.conf.json + tags player-desktop-v0.2.0
+git push && git push origin player-desktop-v0.2.0    # push the tag -> full build + publish
 ```
+
+Desktop and Android answer to **different tag prefixes** — `player-desktop-v*`
+here, `player-v*` for the APK. They carry separate artifacts signed with separate
+keys, so one tag driving both meant neither could ship until the other's signing
+secrets were in place.
 
 Or run the workflow manually (`workflow_dispatch`) with a version to get a
 **build-only** smoke test (no publish) — use this for the first dry run.

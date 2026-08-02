@@ -6,8 +6,13 @@
 # `plugins.updater.endpoints` fetches over HTTPS.
 #
 # Trigger:
-#   - push tag `player-v<x.y.z>`  -> full build + publish to R2
-#   - workflow_dispatch (version) -> build-only smoke test (no publish)
+#   - push tag `player-desktop-v<x.y.z>` -> full build + publish to R2
+#   - workflow_dispatch (version)        -> build-only smoke test (no publish)
+#
+# The desktop and Android pipelines deliberately answer to DIFFERENT tag
+# prefixes. They ship separate artifacts, signed with separate keys, to separate
+# R2 prefixes, and they are ready at different times — one tag driving both meant
+# an Android release could only ever be as green as the desktop signing setup.
 #
 # The git tag is the single source of truth for the version: CI stamps it into
 # tauri.conf.json before building, so `latest.json.version` == the built native
@@ -25,7 +30,7 @@ name: player-release
 
 on:
   push:
-    tags: ['player-v*']
+    tags: ['player-desktop-v*']
   workflow_dispatch:
     inputs:
       version:
@@ -53,12 +58,18 @@ jobs:
         run: |
           set -euo pipefail
           if [ "${{ github.ref_type }}" = "tag" ]; then
-            version="${GITHUB_REF_NAME#player-v}"
+            version="${GITHUB_REF_NAME#player-desktop-v}"
           else
             version="${{ inputs.version }}"
           fi
-          if [ -z "$version" ]; then
-            echo "::error::could not resolve a version"
+          # Reject anything that is not x.y.z. Without this a mistyped tag
+          # (`player-desktop-0.1.0`, missing the `v`) silently becomes the
+          # version string, and the updater compares garbage against the fleet's
+          # installed version. The Android pipeline already validated this
+          # because it has to derive a numeric versionCode; the desktop one only
+          # checked for emptiness.
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::version must be x.y.z, got '$version' (tag `player-desktop-v<x.y.z>`)"
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
