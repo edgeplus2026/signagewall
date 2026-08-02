@@ -106,7 +106,13 @@ function buildTable(values: string[][], showHeader: boolean): HTMLElement {
     const tr = document.createElement('tr')
     row.forEach((cell, index) => {
       const td = document.createElement('td')
-      td.textContent = cell
+      /* The clamp lives on a wrapper, never on the cell: `display: -webkit-box`
+         on a `td` replaces `table-cell` and the whole grid collapses into one
+         column. */
+      const inner = document.createElement('span')
+      inner.className = 'gs-cell'
+      inner.textContent = cell
+      td.append(inner)
       if (numeric[index]) td.classList.add('gs-num')
       tr.append(td)
     })
@@ -159,13 +165,27 @@ function buildModern(values: string[][], showHeader: boolean): HTMLElement {
     const item = document.createElement('div')
     item.className = 'gs-item'
 
-    const main = document.createElement('div')
-    main.className = 'gs-item-main'
+    /* Name, a dotted leader, then the figure — the way a printed menu sets a
+       line. The leader is what makes a price belong to its dish across a wide
+       screen; a plain gap leaves the eye guessing on the far right. */
+    const line = document.createElement('div')
+    line.className = 'gs-item-line'
 
-    const name = document.createElement('div')
+    const name = document.createElement('span')
     name.className = 'gs-item-name'
     name.textContent = row[nameIndex] ?? ''
-    main.append(name)
+    line.append(name)
+
+    const hasValue = valueIndex >= 0 && (row[valueIndex] ?? '').trim() !== ''
+    if (hasValue) {
+      line.append(document.createElement('span')).className = 'gs-leader'
+      const value = document.createElement('span')
+      value.className = 'gs-item-value'
+      value.textContent = row[valueIndex] as string
+      line.append(value)
+    }
+
+    item.append(line)
 
     const detail = detailIndexes
       .map((i) => (row[i] ?? '').trim())
@@ -175,16 +195,7 @@ function buildModern(values: string[][], showHeader: boolean): HTMLElement {
       const detailEl = document.createElement('div')
       detailEl.className = 'gs-item-detail'
       detailEl.textContent = detail
-      main.append(detailEl)
-    }
-
-    item.append(main)
-
-    if (valueIndex >= 0 && (row[valueIndex] ?? '').trim()) {
-      const value = document.createElement('div')
-      value.className = 'gs-item-value'
-      value.textContent = row[valueIndex] as string
-      item.append(value)
+      item.append(detailEl)
     }
 
     list.append(item)

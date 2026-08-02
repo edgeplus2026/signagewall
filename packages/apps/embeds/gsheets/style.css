@@ -42,14 +42,15 @@
   overflow: hidden;
 }
 
-/* Wrap to two lines and stop, rather than cutting one line mid-word. A
-   description clipped after "Nuetnigenough" tells the reader nothing and looks
-   broken; two full lines at least finish a thought. */
-.gs-table td {
+/* Wrap to two lines and stop, rather than cutting one line mid-word. On a
+   wrapper, never on the `td` itself — `display: -webkit-box` would replace
+   `table-cell` and collapse the grid into a single column. */
+.gs-cell {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Headings read as a label for the column, not as another row of data: smaller,
@@ -107,48 +108,60 @@
   padding-bottom: 1vh;
 }
 
+/* No rule between items. A border on every row turns a menu into a ledger; the
+   space between them already separates them, and the dotted leader inside each
+   line is the only rule that earns its place. */
 .gs-item {
   display: flex;
+  flex-direction: column;
+  gap: 0.3vh;
+}
+
+.gs-item-line {
+  display: flex;
   align-items: baseline;
-  gap: 2vw;
-  padding: 1.1vh 0;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
-}
-
-.gs-item:last-child {
-  border-bottom: none;
-}
-
-.gs-item-main {
-  flex: 1;
-  min-width: 0;
+  gap: 1vw;
 }
 
 .gs-item-name {
-  font-size: calc(min(2.1vw, 3.6vh) * var(--app-font-scale, 1));
+  font-size: calc(min(2.3vw, 4vh) * var(--app-font-scale, 1));
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: none;
+  max-width: 70%;
 }
 
-/* Two lines, then stop. The description is supporting text on a wall — nobody
-   reads a paragraph in passing, and letting it run pushes the next item off. */
+/* The dots that carry the eye from the dish to its price. */
+.gs-leader {
+  flex: 1;
+  height: 0;
+  align-self: center;
+  border-bottom: 1px dotted currentColor;
+  opacity: 0.28;
+  min-width: 2vw;
+}
+
+/* One line only. Two lines of blurb per item filled the screen with prose and
+   left six dishes fighting for room — on a wall the description is a hint, not
+   a paragraph, and the reader is walking past it. */
 .gs-item-detail {
-  margin-top: 0.4vh;
-  font-size: calc(min(1.4vw, 2.4vh) * var(--app-font-scale, 1));
-  line-height: 1.35;
-  opacity: 0.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-size: calc(min(1.35vw, 2.3vh) * var(--app-font-scale, 1));
+  line-height: 1.3;
+  opacity: 0.55;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 78%;
 }
 
 /* Held right and set in tabular figures so prices form a column the eye can run
    down, even though nothing here is a table. */
 .gs-item-value {
   flex: none;
-  font-size: calc(min(2.3vw, 3.9vh) * var(--app-font-scale, 1));
+  font-size: calc(min(2.3vw, 4vh) * var(--app-font-scale, 1));
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
