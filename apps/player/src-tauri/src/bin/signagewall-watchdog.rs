@@ -76,14 +76,18 @@ impl Config {
                 "SIGNAGEWALL_WATCHDOG_CHECK_INTERVAL_SECS",
                 DEFAULT_CHECK_INTERVAL_SECS,
             )),
-            hang_timeout_ms: env_secs("SIGNAGEWALL_WATCHDOG_HANG_TIMEOUT_SECS", DEFAULT_HANG_TIMEOUT_SECS)
-                * 1000,
+            hang_timeout_ms: env_secs(
+                "SIGNAGEWALL_WATCHDOG_HANG_TIMEOUT_SECS",
+                DEFAULT_HANG_TIMEOUT_SECS,
+            ) * 1000,
             startup_grace_ms: env_secs(
                 "SIGNAGEWALL_WATCHDOG_STARTUP_GRACE_SECS",
                 DEFAULT_STARTUP_GRACE_SECS,
             ) * 1000,
-            update_grace_ms: env_secs("SIGNAGEWALL_WATCHDOG_UPDATE_GRACE_SECS", DEFAULT_UPDATE_GRACE_SECS)
-                * 1000,
+            update_grace_ms: env_secs(
+                "SIGNAGEWALL_WATCHDOG_UPDATE_GRACE_SECS",
+                DEFAULT_UPDATE_GRACE_SECS,
+            ) * 1000,
             update_hang_cap_ms: env_secs(
                 "SIGNAGEWALL_WATCHDOG_UPDATE_HANG_CAP_SECS",
                 DEFAULT_UPDATE_HANG_CAP_SECS,

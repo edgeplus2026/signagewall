@@ -290,8 +290,10 @@ mod tests {
     fn write_atomic_replaces_the_target_in_place() {
         // PID-suffixed: this file is also `#[path]`-included by the watchdog bin,
         // so its tests run in a second test process — a shared dir name would race.
-        let dir =
-            std::env::temp_dir().join(format!("signagewall-player-atomic-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "signagewall-player-atomic-test-{}",
+            std::process::id()
+        ));
         let _ = fs::create_dir_all(&dir);
         let target = dir.join("state.json");
         write_atomic(&target, b"{\"lastResult\":\"one\"}").unwrap();
@@ -305,8 +307,10 @@ mod tests {
 
     #[test]
     fn read_and_write_state_at_round_trip() {
-        let dir =
-            std::env::temp_dir().join(format!("signagewall-player-state-at-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "signagewall-player-state-at-test-{}",
+            std::process::id()
+        ));
         let _ = fs::create_dir_all(&dir);
         let target = dir.join("state.json");
         let state = UpdaterState {
