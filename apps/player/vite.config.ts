@@ -57,6 +57,12 @@ export default defineConfig({
         // each independently. Both match by element destination (img/video tag)
         // AND by file extension, since the prefetch fetch()'s request
         // destination is 'empty'.
+        //
+        // Both use `matchOptions.ignoreVary`: a CORS-enabled bucket commonly
+        // answers with `Vary: Origin`, and the element request that later reads
+        // the entry (a plain `no-cors` <img>/<video> load) carries no Origin
+        // header — so without this every cached byte would fail to match and the
+        // cache would silently never be used.
         runtimeCaching: [
           {
             urlPattern: ({ request, url }) =>
@@ -70,7 +76,11 @@ export default defineConfig({
                 maxAgeSeconds: 60 * 60 * 24 * 30,
                 purgeOnQuotaError: true,
               },
+              // Opaque (0) is fine here: an <img> only ever asks for the whole
+              // resource, so a body we cannot read is still a body the browser
+              // can decode.
               cacheableResponse: { statuses: [0, 200] },
+              matchOptions: { ignoreVary: true },
             },
           },
           {
@@ -85,7 +95,21 @@ export default defineConfig({
                 maxAgeSeconds: 60 * 60 * 24 * 30,
                 purgeOnQuotaError: true,
               },
-              cacheableResponse: { statuses: [0, 200] },
+              // 200 ONLY — deliberately NOT 0, unlike images above. `rangeRequests`
+              // can only answer a `Range:` request by slicing the cached bytes,
+              // and an opaque response's body is unreadable (it slices to zero
+              // length). Safari/iOS range-requests every media resource, so a
+              // cached opaque entry gets answered with `416 Range Not Satisfiable`
+              // — a permanently black video and a "video load error", surviving
+              // reloads because CacheFirst keeps serving the poisoned entry.
+              // Worse, an opaque 206 also reports status 0, so iOS's own 2-byte
+              // probe response would be cached AS the whole file.
+              // Restricting this to readable 200s means the cache either serves a
+              // correct 206 or misses and the request goes to the network — right
+              // on every browser. `sync/prefetch.ts` fetches in `cors` mode so the
+              // warm-up can still fill this cache for offline playback.
+              cacheableResponse: { statuses: [200] },
+              matchOptions: { ignoreVary: true },
               rangeRequests: true,
             },
           },

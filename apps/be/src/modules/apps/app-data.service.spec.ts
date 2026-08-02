@@ -430,4 +430,66 @@ describe('AppDataService async export jobs (pending)', () => {
     expect(result.meta?.pending).toBe(true);
     expect(result.data).toEqual({ url: 'old' });
   });
+
+  // The preview shares the global connector cache with real screens, so an async
+  // export that its own 4s poll finishes has just replaced what every player on
+  // that key is showing. Nothing else would tell them: the entry now looks freshly
+  // fetched, so the scheduler skips it for a full cadence and then finds the
+  // version unchanged.
+  it('getPreviewData fans out when its fetch replaced the shared payload', async () => {
+    const { service, emit } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      payload: { url: 'exported' },
+      cache: {
+        'weather:belgrade': {
+          payload: { url: 'old' },
+          fetchedAt: new Date(NOW.getTime() - 20 * 60_000),
+          pending: true,
+        },
+      },
+    });
+
+    await service.getPreviewData('weather', { location: 'belgrade' });
+
+    expect(emit).toHaveBeenCalledTimes(1);
+    expect(emit).toHaveBeenCalledWith('player.app.data-changed', {
+      cacheKey: 'weather:belgrade',
+      slug: 'weather',
+    });
+  });
+
+  it('getPreviewData stays quiet when the payload did not change', async () => {
+    const { service, emit } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      payload: { url: 'same' },
+      cache: {
+        'weather:belgrade': {
+          payload: { url: 'same' },
+          // Older than the cadence, so it refetches instead of short-circuiting.
+          fetchedAt: new Date(NOW.getTime() - 20 * 60_000),
+        },
+      },
+    });
+
+    await service.getPreviewData('weather', { location: 'belgrade' });
+
+    expect(emit).not.toHaveBeenCalled();
+  });
+
+  it('getPreviewData does not fan out while the export is still pending', async () => {
+    const { service, emit } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      pending: true,
+      cache: {
+        'weather:belgrade': {
+          payload: { url: 'old' },
+          fetchedAt: new Date(NOW.getTime() - 20 * 60_000),
+        },
+      },
+    });
+
+    await service.getPreviewData('weather', { location: 'belgrade' });
+
+    expect(emit).not.toHaveBeenCalled();
+  });
 });

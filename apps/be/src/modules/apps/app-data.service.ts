@@ -460,6 +460,20 @@ export class AppDataService {
           true,
         );
       }
+      // The preview writes into the SAME global connector cache the players read
+      // from, so a fetch it drove to completion has just replaced the payload
+      // every screen on this key is showing — fan out exactly like the scheduler
+      // does. Without this a slow async export (a Canva video) that the preview's
+      // own poll finishes never reaches the players at all: the entry now looks
+      // freshly fetched, so the scheduler skips it for a full cadence and then
+      // sees an unchanged `version` and stays quiet. The screen would sit on the
+      // old design — or the app's "Loading design…" state — until it reconnected.
+      if (!this.payloadsEqual(existing?.payload, saved.payload)) {
+        this.eventEmitter.emit(PlayerEvents.AppDataChanged, {
+          cacheKey,
+          slug,
+        } satisfies AppDataChangedEvent);
+      }
       return this.toPreviewResult(saved.payload, saved.fetchedAt, false);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

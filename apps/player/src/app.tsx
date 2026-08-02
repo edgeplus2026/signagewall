@@ -12,7 +12,7 @@ import {
   startMaintenanceUpdates,
   startStandbyUpdate,
 } from './native/updater'
-import { loadSnapshot } from './persistence/idb'
+import { loadSnapshot, purgeOutdatedMediaCaches } from './persistence/idb'
 import { isPreview, previewParams } from './preview'
 import { reflectDeviceIdInUrl } from './recovery'
 import {
@@ -146,7 +146,6 @@ export function App() {
       // and media prefetch (keeps the cache warm even during standby).
       stopDailyReload = startDailyReload()
       stopAvailability = startAvailability()
-      stopPrefetch = startPrefetch()
       // Apply a pending shell update whenever the screen is dark (standby) —
       // the catch-up for devices powered off or offline during the nightly
       // window. Started after availability so `view` reflects the rule.
@@ -154,6 +153,13 @@ export function App() {
       // Backstop on a fixed cadence, independent of daily-reload/standby, so a
       // 24/7 always-on screen still applies shell updates rather than never.
       stopMaintenanceUpdates = startMaintenanceUpdates()
+      // Prefetch starts last because it alone has to wait: media cached in a
+      // format this build can no longer serve is dropped first, or the warm-up
+      // would see those entries as already cached and leave them in place for
+      // another 30 days. Nothing above is held up by that.
+      await purgeOutdatedMediaCaches()
+      if (disposed) return
+      stopPrefetch = startPrefetch()
     })()
 
     // Symmetric teardown: stop whatever boot managed to start. Safe before boot

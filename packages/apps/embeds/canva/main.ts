@@ -30,6 +30,23 @@ function renderLoading(pending = false): void {
   root.innerHTML = `<div class="center"><p>${label}</p></div>`
 }
 
+/**
+ * Shown when the exported video will not play. The design name is operator text,
+ * so it goes in through `textContent` rather than the innerHTML used above.
+ */
+function renderVideoFallback(name: string): void {
+  if (!root) return
+  const wrap = document.createElement('div')
+  wrap.className = 'center'
+  const title = document.createElement('p')
+  title.textContent = name
+  const note = document.createElement('p')
+  note.style.opacity = '0.6'
+  note.textContent = 'This design could not be played.'
+  wrap.append(title, note)
+  root.replaceChildren(wrap)
+}
+
 function renderVideo(url: string, name: string): void {
   if (!root) return
   const video = document.createElement('video')
@@ -43,6 +60,22 @@ function renderVideo(url: string, name: string): void {
   video.autoplay = true
   video.loop = true
   video.setAttribute('aria-label', name)
+  // A silent black frame is the worst way for a screen to fail, and these export
+  // URLs do stop working (they expire in ~24h) or arrive over a link that drops
+  // mid-load. Retry the load once, then say something rather than showing black
+  // for the whole slot — and leave a console line, since the player host cannot
+  // see errors raised inside this iframe.
+  let retried = false
+  video.addEventListener('error', () => {
+    if (!retried) {
+      retried = true
+      video.load()
+      void video.play().catch(() => undefined)
+      return
+    }
+    console.warn('[canva] export video failed to load', url)
+    renderVideoFallback(name)
+  })
   video.src = url
   root.replaceChildren(video)
   // The `autoplay` attribute doesn't always fire in embedded iframes; kick off

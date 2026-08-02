@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { CacheWarmer, type PrefetchDeps } from './prefetch'
 
@@ -149,5 +149,118 @@ describe('CacheWarmer', () => {
     await warmer.settle()
 
     expect(fetched).toEqual([])
+  })
+})
+
+/**
+ * The mode matters, not just the bytes: only a CORS response has a body the
+ * service worker can slice, and that slicing is what serves a `Range:` request —
+ * which every Safari/iOS media load is.
+ */
+describe('warmMediaUrl', () => {
+  /** Fresh module per test: the no-CORS origin memo is module-level state. */
+  async function loadWarm() {
+    vi.resetModules()
+    const module = await import('./prefetch')
+    return module.warmMediaUrl
+  }
+
+  function stubFetch(): ReturnType<typeof vi.fn> {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  function modesOf(fetchMock: ReturnType<typeof vi.fn>): string[] {
+    return fetchMock.mock.calls.map(
+      (call) => (call[1] as RequestInit).mode as string,
+    )
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('warms in cors mode so the cached body stays readable', async () => {
+    const warmMediaUrl = await loadWarm()
+    const fetchMock = stubFetch()
+    fetchMock.mockResolvedValue(new Response(''))
+
+    await warmMediaUrl('https://cdn.test/a.mp4', new AbortController().signal)
+
+    expect(modesOf(fetchMock)).toEqual(['cors'])
+  })
+
+  it('falls back to no-cors for a host that sends no CORS headers', async () => {
+    const warmMediaUrl = await loadWarm()
+    const fetchMock = stubFetch()
+    fetchMock
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValue(new Response(''))
+
+    await warmMediaUrl('https://cdn.test/a.mp4', new AbortController().signal)
+
+    expect(modesOf(fetchMock)).toEqual(['cors', 'no-cors'])
+  })
+
+  it('remembers that host and stops re-trying cors for it', async () => {
+    const warmMediaUrl = await loadWarm()
+    const fetchMock = stubFetch()
+    fetchMock
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValue(new Response(''))
+    const signal = new AbortController().signal
+
+    await warmMediaUrl('https://cdn.test/a.mp4', signal)
+    await warmMediaUrl('https://cdn.test/b.jpg', signal)
+
+    expect(modesOf(fetchMock)).toEqual(['cors', 'no-cors', 'no-cors'])
+  })
+
+  // The SW will not keep an opaque video response, so warming one downloads the
+  // whole clip for nothing — again on every content change.
+  it('stops warming video from a host that has no CORS headers', async () => {
+    const warmMediaUrl = await loadWarm()
+    const fetchMock = stubFetch()
+    fetchMock
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValue(new Response(''))
+    const signal = new AbortController().signal
+
+    await warmMediaUrl('https://cdn.test/a.jpg', signal)
+    fetchMock.mockClear()
+    await warmMediaUrl('https://cdn.test/clip.mp4?v=2', signal)
+
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('does not downgrade a host just because we were offline', async () => {
+    const warmMediaUrl = await loadWarm()
+    const fetchMock = stubFetch()
+    // Both modes fail: no network, which says nothing about the host's headers.
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'))
+    const signal = new AbortController().signal
+
+    await expect(
+      warmMediaUrl('https://cdn.test/a.mp4', signal),
+    ).rejects.toThrow()
+    fetchMock.mockResolvedValue(new Response(''))
+    await warmMediaUrl('https://cdn.test/b.mp4', signal)
+
+    // The retry after reconnect still leads with cors.
+    expect(modesOf(fetchMock)).toEqual(['cors', 'no-cors', 'cors'])
+  })
+
+  it('propagates an aborted pass instead of retrying it', async () => {
+    const warmMediaUrl = await loadWarm()
+    const fetchMock = stubFetch()
+    fetchMock.mockRejectedValue(new DOMException('Aborted', 'AbortError'))
+    const controller = new AbortController()
+    controller.abort()
+
+    await expect(
+      warmMediaUrl('https://cdn.test/a.mp4', controller.signal),
+    ).rejects.toThrow()
+    expect(modesOf(fetchMock)).toEqual(['cors'])
   })
 })

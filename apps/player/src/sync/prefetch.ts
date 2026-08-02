@@ -25,22 +25,98 @@ export interface PrefetchDeps {
   overBudget: () => Promise<boolean>
 }
 
+/**
+ * Origins proven to serve media without CORS headers, so the rest of their URLs
+ * skip straight to `no-cors` instead of paying a doomed round trip each. Only
+ * recorded once a `no-cors` retry actually succeeded — a plain outage must not
+ * be mistaken for a missing header, or one offline pass would downgrade the host
+ * for the whole session.
+ */
+const noCorsOrigins = new Set<string>()
+
+function originOf(url: string): string {
+  try {
+    // Media URLs are absolute (the public bucket), so the base only matters for
+    // a relative one — and must not be required, since this module is also
+    // loaded where there is no document.
+    const base = typeof location === 'undefined' ? undefined : location.href
+    return new URL(url, base).origin
+  } catch {
+    return url
+  }
+}
+
+/**
+ * Whether the service worker would route this URL to the video cache. Mirrors
+ * the extension test in `vite.config.ts` — its companion `destination === 'video'`
+ * check can never fire here, because a `fetch()` has destination `empty`.
+ */
+function isVideoUrl(url: string): boolean {
+  return /\.(?:mp4|webm|mov|m4v|ogg)$/i.test(url.split(/[?#]/, 1)[0] ?? url)
+}
+
+/** One warm-up fetch. Low priority so it never starves the on-screen item. */
+function warmFetch(
+  url: string,
+  mode: RequestMode,
+  signal: AbortSignal,
+): Promise<Response> {
+  return fetch(url, { mode, signal, priority: 'low' } as RequestInit & {
+    priority: 'low'
+  })
+}
+
+/**
+ * Warms one media URL into the service-worker cache.
+ *
+ * `cors` first, and the mode is the whole point: an opaque (`no-cors`) response
+ * has an unreadable body, and the service worker can only satisfy a video
+ * element's `Range:` request by slicing the bytes it cached. So the SW keeps
+ * readable 200s only (see `vite.config.ts`) — warming in `no-cors` would fill
+ * the cache with entries it then refuses to keep.
+ */
+export async function warmMediaUrl(
+  url: string,
+  signal: AbortSignal,
+): Promise<void> {
+  const origin = originOf(url)
+  if (noCorsOrigins.has(origin)) {
+    // A host we already know sends no CORS headers. Images are still worth
+    // warming (the image cache keeps opaque responses), but a video would be
+    // downloaded in full only for the SW to refuse it — burning the clip's whole
+    // size again on every content change. Skip it and let it stream live.
+    if (!isVideoUrl(url)) {
+      await warmFetch(url, 'no-cors', signal)
+    }
+    return
+  }
+  try {
+    await warmFetch(url, 'cors', signal)
+    return
+  } catch (error) {
+    if (signal.aborted) {
+      throw error
+    }
+    // Retry without CORS. If THAT works the host simply sends no CORS headers, so
+    // remember it and stop paying the doomed round trip for its other URLs. If it
+    // fails too we were merely offline — leave the origin unmarked so the next
+    // pass leads with `cors` again.
+    await warmFetch(url, 'no-cors', signal)
+    noCorsOrigins.add(origin)
+  }
+}
+
 const defaultDeps: PrefetchDeps = {
-  fetch: async (url, signal) => {
-    // Low priority so warming never starves the bytes the on-screen item is
-    // actively fetching; no-cors because we only care about filling the cache.
-    await fetch(url, {
-      mode: 'no-cors',
-      signal,
-      priority: 'low',
-    } as RequestInit & { priority: 'low' })
-  },
+  fetch: warmMediaUrl,
   isCached: async (url) => {
     if (typeof caches === 'undefined') {
       return false
     }
     try {
-      return (await caches.match(url)) !== undefined
+      // `ignoreVary` for the same reason the SW routes set it: a CORS response
+      // carrying `Vary: Origin` would never match this header-less lookup, and we
+      // would re-download the whole playlist on every pass.
+      return (await caches.match(url, { ignoreVary: true })) !== undefined
     } catch {
       return false
     }
