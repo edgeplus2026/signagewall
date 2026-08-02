@@ -59,11 +59,19 @@ class KioskActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         WatchdogService.start(this)
         // A kiosk never exits via Back — the escape hatch (PIN) is the only way out.
+        // But only WHILE it is a kiosk: swallowing unconditionally meant that turning
+        // the lock off from the CMS still left the app inescapable from a remote,
+        // which reads as a hung device rather than a deliberate lockdown.
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    // swallow
+                    if (kioskController.current == KioskController.Mode.OFF) {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                        isEnabled = true
+                    }
+                    // Locked: swallow.
                 }
             },
         )
@@ -92,6 +100,7 @@ class KioskActivity : AppCompatActivity() {
                 shellVersion = BuildConfig.VERSION_NAME,
                 deviceIdStore = deviceIdStore,
                 updater = updater,
+                deviceOwner = { kioskController.isDeviceOwner() },
             ),
             onRestart = { restartApp() },
             onSetKioskLock = { mode -> kioskController.setMode(mode) },

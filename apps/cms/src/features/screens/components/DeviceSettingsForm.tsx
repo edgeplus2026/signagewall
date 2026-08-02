@@ -58,6 +58,13 @@ interface DeviceSettingsFormProps {
   screenId: string
   savedVolume: number
   savedSettings: ScreenDeviceSettings
+  /**
+   * Android Device Owner provisioning, reported by the shell. Decides whether a
+   * `hard` lock can actually hold — `undefined` means the device never said, so
+   * nothing is claimed either way. Explicitly `| undefined` because the repo runs
+   * `exactOptionalPropertyTypes`, and the value is passed through as-is.
+   */
+  deviceOwner?: boolean | undefined
 }
 
 /**
@@ -70,6 +77,7 @@ export function DeviceSettingsForm({
   screenId,
   savedVolume,
   savedSettings,
+  deviceOwner,
 }: DeviceSettingsFormProps) {
   return (
     <div className="flex flex-col gap-7">
@@ -84,6 +92,7 @@ export function DeviceSettingsForm({
         key={`kiosk-${savedSettings.kioskMode}`}
         screenId={screenId}
         savedKioskMode={savedSettings.kioskMode}
+        deviceOwner={deviceOwner}
       />
       <MaintenanceSettings
         key={`maintenance-${savedSettings.dailyReload.enabled ? 'on' : 'off'}-${savedSettings.dailyReload.time}`}
@@ -98,6 +107,7 @@ export function DeviceSettingsForm({
 interface KioskSettingsProps {
   screenId: string
   savedKioskMode: ScreenDeviceKioskMode
+  deviceOwner?: boolean | undefined
 }
 
 /**
@@ -105,7 +115,11 @@ interface KioskSettingsProps {
  * a no-op on browser/desktop players). Its own section + save, so it never
  * remounts the Display or Maintenance drafts when committed.
  */
-function KioskSettings({ screenId, savedKioskMode }: KioskSettingsProps) {
+function KioskSettings({
+  screenId,
+  savedKioskMode,
+  deviceOwner,
+}: KioskSettingsProps) {
   const { t } = useTranslation()
   const setKioskMode = useSetDeviceKioskMode()
 
@@ -135,6 +149,17 @@ function KioskSettings({ screenId, savedKioskMode }: KioskSettingsProps) {
           onChange={setKioskModeDraft}
         />
       </SettingsRow>
+
+      {/* The shell silently downgrades `hard` to escapable screen-pinning when the
+          install is not Device Owner, so without this the operator would read
+          "fully locked" about a screen anyone can back out of. Only shown on a
+          confirmed `false` — an older shell reports nothing, and guessing there
+          would cry wolf across an entire fleet. */}
+      {kioskMode === 'hard' && deviceOwner === false ? (
+        <p className="text-warning border-warning/30 bg-warning/10 mx-4 mb-3 rounded-md border px-3 py-2 text-sm">
+          {t('screens.device.kioskMode.notDeviceOwner')}
+        </p>
+      ) : null}
 
       <div className="flex justify-end px-4 py-3">
         <Button

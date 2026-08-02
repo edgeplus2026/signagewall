@@ -67,4 +67,12 @@ export interface ReportedProfile {
   runtime?: PlayerRuntime
   /** Native-shell OTA update status. Absent in a browser. */
   updateStatus?: DeviceUpdateStatus
+  /**
+   * Android only: whether the shell is provisioned as Device Owner. A `hard`
+   * kiosk lock can only actually hold when this is true — otherwise the shell
+   * degrades the request to escapable screen-pinning, so the CMS must not keep
+   * calling that screen "fully locked". Absent where the question does not apply
+   * (a browser, the desktop shell) or on a shell too old to answer it.
+   */
+  deviceOwner?: boolean
 }

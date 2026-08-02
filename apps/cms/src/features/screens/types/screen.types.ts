@@ -35,6 +35,12 @@ export interface ScreenDeviceProfile {
   shellVersion?: string
   runtime?: PlayerRuntime
   updateStatus?: DeviceUpdateStatus
+  /**
+   * Android only: Device Owner provisioning, which is what decides whether a
+   * `hard` kiosk lock can actually hold. Absent elsewhere, and on shells too old
+   * to report it — so `false` means "confirmed unprovisioned", not "unknown".
+   */
+  deviceOwner?: boolean
 }
 
 // Device display + power settings come from @signagewall/player-contract — the single

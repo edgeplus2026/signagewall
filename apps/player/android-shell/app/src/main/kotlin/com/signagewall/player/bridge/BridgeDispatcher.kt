@@ -21,11 +21,20 @@ class BridgeDispatcher(
     private val shellVersion: String,
     private val deviceIdStore: DeviceIdStore,
     private val updater: Updater,
+    /**
+     * Whether this install is provisioned as Device Owner. Only then can a HARD
+     * kiosk actually lock the box; without it the request silently degrades to
+     * escapable screen-pinning (see KioskController), and the CMS would keep
+     * telling the operator the screen was "fully locked" when it was not.
+     * A lambda so the dispatcher stays testable without a DevicePolicyManager.
+     */
+    private val deviceOwner: () -> Boolean = { false },
 ) {
     fun dispatch(cmd: String, argsJson: String): JsonElement = when (cmd) {
         "get_device_id" -> getDeviceId()
         "set_device_id" -> setDeviceId(argsJson)
         "shell_version" -> JsonPrimitive(shellVersion)
+        "device_owner" -> JsonPrimitive(deviceOwner())
         "check_update" -> updater.cachedCheck()
         "run_update" -> updater.runUpdate()
         "get_update_state" -> updater.stateReport()

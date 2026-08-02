@@ -7,7 +7,7 @@
 import { readLocalDeviceId, seedDeviceId } from '../device'
 import { getUrlDeviceId } from '../recovery'
 import { reportError } from '../sentry'
-import { getShellVersion, loadShellVersion } from './runtime'
+import { getShellVersion, loadDeviceOwner, loadShellVersion } from './runtime'
 import { readNativeDeviceId, setNativeDeviceId } from './device-store'
 import { hasNativeBridge } from './host'
 import { checkForUpdate, loadUpdateState } from './updater'
@@ -99,7 +99,7 @@ export async function bootstrapNativeRuntime(): Promise<void> {
   if (!hasNativeBridge()) {
     return
   }
-  await Promise.all([loadShellVersion(), loadUpdateState()])
+  await Promise.all([loadShellVersion(), loadDeviceOwner(), loadUpdateState()])
 
   // Surface a shell that's too old for this web bundle loudly, rather than
   // letting the commands it lacks fail silently to `undefined`.

@@ -12,6 +12,15 @@ type UpdateResult = NonNullable<DeviceUpdateStatus['lastResult']>
 let shellVersion: string | undefined
 
 /**
+ * Whether the Android shell is provisioned as Device Owner. Only then can a
+ * `hard` kiosk lock actually hold — without it the shell silently degrades the
+ * request to escapable screen-pinning, and an operator reading "fully locked" in
+ * the CMS would be wrong about the one thing that setting promises. Undefined off
+ * the Android shell, where the question does not apply.
+ */
+let deviceOwner: boolean | undefined
+
+/**
  * Two DISTINCT facts, deliberately not one slot: a routine detection check
  * (`checking`/`available`/`up-to-date`, or an endpoint `error`) must never hide a
  * native APPLY outcome the operator has to act on — an `unhealthy` rollback or an
@@ -42,6 +51,21 @@ export async function loadShellVersion(): Promise<void> {
 /** Native shell version, or undefined in a browser. */
 export function getShellVersion(): string | undefined {
   return shellVersion
+}
+
+/**
+ * Loads the Device Owner flag (once, at boot). Older shells don't answer the
+ * command; `nativeInvoke` resolves undefined there, which reads as "unknown" and
+ * the CMS simply says nothing — better than claiming a fleet is unprovisioned
+ * because it runs last month's APK.
+ */
+export async function loadDeviceOwner(): Promise<void> {
+  deviceOwner = await nativeInvoke<boolean>('device_owner')
+}
+
+/** True/false on the Android shell; undefined elsewhere or on an older shell. */
+export function isDeviceOwner(): boolean | undefined {
+  return deviceOwner
 }
 
 /**

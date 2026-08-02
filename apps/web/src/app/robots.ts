@@ -1,11 +1,9 @@
 import type { MetadataRoute } from 'next'
 
-import { SITE_URL } from '@/lib/site-url'
+import { INDEXING_ENABLED, SITE_URL } from '@/lib/site-url'
 
 export default function robots(): MetadataRoute.Robots {
-  const indexingEnabled = process.env.SEO_INDEXING_ENABLED !== 'false'
-
-  if (!indexingEnabled) {
+  if (!INDEXING_ENABLED) {
     return {
       rules: { userAgent: '*', disallow: '/' },
     }

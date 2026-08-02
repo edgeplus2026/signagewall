@@ -84,10 +84,14 @@ the same records.
 
 For each locale, publish only after its intent brief is distinct, the visible
 content is complete, `localeReady` is enabled and `seo.indexable` is enabled.
-Only then does that locale enter hreflang and `sitemap.xml`. Keep
-`SEO_INDEXING_ENABLED=false` on preview and staging deployments. Branded news
-apps are RSS presets rather than separate search intents, so they remain
-available in the product catalogue but are always excluded from indexing.
+Only then does that locale enter hreflang and `sitemap.xml`. Preview and staging
+deployments need no flag to stay out of search: `robots.txt` and the
+`X-Robots-Tag` header both follow `INDEXING_ENABLED`, which is true only for a
+production build served from `CANONICAL_ORIGIN` in `apps/web/src/lib/site-url.ts`.
+Taking the live site out of search is therefore a code change, not a stray
+environment variable. Branded news apps are RSS presets rather than separate
+search intents, so they remain available in the product catalogue but are always
+excluded from indexing.
 
 New content is fail-closed by default. Existing Blog/Solution records have a
 temporary compatibility path so a deploy cannot deindex the whole established

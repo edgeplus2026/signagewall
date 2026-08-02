@@ -153,6 +153,15 @@ export class DeviceProfile {
 
   @Prop({ type: DeviceUpdateStatusSchema })
   updateStatus?: DeviceUpdateStatus;
+
+  /**
+   * Android only: Device Owner provisioning. A `hard` kiosk lock only actually
+   * holds when this is true; without it the shell degrades to escapable
+   * screen-pinning, so the CMS must stop calling such a screen "fully locked".
+   * Undefined on a browser/desktop, and on shells too old to report it.
+   */
+  @Prop()
+  deviceOwner?: boolean;
 }
 
 export const DeviceProfileSchema = SchemaFactory.createForClass(DeviceProfile);

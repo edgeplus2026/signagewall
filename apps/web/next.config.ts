@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url'
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
 
+import { INDEXING_ENABLED } from './src/lib/site-url'
+
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 const appDir = dirname(fileURLToPath(import.meta.url))
 
@@ -63,7 +65,9 @@ const nextConfig: NextConfig = {
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
     ]
 
-    if (process.env.SEO_INDEXING_ENABLED === 'false') {
+    /* Same decision as `robots.ts`, from the same constant: a crawler that
+       never reads robots.txt still gets a header it cannot miss. */
+    if (!INDEXING_ENABLED) {
       return [{ source: '/:path*', headers: [...security, noIndex] }]
     }
 

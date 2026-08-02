@@ -23,7 +23,15 @@ export function absoluteUrl(locale: string, route: Route = '/'): string {
   /* `href` is cast because `getPathname` resolves its params type from the
      specific pathname literal, which a `Route` union cannot narrow to. */
   const pathname = getPathname({ href: route as never, locale })
-  return `${SITE_URL}${pathname}`
+  /* Next normalises every URL it renders through the Metadata API against
+     `trailingSlash` (false here), so the English home page ships a canonical of
+     the bare origin. `sitemap.ts` writes its own `<loc>`s and JSON-LD its own
+     `url`s, neither of which gets that treatment — keeping the slash here meant
+     the home page was announced as `…com/` in the sitemap and `…com` in the
+     canonical. The two spellings are the same URL after normalisation, but the
+     mismatch is exactly the kind an audit flags. Normalise once, in the only
+     place that builds these URLs. */
+  return `${SITE_URL}${pathname === '/' ? '' : pathname}`
 }
 
 /** Public pathname for route-level redirects and diagnostics. */
@@ -100,8 +108,9 @@ export function openGraphMeta({
   const self = locale === 'en' ? paths.en : paths.sr
   /* The generated card is a route file, not an entry in the pathnames map, so
      it hangs off the locale root rather than resolving through it: the English
-     root is `/` and the Serbian one `/sr`. */
-  const localeRoot = absoluteUrl(locale, '/').replace(/\/$/, '')
+     root is the bare origin and the Serbian one adds `/sr`. `absoluteUrl`
+     already leaves no trailing slash to trim. */
+  const localeRoot = absoluteUrl(locale, '/')
   const generatedCard = `${localeRoot}/opengraph-image`
 
   return {
@@ -225,7 +234,7 @@ export function pageMetadata({
 }: PageMetadataOptions): Metadata {
   const alternates = localeAlternates(locale, path, availability)
   const canonicalUrl = resolveCanonicalUrl(canonical)
-  const localeRoot = absoluteUrl(locale, '/').replace(/\/$/, '')
+  const localeRoot = absoluteUrl(locale, '/')
   const resolvedImage = image
     ? absoluteAssetUrl(image)
     : absoluteAssetUrl(`${localeRoot}/opengraph-image`)

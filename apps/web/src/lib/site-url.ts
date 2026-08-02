@@ -42,3 +42,28 @@ function resolveSiteUrl(): string {
 }
 
 export const SITE_URL = resolveSiteUrl()
+
+/**
+ * The one origin this site may be indexed under.
+ *
+ * Deliberately a constant and not configuration. Indexing policy read from an
+ * environment variable fails in both directions and stays silent about it: a
+ * development `.env` copied into a deploy takes the live site out of search,
+ * and a variable that must be *remembered* on every preview deployment is one
+ * forgotten value away from a staging copy competing with the real site. Both
+ * are invisible until traffic disappears. Moving the site to another origin is
+ * a code change, reviewed like any other.
+ */
+export const CANONICAL_ORIGIN = 'https://www.signagewall.com'
+
+/**
+ * Whether this deployment may appear in search results.
+ *
+ * Only a production build served from the canonical origin qualifies. Preview
+ * and staging deploys are excluded because their origin differs; a dev server —
+ * including one published through a tunnel — is excluded because its build is
+ * not production. Neither needs a variable set, so neither can have one
+ * forgotten.
+ */
+export const INDEXING_ENABLED =
+  process.env.NODE_ENV === 'production' && SITE_URL === CANONICAL_ORIGIN

@@ -9,7 +9,7 @@ import {
   isScale,
   normalizeDailyReload,
 } from './device-settings'
-import { getShellVersion, getUpdateStatus } from './native/runtime'
+import { getShellVersion, getUpdateStatus, isDeviceOwner } from './native/runtime'
 import { isTauri } from './native/tauri'
 import { getUrlDeviceId } from './recovery'
 import type {
@@ -267,6 +267,7 @@ export function getProfile(): ReportedProfile {
     runtime: getPlatform(),
     shellVersion: getShellVersion(),
     updateStatus: getUpdateStatus(),
+    deviceOwner: isDeviceOwner(),
   }
 }
 

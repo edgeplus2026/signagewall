@@ -103,6 +103,7 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
             screenId={screenId}
             savedVolume={savedVolume}
             savedSettings={savedSettings}
+            deviceOwner={device?.profile?.deviceOwner}
           />
 
           <SettingsSection title={t('screens.device.details.title')}>

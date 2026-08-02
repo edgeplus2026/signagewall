@@ -979,7 +979,8 @@
           "hard": "Hard (fully locked)",
           "soft": "Soft (user can exit)",
           "off": "Off (no lock)"
-        }
+        },
+        "notDeviceOwner": "Not fully locked: this device is not provisioned as Device Owner, so the shell falls back to screen pinning, which a viewer can exit. Run the Device Owner provisioning step on the device to enforce a hard lock."
       },
       "dailyReload": {
         "title": "Daily reload",
@@ -1793,13 +1794,34 @@
     },
     "openApp": "Open app",
     "itemNouns": {
-      "countdown": { "one": "countdown", "other": "countdowns" },
-      "menu": { "one": "menu", "other": "menus" },
-      "wisdom": { "one": "display", "other": "displays" },
-      "weather": { "one": "location", "other": "locations" },
-      "clock": { "one": "clock", "other": "clocks" },
-      "ticker": { "one": "ticker", "other": "tickers" },
-      "currency": { "one": "board", "other": "boards" }
+      "countdown": {
+        "one": "countdown",
+        "other": "countdowns"
+      },
+      "menu": {
+        "one": "menu",
+        "other": "menus"
+      },
+      "wisdom": {
+        "one": "display",
+        "other": "displays"
+      },
+      "weather": {
+        "one": "location",
+        "other": "locations"
+      },
+      "clock": {
+        "one": "clock",
+        "other": "clocks"
+      },
+      "ticker": {
+        "one": "ticker",
+        "other": "tickers"
+      },
+      "currency": {
+        "one": "board",
+        "other": "boards"
+      }
     },
     "breadcrumb": {
       "root": "Apps"

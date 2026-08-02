@@ -957,7 +957,8 @@
           "hard": "Tvrdo (potpuno zaključano)",
           "soft": "Meko (korisnik može da izađe)",
           "off": "Isključeno (bez zaključavanja)"
-        }
+        },
+        "notDeviceOwner": "Nije potpuno zaključano: uređaj nije registrovan kao Device Owner, pa aplikacija pada na screen pinning iz kog se može izaći. Pokreni Device Owner registraciju na uređaju za pravo zaključavanje."
       },
       "dailyReload": {
         "title": "Dnevni restart",
@@ -1775,13 +1776,34 @@
     },
     "openApp": "Otvori aplikaciju",
     "itemNouns": {
-      "countdown": { "one": "odbrojavanje", "other": "odbrojavanja" },
-      "menu": { "one": "meni", "other": "meniji" },
-      "wisdom": { "one": "prikaz", "other": "prikazi" },
-      "weather": { "one": "lokacija", "other": "lokacije" },
-      "clock": { "one": "sat", "other": "satovi" },
-      "ticker": { "one": "traka", "other": "trake" },
-      "currency": { "one": "tabla", "other": "table" }
+      "countdown": {
+        "one": "odbrojavanje",
+        "other": "odbrojavanja"
+      },
+      "menu": {
+        "one": "meni",
+        "other": "meniji"
+      },
+      "wisdom": {
+        "one": "prikaz",
+        "other": "prikazi"
+      },
+      "weather": {
+        "one": "lokacija",
+        "other": "lokacije"
+      },
+      "clock": {
+        "one": "sat",
+        "other": "satovi"
+      },
+      "ticker": {
+        "one": "traka",
+        "other": "trake"
+      },
+      "currency": {
+        "one": "tabla",
+        "other": "table"
+      }
     },
     "breadcrumb": {
       "root": "Aplikacije"
