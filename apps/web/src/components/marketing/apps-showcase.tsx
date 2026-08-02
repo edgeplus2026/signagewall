@@ -38,8 +38,14 @@ export async function AppsShowcase() {
       {/* Hairline grid: one shared rule between cells, so the catalogue reads as
           a drawn index rather than as detached chips. The trailing "all apps"
           cell is also what keeps the last row full — an empty cell here shows up
-          as a grey box, the rule colour coming through from behind. */}
-      <div className="mt-16 grid grid-cols-2 gap-px border border-secondary bg-rule sm:grid-cols-3 lg:grid-cols-4">
+          as a grey box, the rule colour coming through from behind.
+
+          One column on a phone. Two used to fit here, but the cell spends about
+          155px on padding, the icon, three gaps, the count and the arrow — on a
+          360px screen that left roughly fifteen for the label, and names run to
+          twenty-five characters ("Prezentacije i dokumenti"), so every one of
+          them wrapped into the row below. */}
+      <div className="mt-16 grid grid-cols-1 gap-px border border-secondary bg-rule sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {categories.map((c) => (
           <Link
             key={c.slug}
