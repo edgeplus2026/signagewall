@@ -146,6 +146,29 @@ export class DataDeletionService {
       .exec();
   }
 
+  /**
+   * Free-trial expiry, executed immediately (the warning email was the notice).
+   *
+   * Unlike {@link purgeAccountNow} this erases every organization the trial
+   * account *owns*, even ones with other members: the whole workspace is the
+   * trial, and leaving an ownerless organization behind would strand screens
+   * under an account that no longer exists. Organizations the user merely joined
+   * are untouched — only their membership goes.
+   */
+  async purgeTrialAccount(
+    userId: string,
+    ownedOrganizationIds: string[],
+  ): Promise<void> {
+    for (const organizationId of ownedOrganizationIds) {
+      await this.purgeOrganization(organizationId);
+    }
+
+    await this.purgeAccount(userId, true);
+    await this.pendingModel
+      .deleteMany({ type: 'account', targetId: new Types.ObjectId(userId) })
+      .exec();
+  }
+
   async cancelAccountDeletion(userId: string): Promise<void> {
     await this.usersRepository.reactivate(userId);
     await this.pendingModel
@@ -261,6 +284,11 @@ export class DataDeletionService {
         await this.purgeOrganization(orgId);
       } else {
         await this.membershipModel.deleteOne({ _id: membership._id }).exec();
+        // The organization outlives this account. If it was billed to them,
+        // move ownership to the next admin — otherwise its `ownerUserId` points
+        // at a row that is about to disappear and its screens stop counting
+        // against anybody's licences.
+        await this.transferOwnership(orgId, userId);
       }
     }
 
@@ -272,6 +300,49 @@ export class DataDeletionService {
     } else {
       await this.usersRepository.anonymize(userId);
     }
+  }
+
+  /**
+   * Hands a surviving organization to its earliest remaining admin when the
+   * departing user was its billing owner. Kept here rather than reaching for
+   * OrganizationsRepository so the cascade stays on the models this module
+   * already registers.
+   */
+  private async transferOwnership(
+    organizationId: string,
+    leavingUserId: string,
+  ): Promise<void> {
+    const orgId = new Types.ObjectId(organizationId);
+    const leavingId = new Types.ObjectId(leavingUserId);
+
+    const organization = await this.organizationModel
+      .findOne({ _id: orgId, ownerUserId: leavingId })
+      .exec();
+
+    if (!organization) {
+      return;
+    }
+
+    const successor = await this.membershipModel
+      .findOne({
+        organizationId: orgId,
+        userId: { $ne: leavingId },
+        role: { $in: [OrganizationRole.ADMIN, OrganizationRole.OWNER] },
+      })
+      .sort({ createdAt: 1, _id: 1 })
+      .exec();
+
+    if (!successor) {
+      return;
+    }
+
+    await this.organizationModel
+      .updateOne({ _id: orgId }, { $set: { ownerUserId: successor.userId } })
+      .exec();
+
+    this.logger.log(
+      `Organization ${organizationId} ownership moved to ${successor.userId.toString()}`,
+    );
   }
 
   /**

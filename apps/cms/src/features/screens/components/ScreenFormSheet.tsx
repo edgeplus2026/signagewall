@@ -17,6 +17,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
+import { getPlanLimitDetails } from "@/features/plans/lib/planLimit"
+import { usePlanDialogStore } from "@/features/plans/store/planDialogStore"
 import { useCreateScreen } from "@/features/screens/hooks/useScreens"
 import {
   createScreenSchema,
@@ -35,6 +37,7 @@ export function ScreenFormSheet({ open, onOpenChange }: ScreenFormSheetProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const createScreen = useCreateScreen()
+  const openPlanDialog = usePlanDialogStore((state) => state.openDialog)
   const screenSchema = useMemo(() => createScreenSchema(t), [t])
 
   const {
@@ -65,6 +68,13 @@ export function ScreenFormSheet({ open, onOpenChange }: ScreenFormSheetProps) {
       onOpenChange(false)
       void navigate(`/screens/${created.id}`)
     } catch (error) {
+      // Out of licences is a sales moment, not a form error: swap the sheet for
+      // the upgrade dialog instead of toasting something they cannot act on.
+      if (getPlanLimitDetails(error)) {
+        onOpenChange(false)
+        openPlanDialog("screens")
+        return
+      }
       toast.error(getApiErrorMessage(error, t("screens.create.error")))
     }
   })

@@ -18,7 +18,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "openapi:export": "nest build && node dist/openapi/export-openapi.js"
+    "openapi:export": "nest build && node dist/openapi/export-openapi.js",
+    "migrate:plans": "nest build && node dist/database/migrations/backfill-plans.js",
+    "migrate:plans:apply": "nest build && node dist/database/migrations/backfill-plans.js --apply"
   },
   "dependencies": {
     "@signagewall/apps": "workspace:*",

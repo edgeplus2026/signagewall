@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import type { UpdateUserPlanPayload } from '@/features/plans/types/plan.types'
 import {
   adminApi,
   type AdminUsersSortField,
@@ -8,6 +9,7 @@ import {
 } from '@/features/super-admin/api/adminApi'
 
 const ADMIN_USERS_QUERY_KEY = ['admin', 'users'] as const
+const UPGRADE_REQUESTS_QUERY_KEY = ['admin', 'upgrade-requests'] as const
 const DEFAULT_PAGE_SIZE = 20
 
 export interface AdminUsersQueryParams {
@@ -84,6 +86,68 @@ export function useDeleteAdminUser() {
     mutationFn: (userId: string) => adminApi.deleteUser(userId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ADMIN_USERS_QUERY_KEY })
+      void queryClient.invalidateQueries({ queryKey: UPGRADE_REQUESTS_QUERY_KEY })
+    },
+  })
+}
+
+export function useUpdateUserPlan() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      userId,
+      payload,
+    }: {
+      userId: string
+      payload: UpdateUserPlanPayload
+    }) => adminApi.updateUserPlan(userId, payload),
+    onSuccess: (_data, { userId }) => {
+      void queryClient.invalidateQueries({ queryKey: ADMIN_USERS_QUERY_KEY })
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'users', userId] })
+      // Raising a plan resolves that user's open requests server-side.
+      void queryClient.invalidateQueries({ queryKey: UPGRADE_REQUESTS_QUERY_KEY })
+    },
+  })
+}
+
+export function useUpgradeRequests(params: {
+  page: number
+  limit?: number
+  status?: 'open' | 'resolved'
+}) {
+  const { page, limit = DEFAULT_PAGE_SIZE, status } = params
+
+  return useQuery({
+    queryKey: [...UPGRADE_REQUESTS_QUERY_KEY, page, limit, status],
+    queryFn: () =>
+      adminApi.listUpgradeRequests({ page, limit, ...(status ? { status } : {}) }),
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** Drives the count badge on the Upgrade requests tab. */
+export function useOpenUpgradeRequestCount() {
+  return useQuery({
+    queryKey: [...UPGRADE_REQUESTS_QUERY_KEY, 'open-count'],
+    queryFn: async () => {
+      const result = await adminApi.listUpgradeRequests({
+        page: 1,
+        limit: 1,
+        status: 'open',
+      })
+      return result.total
+    },
+  })
+}
+
+export function useResolveUpgradeRequest() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (requestId: string) => adminApi.resolveUpgradeRequest(requestId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: UPGRADE_REQUESTS_QUERY_KEY })
     },
   })
 }

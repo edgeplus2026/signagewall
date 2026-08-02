@@ -1520,7 +1520,8 @@
       "users": "All Users",
       "apps": "All Apps",
       "categories": "Apps Categories",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "upgradeRequests": "Upgrade Requests"
     },
     "users": {
       "search": "Search users...",
@@ -1532,14 +1533,16 @@
         "role": "Role",
         "organizations": "Organizations",
         "status": "Status",
-        "createdAt": "Created at"
+        "createdAt": "Created at",
+        "plan": "Plan"
       },
       "actions": {
         "menu": "User actions",
         "promote": "Promote to super-admin",
         "demote": "Remove super-admin",
         "impersonate": "Impersonate user",
-        "delete": "Permanent delete"
+        "delete": "Permanent delete",
+        "changePlan": "Change plan"
       }
     },
     "promote": {
@@ -1583,7 +1586,9 @@
         "status": "Account status",
         "role": "Global role",
         "createdAt": "Created at",
-        "organizations": "Organizations"
+        "organizations": "Organizations",
+        "plan": "Plan",
+        "trialEndsAt": "Trial ends"
       },
       "role": {
         "superAdmin": "Super-admin",
@@ -1592,7 +1597,9 @@
       "status": {
         "active": "Active",
         "inactive": "Inactive"
-      }
+      },
+      "planValue": "{{tier}} — {{used}} / {{limit}} screens",
+      "noTrial": "No trial (paid)"
     },
     "impersonation": {
       "banner": "Viewing as {{name}} ({{email}})",
@@ -1605,6 +1612,48 @@
       "restoring": "Restoring your super-admin session…",
       "startSuccess": "Now viewing as {{name}}",
       "startError": "Could not switch to this user."
+    },
+    "plan": {
+      "title": "Change plan",
+      "description": "Set the plan and licence count for {{name}} ({{email}}).",
+      "tier": "Plan",
+      "tiers": {
+        "free": "Free trial",
+        "enterprise": "Enterprise",
+        "unlimited": "Unlimited (super-admin)"
+      },
+      "licenceCount_one": "{{count}} licence",
+      "licenceCount_other": "{{count}} licences",
+      "screenLimit": "Screen licences",
+      "screenLimitInvalid": "Enter a whole number of licences.",
+      "hintFree": "Free accounts are erased 21 days after sign-up. Switching to free restarts the 21 days; it does not delete anything now.",
+      "hintEnterprise": "Enterprise accounts never expire. Lowering this below the screens already in use blocks new screens but deletes nothing.",
+      "submit": "Save plan",
+      "success": "Plan updated for {{name}}.",
+      "error": "Could not update the plan."
+    },
+    "upgradeRequests": {
+      "empty": "No upgrade requests.",
+      "messages": "Messages",
+      "delta": "{{from}} → {{to}} screens",
+      "setPlan": "Set plan",
+      "dismiss": "Dismiss",
+      "resolved": "Request marked as resolved.",
+      "resolveError": "Could not resolve the request.",
+      "columns": {
+        "user": "User",
+        "request": "Request",
+        "contact": "Contact",
+        "requestedAt": "Requested"
+      },
+      "filters": {
+        "open": "Open",
+        "resolved": "Resolved",
+        "all": "All"
+      },
+      "status": {
+        "resolved": "Resolved"
+      }
     }
   },
   "faq": {
@@ -2233,6 +2282,37 @@
       "accept": "I have read and accept the updated <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
       "confirm": "Accept and continue",
       "error": "Could not save your acceptance. Please try again."
+    }
+  },
+  "plans": {
+    "screenUsage": "{{used}} / {{limit}} screens",
+    "trial": {
+      "daysLeft_one": "{{count}} day left",
+      "daysLeft_other": "{{count}} days left",
+      "endsToday": "Trial ends today"
+    },
+    "upgrade": {
+      "cta": "Upgrade plan",
+      "title": "Upgrade your plan",
+      "descriptionTrial": "Tell us how many screens you need. We will send an invoice and lift the limit on your account — your screens, playlists and media stay exactly as they are.",
+      "descriptionScreenLimit": "Your free trial includes one screen. Tell us how many you need and we will send an invoice.",
+      "descriptionOrganizationLimit": "Your free trial includes one organization. Upgrade to run more than one workspace.",
+      "descriptionLicences": "Your plan covers {{limit}} screen(s). Tell us the new total and we will send an invoice.",
+      "screens": "How many screens do you need?",
+      "screensRequired": "Enter how many screens you need.",
+      "screensMax": "Enter at most {{max}} screens.",
+      "company": "Company",
+      "companyPlaceholder": "Your company name",
+      "phone": "Phone",
+      "message": "Anything else we should know?",
+      "messagePlaceholder": "Locations, timeline, questions...",
+      "submit": "Send request",
+      "success": "Request sent. We will get back to you shortly.",
+      "error": "Could not send your request. Please try again."
+    },
+    "licences": {
+      "cta": "Request more licences",
+      "title": "Request more licences"
     }
   }
 }

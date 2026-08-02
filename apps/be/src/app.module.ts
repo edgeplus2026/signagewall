@@ -32,6 +32,8 @@ import { MembersModule } from './modules/members/members.module';
 import { MediaModule } from './modules/media/media.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { PlansModule } from './modules/plans/plans.module';
+import { TrialModule } from './modules/plans/trial.module';
 import { PlayerModule } from './modules/player/player.module';
 import { PlaylistsModule } from './modules/playlists/playlists.module';
 import { ScreensModule } from './modules/screens/screens.module';
@@ -90,6 +92,8 @@ import { UsersModule } from './modules/users/users.module';
     NotificationsModule,
     LegalModule,
     DataDeletionModule,
+    PlansModule,
+    TrialModule,
     HealthModule,
   ],
   providers: [

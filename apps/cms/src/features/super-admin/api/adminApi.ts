@@ -1,5 +1,10 @@
 import type { AuthResponse } from '@/features/auth/types/auth.types'
 import type {
+  AdminUpgradeRequest,
+  PaginatedAdminUpgradeRequests,
+  UpdateUserPlanPayload,
+} from '@/features/plans/types/plan.types'
+import type {
   AdminUserDetail,
   AdminUserListItem,
   PaginatedAdminUsers,
@@ -7,6 +12,12 @@ import type {
 import { api } from '@/lib/axios'
 
 const ADMIN_BASE = '/admin'
+
+export interface ListUpgradeRequestsParams {
+  page?: number
+  limit?: number
+  status?: 'open' | 'resolved'
+}
 
 export type AdminUsersSortField = 'name' | 'createdAt' | 'isActive' | 'organizationCount'
 export type AdminUsersSortOrder = 'asc' | 'desc'
@@ -53,5 +64,36 @@ export const adminApi = {
 
   deleteUser: async (userId: string): Promise<void> => {
     await api.delete(`${ADMIN_BASE}/users/${userId}`)
+  },
+
+  /** The whole billing system: set the tier and the licence count by hand. */
+  updateUserPlan: async (
+    userId: string,
+    payload: UpdateUserPlanPayload,
+  ): Promise<AdminUserListItem> => {
+    const { data } = await api.patch<AdminUserListItem>(
+      `${ADMIN_BASE}/users/${userId}/plan`,
+      payload,
+    )
+    return data
+  },
+
+  listUpgradeRequests: async (
+    params: ListUpgradeRequestsParams = {},
+  ): Promise<PaginatedAdminUpgradeRequests> => {
+    const { data } = await api.get<PaginatedAdminUpgradeRequests>(
+      `${ADMIN_BASE}/upgrade-requests`,
+      { params },
+    )
+    return data
+  },
+
+  resolveUpgradeRequest: async (
+    requestId: string,
+  ): Promise<AdminUpgradeRequest> => {
+    const { data } = await api.post<AdminUpgradeRequest>(
+      `${ADMIN_BASE}/upgrade-requests/${requestId}/resolve`,
+    )
+    return data
   },
 }

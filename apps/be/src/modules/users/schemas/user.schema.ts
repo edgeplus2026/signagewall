@@ -13,6 +13,22 @@ export enum UserRole {
   SUPER_ADMIN = 'super-admin',
 }
 
+export enum UserPlan {
+  /** 21-day trial. One organization, one screen, then the account is erased. */
+  FREE = 'free',
+  /** Invoiced. `screenLimit` is the number of licences that were sold. */
+  ENTERPRISE = 'enterprise',
+}
+
+/** Days a free account lives before the trial sweep erases it. */
+export const TRIAL_DAYS = 21;
+
+/** Screens a free account may create, across all of its organizations. */
+export const FREE_SCREEN_LIMIT = 1;
+
+const trialDeadline = (): Date =>
+  new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+
 @Schema({
   timestamps: true,
   collection: 'users',
@@ -62,6 +78,37 @@ export class User {
 
   @Prop({ select: false })
   refreshTokenHash?: string;
+
+  /**
+   * Billing tier. There is no payment integration — a plan only ever changes
+   * because a super-admin changed it after an invoice was settled.
+   */
+  @Prop({ enum: UserPlan, default: UserPlan.FREE, index: true })
+  plan: UserPlan;
+
+  /**
+   * Screens this account may own in total, summed across every organization it
+   * created. For enterprise accounts it is the licence count that was sold.
+   */
+  @Prop({ default: FREE_SCREEN_LIMIT, min: 0 })
+  screenLimit: number;
+
+  /**
+   * When the free trial runs out and the account is erased. Defaulted on
+   * insert so every sign-up path (local, invite, Google) gets a clock without
+   * having to remember to set one. Cleared to `null` on upgrade — an enterprise
+   * account never expires.
+   *
+   * Accounts created before plans existed have no value at all; `$lte` never
+   * matches a missing field, so the sweep leaves them alone until the migration
+   * has given them an explicit plan.
+   */
+  @Prop({ type: Date, default: trialDeadline })
+  trialEndsAt?: Date | null;
+
+  /** Set when the "trial ends tomorrow" email went out, so it is sent once. */
+  @Prop({ type: Date, default: null })
+  trialWarningSentAt?: Date | null;
 
   @Prop({ enum: ['en', 'sr'], default: 'en' })
   language: string;

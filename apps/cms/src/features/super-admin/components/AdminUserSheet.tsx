@@ -111,6 +111,30 @@ export function AdminUserSheet({ userId, open, onOpenChange }: AdminUserSheetPro
                 }
               />
               <CopyableDetailRow
+                label={t('superAdmin.userSheet.fields.plan')}
+                value={
+                  user.isSuperAdmin
+                    ? t('superAdmin.plan.tiers.unlimited')
+                    : t('superAdmin.userSheet.planValue', {
+                        tier:
+                          user.plan === 'enterprise'
+                            ? t('superAdmin.plan.tiers.enterprise')
+                            : t('superAdmin.plan.tiers.free'),
+                        used: user.screensUsed,
+                        limit: user.screenLimit,
+                      })
+                }
+              />
+              <CopyableDetailRow
+                label={t('superAdmin.userSheet.fields.trialEndsAt')}
+                value={
+                  user.trialEndsAt
+                    ? formatDate(user.trialEndsAt)
+                    : t('superAdmin.userSheet.noTrial')
+                }
+                copyValue={user.trialEndsAt ?? ''}
+              />
+              <CopyableDetailRow
                 label={t('superAdmin.userSheet.fields.createdAt')}
                 value={formatDate(user.createdAt)}
               />

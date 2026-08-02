@@ -429,6 +429,13 @@ export class MembersService {
     if (!deleted) {
       throw BusinessException.notFound(this.i18n.t('members.notFound'));
     }
+
+    // If the leaver was the billing owner, hand the organization to the next
+    // admin — its screens must keep counting against a real account's licences.
+    await this.organizationsRepository.transferOwnershipFrom(
+      organizationId,
+      membership.userId.toString(),
+    );
   }
 
   private hashInviteToken(token: string): string {

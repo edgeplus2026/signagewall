@@ -8,20 +8,15 @@ import './style.css'
 
 const root = document.getElementById('app')
 
-const THEMES: Record<string, { bg: string; text: string }> = {
-  light: { bg: '#FFFFFF', text: '#0F172A' },
-  dark: { bg: '#0B1220', text: '#E2E8F0' },
-}
-
-/** How long one page of rows stays on screen before the next slides in. */
-const PAGE_MS = 10_000
+/** Fallback when the operator's `pageSeconds` is missing or out of range. */
+const DEFAULT_PAGE_SECONDS = 20
 
 function applyChrome(config: Record<string, unknown>): void {
   if (!root) return
-  const theme = THEMES[String(config.theme)] ?? THEMES.dark!
-  root.style.background = theme.bg
-  root.style.color = theme.text
-  root.style.setProperty('--gs-accent', '#0F9D58')
+  // The palette lives in CSS, keyed off this class — a rate board needs a dozen
+  // related colours (bands, rules, four text voices), and setting them one by one
+  // from here is how two of them end up disagreeing.
+  root.className = config.theme === 'light' ? 'gs-theme-light' : 'gs-theme-dark'
   applyTextStyle(root, config)
 }
 
@@ -119,6 +114,64 @@ function isNumericRole(role: Role): boolean {
   return role === 'num' || role === 'num-strong'
 }
 
+/* ----- The row colour bar (Modern) -----
+
+   The bars are generated rather than configured — the sheet carries no status
+   column the app could read, and asking the operator to colour thirty rows by
+   hand is not a thing anyone would do twice.
+
+   But they are generated from the ROW'S OWN TEXT, not from a random number, and
+   that distinction is the whole design. `Math.random()` would re-roll on every
+   render — and this board re-renders on every page turn, on every resize and on
+   every refresh from Google — so a row's bar would change colour every twenty
+   seconds. Colour that changes while the data does not is worse than no colour:
+   it reads as a status that keeps flipping. Hashing the row's contents instead
+   makes the palette look scattered while being completely stable, and a row that
+   moves between pages carries its own colour with it.
+
+   The palette is fixed rather than a random hue, because a free hue lands on mud
+   and on neon about a third of the time. */
+const BAR_COLOURS = [
+  '#4ADE80', // green
+  '#60A5FA', // blue
+  '#F87171', // red
+  '#FBBF24', // amber
+  '#A78BFA', // violet
+  '#22D3EE', // cyan
+  '#FB923C', // orange
+  '#F472B6', // pink
+]
+
+/** FNV-1a, 32-bit. Small, well-spread, and it never has to leave this file. */
+function hashRow(cells: string[]): number {
+  let hash = 0x811c9dc5
+  const text = cells.join('')
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return hash >>> 0
+}
+
+/**
+ * A colour per row, avoiding the one directly above it.
+ *
+ * A plain hash gave three blues in the first four rows often enough to matter,
+ * and adjacent bars in the same colour do not read as chance — they read as two
+ * rows that belong together, which is a meaning the sheet never asked for.
+ * Nudging a collision to the next colour in the palette costs nothing and is
+ * still deterministic: same rows in, same colours out.
+ */
+function barColours(rows: string[][]): string[] {
+  let previous = -1
+  return rows.map((cells) => {
+    let index = hashRow(cells) % BAR_COLOURS.length
+    if (index === previous) index = (index + 1) % BAR_COLOURS.length
+    previous = index
+    return BAR_COLOURS[index] as string
+  })
+}
+
 /**
  * The header is always row one; `showHeader` only decides whether it is drawn.
  *
@@ -136,7 +189,7 @@ function split(values: string[][]): { header: string[]; body: string[][] } {
  *
  * Computed over EVERY row, not over the page on screen — widths derived from one
  * page shift when the next page's cells are a different length, and a table whose
- * columns jump every ten seconds is unreadable in a way a slightly imperfect
+ * columns jump every twenty seconds is unreadable in a way a slightly imperfect
  * column width never is.
  */
 function columnWidths(rows: string[][], columns: number): string[] {
@@ -151,16 +204,23 @@ function columnWidths(rows: string[][], columns: number): string[] {
   return weights.map((weight) => `${((weight / total) * 100).toFixed(2)}%`)
 }
 
-/** The grid reading: every column, as a table. */
+/**
+ * The board. Both layouts are this table — they differ only in how a row is told
+ * apart from the one above it: `table` bands alternate rows, `modern` marks each
+ * with a colour bar down its left edge. Everything else — the column roles, the
+ * widths, the type — is shared, which is why they read as one app.
+ */
 function buildTable(
   header: string[],
   rows: string[][],
   roles: Role[],
   widths: string[],
   showHeader: boolean,
+  modern: boolean,
+  bars: string[],
 ): HTMLElement {
   const table = document.createElement('table')
-  table.className = 'gs-table'
+  table.className = modern ? 'gs-table is-modern' : 'gs-table is-banded'
 
   const colgroup = document.createElement('colgroup')
   for (const width of widths) {
@@ -184,8 +244,11 @@ function buildTable(
   }
 
   const tbody = document.createElement('tbody')
-  for (const row of rows) {
+  rows.forEach((row, rowIndex) => {
     const tr = document.createElement('tr')
+    if (modern && bars[rowIndex]) {
+      tr.style.setProperty('--gs-bar', bars[rowIndex] as string)
+    }
     row.forEach((cell, index) => {
       const td = document.createElement('td')
       const role = (roles[index] ?? 'text') as Role
@@ -201,88 +264,9 @@ function buildTable(
       tr.append(td)
     })
     tbody.append(tr)
-  }
+  })
   table.append(tbody)
   return table
-}
-
-/**
- * Menu-board reading of the same rows.
- *
- * A spreadsheet grid is a poor shape for the thing people actually put on a
- * screen — a list of items with a price and a sentence about each. The grid
- * gives a forty-word description the same column width everywhere and then cuts
- * it mid-sentence, which is what the table did.
- *
- * So: the headline column is the name, the last numeric column is the figure that
- * goes right, and whatever is left becomes one muted line underneath.
- */
-function buildList(
-  header: string[],
-  rows: string[][],
-  roles: Role[],
-  showHeader: boolean,
-): HTMLElement {
-  const columns = roles.length
-  const nameIndex = Math.max(0, roles.indexOf('primary'))
-  const valueIndex = roles.indexOf('num-strong')
-  const detailIndexes = Array.from({ length: columns }, (_, i) => i).filter(
-    (i) => i !== nameIndex && i !== valueIndex,
-  )
-
-  const list = document.createElement('div')
-  list.className = 'gs-list'
-
-  if (showHeader) {
-    const head = document.createElement('div')
-    head.className = 'gs-list-head'
-    const left = document.createElement('span')
-    left.textContent = header[nameIndex] ?? ''
-    head.append(left)
-    if (valueIndex >= 0) {
-      const right = document.createElement('span')
-      right.className = 'gs-num'
-      right.textContent = header[valueIndex] ?? ''
-      head.append(right)
-    }
-    list.append(head)
-  }
-
-  for (const row of rows) {
-    const item = document.createElement('div')
-    item.className = 'gs-item'
-
-    const main = document.createElement('div')
-    main.className = 'gs-item-main'
-
-    const name = document.createElement('div')
-    name.className = 'gs-item-name'
-    name.textContent = row[nameIndex] ?? ''
-    main.append(name)
-
-    const detail = detailIndexes
-      .map((i) => (row[i] ?? '').trim())
-      .filter(Boolean)
-      .join(' · ')
-    if (detail) {
-      const detailEl = document.createElement('div')
-      detailEl.className = 'gs-item-detail'
-      detailEl.textContent = detail
-      main.append(detailEl)
-    }
-    item.append(main)
-
-    if (valueIndex >= 0 && (row[valueIndex] ?? '').trim() !== '') {
-      const value = document.createElement('div')
-      value.className = 'gs-item-value'
-      value.textContent = row[valueIndex] as string
-      item.append(value)
-    }
-
-    list.append(item)
-  }
-
-  return list
 }
 
 /* ----- Paging -----
@@ -304,14 +288,19 @@ function stopPaging(): void {
   }
 }
 
+/** Seconds per page, as the operator set it; clamped to the manifest's range. */
+function pageMs(config: Record<string, unknown>): number {
+  const raw = config.pageSeconds
+  const seconds =
+    typeof raw === 'number' && Number.isFinite(raw) ? raw : DEFAULT_PAGE_SECONDS
+  return Math.min(300, Math.max(3, seconds)) * 1000
+}
+
 /**
  * How many rows fit in `body` at their natural height.
  *
- * `probe` must already be in the DOM and UNSTRETCHED, so a row measures the
- * height a row actually wants — padding, line height and the operator's font
- * scale included. Measuring a stretched table instead would report whatever
- * height the rows had been squeezed to, which is the number we are trying to
- * avoid.
+ * `probe` must already be in the DOM, so a row measures the height a row actually
+ * wants — padding, line height and the operator's font scale included.
  *
  * Two things this has to get right, both of which overfill the page by a row when
  * missed. The COLUMN HEADER takes height out of the same box and is not a row, so
@@ -327,8 +316,7 @@ function rowsThatFit(
   rowSelector: string,
 ): number {
   const head = probe.querySelector<HTMLElement>(headSelector)
-  const room =
-    body.clientHeight - (head?.getBoundingClientRect().height ?? 0)
+  const room = body.clientHeight - (head?.getBoundingClientRect().height ?? 0)
 
   let rowHeight = 0
   for (const row of probe.querySelectorAll<HTMLElement>(rowSelector)) {
@@ -376,7 +364,7 @@ function render(
   }
 
   const showHeader = config.showHeader !== false
-  const asList = String(config.layout ?? 'modern') !== 'table'
+  const modern = String(config.layout ?? 'modern') !== 'table'
 
   const rows = padded(data.values)
   const { header, body: bodyRows } = split(data.values)
@@ -399,24 +387,32 @@ function render(
   body.className = 'gs-body'
   wrap.append(body)
 
-  const build = (pageRows: string[][]): HTMLElement =>
-    asList
-      ? buildList(header, pageRows, roles, showHeader)
-      : buildTable(header, pageRows, roles, widths, showHeader)
+  // Over EVERY row, once, then sliced per page — a page-local pass would restart
+  // the "not the same as the one above" rule at each page boundary, so a row's
+  // bar would change colour depending on which page it happened to land on.
+  const bars = modern ? barColours(bodyRows) : []
 
-  // Pass one: everything, unstretched, purely to measure a row against the space.
-  // It is in the live DOM because an off-document element has no layout to read.
+  const build = (start: number, pageRows: string[][]): HTMLElement =>
+    buildTable(
+      header,
+      pageRows,
+      roles,
+      widths,
+      showHeader,
+      modern,
+      bars.slice(start, start + pageRows.length),
+    )
+
+  // Pass one: everything, purely to measure a row against the space. It is in the
+  // live DOM because an off-document element has no layout to read.
   root.replaceChildren(wrap)
   root.insertAdjacentHTML('beforeend', freshnessFooterHtml(meta))
 
-  const headSelector = asList ? '.gs-list-head' : 'thead'
-  const rowSelector = asList ? '.gs-item' : 'tbody tr'
-
   const measure = (): number => {
-    const probe = build(bodyRows)
+    const probe = build(0, bodyRows)
     body.append(probe)
     const fits = Math.min(
-      rowsThatFit(body, probe, headSelector, rowSelector),
+      rowsThatFit(body, probe, 'thead', 'tbody tr'),
       Math.max(total, 1),
     )
     probe.remove()
@@ -441,9 +437,7 @@ function render(
 
   const paint = (): void => {
     const start = page * perPage
-    const content = build(bodyRows.slice(start, start + perPage))
-    content.classList.add('is-fitted')
-    body.replaceChildren(content)
+    body.replaceChildren(build(start, bodyRows.slice(start, start + perPage)))
 
     const oldFoot = wrap.querySelector('.gs-foot')
     if (oldFoot) oldFoot.remove()
@@ -455,10 +449,11 @@ function render(
   paint()
 
   if (pages > 1 && active) {
+    const interval = pageMs(config)
     pageTimer = setInterval(() => {
       page = (page + 1) % pages
       paint()
-    }, PAGE_MS)
+    }, interval)
   }
 }
 

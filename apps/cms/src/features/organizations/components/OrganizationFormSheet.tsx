@@ -25,6 +25,8 @@ import {
   useOrganizationStore,
 } from '@/features/organizations/store/organizationStore'
 import type { Organization } from '@/features/organizations/types/organization.types'
+import { getPlanLimitDetails } from '@/features/plans/lib/planLimit'
+import { usePlanDialogStore } from '@/features/plans/store/planDialogStore'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 const CREATE_FORM_ID = 'create-organization-form'
@@ -48,6 +50,7 @@ export function OrganizationFormSheet({
   const { t } = useTranslation()
   const upsertOrganization = useOrganizationStore((state) => state.upsertOrganization)
   const setActiveOrganization = useOrganizationStore((state) => state.setActiveOrganization)
+  const openPlanDialog = usePlanDialogStore((state) => state.openDialog)
   const organizationSchema = useMemo(() => createOrganizationSchema(t), [t])
 
   const formId = mode === 'create' ? CREATE_FORM_ID : UPDATE_FORM_ID
@@ -93,6 +96,14 @@ export function OrganizationFormSheet({
       reset({ name: '' })
       onOpenChange(false)
     } catch (error) {
+      // A free account is capped at one organization — otherwise the one-screen
+      // limit is bypassed by making a second workspace. Send them to the
+      // upgrade dialog rather than a toast they cannot act on.
+      if (getPlanLimitDetails(error)) {
+        handleOpenChange(false)
+        openPlanDialog('organizations')
+        return
+      }
       const fallback =
         mode === 'create'
           ? t('organizations.create.error')

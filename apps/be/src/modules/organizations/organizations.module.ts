@@ -6,6 +6,7 @@ import {
   OrganizationInvitation,
   OrganizationInvitationSchema,
 } from '../members/schemas/organization-invitation.schema';
+import { PlansModule } from '../plans/plans.module';
 import { OrganizationsController } from './organizations.controller';
 import { OrganizationsRepository } from './organizations.repository';
 import { OrganizationsService } from './organizations.service';
@@ -31,6 +32,7 @@ import {
         schema: OrganizationInvitationSchema,
       },
     ]),
+    PlansModule,
   ],
   controllers: [OrganizationsController],
   providers: [

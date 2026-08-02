@@ -55,6 +55,7 @@ function buildService(options: { updateResult?: unknown } = {}) {
     {} as never, // mediaRepository
     {} as never, // playlistsRepository
     {} as never, // appInstancesRepository
+    {} as never, // plansService
     {} as never, // configService
     i18n as never,
     new AvailabilityEvaluator(),

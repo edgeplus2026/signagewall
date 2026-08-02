@@ -383,6 +383,39 @@ export interface paths {
         patch: operations["Organizationsupdate"];
         trace?: never;
     };
+    "/api/v1/plans/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Drives the header button, the trial countdown and the create-screen gate. */
+        get: operations["PlansgetMyPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plans/upgrade-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlansrequestUpgrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings/profile": {
         parameters: {
             query?: never;
@@ -1372,6 +1405,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/users/{id}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** The billing system: set a plan and its licence count by hand. */
+        patch: operations["AdminupdateUserPlan"];
+        trace?: never;
+    };
+    "/api/v1/admin/upgrade-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminlistUpgradeRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/upgrade-requests/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminresolveUpgradeRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai-content/generations": {
         parameters: {
             query?: never;
@@ -1895,6 +1977,31 @@ export interface components {
         UpdateOrganizationDto: {
             name: string;
         };
+        PlanEntitlementSchema: {
+            /** @enum {string} */
+            plan: "free" | "enterprise";
+            /** @description null means unlimited */
+            screenLimit: number | null;
+            screensUsed: number;
+            /** @description null means unlimited */
+            organizationLimit: number | null;
+            organizationsUsed: number;
+            canCreateScreen: boolean;
+            canCreateOrganization: boolean;
+            /** Format: date-time */
+            trialEndsAt: string | null;
+            trialDaysLeft: number | null;
+            /** @description Covered by another account’s enterprise organization — hide plan prompts */
+            isSponsored: boolean;
+            hasOpenUpgradeRequest: boolean;
+        };
+        CreateUpgradeRequestDto: {
+            /** @description Total screens wanted, not the delta. Capped to keep typos out of the queue. */
+            requestedScreens: number;
+            message?: string;
+            phone?: string;
+            company?: string;
+        };
         UpdateProfileDto: {
             name: string;
             phone: string;
@@ -2175,6 +2282,11 @@ export interface components {
             isActive: boolean;
             isSuperAdmin: boolean;
             organizationCount: number;
+            /** @enum {string} */
+            plan: "free" | "enterprise";
+            screenLimit: number;
+            /** Format: date-time */
+            trialEndsAt: string | null;
             /** Format: date-time */
             createdAt: string;
         };
@@ -2195,11 +2307,49 @@ export interface components {
             isActive: boolean;
             isSuperAdmin: boolean;
             hasPassword: boolean;
+            /** @enum {string} */
+            plan: "free" | "enterprise";
+            screenLimit: number;
+            screensUsed: number;
+            /** Format: date-time */
+            trialEndsAt: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
             organizations: components["schemas"]["OrganizationResponseSchema"][];
+        };
+        UpdateUserPlanDto: {
+            /** @enum {string} */
+            plan: "free" | "enterprise";
+            /** @description Licences sold. 0 is allowed: it freezes an account without deleting it. */
+            screenLimit: number;
+        };
+        AdminUpgradeRequestSchema: {
+            id: string;
+            userId: string;
+            userName: string;
+            userEmail: string;
+            /** @enum {string} */
+            planAtRequest: "free" | "enterprise";
+            screenLimitAtRequest: number;
+            requestedScreens: number;
+            message?: string;
+            phone?: string;
+            company?: string;
+            /** @enum {string} */
+            status: "open" | "resolved";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            resolvedAt: string | null;
+        };
+        PaginatedAdminUpgradeRequestsSchema: {
+            items: components["schemas"]["AdminUpgradeRequestSchema"][];
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
         };
         AiGenerationJobSchema: {
             id: string;
@@ -4113,6 +4263,157 @@ export interface operations {
                         /** @enum {boolean} */
                         success: true;
                         data: components["schemas"]["OrganizationResponseSchema"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    PlansgetMyPlan: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["PlanEntitlementSchema"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    PlansrequestUpgrade: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUpgradeRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
                     };
                 };
             };
@@ -10341,6 +10642,237 @@ export interface operations {
                         /** @enum {boolean} */
                         success: true;
                         data: components["schemas"]["AdminUserListItemSchema"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AdminupdateUserPlan: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserPlanDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["AdminUserListItemSchema"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AdminlistUpgradeRequests: {
+        parameters: {
+            query: {
+                status?: "open" | "resolved";
+                page: components["schemas"]["Object"];
+                limit: components["schemas"]["Object"];
+            };
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["PaginatedAdminUpgradeRequestsSchema"];
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    AdminresolveUpgradeRequest: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: components["schemas"]["AdminUpgradeRequestSchema"];
                     };
                 };
             };

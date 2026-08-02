@@ -1,0 +1,6 @@
+{
+  "screenLimitFree": "Your free trial includes {limit} screen. Upgrade your plan to add more.",
+  "screenLimitEnterprise": "Your plan covers {limit} screen(s). Request more licences to add another.",
+  "organizationLimitFree": "Your free trial includes {limit} organization. Upgrade your plan to create another.",
+  "upgradeRequestNotFound": "Upgrade request not found."
+}

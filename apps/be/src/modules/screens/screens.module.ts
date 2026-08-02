@@ -6,6 +6,7 @@ import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { AppsModule } from '../apps/apps.module';
 import { MediaModule } from '../media/media.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { PlansModule } from '../plans/plans.module';
 import { PlaylistsModule } from '../playlists/playlists.module';
 import { AvailabilityEvaluator } from './availability/availability.evaluator';
 import { ScreensController } from './screens.controller';
@@ -18,6 +19,7 @@ import { Screen, ScreenSchema } from './schemas/screen.schema';
     ConfigModule,
     MongooseModule.forFeature([{ name: Screen.name, schema: ScreenSchema }]),
     OrganizationsModule,
+    PlansModule,
     forwardRef(() => MediaModule),
     forwardRef(() => PlaylistsModule),
     forwardRef(() => AppsModule),

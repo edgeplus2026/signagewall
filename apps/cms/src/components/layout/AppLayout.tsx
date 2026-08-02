@@ -19,6 +19,8 @@ import { useAiGenerationNotifications } from '@/features/ai-generator/hooks'
 import { UploadManager } from '@/features/media/components/UploadManager'
 import { NotificationBell } from '@/features/notifications/components/NotificationBell'
 import { OrganizationGate } from '@/features/organizations/components/OrganizationGate'
+import { PlanHeaderButton } from '@/features/plans/components/PlanHeaderButton'
+import { UpgradePlanDialog } from '@/features/plans/components/UpgradePlanDialog'
 import { ImpersonationBanner } from '@/features/super-admin/components/ImpersonationBanner'
 
 export default function AppLayout() {
@@ -47,6 +49,7 @@ export default function AppLayout() {
             <SidebarTrigger />
             <AppPageBreadcrumb />
             <div className="ml-auto flex items-center gap-2">
+              <PlanHeaderButton />
               <NotificationBell />
             </div>
           </header>
@@ -55,6 +58,9 @@ export default function AppLayout() {
           </main>
           <UploadManager />
           <AiGeneratorSheet />
+          {/* Mounted once: opened from the header, and from any create that the
+              plan gate refuses. */}
+          <UpgradePlanDialog />
         </PageHeaderProvider>
       </SidebarInset>
     </SidebarProvider>

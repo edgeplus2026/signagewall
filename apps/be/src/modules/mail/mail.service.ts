@@ -11,6 +11,11 @@ import {
   type SupportEmailContext,
 } from './templates/support-email.template';
 import { renderOrganizationInviteEmail } from './templates/organization-invite.template';
+import { renderTrialExpiringEmail } from './templates/trial-expiring.template';
+import {
+  renderUpgradeRequestEmail,
+  type UpgradeRequestEmailContext,
+} from './templates/upgrade-request.template';
 import { renderWelcomeEmail } from './templates/welcome.template';
 
 @Injectable()
@@ -144,6 +149,46 @@ export class MailService implements OnModuleInit {
     });
 
     await this.send({ to: params.to, subject, html });
+  }
+
+  /**
+   * Final notice before a free account is erased. Unlike every other mail here
+   * this one throws on failure: the caller only stamps `trialWarningSentAt` when
+   * it resolves, so a swallowed error would delete an account that was never
+   * actually warned.
+   */
+  async sendTrialExpiringEmail(params: {
+    to: string;
+    name: string;
+    expiresAt: Date;
+    loginUrl: string;
+  }): Promise<void> {
+    const { subject, html } = renderTrialExpiringEmail({
+      name: params.name,
+      expiresAt: params.expiresAt,
+      upgradeUrl: params.loginUrl,
+    });
+
+    await this.send({ to: params.to, subject, html });
+  }
+
+  /** Notifies the team that a customer asked for licences (internal). */
+  async sendUpgradeRequestEmail(
+    context: UpgradeRequestEmailContext,
+  ): Promise<void> {
+    const to = this.supportTo ?? this.registrationsNotifyTo;
+
+    if (!to) {
+      this.logger.warn(
+        'MAIL_SUPPORT_TO / MAIL_REGISTRATIONS_NOTIFY_TO not set; skipping ' +
+          `upgrade-request notification for ${context.userEmail}`,
+      );
+      return;
+    }
+
+    const { subject, html } = renderUpgradeRequestEmail(context);
+
+    await this.send({ to, subject, html });
   }
 
   /** Notifies the SignageWall team that a new user registered (internal). */

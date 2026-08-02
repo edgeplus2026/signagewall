@@ -34,11 +34,13 @@ export class OrganizationsRepository {
 
   async createOrganization(
     name: string,
+    ownerUserId: string,
     session?: ClientSession,
   ): Promise<OrganizationDocument> {
-    const [organization] = await this.organizationModel.create([{ name }], {
-      session,
-    });
+    const [organization] = await this.organizationModel.create(
+      [{ name, ownerUserId: new Types.ObjectId(ownerUserId) }],
+      { session },
+    );
     return organization;
   }
 
@@ -165,6 +167,58 @@ export class OrganizationsRepository {
     return this.organizationModel
       .findByIdAndUpdate(organizationId, { name }, { returnDocument: 'after' })
       .exec();
+  }
+
+  /**
+   * Moves billing ownership to the earliest remaining admin when the current
+   * owner leaves an organization that survives them.
+   *
+   * Without this the organization keeps pointing at an account that no longer
+   * exists: plan limits resolve through `ownerUserId`, so its screens would
+   * either stop being counted against anyone (a free workspace for the
+   * remaining team) or fail to resolve at all. No-op when the leaver was not
+   * the owner, or when nobody is left to hand it to.
+   */
+  async transferOwnershipFrom(
+    organizationId: string,
+    leavingUserId: string,
+    session?: ClientSession,
+  ): Promise<Types.ObjectId | null> {
+    const orgId = new Types.ObjectId(organizationId);
+    const leavingId = new Types.ObjectId(leavingUserId);
+
+    const organization = await this.organizationModel
+      .findOne({ _id: orgId, ownerUserId: leavingId })
+      .session(session ?? null)
+      .exec();
+
+    if (!organization) {
+      return null;
+    }
+
+    const successor = await this.membershipModel
+      .findOne({
+        organizationId: orgId,
+        userId: { $ne: leavingId },
+        role: { $in: [OrganizationRole.ADMIN, OrganizationRole.OWNER] },
+      })
+      .sort({ createdAt: 1, _id: 1 })
+      .session(session ?? null)
+      .exec();
+
+    if (!successor) {
+      return null;
+    }
+
+    await this.organizationModel
+      .updateOne(
+        { _id: orgId },
+        { $set: { ownerUserId: successor.userId } },
+        { session },
+      )
+      .exec();
+
+    return successor.userId;
   }
 
   countMembersByOrganizationId(

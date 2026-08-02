@@ -1,5 +1,6 @@
 import { type ColumnDef, type OnChangeFn, type SortingState } from '@tanstack/react-table'
 import {
+  CreditCardIcon,
   EllipsisIcon,
   ShieldIcon,
   ShieldOffIcon,
@@ -23,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import type { AdminUsersSortField } from '@/features/super-admin/api/adminApi'
 import { AdminUserSheet } from '@/features/super-admin/components/AdminUserSheet'
+import { ChangePlanDialog } from '@/features/super-admin/components/ChangePlanDialog'
 import { DeleteUserDialog } from '@/features/super-admin/components/DeleteUserDialog'
 import {
   PromoteSuperAdminDialog,
@@ -73,6 +75,7 @@ export function AllUsersTab() {
   } | null>(null)
   const [switchUser, setSwitchUser] = useState<AdminUserListItem | null>(null)
   const [deleteUser, setDeleteUser] = useState<AdminUserListItem | null>(null)
+  const [planUser, setPlanUser] = useState<AdminUserListItem | null>(null)
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -139,8 +142,41 @@ export function AllUsersTab() {
         ),
       },
       {
+        id: 'plan',
+        enableSorting: false,
+        meta: { width: '16%' },
+        header: () => t('superAdmin.users.columns.plan'),
+        cell: ({ row }) => {
+          const { plan, screenLimit, isSuperAdmin } = row.original
+
+          if (isSuperAdmin) {
+            return <span className="text-secondary text-xs">—</span>
+          }
+
+          return (
+            <div className="flex items-center gap-1.5">
+              <span
+                className={cn(
+                  'inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium',
+                  plan === 'enterprise'
+                    ? 'bg-success/10 text-success'
+                    : 'bg-secondary/10 text-secondary',
+                )}
+              >
+                {plan === 'enterprise'
+                  ? t('superAdmin.plan.tiers.enterprise')
+                  : t('superAdmin.plan.tiers.free')}
+              </span>
+              <span className="text-secondary text-xs">
+                {t('superAdmin.plan.licenceCount', { count: screenLimit })}
+              </span>
+            </div>
+          )
+        },
+      },
+      {
         accessorKey: 'organizationCount',
-        meta: { width: '14%' },
+        meta: { width: '12%' },
         header: () => t('superAdmin.users.columns.organizations'),
         cell: ({ row }) => row.original.organizationCount,
       },
@@ -210,6 +246,15 @@ export function AllUsersTab() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-56">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setPlanUser(user)
+                    }}
+                  >
+                    <CreditCardIcon />
+                    {t('superAdmin.users.actions.changePlan')}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   {user.isSuperAdmin ? (
                     <DropdownMenuItem
                       onClick={() => {
@@ -328,6 +373,14 @@ export function AllUsersTab() {
           if (!open) setDeleteUser(null)
         }}
         user={deleteUser}
+      />
+
+      <ChangePlanDialog
+        open={!!planUser}
+        onOpenChange={(open) => {
+          if (!open) setPlanUser(null)
+        }}
+        user={planUser}
       />
     </>
   )

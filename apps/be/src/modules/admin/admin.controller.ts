@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -11,6 +13,7 @@ import { ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import {
+  AdminUpgradeRequestSchema,
   AdminUserDetailSchema,
   AdminUserListItemSchema,
   ApiBearerAuthRequired,
@@ -18,11 +21,14 @@ import {
   ApiSuccessNullResponse,
   ApiSuccessResponse,
   AuthResponseSchema,
+  PaginatedAdminUpgradeRequestsSchema,
   PaginatedAdminUsersSchema,
 } from '../../common/swagger';
 import type { RequestUser } from '../../common/interfaces/request-user.interface';
 import { AdminService } from './admin.service';
+import { ListUpgradeRequestsQueryDto } from './dto/list-upgrade-requests-query.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
+import { UpdateUserPlanDto } from './dto/update-user-plan.dto';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 
 @ApiTags('admin')
@@ -76,6 +82,36 @@ export class AdminController {
     @Param('id') targetUserId: string,
   ) {
     return this.adminService.demoteFromSuperAdmin(user.id, targetUserId);
+  }
+
+  /** The billing system: set a plan and its licence count by hand. */
+  @Patch('users/:id/plan')
+  @ApiSuccessResponse(AdminUserListItemSchema)
+  updateUserPlan(
+    @CurrentUser() user: RequestUser,
+    @Param('id') targetUserId: string,
+    @Body() dto: UpdateUserPlanDto,
+  ) {
+    return this.adminService.updateUserPlan(user.id, targetUserId, dto);
+  }
+
+  @Get('upgrade-requests')
+  @ApiSuccessResponse(PaginatedAdminUpgradeRequestsSchema)
+  listUpgradeRequests(@Query() query: ListUpgradeRequestsQueryDto) {
+    return this.adminService.listUpgradeRequests(
+      query.page,
+      query.limit,
+      query.status,
+    );
+  }
+
+  @Post('upgrade-requests/:id/resolve')
+  @ApiSuccessResponse(AdminUpgradeRequestSchema)
+  resolveUpgradeRequest(
+    @CurrentUser() user: RequestUser,
+    @Param('id') requestId: string,
+  ) {
+    return this.adminService.resolveUpgradeRequest(user.id, requestId);
   }
 
   @Delete('users/:id')

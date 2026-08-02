@@ -1502,7 +1502,8 @@
       "users": "Svi korisnici",
       "apps": "Aplikacije",
       "categories": "Kategorije aplikacija",
-      "notifications": "Obaveštenja"
+      "notifications": "Obaveštenja",
+      "upgradeRequests": "Zahtevi za nadogradnju"
     },
     "users": {
       "search": "Pretraži korisnike...",
@@ -1514,14 +1515,16 @@
         "role": "Uloga",
         "organizations": "Organizacije",
         "status": "Status",
-        "createdAt": "Kreiran"
+        "createdAt": "Kreiran",
+        "plan": "Plan"
       },
       "actions": {
         "menu": "Akcije korisnika",
         "promote": "Unapredi u super-admina",
         "demote": "Ukloni super-admina",
         "impersonate": "Impersoniraj korisnika",
-        "delete": "Trajno obriši"
+        "delete": "Trajno obriši",
+        "changePlan": "Promeni plan"
       }
     },
     "promote": {
@@ -1565,7 +1568,9 @@
         "status": "Status naloga",
         "role": "Globalna uloga",
         "createdAt": "Kreiran",
-        "organizations": "Organizacije"
+        "organizations": "Organizacije",
+        "plan": "Plan",
+        "trialEndsAt": "Probni period ističe"
       },
       "role": {
         "superAdmin": "Super-admin",
@@ -1574,7 +1579,9 @@
       "status": {
         "active": "Aktivan",
         "inactive": "Neaktivan"
-      }
+      },
+      "planValue": "{{tier}} — {{used}} / {{limit}} ekrana",
+      "noTrial": "Bez probnog perioda (plaćeno)"
     },
     "impersonation": {
       "banner": "Pregled kao {{name}} ({{email}})",
@@ -1587,6 +1594,49 @@
       "restoring": "Vraćanje super-admin sesije…",
       "startSuccess": "Sada pregledate kao {{name}}",
       "startError": "Nije moguće prebaciti na ovog korisnika."
+    },
+    "plan": {
+      "title": "Promena plana",
+      "description": "Podesite plan i broj licenci za {{name}} ({{email}}).",
+      "tier": "Plan",
+      "tiers": {
+        "free": "Besplatan probni",
+        "enterprise": "Enterprise",
+        "unlimited": "Neograničeno (super-admin)"
+      },
+      "licenceCount_one": "{{count}} licenca",
+      "licenceCount_few": "{{count}} licence",
+      "licenceCount_other": "{{count}} licenci",
+      "screenLimit": "Licence za ekrane",
+      "screenLimitInvalid": "Unesite ceo broj licenci.",
+      "hintFree": "Besplatni nalozi se brišu 21 dan nakon registracije. Prebacivanje na besplatan plan ponovo pokreće 21 dan; ništa se ne briše odmah.",
+      "hintEnterprise": "Enterprise nalozi ne ističu. Smanjivanje ispod broja već korišćenih ekrana blokira nove ekrane, ali ništa ne briše.",
+      "submit": "Sačuvaj plan",
+      "success": "Plan je ažuriran za {{name}}.",
+      "error": "Ažuriranje plana nije uspelo."
+    },
+    "upgradeRequests": {
+      "empty": "Nema zahteva za nadogradnju.",
+      "messages": "Poruke",
+      "delta": "{{from}} → {{to}} ekrana",
+      "setPlan": "Podesi plan",
+      "dismiss": "Odbaci",
+      "resolved": "Zahtev je označen kao rešen.",
+      "resolveError": "Rešavanje zahteva nije uspelo.",
+      "columns": {
+        "user": "Korisnik",
+        "request": "Zahtev",
+        "contact": "Kontakt",
+        "requestedAt": "Zatraženo"
+      },
+      "filters": {
+        "open": "Otvoreni",
+        "resolved": "Rešeni",
+        "all": "Svi"
+      },
+      "status": {
+        "resolved": "Rešen"
+      }
     }
   },
   "faq": {
@@ -2215,6 +2265,38 @@
       "accept": "Pročitao/la sam i prihvatam ažurirane <terms>Uslove korišćenja</terms> i <privacy>Politiku privatnosti</privacy>.",
       "confirm": "Prihvati i nastavi",
       "error": "Nije moguće sačuvati prihvatanje. Pokušajte ponovo."
+    }
+  },
+  "plans": {
+    "screenUsage": "{{used}} / {{limit}} ekrana",
+    "trial": {
+      "daysLeft_one": "Još {{count}} dan",
+      "daysLeft_few": "Još {{count}} dana",
+      "daysLeft_other": "Još {{count}} dana",
+      "endsToday": "Probni period ističe danas"
+    },
+    "upgrade": {
+      "cta": "Nadogradi plan",
+      "title": "Nadogradite plan",
+      "descriptionTrial": "Recite nam koliko ekrana vam treba. Poslaćemo fakturu i ukloniti ograničenje sa naloga — ekrani, plejliste i mediji ostaju netaknuti.",
+      "descriptionScreenLimit": "Besplatan probni period uključuje jedan ekran. Recite nam koliko vam treba i poslaćemo fakturu.",
+      "descriptionOrganizationLimit": "Besplatan probni period uključuje jednu organizaciju. Nadogradite plan za više radnih prostora.",
+      "descriptionLicences": "Vaš plan pokriva {{limit}} ekran(a). Recite nam novi ukupan broj i poslaćemo fakturu.",
+      "screens": "Koliko ekrana vam treba?",
+      "screensRequired": "Unesite koliko ekrana vam treba.",
+      "screensMax": "Unesite najviše {{max}} ekrana.",
+      "company": "Firma",
+      "companyPlaceholder": "Naziv vaše firme",
+      "phone": "Telefon",
+      "message": "Još nešto što treba da znamo?",
+      "messagePlaceholder": "Lokacije, rokovi, pitanja...",
+      "submit": "Pošalji zahtev",
+      "success": "Zahtev je poslat. Javljamo se u najkraćem roku.",
+      "error": "Slanje zahteva nije uspelo. Pokušajte ponovo."
+    },
+    "licences": {
+      "cta": "Zatraži još licenci",
+      "title": "Zatražite još licenci"
     }
   }
 }

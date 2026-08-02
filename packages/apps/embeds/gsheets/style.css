@@ -1,44 +1,80 @@
 /* Google Sheets — a sheet read from across a room.
 
-   ONE TYPOGRAPHIC SYSTEM, TWO LAYOUTS. The grid ("table") and the menu ("modern")
-   are different shapes for the same rows, and they share every size, weight and
-   opacity below. What carries the reading is not lines or fills — it is a strict
-   hierarchy of four voices, assigned per COLUMN by `main.ts`:
+   ONE TABLE, TWO SKINS. `table` bands alternate rows; `modern` marks each row
+   with a colour bar down its left edge. They share every size, weight and colour
+   below, which is why they read as one app rather than two.
+
+   What carries the reading is a strict hierarchy of four voices, assigned per
+   COLUMN by `main.ts`:
 
      primary      the headline (a region, a customer) — brightest, heaviest
      num-strong   the figure the board is read FOR — equally bright, tabular
      num / text   supporting figures and labels — stepped down, still legible
      code         identifiers (WO-4471, 07:00) — monospaced, quiet
 
-   The rows themselves are deliberately almost unmarked. A rule under every row
-   turns a board into a ledger; the hierarchy is what lets the eye land on the
-   right cell, and it keeps working at six metres where a hairline has long since
-   disappeared. */
+   NO RULE UNDER EVERY ROW. A border per row is what turns a board into a ledger
+   and makes it read heavy at a glance; the alternating band (or the colour bar)
+   does the same job with none of the weight. Only the header keeps a rule, and
+   it earns it by separating two different kinds of thing. */
+
+/* ----- The palettes -----
+   A board needs a dozen related colours, and deriving them all from one text
+   colour via `opacity` is what washed the first attempt out: the muted column
+   came back grey, when what makes these boards read is that it is BLUE against a
+   white headline. So the tiers are named colours, per theme. */
+
+.gs-theme-dark {
+  --gs-bg: #0a0d13;
+  /* The band, and the sole thing separating one row from the next. */
+  --gs-band: rgba(255, 255, 255, 0.045);
+  --gs-rule: rgba(255, 255, 255, 0.14);
+  --gs-row-rule: rgba(255, 255, 255, 0.05);
+  --gs-head: #7c8899;
+  --gs-primary: #ffffff;
+  --gs-secondary: #8ea8cc;
+  --gs-num: #dfe6f0;
+  --gs-num-strong: #ffffff;
+  --gs-dot: rgba(255, 255, 255, 0.16);
+  background: var(--gs-bg);
+  color: var(--gs-primary);
+}
+
+.gs-theme-light {
+  --gs-bg: #ffffff;
+  --gs-band: rgba(15, 23, 42, 0.04);
+  --gs-rule: rgba(15, 23, 42, 0.16);
+  --gs-row-rule: rgba(15, 23, 42, 0.06);
+  --gs-head: #64748b;
+  --gs-primary: #0f172a;
+  --gs-secondary: #46618a;
+  --gs-num: #1e293b;
+  --gs-num-strong: #0f172a;
+  --gs-dot: rgba(15, 23, 42, 0.16);
+  background: var(--gs-bg);
+  color: var(--gs-primary);
+}
 
 .gs {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 4vh 4vw;
+  padding: 3.4vh 3.2vw;
   display: flex;
   flex-direction: column;
-  gap: 2.2vh;
+  gap: 1.8vh;
   font-family: var(--app-font, inherit);
   font-weight: var(--app-font-weight, 400);
   letter-spacing: var(--app-letter-spacing, 0);
   overflow: hidden;
 }
 
-/* The spreadsheet's own name. Set apart from the column labels below it — same
-   family of quiet uppercase, but brighter and larger, or the two rows of small
-   caps read as one confused heading. */
 .gs-title {
   flex: none;
-  font-size: calc(min(1.6vw, 2.8vh) * var(--app-font-scale, 1));
+  font-size: calc(min(1.5vw, 2.6vh) * var(--app-font-scale, 1));
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  opacity: 0.75;
+  letter-spacing: 0.14em;
+  color: var(--gs-head);
 }
 
 /* The rows live here and nowhere else. `min-height: 0` is what makes the measured
@@ -50,56 +86,47 @@
   overflow: hidden;
 }
 
-/* ----- The column labels ----- */
+/* ----- The table -----
 
-.gs-table th,
-.gs-list-head {
-  font-size: calc(min(1.15vw, 2vh) * var(--app-font-scale, 1));
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  opacity: 0.42;
-  white-space: nowrap;
-}
-
-/* ----- The grid ----- */
-
+   NO `height: 100%`. The rows keep their natural height and stack from the top,
+   which is the whole point: stretched to fill, a last page of four rows came out
+   as four bands floating a hundred pixels apart — the same four rows, reading as
+   a layout that had broken rather than as a short page. A page that does not fill
+   the screen should simply be short. */
 .gs-table {
   width: 100%;
   border-collapse: collapse;
-}
-
-/* Applied only once the page size is known. Until then the table must keep its
-   natural height, because that is the height being measured. */
-.gs-table.is-fitted {
-  height: 100%;
+  table-layout: fixed;
 }
 
 .gs-table th,
 .gs-table td {
   text-align: left;
-  padding: 1.1vh 1.1vw;
-  line-height: 1.2;
+  padding: 0.95vh 1vw;
+  line-height: 1.25;
   overflow: hidden;
 }
 
+/* ----- The column labels ----- */
+
 .gs-table th {
-  padding-bottom: 1.4vh;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  font-size: calc(min(1.05vw, 1.85vh) * var(--app-font-scale, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--gs-head);
+  white-space: nowrap;
+  padding-bottom: 1.2vh;
+  border-bottom: 1px solid var(--gs-rule);
 }
 
 .gs-table td {
-  font-size: calc(min(2.05vw, 3.7vh) * var(--app-font-scale, 1));
-  border-bottom: 1px solid color-mix(in srgb, currentColor 7%, transparent);
-}
-
-.gs-table tbody tr:last-child td {
-  border-bottom: none;
+  font-size: calc(min(1.95vw, 3.5vh) * var(--app-font-scale, 1));
 }
 
 /* Wrap to two lines and stop, rather than cutting one line mid-word. On a
    wrapper, never on the `td` itself — `display: -webkit-box` would replace
-   `table-cell` and collapse the grid into a single column. */
+   `table-cell` and the whole grid collapses into a single column. */
 .gs-cell {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -108,17 +135,50 @@
   overflow: hidden;
 }
 
-/* ----- The four voices -----
-   Shared by both layouts; `main.ts` puts these classes on the cell. */
+/* ----- Table skin: alternating bands ----- */
+
+.gs-table.is-banded tbody tr:nth-child(odd) td {
+  background: var(--gs-band);
+}
+
+/* ----- Modern skin: a colour bar per row -----
+   `--gs-bar` is set per row by `main.ts` (see the note there on why it is hashed
+   from the row's text rather than random). Drawn as a background image on the
+   first cell rather than a `border-left`, so it can be inset from the row's top
+   and bottom edges — a bar running the full height reads as a table border, and
+   a floating one reads as a marker. */
+
+.gs-table.is-modern tbody td {
+  border-bottom: 1px solid var(--gs-row-rule);
+}
+
+.gs-table.is-modern tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.gs-table.is-modern tbody td:first-child {
+  position: relative;
+  padding-left: 1.9vw;
+  background-image: linear-gradient(var(--gs-bar, transparent), var(--gs-bar, transparent));
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 0.38vw 64%;
+}
+
+.gs-table.is-modern thead th:first-child {
+  padding-left: 1.9vw;
+}
+
+/* ----- The four voices ----- */
 
 .gs-primary {
   font-weight: 700;
-  opacity: 1;
+  color: var(--gs-primary);
 }
 
 .gs-text {
   font-weight: 400;
-  opacity: 0.62;
+  color: var(--gs-secondary);
 }
 
 /* Right-aligned tabular figures, so digits stack in columns and the eye can
@@ -129,13 +189,13 @@
 }
 
 .gs-table td.gs-num {
-  font-weight: 500;
-  opacity: 0.82;
+  font-weight: 400;
+  color: var(--gs-num);
 }
 
 .gs-table td.gs-num-strong {
   font-weight: 700;
-  opacity: 1;
+  color: var(--gs-num-strong);
 }
 
 /* Identifiers, monospaced. A column of WO-4471 / WO-4472 is scanned for the digit
@@ -147,93 +207,18 @@
   font-family:
     ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', 'DejaVu Sans Mono',
     Menlo, Consolas, monospace;
-  font-size: calc(min(1.8vw, 3.2vh) * var(--app-font-scale, 1));
+  font-size: calc(min(1.7vw, 3vh) * var(--app-font-scale, 1));
   letter-spacing: 0.01em;
 }
 
 .gs-code {
-  font-weight: 500;
-  opacity: 0.55;
+  font-weight: 400;
+  color: var(--gs-secondary);
 }
 
 .gs-code-strong {
   font-weight: 700;
-  opacity: 0.95;
-}
-
-/* ----- The menu -----
-   The same rows read as a list: a name with one muted line under it, and the
-   figure held to the right edge. Rows are the unit here, not cells, so a long
-   description can take the width it needs instead of a column's share of it. */
-
-.gs-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.gs-list.is-fitted {
-  height: 100%;
-}
-
-.gs-list-head {
-  flex: none;
-  display: flex;
-  justify-content: space-between;
-  gap: 1vw;
-  padding-bottom: 1.4vh;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
-}
-
-/* Items share the height rather than being pushed apart by it: `space-between`
-   here left the first and last items pinned to the edges with a hole in the
-   middle whenever a page came up short. */
-.gs-item {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.4vw;
-  padding: 1.1vh 0;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 7%, transparent);
-}
-
-.gs-item:last-child {
-  border-bottom: none;
-}
-
-.gs-item-main {
-  min-width: 0;
-}
-
-.gs-item-name {
-  font-size: calc(min(2.05vw, 3.7vh) * var(--app-font-scale, 1));
-  font-weight: 700;
-  line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* One line only. Two lines of blurb per item filled the screen with prose and
-   left six dishes fighting for room — on a wall the description is a hint, not
-   a paragraph, and the reader is walking past it. */
-.gs-item-detail {
-  margin-top: 0.3vh;
-  font-size: calc(min(1.3vw, 2.3vh) * var(--app-font-scale, 1));
-  line-height: 1.25;
-  opacity: 0.55;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gs-item-value {
-  flex: none;
-  font-size: calc(min(2.05vw, 3.7vh) * var(--app-font-scale, 1));
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  color: var(--gs-primary);
 }
 
 /* ----- The page indicator -----
@@ -245,39 +230,39 @@
   align-items: center;
   justify-content: space-between;
   gap: 2vw;
-  padding-top: 1.4vh;
+  padding-top: 1.2vh;
 }
 
 .gs-dots {
   display: flex;
   align-items: center;
-  gap: 0.6vw;
+  gap: 0.5vw;
 }
 
 .gs-dot {
-  width: 2.6vw;
-  max-width: 52px;
-  height: 0.5vh;
+  width: 2.2vw;
+  max-width: 44px;
+  height: 0.45vh;
   min-height: 3px;
   border-radius: 999px;
-  background: color-mix(in srgb, currentColor 18%, transparent);
+  background: var(--gs-dot);
 }
 
 .gs-dot.is-on {
-  background: var(--gs-accent, #0f9d58);
+  background: #22c55e;
 }
 
 .gs-page {
-  font-size: calc(min(1.15vw, 2vh) * var(--app-font-scale, 1));
+  font-size: calc(min(1.05vw, 1.85vh) * var(--app-font-scale, 1));
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  opacity: 0.42;
+  letter-spacing: 0.15em;
+  color: var(--gs-head);
   white-space: nowrap;
 }
 
 .gs-empty {
   margin: auto;
   font-size: 3vh;
-  opacity: 0.6;
+  color: var(--gs-head);
 }

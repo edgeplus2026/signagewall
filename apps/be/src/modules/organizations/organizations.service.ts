@@ -3,6 +3,7 @@ import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
+import { PlansService } from '../plans/plans.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import {
@@ -19,6 +20,7 @@ import {
 export class OrganizationsService {
   constructor(
     private readonly organizationsRepository: OrganizationsRepository,
+    private readonly plansService: PlansService,
     private readonly transactionService: TransactionService,
     private readonly i18n: I18nService,
   ) {}
@@ -35,9 +37,14 @@ export class OrganizationsService {
     userId: string,
     dto: CreateOrganizationDto,
   ): Promise<OrganizationResponseDto> {
+    // Free accounts get one organization. Without this the one-screen cap is
+    // bypassed by making a second workspace and putting a screen in that.
+    await this.plansService.assertCanCreateOrganization(userId);
+
     const organization = await this.transactionService.run(async (session) => {
       const created = await this.organizationsRepository.createOrganization(
         dto.name.trim(),
+        userId,
         session,
       );
 

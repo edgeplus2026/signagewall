@@ -12,6 +12,7 @@ import {
 } from '../player/player.events';
 import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { MediaRepository } from '../media/media.repository';
+import { PlansService } from '../plans/plans.service';
 import {
   getMediaThumbnailUrl,
   getPublicBaseUrl,
@@ -73,6 +74,7 @@ export class ScreensService {
     private readonly mediaRepository: MediaRepository,
     private readonly playlistsRepository: PlaylistsRepository,
     private readonly appInstancesRepository: AppInstancesRepository,
+    private readonly plansService: PlansService,
     private readonly configService: ConfigService,
     private readonly i18n: I18nService,
     private readonly availabilityEvaluator: AvailabilityEvaluator,
@@ -154,6 +156,11 @@ export class ScreensService {
     organizationId: string,
     dto: CreateScreenDto,
   ): Promise<ScreenDetailResponseDto> {
+    // The only place screens come into existence, so the only place the licence
+    // cap has to be enforced. Throws 403 with PLAN_LIMIT_REACHED details, which
+    // the CMS turns into the upgrade modal.
+    await this.plansService.assertCanCreateScreen(organizationId);
+
     const screen = await this.screensRepository.create({
       organizationId,
       name: dto.name,

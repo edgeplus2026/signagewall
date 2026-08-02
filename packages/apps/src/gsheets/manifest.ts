@@ -22,7 +22,7 @@ export const gsheetsManifest: AppManifest = {
     'Show a range from one of your Google Sheets as a live table or a single KPI — it refreshes on its own.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 2,
+  version: 3,
   refreshSeconds: 300,
   icon: GSHEETS_ICON,
   color: '#0F9D58',
@@ -57,7 +57,7 @@ export const gsheetsManifest: AppManifest = {
         { label: 'Modern', value: 'modern' },
         { label: 'Table', value: 'table' },
       ],
-      help: 'Modern reads as a menu or price list. Table keeps the spreadsheet grid.',
+      help: 'Both show every column. Modern marks each row with a colour bar; Table bands alternate rows instead.',
     },
     {
       key: 'showHeader',
@@ -67,6 +67,16 @@ export const gsheetsManifest: AppManifest = {
       // it is drawn. A menu board rarely wants "Product name / Price" above it.
       help: 'Turn off to hide the column headings and start straight at the first item.',
       default: true,
+    },
+    {
+      key: 'pageSeconds',
+      type: 'number',
+      label: 'Seconds per page',
+      default: 20,
+      validation: { min: 3, max: 300 },
+      // Only matters when the sheet is taller than the screen. A sheet that fits
+      // draws no page indicator and never advances, whatever this says.
+      help: 'How long each page of rows stays up when the sheet is too long to fit on screen at once.',
     },
     {
       key: 'theme',
