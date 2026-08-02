@@ -6,6 +6,7 @@ import {
   lastError,
   paired,
   playingItemId,
+  screenAwake,
   snapshot,
 } from '../store'
 
@@ -38,6 +39,9 @@ export function Diagnostics() {
       <div>revision: {snapshot.value?.revision ?? '—'}</div>
       <div>items: {snapshot.value?.items.length ?? 0}</div>
       <div>playing: {playingItemId.value ?? '—'}</div>
+      {/* False on a browser that has no Wake Lock API (or refused it): the
+          display will follow its own screensaver, not us. */}
+      <div>screenAwake: {String(screenAwake.value)}</div>
       <div>lastError: {lastError.value ?? '—'}</div>
     </div>
   )

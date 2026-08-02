@@ -64,6 +64,13 @@ export const dailyReload = signal<DailyReloadSetting>(getStoredDailyReload())
 /** Diagnostics: id of the renderable currently on screen. */
 export const playingItemId = signal<string | null>(null)
 
+/**
+ * Whether a screen wake lock is currently held. Diagnostics only — but the only
+ * way to tell, on a TV or tablet with no console, whether the browser honoured
+ * the request or is about to hand the display to its screensaver.
+ */
+export const screenAwake = signal<boolean>(false)
+
 /** Most recent non-fatal playback/runtime error, surfaced in diagnostics. */
 export const lastError = signal<string | null>(null)
 

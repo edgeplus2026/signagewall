@@ -30,6 +30,7 @@ import { startKioskLock } from './sync/kiosk'
 import { startOnline } from './sync/online'
 import { startPrefetch } from './sync/prefetch'
 import { requestPreviewToken } from './sync/preview-handshake'
+import { startWakeLock } from './sync/wake-lock'
 import { connectPlayer, connectPreview, disconnectPlayer } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
 import { ErrorBoundary } from './ui/ErrorBoundary'
@@ -103,6 +104,7 @@ export function App() {
     let stopDailyReload: (() => void) | undefined
     let stopAvailability: (() => void) | undefined
     let stopPrefetch: (() => void) | undefined
+    let stopWakeLock: (() => void) | undefined
     let stopStandbyUpdate: (() => void) | undefined
     let stopMaintenanceUpdates: (() => void) | undefined
     let stopLiveness: (() => void) | undefined
@@ -142,6 +144,12 @@ export function App() {
       // offline (no-op off the Android shell).
       stopKioskLock = startKioskLock()
 
+      // Hold the display awake. The native shells keep the screen on at the OS
+      // level, so this is what covers the web player — a browser on a TV or
+      // tablet otherwise hits its screensaver mid-loop, since nobody ever
+      // touches a signage screen.
+      stopWakeLock = startWakeLock()
+
       // Offline-capable background loops: daily reload, standby (availability),
       // and media prefetch (keeps the cache warm even during standby).
       stopDailyReload = startDailyReload()
@@ -174,6 +182,7 @@ export function App() {
       stopPrefetch?.()
       stopAvailability?.()
       stopDailyReload?.()
+      stopWakeLock?.()
       stopKioskLock?.()
       stopLiveness?.()
       disconnectPlayer()
