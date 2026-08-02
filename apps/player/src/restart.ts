@@ -20,7 +20,18 @@ declare global {
       setKioskLock?: (mode: string) => void
       /** Screen name for the shell's on-device service dialog. */
       setScreenName?: (name: string) => void
+      /** Quits the player process, from the service menu's "Close application". */
+      closeApp?: () => void
+      /** Lets the shell route its own UP/BACK keys to the service bar. */
+      setServiceMenuOpen?: (open: boolean) => void
     }
+    /**
+     * Imperative handle the service bar publishes for the native shell. The
+     * shell owns UP and BACK above the WebView — the only place they are
+     * reliable, since a cross-origin app iframe otherwise swallows every key —
+     * and reaches the bar through this.
+     */
+    __signagewallService?: { open: () => void; close: () => void }
     /** Electron preload-exposed API. */
     electronAPI?: { restart?: () => void }
     /**

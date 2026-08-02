@@ -19,7 +19,9 @@ object BridgeInjection {
             invoke: function (cmd, argsJson) { return host.invoke(cmd, argsJson); },
             restart: function () { host.restart(); },
             setKioskLock: function (mode) { host.setKioskLock(mode); },
-            setScreenName: function (name) { host.setScreenName(name); }
+            setScreenName: function (name) { host.setScreenName(name); },
+            closeApp: function () { host.closeApp(); },
+            setServiceMenuOpen: function (open) { host.setServiceMenuOpen(!!open); }
           };
         })();
     """.trimIndent()

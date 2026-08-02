@@ -35,6 +35,7 @@ import { connectPlayer, connectPreview, disconnectPlayer } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 import { PairingScreen } from './ui/PairingScreen'
+import { ServiceMenu } from './ui/ServiceMenu'
 import { Stage } from './ui/Stage'
 import { Standby } from './ui/Standby'
 
@@ -212,6 +213,10 @@ export function App() {
         {current === 'pairing' && <PairingScreen />}
         {current === 'playing' && <Stage />}
         {current === 'standby' && <Standby />}
+        {/* Above every view, including pairing and standby: the moment a
+            technician most needs the menu is when the screen is showing a
+            pairing code or is dark, not when content is happily looping. */}
+        <ServiceMenu />
         <Diagnostics />
       </div>
     </ErrorBoundary>

@@ -33,11 +33,6 @@ android {
 
         buildConfigField("String", "SIGNAGEWALL_PLAYER_URL", "\"$signagewallPlayerUrl\"")
         buildConfigField("String", "UPDATE_MANIFEST_URL", "\"$updateManifestUrl\"")
-        // Hashed admin PIN for the hidden settings / escape hatch (SHA-256 hex).
-        // Overridden per-fleet via -PkioskPinSha256; default is the hash of "0000".
-        val pinSha = (project.findProperty("kioskPinSha256") as String?)
-            ?: "9af15b336e6a9619928537df30b2e6a2376569fcf9d7e773eccede65606529a0"
-        buildConfigField("String", "KIOSK_PIN_SHA256", "\"$pinSha\"")
     }
 
     signingConfigs {

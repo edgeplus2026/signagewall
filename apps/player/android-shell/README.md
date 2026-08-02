@@ -104,4 +104,3 @@ CI publishes the APK + `signagewall-player/android/latest.json` to R2 (Phase D).
   `run_update` (Level 3) must return immediately and work on a background thread
   while the web polls `get_update_state`. Do not add blocking network to a bridge
   method.
-- Pin the admin PIN per fleet with `-PkioskPinSha256=<sha256-hex>` (Level 2).

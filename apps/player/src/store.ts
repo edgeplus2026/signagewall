@@ -71,6 +71,14 @@ export const playingItemId = signal<string | null>(null)
  */
 export const screenAwake = signal<boolean>(false)
 
+/**
+ * Whether the on-device service menu is open. Global rather than local state
+ * because the stage has to know: while the menu is up, the arrow keys belong to
+ * it, not to slide navigation, and a tap on a menu button must not be answered by
+ * the stage yanking focus back to its input shield.
+ */
+export const serviceMenuOpen = signal<boolean>(false)
+
 /** Most recent non-fatal playback/runtime error, surfaced in diagnostics. */
 export const lastError = signal<string | null>(null)
 

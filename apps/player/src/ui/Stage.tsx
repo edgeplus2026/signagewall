@@ -12,6 +12,7 @@ import {
   orientation,
   playingItemId,
   scale,
+  serviceMenuOpen,
   snapshot,
   volume,
 } from '../store'
@@ -150,6 +151,12 @@ export function Stage() {
     focusShield()
 
     const onKeyDown = (event: KeyboardEvent): void => {
+      // The service menu owns the arrows while it is open — it stops propagation
+      // in the capture phase, so this is belt-and-braces for a browser that
+      // delivers the event anyway.
+      if (serviceMenuOpen.peek()) {
+        return
+      }
       if (event.key === 'ArrowLeft') {
         goPrevious()
       } else if (event.key === 'ArrowRight') {
@@ -159,6 +166,11 @@ export function Stage() {
     // A tap/click anywhere reveals the controls and pulls focus back to the
     // parent (off any app iframe), so keyboard nav survives after interaction.
     const onPointerDown = (): void => {
+      // Not while the menu is up: yanking focus back to the shield mid-tap is
+      // how a menu button ends up looking dead on a touchscreen.
+      if (serviceMenuOpen.peek()) {
+        return
+      }
       focusShield()
       reveal()
     }

@@ -18,6 +18,7 @@ class KioskPresenceTest {
     fun reset() {
         KioskPresence.setMode(KioskController.Mode.OFF)
         KioskPresence.setResumed(true)
+        KioskPresence.setClosedByOperator(false)
     }
 
     @Test
@@ -40,6 +41,30 @@ class KioskPresenceTest {
         KioskPresence.setMode(KioskController.Mode.OFF)
         KioskPresence.setResumed(false)
         assertFalse(KioskPresence.shouldReclaimForeground())
+    }
+
+    /**
+     * "Close application" in the service bar has to mean closed. Before this the
+     * watchdog put a locked player straight back, ~100ms later, and the menu item
+     * looked broken.
+     */
+    @Test
+    fun `a deliberate close is never fought, even locked`() {
+        KioskPresence.setMode(KioskController.Mode.HARD)
+        KioskPresence.setResumed(false)
+        KioskPresence.setClosedByOperator(true)
+        assertFalse(KioskPresence.shouldReclaimForeground())
+    }
+
+    /** The flag must not outlive the session that set it — a rebooted screen is
+     *  guarded again, which is what the Activity's onCreate reset provides. */
+    @Test
+    fun `clearing the flag restores the keep-alive`() {
+        KioskPresence.setMode(KioskController.Mode.HARD)
+        KioskPresence.setResumed(false)
+        KioskPresence.setClosedByOperator(true)
+        KioskPresence.setClosedByOperator(false)
+        assertTrue(KioskPresence.shouldReclaimForeground())
     }
 
     @Test

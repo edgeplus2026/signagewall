@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.text.InputType
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -13,9 +12,7 @@ import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebStorage
 import android.webkit.WebView
-import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -35,8 +32,10 @@ import com.signagewall.player.update.OtaUpdater
 import com.signagewall.player.update.Updater
 import com.signagewall.player.webview.KioskWebChromeClient
 import com.signagewall.player.webview.KioskWebViewClient
+import com.signagewall.player.util.json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
-import java.security.MessageDigest
 
 /**
  * The fullscreen kiosk WebView that wraps the remote player. Mirrors the Tauri
@@ -50,6 +49,14 @@ class KioskActivity : AppCompatActivity() {
 
     private var webView: WebView? = null
 
+    /**
+     * Whether the web service bar is on screen, as last reported by the page.
+     * Drives which of UP/BACK this activity claims — see dispatchKeyEvent. Written
+     * from the JS bridge thread, read on the UI thread, hence @Volatile.
+     */
+    @Volatile
+    private var serviceMenuOpen: Boolean = false
+
     /** Pushed by the web layer once paired; shown in the on-device service dialog. */
     @Volatile
     private var screenName: String? = null
@@ -59,14 +66,16 @@ class KioskActivity : AppCompatActivity() {
     private val updater: Updater by lazy { buildUpdater() }
     private val kioskController by lazy { KioskController(this) }
     private val escapeHatch by lazy {
-        EscapeHatch(onTriggered = { runOnUiThread { showServiceDialog() } })
+        EscapeHatch(onTriggered = { runOnUiThread { onEscapeHatch() } })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // A new session: whatever the last one asked for, this one is guarded.
+        KioskPresence.setClosedByOperator(false)
         WatchdogService.start(this)
-        // A kiosk never exits via Back — the escape hatch (PIN) is the only way out.
+        // A kiosk never exits via Back — the escape hatch is the only way out.
         // But only WHILE it is a kiosk: swallowing unconditionally meant that turning
         // the lock off from the CMS still left the app inescapable from a remote,
         // which reads as a hung device rather than a deliberate lockdown.
@@ -74,6 +83,14 @@ class KioskActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
+                    // The service bar gets Back first, always. A WebView never
+                    // delivers KEYCODE_BACK to the page, so without this the one
+                    // key an operator would reach for to dismiss the bar would
+                    // instead quit the whole player.
+                    if (serviceMenuOpen) {
+                        callServiceBar("close")
+                        return
+                    }
                     if (kioskController.current == KioskController.Mode.OFF) {
                         isEnabled = false
                         onBackPressedDispatcher.onBackPressed()
@@ -109,10 +126,14 @@ class KioskActivity : AppCompatActivity() {
                 deviceIdStore = deviceIdStore,
                 updater = updater,
                 deviceOwner = { kioskController.isDeviceOwner() },
+                deviceInfo = { deviceInfoJson() },
+                onDeactivate = { runOnUiThread { deactivatePlayer() } },
             ),
             onRestart = { restartApp() },
             onSetKioskLock = { mode -> kioskController.setMode(mode) },
             onScreenName = { name -> screenName = name.ifBlank { null } },
+            onCloseApp = { closeApp() },
+            onServiceMenuOpen = { open -> serviceMenuOpen = open },
         )
         view.addJavascriptInterface(bridge, BridgeInjection.HOST_NAME)
 
@@ -141,75 +162,86 @@ class KioskActivity : AppCompatActivity() {
      * The escape combo is checked ABOVE the WebView so it works even when the remote
      * page is broken/offline; everything else (D-pad nav, etc.) falls through to the
      * focused WebView.
+     *
+     * UP is intercepted here for the same structural reason, not for convenience:
+     * a signage screen usually has a cross-origin app in an iframe, and while that
+     * iframe holds focus the page never sees a key at all. Opening the service bar
+     * from inside the page would therefore work on a photo and fail on exactly the
+     * content an operator is most likely looking at. Only the OPEN is taken — once
+     * the bar is up it owns its own arrows, so navigation inside it still falls
+     * through to the page.
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (escapeHatch.onKeyEvent(event)) return true
+        if (
+            !serviceMenuOpen &&
+            event.keyCode == KeyEvent.KEYCODE_DPAD_UP &&
+            event.action == KeyEvent.ACTION_DOWN
+        ) {
+            callServiceBar("open")
+            return true
+        }
         return super.dispatchKeyEvent(event)
     }
 
     /**
-     * What the escape hatch actually opens: the facts an on-site technician needs,
-     * and only then the two actions worth protecting. Reading the version or the
-     * device id used to require passing the PIN gate first, which is backwards —
-     * looking is harmless, changing is not.
+     * Calls into the web service bar. Silently does nothing when the page hasn't
+     * published its handle yet (still booting, or a build that predates the bar) —
+     * the shell must never depend on the page being in any particular state.
      */
-    private fun showServiceDialog() {
-        val owner = if (kioskController.isDeviceOwner()) "yes" else "no"
-        val deviceId = when (val r = deviceIdStore.read()) {
-            is DeviceIdStore.ReadResult.Present -> r.id
-            DeviceIdStore.ReadResult.Absent -> "(not paired)"
-            DeviceIdStore.ReadResult.Unreadable -> "(unreadable)"
-        }
-        val info = buildString {
-            appendLine("Screen:      ${screenName ?: "(unknown)"}")
-            appendLine("Device id:   $deviceId")
-            appendLine()
-            appendLine("Player:      ${BuildConfig.VERSION_NAME}")
-            appendLine("Android:     ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
-            appendLine("Model:       ${Build.MANUFACTURER} ${Build.MODEL}")
-            appendLine()
-            appendLine("Kiosk:       ${kioskController.current.name.lowercase()}")
-            append("Device owner: $owner")
-            if (kioskController.current == KioskController.Mode.HARD && owner == "no") {
-                append("  — hard lock NOT enforced")
-            }
-        }
-        AlertDialog.Builder(this)
-            .setTitle("SignageWall Player")
-            .setMessage(info)
-            .setPositiveButton("Unlock kiosk") { _, _ ->
-                askPin("Unlock kiosk") { kioskController.setMode("off") }
-            }
-            .setNeutralButton("Deactivate") { _, _ ->
-                askPin("Deactivate player") { deactivatePlayer() }
-            }
-            .setNegativeButton("Close", null)
-            .show()
-    }
-
-    /** PIN gate in front of anything an operator would not want a passer-by doing. */
-    private fun askPin(title: String, onCorrect: () -> Unit) {
-        val input = EditText(this).apply {
-            inputType =
-                InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
-        }
-        AlertDialog.Builder(this)
-            .setTitle(title)
-            .setMessage("Admin PIN")
-            .setView(input)
-            .setPositiveButton("Confirm") { _, _ ->
-                if (isPinCorrect(input.text.toString())) onCorrect()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+    private fun callServiceBar(method: String) {
+        webView?.evaluateJavascript("window.__signagewallService?.$method?.()", null)
     }
 
     /**
-     * Take this display off the screen it is bound to: drop the durable device id
-     * and the WebView's own storage, then restart. The player comes back unpaired
-     * and shows a fresh registration code. The CMS side is not touched — an
-     * operator still removes the screen there — because a device must never be able
-     * to delete somebody's screen just by standing next to it.
+     * The offline escape. It deliberately does NOT open a menu: the whole reason
+     * this lives above the WebView is that it has to work when the page is broken
+     * or the network is down — precisely when a web menu cannot render. So it does
+     * the one thing that is useful in that state and unlocks the kiosk, leaving the
+     * operator free to leave the app. The rich menu is the web one (arrow up).
+     */
+    private fun onEscapeHatch() {
+        kioskController.setMode("off")
+    }
+
+    /**
+     * The facts the web service menu shows. Assembled here because only the shell
+     * knows them — the page cannot read the Android build or the provisioning state.
+     */
+    private fun deviceInfoJson(): String = json.encodeToString(
+        JsonObject.serializer(),
+        JsonObject(
+            mapOf(
+                "androidRelease" to JsonPrimitive(Build.VERSION.RELEASE),
+                "androidSdk" to JsonPrimitive(Build.VERSION.SDK_INT),
+                "model" to JsonPrimitive("${Build.MANUFACTURER} ${Build.MODEL}"),
+                "shellVersion" to JsonPrimitive(BuildConfig.VERSION_NAME),
+                "kioskMode" to JsonPrimitive(kioskController.current.name.lowercase()),
+                "deviceOwner" to JsonPrimitive(kioskController.isDeviceOwner()),
+            ),
+        ),
+    )
+
+    /**
+     * Closes the player from the web service bar. Marshalled to the UI thread
+     * because it arrives on the WebView's JS thread, and the keep-alive is stood
+     * down first — otherwise its onTaskRemoved relaunches the player before the
+     * screen has even gone dark.
+     */
+    private fun closeApp() {
+        runOnUiThread {
+            KioskPresence.setClosedByOperator(true)
+            WatchdogService.stop(this)
+            finishAndRemoveTask()
+        }
+    }
+
+    /**
+     * Takes this display off the screen it is bound to: drops the durable device id
+     * and the WebView's own storage, then restarts. The player comes back unpaired
+     * and shows a fresh registration code. The CMS side is not touched — an operator
+     * still removes the screen there — because a device must never be able to delete
+     * somebody's screen just by standing next to it.
      */
     private fun deactivatePlayer() {
         kioskController.setMode("off")
@@ -221,9 +253,6 @@ class KioskActivity : AppCompatActivity() {
         }
         restartApp()
     }
-
-    private fun isPinCorrect(pin: String): Boolean =
-        sha256Hex(pin).equals(BuildConfig.KIOSK_PIN_SHA256, ignoreCase = true)
 
     /** OTA updater when a manifest URL is baked in AND the process health gate exists;
      *  a no-op updater in dev. Shares the App's HealthWatchdog (single alive/healthy owner). */
@@ -294,10 +323,4 @@ class KioskActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private companion object {
-        fun sha256Hex(value: String): String =
-            MessageDigest.getInstance("SHA-256")
-                .digest(value.toByteArray(Charsets.UTF_8))
-                .joinToString("") { "%02x".format(it.toInt() and 0xFF) }
-    }
 }

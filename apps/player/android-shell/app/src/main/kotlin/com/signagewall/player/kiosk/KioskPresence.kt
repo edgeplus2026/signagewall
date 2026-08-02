@@ -19,6 +19,19 @@ object KioskPresence {
     private val mode = AtomicReference(KioskController.Mode.OFF)
     private val resumed = AtomicBoolean(false)
 
+    /**
+     * Set when the operator closes the player from the service bar. The watchdog
+     * exists to fight ACCIDENTAL exits — a swipe out of Recents, an OEM launcher
+     * grabbing focus — and it must not fight the one exit that was asked for on
+     * purpose. Without this, "Close application" closed the player and the
+     * watchdog's onTaskRemoved put it straight back, ~100ms later, which reads as
+     * a device that refuses to quit.
+     *
+     * Cleared when the Activity next starts, so it can never outlive the session
+     * that set it and leave a rebooted screen unguarded.
+     */
+    private val closedByOperator = AtomicBoolean(false)
+
     /** Last mode the CMS asked for, as applied by [KioskController]. */
     fun setMode(next: KioskController.Mode) {
         mode.set(next)
@@ -33,10 +46,20 @@ object KioskPresence {
 
     fun isResumed(): Boolean = resumed.get()
 
+    /** Marks (or clears) a deliberate close from the service bar. */
+    fun setClosedByOperator(next: Boolean) {
+        closedByOperator.set(next)
+    }
+
+    fun wasClosedByOperator(): Boolean = closedByOperator.get()
+
     /**
      * Whether the watchdog should pull the player back to the front right now.
-     * Only while locked, and only when something else is actually in front.
+     * Only while locked, only when something else is actually in front, and never
+     * after the operator deliberately closed the player.
      */
     fun shouldReclaimForeground(): Boolean =
-        mode.get() != KioskController.Mode.OFF && !resumed.get()
+        !closedByOperator.get() &&
+            mode.get() != KioskController.Mode.OFF &&
+            !resumed.get()
 }

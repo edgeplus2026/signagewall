@@ -99,6 +99,18 @@ export function clearToken(): void {
 }
 
 /**
+ * Forgets the device identity so the next boot mints a fresh one and the display
+ * comes back unpaired. ONLY the on-device "deactivate" action calls this: every
+ * other path treats the id as permanent, because re-minting one strands a paired
+ * screen. The in-memory cache is cleared too — leaving it set would hand the old
+ * id straight back to the very next `getDeviceId()`, before any reload.
+ */
+export function clearLocalDeviceId(): void {
+  cachedDeviceId = undefined
+  safeRemove(DEVICE_ID_KEY)
+}
+
+/**
  * Caches the pairing code so a refresh can paint it instantly instead of
  * flashing a skeleton while the socket reconnects. The server still re-pushes
  * the authoritative code on connect — this is only an optimistic prefill.

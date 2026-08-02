@@ -34,9 +34,29 @@ class WatchdogService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private val handler = Handler(Looper.getMainLooper())
+    /** Consecutive ticks that asked for the foreground and did not get it. */
+    private var refusedReclaims = 0
     private val tick = object : Runnable {
         override fun run() {
-            if (KioskPresence.shouldReclaimForeground()) reclaimForeground()
+            if (KioskPresence.shouldReclaimForeground()) {
+                // Still backgrounded a tick after asking means the previous request
+                // was refused — `startActivity` reports that by doing nothing, not by
+                // throwing, so this count is the only evidence we can produce.
+                refusedReclaims++
+                if (refusedReclaims == REFUSALS_BEFORE_WARNING) {
+                    Log.w(
+                        TAG,
+                        "the player has been backgrounded for " +
+                            "${REFUSALS_BEFORE_WARNING * POLL_MILLIS / 1000}s and Android " +
+                            "keeps refusing to bring it back (background activity launch " +
+                            "is blocked). Provision the app as Device Owner to make the " +
+                            "kiosk hold; logging this once until it recovers.",
+                    )
+                }
+                reclaimForeground()
+            } else {
+                refusedReclaims = 0
+            }
             handler.postDelayed(this, POLL_MILLIS)
         }
     }
@@ -70,11 +90,20 @@ class WatchdogService : Service() {
         }
     }
 
+    /**
+     * The task disappearing usually means somebody swiped the player out of
+     * Recents, which on a signage screen is exactly what this service is for. The
+     * one exception is a close the operator asked for from the service bar — that
+     * also removes the task, and relaunching it there made the menu's "Close
+     * application" look broken.
+     */
     override fun onTaskRemoved(rootIntent: Intent?) {
-        startActivity(
-            Intent(this, KioskActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
+        if (!KioskPresence.wasClosedByOperator()) {
+            startActivity(
+                Intent(this, KioskActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }
         super.onTaskRemoved(rootIntent)
     }
 
@@ -100,11 +129,19 @@ class WatchdogService : Service() {
         /** Slow enough to be invisible on battery/CPU, quick enough that a screen
          *  nobody is watching is dark for seconds rather than minutes. */
         private const val POLL_MILLIS = 10_000L
+        /** ~30s of refusals before saying so — long enough not to fire on the normal
+         *  one-tick lag between asking and the Activity actually resuming. */
+        private const val REFUSALS_BEFORE_WARNING = 3
         private const val CHANNEL_ID = "signagewall-player-watchdog"
         private const val NOTIF_ID = 1
 
         fun start(context: Context) {
             context.startForegroundService(Intent(context, WatchdogService::class.java))
+        }
+
+        /** Stands the keep-alive down — only for a deliberate close. */
+        fun stop(context: Context) {
+            context.stopService(Intent(context, WatchdogService::class.java))
         }
     }
 }

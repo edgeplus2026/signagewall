@@ -29,12 +29,21 @@ class BridgeDispatcher(
      * A lambda so the dispatcher stays testable without a DevicePolicyManager.
      */
     private val deviceOwner: () -> Boolean = { false },
+    /** Pre-serialised device facts for the web service menu. */
+    private val deviceInfo: () -> String = { "{}" },
+    /** Unpairs this display locally: drops the device id and restarts. */
+    private val onDeactivate: () -> Unit = {},
 ) {
     fun dispatch(cmd: String, argsJson: String): JsonElement = when (cmd) {
         "get_device_id" -> getDeviceId()
         "set_device_id" -> setDeviceId(argsJson)
         "shell_version" -> JsonPrimitive(shellVersion)
         "device_owner" -> JsonPrimitive(deviceOwner())
+        "device_info" -> json.parseToJsonElement(deviceInfo())
+        "deactivate" -> {
+            onDeactivate()
+            JsonNull
+        }
         "check_update" -> updater.cachedCheck()
         "run_update" -> updater.runUpdate()
         "get_update_state" -> updater.stateReport()

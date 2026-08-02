@@ -505,3 +505,228 @@ body {
   z-index: 9999;
   pointer-events: none;
 }
+
+/* ---------------------------------------------------------------------------
+   On-device service bar (UP on the remote). A full-width strip that rises from
+   the bottom edge, flush left/right/bottom, like a TV's own settings bar —
+   deliberately NOT a centred dialog, so the content behind it keeps playing and
+   stays visible. Sized in vmin/clamp so it reads the same on a 55" TV from four
+   metres and on a tablet held at arm's length.
+   --------------------------------------------------------------------------- */
+.service-bar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 10000;
+  /* Only the strip itself is interactive: the area above stays untouched, which
+     is what keeps this a bar rather than a modal. */
+  pointer-events: none;
+}
+
+.service-bar__sheet {
+  pointer-events: auto;
+  padding: clamp(14px, 2vmin, 22px) clamp(18px, 3vw, 44px)
+    clamp(16px, 2.2vmin, 24px);
+  background: linear-gradient(to top, #0b0d14 72%, rgba(11, 13, 20, 0.94));
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.55);
+  color: #f4f6fb;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  animation: service-bar-rise 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Facts read as one line of small print above the actions — enough for a
+   technician to match this box against the CMS, without becoming the content. */
+.service-bar__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px clamp(12px, 2vw, 24px);
+  margin-bottom: clamp(12px, 1.8vmin, 18px);
+  font-size: clamp(11px, 1.35vmin, 14px);
+  color: rgba(244, 246, 251, 0.72);
+}
+
+.service-bar__name {
+  font-size: clamp(15px, 2vmin, 20px);
+  font-weight: 600;
+  color: #fff;
+}
+
+.service-bar__fact {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.service-bar__fact-label {
+  color: rgba(244, 246, 251, 0.42);
+}
+
+.service-bar__mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.94em;
+}
+
+.service-bar__warn {
+  color: #ffb454;
+}
+
+/* Equal columns so the focus ring lands somewhere predictable on every screen
+   width — a D-pad user is aiming without a pointer. */
+.service-bar__actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 1.2vw, 16px);
+}
+
+.service-bar__action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: clamp(12px, 1.7vmin, 18px) clamp(14px, 1.6vw, 22px);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+/* Driven by our own selection index rather than :focus — a WebView hands DOM
+   focus to whatever it likes (an app iframe underneath, for one), and the
+   highlight the operator steers with must track the key handler, not the
+   browser. */
+.service-bar__action[data-focused='true'] {
+  background: rgba(90, 140, 255, 0.24);
+  border-color: #5a8cff;
+  transform: translateY(-2px);
+}
+
+/* The bar draws its own selection ring off `data-focused`, so the browser's
+   default one would be a second, contradicting highlight — on the TV it landed
+   on a different action than the one the D-pad was actually on. Same trade-off
+   the playback controls already make. */
+.service-bar__action:focus,
+.service-bar__action:focus-visible {
+  outline: none;
+}
+
+.service-bar__action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.service-bar__action-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.service-bar__action-label {
+  font-size: clamp(14px, 1.85vmin, 18px);
+  font-weight: 500;
+}
+
+.service-bar__action-hint {
+  font-size: clamp(11px, 1.35vmin, 13px);
+  color: rgba(244, 246, 251, 0.5);
+}
+
+.service-bar__action--danger {
+  background: rgba(255, 77, 79, 0.13);
+  color: #ff8b8d;
+}
+
+.service-bar__action--danger[data-focused='true'] {
+  background: rgba(255, 77, 79, 0.28);
+  border-color: #ff4d4f;
+}
+
+/* Armed = one press away from wiping the pairing. It stops looking like a menu
+   item and starts looking like a warning. */
+.service-bar__action--danger[data-armed='true'] {
+  background: #ff4d4f;
+  border-color: #ff4d4f;
+  color: #fff;
+}
+
+.service-bar__action--danger[data-armed='true'] .service-bar__action-hint {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.service-bar__switch {
+  flex: none;
+  width: 52px;
+  height: 30px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 160ms ease;
+}
+
+.service-bar__switch[data-on='true'] {
+  background: #34c759;
+}
+
+.service-bar__knob {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.service-bar__switch[data-on='true'] .service-bar__knob {
+  transform: translateX(22px);
+}
+
+.service-bar__hints {
+  margin-top: clamp(10px, 1.4vmin, 14px);
+  font-size: clamp(11px, 1.35vmin, 13px);
+  color: rgba(244, 246, 251, 0.4);
+  text-align: center;
+}
+
+/* Rises from below the bottom edge — the direction the key that opened it points,
+   so the gesture and the motion agree. */
+@keyframes service-bar-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Narrow screens (a phone held upright) can't carry three columns; stack them
+   and the same left/right keys still walk top to bottom. */
+@media (max-width: 640px) {
+  .service-bar__actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Honour a reduced-motion preference: the bar still appears, it just doesn't
+   travel. Same policy as the slide transition. */
+@media (prefers-reduced-motion: reduce) {
+  .service-bar__sheet {
+    animation-duration: 1ms;
+  }
+
+  .service-bar__action,
+  .service-bar__switch,
+  .service-bar__knob {
+    transition-duration: 1ms;
+  }
+}

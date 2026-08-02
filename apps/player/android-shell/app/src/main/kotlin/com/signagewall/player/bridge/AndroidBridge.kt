@@ -17,6 +17,8 @@ class AndroidBridge(
     private val onRestart: () -> Unit,
     private val onSetKioskLock: (String) -> Unit,
     private val onScreenName: (String) -> Unit = {},
+    private val onCloseApp: () -> Unit = {},
+    private val onServiceMenuOpen: (Boolean) -> Unit = {},
 ) {
     @JavascriptInterface
     fun invoke(cmd: String, argsJson: String): String =
@@ -39,6 +41,22 @@ class AndroidBridge(
     @JavascriptInterface
     fun setScreenName(name: String) {
         onScreenName(name)
+    }
+
+    /**
+     * Reports whether the web service bar is on screen, so the activity can route
+     * the two keys it owns above the WebView: BACK closes the bar instead of
+     * quitting, and UP only opens it while it is down.
+     */
+    @JavascriptInterface
+    fun setServiceMenuOpen(open: Boolean) {
+        onServiceMenuOpen(open)
+    }
+
+    /** Quits the player, from the web service menu's "Close application". */
+    @JavascriptInterface
+    fun closeApp() {
+        onCloseApp()
     }
 
     @JavascriptInterface

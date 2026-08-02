@@ -28,8 +28,7 @@
 #   Secrets:   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
 #              ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD,
 #              R2_ACCOUNT_ID, R2_RELEASES_ACCESS_KEY_ID, R2_RELEASES_SECRET_ACCESS_KEY
-#   Variables: SIGNAGEWALL_PLAYER_URL, R2_RELEASES_BUCKET, R2_RELEASES_PUBLIC_URL,
-#              KIOSK_PIN_SHA256 (optional)
+#   Variables: SIGNAGEWALL_PLAYER_URL, R2_RELEASES_BUCKET, R2_RELEASES_PUBLIC_URL
 name: player-android-release
 
 on:
@@ -114,7 +113,6 @@ jobs:
           R2_PUBLIC: ${{ vars.R2_RELEASES_PUBLIC_URL }}
           VERSION: ${{ needs.meta.outputs.version }}
           CODE: ${{ needs.meta.outputs.versioncode }}
-          PIN_SHA: ${{ vars.KIOSK_PIN_SHA256 }}
         run: |
           set -euo pipefail
           # Without it gradle falls back to the emulator loopback default and the
@@ -129,7 +127,6 @@ jobs:
             -PupdateManifestUrl="$manifest" \
             -PversionName="$VERSION" \
             -PversionCode="$CODE" \
-            ${PIN_SHA:+-PkioskPinSha256="$PIN_SHA"}
 
       - name: Stage APK
         run: |
