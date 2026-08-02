@@ -8,6 +8,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Level 3: prompted APK self-update on non-Device-Owner devices. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Lets the player update ITSELF without the system's install prompt (Android
+         12+). A normal permission — granted at install, nothing for the customer to
+         approve. It only takes effect once we are the app's installer of record,
+         which we become the first time we install an update ourselves. -->
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
     <!-- TV boxes have no touchscreen; declare both optional so one APK installs on
          Android-TV boxes/sticks AND touch tablets. -->
