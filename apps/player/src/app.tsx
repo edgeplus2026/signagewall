@@ -26,7 +26,7 @@ import {
 } from './store'
 import { startAvailability } from './sync/availability'
 import { startDailyReload } from './sync/daily-reload'
-import { startKioskLock } from './sync/kiosk'
+import { startKioskLock, startScreenNameBridge } from './sync/kiosk'
 import { startOnline } from './sync/online'
 import { startPrefetch } from './sync/prefetch'
 import { requestPreviewToken } from './sync/preview-handshake'
@@ -101,6 +101,7 @@ export function App() {
     // can't be async, so run boot in a guarded IIFE and collect disposers.
     let disposed = false
     let stopKioskLock: (() => void) | undefined
+    let stopScreenName: (() => void) | undefined
     let stopDailyReload: (() => void) | undefined
     let stopAvailability: (() => void) | undefined
     let stopPrefetch: (() => void) | undefined
@@ -143,6 +144,7 @@ export function App() {
       // as early as possible; reads the persisted mode, so it re-locks even while
       // offline (no-op off the Android shell).
       stopKioskLock = startKioskLock()
+      stopScreenName = startScreenNameBridge()
 
       // Hold the display awake. The native shells keep the screen on at the OS
       // level, so this is what covers the web player — a browser on a TV or
@@ -183,6 +185,7 @@ export function App() {
       stopAvailability?.()
       stopDailyReload?.()
       stopWakeLock?.()
+      stopScreenName?.()
       stopKioskLock?.()
       stopLiveness?.()
       disconnectPlayer()

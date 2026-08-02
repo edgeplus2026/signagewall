@@ -55,6 +55,18 @@ class DeviceIdStore(private val file: File) {
         cached = ReadResult.Present(id)
     }
 
+    /**
+     * Forgets the identity so the player comes back as a fresh, unpaired display.
+     * Only the on-device "deactivate" action calls this — the whole point of the
+     * store is that nothing else ever drops the id, since re-minting one strands a
+     * paired screen. The cache is set to `Absent` rather than cleared: leaving it
+     * null would let a failed delete resurrect the old id on the next read.
+     */
+    fun clear() {
+        file.delete()
+        cached = ReadResult.Absent
+    }
+
     companion object {
         private val UUID_RE =
             Regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")

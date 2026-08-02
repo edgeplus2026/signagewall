@@ -18,7 +18,8 @@ object BridgeInjection {
           window.AndroidBridge = {
             invoke: function (cmd, argsJson) { return host.invoke(cmd, argsJson); },
             restart: function () { host.restart(); },
-            setKioskLock: function (mode) { host.setKioskLock(mode); }
+            setKioskLock: function (mode) { host.setKioskLock(mode); },
+            setScreenName: function (name) { host.setScreenName(name); }
           };
         })();
     """.trimIndent()

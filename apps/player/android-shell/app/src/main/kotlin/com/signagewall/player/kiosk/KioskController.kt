@@ -55,6 +55,9 @@ class KioskController(private val activity: Activity) {
                 Mode.OFF -> applyOff()
             }
             current = mode
+            // The watchdog decides whether to pull the player back to the front from
+            // this, and it must never act on a mode that failed to apply.
+            KioskPresence.setMode(mode)
         } catch (t: Throwable) {
             Log.w(TAG, "failed to apply kiosk mode $mode", t)
         }

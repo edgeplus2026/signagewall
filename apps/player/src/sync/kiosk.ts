@@ -1,6 +1,6 @@
 import { effect } from '@preact/signals'
 
-import { kioskMode } from '../store'
+import { kioskMode, snapshot } from '../store'
 
 /**
  * Drives the native shell's kiosk lockdown from the `kioskMode` signal. The
@@ -18,6 +18,26 @@ export function startKioskLock(): () => void {
       window.AndroidBridge?.setKioskLock?.(mode)
     } catch {
       // A missing or throwing native bridge must never break the player.
+    }
+  })
+}
+
+/**
+ * Pushes the screen's name to the Android shell so its on-device service dialog can
+ * show it. The shell cannot know it otherwise — pairing lives entirely in the web
+ * layer — and it is what a technician in front of the display matches against the
+ * CMS. Fire-and-forget, guarded, and a no-op off Android. Returns a disposer.
+ */
+export function startScreenNameBridge(): () => void {
+  return effect(() => {
+    const name = snapshot.value?.name
+    if (!name) {
+      return
+    }
+    try {
+      window.AndroidBridge?.setScreenName?.(name)
+    } catch {
+      // A missing or throwing native bridge must never break playback.
     }
   })
 }

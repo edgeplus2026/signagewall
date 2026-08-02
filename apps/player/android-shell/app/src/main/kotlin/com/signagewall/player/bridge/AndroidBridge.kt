@@ -16,6 +16,7 @@ class AndroidBridge(
     private val dispatcher: BridgeDispatcher,
     private val onRestart: () -> Unit,
     private val onSetKioskLock: (String) -> Unit,
+    private val onScreenName: (String) -> Unit = {},
 ) {
     @JavascriptInterface
     fun invoke(cmd: String, argsJson: String): String =
@@ -28,6 +29,16 @@ class AndroidBridge(
     @JavascriptInterface
     fun restart() {
         onRestart()
+    }
+
+    /**
+     * The screen's human name, pushed from the web layer. The shell has no other way
+     * to know it — pairing lives entirely in the player — and it is what a technician
+     * standing in front of the display matches against the CMS.
+     */
+    @JavascriptInterface
+    fun setScreenName(name: String) {
+        onScreenName(name)
     }
 
     @JavascriptInterface

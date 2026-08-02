@@ -18,6 +18,8 @@ declare global {
       restart?: () => void
       invoke?: (cmd: string, argsJson: string) => string
       setKioskLock?: (mode: string) => void
+      /** Screen name for the shell's on-device service dialog. */
+      setScreenName?: (name: string) => void
     }
     /** Electron preload-exposed API. */
     electronAPI?: { restart?: () => void }
