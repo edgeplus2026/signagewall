@@ -12,10 +12,16 @@ const DARK_QUERY = '(prefers-color-scheme: dark)'
  * Applied pre-paint, before React runs, so the page never flashes the wrong
  * theme. It lives beside the provider that has to agree with it — the storage
  * key and the class name are the contract between them.
+ *
+ * A visitor who has never chosen gets light, rather than whatever their device
+ * happens to be set to: this is the presentation the site was designed and
+ * photographed in, and it should not change depending on how someone's laptop
+ * is configured. Following the device is still available — it is what the
+ * `system` choice means — it is simply no longer the default.
  */
 const themeInitScript = `(()=>{try{var s=localStorage.getItem(${JSON.stringify(
   STORAGE_KEY,
-)});var d=s==="dark"||((!s||s==="system")&&matchMedia(${JSON.stringify(
+)});var d=s==="dark"||(s==="system"&&matchMedia(${JSON.stringify(
   DARK_QUERY,
 )}).matches);var e=document.documentElement;e.classList.toggle("dark",d);e.style.colorScheme=d?"dark":"light"}catch(_){}})()`
 
@@ -59,9 +65,9 @@ function readTheme(): Theme {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
   } catch {
-    // Private mode or blocked storage — fall through to the system default.
+    // Private mode or blocked storage — fall through to the default.
   }
-  return 'system'
+  return 'light'
 }
 
 function readResolved(): 'light' | 'dark' {
@@ -70,7 +76,7 @@ function readResolved(): 'light' | 'dark' {
   return window.matchMedia(DARK_QUERY).matches ? 'dark' : 'light'
 }
 
-const serverTheme = (): Theme => 'system'
+const serverTheme = (): Theme => 'light'
 const serverResolved = (): 'light' | 'dark' => 'light'
 
 export function useTheme() {
