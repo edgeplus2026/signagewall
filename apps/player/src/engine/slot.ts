@@ -5,6 +5,15 @@ import type { Renderable } from '../types'
 const LOAD_TIMEOUT_MS = 12_000
 
 /**
+ * Forces the element's pending style changes to be applied, so a transition
+ * started right after begins from them rather than from the previous frame.
+ * Reading a layout property is what does it; the value is deliberately unused.
+ */
+function flushPendingStyle(element: HTMLElement): void {
+  void element.offsetWidth
+}
+
+/**
  * One A/B rendering layer. Each slot owns a pooled `<img>`, `<video>` and an app
  * mount host that are reused for the slot's entire lifetime — never created or
  * destroyed per item. This is the core defence against the memory/GC creep that
@@ -169,8 +178,21 @@ export class Slot {
     }
   }
 
-  /** Makes the (already prepared) content visible and starts playback. */
-  activate(onEnded: () => void): void {
+  /**
+   * Makes the (already prepared) content visible and starts playback. `direction`
+   * is the loop's direction of travel and only steers the slide: the slot is
+   * stamped with it *before* it moves, so a later reversal cannot re-aim a
+   * transition that is already under way.
+   */
+  activate(onEnded: () => void, direction: 1 | -1 = 1): void {
+    this.el.dataset.direction = direction === -1 ? 'back' : 'forward'
+    // Commit that resting offset BEFORE asking the slot to move. Both changes in
+    // one go are coalesced into a single style recalculation, so the slide would
+    // start from wherever the slot was last parked — a back-step would enter from
+    // the right while the outgoing item also left to the right, and the two would
+    // cross. `deactivate` needs no such flush: its start point is the centre
+    // either way.
+    flushPendingStyle(this.el)
     this.el.classList.add('is-active')
 
     // Apps are preloaded silent (see host-bridge): tell this one it is now the
@@ -267,14 +289,18 @@ export class Slot {
   }
 
   /**
-   * Starts the visual fade-out by dropping `is-active`, without yet tearing down
-   * any media. Lets the outgoing slot cross-fade under the incoming one; call
+   * Starts the visual exit — the slot slides off the edge opposite the one the
+   * incoming slot came from — without yet tearing down any media. Call
    * {@link release} once the transition has finished to reclaim its buffers.
+   * `direction` must match the one handed to the incoming slot's
+   * {@link activate}, so the two move as a single gesture.
    */
-  deactivate(): void {
+  deactivate(direction: 1 | -1 = 1): void {
+    this.el.dataset.direction = direction === -1 ? 'back' : 'forward'
     this.el.classList.remove('is-active')
+    this.el.classList.add('is-leaving')
     // Tell an outgoing APP it is no longer on screen so it stops its audio now,
-    // at the start of the crossfade — otherwise `active:false` was never sent and
+    // at the start of the transition — otherwise `active:false` was never sent and
     // the app kept sounding until `release()` disposed its iframe ~TRANSITION_MS
     // (or, for a 1-item/offline playlist, a whole item) later, audibly overlapping
     // the incoming item. Video is paused by release(); an image is silent.
@@ -288,7 +314,11 @@ export class Slot {
   /** Hides the slot and frees all decoded media buffers it was holding. */
   release(): void {
     this.prepareSeq += 1
+    // Dropping `is-leaving` returns the slot to its resting offset, ready to
+    // enter again. The resting style carries no transition precisely so this
+    // snaps instead of sliding the slot back across the screen.
     this.el.classList.remove('is-active')
+    this.el.classList.remove('is-leaving')
     this.endedHandler = null
     this.video.onended = null
     this.wantsAudioButMuted = false

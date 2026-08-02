@@ -10,8 +10,14 @@ import { Slot } from './slot'
 export interface PlaybackSlot {
   readonly el: HTMLElement
   prepare(item: Renderable, volume: number): Promise<void>
-  activate(onEnded: () => void): void
-  deactivate(): void
+  /**
+   * Reveals the slot. `direction` is the loop's direction of travel and only
+   * steers which edge the slide comes from; it is optional so a test fake can
+   * ignore presentation entirely.
+   */
+  activate(onEnded: () => void, direction?: 1 | -1): void
+  /** Sends the slot off the opposite edge; pass the same `direction`. */
+  deactivate(direction?: 1 | -1): void
   release(): void
   setVolume(volume: number): void
   tryUnmute(): void
@@ -27,7 +33,11 @@ const WATCHDOG_INTERVAL_MS = 5_000
 const WATCHDOG_GRACE_MS = 15_000
 const MIN_DWELL_MS = 1_000
 const SKIP_DELAY_MS = 250
-/** Crossfade duration; must match the `.player-slot` opacity transition in CSS. */
+/**
+ * Slide duration; must match the `.player-slot` transform transition in CSS.
+ * The engine waits it out before recycling the outgoing slot, so a mismatch
+ * either cuts the exit short or leaves the buffers held longer than needed.
+ */
 const TRANSITION_MS = 600
 
 export interface ControllerCallbacks {
@@ -408,12 +418,14 @@ export class PlaybackController {
       if (!this.follow) {
         this.advance()
       }
-    })
-    // Cross-fade: reveal the (decoded) back slot while the front fades out. We
-    // only drop `is-active` here so the front fades over CSS without tearing its
-    // media down yet — its buffers are reclaimed lazily by `release()` when the
-    // slot is next prepared, so we never hide content that a preload just filled.
-    front.deactivate()
+    }, this.direction)
+    // Slide the swap: the (decoded) back slot moves in while the front moves off
+    // the opposite edge. Both are handed the SAME direction so they read as one
+    // gesture — and a manual step back reverses it. We only change classes here
+    // so the front leaves over CSS without tearing its media down yet; its
+    // buffers are reclaimed lazily by `release()` when the slot is next prepared,
+    // so we never hide content that a preload just filled.
+    front.deactivate(this.direction)
     this.activeIndex ^= 1
     this.cursor = index
     this.lastAdvanceAt = Date.now()
