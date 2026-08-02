@@ -90,7 +90,10 @@ export function mountAppPreview(
   iframe.title = options.slug
   iframe.className = 'size-full border-0'
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
-  iframe.setAttribute('referrerpolicy', 'no-referrer')
+  // Mirrors the player's host (see `apps/player/src/apps/host-bridge.ts`): a
+  // `no-referrer` here reaches the app's own subframes in WebKit, which is enough
+  // to break the YouTube embed with its error 153 in a Safari preview.
+  iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
   iframe.setAttribute('allow', IFRAME_ALLOW)
 
   let ready = false

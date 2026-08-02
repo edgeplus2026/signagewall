@@ -115,9 +115,12 @@ export function PlayerPreviewFrame({
               src={src}
               title={t('screens.device.preview.frameTitle')}
               allow="autoplay; fullscreen"
-              // No Referer header → the player URL never lands in the player
-              // server's logs via the referrer either.
-              referrerPolicy="no-referrer"
+              // Origin-only, not `no-referrer`: the player URL still never leaks
+              // (a cross-origin destination sees `https://app…/` and nothing
+              // more), but WebKit applies this policy to everything the embedded
+              // player then loads — and `no-referrer` there left the YouTube app
+              // inside the preview with no Referer, which it rejects (error 153).
+              referrerPolicy="strict-origin-when-cross-origin"
               className="size-full border-0"
             />
           </ScaledViewport>

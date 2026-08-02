@@ -127,7 +127,11 @@ describe('mountAppHost', () => {
     expect(createdIframe.el.getAttribute('sandbox')).toBe(
       'allow-scripts allow-same-origin',
     )
-    expect(createdIframe.el.getAttribute('referrerpolicy')).toBe('no-referrer')
+    // Never `no-referrer`: WebKit passes the policy on to the app's own
+    // subframes, and a YouTube embed reached with no Referer fails with error 153.
+    expect(createdIframe.el.getAttribute('referrerpolicy')).toBe(
+      'strict-origin-when-cross-origin',
+    )
     expect(createdIframe.el.src).toBe('/apps/clock/index.html')
     // dispose rejects the pending ready; we don't await it here, so swallow it.
     handle.ready.catch(() => undefined)

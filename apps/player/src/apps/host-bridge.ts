@@ -91,7 +91,14 @@ export function mountAppHost(
   iframe.className = 'player-media'
   iframe.title = item.slug
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
-  iframe.setAttribute('referrerpolicy', 'no-referrer')
+  // NOT `no-referrer`: WebKit propagates this policy to everything the app
+  // document then loads, so on iOS the YouTube embed reached youtube-nocookie.com
+  // with no Referer at all and answered with its configuration error (153).
+  // Chromium does not propagate it, which is why the same screen played fine on a
+  // desktop kiosk. `strict-origin-when-cross-origin` is the browser default and
+  // keeps the intent — a third party still sees only `https://player…/`, never the
+  // path or the `?device=<uuid>` the player URL carries.
+  iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
   iframe.setAttribute('allow', IFRAME_ALLOW)
 
   let settled = false
