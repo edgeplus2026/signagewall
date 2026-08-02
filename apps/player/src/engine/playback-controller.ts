@@ -115,11 +115,11 @@ export class PlaybackController {
     this.root.append(this.slots[0].el, this.slots[1].el)
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.handleVisibility)
-      // Recover sound on the first video, which the browser's autoplay policy
-      // may have forced to muted in a non-kiosk browser. The first user gesture
-      // grants audio permission; replay it onto the slots once, then detach. On
-      // a kiosk (autoplay-with-sound allowed) the first play() already kept its
-      // sound, so the slots have nothing to unmute and this is harmless.
+      // Recover sound that the browser's autoplay policy may have forced to
+      // muted in a non-kiosk browser — on a video, or on a media app that had to
+      // start silent. The first user gesture grants audio permission; replay it
+      // onto the slots. On a kiosk (autoplay-with-sound allowed) nothing ever
+      // fell back, so the slots have nothing to recover and this is harmless.
       document.addEventListener('pointerdown', this.handleUserGesture)
       document.addEventListener('keydown', this.handleUserGesture)
     }

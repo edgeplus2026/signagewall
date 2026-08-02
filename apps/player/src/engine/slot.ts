@@ -38,6 +38,20 @@ export class Slot {
    */
   private wantsAudioButMuted = false
   /**
+   * The app-item counterpart of {@link wantsAudioButMuted}: set when an app was
+   * put on screen with sound wanted.
+   *
+   * An app owns its audio inside its iframe, so we never learn whether the
+   * browser actually let it start unmuted — and the app never learns that the
+   * user touched the screen, because the gesture lands on the player's document.
+   * Remembering that this one was meant to be audible lets {@link tryUnmute}
+   * re-send the directive on the first gesture, which is the app's cue to try
+   * again from inside a user activation. Cleared after one attempt, exactly like
+   * the video flag, so a screen that simply is not allowed audio doesn't re-try
+   * on every subsequent tap.
+   */
+  private appOwesAudioRetry = false
+  /**
    * Bumped on every {@link prepare}/{@link release}. Async prepare work (image
    * decode + retry, video readiness) captures the seq at start and bails if it
    * no longer matches — so a superseded load never paints into, or rejects, a
@@ -125,6 +139,9 @@ export class Slot {
     // silent already, so skip it (and avoid a needless postMessage).
     if (this.current?.kind === 'app') {
       if (this.appActive) {
+        // Raising the volume on a live app is another unmute that the browser may
+        // refuse, so re-arm the gesture retry alongside the directive.
+        this.appOwesAudioRetry = this.volume > 0
         this.appHostHandle?.setActive(true, this.volume === 0)
       }
       return
@@ -163,6 +180,7 @@ export class Slot {
     // previous item was still up.
     if (this.current?.kind === 'app') {
       this.appActive = true
+      this.appOwesAudioRetry = this.volume > 0
       this.appHostHandle?.setActive(true, this.volume === 0)
     }
 
@@ -208,6 +226,19 @@ export class Slot {
    * way the browser never emits the unmute-paused warning.
    */
   tryUnmute(): void {
+    // An app's audio lives behind an iframe boundary, so there is nothing here to
+    // unmute — only a directive to re-send. Repeating it *now*, inside the user
+    // activation, is what gives a media app (YouTube, a stream) the one chance it
+    // has to turn its sound on; every `onActive` handler treats a repeat with
+    // unchanged values as a no-op, so nothing restarts.
+    if (this.current?.kind === 'app') {
+      if (!this.appOwesAudioRetry || !this.appActive || this.volume === 0) {
+        return
+      }
+      this.appOwesAudioRetry = false
+      this.appHostHandle?.setActive(true, false)
+      return
+    }
     if (
       !this.wantsAudioButMuted ||
       this.current?.kind !== 'video' ||
@@ -249,6 +280,7 @@ export class Slot {
     // the incoming item. Video is paused by release(); an image is silent.
     if (this.current?.kind === 'app' && this.appActive) {
       this.appActive = false
+      this.appOwesAudioRetry = false
       this.appHostHandle?.setActive(false, this.volume === 0)
     }
   }
@@ -276,6 +308,7 @@ export class Slot {
       this.appHostHandle = null
     }
     this.appActive = false
+    this.appOwesAudioRetry = false
     this.hideAll()
     this.current = null
   }
