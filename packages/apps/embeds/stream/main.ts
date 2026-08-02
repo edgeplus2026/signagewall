@@ -184,9 +184,11 @@ function mountFrame(frameUrl: string): void {
   const el = document.createElement('iframe')
   el.className = 'stream-frame'
   el.src = frameUrl
+  // `allow` already grants fullscreen, and the browser warns that it takes
+  // precedence over the legacy `allowfullscreen` attribute — so setting both
+  // only adds a console warning on every mount and grants nothing extra.
   el.allow =
     'autoplay; fullscreen; encrypted-media; picture-in-picture; accelerometer; gyroscope'
-  el.allowFullscreen = true
   el.setAttribute('referrerpolicy', 'no-referrer-when-downgrade')
   frame = el
   root.replaceChildren(el)
