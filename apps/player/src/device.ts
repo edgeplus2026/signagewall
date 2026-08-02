@@ -219,6 +219,7 @@ export type PlayerPlatform =
   | 'android-webview'
   | 'electron'
   | 'tauri'
+  | 'webos'
   | 'browser'
 
 export function getPlatform(): PlayerPlatform {
@@ -237,6 +238,14 @@ export function getPlatform(): PlayerPlatform {
   // Android WebView reports "; wv)" in its userAgent (vs Chrome for Android).
   if (ua.includes('android') && ua.includes('wv')) {
     return 'android-webview'
+  }
+  // LG TVs and signage displays. The token is spelled with a DIGIT ZERO on the
+  // hardware — `Mozilla/5.0 (Web0S; Linux/SmartTV) … WebAppManager`, verified on
+  // a webOS 22 set — while LG's own docs and some builds write `webOS`, so both
+  // spellings are matched. There is no native bridge here: the platform is
+  // reported for fleet visibility, and restart still falls through to a reload.
+  if (ua.includes('web0s') || ua.includes('webos')) {
+    return 'webos'
   }
   return 'browser'
 }

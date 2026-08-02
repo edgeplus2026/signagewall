@@ -6,11 +6,19 @@
  * all three. Add a reported field once, here.
  */
 
-/** Where the player runs, as reported by the native shell (or 'browser'). */
+/**
+ * Where the player runs, as reported by the native shell (or derived from the
+ * userAgent). `webos` is an LG TV or signage display: it has no native bridge,
+ * so it behaves like `browser` everywhere in the code — it is reported
+ * separately only so the fleet is legible, since those displays have their own
+ * failure modes (one video decode session, no service worker when packaged, no
+ * wake lock) and "browser" hides which screens they are.
+ */
 export type PlayerRuntime =
   | 'tauri'
   | 'electron'
   | 'android-webview'
+  | 'webos'
   | 'browser'
 
 /** Progress of the native-shell OTA updater, surfaced to operators in the CMS. */

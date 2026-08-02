@@ -93,3 +93,47 @@ describe('getStoredDailyReload', () => {
     expect(getStoredDailyReload()).toEqual({ enabled: true, time: '03:00' })
   })
 })
+
+/**
+ * The one platform here that is detected purely from the userAgent, so the
+ * string it matches is worth pinning: LG spells the token with a digit zero on
+ * the hardware, which is easy to "correct" into a bug.
+ */
+describe('getPlatform', () => {
+  const withUserAgent = async (userAgent: string) => {
+    vi.stubGlobal('navigator', { userAgent, platform: 'test' })
+    vi.resetModules()
+    const { getPlatform } = await import('./device')
+    return getPlatform()
+  }
+
+  it('reports webOS from the userAgent an LG set actually sends', async () => {
+    await expect(
+      withUserAgent(
+        'Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 WebAppManager',
+      ),
+    ).resolves.toBe('webos')
+  })
+
+  it('also accepts the documented `webOS` spelling', async () => {
+    await expect(
+      withUserAgent('Mozilla/5.0 (webOS.TV-2023; Linux/SmartTV) Chrome/94'),
+    ).resolves.toBe('webos')
+  })
+
+  it('still reports android-webview, which must not be mistaken for webOS', async () => {
+    await expect(
+      withUserAgent(
+        'Mozilla/5.0 (Linux; Android 11; wv) AppleWebKit/537.36 Chrome/110 Safari/537.36',
+      ),
+    ).resolves.toBe('android-webview')
+  })
+
+  it('falls back to browser for a plain desktop userAgent', async () => {
+    await expect(
+      withUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+      ),
+    ).resolves.toBe('browser')
+  })
+})
