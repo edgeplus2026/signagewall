@@ -45,6 +45,14 @@ export interface ShellDeviceInfo {
   shellVersion?: string
   kioskMode?: string
   deviceOwner?: boolean
+  /**
+   * Whether Android will let the shell put the player back on screen after
+   * something knocks it off. False means the display is one firmware hiccup away
+   * from sitting on the TV's menu until a person walks over — measured in the
+   * field: a codec crash took the player off and 63 consecutive recovery attempts
+   * were refused. Undefined on a shell too old to report it.
+   */
+  canRecover?: boolean
 }
 
 /**
@@ -68,6 +76,15 @@ export function reportServiceMenuOpen(isOpen: boolean): void {
   } catch {
     // A missing or throwing native bridge must never break the player.
   }
+}
+
+/**
+ * Opens the system screen where the operator allows the player to put itself back
+ * on screen. Resolves false when the device has no such screen, so the bar can say
+ * so instead of appearing to do nothing.
+ */
+export async function requestRecoveryPermission(): Promise<boolean> {
+  return (await nativeInvoke<boolean>('request_recovery_permission')) ?? false
 }
 
 /**

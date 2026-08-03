@@ -5,6 +5,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Not for drawing anything: it is the one exemption a normal app can hold
+         from Android's background-activity-launch block, which is what stops the
+         keep-alive from putting the player back after something knocks it off the
+         screen. Measured on an Android 14 TV: 1/5 recoveries without it (and that
+         one only inside the ~10s grace period), 5/5 in ~4s with it. Granted by the
+         operator once, from the service bar — see requestOverlayPermission. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Level 3: prompted APK self-update on non-Device-Owner devices. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />

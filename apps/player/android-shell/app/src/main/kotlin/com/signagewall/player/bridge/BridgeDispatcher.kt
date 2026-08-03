@@ -33,6 +33,8 @@ class BridgeDispatcher(
     private val deviceInfo: () -> String = { "{}" },
     /** Unpairs this display locally: drops the device id and restarts. */
     private val onDeactivate: () -> Unit = {},
+    /** Opens the overlay-permission settings screen; false if the device has none. */
+    private val onRequestRecovery: () -> Boolean = { false },
 ) {
     fun dispatch(cmd: String, argsJson: String): JsonElement = when (cmd) {
         "get_device_id" -> getDeviceId()
@@ -44,6 +46,9 @@ class BridgeDispatcher(
             onDeactivate()
             JsonNull
         }
+        // Opens the system screen where the operator allows the player to put
+        // itself back on screen. Answers whether such a screen exists here.
+        "request_recovery_permission" -> JsonPrimitive(onRequestRecovery())
         "check_update" -> updater.cachedCheck()
         "run_update" -> updater.runUpdate()
         "get_update_state" -> updater.stateReport()

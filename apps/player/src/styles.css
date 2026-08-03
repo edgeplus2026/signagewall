@@ -575,7 +575,9 @@ body {
 }
 
 /* Equal columns so the focus ring lands somewhere predictable on every screen
-   width — a D-pad user is aiming without a pointer. */
+   width — a D-pad user is aiming without a pointer. The count is set inline: the
+   action set is not fixed, since the recovery grant only appears on a device that
+   still needs it. */
 .service-bar__actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

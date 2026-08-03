@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
+import type { JSX } from 'preact'
 
 import { config } from '../config'
 import { getDeviceId } from '../device'
@@ -8,6 +9,7 @@ import {
   isServiceMenuAvailable,
   loadShellDeviceInfo,
   reportServiceMenuOpen,
+  requestRecoveryPermission,
   type ShellDeviceInfo,
 } from '../native/service'
 import { connection, kioskMode, serviceMenuOpen, snapshot } from '../store'
@@ -35,54 +37,124 @@ import { setKioskLockEnabled } from '../sync/kiosk'
  * the only one that asks twice.
  */
 
-/** The actions, left to right. Deactivate is deliberately last. */
-const ACTION_COUNT = 3
-const ACTION_KIOSK = 0
-const ACTION_CLOSE = 1
-const ACTION_DEACTIVATE = 2
+/**
+ * One action in the bar. Built as data rather than as fixed markup because the
+ * set is not fixed: the recovery grant exists only on a device that still needs
+ * it, and D-pad navigation has to walk whatever is actually there.
+ */
+interface BarAction {
+  key: string
+  label: string
+  hint: string
+  danger?: boolean
+  disabled?: boolean
+  /** Rendered as an on/off switch rather than a plain button. */
+  toggle?: boolean
+  on?: boolean
+  activate: () => void
+}
 
 export function ServiceMenu() {
   const open = serviceMenuOpen.value
-  const [index, setIndex] = useState(ACTION_KIOSK)
+  const [index, setIndex] = useState(0)
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [info, setInfo] = useState<ShellDeviceInfo | undefined>(undefined)
-  // Mirrored into a ref so the key handler — registered once — always sees the
-  // current selection without re-subscribing on every keypress.
-  const stateRef = useRef({ open, index, busy })
-  stateRef.current = { open, index, busy }
+  const [noSettingsScreen, setNoSettingsScreen] = useState(false)
 
   const close = useCallback((): void => {
     serviceMenuOpen.value = false
     setConfirming(false)
-    setIndex(ACTION_KIOSK)
+    setIndex(0)
   }, [])
 
-  const activate = useCallback((action: number): void => {
-    if (action === ACTION_KIOSK) {
-      setKioskLockEnabled(kioskMode.peek() === 'off')
-      return
-    }
-    if (action === ACTION_CLOSE) {
-      // Off a native shell this is a no-op; the button is disabled there, so
-      // reaching here at all means a shell that promised `closeApp` and refused.
-      closeApp()
-      return
-    }
-    // Deactivate: first press arms, second confirms. Wiping a paired screen on a
-    // single D-pad press is not a mistake anyone should be able to make.
-    setConfirming((armed) => {
-      if (!armed) {
-        return true
-      }
-      setBusy(true)
-      void deactivateDevice()
-      return true
+  const locked = kioskMode.value !== 'off'
+  const canClose = Boolean(window.AndroidBridge?.closeApp)
+  const screen = snapshot.value
+  // Undefined means a shell too old to answer — say nothing rather than accuse a
+  // healthy device of being broken.
+  const needsRecovery = info?.canRecover === false
+
+  const actions: BarAction[] = []
+
+  // First, and only while it is missing. Without this the display cannot put
+  // itself back after anything knocks it off — which is the difference between a
+  // four-second blip and a screen that sits on the TV menu until a customer
+  // notices. Seen in the field: a firmware codec crash took the player off and
+  // 63 consecutive recovery attempts were refused by Android.
+  if (needsRecovery) {
+    actions.push({
+      key: 'recovery',
+      label: noSettingsScreen ? 'Not available here' : 'Allow auto-recovery',
+      hint: noSettingsScreen
+        ? 'This TV has no screen for it — the player cannot restore itself'
+        : 'Opens Android settings. Without it the screen stays blank if playback crashes.',
+      disabled: noSettingsScreen,
+      activate: () => {
+        void requestRecoveryPermission().then((opened) => {
+          setNoSettingsScreen(!opened)
+        })
+      },
     })
-  }, [])
+  }
+
+  actions.push({
+    key: 'kiosk',
+    label: 'Kiosk mode',
+    // What the setting DOES, not what it is called. Deliberately not the mode
+    // name: the shell quietly degrades `hard` to `soft` on a box that isn't
+    // Device Owner, so printing "hard" here would be a promise it cannot keep.
+    hint: locked
+      ? 'On — the remote cannot leave the player'
+      : 'Off — anyone can exit to the TV menu',
+    toggle: true,
+    on: locked,
+    activate: () => setKioskLockEnabled(kioskMode.peek() === 'off'),
+  })
+
+  actions.push({
+    key: 'close',
+    label: 'Close application',
+    hint: canClose
+      ? 'Exits to the TV menu. Nothing plays until it is reopened.'
+      : 'Only available on the Android player app',
+    disabled: !canClose,
+    // Off a native shell this is a no-op; the button is disabled there, so
+    // reaching here at all means a shell that promised `closeApp` and refused.
+    activate: () => void closeApp(),
+  })
+
+  actions.push({
+    key: 'deactivate',
+    label: busy
+      ? 'Deactivating…'
+      : confirming
+        ? 'Press again to confirm'
+        : 'Deactivate player',
+    hint: 'Frees this device for another screen. It asks for a new registration code; your screen and its playlist stay in the dashboard.',
+    danger: true,
+    disabled: busy,
+    // First press arms, second confirms. Wiping a paired screen on a single
+    // D-pad press is not a mistake anyone should be able to make.
+    activate: () =>
+      setConfirming((armed) => {
+        if (!armed) {
+          return true
+        }
+        setBusy(true)
+        void deactivateDevice()
+        return true
+      }),
+  })
+
+  // Mirrored into a ref so the key handler — registered once — always sees the
+  // current selection and action set without re-subscribing on every keypress.
+  const stateRef = useRef({ open, index, busy, actions })
+  stateRef.current = { open, index, busy, actions }
 
   const move = useCallback((step: number): void => {
-    setIndex((value) => (value + step + ACTION_COUNT) % ACTION_COUNT)
+    const count = stateRef.current.actions.length
+    setIndex((value) => (value + step + count) % count)
     // Walking away disarms: an armed destructive action must never survive the
     // operator's attention moving somewhere else.
     setConfirming(false)
@@ -116,11 +188,13 @@ export function ServiceMenu() {
           move(1)
           break
         case 'Enter':
-        case ' ':
-          if (!current.busy) {
-            activate(current.index)
+        case ' ': {
+          const action = current.actions[current.index]
+          if (!current.busy && action && !action.disabled) {
+            action.activate()
           }
           break
+        }
         // Down dismisses — the bar goes back the way it came. Escape/Back are
         // the same intent from a keyboard or a remote whose BACK the shell
         // forwards to us.
@@ -141,7 +215,7 @@ export function ServiceMenu() {
     // handler, which is what makes stopPropagation above actually hold.
     window.addEventListener('keydown', onKeyDown, true)
     return () => window.removeEventListener('keydown', onKeyDown, true)
-  }, [activate, close, move])
+  }, [close, move])
 
   // Let the native shell drive the bar too. On a signage screen the content is
   // usually an app in a cross-origin iframe, and while that iframe holds focus
@@ -168,8 +242,10 @@ export function ServiceMenu() {
   }, [open])
 
   // Ask the shell for its device facts each time the bar opens rather than once
-  // at boot: kiosk mode and Device Owner can both change while the player runs,
-  // and a service menu showing a stale lock state is worse than showing none.
+  // at boot: kiosk mode, Device Owner and the recovery permission can all change
+  // while the player runs — the last one changes precisely because the operator
+  // just granted it from here — and a service menu showing stale state is worse
+  // than one showing none.
   useEffect(() => {
     if (!open) {
       return undefined
@@ -188,10 +264,6 @@ export function ServiceMenu() {
   if (!open) {
     return null
   }
-
-  const locked = kioskMode.value !== 'off'
-  const canClose = Boolean(window.AndroidBridge?.closeApp)
-  const screen = snapshot.value
 
   return (
     <div class="service-bar" role="dialog" aria-modal="true" aria-label="Service menu">
@@ -212,82 +284,50 @@ export function ServiceMenu() {
               Kiosk lock can be bypassed on this box
             </span>
           )}
+          {needsRecovery && (
+            <span class="service-bar__warn">
+              Screen cannot restore itself if playback crashes
+            </span>
+          )}
         </div>
 
-        <div class="service-bar__actions">
-          <button
-            type="button"
-            class="service-bar__action"
-            data-focused={index === ACTION_KIOSK}
-            aria-pressed={locked}
-            onClick={() => {
-              setIndex(ACTION_KIOSK)
-              activate(ACTION_KIOSK)
-            }}
-          >
-            <span class="service-bar__action-text">
-              <span class="service-bar__action-label">Kiosk mode</span>
-              {/* What the setting DOES, not what it is called. Deliberately not
-                  the mode name: the shell quietly degrades `hard` to `soft` on a
-                  box that isn't Device Owner, so printing "hard" here would be a
-                  promise the device cannot keep. The amber line above says so. */}
-              <span class="service-bar__action-hint">
-                {locked
-                  ? 'On — the remote cannot leave the player'
-                  : 'Off — anyone can exit to the TV menu'}
+        <div
+          class="service-bar__actions"
+          style={`grid-template-columns: repeat(${actions.length}, 1fr)`}
+        >
+          {actions.map((action, i) => (
+            <button
+              key={action.key}
+              type="button"
+              class={
+                action.danger
+                  ? 'service-bar__action service-bar__action--danger'
+                  : 'service-bar__action'
+              }
+              data-focused={index === i}
+              data-armed={action.danger ? confirming : undefined}
+              aria-pressed={action.toggle ? action.on : undefined}
+              disabled={action.disabled ?? false}
+              onClick={() => {
+                setIndex(i)
+                action.activate()
+              }}
+            >
+              <span class="service-bar__action-text">
+                <span class="service-bar__action-label">{action.label}</span>
+                <span class="service-bar__action-hint">{action.hint}</span>
               </span>
-            </span>
-            <span class="service-bar__switch" data-on={locked} aria-hidden="true">
-              <span class="service-bar__knob" />
-            </span>
-          </button>
-
-          <button
-            type="button"
-            class="service-bar__action"
-            data-focused={index === ACTION_CLOSE}
-            disabled={!canClose}
-            onClick={() => {
-              setIndex(ACTION_CLOSE)
-              activate(ACTION_CLOSE)
-            }}
-          >
-            <span class="service-bar__action-text">
-              <span class="service-bar__action-label">Close application</span>
-              <span class="service-bar__action-hint">
-                {canClose
-                  ? 'Exits to the TV menu. Nothing plays until it is reopened.'
-                  : 'Only available on the Android player app'}
-              </span>
-            </span>
-          </button>
-
-          <button
-            type="button"
-            class="service-bar__action service-bar__action--danger"
-            data-focused={index === ACTION_DEACTIVATE}
-            data-armed={confirming}
-            disabled={busy}
-            onClick={() => {
-              setIndex(ACTION_DEACTIVATE)
-              activate(ACTION_DEACTIVATE)
-            }}
-          >
-            <span class="service-bar__action-text">
-              <span class="service-bar__action-label">
-                {busy
-                  ? 'Deactivating…'
-                  : confirming
-                    ? 'Press again to confirm'
-                    : 'Deactivate player'}
-              </span>
-              <span class="service-bar__action-hint">
-                Frees this device for another screen. It asks for a new
-                registration code; your screen and its playlist stay in the
-                dashboard.
-              </span>
-            </span>
-          </button>
+              {action.toggle && (
+                <span
+                  class="service-bar__switch"
+                  data-on={action.on ?? false}
+                  aria-hidden="true"
+                >
+                  <span class="service-bar__knob" />
+                </span>
+              )}
+            </button>
+          ))}
         </div>
 
         <div class="service-bar__hints">◀ ▶ select · OK confirm · ▼ close</div>
@@ -305,7 +345,7 @@ function Fact({
   label: string
   value?: string | number
   mono?: boolean
-}) {
+}): JSX.Element {
   return (
     <span class="service-bar__fact">
       <span class="service-bar__fact-label">{label}</span>

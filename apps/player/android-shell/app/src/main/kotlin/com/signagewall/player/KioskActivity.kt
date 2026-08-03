@@ -4,7 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -56,6 +59,9 @@ class KioskActivity : AppCompatActivity() {
      */
     @Volatile
     private var serviceMenuOpen: Boolean = false
+
+    /** Set while the operator is away in the overlay-permission settings screen. */
+    private var awaitingOverlayGrant: Boolean = false
 
     /** Pushed by the web layer once paired; shown in the on-device service dialog. */
     @Volatile
@@ -128,6 +134,7 @@ class KioskActivity : AppCompatActivity() {
                 deviceOwner = { kioskController.isDeviceOwner() },
                 deviceInfo = { deviceInfoJson() },
                 onDeactivate = { runOnUiThread { deactivatePlayer() } },
+                onRequestRecovery = { requestOverlayPermission() },
             ),
             onRestart = { restartApp() },
             onSetKioskLock = { mode -> kioskController.setMode(mode) },
@@ -218,10 +225,62 @@ class KioskActivity : AppCompatActivity() {
                 "shellVersion" to JsonPrimitive(BuildConfig.VERSION_NAME),
                 "kioskMode" to JsonPrimitive(kioskController.current.name.lowercase()),
                 "deviceOwner" to JsonPrimitive(kioskController.isDeviceOwner()),
+                // Whether the keep-alive is actually allowed to put the player
+                // back on screen. The bar surfaces this because a screen that
+                // cannot recover looks identical to a healthy one until the day
+                // something knocks it off.
+                "canRecover" to JsonPrimitive(canRecover()),
             ),
         ),
     )
 
+    /**
+     * Whether Android will let the watchdog pull the player back to the front.
+     * Device Owner is allowed unconditionally; everyone else needs the overlay
+     * permission, which is the only background-activity-launch exemption a normal
+     * app can hold. Without it a player knocked off the screen — by a firmware
+     * codec crash, an OEM launcher, anything — stays off it, alive but invisible.
+     */
+    private fun canRecover(): Boolean =
+        kioskController.isDeviceOwner() || Settings.canDrawOverlays(this)
+
+    /**
+     * Opens the system screen where the operator grants that permission. Returns
+     * false when the device has no such screen (it is optional, and some TV builds
+     * omit it) so the bar can say so rather than appear to do nothing.
+     */
+    private fun requestOverlayPermission(): Boolean {
+        val intent = Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse("package:$packageName"),
+        )
+        return try {
+            startActivity(intent)
+            awaitingOverlayGrant = true
+            true
+        } catch (t: Throwable) {
+            Log.w(TAG, "no overlay-permission settings screen on this device", t)
+            false
+        }
+    }
+    /**
+     * Restarts after a trip to the overlay-permission settings screen.
+     *
+     * `Settings.canDrawOverlays()` reads a per-process cache, so a grant made
+     * seconds ago is invisible to the running process — measured on device: the
+     * app op read `allow` while the player still reported it could not recover,
+     * and only a force-stop cleared it. Without this the operator grants the
+     * permission, comes back, sees the same warning, and reasonably concludes it
+     * did not work.
+     *
+     * Unconditional, because that same stale read means we cannot tell a grant
+     * from a cancel. A needless ten-second restart during setup is a far smaller
+     * cost than a screen that quietly keeps its old, broken answer.
+     */
+    private fun restartAfterOverlayGrant() {
+        awaitingOverlayGrant = false
+        restartApp()
+    }
     /**
      * Closes the player from the web service bar. Marshalled to the UI thread
      * because it arrives on the WebView's JS thread.
@@ -313,6 +372,11 @@ class KioskActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         KioskPresence.setResumed(true)
+        // Back from the overlay-permission screen: the process must restart before
+        // it can even see the answer. See restartAfterOverlayGrant.
+        if (awaitingOverlayGrant) {
+            restartAfterOverlayGrant()
+        }
     }
 
     override fun onPause() {
@@ -329,6 +393,10 @@ class KioskActivity : AppCompatActivity() {
         webView?.destroy()
         webView = null
         super.onDestroy()
+    }
+
+    private companion object {
+        private const val TAG = "KioskActivity"
     }
 
 }

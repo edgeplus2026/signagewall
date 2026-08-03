@@ -18,6 +18,7 @@ const {
   deactivateDevice,
   isServiceMenuAvailable,
   loadShellDeviceInfo,
+  requestRecoveryPermission,
 } = await import('./service')
 
 const reload = vi.fn()
@@ -105,6 +106,35 @@ describe('loadShellDeviceInfo', () => {
 
   it('resolves undefined in a plain browser', async () => {
     await expect(loadShellDeviceInfo()).resolves.toBeUndefined()
+  })
+})
+
+describe('requestRecoveryPermission', () => {
+  it('reports that the settings screen opened', async () => {
+    stubAndroid({ request_recovery_permission: true })
+    await expect(requestRecoveryPermission()).resolves.toBe(true)
+  })
+
+  // Some TV builds omit the overlay-permission screen entirely. The bar then says
+  // so, instead of offering a button that silently does nothing.
+  it('reports false when the device has no such screen', async () => {
+    stubAndroid({ request_recovery_permission: false })
+    await expect(requestRecoveryPermission()).resolves.toBe(false)
+  })
+
+  it('reports false in a plain browser', async () => {
+    await expect(requestRecoveryPermission()).resolves.toBe(false)
+  })
+})
+
+describe('loadShellDeviceInfo — recovery state', () => {
+  // The field failure this exists for: a firmware codec crash took the player off
+  // screen and Android refused 63 consecutive attempts to put it back.
+  it('carries canRecover through', async () => {
+    stubAndroid({ device_info: { canRecover: false } })
+    await expect(loadShellDeviceInfo()).resolves.toMatchObject({
+      canRecover: false,
+    })
   })
 })
 
