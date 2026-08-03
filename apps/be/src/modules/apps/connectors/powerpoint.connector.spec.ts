@@ -97,7 +97,7 @@ describe('powerpoint connector', () => {
     expect(
       schema.safeParse({
         source: 'embed',
-        embedUrl: 'https://onedrive.live.com/?id=ordinary-share-page',
+        embedUrl: 'https://onedrive.live.com/',
       }).success,
     ).toBe(false);
   });

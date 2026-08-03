@@ -26,8 +26,8 @@
   },
   "powerpoint": {
     "tagline": "Prikažite PowerPoint na ekranima",
-    "description": "Nalepite javni PowerPoint embed URL bez povezivanja naloga ili povežite Microsoft za privatni slajdšou koji se automatski ažurira.",
-    "about": "Prikažite PowerPoint prezentaciju na jedan od dva načina. Nalepite Microsoft javni embed URL za prikaz bez povezivanja naloga koji prati objavljenu prezentaciju ili povežite Microsoft nalog i izaberite privatnu .pptx datoteku sa OneDrive ili SharePoint. Povezana opcija renderuje i kešira svaki slajd, omogućava podešavanje trajanja i uklapanja i nastavlja da radi bez mreže; obe opcije automatski preuzimaju izmene."
+    "description": "Nalepite javni PowerPoint embed kod ili URL bez povezivanja naloga ili povežite Microsoft za privatni slajdšou koji se automatski ažurira.",
+    "about": "Prikažite PowerPoint prezentaciju na jedan od dva načina. Nalepite kompletan Microsoft javni embed kod, njegov URL ili javni SharePoint link prezentacije za prikaz bez povezivanja naloga koji prati objavljenu prezentaciju. Alternativno, povežite Microsoft nalog i izaberite privatnu .pptx datoteku sa OneDrive ili SharePoint. Povezana opcija renderuje i kešira svaki slajd, omogućava podešavanje trajanja i uklapanja i nastavlja da radi bez mreže; obe opcije automatski preuzimaju izmene."
   },
   "gslides": {
     "tagline": "Vrtite privatni Google Slides sa svog naloga",

@@ -2107,8 +2107,8 @@
       },
       "powerpoint": {
         "tagline": "Show a PowerPoint deck on your screens",
-        "description": "Paste a public PowerPoint embed URL with no account, or connect Microsoft for a private, automatically synced slideshow.",
-        "about": "Show a PowerPoint presentation in either of two ways. Paste Microsoft’s public embed URL for a no-account viewer that follows the published deck, or connect a Microsoft account and pick a private .pptx from OneDrive or SharePoint. The connected option renders and caches every slide, lets you set timing and screen fit, and keeps playing offline; both options pick up edits automatically."
+        "description": "Paste public PowerPoint embed code or a URL with no account, or connect Microsoft for a private, automatically synced slideshow.",
+        "about": "Show a PowerPoint presentation in either of two ways. Paste Microsoft’s complete public embed code, its URL, or a public SharePoint presentation link for a no-account viewer that follows the published deck. Alternatively, connect a Microsoft account and pick a private .pptx from OneDrive or SharePoint. The connected option renders and caches every slide, lets you set timing and screen fit, and keeps playing offline; both options pick up edits automatically."
       },
       "gslides": {
         "tagline": "Loop a private Google Slides deck from your account",
