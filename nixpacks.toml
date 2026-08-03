@@ -1,4 +1,5 @@
-# Railway build config for @signagewall/be.
+# Legacy Nixpacks build config for @signagewall/be. Current Railway deployments
+# use `railpack.json`; keep this file for installations still using Nixpacks.
 #
 # ffmpeg and ffprobe arrive as npm packages with bundled binaries
 # (`ffmpeg-static`, `@ffprobe-installer/ffprobe`), so only poppler needs to come
