@@ -12,6 +12,17 @@
   background: #000000;
 }
 
+/* Public Microsoft/OneDrive viewer — full bleed, with all browser chrome owned
+ * by Microsoft's embed itself. */
+.ppt-embed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000000;
+}
+
 /* Both slide layers occupy the full frame, stacked; the visible one is opaque. */
 .ppt-slide {
   position: absolute;

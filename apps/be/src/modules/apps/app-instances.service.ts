@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { buildConfigZod, buildDefaultConfig } from '@signagewall/apps-contract';
+import { POWERPOINT_SOURCE_MICROSOFT } from '@signagewall/apps';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
@@ -196,7 +197,17 @@ export class AppInstancesService {
       instanceId,
       connectionId,
     );
-    const config = { ...instance.config, connectionId };
+    const config = {
+      ...instance.config,
+      connectionId,
+      // A user can switch an existing embed instance to Microsoft mode and
+      // click Connect before the unsaved source select can be persisted. The
+      // callback is definitive proof of that choice, so bind the mode with the
+      // connection and return to the correct fields after OAuth.
+      ...(instance.appSlug === 'powerpoint'
+        ? { source: POWERPOINT_SOURCE_MICROSOFT }
+        : {}),
+    };
     const updated = await this.instancesRepository.updateById(
       organizationId,
       instanceId,

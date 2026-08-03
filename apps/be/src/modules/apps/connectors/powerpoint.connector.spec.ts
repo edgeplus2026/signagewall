@@ -1,6 +1,8 @@
-import type {
-  ConnectorContext,
-  ResolvedConnection,
+import { powerpointManifest } from '@signagewall/apps';
+import {
+  buildConfigZod,
+  type ConnectorContext,
+  type ResolvedConnection,
 } from '@signagewall/apps-contract';
 
 import { powerpointConnector } from './powerpoint.connector';
@@ -75,6 +77,54 @@ afterEach(() => {
 });
 
 describe('powerpoint connector', () => {
+  it('accepts a Microsoft embed URL and rejects unrelated URLs', () => {
+    const schema = buildConfigZod(powerpointManifest.configSchema, {
+      source: 'embed',
+    });
+
+    expect(
+      schema.safeParse({
+        source: 'embed',
+        embedUrl: 'https://onedrive.live.com/embed?resid=deck',
+      }).success,
+    ).toBe(true);
+    expect(
+      schema.safeParse({
+        source: 'embed',
+        embedUrl: 'https://example.com/presentation.pptx',
+      }).success,
+    ).toBe(false);
+    expect(
+      schema.safeParse({
+        source: 'embed',
+        embedUrl: 'https://onedrive.live.com/?id=ordinary-share-page',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('is inert in no-account embed mode', async () => {
+    const embedConfig = {
+      source: 'embed' as const,
+      embedUrl: 'https://onedrive.live.com/embed?resid=deck',
+    };
+
+    expect(powerpointConnector.cacheKey!(embedConfig)).toBe('');
+    expect(powerpointConnector.webhookResource!(embedConfig)).toBeNull();
+    await expect(
+      powerpointConnector.fetchData(embedConfig, makeCtx()),
+    ).rejects.toThrow(/embed mode/);
+  });
+
+  it('treats a legacy v2 connection as Microsoft mode', () => {
+    expect(powerpointConnector.cacheKey!(config)).toBe(
+      'powerpoint:conn1:drive1|item1',
+    );
+    expect(powerpointConnector.webhookResource!(config)).toEqual({
+      provider: 'microsoft',
+      packedDriveItem: 'drive1|item1',
+    });
+  });
+
   it('renders on first fetch and returns slide urls + version + secrets', async () => {
     const renderer = makeRenderer();
     setPptxRenderer(renderer);

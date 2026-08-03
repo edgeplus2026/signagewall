@@ -5,7 +5,11 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
-import type { PowerPointPayload } from '@signagewall/apps';
+import {
+  POWERPOINT_SOURCE_MICROSOFT,
+  resolvePowerPointSource,
+  type PowerPointPayload,
+} from '@signagewall/apps';
 
 import { unpackDriveItem } from '../../connections/providers/graph-api';
 import {
@@ -16,6 +20,8 @@ import {
 const GRAPH_DRIVES_URL = 'https://graph.microsoft.com/v1.0/drives';
 
 interface PowerPointConfig {
+  source?: 'embed' | 'microsoft';
+  embedUrl?: string;
   connectionId?: string;
   /** The chosen deck: { id: "driveId|itemId", label } from the picker. */
   presentation?: { id?: string; label?: string };
@@ -60,6 +66,11 @@ export const powerpointConnector: AppConnector<
   timeoutMs: 180_000,
 
   cacheKey(config) {
+    // Public embed mode is config-only: no Graph fetch/cache entry. This makes
+    // the connected manifest behave like a static app for this instance.
+    if (resolvePowerPointSource(config) !== POWERPOINT_SOURCE_MICROSOFT) {
+      return '';
+    }
     const connectionId = config.connectionId ?? 'none';
     const presentationId = (config.presentation?.id ?? '').trim() || 'none';
     return `powerpoint:${connectionId}:${presentationId}`;
@@ -68,6 +79,9 @@ export const powerpointConnector: AppConnector<
   // Which drive item the external Graph subscription orchestrator should watch
   // for this config (`AppInstancesService.ensureWebhookSubscription`).
   webhookResource(config) {
+    if (resolvePowerPointSource(config) !== POWERPOINT_SOURCE_MICROSOFT) {
+      return null;
+    }
     const packed = (config.presentation?.id ?? '').trim();
     return packed ? { provider: 'microsoft', packedDriveItem: packed } : null;
   },
@@ -76,6 +90,9 @@ export const powerpointConnector: AppConnector<
     config: PowerPointConfig,
     ctx: ConnectorContext,
   ): Promise<ConnectorResult<PowerPointPayload>> {
+    if (resolvePowerPointSource(config) !== POWERPOINT_SOURCE_MICROSOFT) {
+      throw new Error('powerpoint: embed mode does not use the connector');
+    }
     if (!ctx.connection) {
       throw new Error('powerpoint: no connection resolved');
     }

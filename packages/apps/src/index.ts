@@ -192,6 +192,14 @@ export type {
 export type { GcalPayload, GcalEvent } from './gcal/payload.js'
 export type { CanvaPayload } from './canva/payload.js'
 export type { PowerPointPayload } from './powerpoint/payload.js'
+export {
+  POWERPOINT_EMBED_URL_PATTERN,
+  POWERPOINT_SOURCE_EMBED,
+  POWERPOINT_SOURCE_MICROSOFT,
+  normalizePowerPointEmbedUrl,
+  resolvePowerPointSource,
+} from './powerpoint/source.js'
+export type { PowerPointSource } from './powerpoint/source.js'
 export type { RssPayload, RssItem } from './rss/payload.js'
 export type { TickerPayload } from './ticker/payload.js'
 export type { FxPayload, FxRate } from './currency/payload.js'

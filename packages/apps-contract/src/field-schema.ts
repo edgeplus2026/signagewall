@@ -290,7 +290,19 @@ function buildFieldZod(field: Field): z.ZodTypeAny {
   if (STRING_LIKE_TYPES.has(field.type)) {
     schema = buildStringSchema(field)
   } else if (field.type === 'url') {
-    const url = z.string().url()
+    let url = z.string().url()
+    // URL fields are text fields too: app manifests use this to reject a valid
+    // but wrong-provider URL (e.g. a normal Power BI link or a non-Microsoft
+    // PowerPoint page) before it reaches an unattended player.
+    if (field.validation?.pattern) {
+      url = url.regex(new RegExp(field.validation.pattern))
+    }
+    if (field.validation?.min !== undefined) {
+      url = url.min(field.validation.min)
+    }
+    if (field.validation?.max !== undefined) {
+      url = url.max(field.validation.max)
+    }
     // Optional URLs may be left blank.
     schema = field.required ? url : url.or(z.literal(''))
   } else if (field.type === 'number') {
