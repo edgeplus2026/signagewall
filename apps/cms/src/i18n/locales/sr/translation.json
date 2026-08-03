@@ -2090,8 +2090,8 @@
       },
       "powerpoint": {
         "tagline": "Prikažite PowerPoint na ekranima",
-        "description": "Prikažite PowerPoint prezentaciju sa OneDrive ili SharePoint kao slajdšou u krug — ekran se ažurira čim se prezentacija promeni.",
-        "about": "Vrtite PowerPoint prezentaciju sačuvanu na OneDrive ili SharePoint kao slajdšou bez ručnog rada. Prijavite se svojim Microsoft nalogom, izaberite .pptx datoteku i podesite sekunde po slajdu i način uklapanja u ekran — ceo slajd sa crnim ivicama ili popunjavanje sa isecanjem. Čim neko izmeni prezentaciju, ekran se ažurira, pa je idealno za internu komunikaciju i prezentacije u kancelarijama i holovima."
+        "description": "Nalepite javni PowerPoint embed URL bez povezivanja naloga ili povežite Microsoft za privatni slajdšou koji se automatski ažurira.",
+        "about": "Prikažite PowerPoint prezentaciju na jedan od dva načina. Nalepite Microsoft javni embed URL za prikaz bez povezivanja naloga koji prati objavljenu prezentaciju ili povežite Microsoft nalog i izaberite privatnu .pptx datoteku sa OneDrive ili SharePoint. Povezana opcija renderuje i kešira svaki slajd, omogućava podešavanje trajanja i uklapanja i nastavlja da radi bez mreže; obe opcije automatski preuzimaju izmene."
       },
       "gslides": {
         "tagline": "Vrtite privatni Google Slides sa svog naloga",

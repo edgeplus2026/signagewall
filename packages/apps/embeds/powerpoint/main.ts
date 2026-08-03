@@ -1,4 +1,10 @@
 import type { PowerPointPayload } from '../../src/powerpoint/payload.js'
+import {
+  POWERPOINT_SOURCE_EMBED,
+  normalizePowerPointEmbedUrl,
+  resolvePowerPointSource,
+  type PowerPointSource,
+} from '../../src/powerpoint/source.js'
 import type { AppDataMeta } from '../_shared/host-bridge.js'
 import { connectToHost } from '../_shared/host-bridge.js'
 
@@ -8,7 +14,10 @@ import '../_shared/base.css'
 import './style.css'
 
 /** Display settings the operator sets in the config form (applied client-side). */
-interface PowerPointConfig {
+interface PowerPointConfig extends Record<string, unknown> {
+  source?: PowerPointSource
+  embedUrl?: string
+  embedRefreshMinutes?: number
   slideDuration?: number
   fit?: 'contain' | 'cover'
   background?: string
@@ -17,25 +26,32 @@ interface PowerPointConfig {
 const DEFAULT_SECONDS = 15
 const MIN_SECONDS = 3
 const MAX_SECONDS = 120
+const DEFAULT_EMBED_REFRESH_MINUTES = 15
 
 const root = document.getElementById('app')
 
 /** The whole of this app's state; the DOM is a function of it. */
 let config: PowerPointConfig = {}
+let source: PowerPointSource = POWERPOINT_SOURCE_EMBED
 let slides: string[] = []
 let slidesKey = ''
 let meta: AppDataMeta | null = null
 /** Whether we are the on-screen item (the player preloads us hidden first). */
 let active = false
 let index = 0
-let timer: ReturnType<typeof setInterval> | undefined
+let slideTimer: ReturnType<typeof setInterval> | undefined
 /** The two crossfade layers; `front` indexes the currently-visible one. */
 let layers: HTMLImageElement[] = []
 let front = 0
 /** Bumped on every rebuild so an in-flight decode from a stale stage is ignored. */
 let generation = 0
 
-/** How long one slide holds the screen. */
+/** Public/no-account Microsoft viewer state. */
+let embedUrl: string | null = null
+let mountedEmbedUrl: string | null = null
+let embedReloadTimer: ReturnType<typeof setInterval> | undefined
+
+/** How long one locally-rendered slide holds the screen. */
 function seconds(): number {
   const value = config.slideDuration
   if (typeof value !== 'number' || !Number.isFinite(value)) {
@@ -44,19 +60,35 @@ function seconds(): number {
   return Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, Math.floor(value)))
 }
 
-function clearTimer(): void {
-  if (timer !== undefined) {
-    clearInterval(timer)
-    timer = undefined
+function clearSlideTimer(): void {
+  if (slideTimer !== undefined) {
+    clearInterval(slideTimer)
+    slideTimer = undefined
   }
 }
 
-function renderLoading(): void {
-  clearTimer()
-  layers = []
+function clearEmbedReloadTimer(): void {
+  if (embedReloadTimer !== undefined) {
+    clearInterval(embedReloadTimer)
+    embedReloadTimer = undefined
+  }
+}
+
+function showMessage(message: string): void {
   if (!root) return
+  const wrap = document.createElement('div')
+  wrap.className = 'center'
+  const line = document.createElement('p')
+  line.textContent = message
+  wrap.append(line)
+  root.replaceChildren(wrap)
+}
+
+function renderLoading(): void {
+  clearSlideTimer()
+  layers = []
   const label = meta?.pending ? 'Preparing slides…' : 'Loading presentation…'
-  root.innerHTML = `<div class="center"><p>${label}</p></div>`
+  showMessage(label)
 }
 
 function applyStageStyles(stage: HTMLElement): void {
@@ -70,6 +102,7 @@ function applyStageStyles(stage: HTMLElement): void {
 function buildStage(): void {
   const first = slides[0]
   if (!root || !first) return
+  unmountEmbed()
   const stage = document.createElement('div')
   stage.className = 'ppt'
   const a = document.createElement('img')
@@ -90,7 +123,7 @@ function buildStage(): void {
   a.classList.add('is-visible')
 }
 
-/** Crossfade to the next slide. */
+/** Crossfade to the next locally-rendered slide. */
 function advance(): void {
   if (layers.length < 2 || slides.length < 2) return
   const next = (index + 1) % slides.length
@@ -118,18 +151,16 @@ function advance(): void {
   }
 }
 
-/**
- * (Re)start rotation. Only the on-screen instance rotates: the player preloads
- * the next item hidden, and a hidden slideshow left ticking would arrive
- * mid-rotation when it comes on screen.
- */
-function restartTimer(): void {
-  clearTimer()
-  if (!active || slides.length < 2) return
-  timer = setInterval(advance, seconds() * 1000)
+/** Rotate only while the connected/cached instance is actually on screen. */
+function restartSlideTimer(): void {
+  clearSlideTimer()
+  if (source === POWERPOINT_SOURCE_EMBED || !active || slides.length < 2) {
+    return
+  }
+  slideTimer = setInterval(advance, seconds() * 1000)
 }
 
-function apply(data: PowerPointPayload | null): void {
+function applySlides(data: PowerPointPayload | null): void {
   slides = data?.slides ?? []
   if (slides.length === 0) {
     renderLoading()
@@ -145,25 +176,116 @@ function apply(data: PowerPointPayload | null): void {
     // Same slides, operator only tweaked a display knob — re-apply styles.
     applyStageStyles(root.firstElementChild)
   }
-  restartTimer()
+  restartSlideTimer()
+}
+
+function embedRefreshMs(): number {
+  const minutes = config.embedRefreshMinutes
+  if (typeof minutes !== 'number' || !Number.isFinite(minutes)) {
+    return DEFAULT_EMBED_REFRESH_MINUTES * 60_000
+  }
+  return Math.min(1440, Math.max(1, Math.floor(minutes))) * 60_000
+}
+
+function buildEmbedFrame(url: string): HTMLIFrameElement {
+  const frame = document.createElement('iframe')
+  frame.className = 'ppt-embed'
+  frame.title = 'PowerPoint presentation'
+  frame.src = url
+  // The Microsoft viewer needs scripts and its own origin, but receives no
+  // capability to navigate the kiosk, open popups or download files.
+  frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms')
+  frame.setAttribute('allow', 'autoplay; fullscreen')
+  frame.referrerPolicy = 'strict-origin-when-cross-origin'
+  frame.onerror = (): void => {
+    mountedEmbedUrl = null
+    clearEmbedReloadTimer()
+    showMessage(
+      'Cannot display this presentation — check that it is a public PowerPoint embed URL.',
+    )
+  }
+  return frame
+}
+
+function scheduleEmbedReload(): void {
+  clearEmbedReloadTimer()
+  if (!active || !mountedEmbedUrl) return
+  embedReloadTimer = setInterval(() => {
+    if (!root || !mountedEmbedUrl) return
+    const frame = root.querySelector<HTMLIFrameElement>('iframe.ppt-embed')
+    if (frame) frame.src = mountedEmbedUrl
+  }, embedRefreshMs())
+}
+
+function mountEmbed(url: string): void {
+  if (!root || mountedEmbedUrl === url) return
+  root.replaceChildren(buildEmbedFrame(url))
+  mountedEmbedUrl = url
+  scheduleEmbedReload()
+}
+
+function unmountEmbed(): void {
+  clearEmbedReloadTimer()
+  if (!root || mountedEmbedUrl === null) return
+  root.replaceChildren()
+  mountedEmbedUrl = null
+}
+
+function renderEmbed(): void {
+  clearSlideTimer()
+  layers = []
+  generation++
+
+  if (!embedUrl) {
+    unmountEmbed()
+    showMessage(
+      'Paste a public Microsoft PowerPoint embed URL to preview this presentation.',
+    )
+    return
+  }
+  if (active) {
+    mountEmbed(embedUrl)
+  } else {
+    unmountEmbed()
+  }
 }
 
 connectToHost<PowerPointConfig, PowerPointPayload>(
   ({ config: incoming, data, meta: incomingMeta }) => {
     config = incoming ?? {}
     meta = incomingMeta
-    apply(data)
+    const nextSource = resolvePowerPointSource(config)
+    const sourceChanged = nextSource !== source
+    source = nextSource
+
+    if (source === POWERPOINT_SOURCE_EMBED) {
+      slides = []
+      slidesKey = ''
+      embedUrl = normalizePowerPointEmbedUrl(config.embedUrl)
+      if (sourceChanged) mountedEmbedUrl = null
+      renderEmbed()
+      if (mountedEmbedUrl) scheduleEmbedReload()
+      return
+    }
+
+    embedUrl = null
+    unmountEmbed()
+    applySlides(data)
   },
   {
     onActive: (isActive) => {
       // `app-active` also re-fires on volume changes, so only a real
-      // hidden → on-screen transition restarts the deck from slide one.
+      // hidden → on-screen transition restarts a cached deck from slide one.
       const becameActive = isActive && !active
       active = isActive
+      if (source === POWERPOINT_SOURCE_EMBED) {
+        renderEmbed()
+        return
+      }
       if (becameActive && slides.length > 0) {
         buildStage()
       }
-      restartTimer()
+      restartSlideTimer()
     },
   },
 )
