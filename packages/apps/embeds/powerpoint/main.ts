@@ -192,10 +192,18 @@ function buildEmbedFrame(url: string): HTMLIFrameElement {
   frame.className = 'ppt-embed'
   frame.title = 'PowerPoint presentation'
   frame.src = url
-  // The Microsoft viewer needs scripts and its own origin, but receives no
-  // capability to navigate the kiosk, open popups or download files.
-  frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms')
-  frame.setAttribute('allow', 'autoplay; fullscreen')
+  // Microsoft 365's hosted viewer uses internal forms and nested popup contexts.
+  // Keep top navigation user-activation-gated so unattended signage cannot be
+  // redirected without an operator click. The outer app-host frame grants the
+  // same capabilities because ancestor sandbox restrictions are inherited.
+  frame.setAttribute(
+    'sandbox',
+    'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation',
+  )
+  frame.setAttribute(
+    'allow',
+    'autoplay; fullscreen; clipboard-read; clipboard-write',
+  )
   frame.referrerPolicy = 'strict-origin-when-cross-origin'
   frame.onerror = (): void => {
     mountedEmbedUrl = null
@@ -239,7 +247,7 @@ function renderEmbed(): void {
   if (!embedUrl) {
     unmountEmbed()
     showMessage(
-      'Paste a public Microsoft PowerPoint embed URL to preview this presentation.',
+      'Paste the public embed code from PowerPoint, not an ordinary private share link.',
     )
     return
   }

@@ -1,3 +1,4 @@
+import { normalizePowerPointEmbedUrl } from '@signagewall/apps'
 import type { Field } from '@signagewall/apps-contract'
 
 import { Checkbox } from '@/components/ui/checkbox'
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { useAppSlug } from '@/features/apps/config-form/appSlugContext'
 
 /** Props every field control receives from the renderer. */
 export interface FieldControlProps {
@@ -32,6 +34,9 @@ function asString(value: unknown): string {
 }
 
 export function TextControl({ field, id, value, onChange, onBlur, invalid, disabled }: FieldControlProps) {
+  const appSlug = useAppSlug()
+  const acceptsPowerPointEmbed = appSlug === 'powerpoint' && field.key === 'embedUrl'
+
   return (
     <Input
       id={id}
@@ -43,7 +48,25 @@ export function TextControl({ field, id, value, onChange, onBlur, invalid, disab
       onChange={(event) => {
         onChange(event.target.value)
       }}
-      onBlur={onBlur}
+      onPaste={(event) => {
+        if (!acceptsPowerPointEmbed) return
+        const normalized = normalizePowerPointEmbedUrl(
+          event.clipboardData.getData('text/plain'),
+        )
+        if (!normalized) return
+        event.preventDefault()
+        onChange(normalized)
+      }}
+      onBlur={() => {
+        // Paste normally normalizes immediately. This second pass also handles
+        // browser autofill, drag/drop and an iframe that was already present in
+        // draft state before the CMS learned the newer 1drv.ms embed shape.
+        if (acceptsPowerPointEmbed) {
+          const normalized = normalizePowerPointEmbedUrl(value)
+          if (normalized && normalized !== value) onChange(normalized)
+        }
+        onBlur()
+      }}
     />
   )
 }
@@ -253,4 +276,3 @@ export function FileControl({ field, id, value, onChange, onBlur, invalid, disab
     />
   )
 }
-

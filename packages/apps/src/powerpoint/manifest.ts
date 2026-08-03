@@ -27,10 +27,10 @@ export const powerpointManifest: AppManifest = {
   name: 'PowerPoint',
   tagline: 'Show a PowerPoint deck on your screens',
   description:
-    'Paste a public PowerPoint embed URL with no account, or connect Microsoft for a private, automatically synced slideshow.',
+    'Paste public PowerPoint embed code or a URL with no account, or connect Microsoft for a private, automatically synced slideshow.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 3,
+  version: 4,
   // Polling fallback; the Graph webhook makes updates near-instant when a public
   // callback URL is configured.
   refreshSeconds: 900,
@@ -47,7 +47,7 @@ export const powerpointManifest: AppManifest = {
       // while new instances open in embed mode.
       options: [
         {
-          label: 'Embed URL (no account needed)',
+          label: 'Embed code or URL (no account needed)',
           value: POWERPOINT_SOURCE_EMBED,
         },
         {
@@ -60,12 +60,12 @@ export const powerpointManifest: AppManifest = {
     {
       key: 'embedUrl',
       type: 'url',
-      label: 'PowerPoint embed URL',
+      label: 'PowerPoint embed code or URL',
       required: true,
       visibleWhen: { field: 'source', equals: POWERPOINT_SOURCE_EMBED },
       placeholder: 'https://onedrive.live.com/embed?…',
       validation: { pattern: POWERPOINT_EMBED_URL_PATTERN },
-      help: 'In PowerPoint for the web choose File → Share → Embed this presentation, then paste only the iframe src URL. The presentation must be public to anyone with the link.',
+      help: 'Paste the complete iframe code from File → Share → Embed this presentation, or its src URL. PowerPoint-generated 1drv.ms/p/c links and public SharePoint presentation links are accepted; ordinary private share links are not.',
     },
     {
       key: 'embedRefreshMinutes',
