@@ -8,6 +8,7 @@ import {
   PendingDeletion,
   PendingDeletionSchema,
 } from '../data-deletion/schemas/pending-deletion.schema';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { LegalModule } from '../legal/legal.module';
 import { MailModule } from '../mail/mail.module';
 import { MembersModule } from '../members/members.module';
@@ -36,6 +37,7 @@ export class AuthModule {
       module: AuthModule,
       global: true,
       imports: [
+        AnalyticsModule,
         UsersModule,
         MailModule,
         MembersModule,

@@ -50,14 +50,42 @@ Implementiran je prvi bezbedan vertikalni presek ručnog billing lifecycle-a:
 - dodat je regresioni test za `SuperAdminGuard` i lifecycle testovi za billing i
   bezbedan trial expiry.
 
+Implementiran je i kompletan first-party analytics presek, bez Stripe-a:
+
+- novi backend `AnalyticsModule` i MongoDB `funnelevents` kolekcija su izvor
+  istine za funnel događaje;
+- marketing sajt trajno pamti anonimni ID, first-touch i last-touch atribuciju
+  (`utm_*`, click ID, landing path, referrer domen i locale) i prenosi je u CMS
+  kroz ograničeni acquisition token koji nikada ne služi za autorizaciju;
+- kontakt i quote uspeh beleže `generate_lead`, ali analytics zapis namerno ne
+  sadrži ime, email, telefon, poruku niti drugi PII;
+- server potvrđuje poslovne događaje: `sign_up`, `email_verified`,
+  `trial_started`, `organization_created`, `screen_created`,
+  `content_published`, `device_paired`, `first_screen_activated`,
+  `subscription_requested`, `invoice_issued`, `payment_received`, `purchase`,
+  `subscription_renewed` i `payment_overdue`;
+- stvarna aktivacija nastaje tek kada pravi, upareni player prikaže prvi item;
+  CMS preview je eksplicitno isključen;
+- ručna founder akcija **Mark paid** predstavlja autoritativni payment/purchase
+  događaj; nema Stripe modela, checkouta ni webhooka;
+- super-admin Analytics tab na `/super-admin?tab=analytics` prikazuje 7/30/90
+  dana, funnel, konverziju, izvore registracija/uplata i nedavne događaje;
+- običan korisnik je za founder analytics zaustavljen i na UI gate-u i na
+  backend `SuperAdminGuard`-u;
+- GA4 i Vercel dobijaju anonimne UI događaje; opciono server-side GA4
+  prosleđivanje radi samo uz eksplicitan analytics consent i podešene
+  `GA_MEASUREMENT_ID`/`GA_API_SECRET`. Mongo ostaje autoritativan i kada je GA
+  isključen.
+
 Za uključivanje email upozorenja u okruženju treba postaviti
 `MAIL_BILLING_ALERTS_TO`; ako nije postavljen, koristi se support/registration
 inbox. Zvanična faktura se i dalje pravi i šalje izvan SignageWall-a, a aplikacija
 čuva operativno stanje i audit događaje.
 
 Još nije implementirano: korisnička `/settings/billing` strana, upload/link PDF-a,
-poseban payment/subscription history model, CRM intake, attribution/funnel, MFA,
-Redis rate limiting, Turnstile, aggregate trial resource kvote i Stripe adapter.
+poseban payment/subscription history model, CRM zapis sa PII podacima i lead
+pipeline-om, MFA, Redis rate limiting, Turnstile, aggregate trial resource kvote
+i Stripe adapter. Stripe je namerno van trenutnog scope-a.
 
 ---
 

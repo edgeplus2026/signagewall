@@ -60,6 +60,8 @@ function buildService(options: { updateResult?: unknown } = {}) {
     i18n as never,
     new AvailabilityEvaluator(),
     eventEmitter as never,
+    {} as never, // organizationsRepository
+    { record: jest.fn() } as never, // analytics
   );
 
   return { service, screensRepository, eventEmitter };

@@ -1,6 +1,7 @@
 'use server'
 
 import { countryName } from '@/lib/countries'
+import { recordLead } from '@/lib/server-funnel'
 
 export interface QuoteState {
   status: 'idle' | 'success' | 'error' | 'invalid'
@@ -42,6 +43,10 @@ export async function submitQuote(_prev: QuoteState, formData: FormData): Promis
   // report success so the form can be exercised. A real deploy sets these envs.
   if (!apiKey || !from || !to) {
     console.warn('[quote] Resend not configured — skipping email send')
+    await recordLead(formData, 'quote', {
+      locale,
+      screenQuantity: Number(screens),
+    })
     return { status: 'success' }
   }
 
@@ -76,6 +81,10 @@ export async function submitQuote(_prev: QuoteState, formData: FormData): Promis
     if (!res.ok) {
       throw new Error(`Resend responded ${res.status.toString()}`)
     }
+    await recordLead(formData, 'quote', {
+      locale,
+      screenQuantity: Number(screens),
+    })
     return { status: 'success' }
   } catch (err) {
     console.error('[quote] send failed', err)

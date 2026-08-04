@@ -3,6 +3,8 @@ import { I18nService } from 'nestjs-i18n';
 
 import { toPaginatedResult } from '../../common/dto/paginated-result';
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import { PlansRepository } from '../plans/plans.repository';
 import { UserPlan, UserRole } from '../users/schemas/user.schema';
 import { UsersRepository } from '../users/users.repository';
@@ -45,6 +47,7 @@ export class BillingService {
     private readonly usersRepository: UsersRepository,
     private readonly plansRepository: PlansRepository,
     private readonly i18n: I18nService,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   async createInvoice(
@@ -204,6 +207,18 @@ export class BillingService {
       );
     }
 
+    await this.analytics.record({
+      eventName: FunnelEventName.INVOICE_ISSUED,
+      userId: invoice.customerUserId.toString(),
+      dedupeKey: `invoice_issued:invoice:${invoice._id.toString()}`,
+      properties: {
+        currency: invoice.currency ?? '',
+        valueMinor: invoice.amountMinor ?? 0,
+        screenQuantity: invoice.screenQuantity,
+        invoiceStatus: invoice.status,
+      },
+    });
+
     return toManualInvoiceDto(invoice);
   }
 
@@ -213,6 +228,12 @@ export class BillingService {
     dto: MarkManualInvoicePaidDto,
   ): Promise<ManualInvoiceDto> {
     const current = await this.getInvoiceDocument(invoiceId);
+    const accountBeforePayment = await this.billingRepository.findAccountById(
+      current.billingAccountId.toString(),
+    );
+    const isRenewal =
+      accountBeforePayment?.status === BillingAccountStatus.ACTIVE &&
+      accountBeforePayment.currentPeriodEnd !== null;
     this.assertReadyToSend(current);
 
     if (current.status === ManualInvoiceStatus.PAID) {
@@ -253,6 +274,39 @@ export class BillingService {
 
     const resolved = invoice ?? (await this.getInvoiceDocument(invoiceId));
     await this.projectPaidInvoice(resolved, actorUserId);
+
+    if (invoice) {
+      const common = {
+        userId: resolved.customerUserId.toString(),
+        properties: {
+          currency: resolved.currency ?? '',
+          valueMinor: resolved.amountMinor ?? 0,
+          screenQuantity: resolved.screenQuantity,
+          invoiceStatus: resolved.status,
+        },
+      };
+      await Promise.all([
+        this.analytics.record({
+          ...common,
+          eventName: FunnelEventName.PAYMENT_RECEIVED,
+          dedupeKey: `payment_received:invoice:${invoiceId}`,
+        }),
+        this.analytics.record({
+          ...common,
+          eventName: FunnelEventName.PURCHASE,
+          dedupeKey: `purchase:invoice:${invoiceId}`,
+        }),
+        ...(isRenewal
+          ? [
+              this.analytics.record({
+                ...common,
+                eventName: FunnelEventName.SUBSCRIPTION_RENEWED,
+                dedupeKey: `subscription_renewed:invoice:${invoiceId}`,
+              }),
+            ]
+          : []),
+      ]);
+    }
 
     this.logger.log(
       `Super-admin ${actorUserId} marked invoice ${invoiceId} paid`,
@@ -421,6 +475,17 @@ export class BillingService {
         activityType: ManualInvoiceActivityType.MARKED_OVERDUE,
       });
       if (!updated) continue;
+
+      await this.analytics.record({
+        eventName: FunnelEventName.PAYMENT_OVERDUE,
+        userId: invoice.customerUserId.toString(),
+        dedupeKey: `payment_overdue:invoice:${invoice._id.toString()}`,
+        properties: {
+          currency: invoice.currency ?? '',
+          valueMinor: invoice.amountMinor ?? 0,
+          invoiceStatus: ManualInvoiceStatus.OVERDUE,
+        },
+      });
 
       transitioned += 1;
       const account = await this.billingRepository.findAccountById(

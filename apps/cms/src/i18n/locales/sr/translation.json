@@ -1504,7 +1504,41 @@
       "categories": "Kategorije aplikacija",
       "notifications": "Obaveštenja",
       "upgradeRequests": "Zahtevi za nadogradnju",
-      "billing": "Naplata"
+      "billing": "Naplata",
+      "analytics": "Analitika"
+    },
+    "analytics": {
+      "title": "Lifecycle analitika",
+      "description": "First-party funnel od marketinške posete do aktivnog ekrana i evidentirane ručne uplate.",
+      "lastDays": "Poslednjih {{count}} dana",
+      "fromLanding": "od poseta sajtu",
+      "funnel": "Konverzioni funnel",
+      "acquisition": "Izvori registracija i uplata",
+      "recent": "Nedavni lifecycle događaji",
+      "empty": "Nema događaja u ovom periodu.",
+      "error": "Analitika nije mogla da se učita.",
+      "events": {
+        "marketing_landing": "Posete sajtu",
+        "marketing_cta_clicked": "CTA klikovi",
+        "generate_lead": "Leadovi",
+        "sign_up": "Registracije",
+        "trial_started": "Pokrenuti triali",
+        "organization_created": "Organizacije",
+        "screen_created": "Kreirani ekrani",
+        "content_published": "Objavljen sadržaj",
+        "device_paired": "Upareni uređaji",
+        "first_screen_activated": "Aktivni nalozi",
+        "subscription_requested": "Zahtevi za plan",
+        "invoice_issued": "Poslate fakture",
+        "purchase": "Uplate",
+        "quote_started": "Započeti upiti",
+        "registration_started": "Započete registracije",
+        "email_verified": "Potvrđen email",
+        "login": "Prijave",
+        "payment_received": "Primljena uplata",
+        "subscription_renewed": "Obnove",
+        "payment_overdue": "Dospelo plaćanje"
+      }
     },
     "users": {
       "search": "Pretraži korisnike...",

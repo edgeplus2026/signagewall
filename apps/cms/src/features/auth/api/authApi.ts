@@ -62,8 +62,10 @@ export const authApi = {
     return data
   },
 
-  loginWithGoogle: (): void => {
+  loginWithGoogle: (acquisitionToken?: string): void => {
     const baseUrl = import.meta.env.VITE_API_URL || '/api/v1'
-    window.location.href = `${baseUrl}${AUTH_BASE}/google`
+    const target = new URL(`${baseUrl}${AUTH_BASE}/google`, window.location.origin)
+    if (acquisitionToken) target.searchParams.set('acquisition', acquisitionToken)
+    window.location.href = target.toString()
   },
 }

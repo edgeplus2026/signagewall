@@ -1522,7 +1522,41 @@
       "categories": "Apps Categories",
       "notifications": "Notifications",
       "upgradeRequests": "Upgrade Requests",
-      "billing": "Billing"
+      "billing": "Billing",
+      "analytics": "Analytics"
+    },
+    "analytics": {
+      "title": "Lifecycle analytics",
+      "description": "First-party funnel from marketing visit to an activated screen and recorded manual payment.",
+      "lastDays": "Last {{count}} days",
+      "fromLanding": "of landing visits",
+      "funnel": "Conversion funnel",
+      "acquisition": "Signup and purchase acquisition",
+      "recent": "Recent lifecycle events",
+      "empty": "No events in this period.",
+      "error": "Analytics could not be loaded.",
+      "events": {
+        "marketing_landing": "Landing visits",
+        "marketing_cta_clicked": "CTA clicks",
+        "generate_lead": "Leads",
+        "sign_up": "Signups",
+        "trial_started": "Trials started",
+        "organization_created": "Organizations",
+        "screen_created": "Screens created",
+        "content_published": "Content published",
+        "device_paired": "Devices paired",
+        "first_screen_activated": "Activated accounts",
+        "subscription_requested": "Plan requests",
+        "invoice_issued": "Invoices issued",
+        "purchase": "Payments",
+        "quote_started": "Quotes started",
+        "registration_started": "Registration started",
+        "email_verified": "Email verified",
+        "login": "Logins",
+        "payment_received": "Payment received",
+        "subscription_renewed": "Renewals",
+        "payment_overdue": "Payment overdue"
+      }
     },
     "users": {
       "search": "Search users...",

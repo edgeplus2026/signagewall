@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { SuperAdminGuard } from '../admin/guards/super-admin.guard';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { MailModule } from '../mail/mail.module';
 import { PlansModule } from '../plans/plans.module';
 import { UsersModule } from '../users/users.module';
@@ -24,6 +25,7 @@ import {
       { name: BillingAccount.name, schema: BillingAccountSchema },
       { name: ManualInvoice.name, schema: ManualInvoiceSchema },
     ]),
+    AnalyticsModule,
     UsersModule,
     PlansModule,
     MailModule,

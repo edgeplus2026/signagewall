@@ -1,12 +1,14 @@
 'use client'
 
 import { CheckCircle2 } from 'lucide-react'
-import { useActionState } from 'react'
+import { useActionState, useEffect, useRef } from 'react'
 
 import { submitContact, type ContactState } from './actions'
 
+import { AnalyticsFormFields } from '@/components/analytics/analytics-form-fields'
 import { Button } from '@/components/ui/button'
 import { Field, Input, Label, Textarea } from '@/components/ui/field'
+import { trackVendorEvent } from '@/lib/funnel-analytics'
 
 interface FormLabels {
   name: string
@@ -28,6 +30,14 @@ const INITIAL: ContactState = { status: 'idle' }
 
 export function ContactForm({ labels }: { labels: FormLabels }) {
   const [state, action, pending] = useActionState(submitContact, INITIAL)
+  const reportedSuccess = useRef(false)
+
+  useEffect(() => {
+    if (state.status === 'success' && !reportedSuccess.current) {
+      reportedSuccess.current = true
+      trackVendorEvent('generate_lead', { form: 'contact' })
+    }
+  }, [state.status])
 
   if (state.status === 'success') {
     return (
@@ -42,6 +52,7 @@ export function ContactForm({ labels }: { labels: FormLabels }) {
 
   return (
     <form action={action} className="flex flex-col gap-5">
+      <AnalyticsFormFields />
       <Field>
         <Label htmlFor="name">{labels.name}</Label>
         <Input id="name" name="name" placeholder={labels.namePlaceholder} required />

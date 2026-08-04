@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { PhoneInput } from '@/components/ui/phone-input'
+import { analyticsApi } from '@/features/analytics/api/analyticsApi'
 import { authApi } from '@/features/auth/api/authApi'
 import { invitationsApi } from '@/features/auth/api/invitationsApi'
 import { GoogleLoginButton } from '@/features/auth/components/GoogleLoginButton'
@@ -35,10 +36,20 @@ export function RegisterForm() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const inviteToken = searchParams.get('invite') ?? undefined
+  const acquisitionToken = analyticsApi.acquisitionToken(
+    searchParams.get('acquisition') ?? undefined,
+  )
   const setAuth = useAuthStore((state) => state.setAuth)
   const setOrganizations = useOrganizationStore((state) => state.setOrganizations)
   const setActiveOrganization = useOrganizationStore((state) => state.setActiveOrganization)
   const registerSchema = useMemo(() => createRegisterSchema(t), [t])
+
+  useEffect(() => {
+    const key = `registration-started:${acquisitionToken.slice(-24)}`
+    if (window.sessionStorage.getItem(key)) return
+    window.sessionStorage.setItem(key, 'true')
+    void analyticsApi.registrationStarted(acquisitionToken)
+  }, [acquisitionToken])
 
   const {
     data: invitePreview,
@@ -106,6 +117,7 @@ export function RegisterForm() {
         acceptedLegal: data.acceptedLegal,
         ...(data.company ? { company: data.company } : {}),
         ...(inviteToken ? { inviteToken } : {}),
+        acquisitionToken,
       })
 
       // Standard sign-ups must confirm their email before logging in; no
@@ -279,7 +291,7 @@ export function RegisterForm() {
         </Field>
         <FieldSeparator>{t('common.orContinueWith')}</FieldSeparator>
         <Field>
-          <GoogleLoginButton />
+          <GoogleLoginButton acquisitionToken={acquisitionToken} />
           {/* A footer CTA, not help text — it keeps the body size the smaller
               field-description default would otherwise take from it. */}
           <FieldDescription className="text-center text-sm">

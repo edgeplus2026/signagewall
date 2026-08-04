@@ -4,6 +4,7 @@ export default () => ({
   apiPrefix: process.env.API_PREFIX ?? 'api',
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
   playerUrl: process.env.PLAYER_URL ?? 'http://localhost:5174',
+  marketingUrl: process.env.MARKETING_URL ?? 'http://localhost:3002',
   mongodb: {
     uri: process.env.MONGODB_URI ?? 'mongodb://localhost:27017/signagewall',
   },
@@ -79,6 +80,11 @@ export default () => ({
     // Stricter window applied to sensitive auth/invite routes.
     authTtlSeconds: parseInt(process.env.THROTTLE_AUTH_TTL_SECONDS ?? '60', 10),
     authLimit: parseInt(process.env.THROTTLE_AUTH_LIMIT ?? '10', 10),
+  },
+  analytics: {
+    // Optional server-side forwarding. First-party Mongo events work without it.
+    gaMeasurementId: process.env.GA_MEASUREMENT_ID,
+    gaApiSecret: process.env.GA_API_SECRET,
   },
   swagger: {
     enabled:

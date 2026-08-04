@@ -121,6 +121,7 @@ function build() {
     usersRepository as never,
     plansRepository as never,
     { t: (key: string) => key } as never,
+    { record: jest.fn().mockResolvedValue(undefined) } as never,
   );
 
   return {

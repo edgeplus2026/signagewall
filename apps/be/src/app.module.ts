@@ -25,6 +25,7 @@ import { LegalModule } from './modules/legal/legal.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AiContentModule } from './modules/ai-content/ai-content.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AppsModule } from './modules/apps/apps.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { ConnectionsModule } from './modules/connections/connections.module';
@@ -75,6 +76,7 @@ import { UsersModule } from './modules/users/users.module';
     EventEmitterModule.forRoot(),
     DatabaseModule,
     CommonModule,
+    AnalyticsModule,
     UsersModule,
     MailModule,
     AuthModule.register(),
