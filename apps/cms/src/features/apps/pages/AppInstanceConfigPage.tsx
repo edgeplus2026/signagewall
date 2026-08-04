@@ -1,3 +1,4 @@
+import { resolvePowerPointSource } from '@signagewall/apps'
 import { buildConfigZod, buildDefaultConfig } from '@signagewall/apps-contract'
 import {
   ListVideoIcon,
@@ -118,6 +119,12 @@ export default function AppInstanceConfigPage() {
     // only — stored configs keep playing untouched until the operator saves.
     if (app.slug === 'menu' && menuConfigNeedsMigration(merged)) {
       return migrateMenuConfig(merged)
+    }
+    // PowerPoint v2 had no source selector because it only supported Microsoft
+    // OAuth. Infer those existing instances as connected; untouched/new v3
+    // instances open in the no-account embed flow.
+    if (app.slug === 'powerpoint') {
+      return { ...merged, source: resolvePowerPointSource(instance.config) }
     }
     return merged
   }, [app, instance])

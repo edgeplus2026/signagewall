@@ -138,6 +138,16 @@ describe('mountAppHost', () => {
     handle.dispose()
   })
 
+  it('grants the outer PowerPoint host the capabilities inherited by Microsoft 365', () => {
+    const item: AppRenderable = { ...ITEM, slug: 'powerpoint' }
+    const handle = mountAppHost(host as unknown as HTMLElement, item, OPTIONS)
+    expect(createdIframe.el.getAttribute('sandbox')).toBe(
+      'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation',
+    )
+    handle.ready.catch(() => undefined)
+    handle.dispose()
+  })
+
   it('resolves ready on app-ready and posts config to the app origin', async () => {
     const handle = mountAppHost(host as unknown as HTMLElement, ITEM, OPTIONS)
 

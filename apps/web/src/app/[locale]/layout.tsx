@@ -8,6 +8,7 @@ import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { ReactNode } from 'react'
 
+import { AttributionAnalytics } from '@/components/analytics/attribution-analytics'
 import { ConsentAnalytics } from '@/components/consent/consent-analytics'
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
@@ -162,6 +163,7 @@ export default async function LocaleLayout({
               </Frame>
             </div>
             <ConsentAnalytics />
+            <AttributionAnalytics />
           </NextIntlClientProvider>
         </ThemeProvider>
         <Analytics />

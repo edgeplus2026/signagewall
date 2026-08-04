@@ -42,9 +42,8 @@ interface ChangePlanDialogProps {
  * Sets a customer's tier and licence count. This *is* the billing system: an
  * invoice is settled out of band, and this reflects it.
  *
- * Enterprise clears the trial clock. Free restarts a full 21 days rather than
- * expiring the account immediately — a mis-click here must never be one sweep
- * away from erasing a customer.
+ * Enterprise clears the active trial clock. Free never creates a second trial,
+ * deletes data, or interrupts existing playback.
  */
 export function ChangePlanDialog({ open, onOpenChange, user }: ChangePlanDialogProps) {
   const { t } = useTranslation()
@@ -118,9 +117,7 @@ export function ChangePlanDialog({ open, onOpenChange, user }: ChangePlanDialogP
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="free">
-                        {t('superAdmin.plan.tiers.free')}
-                      </SelectItem>
+                      <SelectItem value="free">{t('superAdmin.plan.tiers.free')}</SelectItem>
                       <SelectItem value="enterprise">
                         {t('superAdmin.plan.tiers.enterprise')}
                       </SelectItem>
@@ -161,11 +158,7 @@ export function ChangePlanDialog({ open, onOpenChange, user }: ChangePlanDialogP
           >
             {t('common.cancel')}
           </Button>
-          <Button
-            type="submit"
-            form={FORM_ID}
-            disabled={isSubmitting || updatePlan.isPending}
-          >
+          <Button type="submit" form={FORM_ID} disabled={isSubmitting || updatePlan.isPending}>
             {t('superAdmin.plan.submit')}
           </Button>
         </DialogFooter>

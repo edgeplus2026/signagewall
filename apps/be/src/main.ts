@@ -26,6 +26,7 @@ async function bootstrap() {
   const apiPrefix = configService.getOrThrow<string>('apiPrefix');
   const frontendUrl = configService.getOrThrow<string>('frontendUrl');
   const playerUrl = configService.getOrThrow<string>('playerUrl');
+  const marketingUrl = configService.getOrThrow<string>('marketingUrl');
   const port = configService.getOrThrow<number>('port');
   const nodeEnv = configService.getOrThrow<string>('nodeEnv');
   const swaggerEnabled =
@@ -48,11 +49,10 @@ async function bootstrap() {
   app.use(compression());
   app.use(cookieParser());
 
-  // The CMS (frontendUrl) uses cookie-backed credentials; the player (playerUrl)
-  // authenticates with a Bearer device token and needs no credentials, but its
-  // origin must still be allowed for the `/player/*` REST fallback routes.
+  // CMS, player and public marketing origins call this API. The analytics route
+  // is public/rate-limited and stores only allowlisted, non-PII fields.
   app.enableCors({
-    origin: [frontendUrl, playerUrl],
+    origin: [frontendUrl, playerUrl, marketingUrl],
     credentials: true,
   });
 

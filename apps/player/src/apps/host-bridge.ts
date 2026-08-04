@@ -52,6 +52,23 @@ export interface MountAppHostOptions {
 /** `autoplay`/media permissions granted to the app iframe (mirrors the old YouTube embed). */
 const IFRAME_ALLOW = 'autoplay; encrypted-media; fullscreen; picture-in-picture'
 
+/** Default app isolation; enough for first-party bundles and most nested embeds. */
+const DEFAULT_APP_SANDBOX = 'allow-scripts allow-same-origin'
+
+/**
+ * Microsoft 365's web viewer opens nested contexts and submits internal forms.
+ * Sandbox restrictions are inherited, so the outer PowerPoint bundle must grant
+ * these too; granting them only on its inner Microsoft iframe is insufficient.
+ * Top-level navigation remains user-activation-gated so the unattended kiosk
+ * cannot be redirected by viewer code without an operator click.
+ */
+const POWERPOINT_APP_SANDBOX =
+  'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation'
+
+function appSandbox(slug: string): string {
+  return slug === 'powerpoint' ? POWERPOINT_APP_SANDBOX : DEFAULT_APP_SANDBOX
+}
+
 /** Build the bundle URL for a slug under `appsBase`, trimming a trailing slash. */
 export function appBundleUrl(appsBase: string, slug: string): string {
   const base = appsBase.replace(/\/+$/, '')
@@ -90,7 +107,7 @@ export function mountAppHost(
   const iframe = document.createElement('iframe')
   iframe.className = 'player-media'
   iframe.title = item.slug
-  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
+  iframe.setAttribute('sandbox', appSandbox(item.slug))
   // NOT `no-referrer`: WebKit propagates this policy to everything the app
   // document then loads, so on iOS the YouTube embed reached youtube-nocookie.com
   // with no Referer at all and answered with its configuration error (153).

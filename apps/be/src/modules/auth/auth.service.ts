@@ -13,6 +13,8 @@ import {
   PendingDeletion,
   PendingDeletionDocument,
 } from '../data-deletion/schemas/pending-deletion.schema';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import { LegalService } from '../legal/legal.service';
 import { MembersService } from '../members/members.service';
 import { MailService } from '../mail/mail.service';
@@ -58,6 +60,7 @@ export class AuthService {
     @InjectModel(PendingDeletion.name)
     private readonly pendingDeletionModel: Model<PendingDeletionDocument>,
     private readonly i18n: I18nService,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   isGoogleAuthEnabled(): boolean {
@@ -121,6 +124,7 @@ export class AuthService {
         return created;
       });
 
+      await this.recordRegistration(user, dto.acquisitionToken);
       this.notifyAdminOfRegistration(dto, true);
       return this.buildAuthResponse(user);
     }
@@ -130,6 +134,7 @@ export class AuthService {
     // persisted before sending, so a mail failure must not fail registration —
     // the user can still request a fresh link via resend.
     const user = await this.usersRepository.create(userData);
+    await this.recordRegistration(user, dto.acquisitionToken);
     // Best-effort: consent is already enforced by the DTO, so a write failure
     // here must not fail registration and orphan the just-created user (which
     // would then block re-registration with "email already exists").
@@ -247,6 +252,11 @@ export class AuthService {
       throw BusinessException.forbidden(this.i18n.t('auth.emailNotVerified'));
     }
 
+    await this.analytics.record({
+      eventName: FunnelEventName.LOGIN,
+      userId: user._id.toString(),
+      properties: { authProvider: AuthProvider.LOCAL },
+    });
     return this.buildAuthResponse(user);
   }
 
@@ -294,6 +304,11 @@ export class AuthService {
         isEmailVerified: true,
         emailVerificationToken: undefined,
         emailVerificationExpiresAt: undefined,
+      });
+      await this.analytics.record({
+        eventName: FunnelEventName.EMAIL_VERIFIED,
+        userId: user._id.toString(),
+        dedupeKey: `email_verified:user:${user._id.toString()}`,
       });
 
       const frontendUrl = this.configService.getOrThrow<string>('frontendUrl');
@@ -504,7 +519,11 @@ export class AuthService {
     return this.buildAuthResponse(impersonator);
   }
 
-  async loginWithGoogle(profile: GoogleProfile): Promise<AuthResponseDto> {
+  async loginWithGoogle(
+    profile: GoogleProfile,
+    acquisitionToken?: string,
+  ): Promise<AuthResponseDto> {
+    let isNewUser = false;
     let user =
       (await this.usersRepository.findByGoogleId(profile.googleId)) ??
       (await this.usersRepository.findByEmail(profile.email));
@@ -523,6 +542,7 @@ export class AuthService {
     }
 
     if (!user) {
+      isNewUser = true;
       user = await this.usersRepository.create({
         name: profile.name,
         email: profile.email,
@@ -552,6 +572,15 @@ export class AuthService {
         this.i18n.t('auth.googleAuthFailed'),
       );
     }
+
+    if (isNewUser) {
+      await this.recordRegistration(user, acquisitionToken);
+    }
+    await this.analytics.record({
+      eventName: FunnelEventName.LOGIN,
+      userId: user._id.toString(),
+      properties: { authProvider: AuthProvider.GOOGLE },
+    });
 
     return this.buildAuthResponse(user);
   }
@@ -638,6 +667,28 @@ export class AuthService {
       user: await this.mapUserResponse(user),
       tokens,
     };
+  }
+
+  private async recordRegistration(
+    user: UserDocument,
+    acquisitionToken?: string,
+  ): Promise<void> {
+    const userId = user._id.toString();
+    await Promise.all([
+      this.analytics.record({
+        eventName: FunnelEventName.SIGN_UP,
+        userId,
+        acquisitionToken,
+        dedupeKey: `sign_up:user:${userId}`,
+        properties: { authProvider: user.provider },
+      }),
+      this.analytics.record({
+        eventName: FunnelEventName.TRIAL_STARTED,
+        userId,
+        acquisitionToken,
+        dedupeKey: `trial_started:user:${userId}`,
+      }),
+    ]);
   }
 
   private hashToken(token: string): string {

@@ -102,6 +102,7 @@ function build(deps: Deps) {
     usersRepository as never,
     { sendUpgradeRequestEmail: jest.fn() } as never,
     { t: (key: string) => key } as never,
+    { record: jest.fn().mockResolvedValue(undefined) } as never,
   );
 
   return { service, organizationModel, membershipModel, usersRepository };

@@ -4,6 +4,9 @@ import { ReportedProfile } from '@signagewall/player-contract';
 import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
+import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { ScreensRepository } from '../screens/screens.repository';
 import { DevicesRepository } from './devices.repository';
 import { PlayerContentService, PlayerSnapshot } from './player-content.service';
@@ -79,6 +82,8 @@ export class PlayerService {
     private readonly tokensService: PlayerTokensService,
     private readonly eventEmitter: EventEmitter2,
     private readonly i18n: I18nService,
+    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   /**
@@ -278,6 +283,15 @@ export class PlayerService {
       volume: paired.volume ?? 100,
       settings: this.toSettingsPayload(paired.settings),
     } satisfies DevicePairedEvent);
+
+    const organization =
+      await this.organizationsRepository.findById(organizationId);
+    await this.analytics.record({
+      eventName: FunnelEventName.DEVICE_PAIRED,
+      userId: organization?.ownerUserId?.toString(),
+      organizationId,
+      dedupeKey: `device_paired:device:${paired.deviceId}`,
+    });
 
     return this.toDeviceStatus(paired);
   }

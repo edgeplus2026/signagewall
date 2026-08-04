@@ -1521,7 +1521,42 @@
       "apps": "All Apps",
       "categories": "Apps Categories",
       "notifications": "Notifications",
-      "upgradeRequests": "Upgrade Requests"
+      "upgradeRequests": "Upgrade Requests",
+      "billing": "Billing",
+      "analytics": "Analytics"
+    },
+    "analytics": {
+      "title": "Lifecycle analytics",
+      "description": "First-party funnel from marketing visit to an activated screen and recorded manual payment.",
+      "lastDays": "Last {{count}} days",
+      "fromLanding": "of landing visits",
+      "funnel": "Conversion funnel",
+      "acquisition": "Signup and purchase acquisition",
+      "recent": "Recent lifecycle events",
+      "empty": "No events in this period.",
+      "error": "Analytics could not be loaded.",
+      "events": {
+        "marketing_landing": "Landing visits",
+        "marketing_cta_clicked": "CTA clicks",
+        "generate_lead": "Leads",
+        "sign_up": "Signups",
+        "trial_started": "Trials started",
+        "organization_created": "Organizations",
+        "screen_created": "Screens created",
+        "content_published": "Content published",
+        "device_paired": "Devices paired",
+        "first_screen_activated": "Activated accounts",
+        "subscription_requested": "Plan requests",
+        "invoice_issued": "Invoices issued",
+        "purchase": "Payments",
+        "quote_started": "Quotes started",
+        "registration_started": "Registration started",
+        "email_verified": "Email verified",
+        "login": "Logins",
+        "payment_received": "Payment received",
+        "subscription_renewed": "Renewals",
+        "payment_overdue": "Payment overdue"
+      }
     },
     "users": {
       "search": "Search users...",
@@ -1626,7 +1661,7 @@
       "licenceCount_other": "{{count}} licences",
       "screenLimit": "Screen licences",
       "screenLimitInvalid": "Enter a whole number of licences.",
-      "hintFree": "Free accounts are erased 21 days after sign-up. Switching to free restarts the 21 days; it does not delete anything now.",
+      "hintFree": "Switching to free never starts a second trial. Existing data and player content are retained.",
       "hintEnterprise": "Enterprise accounts never expire. Lowering this below the screens already in use blocks new screens but deletes nothing.",
       "submit": "Save plan",
       "success": "Plan updated for {{name}}.",
@@ -1653,6 +1688,124 @@
       },
       "status": {
         "resolved": "Resolved"
+      }
+    },
+    "billing": {
+      "newInvoice": "New invoice",
+      "empty": "No manual invoices yet.",
+      "actionError": "The billing action could not be completed.",
+      "sentSuccess": "Invoice marked as sent.",
+      "paidSuccess": "Payment recorded and the paid plan activated.",
+      "voidSuccess": "Invoice voided.",
+      "archiveSuccess": "Invoice removed from the operational table.",
+      "overview": {
+        "activeAccounts": "Active paid accounts",
+        "openInvoices": "Open invoices",
+        "overdue": "Overdue invoices",
+        "exceptions": "Items to review"
+      },
+      "columns": {
+        "invoice": "Invoice",
+        "customer": "Customer",
+        "amount": "Amount",
+        "screens": "Screens",
+        "dueAt": "Due",
+        "status": "Status"
+      },
+      "status": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "paid": "Paid",
+        "overdue": "Overdue",
+        "void": "Void"
+      },
+      "filters": {
+        "all": "All invoices",
+        "draft": "Drafts",
+        "sent": "Sent",
+        "paid": "Paid",
+        "overdue": "Overdue",
+        "void": "Void"
+      },
+      "actions": {
+        "edit": "Edit draft",
+        "markSent": "Mark as sent",
+        "markPaid": "Mark as paid",
+        "void": "Void invoice",
+        "archive": "Remove from table"
+      },
+      "form": {
+        "title": "Create invoice draft",
+        "editTitle": "Edit invoice draft",
+        "description": "Record the invoice you create and email outside SignageWall. It remains a draft until you confirm it was sent.",
+        "customer": "Customer",
+        "selectCustomer": "Select a customer",
+        "customerRequired": "Select a customer.",
+        "invoiceNumber": "Invoice number",
+        "billingEmail": "Billing email",
+        "company": "Company",
+        "screens": "Screen licences",
+        "amount": "Amount",
+        "currency": "Currency",
+        "periodStart": "Service period starts",
+        "periodEnd": "Service period ends",
+        "dueAt": "Payment due",
+        "note": "Internal note",
+        "draftHint": "Incomplete drafts are saved and shown in Billing Exceptions so they cannot be forgotten.",
+        "saveDraft": "Save draft",
+        "invalidScreens": "Enter a valid number of screen licences.",
+        "invalidAmount": "Enter a valid invoice amount.",
+        "created": "Invoice draft created.",
+        "updated": "Invoice draft updated.",
+        "error": "The invoice draft could not be saved."
+      },
+      "send": {
+        "title": "Confirm manual delivery",
+        "description": "Confirm only after you have emailed the external invoice to the customer. This starts due-date monitoring; it does not activate the paid plan.",
+        "incomplete": "Complete these fields first: {{fields}}."
+      },
+      "payment": {
+        "title": "Record payment",
+        "description": "Use the bank transfer or reconciliation reference. Recording payment activates the purchased screen licences.",
+        "reference": "Payment reference"
+      },
+      "void": {
+        "title": "Void invoice?",
+        "description": "The invoice remains in the audit history but is excluded from open billing work.",
+        "reason": "Reason"
+      },
+      "archive": {
+        "title": "Remove invoice from the table?",
+        "description": "{{invoice}} will be hidden from the operational table. Its audit and payment history will be retained, and customer access will not change.",
+        "confirm": "Remove invoice"
+      },
+      "fields": {
+        "invoiceNumber": "invoice number",
+        "amountMinor": "amount",
+        "currency": "currency",
+        "billingEmail": "billing email",
+        "dueAt": "payment due date",
+        "servicePeriodStart": "service period start",
+        "servicePeriodEnd": "service period end"
+      },
+      "exceptions": {
+        "title": "Billing Exceptions",
+        "more_one": "One more item is available in the daily billing digest.",
+        "more_other": "{{count}} more items are available in the daily billing digest.",
+        "severity": {
+          "warning": "Check",
+          "critical": "Action required"
+        },
+        "types": {
+          "draft_incomplete": "Invoice draft is missing required data",
+          "draft_ready_to_send": "Complete draft has not been marked as sent",
+          "payment_due_soon": "Payment is due soon",
+          "payment_overdue": "Payment is overdue",
+          "upgrade_request_without_invoice": "Upgrade request has no invoice draft",
+          "active_plan_without_billing_record": "Paid plan has no billing record",
+          "active_account_missing_period": "Active account has no billing period",
+          "renewal_invoice_missing": "Billing period ends without a renewal invoice"
+        }
       }
     }
   },
@@ -2107,8 +2260,8 @@
       },
       "powerpoint": {
         "tagline": "Show a PowerPoint deck on your screens",
-        "description": "Display a PowerPoint presentation from OneDrive or SharePoint as a looping slideshow — it updates the moment the deck changes.",
-        "about": "Loop a PowerPoint presentation stored in OneDrive or SharePoint as a hands-off slideshow. Sign in with your Microsoft account, pick the .pptx file, and set the seconds per slide plus how it fits the screen — letterbox the whole slide or fill and crop. The moment someone edits the deck, the screen updates, making it ideal for internal comms and presentations in offices and lobbies."
+        "description": "Paste public PowerPoint embed code or a URL with no account, or connect Microsoft for a private, automatically synced slideshow.",
+        "about": "Show a PowerPoint presentation in either of two ways. Paste Microsoft’s complete public embed code, its URL, or a public SharePoint presentation link for a no-account viewer that follows the published deck. Alternatively, connect a Microsoft account and pick a private .pptx from OneDrive or SharePoint. The connected option renders and caches every slide, lets you set timing and screen fit, and keeps playing offline; both options pick up edits automatically."
       },
       "gslides": {
         "tagline": "Loop a private Google Slides deck from your account",

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { MailModule } from '../mail/mail.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import {
   OrganizationMembership,
   OrganizationMembershipSchema,
@@ -40,6 +41,7 @@ import {
       },
       { name: Screen.name, schema: ScreenSchema },
     ]),
+    AnalyticsModule,
     UsersModule,
     MailModule,
   ],

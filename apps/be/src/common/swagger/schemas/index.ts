@@ -1,6 +1,7 @@
 export * from './admin.response';
 export * from './ai-content.response';
 export * from './auth.response';
+export * from './billing.response';
 export * from './error.response';
 export * from './health.response';
 export * from './member.response';

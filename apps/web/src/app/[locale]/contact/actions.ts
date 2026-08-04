@@ -1,5 +1,7 @@
 'use server'
 
+import { recordLead } from '@/lib/server-funnel'
+
 export interface ContactState {
   status: 'idle' | 'success' | 'error' | 'invalid'
 }
@@ -31,6 +33,7 @@ export async function submitContact(
   // report success so the form can be exercised. A real deploy sets these envs.
   if (!apiKey || !from || !to) {
     console.warn('[contact] Resend not configured — skipping email send')
+    await recordLead(formData, 'contact')
     return { status: 'success' }
   }
 
@@ -52,6 +55,7 @@ export async function submitContact(
     if (!res.ok) {
       throw new Error(`Resend responded ${res.status.toString()}`)
     }
+    await recordLead(formData, 'contact')
     return { status: 'success' }
   } catch (err) {
     console.error('[contact] send failed', err)

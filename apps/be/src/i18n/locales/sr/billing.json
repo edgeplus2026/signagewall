@@ -1,0 +1,15 @@
+{
+  "cannotInvoiceSuperAdmin": "Super-admin nalog ne može biti billing kupac.",
+  "onlyDraftEditable": "Moguće je menjati samo nacrt fakture.",
+  "invoiceNotFound": "Faktura nije pronađena.",
+  "customerNotFound": "Billing kupac više ne postoji.",
+  "invoiceIncomplete": "Popunite sva obavezna polja pre označavanja fakture kao poslate ili plaćene.",
+  "invalidServicePeriod": "Kraj perioda usluge mora biti posle početka.",
+  "invoiceNumberExists": "Faktura sa ovim brojem već postoji.",
+  "cannotMarkSent": "Ova faktura ne može biti označena kao poslata.",
+  "cannotMarkPaid": "Samo poslata ili dospela faktura može biti označena kao plaćena.",
+  "paymentReferenceConflict": "Faktura je već plaćena sa drugom referencom uplate.",
+  "paidAtInFuture": "Datum uplate ne može biti u budućnosti.",
+  "cannotVoidPaid": "Plaćena faktura se ne može poništiti. Kredit ili povraćaj evidentirajte odvojeno.",
+  "onlyTerminalArchivable": "Samo plaćena ili poništena faktura može biti uklonjena iz operativne tabele."
+}

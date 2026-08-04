@@ -430,6 +430,14 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   >
   > Slides are exported once per deck revision and **mirrored to R2**, so screens play them from cache and keep working offline. An unchanged deck costs one cheap Drive metadata call per poll — not one export per slide. Decks longer than 100 slides are cut at 100 (logged server-side).
 
+- **PowerPoint** (`powerpoint`) — hybrid public-embed / connected app, refresh 900s.
+  1. **Embed code or URL (no account needed):** in PowerPoint for the web choose **File → Share → Embed this presentation** and paste the complete copied iframe code (or only its `src`) into SignageWall; the CMS extracts and validates the URL automatically. Newer PowerPoint embed codes that use `1drv.ms/p/c/<cid>/<item>` are accepted, and a public SharePoint presentation link is converted to `action=embedview`. The presentation must be viewable by anyone with the link; ordinary private share links cannot play anonymously. The player reloads the live Microsoft viewer every 15 minutes by default; this mode requires network access while playing.
+  2. **Microsoft account (private file):** connect an account, then pick a `.pptx` from OneDrive/SharePoint (`remoteSource: powerpoint-files`). Set seconds per slide, screen fit and letterbox colour. Graph converts the deck to PDF, poppler renders WebP slides into R2, and the cached slides keep playing offline.
+  - **Scopes for private mode:** `Files.Read.All`, `Sites.Read.All` (read-only).
+  - **Env for private mode:** `ENCRYPTION_KEY`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, R2 (`R2_*`) and `pdftoppm`/`poppler-utils`. Embed mode needs none of these.
+  - **Entra Web redirect URI (register exactly):** `${PUBLIC_API_URL}/api/v1/connections/oauth/microsoft/callback` — for the current Railway deployment: `https://signagewall.up.railway.app/api/v1/connections/oauth/microsoft/callback`. No trailing slash; path case must match.
+  > **Live sync:** private mode uses a Microsoft Graph change subscription plus the 900s poll fallback. Public embed mode reads Microsoft's live viewer and periodically reloads it.
+
 - **Outlook Calendar** (`outlook`, provider microsoft) — refresh 300s, `requiresNetwork: false`.
   - **Scope:** `https://graph.microsoft.com/Calendars.Read`
   - **Env:** `ENCRYPTION_KEY`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`

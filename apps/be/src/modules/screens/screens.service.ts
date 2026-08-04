@@ -5,6 +5,8 @@ import { I18nService } from 'nestjs-i18n';
 import { ClientSession, Types } from 'mongoose';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import {
   PlayerEvents,
   ScreenContentChangedEvent,
@@ -13,6 +15,7 @@ import {
 import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { MediaRepository } from '../media/media.repository';
 import { PlansService } from '../plans/plans.service';
+import { OrganizationsRepository } from '../organizations/organizations.repository';
 import {
   getMediaThumbnailUrl,
   getPublicBaseUrl,
@@ -79,6 +82,8 @@ export class ScreensService {
     private readonly i18n: I18nService,
     private readonly availabilityEvaluator: AvailabilityEvaluator,
     private readonly eventEmitter: EventEmitter2,
+    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   /** Notifies the realtime player layer that a screen's content changed. */
@@ -165,6 +170,13 @@ export class ScreensService {
       organizationId,
       name: dto.name,
       ...(dto.description ? { description: dto.description } : {}),
+    });
+
+    await this.recordForOrganization(organizationId, {
+      eventName: FunnelEventName.SCREEN_CREATED,
+      organizationId,
+      dedupeKey: `screen_created:screen:${screen._id.toString()}`,
+      properties: { screenQuantity: 1 },
     });
 
     return toScreenDetailResponse(screen);
@@ -365,6 +377,7 @@ export class ScreensService {
 
     for (const screen of screens) {
       this.emitContentChanged(organizationId, screen._id.toString());
+      await this.recordContentPublished(organizationId, screen._id.toString());
     }
   }
 
@@ -423,6 +436,7 @@ export class ScreensService {
 
     for (const screen of screens) {
       this.emitContentChanged(organizationId, screen._id.toString());
+      await this.recordContentPublished(organizationId, screen._id.toString());
     }
   }
 
@@ -475,6 +489,7 @@ export class ScreensService {
 
     for (const screen of screens) {
       this.emitContentChanged(organizationId, screen._id.toString());
+      await this.recordContentPublished(organizationId, screen._id.toString());
     }
   }
 
@@ -742,6 +757,9 @@ export class ScreensService {
     }
 
     this.emitContentChanged(organizationId, id);
+    if (saved.itemCount > 0) {
+      await this.recordContentPublished(organizationId, id);
+    }
 
     const thumbnailUrl = await this.resolveThumbnailUrl(
       organizationId,
@@ -749,6 +767,29 @@ export class ScreensService {
     );
 
     return toScreenDetailWithItemsResponse(saved, thumbnailUrl);
+  }
+
+  private recordContentPublished(
+    organizationId: string,
+    screenId: string,
+  ): Promise<void> {
+    return this.recordForOrganization(organizationId, {
+      eventName: FunnelEventName.CONTENT_PUBLISHED,
+      organizationId,
+      dedupeKey: `content_published:screen:${screenId}`,
+    });
+  }
+
+  private async recordForOrganization(
+    organizationId: string,
+    event: Parameters<AnalyticsService['record']>[0],
+  ): Promise<void> {
+    const organization =
+      await this.organizationsRepository.findById(organizationId);
+    await this.analytics.record({
+      ...event,
+      userId: organization?.ownerUserId?.toString(),
+    });
   }
 
   /**

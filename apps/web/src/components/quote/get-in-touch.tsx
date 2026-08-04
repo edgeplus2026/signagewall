@@ -3,12 +3,14 @@
 import { CheckCircle2, X } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Dialog } from 'radix-ui'
-import { useActionState, useMemo, useState } from 'react'
+import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
 
+import { AnalyticsFormFields } from '@/components/analytics/analytics-form-fields'
 import { submitQuote, type QuoteState } from '@/components/quote/actions'
 import { Button, buttonVariants, type ButtonProps } from '@/components/ui/button'
 import { Field, Input, Label, Textarea } from '@/components/ui/field'
 import { countryOptions } from '@/lib/countries'
+import { trackFunnelEvent, trackVercelEvent } from '@/lib/funnel-analytics'
 import { cn } from '@/lib/utils'
 
 const INITIAL: QuoteState = { status: 'idle' }
@@ -33,7 +35,13 @@ export function GetInTouch({
   const [open, setOpen] = useState(false)
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen)
+        if (nextOpen) trackFunnelEvent('quote_started', { form: 'quote' })
+      }}
+    >
       <Dialog.Trigger className={cn(buttonVariants({ variant, size }), className)}>
         {label}
       </Dialog.Trigger>
@@ -58,6 +66,14 @@ function QuoteForm({ onDone }: { onDone: () => void }) {
   const locale = useLocale()
   const [state, action, pending] = useActionState(submitQuote, INITIAL)
   const countries = useMemo(() => countryOptions(locale), [locale])
+  const reportedSuccess = useRef(false)
+
+  useEffect(() => {
+    if (state.status === 'success' && !reportedSuccess.current) {
+      reportedSuccess.current = true
+      trackVercelEvent('generate_lead', { form: 'quote' })
+    }
+  }, [state.status])
 
   if (state.status === 'success') {
     return (
@@ -96,6 +112,7 @@ function QuoteForm({ onDone }: { onDone: () => void }) {
       </div>
 
       <form action={action} className="mt-6 flex flex-col gap-5">
+        <AnalyticsFormFields />
         {/* The action mails the lead; the locale tells us which language to answer in. */}
         <input type="hidden" name="locale" value={locale} />
 
@@ -142,7 +159,7 @@ function QuoteForm({ onDone }: { onDone: () => void }) {
             name="country"
             defaultValue=""
             autoComplete="country"
-            className="h-11 w-full border border-secondary bg-page px-3.5 text-sm transition-colors outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30 appearance-none"
+            className="h-11 w-full appearance-none border border-secondary bg-page px-3.5 text-sm transition-colors outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30"
           >
             <option value="">{t('countryPlaceholder')}</option>
             {countries.map((c) => (

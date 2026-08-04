@@ -1,4 +1,8 @@
-import { APP_MANIFESTS } from '@signagewall/apps'
+import {
+  APP_MANIFESTS,
+  POWERPOINT_SOURCE_EMBED,
+  resolvePowerPointSource,
+} from '@signagewall/apps'
 
 import type { Renderable } from '../types'
 
@@ -22,5 +26,11 @@ const NETWORK_APP_SLUGS: ReadonlySet<string> = new Set(
  * both are never gated.
  */
 export function itemRequiresNetwork(item: Renderable): boolean {
-  return item.kind === 'app' && NETWORK_APP_SLUGS.has(item.slug)
+  if (item.kind !== 'app') return false
+  // PowerPoint is hybrid: a public Microsoft iframe needs live internet, while
+  // the connected path plays backend-rendered slides from the media cache.
+  if (item.slug === 'powerpoint') {
+    return resolvePowerPointSource(item.config) === POWERPOINT_SOURCE_EMBED
+  }
+  return NETWORK_APP_SLUGS.has(item.slug)
 }

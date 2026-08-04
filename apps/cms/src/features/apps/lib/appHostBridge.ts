@@ -73,6 +73,14 @@ function targetOriginFor(bundleUrl: string): string {
   }
 }
 
+const DEFAULT_APP_SANDBOX = 'allow-scripts allow-same-origin'
+const POWERPOINT_APP_SANDBOX =
+  'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation'
+
+function appSandbox(slug: string): string {
+  return slug === 'powerpoint' ? POWERPOINT_APP_SANDBOX : DEFAULT_APP_SANDBOX
+}
+
 /**
  * Mounts the preview iframe for `slug` into `host` and wires the handshake.
  * Sandboxed `allow-scripts allow-same-origin` (the bundle is first-party,
@@ -89,7 +97,9 @@ export function mountAppPreview(
   const iframe = document.createElement('iframe')
   iframe.title = options.slug
   iframe.className = 'size-full border-0'
-  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
+  // Microsoft 365 viewer capabilities must also be granted by this ancestor:
+  // nested frames inherit every sandbox restriction from their parents.
+  iframe.setAttribute('sandbox', appSandbox(options.slug))
   // Mirrors the player's host (see `apps/player/src/apps/host-bridge.ts`): a
   // `no-referrer` here reaches the app's own subframes in WebKit, which is enough
   // to break the YouTube embed with its error 153 in a Safari preview.

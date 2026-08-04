@@ -46,6 +46,7 @@
   --color-danger: var(--danger);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-info: var(--info);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -166,4 +167,3 @@ input[type='number']::-webkit-inner-spin-button {
     transform: translateX(400%);
   }
 }
-

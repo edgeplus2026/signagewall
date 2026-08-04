@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { AppsModule } from '../apps/apps.module';
 import { MediaModule } from '../media/media.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
@@ -18,6 +19,7 @@ import { Screen, ScreenSchema } from './schemas/screen.schema';
   imports: [
     ConfigModule,
     MongooseModule.forFeature([{ name: Screen.name, schema: ScreenSchema }]),
+    AnalyticsModule,
     OrganizationsModule,
     PlansModule,
     forwardRef(() => MediaModule),
