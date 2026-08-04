@@ -3,8 +3,8 @@ import { IsEnum, IsInt, Max, Min } from 'class-validator';
 import { UserPlan } from '../../users/schemas/user.schema';
 
 /**
- * The only way a plan ever changes — there is no payment integration, so a
- * super-admin sets this by hand once an invoice is settled.
+ * Legacy/emergency entitlement override. Manual invoice payment is the normal
+ * path for activating a paid plan.
  */
 export class UpdateUserPlanDto {
   @IsEnum(UserPlan)

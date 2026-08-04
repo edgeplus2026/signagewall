@@ -146,29 +146,6 @@ export class DataDeletionService {
       .exec();
   }
 
-  /**
-   * Free-trial expiry, executed immediately (the warning email was the notice).
-   *
-   * Unlike {@link purgeAccountNow} this erases every organization the trial
-   * account *owns*, even ones with other members: the whole workspace is the
-   * trial, and leaving an ownerless organization behind would strand screens
-   * under an account that no longer exists. Organizations the user merely joined
-   * are untouched — only their membership goes.
-   */
-  async purgeTrialAccount(
-    userId: string,
-    ownedOrganizationIds: string[],
-  ): Promise<void> {
-    for (const organizationId of ownedOrganizationIds) {
-      await this.purgeOrganization(organizationId);
-    }
-
-    await this.purgeAccount(userId, true);
-    await this.pendingModel
-      .deleteMany({ type: 'account', targetId: new Types.ObjectId(userId) })
-      .exec();
-  }
-
   async cancelAccountDeletion(userId: string): Promise<void> {
     await this.usersRepository.reactivate(userId);
     await this.pendingModel

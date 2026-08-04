@@ -14,13 +14,13 @@ export enum UserRole {
 }
 
 export enum UserPlan {
-  /** 21-day trial. One organization, one screen, then the account is erased. */
+  /** 21-day trial. One organization and one screen; data remains after expiry. */
   FREE = 'free',
   /** Invoiced. `screenLimit` is the number of licences that were sold. */
   ENTERPRISE = 'enterprise',
 }
 
-/** Days a free account lives before the trial sweep erases it. */
+/** Days before a free trial becomes expired. */
 export const TRIAL_DAYS = 21;
 
 /** Screens a free account may create, across all of its organizations. */
@@ -94,7 +94,7 @@ export class User {
   screenLimit: number;
 
   /**
-   * When the free trial runs out and the account is erased. Defaulted on
+   * When the free trial runs out. Defaulted on
    * insert so every sign-up path (local, invite, Google) gets a clock without
    * having to remember to set one. Cleared to `null` on upgrade — an enterprise
    * account never expires.
@@ -105,6 +105,14 @@ export class User {
    */
   @Prop({ type: Date, default: trialDeadline })
   trialEndsAt?: Date | null;
+
+  /** Durable proof that this account has already consumed its one free trial. */
+  @Prop({ type: Date, default: Date.now })
+  trialConsumedAt?: Date;
+
+  /** Stamped by the trial sweep. Expiry never deletes data or stops playback. */
+  @Prop({ type: Date, default: null })
+  trialExpiredAt?: Date | null;
 
   /** Set when the "trial ends tomorrow" email went out, so it is sent once. */
   @Prop({ type: Date, default: null })

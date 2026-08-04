@@ -1,0 +1,15 @@
+{
+  "cannotInvoiceSuperAdmin": "Super-admin accounts cannot be billed.",
+  "onlyDraftEditable": "Only a draft invoice can be edited.",
+  "invoiceNotFound": "Invoice not found.",
+  "customerNotFound": "The billing customer no longer exists.",
+  "invoiceIncomplete": "Complete all required invoice fields before marking it as sent or paid.",
+  "invalidServicePeriod": "The service period end must be after its start.",
+  "invoiceNumberExists": "An invoice with this number already exists.",
+  "cannotMarkSent": "This invoice cannot be marked as sent.",
+  "cannotMarkPaid": "Only a sent or overdue invoice can be marked as paid.",
+  "paymentReferenceConflict": "This invoice is already paid with a different payment reference.",
+  "paidAtInFuture": "The payment date cannot be in the future.",
+  "cannotVoidPaid": "A paid invoice cannot be voided. Record a credit or refund separately.",
+  "onlyTerminalArchivable": "Only a paid or void invoice can be removed from the operational table."
+}

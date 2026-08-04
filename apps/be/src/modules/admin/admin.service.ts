@@ -17,7 +17,6 @@ import { PlansService } from '../plans/plans.service';
 import { toUserResponse, UserResponseDto } from '../users/mappers/user.mapper';
 import {
   FREE_SCREEN_LIMIT,
-  TRIAL_DAYS,
   UserPlan,
   UserRole,
 } from '../users/schemas/user.schema';
@@ -152,13 +151,11 @@ export class AdminService {
   }
 
   /**
-   * Sets a user's plan and licence count. This is the entire billing system:
-   * an invoice is settled out-of-band and a super-admin reflects it here.
+   * Legacy/emergency entitlement override. The normal manual-billing flow now
+   * activates the same projection when an invoice is marked paid.
    *
-   * Moving to enterprise clears the trial clock, so the account stops being a
-   * deletion candidate immediately. Moving back to free restarts a full trial
-   * rather than expiring the account on the spot — a downgrade should never be
-   * one click away from erasing a customer's data.
+   * Moving to enterprise clears the active trial clock. Moving back to free
+   * never creates a second trial, deletes data, or interrupts playback.
    *
    * Lowering `screenLimit` below the screens already in use is allowed and does
    * not delete anything: existing screens keep playing, and only the next
@@ -181,8 +178,10 @@ export class AdminService {
       screenLimit: dto.screenLimit,
       ...(isUpgrade
         ? { trialEndsAt: null, trialWarningSentAt: null }
-        : // Back to free: a fresh 21 days, and the warning may be sent again.
-          { trialEndsAt: this.trialDeadline(), trialWarningSentAt: null }),
+        : {
+            trialEndsAt: user.trialEndsAt ?? new Date(),
+            trialExpiredAt: user.trialExpiredAt ?? new Date(),
+          }),
     });
 
     if (!updated) {
@@ -250,10 +249,6 @@ export class AdminService {
     );
 
     return toAdminUpgradeRequest(resolved, user);
-  }
-
-  private trialDeadline(): Date {
-    return new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
   }
 
   async getUserDetail(userId: string): Promise<AdminUserDetailDto> {

@@ -66,7 +66,7 @@ export const adminApi = {
     await api.delete(`${ADMIN_BASE}/users/${userId}`)
   },
 
-  /** The whole billing system: set the tier and the licence count by hand. */
+  /** Legacy/emergency entitlement override; paid invoices are the normal path. */
   updateUserPlan: async (
     userId: string,
     payload: UpdateUserPlanPayload,

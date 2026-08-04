@@ -1521,7 +1521,8 @@
       "apps": "All Apps",
       "categories": "Apps Categories",
       "notifications": "Notifications",
-      "upgradeRequests": "Upgrade Requests"
+      "upgradeRequests": "Upgrade Requests",
+      "billing": "Billing"
     },
     "users": {
       "search": "Search users...",
@@ -1626,7 +1627,7 @@
       "licenceCount_other": "{{count}} licences",
       "screenLimit": "Screen licences",
       "screenLimitInvalid": "Enter a whole number of licences.",
-      "hintFree": "Free accounts are erased 21 days after sign-up. Switching to free restarts the 21 days; it does not delete anything now.",
+      "hintFree": "Switching to free never starts a second trial. Existing data and player content are retained.",
       "hintEnterprise": "Enterprise accounts never expire. Lowering this below the screens already in use blocks new screens but deletes nothing.",
       "submit": "Save plan",
       "success": "Plan updated for {{name}}.",
@@ -1653,6 +1654,124 @@
       },
       "status": {
         "resolved": "Resolved"
+      }
+    },
+    "billing": {
+      "newInvoice": "New invoice",
+      "empty": "No manual invoices yet.",
+      "actionError": "The billing action could not be completed.",
+      "sentSuccess": "Invoice marked as sent.",
+      "paidSuccess": "Payment recorded and the paid plan activated.",
+      "voidSuccess": "Invoice voided.",
+      "archiveSuccess": "Invoice removed from the operational table.",
+      "overview": {
+        "activeAccounts": "Active paid accounts",
+        "openInvoices": "Open invoices",
+        "overdue": "Overdue invoices",
+        "exceptions": "Items to review"
+      },
+      "columns": {
+        "invoice": "Invoice",
+        "customer": "Customer",
+        "amount": "Amount",
+        "screens": "Screens",
+        "dueAt": "Due",
+        "status": "Status"
+      },
+      "status": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "paid": "Paid",
+        "overdue": "Overdue",
+        "void": "Void"
+      },
+      "filters": {
+        "all": "All invoices",
+        "draft": "Drafts",
+        "sent": "Sent",
+        "paid": "Paid",
+        "overdue": "Overdue",
+        "void": "Void"
+      },
+      "actions": {
+        "edit": "Edit draft",
+        "markSent": "Mark as sent",
+        "markPaid": "Mark as paid",
+        "void": "Void invoice",
+        "archive": "Remove from table"
+      },
+      "form": {
+        "title": "Create invoice draft",
+        "editTitle": "Edit invoice draft",
+        "description": "Record the invoice you create and email outside SignageWall. It remains a draft until you confirm it was sent.",
+        "customer": "Customer",
+        "selectCustomer": "Select a customer",
+        "customerRequired": "Select a customer.",
+        "invoiceNumber": "Invoice number",
+        "billingEmail": "Billing email",
+        "company": "Company",
+        "screens": "Screen licences",
+        "amount": "Amount",
+        "currency": "Currency",
+        "periodStart": "Service period starts",
+        "periodEnd": "Service period ends",
+        "dueAt": "Payment due",
+        "note": "Internal note",
+        "draftHint": "Incomplete drafts are saved and shown in Billing Exceptions so they cannot be forgotten.",
+        "saveDraft": "Save draft",
+        "invalidScreens": "Enter a valid number of screen licences.",
+        "invalidAmount": "Enter a valid invoice amount.",
+        "created": "Invoice draft created.",
+        "updated": "Invoice draft updated.",
+        "error": "The invoice draft could not be saved."
+      },
+      "send": {
+        "title": "Confirm manual delivery",
+        "description": "Confirm only after you have emailed the external invoice to the customer. This starts due-date monitoring; it does not activate the paid plan.",
+        "incomplete": "Complete these fields first: {{fields}}."
+      },
+      "payment": {
+        "title": "Record payment",
+        "description": "Use the bank transfer or reconciliation reference. Recording payment activates the purchased screen licences.",
+        "reference": "Payment reference"
+      },
+      "void": {
+        "title": "Void invoice?",
+        "description": "The invoice remains in the audit history but is excluded from open billing work.",
+        "reason": "Reason"
+      },
+      "archive": {
+        "title": "Remove invoice from the table?",
+        "description": "{{invoice}} will be hidden from the operational table. Its audit and payment history will be retained, and customer access will not change.",
+        "confirm": "Remove invoice"
+      },
+      "fields": {
+        "invoiceNumber": "invoice number",
+        "amountMinor": "amount",
+        "currency": "currency",
+        "billingEmail": "billing email",
+        "dueAt": "payment due date",
+        "servicePeriodStart": "service period start",
+        "servicePeriodEnd": "service period end"
+      },
+      "exceptions": {
+        "title": "Billing Exceptions",
+        "more_one": "One more item is available in the daily billing digest.",
+        "more_other": "{{count}} more items are available in the daily billing digest.",
+        "severity": {
+          "warning": "Check",
+          "critical": "Action required"
+        },
+        "types": {
+          "draft_incomplete": "Invoice draft is missing required data",
+          "draft_ready_to_send": "Complete draft has not been marked as sent",
+          "payment_due_soon": "Payment is due soon",
+          "payment_overdue": "Payment is overdue",
+          "upgrade_request_without_invoice": "Upgrade request has no invoice draft",
+          "active_plan_without_billing_record": "Paid plan has no billing record",
+          "active_account_missing_period": "Active account has no billing period",
+          "renewal_invoice_missing": "Billing period ends without a renewal invoice"
+        }
       }
     }
   },

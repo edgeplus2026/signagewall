@@ -8,9 +8,8 @@ const escapeHtml = (value: string): string =>
     .replace(/"/g, '&quot;');
 
 /**
- * The one and only warning before a free account is erased. Sent ~24h out, so
- * it has to be unambiguous about what is lost and what to do about it — no soft
- * "your trial is ending soon" framing.
+ * The one and only warning before a free trial expires. Data and the last
+ * player content are retained; the message must not threaten deletion.
  */
 export const renderTrialExpiringEmail = (params: {
   name: string;
@@ -32,13 +31,13 @@ export const renderTrialExpiringEmail = (params: {
       bodyHtml: `
       <p style="margin:0 0 12px;">Hi ${escapeHtml(params.name)},</p>
       <p style="margin:0 0 12px;">Your SignageWall free trial ends on <strong>${expiryDate}</strong>.</p>
-      <p style="margin:0 0 12px;">When it does, your account and everything in it — screens, playlists, uploaded media and paired devices — is permanently deleted. We cannot restore it afterwards.</p>
-      <p style="margin:0;">To keep your setup, open the dashboard and use <strong>Upgrade plan</strong> to tell us how many screens you need. We will send an invoice and lift the limit on your account.</p>
+      <p style="margin:0 0 12px;">Your account, screens, playlists and media will be kept. Existing players keep their last downloaded content while billing is reviewed.</p>
+      <p style="margin:0;">To continue with a paid plan, open the dashboard and use <strong>Upgrade plan</strong> to tell us how many screens you need. We will send an invoice manually.</p>
     `,
       ctaLabel: 'Upgrade my plan',
       ctaUrl: params.upgradeUrl,
       footerNote:
-        'If you no longer need SignageWall, you can ignore this email and the account will be removed automatically.',
+        'Your data is not automatically deleted when the trial expires.',
     }),
   };
 };

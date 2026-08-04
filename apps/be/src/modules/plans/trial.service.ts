@@ -4,7 +4,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 
-import { DataDeletionService } from '../data-deletion/data-deletion.service';
 import { MailService } from '../mail/mail.service';
 import {
   User,
@@ -24,43 +23,26 @@ export class TrialService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly plansService: PlansService,
-    private readonly dataDeletionService: DataDeletionService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
   ) {}
 
   /**
-   * Daily trial sweep, an hour before the GDPR deletion sweep so the two never
-   * contend for the same account.
-   *
-   * Warnings are sent before expiries are processed: an account that crosses
-   * both thresholds between two runs (a missed run, a clock jump) is still told
-   * before it is erased.
+   * Daily trial sweep. Warnings are best-effort; expiry is safe even if email is
+   * unavailable because it never deletes content or changes player playback.
    */
   @Cron('0 2 * * *')
-  async runTrialSweep(): Promise<{ warned: number; deleted: number }> {
+  async runTrialSweep(): Promise<{ warned: number; expired: number }> {
     const warned = await this.sendExpiryWarnings();
+    const expired = await this.markExpiredTrials();
 
-    // Erasing accounts that were never actually told is worse than letting a
-    // trial run long, so a deployment with mail switched off (or unconfigured)
-    // warns loudly and deletes nothing. Fix the mail config and the backlog
-    // clears itself on the next run.
-    if (!this.mailService.isEnabled()) {
-      this.logger.warn(
-        'Mail is disabled — skipping trial deletions so no account is erased unwarned',
-      );
-      return { warned, deleted: 0 };
-    }
-
-    const deleted = await this.deleteExpiredTrials();
-
-    if (warned > 0 || deleted > 0) {
+    if (warned > 0 || expired > 0) {
       this.logger.log(
-        `Trial sweep: ${warned.toString()} warned, ${deleted.toString()} deleted`,
+        `Trial sweep: ${warned.toString()} warned, ${expired.toString()} expired`,
       );
     }
 
-    return { warned, deleted };
+    return { warned, expired };
   }
 
   /** "Your trial ends tomorrow" — once per account, never resent. */
@@ -115,52 +97,49 @@ export class TrialService {
   }
 
   /**
-   * Erases every free account whose 21 days are up, along with the
-   * organizations it owns. There is no grace period and no tombstone — the
-   * customer was told yesterday, and re-registering starts a clean trial.
+   * Marks every elapsed free trial once. This deliberately does not deactivate
+   * the user, delete content, lower an existing screen count, or touch devices.
    */
-  private async deleteExpiredTrials(): Promise<number> {
+  private async markExpiredTrials(): Promise<number> {
     const expired = await this.userModel
       .find({
         plan: UserPlan.FREE,
         role: { $ne: UserRole.SUPER_ADMIN },
+        isActive: true,
         trialEndsAt: { $ne: null, $lte: new Date() },
-        // Nobody is erased who was not warned first. The warning pass above runs
-        // in the same sweep, so an account that expires between two runs is
-        // warned today and deleted tomorrow rather than going without notice.
-        trialWarningSentAt: { $ne: null },
+        trialExpiredAt: null,
       })
       .exec();
 
-    let deleted = 0;
+    let marked = 0;
 
     for (const user of expired) {
       const userId = user._id.toString();
 
       try {
-        const entitlement = await this.plansService.resolveForUser(user);
-
-        if (entitlement.isSponsored || entitlement.isSuperAdmin) {
+        if (await this.isExempt(user)) {
           continue;
         }
 
-        await this.dataDeletionService.purgeTrialAccount(
-          userId,
-          entitlement.ownedOrganizationIds,
-        );
-        this.logger.log(`Trial expired — erased account ${userId}`);
-        deleted += 1;
+        const result = await this.userModel
+          .updateOne(
+            { _id: user._id, trialExpiredAt: null },
+            { $set: { trialExpiredAt: new Date() } },
+          )
+          .exec();
+        if (result.modifiedCount > 0) {
+          this.logger.log(`Trial expired — retained account ${userId}`);
+          marked += 1;
+        }
       } catch (error) {
-        // Leave the row untouched so the next run retries; every delete in the
-        // cascade is idempotent.
         this.logger.error(
-          `Trial deletion failed for ${userId}`,
+          `Trial expiry update failed for ${userId}`,
           error instanceof Error ? error.stack : String(error),
         );
       }
     }
 
-    return deleted;
+    return marked;
   }
 
   /** Super-admins and members of a paying organization never expire. */
