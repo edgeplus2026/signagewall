@@ -49,7 +49,6 @@ Implementiran je prvi bezbedan vertikalni presek ručnog billing lifecycle-a:
 - downgrade više ne pokreće novi 21-dnevni trial;
 - dodat je regresioni test za `SuperAdminGuard` i lifecycle testovi za billing i
   bezbedan trial expiry.
-
 Implementiran je i kompletan first-party analytics presek, bez Stripe-a:
 
 - novi backend `AnalyticsModule` i MongoDB `funnelevents` kolekcija su izvor
