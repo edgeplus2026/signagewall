@@ -28,21 +28,40 @@
 #   Variables: SIGNAGEWALL_PLAYER_URL, R2_RELEASES_BUCKET, R2_RELEASES_PUBLIC_URL
 name: player-release
 
+# PAUSED 2026-08-05 — the `player-desktop-v*` tag trigger is removed while the
+# desktop player is on hold. The build matrix below is 1 windows + 2 macos legs
+# at up to 45 min each; GitHub bills those at 2x and 10x Linux minutes, so one
+# accidental tag costs ~1,000 billed minutes against a 2,000/month free quota —
+# more than this private repo has, and Actions stops fleet-wide when it runs out.
+#
+# The matrix is left INTACT, not deleted: restoring desktop releases is putting
+# the two lines below back. Note that `publish` is gated on `ref_type == 'tag'`,
+# so until then workflow_dispatch is build-only and nothing can reach R2.
+#   push:
+#     tags: ['player-desktop-v*']
 on:
-  push:
-    tags: ['player-desktop-v*']
   workflow_dispatch:
     inputs:
       version:
         description: 'Version to build (e.g. 0.2.0). Build-only, no publish.'
         required: true
 
+# Queue, do NOT cancel: `publish` uploads installers -> latest.json.sig ->
+# latest.json in that order precisely so a device never sees a manifest whose
+# bytes aren't up yet. Killing that job mid-sequence leaves R2 in exactly the
+# half-published state the ordering exists to prevent. Serialising per-ref also
+# keeps two runs of the same version from racing the immutability check.
+concurrency:
+  group: player-release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
-  # A release must never ship code that doesn't lint, compile, or pass its tests
-  # — including the Windows-only rollback path (see player-ci.yml).
+  # A release must never ship code that doesn't lint, compile, or pass its tests.
+  # NOTE: player-ci's Rust lane is currently paused, so this no longer covers the
+  # Windows-only rollback path — restore that job before un-pausing this pipeline.
   check:
     uses: ./.github/workflows/player-ci.yml
 
@@ -252,6 +271,12 @@ jobs:
           name: release-${{ matrix.key }}
           path: staging/
           if-no-files-found: error
+          # Only needed long enough for `publish` to download it in this same
+          # run; the installers' permanent home is the versioned R2 prefix. The
+          # default 90 days would hold three platforms' bundles per release
+          # against a 500 MB free storage cap, and storage overage bills the
+          # same account that gates Actions.
+          retention-days: 7
 
   publish:
     needs: [meta, build]

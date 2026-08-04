@@ -1,12 +1,21 @@
-# SignageWall Player — quality gate for the web player and the native (Tauri) shell.
+# SignageWall Player — quality gate for the web player and the Android shell.
 #
 # Runs on every push/PR that touches the player, and is CALLED by
-# player-release.yml so a release can never ship code that doesn't lint, compile,
-# or pass its tests.
+# player-release.yml and player-android-release.yml so a release can never ship
+# code that doesn't lint, compile, or pass its tests.
 #
-# The Rust lane runs on BOTH windows and macos on purpose: the updater's rollback
-# path is `#[cfg(windows)]`, so a macOS-only lane would never even compile it —
-# exactly the "green locally, broken on the device" gap this fleet cannot afford.
+# PAUSED 2026-08-05 — the `rust` lane (Tauri shell: cargo fmt/clippy/test) is
+# removed while the desktop player is on hold. It ran a windows + macos matrix,
+# and GitHub bills those at 2x and 10x Linux minutes: a single run cost ~180
+# billed minutes against this private repo's 2,000/month free quota, and it fired
+# on every PR AND on every Android release (both release workflows gate on this
+# file). That alone exhausted the quota and blocked all Actions.
+#
+# What is no longer covered: nothing here compiles apps/player/src-tauri, so the
+# updater's `#[cfg(windows)]` rollback path is unverified by CI — exactly the
+# "green locally, broken on the device" gap the matrix existed to close. Restore
+# the job from git history BEFORE the next desktop release; a self-hosted runner
+# is the free way to keep it.
 name: player-ci
 
 on:
@@ -22,6 +31,20 @@ on:
       - 'packages/**'
       - '.github/workflows/player-*.yml'
   workflow_call:
+
+# A superseded commit's CI is worthless — cancel it instead of paying for it to
+# finish. Pushing three times in a row used to run three full matrices to
+# completion, on a quota that cannot afford one.
+#
+# The group is prefixed with this file's own name on purpose. Inside a reusable
+# workflow the `github` context belongs to the CALLER, so `github.workflow` here
+# expands to `player-release` / `player-android-release` when those gate on this
+# file — without the literal prefix this job would land in the SAME group as the
+# caller that is waiting on it, and cancel (or, with cancel-in-progress: false,
+# deadlock against) its own parent.
+concurrency:
+  group: player-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -47,54 +70,6 @@ jobs:
         run: pnpm --filter @signagewall/player test
       - name: Lint
         run: pnpm --filter @signagewall/player lint
-
-  rust:
-    name: rust (${{ matrix.os }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 35
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
-        with:
-          components: clippy, rustfmt
-      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
-        with:
-          workspaces: apps/player/src-tauri
-
-      - run: pnpm install --frozen-lockfile
-      # `generate_context!` embeds `frontendDist` at compile time, so the web
-      # bundle must exist before cargo can even parse the crate.
-      - name: Build the frontend (required to compile the shell)
-        run: |
-          pnpm turbo run build --filter=@signagewall/player^...
-          pnpm --filter @signagewall/player build
-
-      # `externalBin` makes tauri-build fail EVERY cargo build until the sidecar is
-      # staged (it validates existence in build.rs) — build + stage it for the host
-      # triple before fmt/clippy/test. The script placeholder-bootstraps around the
-      # same-package chicken-and-egg.
-      - name: Stage the watchdog sidecar
-        working-directory: apps/player/src-tauri
-        run: node scripts/prepare-watchdog.mjs
-
-      - name: Format
-        working-directory: apps/player/src-tauri
-        run: cargo fmt --check
-      - name: Clippy
-        working-directory: apps/player/src-tauri
-        run: cargo clippy --all-targets -- -D warnings
-      - name: Tests
-        working-directory: apps/player/src-tauri
-        run: cargo test
 
   android:
     name: android (compile + unit tests)

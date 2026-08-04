@@ -40,6 +40,14 @@ on:
         description: 'Version to build (e.g. 0.2.0). Build-only, no publish.'
         required: true
 
+# Queue, do NOT cancel — same reason as the desktop pipeline: `publish` writes
+# the APK and the manifest to R2 in a deliberate order, and a cancelled run can
+# strand that half-done. An APK is also the artifact that is hardest to take
+# back, so serialising per-ref is worth the wait.
+concurrency:
+  group: player-android-release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -141,6 +149,11 @@ jobs:
           name: android-release
           path: apps/player/android-shell/dist-android/
           if-no-files-found: error
+          # This artifact only exists to hand the APK to `publish` in the same
+          # run; R2 is where it actually lives. The default 90 days would park
+          # every release APK against a 500 MB free storage cap, and storage
+          # overage bills the same account that gates Actions.
+          retention-days: 7
 
   publish:
     needs: [meta, build]
