@@ -8,7 +8,7 @@ import { submitContact, type ContactState } from './actions'
 import { AnalyticsFormFields } from '@/components/analytics/analytics-form-fields'
 import { Button } from '@/components/ui/button'
 import { Field, Input, Label, Textarea } from '@/components/ui/field'
-import { trackVendorEvent } from '@/lib/funnel-analytics'
+import { trackVercelEvent } from '@/lib/funnel-analytics'
 
 interface FormLabels {
   name: string
@@ -35,7 +35,7 @@ export function ContactForm({ labels }: { labels: FormLabels }) {
   useEffect(() => {
     if (state.status === 'success' && !reportedSuccess.current) {
       reportedSuccess.current = true
-      trackVendorEvent('generate_lead', { form: 'contact' })
+      trackVercelEvent('generate_lead', { form: 'contact' })
     }
   }, [state.status])
 

@@ -127,11 +127,18 @@ export function trackVendorEvent(
   eventName: string,
   properties: Record<string, string | number | boolean> = {},
 ): void {
-  track(eventName, properties)
+  trackVercelEvent(eventName, properties)
   if (window.localStorage.getItem(CONSENT_KEY) === 'granted') {
     const gtag = (window as typeof window & { gtag?: (...args: unknown[]) => void }).gtag
     gtag?.('event', eventName, properties)
   }
+}
+
+export function trackVercelEvent(
+  eventName: string,
+  properties: Record<string, string | number | boolean> = {},
+): void {
+  track(eventName, properties)
 }
 
 export function trackFunnelEvent(

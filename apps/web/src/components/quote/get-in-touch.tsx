@@ -10,7 +10,7 @@ import { submitQuote, type QuoteState } from '@/components/quote/actions'
 import { Button, buttonVariants, type ButtonProps } from '@/components/ui/button'
 import { Field, Input, Label, Textarea } from '@/components/ui/field'
 import { countryOptions } from '@/lib/countries'
-import { trackFunnelEvent, trackVendorEvent } from '@/lib/funnel-analytics'
+import { trackFunnelEvent, trackVercelEvent } from '@/lib/funnel-analytics'
 import { cn } from '@/lib/utils'
 
 const INITIAL: QuoteState = { status: 'idle' }
@@ -71,7 +71,7 @@ function QuoteForm({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     if (state.status === 'success' && !reportedSuccess.current) {
       reportedSuccess.current = true
-      trackVendorEvent('generate_lead', { form: 'quote' })
+      trackVercelEvent('generate_lead', { form: 'quote' })
     }
   }, [state.status])
 

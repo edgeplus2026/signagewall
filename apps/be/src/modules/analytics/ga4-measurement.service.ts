@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { FunnelEvent } from './schemas/funnel-event.schema';
+import { FunnelEvent, FunnelEventName } from './schemas/funnel-event.schema';
 
 /**
  * Optional consent-gated GA4 forwarding. Mongo remains the source of truth;
@@ -25,6 +25,19 @@ export class Ga4MeasurementService {
 
     const clientId = event.anonymousId ?? event.userId?.toString();
     if (!clientId) return;
+    const properties = event.properties ?? {};
+    const purchaseParams =
+      event.eventName === FunnelEventName.PURCHASE &&
+      typeof properties.valueMinor === 'number'
+        ? {
+            value: properties.valueMinor / 100,
+            currency:
+              typeof properties.currency === 'string'
+                ? properties.currency
+                : undefined,
+            transaction_id: event.dedupeKey,
+          }
+        : {};
 
     try {
       const response = await fetch(
@@ -39,7 +52,8 @@ export class Ga4MeasurementService {
               {
                 name: event.eventName,
                 params: {
-                  ...(event.properties ?? {}),
+                  ...properties,
+                  ...purchaseParams,
                   source: event.firstTouch?.source,
                   medium: event.firstTouch?.medium,
                   campaign: event.firstTouch?.campaign,
