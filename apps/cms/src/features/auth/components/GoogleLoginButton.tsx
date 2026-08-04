@@ -4,7 +4,7 @@ import { GoogleIcon } from '@/assets/icons/GoogleIcon'
 import { Button } from '@/components/ui/button'
 import { authApi } from '@/features/auth/api/authApi'
 
-export function GoogleLoginButton() {
+export function GoogleLoginButton({ acquisitionToken }: { acquisitionToken?: string } = {}) {
   const { t } = useTranslation()
 
   return (
@@ -13,7 +13,7 @@ export function GoogleLoginButton() {
       type="button"
       className="w-full"
       onClick={() => {
-        authApi.loginWithGoogle()
+        authApi.loginWithGoogle(acquisitionToken)
       }}
     >
       <GoogleIcon className="size-4" />

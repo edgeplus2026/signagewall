@@ -84,7 +84,7 @@ export class AdminController {
     return this.adminService.demoteFromSuperAdmin(user.id, targetUserId);
   }
 
-  /** The billing system: set a plan and its licence count by hand. */
+  /** Legacy/emergency entitlement override; paid activation normally follows payment. */
   @Patch('users/:id/plan')
   @ApiSuccessResponse(AdminUserListItemSchema)
   updateUserPlan(

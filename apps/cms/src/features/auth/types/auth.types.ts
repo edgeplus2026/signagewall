@@ -29,6 +29,7 @@ export interface RegisterRequest {
   password: string
   acceptedLegal: boolean
   inviteToken?: string
+  acquisitionToken?: string
 }
 
 export interface ForgotPasswordRequest {
@@ -53,9 +54,7 @@ export interface PendingVerification {
 
 export type RegisterResponse = AuthResponse | PendingVerification
 
-export function isPendingVerification(
-  response: RegisterResponse,
-): response is PendingVerification {
+export function isPendingVerification(response: RegisterResponse): response is PendingVerification {
   return 'needsVerification' in response
 }
 

@@ -1503,7 +1503,42 @@
       "apps": "Aplikacije",
       "categories": "Kategorije aplikacija",
       "notifications": "Obaveštenja",
-      "upgradeRequests": "Zahtevi za nadogradnju"
+      "upgradeRequests": "Zahtevi za nadogradnju",
+      "billing": "Naplata",
+      "analytics": "Analitika"
+    },
+    "analytics": {
+      "title": "Lifecycle analitika",
+      "description": "First-party funnel od marketinške posete do aktivnog ekrana i evidentirane ručne uplate.",
+      "lastDays": "Poslednjih {{count}} dana",
+      "fromLanding": "od poseta sajtu",
+      "funnel": "Konverzioni funnel",
+      "acquisition": "Izvori registracija i uplata",
+      "recent": "Nedavni lifecycle događaji",
+      "empty": "Nema događaja u ovom periodu.",
+      "error": "Analitika nije mogla da se učita.",
+      "events": {
+        "marketing_landing": "Posete sajtu",
+        "marketing_cta_clicked": "CTA klikovi",
+        "generate_lead": "Leadovi",
+        "sign_up": "Registracije",
+        "trial_started": "Pokrenuti triali",
+        "organization_created": "Organizacije",
+        "screen_created": "Kreirani ekrani",
+        "content_published": "Objavljen sadržaj",
+        "device_paired": "Upareni uređaji",
+        "first_screen_activated": "Aktivni nalozi",
+        "subscription_requested": "Zahtevi za plan",
+        "invoice_issued": "Poslate fakture",
+        "purchase": "Uplate",
+        "quote_started": "Započeti upiti",
+        "registration_started": "Započete registracije",
+        "email_verified": "Potvrđen email",
+        "login": "Prijave",
+        "payment_received": "Primljena uplata",
+        "subscription_renewed": "Obnove",
+        "payment_overdue": "Dospelo plaćanje"
+      }
     },
     "users": {
       "search": "Pretraži korisnike...",
@@ -1609,7 +1644,7 @@
       "licenceCount_other": "{{count}} licenci",
       "screenLimit": "Licence za ekrane",
       "screenLimitInvalid": "Unesite ceo broj licenci.",
-      "hintFree": "Besplatni nalozi se brišu 21 dan nakon registracije. Prebacivanje na besplatan plan ponovo pokreće 21 dan; ništa se ne briše odmah.",
+      "hintFree": "Prebacivanje na besplatan plan ne pokreće novi probni period. Postojeći podaci i sadržaj na plejeru ostaju sačuvani.",
       "hintEnterprise": "Enterprise nalozi ne ističu. Smanjivanje ispod broja već korišćenih ekrana blokira nove ekrane, ali ništa ne briše.",
       "submit": "Sačuvaj plan",
       "success": "Plan je ažuriran za {{name}}.",
@@ -1636,6 +1671,125 @@
       },
       "status": {
         "resolved": "Rešen"
+      }
+    },
+    "billing": {
+      "newInvoice": "Nova faktura",
+      "empty": "Još nema ručno evidentiranih faktura.",
+      "actionError": "Billing akcija nije uspela.",
+      "sentSuccess": "Faktura je označena kao poslata.",
+      "paidSuccess": "Uplata je evidentirana i plaćeni plan je aktiviran.",
+      "voidSuccess": "Faktura je poništena.",
+      "archiveSuccess": "Faktura je uklonjena iz operativne tabele.",
+      "overview": {
+        "activeAccounts": "Aktivni plaćeni nalozi",
+        "openInvoices": "Otvorene fakture",
+        "overdue": "Dospela dugovanja",
+        "exceptions": "Stavke za proveru"
+      },
+      "columns": {
+        "invoice": "Faktura",
+        "customer": "Kupac",
+        "amount": "Iznos",
+        "screens": "Ekrani",
+        "dueAt": "Rok plaćanja",
+        "status": "Status"
+      },
+      "status": {
+        "draft": "Nacrt",
+        "sent": "Poslata",
+        "paid": "Plaćena",
+        "overdue": "Dospela",
+        "void": "Poništena"
+      },
+      "filters": {
+        "all": "Sve fakture",
+        "draft": "Nacrti",
+        "sent": "Poslate",
+        "paid": "Plaćene",
+        "overdue": "Dospele",
+        "void": "Poništene"
+      },
+      "actions": {
+        "edit": "Izmeni nacrt",
+        "markSent": "Označi kao poslatu",
+        "markPaid": "Označi kao plaćenu",
+        "void": "Poništi fakturu",
+        "archive": "Ukloni iz tabele"
+      },
+      "form": {
+        "title": "Kreiraj nacrt fakture",
+        "editTitle": "Izmeni nacrt fakture",
+        "description": "Evidentirajte fakturu koju pravite i šaljete van SignageWall-a. Ostaje nacrt dok ne potvrdite da je poslata.",
+        "customer": "Kupac",
+        "selectCustomer": "Izaberite kupca",
+        "customerRequired": "Izaberite kupca.",
+        "invoiceNumber": "Broj fakture",
+        "billingEmail": "Email za fakturu",
+        "company": "Firma",
+        "screens": "Licence za ekrane",
+        "amount": "Iznos",
+        "currency": "Valuta",
+        "periodStart": "Početak perioda usluge",
+        "periodEnd": "Kraj perioda usluge",
+        "dueAt": "Rok plaćanja",
+        "note": "Interna napomena",
+        "draftHint": "Nepotpuni nacrti se čuvaju i prikazuju u Billing Exceptions kako ne bi bili zaboravljeni.",
+        "saveDraft": "Sačuvaj nacrt",
+        "invalidScreens": "Unesite ispravan broj licenci za ekrane.",
+        "invalidAmount": "Unesite ispravan iznos fakture.",
+        "created": "Nacrt fakture je kreiran.",
+        "updated": "Nacrt fakture je ažuriran.",
+        "error": "Nije moguće sačuvati nacrt fakture."
+      },
+      "send": {
+        "title": "Potvrdi ručno slanje",
+        "description": "Potvrdite tek nakon što ste kupcu emailom poslali eksternu fakturu. Time počinje praćenje roka, ali se plaćeni plan još ne aktivira.",
+        "incomplete": "Prvo popunite: {{fields}}."
+      },
+      "payment": {
+        "title": "Evidentiraj uplatu",
+        "description": "Unesite referencu bankovne uplate. Evidentiranje uplate aktivira kupljene licence za ekrane.",
+        "reference": "Referenca uplate"
+      },
+      "void": {
+        "title": "Poništiti fakturu?",
+        "description": "Faktura ostaje u audit istoriji, ali se više ne računa kao otvorena obaveza.",
+        "reason": "Razlog"
+      },
+      "archive": {
+        "title": "Ukloniti fakturu iz tabele?",
+        "description": "{{invoice}} će biti sakrivena iz operativne tabele. Audit i istorija plaćanja ostaju sačuvani, a pristup korisnika se ne menja.",
+        "confirm": "Ukloni fakturu"
+      },
+      "fields": {
+        "invoiceNumber": "broj fakture",
+        "amountMinor": "iznos",
+        "currency": "valutu",
+        "billingEmail": "billing email",
+        "dueAt": "rok plaćanja",
+        "servicePeriodStart": "početak perioda usluge",
+        "servicePeriodEnd": "kraj perioda usluge"
+      },
+      "exceptions": {
+        "title": "Billing izuzeci",
+        "more_one": "Još jedna stavka je dostupna u dnevnom billing pregledu.",
+        "more_few": "Još {{count}} stavke su dostupne u dnevnom billing pregledu.",
+        "more_other": "Još {{count}} stavki je dostupno u dnevnom billing pregledu.",
+        "severity": {
+          "warning": "Proveri",
+          "critical": "Potrebna akcija"
+        },
+        "types": {
+          "draft_incomplete": "Nacrt fakture nema sve potrebne podatke",
+          "draft_ready_to_send": "Kompletan nacrt nije označen kao poslat",
+          "payment_due_soon": "Rok plaćanja uskoro ističe",
+          "payment_overdue": "Uplata kasni",
+          "upgrade_request_without_invoice": "Zahtev za nadogradnju nema nacrt fakture",
+          "active_plan_without_billing_record": "Plaćeni plan nema billing zapis",
+          "active_account_missing_period": "Aktivni nalog nema billing period",
+          "renewal_invoice_missing": "Period ističe bez fakture za obnovu"
+        }
       }
     }
   },

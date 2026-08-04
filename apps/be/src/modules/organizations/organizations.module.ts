@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import {
   OrganizationInvitation,
   OrganizationInvitationSchema,
@@ -32,6 +33,7 @@ import {
         schema: OrganizationInvitationSchema,
       },
     ]),
+    AnalyticsModule,
     PlansModule,
   ],
   controllers: [OrganizationsController],

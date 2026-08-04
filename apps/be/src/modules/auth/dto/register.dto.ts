@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 
@@ -33,6 +34,12 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   inviteToken?: string;
+
+  /** Anonymous marketing attribution only; never used for authorization. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(4096)
+  acquisitionToken?: string;
 
   /** Must be true — the user accepts the current Terms of Service + Privacy Policy. */
   @IsBoolean()

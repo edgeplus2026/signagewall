@@ -65,6 +65,14 @@ export class PlansRepository {
     return this.upgradeRequestModel.countDocuments({ status: 'open' }).exec();
   }
 
+  /** Billing reminder input: open asks that still need an invoice workflow. */
+  findOpen(): Promise<UpgradeRequestDocument[]> {
+    return this.upgradeRequestModel
+      .find({ status: 'open' })
+      .sort({ createdAt: 1, _id: 1 })
+      .exec();
+  }
+
   resolve(
     requestId: string,
     resolvedBy: string,

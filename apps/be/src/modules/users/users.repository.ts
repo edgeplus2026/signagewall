@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
 
-import { User, UserDocument } from './schemas/user.schema';
+import { User, UserDocument, UserPlan, UserRole } from './schemas/user.schema';
 
 export type AdminUsersSortField =
   | 'name'
@@ -224,6 +224,18 @@ export class UsersRepository {
 
   findByGoogleId(googleId: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ googleId }).exec();
+  }
+
+  /** Legacy paid projections that should have a corresponding billing record. */
+  findActiveEnterpriseUsers(): Promise<UserDocument[]> {
+    return this.userModel
+      .find({
+        plan: UserPlan.ENTERPRISE,
+        role: { $ne: UserRole.SUPER_ADMIN },
+        isActive: true,
+      })
+      .sort({ createdAt: 1, _id: 1 })
+      .exec();
   }
 
   findByPasswordResetTokenHash(

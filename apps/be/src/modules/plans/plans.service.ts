@@ -4,6 +4,8 @@ import { Model, Types } from 'mongoose';
 import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import { MailService } from '../mail/mail.service';
 import {
   OrganizationMembership,
@@ -76,6 +78,7 @@ export class PlansService {
     private readonly usersRepository: UsersRepository,
     private readonly mailService: MailService,
     private readonly i18n: I18nService,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   // --- Entitlement -----------------------------------------------------------
@@ -274,6 +277,16 @@ export class PlansService {
       ...(dto.message?.trim() ? { message: dto.message.trim() } : {}),
       ...(dto.phone?.trim() ? { phone: dto.phone.trim() } : {}),
       ...(dto.company?.trim() ? { company: dto.company.trim() } : {}),
+    });
+
+    await this.analytics.record({
+      eventName: FunnelEventName.SUBSCRIPTION_REQUESTED,
+      userId: user._id.toString(),
+      dedupeKey: `subscription_requested:request:${request._id.toString()}`,
+      properties: {
+        plan: entitlement.plan,
+        screenQuantity: dto.requestedScreens,
+      },
     });
 
     await this.mailService

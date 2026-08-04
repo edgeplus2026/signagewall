@@ -11,6 +11,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { AnalyticsService } from '../analytics/analytics.service';
+import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
 import { isOverlaySlug, overlayScreenIds } from '../apps/overlay.util';
@@ -95,6 +97,7 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -299,6 +302,26 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.broadcast
       .to(screenRoom(screenId))
       .emit(PlayerSocketEvents.NowPlaying, { itemId });
+
+    // The first actual item shown by a real paired device is activation. A
+    // dedupe key makes reconnects/replays harmless and previews are excluded.
+    void this.recordFirstScreenActivation(screenId);
+  }
+
+  private async recordFirstScreenActivation(screenId: string): Promise<void> {
+    const organizationId =
+      await this.screensRepository.findOrganizationIdById(screenId);
+    if (!organizationId) return;
+    const organization =
+      await this.organizationsRepository.findById(organizationId);
+    await this.analytics.record({
+      eventName: FunnelEventName.FIRST_SCREEN_ACTIVATED,
+      userId: organization?.ownerUserId?.toString(),
+      organizationId,
+      dedupeKey: organization?.ownerUserId
+        ? `first_screen_activated:user:${organization.ownerUserId.toString()}`
+        : `first_screen_activated:screen:${screenId}`,
+    });
   }
 
   /**

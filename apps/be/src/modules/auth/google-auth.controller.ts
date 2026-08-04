@@ -38,10 +38,17 @@ export class GoogleAuthController {
       'Handles the Google redirect, issues JWT tokens, and redirects to the frontend callback URL.',
   })
   async googleCallback(
-    @Req() req: Request & { user: GoogleProfile },
+    @Req()
+    req: Request & {
+      user: GoogleProfile;
+    },
     @Res() res: Response,
   ): Promise<void> {
-    const authResponse = await this.authService.loginWithGoogle(req.user);
+    const authResponse = await this.authService.loginWithGoogle(
+      req.user,
+      this.readCookie(req.headers.cookie, 'sw_acquisition'),
+    );
+    res.clearCookie('sw_acquisition', { path: '/api/v1/auth/google' });
     const frontendUrl = this.configService.getOrThrow<string>('frontendUrl');
 
     const redirectUrl = new URL('/auth/google/callback', frontendUrl);
@@ -55,5 +62,22 @@ export class GoogleAuthController {
     );
 
     res.redirect(redirectUrl.toString());
+  }
+
+  private readCookie(
+    header: string | undefined,
+    name: string,
+  ): string | undefined {
+    const encoded = header
+      ?.split(';')
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(`${name}=`))
+      ?.slice(name.length + 1);
+    if (!encoded) return undefined;
+    try {
+      return decodeURIComponent(encoded);
+    } catch {
+      return undefined;
+    }
   }
 }

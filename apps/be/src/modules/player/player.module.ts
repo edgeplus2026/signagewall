@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { AppsModule } from '../apps/apps.module';
 import { MediaModule } from '../media/media.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
@@ -25,6 +26,7 @@ import { Device, DeviceSchema } from './schemas/device.schema';
     ConfigModule,
     JwtModule.register({}),
     MongooseModule.forFeature([{ name: Device.name, schema: DeviceSchema }]),
+    AnalyticsModule,
     OrganizationsModule,
     ScreensModule,
     PlaylistsModule,

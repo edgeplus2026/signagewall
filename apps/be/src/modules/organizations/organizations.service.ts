@@ -3,6 +3,8 @@ import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import { PlansService } from '../plans/plans.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
@@ -23,6 +25,7 @@ export class OrganizationsService {
     private readonly plansService: PlansService,
     private readonly transactionService: TransactionService,
     private readonly i18n: I18nService,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   async listForUser(userId: string): Promise<OrganizationResponseDto[]> {
@@ -56,6 +59,13 @@ export class OrganizationsService {
       );
 
       return created;
+    });
+
+    await this.analytics.record({
+      eventName: FunnelEventName.ORGANIZATION_CREATED,
+      userId,
+      organizationId: organization._id.toString(),
+      dedupeKey: `organization_created:organization:${organization._id.toString()}`,
     });
 
     return toOrganizationResponse(organization, OrganizationRole.ADMIN);

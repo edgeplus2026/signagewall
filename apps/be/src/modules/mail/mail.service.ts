@@ -3,6 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 
 import { renderEmailVerificationEmail } from './templates/email-verification.template';
+import {
+  type BillingAlertEmailItem,
+  renderBillingAlertEmail,
+} from './templates/billing-alert.template';
 import { renderNewRegistrationEmail } from './templates/new-registration.template';
 import { renderPasswordResetEmail } from './templates/password-reset.template';
 import {
@@ -25,6 +29,7 @@ export class MailService implements OnModuleInit {
   private readonly from: string;
   private readonly supportTo: string | undefined;
   private readonly registrationsNotifyTo: string | undefined;
+  private readonly billingAlertsTo: string | undefined;
   private readonly enabled: boolean;
 
   constructor(private readonly configService: ConfigService) {
@@ -39,6 +44,10 @@ export class MailService implements OnModuleInit {
     this.registrationsNotifyTo = this.configService.get<string>(
       'mail.registrationsNotifyTo',
     );
+    this.billingAlertsTo =
+      this.configService.get<string>('mail.billingAlertsTo') ??
+      this.supportTo ??
+      this.registrationsNotifyTo;
   }
 
   isEnabled(): boolean {
@@ -151,12 +160,7 @@ export class MailService implements OnModuleInit {
     await this.send({ to: params.to, subject, html });
   }
 
-  /**
-   * Final notice before a free account is erased. Unlike every other mail here
-   * this one throws on failure: the caller only stamps `trialWarningSentAt` when
-   * it resolves, so a swallowed error would delete an account that was never
-   * actually warned.
-   */
+  /** Trial-expiry warning. It throws so a mail outage is retried next sweep. */
   async sendTrialExpiringEmail(params: {
     to: string;
     name: string;
@@ -209,6 +213,22 @@ export class MailService implements OnModuleInit {
     const { subject, html } = renderNewRegistrationEmail(params);
 
     await this.send({ to: this.registrationsNotifyTo, subject, html });
+  }
+
+  /** Daily founder-facing digest of manual billing exceptions. */
+  async sendBillingAlertEmail(params: {
+    items: BillingAlertEmailItem[];
+    adminUrl: string;
+  }): Promise<void> {
+    if (!this.billingAlertsTo) {
+      this.logger.warn(
+        'MAIL_BILLING_ALERTS_TO / support inbox not set; skipping billing digest',
+      );
+      return;
+    }
+
+    const { subject, html } = renderBillingAlertEmail(params);
+    await this.send({ to: this.billingAlertsTo, subject, html });
   }
 
   private async sendSupportEmail(params: {
