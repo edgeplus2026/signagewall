@@ -34,8 +34,28 @@ class EscapeHatch(
     private val tapWindowMillis: Long = 3_000L,
     /** Injectable so the tap sequence is testable without a device clock. */
     private val now: () -> Long = System::currentTimeMillis,
+    /**
+     * Whether the kiosk lock is on. While it is, volume keys stay swallowed — a
+     * locked signage screen is not somewhere the volume should be fiddled with.
+     * Injected rather than read directly so the hatch stays testable off-device.
+     */
+    private val isLocked: () -> Boolean = { true },
+    /**
+     * How the hold timer is scheduled. Injectable for the same reason [now] is: the
+     * real one needs a Looper, and the volume combo could therefore never be
+     * unit-tested at all — the one route into the offline escape that had no test
+     * was the one nobody could write without an emulator.
+     */
+    private val scheduler: Scheduler? = null,
     private val onTriggered: () -> Unit,
 ) {
+
+    /** The two Handler operations the hold timer needs, and nothing else. */
+    interface Scheduler {
+        fun post(action: Runnable, delayMillis: Long)
+        fun cancel(action: Runnable)
+    }
+
     private var volUpDown = false
     private var volDownDown = false
     private var armed = false
@@ -47,6 +67,20 @@ class EscapeHatch(
      * — the one that matters for remotes — be unit-tested off-device.
      */
     private val handler by lazy { Handler(Looper.getMainLooper()) }
+
+    /** The injected scheduler, or the real Handler-backed one. Resolved lazily so
+     *  constructing the hatch still touches no Looper. */
+    private val timer: Scheduler by lazy {
+        scheduler ?: object : Scheduler {
+            override fun post(action: Runnable, delayMillis: Long) {
+                handler.postDelayed(action, delayMillis)
+            }
+
+            override fun cancel(action: Runnable) {
+                handler.removeCallbacks(action)
+            }
+        }
+    }
     private val fire = Runnable {
         armed = false
         onTriggered()
@@ -87,11 +121,22 @@ class EscapeHatch(
         if (volUpDown && volDownDown) {
             if (!armed) {
                 armed = true
-                handler.postDelayed(fire, holdMillis)
+                timer.post(fire, holdMillis)
             }
         } else if (armed) {
             armed = false
-            handler.removeCallbacks(fire)
+            timer.cancel(fire)
+        }
+        // The combo needs BOTH keys down, so a single press can never arm it — and
+        // swallowing singles took the volume keys away from the owner of the TV for
+        // nothing. It mattered most where it was least defensible: on an UNLOCKED
+        // player, on somebody's own television, where the app has no business
+        // holding hardware keys at all. Volume itself is a web-layer concern (the
+        // CMS command sets the media element's volume); the shell never touches
+        // AudioManager, so it was taking the keys and putting nothing in their place.
+        val bothHeld = volUpDown && volDownDown
+        if (!bothHeld && !isLocked()) {
+            return false
         }
         return true
     }

@@ -55,6 +55,22 @@ export const routing = defineRouting({
      seeing every version. `/` remains English because it is the configured
      default; the switcher is how a visitor chooses Serbian. */
   localeDetection: false,
+  /* No `Link: rel="alternate"` header from the middleware.
+
+     next-intl builds that header by swapping the locale prefix on the *current*
+     pathname. For the static routes in `pathnames` it lands correctly; for every
+     route whose slug is localised it cannot, because it has never seen the other
+     language's slug. On `/blog/digital-signage-cost` it announced the Serbian
+     version as `/sr/blog/digital-signage-cost` — a URL with no post behind it —
+     while the HTML `<link rel="alternate">` on the very same response correctly
+     named `/sr/blog/koliko-kosta-digital-signage`. Half the site shipped two
+     hreflang annotations that disagreed, and Google, which reads both, resolves
+     that by discarding the cluster.
+
+     Nothing is lost by turning it off: every page already emits a complete and
+     reciprocal hreflang set in the document head through `localeAlternates`,
+     built from the real per-locale slugs. */
+  alternateLinks: false,
   pathnames,
 })
 

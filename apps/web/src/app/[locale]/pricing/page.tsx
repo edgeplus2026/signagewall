@@ -13,7 +13,7 @@ import { Title } from '@/components/ui/typography'
 import { REGISTER_URL } from '@/lib/app-url'
 import { catalogApps } from '@/lib/apps'
 import { CURRENCY, formattedPrice, PRICE_PER_SCREEN, TRIAL_DAYS } from '@/lib/pricing'
-import { localeAlternates, openGraphMeta } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 import { cn } from '@/lib/utils'
 
 interface PageProps {
@@ -36,12 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = t('title', values)
   const description = t('description', values)
 
-  return {
-    title,
-    description,
-    alternates: localeAlternates(locale, '/pricing'),
-    openGraph: openGraphMeta({ locale, path: '/pricing', title, description }),
-  }
+  return pageMetadata({ locale, path: '/pricing', title, description })
 }
 
 export default async function PricingPage({ params }: PageProps) {

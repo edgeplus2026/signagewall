@@ -40,7 +40,10 @@ describe('startLiveness', () => {
     const stop = startLiveness()
     // The immediate beat means the liveness file exists before the first interval
     // elapses, so the watchdog never sees a spurious "never beat" gap at boot.
-    expect(invoke).toHaveBeenCalledWith('report_liveness', undefined)
+    expect(invoke).toHaveBeenCalledWith('report_liveness', {
+      itemId: null,
+      multiItem: false,
+    })
     expect(invoke).toHaveBeenCalledTimes(1)
     stop()
   })

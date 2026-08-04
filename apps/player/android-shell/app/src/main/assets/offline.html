@@ -1,0 +1,46 @@
+<!doctype html>
+<!--
+  Shown by the shell when the player page cannot be loaded, in place of Chromium's
+  error page. It is deliberately self-contained and offline: no fonts, no images, no
+  network of any kind. A wall in a shop should carry our name and a diagnostic a
+  technician can read from the door, not a browser's dinosaur.
+  The shell keeps retrying the real URL underneath this page.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SignageWall</title>
+    <style>
+      :root { color-scheme: dark; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        display: flex; align-items: center; justify-content: center;
+        background: #0b0d14; color: #f4f6fb;
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        text-align: center;
+      }
+      .wrap { max-width: 40rem; padding: 2rem; }
+      h1 { margin: 0 0 .75rem; font-size: clamp(24px, 4vmin, 44px); font-weight: 600; }
+      p  { margin: 0 0 1.5rem; font-size: clamp(14px, 2vmin, 20px); color: rgba(244,246,251,.7); line-height: 1.5; }
+      .dot {
+        display: inline-block; width: .6em; height: .6em; margin-right: .5em;
+        border-radius: 50%; background: #ffb454;
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
+      .hint { font-size: clamp(12px, 1.5vmin, 15px); color: rgba(244,246,251,.42); }
+      @media (prefers-reduced-motion: reduce) { .dot { animation: none } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>SignageWall</h1>
+      <p><span class="dot"></span>Reconnecting to this screen&rsquo;s content&hellip;</p>
+      <p class="hint">
+        The player keeps retrying by itself and resumes as soon as the network is
+        back. If this stays on screen, check the internet connection for this device.
+      </p>
+    </div>
+  </body>
+</html>

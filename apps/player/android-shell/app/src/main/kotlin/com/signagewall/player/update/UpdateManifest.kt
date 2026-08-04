@@ -17,4 +17,8 @@ data class UpdateManifest(
     val sha256: String,
     val notes: String? = null,
     val pubDate: String? = null,
+    /** APK size in bytes, when the publisher supplies it. Used to refuse a download
+     *  that cannot fit — a nearly-full device otherwise wrote until the filesystem
+     *  gave out. Optional so an older manifest still parses. */
+    val size: Long? = null,
 )

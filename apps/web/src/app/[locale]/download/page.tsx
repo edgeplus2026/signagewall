@@ -15,7 +15,7 @@ import { Section, SectionStack } from '@/components/ui/section'
 import { StepNumber } from '@/components/ui/step-number'
 import { Subtitle } from '@/components/ui/typography'
 import { Link } from '@/i18n/navigation'
-import { localeAlternates } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 import { cn } from '@/lib/utils'
 
 interface PageProps {
@@ -37,11 +37,12 @@ const PLATFORMS: { key: 'android' | 'desktop'; icon: LucideIcon }[] = [
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'download.meta' })
-  return {
+  return pageMetadata({
+    locale,
+    path: '/download',
     title: t('title'),
     description: t('description'),
-    alternates: localeAlternates(locale, '/download'),
-  }
+  })
 }
 
 export default async function DownloadPage({ params }: PageProps) {

@@ -7,10 +7,12 @@
  * event loop. A frozen WebView stops calling `report_liveness`, the native file
  * goes stale, and the supervisor kills + respawns.
  *
- * This is deliberately driven from the web layer, not a Rust timer: a Rust timer
- * would keep beating straight through a WebView freeze and mask the exact failure
- * we want to catch. No-op in a plain browser (there is no shell to supervise it).
+ * This is deliberately driven from the web layer, not a native timer: a native
+ * timer would keep beating straight through a WebView freeze and mask the exact
+ * failure we want to catch. No-op in a plain browser (there is no shell to
+ * supervise it).
  */
+import { playingItemId, snapshot } from '../store'
 import { hasNativeBridge, nativeInvoke } from './host'
 
 /**
@@ -28,9 +30,22 @@ export function startLiveness(): () => void {
   if (!hasNativeBridge()) {
     return () => undefined
   }
-  void nativeInvoke('report_liveness')
-  const timer = setInterval(() => {
-    void nativeInvoke('report_liveness')
-  }, LIVENESS_INTERVAL_MS)
+  // The id of what is on screen rides along with the beat. "JS is running" only
+  // catches a frozen renderer; a player that is alive, painting and connected but
+  // stuck on one frame forever is the more common — and more embarrassing —
+  // failure on an unattended screen, and only a changing id reveals it.
+  const beat = (): void => {
+    // `multiItem` is what stops the shell mistaking a healthy screen for a frozen
+    // one. A single-item playlist shows the same renderable forever BY DESIGN, so a
+    // constant id proves nothing there — and the shell's stuck-content ladder was
+    // reloading such screens on a timer, for ever, because it could not tell the
+    // difference. Only the page knows how many items it has.
+    void nativeInvoke('report_liveness', {
+      itemId: playingItemId.value,
+      multiItem: (snapshot.value?.items.length ?? 0) > 1,
+    })
+  }
+  beat()
+  const timer = setInterval(beat, LIVENESS_INTERVAL_MS)
   return () => clearInterval(timer)
 }

@@ -25,6 +25,13 @@ export const canvaManifest: AppManifest = {
   // Renders the exported design straight from Canva's CDN — needs internet to
   // fetch the asset, so hide it offline rather than show a broken frame.
   requiresNetwork: true,
+  /**
+   * Holds one of the device's few video decoders while on screen. A Canva design can carry an embedded clip or animation, and the player
+   * cannot see inside the embed to find out.
+   * Signage hardware has very few — the measured Android TV advertises two —
+   * and the engine uses this to avoid warming a second video behind it.
+   */
+  usesVideoDecoder: true,
   icon: CANVA_ICON,
   color: '#00C4CC',
   configSchema: [

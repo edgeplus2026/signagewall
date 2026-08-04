@@ -7,7 +7,9 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import com.signagewall.player.identity.DeviceIdStore
+import com.signagewall.player.update.OtaUpdater
 import com.signagewall.player.update.Updater
+import com.signagewall.player.runtime.PlayerLiveness
 import com.signagewall.player.util.json
 
 /**
@@ -50,8 +52,22 @@ class BridgeDispatcher(
         // itself back on screen. Answers whether such a screen exists here.
         "request_recovery_permission" -> JsonPrimitive(onRequestRecovery())
         "check_update" -> updater.cachedCheck()
-        "run_update" -> updater.runUpdate()
+        // `operator: true` means a technician is standing at the screen and can
+        // answer the system's install confirmation. Without it a scheduled update
+        // that would prompt is refused rather than left hanging over the content.
+        "run_update" -> {
+            val u = updater
+            if (u is OtaUpdater) u.runUpdate(parseOperatorFlag(argsJson)) else u.runUpdate()
+        }
         "get_update_state" -> updater.stateReport()
+        // The page beats every 5s from its own event loop, specifically so a
+        // frozen WebView can be told apart from a working one. There was no case
+        // for it here, so ~17k beats a day were answered with "unknown command"
+        // and discarded — the shell had the heartbeat it needed all along.
+        "report_liveness" -> {
+            PlayerLiveness.beat(parseItemId(argsJson), parseMultiItem(argsJson))
+            JsonNull
+        }
         "report_alive" -> {
             updater.reportAlive()
             JsonNull
@@ -62,6 +78,41 @@ class BridgeDispatcher(
         }
         else -> throw IllegalArgumentException("unknown command: $cmd")
     }
+
+    private fun parseOperatorFlag(argsJson: String): Boolean =
+        try {
+            json.parseToJsonElement(argsJson)
+                .jsonObject["operator"]
+                ?.jsonPrimitive
+                ?.content == "true"
+        } catch (_: Throwable) {
+            false
+        }
+
+    /** Whether the playlist has more than one item, so "content has not changed"
+     *  means something. Absent on an older bundle, which reads as false — the safe
+     *  direction, since it only disables a check. */
+    private fun parseMultiItem(argsJson: String): Boolean =
+        try {
+            json.parseToJsonElement(argsJson)
+                .jsonObject["multiItem"]
+                ?.jsonPrimitive
+                ?.content == "true"
+        } catch (_: Throwable) {
+            false
+        }
+
+    /** The renderable currently on screen, if the page sent one. Absent on older
+     *  web bundles, which still prove the event loop is alive. */
+    private fun parseItemId(argsJson: String): String? =
+        try {
+            json.parseToJsonElement(argsJson)
+                .jsonObject["itemId"]
+                ?.jsonPrimitive
+                ?.contentOrNull
+        } catch (_: Throwable) {
+            null
+        }
 
     private fun getDeviceId(): JsonElement =
         when (val r = deviceIdStore.read()) {

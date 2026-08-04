@@ -32,6 +32,12 @@ export const streamManifest: AppManifest = {
   dataSource: 'static',
   version: 2,
   requiresNetwork: true,
+  /**
+   * Holds one of the device's few video decoders while on screen. Plays video by definition.
+   * Signage hardware has very few — the measured Android TV advertises two —
+   * and the engine uses this to avoid warming a second video behind it.
+   */
+  usesVideoDecoder: true,
   icon: STREAM_ICON,
   color: '#DC2626',
   configSchema: [

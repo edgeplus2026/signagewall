@@ -13,7 +13,7 @@ import { UseCases } from '@/components/marketing/use-cases'
 import { WhatIsSignage } from '@/components/marketing/what-is-signage'
 import { Plans } from '@/components/pricing/plans'
 import { SectionStack } from '@/components/ui/section'
-import { localeAlternates, openGraphMeta } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 
 /* The home page used to inherit the site-wide title and description from the
    layout, which made it the one page with no copy written for its own result —
@@ -29,16 +29,16 @@ export async function generateMetadata({
   const title = t('title')
   const description = t('description')
 
-  return {
-    /* `absolute` because the layout's "%s | SignageWall" template does not apply
-       within the same route segment — a plain string here would ship the one
-       title on the site with no brand on it. Spelt out rather than relying on
-       a template that silently does nothing at this level. */
-    title: { absolute: `${title} | SignageWall` },
+  return pageMetadata({
+    locale,
+    path: '/',
+    title,
     description,
-    alternates: localeAlternates(locale),
-    openGraph: openGraphMeta({ locale, path: '/', title, description }),
-  }
+    /* The layout's "%s | SignageWall" template does not apply within the same
+       route segment, so the brand is spelt out rather than left to a template
+       that silently does nothing at this level. */
+    absoluteTitle: `${title} | SignageWall`,
+  })
 }
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {

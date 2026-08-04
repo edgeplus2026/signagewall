@@ -53,6 +53,13 @@ export interface ShellDeviceInfo {
    * were refused. Undefined on a shell too old to report it.
    */
   canRecover?: boolean
+  /**
+   * How hard the shell is currently working to keep the page alive: 0 is healthy,
+   * higher means it keeps having to reload, rebuild or restart. A screen that
+   * recovers repeatedly looks identical to a healthy one from the outside, which is
+   * exactly why it is worth showing.
+   */
+  recoveryRung?: number
 }
 
 /**
@@ -76,6 +83,33 @@ export function reportServiceMenuOpen(isOpen: boolean): void {
   } catch {
     // A missing or throwing native bridge must never break the player.
   }
+}
+
+/**
+ * Whether this device has found an update it is NOT allowed to install by itself.
+ *
+ * Off Device Owner, Android insists a human confirms the first install, and a
+ * sideloaded box has no installer of record — so the shell deliberately refuses to
+ * throw a system dialog onto an unattended wall at four in the morning. That leaves
+ * exactly one way for such a screen to ever get its first update: a technician
+ * standing in front of it, from the service bar. Without this the refusal would be
+ * permanent, which is worse than the dialog it avoids.
+ */
+export async function pendingUpdateVersion(): Promise<string | undefined> {
+  const result = await nativeInvoke<{ available?: boolean; availableVersion?: string }>(
+    'check_update',
+  )
+  return result?.available ? result.availableVersion : undefined
+}
+
+/**
+ * Installs the pending update with a human present, so the system's confirmation
+ * dialog has somebody to answer it. The keep-alive is stood down on the shell side
+ * for the same reason it is during the overlay grant.
+ */
+export async function installUpdateNow(): Promise<string | undefined> {
+  const result = await nativeInvoke<{ kind?: string }>('run_update', { operator: 'true' })
+  return result?.kind
 }
 
 /**

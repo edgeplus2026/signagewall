@@ -79,6 +79,16 @@ function destinationWithQuery(
 /**
  * Applies a CMS redirect using only statuses supported by Next's App Router
  * redirect errors. This must be called from a Server Component render path.
+ *
+ * `searchParams` is optional because most callers cannot supply it. Reading it
+ * is a dynamic API, and the Blog, Solutions and Apps detail routes are all
+ * prerendered — at build for known slugs, on demand through ISR for the rest —
+ * so touching it there aborts the render with `DYNAMIC_SERVER_USAGE` and
+ * answers 500 where a 308 was intended. Those routes call this with the
+ * redirect alone and lose the query string; a redirect fires on a URL that is
+ * already wrong, so dropping its query costs far less than dropping the
+ * redirect. `preserveQuery` still applies wherever the caller is genuinely
+ * dynamic, which today means the top-level catch-all.
  */
 export function executeContentRedirect(
   redirect: ContentRedirect,

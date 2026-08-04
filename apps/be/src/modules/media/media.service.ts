@@ -1006,12 +1006,48 @@ export class MediaService {
         durationSeconds: transcoded.durationSeconds,
       };
     } catch (error) {
+      // Whether keeping the original is acceptable depends entirely on what the
+      // original IS. A clip already inside the decodable envelope is fine as it
+      // stands — the transcode was only ever a storage optimisation. One outside it
+      // is not a large video on a signage box, it is an unplayable one, and serving
+      // it anyway puts a black rectangle on a customer's wall with nothing in the
+      // CMS to explain it. Better a failure the operator can see.
+      const oversized = await this.isOversizedForPlayback(item).catch(() => false);
       this.logger.warn(
-        `Failed to transcode video ${item._id.toString()}; keeping original`,
+        `Failed to transcode video ${item._id.toString()}; ` +
+          (oversized
+            ? 'source is too large to play on signage hardware'
+            : 'keeping original'),
         error,
       );
+      if (oversized) {
+        throw error;
+      }
       return null;
     }
+  }
+
+  /**
+   * Whether the stored original is outside what signage hardware decodes. Used only
+   * on the transcode-failure path, to decide between "keep the original" and "fail
+   * loudly". Measured limits live in media.constants.
+   */
+  private async isOversizedForPlayback(
+    item: MediaItemDocument,
+  ): Promise<boolean> {
+    if (item.width !== undefined && item.height !== undefined) {
+      return this.mediaVideoService.exceedsDecodableEnvelope({
+        width: item.width,
+        height: item.height,
+      });
+    }
+    const key = item.storageKey;
+    if (!key) {
+      return false;
+    }
+    const original = await this.r2StorageService.getObject(key);
+    const probed = await this.mediaVideoService.probeBuffer(original.body);
+    return this.mediaVideoService.exceedsDecodableEnvelope(probed);
   }
 
   private async assertFolderExists(

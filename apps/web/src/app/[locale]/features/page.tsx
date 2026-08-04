@@ -26,7 +26,7 @@ import { Section, SectionStack } from '@/components/ui/section'
 import { Subtitle, Title } from '@/components/ui/typography'
 import { catalogApps } from '@/lib/apps'
 import { formattedPrice } from '@/lib/pricing'
-import { localeAlternates } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 
 interface PageProps {
   params: Promise<{ locale: string }>
@@ -47,11 +47,12 @@ const GRID_ICONS: LucideIcon[] = [
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'features.meta' })
-  return {
+  return pageMetadata({
+    locale,
+    path: '/features',
     title: t('title'),
     description: t('description', { count: catalogApps.length }),
-    alternates: localeAlternates(locale, '/features'),
-  }
+  })
 }
 
 export default async function FeaturesPage({ params }: PageProps) {

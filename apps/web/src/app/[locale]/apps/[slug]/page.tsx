@@ -37,18 +37,16 @@ import {
   relatedApps as listManifestRelatedApps,
 } from '@/lib/apps'
 import { formattedPrice } from '@/lib/pricing'
-import {
-  executeContentRedirect,
-  findContentRedirect,
-  type ContentSearchParams,
-} from '@/lib/redirects'
+import { executeContentRedirect, findContentRedirect } from '@/lib/redirects'
 import { pageMetadata, publicPath } from '@/lib/seo'
 import { listSolutionsUsingApp } from '@/lib/solutions'
 import { cn } from '@/lib/utils'
 
+/* No `searchParams` — this route is prerendered, and reading a dynamic API
+   inside a prerender turns the redirects below into a 500. See the note on
+   `executeContentRedirect`. */
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>
-  searchParams: Promise<ContentSearchParams>
 }
 
 export async function generateStaticParams({ params }: { params: { locale: string } }) {
@@ -108,7 +106,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   })
 }
 
-export default async function AppDetailPage({ params, searchParams }: PageProps) {
+export default async function AppDetailPage({ params }: PageProps) {
   const { locale, slug } = await params
   setRequestLocale(locale)
 
@@ -118,37 +116,31 @@ export default async function AppDetailPage({ params, searchParams }: PageProps)
     const otherLocaleApp = await getAppPage(otherLocale, slug)
     const targetSlug = locale === 'sr' ? otherLocaleApp?.slugs.sr : otherLocaleApp?.slugs.en
     if (otherLocaleApp?.source === 'editorial' && targetSlug) {
-      executeContentRedirect(
-        {
-          toPath: publicPath(locale, {
-            pathname: '/apps/[slug]',
-            params: { slug: targetSlug },
-          }),
-          statusCode: 308,
-          preserveQuery: true,
-        },
-        await searchParams,
-      )
+      executeContentRedirect({
+        toPath: publicPath(locale, {
+          pathname: '/apps/[slug]',
+          params: { slug: targetSlug },
+        }),
+        statusCode: 308,
+        preserveQuery: false,
+      })
     }
     const redirect = await findContentRedirect(
       publicPath(locale, { pathname: '/apps/[slug]', params: { slug } }),
     )
-    if (redirect) executeContentRedirect(redirect, await searchParams)
+    if (redirect) executeContentRedirect(redirect)
     notFound()
   }
   if (app.categories.length === 0) notFound()
   if (app.shouldRedirect) {
-    executeContentRedirect(
-      {
-        toPath: publicPath(locale, {
-          pathname: '/apps/[slug]',
-          params: { slug: app.slug },
-        }),
-        statusCode: 308,
-        preserveQuery: true,
-      },
-      await searchParams,
-    )
+    executeContentRedirect({
+      toPath: publicPath(locale, {
+        pathname: '/apps/[slug]',
+        params: { slug: app.slug },
+      }),
+      statusCode: 308,
+      preserveQuery: false,
+    })
   }
 
   const t = await getTranslations('apps')

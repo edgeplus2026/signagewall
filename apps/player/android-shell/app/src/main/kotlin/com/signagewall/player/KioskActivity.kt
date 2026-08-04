@@ -1,11 +1,16 @@
 package com.signagewall.player
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
@@ -22,6 +27,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import androidx.webkit.WebViewRenderProcess
+import androidx.webkit.WebViewRenderProcessClient
 import com.signagewall.player.boot.WatchdogService
 import com.signagewall.player.bridge.AndroidBridge
 import com.signagewall.player.bridge.BridgeDispatcher
@@ -30,6 +37,8 @@ import com.signagewall.player.identity.DeviceIdStore
 import com.signagewall.player.kiosk.EscapeHatch
 import com.signagewall.player.kiosk.KioskController
 import com.signagewall.player.kiosk.KioskPresence
+import com.signagewall.player.runtime.PlayerLiveness
+import com.signagewall.player.webview.PageRecovery
 import com.signagewall.player.update.NoopUpdater
 import com.signagewall.player.update.OtaUpdater
 import com.signagewall.player.update.Updater
@@ -63,16 +72,61 @@ class KioskActivity : AppCompatActivity() {
     /** Set while the operator is away in the overlay-permission settings screen. */
     private var awaitingOverlayGrant: Boolean = false
 
+    /** True between a load starting and it finishing or failing — a slow network on a
+     *  cold TV must not be mistaken for a hang. */
+    private var pageLoading: Boolean = false
+
+    /** Timestamps of recent renderer crashes, for the backoff. */
+    private val rendererCrashes = mutableListOf<Long>()
+
+    private val recoveryHandler by lazy { Handler(Looper.getMainLooper()) }
+
+    private val pageRecovery by lazy {
+        PageRecovery(
+            restartBudget = object : PageRecovery.RestartBudget {
+                override fun available(): Boolean =
+                    (application as? PlayerApp)?.runtimeStore?.read()?.pageRestartUsed != true
+
+                override fun spend() {
+                    (application as? PlayerApp)?.runtimeStore?.update {
+                        it.copy(pageRestartUsed = true)
+                    }
+                }
+            },
+            actions = object : PageRecovery.Actions {
+            override fun reloadPage() = loadPlayer()
+            override fun recreateWebView() = this@KioskActivity.recreateWebView()
+            override fun restartProcess() = restartApp()
+            override fun showOfflinePage() = this@KioskActivity.showOfflinePage()
+            override fun isPageLoading(): Boolean = pageLoading
+        },
+        )
+    }
+
+    /** Drives the page-recovery ladder. Cheap: it only reads two timestamps. */
+    private val recoveryTick = object : Runnable {
+        override fun run() {
+            pageRecovery.check()
+            recoveryHandler.postDelayed(this, RECOVERY_POLL_MILLIS)
+        }
+    }
+
     /** Pushed by the web layer once paired; shown in the on-device service dialog. */
     @Volatile
     private var screenName: String? = null
 
     // Longer-lived than any single WebView (survive a recreate on render-gone).
     private val deviceIdStore by lazy { DeviceIdStore(File(filesDir, "device.json")) }
-    private val updater: Updater by lazy { buildUpdater() }
+    /** Owned by the process (PlayerApp), not by this Activity — a device whose page
+     *  never loads still needs a working update channel. */
+    private val updater: Updater
+        get() = (application as? PlayerApp)?.updater ?: NoopUpdater(BuildConfig.VERSION_NAME)
     private val kioskController by lazy { KioskController(this) }
     private val escapeHatch by lazy {
-        EscapeHatch(onTriggered = { runOnUiThread { onEscapeHatch() } })
+        EscapeHatch(
+            onTriggered = { runOnUiThread { onEscapeHatch() } },
+            isLocked = { kioskController.current != KioskController.Mode.OFF },
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,6 +134,23 @@ class KioskActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         // A new session: whatever the last one asked for, this one is guarded.
         KioskPresence.setClosedByOperator(false)
+        // Tells the supervisor a player exists, which is the half of its decision
+        // that must never depend on the web page having loaded.
+        KioskPresence.setActivityAlive(true)
+        // Somebody opened the player. That is the same instruction as boot: whatever
+        // a previous "Close application" asked for is over. Without this, a screen
+        // closed from the service bar and then reopened by hand stayed permanently
+        // unsupervised — desiredRunning was false and only a reboot cleared it.
+        KioskPresence.setDesiredRunning(true)
+        // Re-apply the lock the CMS last asked for, from disk, before the page has
+        // loaded. Loading it into KioskPresence only told the SUPERVISOR what to do;
+        // KioskController is what actually calls startLockTask, and it started every
+        // process at OFF — so a screen configured as a hard kiosk came back from a
+        // power cut fully escapable until the page loaded and pushed the mode again.
+        val persisted = KioskPresence.mode()
+        if (persisted != KioskController.Mode.OFF) {
+            kioskController.setMode(persisted.name.lowercase())
+        }
         WatchdogService.start(this)
         // A kiosk never exits via Back — the escape hatch is the only way out.
         // But only WHILE it is a kiosk: swallowing unconditionally meant that turning
@@ -107,10 +178,18 @@ class KioskActivity : AppCompatActivity() {
             },
         )
         installWebView()
+        recoveryHandler.postDelayed(recoveryTick, RECOVERY_POLL_MILLIS)
+        askForNotificationsOnce()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun installWebView() {
+        // A fresh WebView has no service bar on it, so anything the previous page
+        // told us about one is now false. Leaving it set left BACK captured by a bar
+        // that was not on screen, which on a locked device is unrecoverable without
+        // the key hatch. Same for the screen name, which belongs to the page.
+        serviceMenuOpen = false
+        screenName = null
         val view = WebView(this)
         webView = view
 
@@ -155,13 +234,47 @@ class KioskActivity : AppCompatActivity() {
         }
         view.webViewClient = KioskWebViewClient(
             documentStartSupported = documentStartSupported,
-            onRenderGone = { recreateWebView() },
+            onRenderGone = { didCrash -> onRendererGone(didCrash) },
+            onMainFrameError = { description -> onMainFrameError(description) },
+            onMainFrameLoaded = { pageLoading = false; pageRecovery.onPageLoaded() },
         )
         view.webChromeClient = KioskWebChromeClient()
+
+        // A renderer can HANG rather than die, and the two look identical from the
+        // outside: the Activity is resumed, the window is up, the last frame is
+        // still painted. onRenderProcessGone never fires for it. The page-recovery
+        // ladder catches it eventually through the missing heartbeat, but Android
+        // will tell us directly and sooner if we ask — and terminating a wedged
+        // renderer deliberately routes into the existing gone-path, which already
+        // knows how to rebuild with backoff.
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_VIEW_RENDERER_CLIENT_BASIC_USAGE)) {
+            WebViewCompat.setWebViewRenderProcessClient(
+                view,
+                object : WebViewRenderProcessClient() {
+                    override fun onRenderProcessUnresponsive(
+                        view: WebView,
+                        renderer: WebViewRenderProcess?,
+                    ) {
+                        Log.w(TAG, "renderer unresponsive; terminating it")
+                        renderer?.terminate()
+                    }
+
+                    override fun onRenderProcessResponsive(
+                        view: WebView,
+                        renderer: WebViewRenderProcess?,
+                    ) {
+                        Log.i(TAG, "renderer responsive again")
+                    }
+                },
+            )
+        }
 
         setContentView(view)
         enterImmersive()
         view.requestFocus()
+        pageLoading = true
+        PlayerLiveness.reset()
+        pageRecovery.noteLoadStarted()
         view.loadUrl(BuildConfig.SIGNAGEWALL_PLAYER_URL)
     }
 
@@ -230,9 +343,52 @@ class KioskActivity : AppCompatActivity() {
                 // cannot recover looks identical to a healthy one until the day
                 // something knocks it off.
                 "canRecover" to JsonPrimitive(canRecover()),
+                // How hard the shell is currently working to keep this page alive.
+                // Zero is healthy; anything else is a screen that keeps needing
+                // intervention, which from the outside is indistinguishable from a
+                // screen that is simply fine.
+                "recoveryRung" to JsonPrimitive(pageRecovery.currentRung()),
             ),
         ),
     )
+
+    /**
+     * Asks for notification permission, exactly once per install.
+     *
+     * The recovery ladder's second rung is a full-screen-intent notification — a
+     * background-activity-launch exemption distinct from the overlay permission, and
+     * the shell's only other way onto the screen. On Android 13+ the manifest
+     * declaration alone buys nothing: the notification is posted, silently dropped,
+     * and the rung reads as a working escalation in the log while doing nothing.
+     *
+     * Once, and persisted, because the alternative is a system dialog appearing over
+     * a shop's content on every boot. The first launch is also when a technician is
+     * most likely to be present — the same moment the overlay permission is granted.
+     */
+    private fun askForNotificationsOnce() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return
+        }
+        val store = (application as? PlayerApp)?.runtimeStore ?: return
+        if (store.read().askedForNotifications) {
+            return
+        }
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        store.update { it.copy(askedForNotifications = true) }
+        // The prompt takes the foreground, and the keep-alive would drag the player
+        // back over it — the same trap the overlay grant fell into.
+        KioskPresence.suppressReclaim(SYSTEM_SCREEN_GRACE_MILLIS)
+        try {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        } catch (t: Throwable) {
+            KioskPresence.clearSuppression()
+            Log.w(TAG, "could not ask for notification permission", t)
+        }
+    }
 
     /**
      * Whether Android will let the watchdog pull the player back to the front.
@@ -255,10 +411,19 @@ class KioskActivity : AppCompatActivity() {
             Uri.parse("package:$packageName"),
         )
         return try {
+            // The keep-alive would otherwise drag the player back over the settings
+            // screen within ~4s, which is how the one flow that repairs a screen's
+            // ability to heal became impossible to complete.
+            KioskPresence.suppressReclaim(SYSTEM_SCREEN_GRACE_MILLIS)
             startActivity(intent)
             awaitingOverlayGrant = true
             true
         } catch (t: Throwable) {
+            // Undo it. On a TV with no such settings screen the suppression would
+            // otherwise stand for three minutes with nothing on screen to justify
+            // it — the supervisor silently disarmed at the exact moment somebody is
+            // poking at the device.
+            KioskPresence.clearSuppression()
             Log.w(TAG, "no overlay-permission settings screen on this device", t)
             false
         }
@@ -297,6 +462,10 @@ class KioskActivity : AppCompatActivity() {
         runOnUiThread {
             KioskPresence.setClosedByOperator(true)
             if (kioskController.current == KioskController.Mode.OFF) {
+                // Persisted, so a supervisor revived in a fresh process honours it
+                // instead of cheerfully reopening what the operator just closed.
+                // Boot clears it — see BootReceiver.
+                KioskPresence.setDesiredRunning(false)
                 WatchdogService.stop(this)
             }
             finishAndRemoveTask()
@@ -312,40 +481,90 @@ class KioskActivity : AppCompatActivity() {
      */
     private fun deactivatePlayer() {
         kioskController.setMode("off")
-        deviceIdStore.clear()
-        webView?.let { view ->
-            view.clearCache(true)
-            WebStorage.getInstance().deleteAllData()
-            CookieManager.getInstance().removeAllCookies(null)
+        // Mark the wipe and let the NEXT process do it. WebStorage.deleteAllData
+        // and CookieManager.removeAllCookies are asynchronous — the old code fired
+        // them and then called Runtime.exit(0) microseconds later, so they
+        // essentially never ran. That left localStorage intact while device.json
+        // was gone, and the web bootstrap then PROMOTED the surviving local id back
+        // into the native store: a screen moved from one customer to another
+        // deterministically re-adopted the first customer's identity.
+        (application as? PlayerApp)?.runtimeStore?.update {
+            it.copy(deactivatePending = true)
         }
+        deviceIdStore.clear()
         restartApp()
     }
 
-    /** OTA updater when a manifest URL is baked in AND the process health gate exists;
-     *  a no-op updater in dev. Shares the App's HealthWatchdog (single alive/healthy owner). */
-    private fun buildUpdater(): Updater {
-        val manifestUrl = BuildConfig.UPDATE_MANIFEST_URL
-        val health = (application as? PlayerApp)?.postUpdateHealth
-        return if (manifestUrl.isBlank() || health == null) {
-            NoopUpdater(BuildConfig.VERSION_NAME)
-        } else {
-            OtaUpdater(
-                context = applicationContext,
-                currentVersionName = BuildConfig.VERSION_NAME,
-                currentVersionCode = BuildConfig.VERSION_CODE,
-                manifestUrl = manifestUrl,
-                health = health,
-            )
-        }
-    }
-
+    /**
+     * Rebuilds the WebView after its renderer died.
+     *
+     * Guarded three ways, none of which existed before. Without the
+     * finishing/destroyed check this runs against a dead Activity during teardown;
+     * without the backoff a renderer that dies on load (a poison video, a broken GPU
+     * driver) rebuilds instantly and dies again, forever, as fast as the hardware
+     * allows; and without the escalation the shell keeps doing the one thing that has
+     * already failed three times, instead of restarting the process — which is the
+     * only thing that resets the GPU and codec handles.
+     */
     private fun recreateWebView() {
+        if (isFinishing || isDestroyed) {
+            return
+        }
         webView?.let { old ->
             (old.parent as? ViewGroup)?.removeView(old)
             old.destroy()
         }
         webView = null
         installWebView()
+    }
+
+    /**
+     * A renderer death is either the system reclaiming memory — routine, recover at
+     * once — or a genuine crash, which on this hardware usually means the software
+     * video decoder took the renderer with it. Those arrive in bursts, so they get a
+     * growing delay and, past a threshold, a whole new process.
+     */
+    private fun onRendererGone(didCrash: Boolean) {
+        if (!didCrash) {
+            recreateWebView()
+            return
+        }
+        val now = SystemClock.elapsedRealtime()
+        rendererCrashes.removeAll { it < now - CRASH_WINDOW_MILLIS }
+        rendererCrashes.add(now)
+        if (rendererCrashes.size >= CRASHES_BEFORE_RESTART) {
+            Log.w(TAG, "renderer crashed ${rendererCrashes.size} times; restarting process")
+            rendererCrashes.clear()
+            restartApp()
+            return
+        }
+        val delay = RENDERER_BACKOFF_MILLIS.getOrElse(rendererCrashes.size - 1) { 30_000L }
+        Log.w(TAG, "renderer crash ${rendererCrashes.size}; rebuilding in ${delay}ms")
+        recoveryHandler.postDelayed({ recreateWebView() }, delay)
+    }
+
+    /**
+     * The main document failed to load. This had no handler at all, which is why a TV
+     * that came up before its router put a Chromium error page on the wall until
+     * somebody drove out to it.
+     */
+    private fun onMainFrameError(description: String) {
+        pageLoading = false
+        Log.w(TAG, "main frame failed to load: " + description)
+        showOfflinePage()
+    }
+
+    /** Our own page instead of the browser's error page, with the real URL still
+     *  retried underneath by [pageRecovery]. */
+    private fun showOfflinePage() {
+        webView?.loadUrl(OFFLINE_PAGE_URL)
+    }
+
+    private fun loadPlayer() {
+        pageLoading = true
+        PlayerLiveness.reset()
+        pageRecovery.noteLoadStarted()
+        webView?.loadUrl(BuildConfig.SIGNAGEWALL_PLAYER_URL)
     }
 
     private fun restartApp() {
@@ -374,6 +593,7 @@ class KioskActivity : AppCompatActivity() {
         KioskPresence.setResumed(true)
         // Back from the overlay-permission screen: the process must restart before
         // it can even see the answer. See restartAfterOverlayGrant.
+        KioskPresence.clearSuppression()
         if (awaitingOverlayGrant) {
             restartAfterOverlayGrant()
         }
@@ -390,6 +610,8 @@ class KioskActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        recoveryHandler.removeCallbacksAndMessages(null)
+        KioskPresence.setActivityAlive(false)
         webView?.destroy()
         webView = null
         super.onDestroy()
@@ -397,6 +619,20 @@ class KioskActivity : AppCompatActivity() {
 
     private companion object {
         private const val TAG = "KioskActivity"
+
+        /** How long the keep-alive stands down while an operator is in a system
+         *  screen we opened. Long enough to read a list and press OK. */
+        private const val SYSTEM_SCREEN_GRACE_MILLIS = 3 * 60 * 1000L
+        /** How often the page-recovery ladder is consulted. */
+        private const val RECOVERY_POLL_MILLIS = 15_000L
+
+        /** Renderer crashes inside this window count towards the restart threshold. */
+        private const val CRASH_WINDOW_MILLIS = 10 * 60 * 1000L
+        private const val CRASHES_BEFORE_RESTART = 3
+        private val RENDERER_BACKOFF_MILLIS = listOf(0L, 2_000L, 8_000L)
+
+        private const val OFFLINE_PAGE_URL = "file:///android_asset/offline.html"
+
     }
 
 }

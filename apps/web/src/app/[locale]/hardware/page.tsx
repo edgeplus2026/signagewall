@@ -10,7 +10,7 @@ import { Lead, Subtitle, Title } from '@/components/ui/typography'
 import { Link } from '@/i18n/navigation'
 import { REGISTER_URL } from '@/lib/app-url'
 import { formattedPrice, TRIAL_DAYS } from '@/lib/pricing'
-import { localeAlternates, openGraphMeta } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 import { cn } from '@/lib/utils'
 
 interface PageProps {
@@ -29,12 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const t = await getTranslations({ locale, namespace: 'hardware.meta' })
   const title = t('title')
   const description = t('description')
-  return {
-    title,
-    description,
-    alternates: localeAlternates(locale, '/hardware'),
-    openGraph: openGraphMeta({ locale, path: '/hardware', type: 'article', title, description }),
-  }
+  return pageMetadata({ locale, path: '/hardware', type: 'article', title, description })
 }
 
 /**

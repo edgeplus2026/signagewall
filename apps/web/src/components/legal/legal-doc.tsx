@@ -7,17 +7,18 @@ import { Section } from '@/components/ui/section'
 import { Heading } from '@/components/ui/typography'
 import type { LegalKey } from '@/content/legal'
 import { legalDocument } from '@/content/legal'
-import { localeAlternates } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 
 export type { LegalKey }
 
 export async function legalMetadata(locale: string, doc: LegalKey): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: `legal.${doc}.meta` })
-  return {
+  return pageMetadata({
+    locale,
+    path: `/${doc}`,
     title: t('title'),
     description: t('description'),
-    alternates: localeAlternates(locale, `/${doc}`),
-  }
+  })
 }
 
 export function LegalDoc({ doc, locale }: { doc: LegalKey; locale: string }) {

@@ -15,7 +15,7 @@ import { Section, SectionStack } from '@/components/ui/section'
 import { StepNumber } from '@/components/ui/step-number'
 import { Subtitle } from '@/components/ui/typography'
 import { catalogApps } from '@/lib/apps'
-import { localeAlternates } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 
 interface PageProps {
   params: Promise<{ locale: string }>
@@ -26,11 +26,12 @@ const CAP_ICONS: LucideIcon[] = [LayoutGrid, CalendarClock, LayoutTemplate, Wifi
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'howItWorks.meta' })
-  return {
+  return pageMetadata({
+    locale,
+    path: '/how-it-works',
     title: t('title'),
     description: t('description'),
-    alternates: localeAlternates(locale, '/how-it-works'),
-  }
+  })
 }
 
 export default async function HowItWorksPage({ params }: PageProps) {

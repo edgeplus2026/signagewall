@@ -50,6 +50,24 @@ export interface AppManifest {
    */
   refreshSeconds?: number
   /**
+   * True when the app decodes video while it is on screen — YouTube, a stream, a
+   * Canva design carrying a clip. It is NOT about the app's own correctness: it
+   * tells the player's engine that this item is holding one of the device's video
+   * decoders.
+   *
+   * That matters because signage hardware has very few. The Android TV this was
+   * measured on advertises exactly TWO hardware AVC instances, and anything past
+   * them silently falls back to a software decoder that SEGV-crashed five times in
+   * one night of ordinary playback. The engine already refuses to warm a second
+   * video while one is playing, but it decided that by looking at `kind`, so an
+   * on-screen YouTube did not stop it buffering an .mp4 into the other slot — and
+   * `youtube -> mp4` is a completely ordinary rotation.
+   *
+   * Only set it for apps that decode while ACTIVE. A preloaded app is mounted
+   * silent and inert until `activate`, so it opens no decoder and does not count.
+   */
+  usesVideoDecoder?: boolean
+  /**
    * True for apps that render as a persistent OVERLAY on top of whatever a
    * screen is playing (e.g. the ticker band), instead of taking a slot in the
    * content rotation. Overlay apps are not addable to screens/playlists as

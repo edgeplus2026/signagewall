@@ -46,6 +46,14 @@ export interface DeviceUpdateStatus {
     | 'error'
     /** A freshly-installed version failed its health check (and was rolled back). */
     | 'unhealthy'
+    /**
+     * An update exists, but Android will not install it without a human pressing
+     * confirm — the normal state of a sideloaded, non-Device-Owner box before its
+     * first self-update. A task for a technician, not a fault, and worth its own
+     * state precisely so the fleet dashboard can list them rather than showing a
+     * green tick on screens that are quietly stuck a version behind.
+     */
+    | 'needs-operator'
 }
 
 /**

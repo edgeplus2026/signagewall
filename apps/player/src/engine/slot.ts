@@ -20,6 +20,16 @@ function flushPendingStyle(element: HTMLElement): void {
  * plagues long-running signage: content is swapped by setting/clearing sources,
  * not by churning DOM nodes.
  */
+/** How often the progress watchdog samples. */
+const PROGRESS_SAMPLE_MS = 2_000
+/** Below this, a `currentTime` change is float noise rather than playback. */
+const PROGRESS_EPSILON_S = 0.05
+/** Consecutive stalled samples before the item is declared dead — ~8s at the
+ *  sample rate above. Long enough to survive a buffering hiccup on a slow
+ *  connection, short enough that a frozen item is off screen inside ten seconds
+ *  instead of standing there for the clip's whole nominal length. */
+const NO_PROGRESS_SAMPLES = 4
+
 export class Slot {
   readonly el: HTMLDivElement
   private readonly img: HTMLImageElement
@@ -29,6 +39,43 @@ export class Slot {
   private appHostHandle: AppHostHandle | null = null
   private current: Renderable | null = null
   private endedHandler: (() => void) | null = null
+  /**
+   * Called when the on-screen video stops being viable — a decode error, or
+   * simply no forward progress. Nothing supervised playback between activate()
+   * and release() before: `prepareVideo`'s error listener is `{ once: true }` and
+   * removed as soon as the item is ready, so a mid-playback failure froze the
+   * frame and the only backstop was a stall watchdog whose patience is
+   * proportional to the clip's full length. On hardware whose software H.264
+   * decoder SEGVs — measured five times in one night — that is the difference
+   * between a ten-second gap and an advert stuck on screen until closing time.
+   */
+  private failedHandler: ((reason: string) => void) | null = null
+  private progressTimer: ReturnType<typeof setInterval> | undefined
+  private lastProgressTime = 0
+  /** Consecutive samples that saw no forward progress. Counted rather than timed
+   *  because wall-clock deltas are hostage to an NTP step, and a clock that jumps
+   *  backwards would silently disable this watchdog on exactly the unattended
+   *  devices that need it. */
+  private stalledSamples = 0
+  /** Instance handler (not `once`), so it is removed deterministically in
+   *  {@link release} rather than consumed by the first event. */
+  private readonly onPlaybackError = (): void => {
+    this.reportFailure('decode error')
+  }
+
+  /**
+   * Reports a failure exactly ONCE per activation. A dying decoder usually raises
+   * `error` AND stops producing frames, so both detectors fire — and the second
+   * report reached the loop after it had already begun loading the replacement,
+   * discarding that in-flight load and starting another. Handing the handler over
+   * and clearing it makes the first report the only one.
+   */
+  private reportFailure(reason: string): void {
+    const handler = this.failedHandler
+    this.failedHandler = null
+    this.stopProgressWatchdog()
+    handler?.(reason)
+  }
   /** Playback volume 0–1, applied to the `<video>` element. */
   private volume = 1
   /**
@@ -184,7 +231,12 @@ export class Slot {
    * stamped with it *before* it moves, so a later reversal cannot re-aim a
    * transition that is already under way.
    */
-  activate(onEnded: () => void, direction: 1 | -1 = 1): void {
+  activate(
+    onEnded: () => void,
+    direction: 1 | -1 = 1,
+    onFailed?: (reason: string) => void,
+  ): void {
+    this.failedHandler = onFailed ?? null
     this.el.dataset.direction = direction === -1 ? 'back' : 'forward'
     // Commit that resting offset BEFORE asking the slot to move. Both changes in
     // one go are coalesced into a single style recalculation, so the slide would
@@ -208,7 +260,16 @@ export class Slot {
 
     if (this.current?.kind === 'video') {
       this.endedHandler = onEnded
-      this.video.onended = () => this.endedHandler?.()
+      // Guarded by identity: a stale `ended` from the item we just left must not
+      // force the playlist forward a second time.
+      const owner = this.current.id
+      this.video.onended = () => {
+        if (this.current?.id === owner) {
+          this.endedHandler?.()
+        }
+      }
+      this.video.addEventListener('error', this.onPlaybackError)
+      this.startProgressWatchdog()
       this.wantsAudioButMuted = false
       try {
         this.video.currentTime = 0
@@ -309,6 +370,65 @@ export class Slot {
       this.appOwesAudioRetry = false
       this.appHostHandle?.setActive(false, this.volume === 0)
     }
+
+    // An outgoing VIDEO needs the same courtesy, and did not get it: it kept
+    // playing off-screen with its audio audible over the incoming item until
+    // release() disposed it — a whole item later on a one-item or offline
+    // playlist. It also kept holding a decoder, on hardware that has two.
+    if (this.current?.kind === 'video') {
+      this.endedHandler = null
+      this.failedHandler = null
+      this.video.onended = null
+      this.stopProgressWatchdog()
+      // Clearing the audio-retry intent matters as much as the pause: `tryUnmute`
+      // calls play() on a slot that still owes sound, and an outgoing slot that
+      // still owed it would be started again the moment the next user gesture (or
+      // kiosk unmute) arrived — un-doing this pause and putting its audio back over
+      // the incoming item.
+      this.wantsAudioButMuted = false
+      if (!this.video.paused) {
+        this.video.pause()
+      }
+    }
+  }
+
+  /**
+   * Watches the picture actually move.
+   *
+   * A software decoder that dies usually raises no `error` at all — it simply
+   * stops producing frames, which looks identical to a paused video and to a
+   * perfectly healthy still image. `currentTime` standing still while the element
+   * believes it is playing is the only reliable symptom, so that is what this
+   * samples. Cheap: two number reads every two seconds.
+   */
+  private startProgressWatchdog(): void {
+    this.stopProgressWatchdog()
+    this.lastProgressTime = this.video.currentTime
+    this.stalledSamples = 0
+    this.progressTimer = setInterval(() => {
+      // A paused or finished video is not a stalled one — standby and the moment
+      // between `ended` and the swap both land here legitimately.
+      if (this.video.paused || this.video.ended) {
+        this.stalledSamples = 0
+        return
+      }
+      if (this.video.currentTime > this.lastProgressTime + PROGRESS_EPSILON_S) {
+        this.lastProgressTime = this.video.currentTime
+        this.stalledSamples = 0
+        return
+      }
+      this.stalledSamples += 1
+      if (this.stalledSamples >= NO_PROGRESS_SAMPLES) {
+        this.reportFailure('no progress')
+      }
+    }, PROGRESS_SAMPLE_MS)
+  }
+
+  private stopProgressWatchdog(): void {
+    if (this.progressTimer !== undefined) {
+      clearInterval(this.progressTimer)
+      this.progressTimer = undefined
+    }
   }
 
   /** Hides the slot and frees all decoded media buffers it was holding. */
@@ -320,7 +440,10 @@ export class Slot {
     this.el.classList.remove('is-active')
     this.el.classList.remove('is-leaving')
     this.endedHandler = null
+    this.failedHandler = null
     this.video.onended = null
+    this.video.removeEventListener('error', this.onPlaybackError)
+    this.stopProgressWatchdog()
     this.wantsAudioButMuted = false
 
     if (!this.video.paused) {

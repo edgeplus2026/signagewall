@@ -7,7 +7,9 @@ import {
   closeApp,
   deactivateDevice,
   isServiceMenuAvailable,
+  installUpdateNow,
   loadShellDeviceInfo,
+  pendingUpdateVersion,
   reportServiceMenuOpen,
   requestRecoveryPermission,
   type ShellDeviceInfo,
@@ -61,6 +63,8 @@ export function ServiceMenu() {
   const [busy, setBusy] = useState(false)
   const [info, setInfo] = useState<ShellDeviceInfo | undefined>(undefined)
   const [noSettingsScreen, setNoSettingsScreen] = useState(false)
+  const [pendingUpdate, setPendingUpdate] = useState<string | undefined>(undefined)
+  const [updateState, setUpdateState] = useState<string | undefined>(undefined)
 
   const close = useCallback((): void => {
     serviceMenuOpen.value = false
@@ -94,6 +98,25 @@ export function ServiceMenu() {
         void requestRecoveryPermission().then((opened) => {
           setNoSettingsScreen(!opened)
         })
+      },
+    })
+  }
+
+  // Only while one is genuinely waiting. A screen that cannot install unattended
+  // (no Device Owner, no installer of record) would otherwise never get its first
+  // update at all, and this is the one moment a human is present to confirm it.
+  if (pendingUpdate) {
+    actions.push({
+      key: 'update',
+      label: updateState === 'updating' ? 'Installing…' : `Install update ${pendingUpdate}`,
+      hint:
+        updateState === 'updating'
+          ? 'Confirm the system dialog when it appears; the player restarts itself'
+          : 'This screen cannot install updates on its own — confirm it here, once',
+      disabled: updateState === 'updating',
+      activate: () => {
+        setUpdateState('updating')
+        void installUpdateNow().then((kind) => setUpdateState(kind))
       },
     })
   }
@@ -256,6 +279,11 @@ export function ServiceMenu() {
         setInfo(loaded)
       }
     })
+    void pendingUpdateVersion().then((version) => {
+      if (!cancelled) {
+        setPendingUpdate(version)
+      }
+    })
     return () => {
       cancelled = true
     }
@@ -282,6 +310,11 @@ export function ServiceMenu() {
           {info?.deviceOwner === false && (
             <span class="service-bar__warn">
               Kiosk lock can be bypassed on this box
+            </span>
+          )}
+          {(info?.recoveryRung ?? 0) > 0 && (
+            <span class="service-bar__warn">
+              Recovering repeatedly (step {info?.recoveryRung})
             </span>
           )}
           {needsRecovery && (

@@ -18,11 +18,7 @@ import { Section, SectionStack } from '@/components/ui/section'
 import { StepNumber } from '@/components/ui/step-number'
 import { Subtitle } from '@/components/ui/typography'
 import { listAppCatalog } from '@/lib/apps'
-import {
-  executeContentRedirect,
-  findContentRedirect,
-  type ContentSearchParams,
-} from '@/lib/redirects'
+import { executeContentRedirect, findContentRedirect } from '@/lib/redirects'
 import { pageMetadata, publicPath } from '@/lib/seo'
 import { getSolution, listSolutionSlugs } from '@/lib/solutions'
 
@@ -44,9 +40,11 @@ export async function generateStaticParams({ params }: { params: { locale: strin
     .map((solution) => ({ industry: solution.slug[locale] }))
 }
 
+/* No `searchParams` — this route is prerendered, and reading a dynamic API
+   inside a prerender turns the cross-locale redirect below into a 500. See the
+   note on `executeContentRedirect`. */
 interface PageProps {
   params: Promise<{ locale: string; industry: string }>
-  searchParams: Promise<ContentSearchParams>
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -72,7 +70,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   })
 }
 
-export default async function IndustryPage({ params, searchParams }: PageProps) {
+export default async function IndustryPage({ params }: PageProps) {
   const { locale, industry } = await params
   setRequestLocale(locale)
 
@@ -85,17 +83,14 @@ export default async function IndustryPage({ params, searchParams }: PageProps) 
     if (other) {
       const targetSlug = locale === 'en' ? other.slugs.en : other.slugs.sr
       if (targetSlug) {
-        executeContentRedirect(
-          {
-            toPath: publicPath(locale, {
-              pathname: '/solutions/[industry]',
-              params: { industry: targetSlug },
-            }),
-            statusCode: 308,
-            preserveQuery: true,
-          },
-          await searchParams,
-        )
+        executeContentRedirect({
+          toPath: publicPath(locale, {
+            pathname: '/solutions/[industry]',
+            params: { industry: targetSlug },
+          }),
+          statusCode: 308,
+          preserveQuery: false,
+        })
       }
     }
     const redirect = await findContentRedirect(
@@ -104,7 +99,7 @@ export default async function IndustryPage({ params, searchParams }: PageProps) 
         params: { industry },
       }),
     )
-    if (redirect) executeContentRedirect(redirect, await searchParams)
+    if (redirect) executeContentRedirect(redirect)
     notFound()
   }
 

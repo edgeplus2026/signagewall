@@ -30,11 +30,7 @@ import {
   slugPair,
 } from '@/lib/payload'
 import { listPostRefs, listRelatedPosts, readingMinutes } from '@/lib/posts'
-import {
-  executeContentRedirect,
-  findContentRedirect,
-  type ContentSearchParams,
-} from '@/lib/redirects'
+import { executeContentRedirect, findContentRedirect } from '@/lib/redirects'
 import { pageMetadata, publicPath } from '@/lib/seo'
 import type { Media } from '@/payload-types'
 
@@ -59,9 +55,19 @@ export async function generateStaticParams({ params }: { params: { locale: strin
     .map((post) => ({ slug: post.slug[locale] }))
 }
 
+/* Deliberately no `searchParams`. This route is prerendered — statically at
+   build for the slugs `generateStaticParams` returns, and on demand through ISR
+   for anything else. `searchParams` is a dynamic API and reading it inside a
+   prerender throws `DYNAMIC_SERVER_USAGE`, which Next surfaces as a 500.
+   Because it was read only on the redirect branch, every valid post rendered
+   fine and every genuinely missing slug 404'd, while the one case in between —
+   a real post addressed by its *other* language's slug — answered 500 instead
+   of the 308 it was written to send. Around a hundred URLs, and exactly the
+   ones a language switch or an old shared link lands on.
+
+   The redirect therefore drops the query string rather than the response. */
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>
-  searchParams: Promise<ContentSearchParams>
 }
 
 const fetchPost = cache(async (locale: string, slug: string) => {
@@ -114,7 +120,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   })
 }
 
-export default async function PostPage({ params, searchParams }: PageProps) {
+export default async function PostPage({ params }: PageProps) {
   const { locale, slug } = await params
   setRequestLocale(locale)
   const t = await getTranslations('blog')
@@ -129,23 +135,20 @@ export default async function PostPage({ params, searchParams }: PageProps) {
       const slugs = await slugPair('posts', other.id)
       const targetSlug = locale === 'en' ? slugs.en : slugs.sr
       if (targetSlug) {
-        executeContentRedirect(
-          {
-            toPath: publicPath(locale, {
-              pathname: '/blog/[slug]',
-              params: { slug: targetSlug },
-            }),
-            statusCode: 308,
-            preserveQuery: true,
-          },
-          await searchParams,
-        )
+        executeContentRedirect({
+          toPath: publicPath(locale, {
+            pathname: '/blog/[slug]',
+            params: { slug: targetSlug },
+          }),
+          statusCode: 308,
+          preserveQuery: false,
+        })
       }
     }
     const redirect = await findContentRedirect(
       publicPath(locale, { pathname: '/blog/[slug]', params: { slug } }),
     )
-    if (redirect) executeContentRedirect(redirect, await searchParams)
+    if (redirect) executeContentRedirect(redirect)
     notFound()
   }
 

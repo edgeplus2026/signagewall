@@ -26,6 +26,12 @@ export const youtubeManifest: AppManifest = {
   version: 1,
   // Streams the video live from YouTube — nothing to show offline.
   requiresNetwork: true,
+  /**
+   * Holds one of the device's few video decoders while on screen. Plays video by definition.
+   * Signage hardware has very few — the measured Android TV advertises two —
+   * and the engine uses this to avoid warming a second video behind it.
+   */
+  usesVideoDecoder: true,
   icon: YOUTUBE_ICON,
   color: '#FF0000',
   configSchema: [

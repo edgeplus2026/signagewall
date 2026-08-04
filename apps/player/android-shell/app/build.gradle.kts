@@ -67,6 +67,16 @@ android {
         }
     }
 
+    testOptions {
+        unitTests {
+            // android.util.Log and friends are empty stubs in a JVM unit test and
+            // throw on call. Returning defaults instead lets the pure decision logic
+            // — the recovery ladder, the supervisor predicates — be tested off-device,
+            // which is the whole reason those classes were split out of the Activity.
+            isReturnDefaultValues = true
+        }
+    }
+
     buildFeatures {
         buildConfig = true
     }

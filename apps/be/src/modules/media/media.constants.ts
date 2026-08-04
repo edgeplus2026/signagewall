@@ -52,8 +52,22 @@ export const COMPRESSED_IMAGE_EXTENSION = '.webp';
  */
 export const VIDEO_TRANSCODE_CRF = 28;
 
-/** Originals are downscaled to at most this height (never enlarged). */
-export const VIDEO_TRANSCODE_MAX_HEIGHT = 1080;
+/**
+ * The envelope a signage player can actually decode in HARDWARE.
+ *
+ * Not a storage-size preference — a hard capability limit. Measured on an Android
+ * TV in the field: every one of its nineteen hardware video decoders caps at
+ * 1920x1088, and anything past that silently falls back to a software decoder
+ * whose H.264 implementation SEGV-crashed five times in one night of ordinary
+ * playback, taking the player off screen each time. Cheap sticks and older signage
+ * boxes are no better.
+ *
+ * BOTH dimensions matter, which is why there are two numbers. The old policy
+ * capped only the height, so an ultra-wide clip (e.g. 3000x1000) passed straight
+ * through — its height was already legal — and landed on devices undecodable.
+ */
+export const VIDEO_TRANSCODE_MAX_WIDTH = 1920;
+export const VIDEO_TRANSCODE_MAX_HEIGHT = 1088;
 
 /** MIME type and extension of stored, transcoded videos. */
 export const TRANSCODED_VIDEO_MIME_TYPE = 'video/mp4';

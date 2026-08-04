@@ -1,29 +1,83 @@
 package com.signagewall.player
 
+import android.app.AlarmManager
 import android.app.Application
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.SystemClock
+import android.util.Log
+import com.signagewall.player.boot.HeartbeatReceiver
+import com.signagewall.player.kiosk.KioskPresence
+import com.signagewall.player.runtime.RuntimeStateStore
 import com.signagewall.player.update.HealthWatchdog
+import com.signagewall.player.update.NoopUpdater
+import com.signagewall.player.update.OtaUpdater
+import com.signagewall.player.update.Updater
 import com.signagewall.player.update.UpdaterStateStore
 import java.io.File
 
 /**
- * Process entry point. On OTA builds it creates the process-wide [HealthWatchdog] and
- * arms it BEFORE the WebView loads, so a freshly-installed version that never even
- * loads the page is still caught. The [OtaUpdater] fetches this same instance (via
- * [postUpdateHealth]) so `report_alive`/`report_healthy` reach the one owner of the
- * alive/healthy flags. On dev / non-OTA builds this is a no-op.
+ * Process entry point, and the first place that knows what this display is supposed
+ * to be doing.
+ *
+ * Order matters here. Durable runtime state is loaded into [KioskPresence] before
+ * anything else, because the supervisor may be the ONLY thing in this process — a
+ * sticky service restart, a boot, and a package replace all create a process with no
+ * Activity, and the old design left the supervisor's arming condition at its default
+ * "do nothing" until a loaded web page said otherwise. A process that comes up
+ * without an Activity is exactly the case that needs to start one.
+ *
+ * On OTA builds it also creates the process-wide [HealthWatchdog] and arms it BEFORE
+ * the WebView loads, so a freshly-installed version that never even loads the page is
+ * still caught.
  */
 class PlayerApp : Application() {
 
     var postUpdateHealth: HealthWatchdog? = null
         private set
 
+    /**
+     * The self-updater, owned by the PROCESS rather than by the Activity.
+     *
+     * It used to be `KioskActivity by lazy`, so the OtaUpdater object was not even
+     * CONSTRUCTED until the remote page made its first bridge call — on a device whose
+     * page could not load, the one mechanism capable of repairing it never came into
+     * existence. Everything that drove it (the nightly reload, the 6h maintenance
+     * tick, standby) also lived in the page. Now the supervisor drives it and the web
+     * only ever hints that this is a convenient moment.
+     */
+    var updater: Updater = NoopUpdater("")
+        private set
+
+    lateinit var runtimeStore: RuntimeStateStore
+        private set
+
     override fun onCreate() {
         super.onCreate()
+
+        runtimeStore = RuntimeStateStore(File(filesDir, "runtime.json"))
+        val state = runtimeStore.read()
+        KioskPresence.attach(runtimeStore, state)
+
+        // A deactivate asked the previous process to erase this device's identity.
+        // The WebView's own storage can only be wiped safely before any WebView
+        // exists, so the wipe happens on the way IN rather than on the way out — see
+        // KioskActivity.deactivatePlayer for why the old in-place version could not
+        // have worked.
+        if (state.deactivatePending) {
+            wipeWebViewStorage()
+            runtimeStore.update { it.copy(deactivatePending = false) }
+        }
+
+        installCrashHandler()
+
         if (BuildConfig.UPDATE_MANIFEST_URL.isNotBlank()) {
             val health = HealthWatchdog(
                 stateStore = UpdaterStateStore(File(filesDir, "updates/state.json")),
                 currentVersionName = BuildConfig.VERSION_NAME,
                 currentVersionCode = BuildConfig.VERSION_CODE,
+                runtimeStore = runtimeStore,
                 onRollback = {
                     // The state already flags `unhealthy` for the CMS. A silent DO
                     // downgrade-reinstall of the last-good APK is verify-pending.
@@ -31,6 +85,104 @@ class PlayerApp : Application() {
             )
             health.armIfPostUpdate()
             postUpdateHealth = health
+            updater = OtaUpdater(
+                context = this,
+                currentVersionName = BuildConfig.VERSION_NAME,
+                currentVersionCode = BuildConfig.VERSION_CODE,
+                manifestUrl = BuildConfig.UPDATE_MANIFEST_URL,
+                health = health,
+            )
+        } else {
+            updater = NoopUpdater(BuildConfig.VERSION_NAME)
         }
+    }
+
+    /**
+     * Any uncaught exception used to end the process with nothing arranged to bring
+     * it back: no Activity, no service, and — before the supervisor rewrite — no
+     * durable state that would have let a revived service do anything about it. Now
+     * the crash is recorded for the CMS and an alarm is armed a few seconds out, so
+     * even a crash on the first line of `onCreate` heals itself.
+     *
+     * The previous handler is still called: swallowing a crash would hide it from
+     * logcat and from the OS, and this is a breadcrumb, not a recovery from the error
+     * itself.
+     */
+    private fun installCrashHandler() {
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+            try {
+                runtimeStore.update {
+                    it.copy(
+                        lastCrash = "${error.javaClass.simpleName}: ${error.message}"
+                            .take(MAX_CRASH_CHARS),
+                        lastCrashAt = System.currentTimeMillis(),
+                    )
+                }
+                scheduleRestart()
+            } catch (t: Throwable) {
+                Log.w(TAG, "crash handler failed", t)
+            }
+            previous?.uncaughtException(thread, error)
+        }
+    }
+
+    private fun scheduleRestart() {
+        val alarms = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val pending = PendingIntent.getBroadcast(
+            this,
+            2,
+            Intent(this, HeartbeatReceiver::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        // An EXACT alarm needs SCHEDULE_EXACT_ALARM from Android 12, which this app
+        // does not hold and should not — asking for it to restart a crashed player is
+        // out of proportion, and Play restricts it. Attempting it anyway throws a
+        // SecurityException, and throwing from inside the uncaught-exception handler
+        // would turn one crash into two. An inexact alarm may drift by minutes; a
+        // screen that comes back in three minutes instead of five is not the problem
+        // this handler exists to solve.
+        try {
+            alarms.setExactAndAllowWhileIdle(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + RESTART_DELAY_MILLIS,
+                pending,
+            )
+        } catch (_: SecurityException) {
+            alarms.setAndAllowWhileIdle(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + RESTART_DELAY_MILLIS,
+                pending,
+            )
+        }
+    }
+
+    /**
+     * Recursively removes the WebView's data directories. Only ever reached from the
+     * deactivate marker, before the first WebView is constructed — `WebStorage` and
+     * `CookieManager` deletes are asynchronous, so doing this on the way out (as the
+     * shell used to) raced a `Runtime.exit(0)` that followed microseconds later and
+     * essentially never completed.
+     */
+    private fun wipeWebViewStorage() {
+        try {
+            listOf(
+                getDir("webview", MODE_PRIVATE),
+                File(applicationInfo.dataDir, "app_webview"),
+                File(cacheDir, "WebView"),
+            ).forEach { dir -> if (dir.exists()) dir.deleteRecursively() }
+            Log.i(TAG, "wiped WebView storage for a pending deactivate")
+        } catch (t: Throwable) {
+            Log.w(TAG, "could not wipe WebView storage", t)
+        }
+    }
+
+    private companion object {
+        const val TAG = "PlayerApp"
+        const val MAX_CRASH_CHARS = 300
+
+        /** Long enough that a crash loop backs off a little, short enough that a
+         *  one-off crash is invisible to anyone watching the screen. */
+        const val RESTART_DELAY_MILLIS = 5_000L
     }
 }

@@ -46,7 +46,8 @@ if (!Number.isInteger(code) || code <= 0) {
   process.exit(1)
 }
 
-const sha256 = createHash('sha256').update(readFileSync(apk)).digest('hex')
+const apkBytes = readFileSync(apk)
+const sha256 = createHash('sha256').update(apkBytes).digest('hex')
 const url = `${publicBase.replace(/\/$/, '')}/signagewall-player/android/${version}/${basename(apk)}`
 
 const manifest = {
@@ -54,6 +55,11 @@ const manifest = {
   versionCode: code,
   url,
   sha256,
+  // The device refuses a download it cannot fit, and without this it has to guess.
+  // A guess big enough to be safe for any APK is also big enough to refuse every
+  // update on a nearly-full signage box — and the refusal used to count against the
+  // version until it was abandoned. Publishing the real number removes the guess.
+  size: apkBytes.length,
   pubDate: new Date().toISOString(),
 }
 

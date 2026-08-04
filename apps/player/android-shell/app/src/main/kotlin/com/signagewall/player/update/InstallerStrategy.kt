@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import java.io.File
 
 /**
@@ -31,11 +32,43 @@ import java.io.File
  * decide to ask (a changed signing cert, a permission-set change). That is why
  * [InstallReceiver] stays: it is the fallback, not dead code.
  *
- * On success the OS relaunches the app. The APK-signature check (PackageInstaller
- * refuses a different signing cert) is the Android trust anchor, backed by the
- * caller's sha256 check.
+ * On success the process is killed and `PackageReplacedReceiver` brings the player
+ * back — Android does NOT relaunch it, whatever the previous comment here claimed.
+ * The APK-signature check (PackageInstaller refuses a different signing cert) is the
+ * Android trust anchor, backed by the caller's sha256 check.
  */
 class InstallerStrategy(private val context: Context) {
+
+    private companion object {
+        const val TAG = "InstallerStrategy"
+    }
+
+
+    /**
+     * Whether an install would go through without a human pressing anything.
+     *
+     * Two ways to earn that: being Device Owner, or being the app's own installer of
+     * record while holding UPDATE_PACKAGES_WITHOUT_USER_ACTION. A box that was
+     * sideloaded over adb has no installer of record at all — measured, and neither
+     * `adb install -i` nor `pm set-installer` can grant it from outside — so the
+     * FIRST update on such a device will always prompt. Performing that one install
+     * is what makes us the installer, and every later one can be silent.
+     *
+     * The updater asks this before a SCHEDULED update, because throwing a system
+     * dialog onto an unattended shop wall at four in the morning, where it will sit
+     * unanswered over the content until someone visits, is worse than being a version
+     * behind.
+     */
+    fun canInstallSilently(): Boolean {
+        if (isDeviceOwner()) return true
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false
+        return try {
+            val info = context.packageManager.getInstallSourceInfo(context.packageName)
+            info.installingPackageName == context.packageName
+        } catch (_: Throwable) {
+            false
+        }
+    }
 
     fun isDeviceOwner(): Boolean {
         val dpm =
@@ -43,8 +76,51 @@ class InstallerStrategy(private val context: Context) {
         return dpm.isDeviceOwnerApp(context.packageName)
     }
 
-    fun install(apk: File) {
+    /**
+     * Whether [apk] is signed by the same certificate as the running app.
+     *
+     * PackageInstaller enforces this itself and would reject a mismatch — but only
+     * AFTER the whole file has been streamed into a session, and only with a status
+     * code that the old code discarded. Checking first turns "mysteriously fails
+     * every six hours" into a clear, recordable refusal, and it means a
+     * compromised-but-well-formed manifest cannot even get as far as a session. The
+     * sha256 from the manifest proves the bytes are the ones the publisher listed;
+     * this proves the publisher is us.
+     */
+    fun isSignedByUs(apk: File): Boolean {
+        // GET_SIGNING_CERTIFICATES is API 28; minSdk here is 26. On Android 8.x the
+        // query returns nothing, which read as "not signed by us" and made `install`
+        // throw — freezing every 8.x box in the fleet at whatever version it had,
+        // permanently, with no way to ship the fix. PackageInstaller enforces the
+        // certificate itself regardless; this check is defence in depth and a clearer
+        // error message, so skipping it where it cannot work costs nothing real.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            return true
+        }
+        return try {
+            val pm = context.packageManager
+            val flags = PackageManager.GET_SIGNING_CERTIFICATES
+            val candidate = pm.getPackageArchiveInfo(apk.absolutePath, flags)
+                ?.signingInfo ?: return false
+            val ours = pm.getPackageInfo(context.packageName, flags)
+                .signingInfo ?: return false
+            val theirDigests = candidate.apkContentsSigners.map { it.toCharsString() }.toSet()
+            val ourDigests = ours.apkContentsSigners.map { it.toCharsString() }.toSet()
+            theirDigests.isNotEmpty() && theirDigests == ourDigests
+        } catch (t: Throwable) {
+            Log.w(TAG, "could not read the APK signature", t)
+            false
+        }
+    }
+
+    fun install(apk: File, versionCode: Int = 0) {
+        require(isSignedByUs(apk)) { "APK is not signed by this app's certificate" }
         val installer = context.packageManager.packageInstaller
+        // Sessions are a finite, per-app resource and a failed one is never cleaned
+        // up by the system. Abandoning our own leftovers before creating another
+        // stops a device that has failed a few installs from being unable to start
+        // any — a state nothing in the app could report or recover from.
+        abandonOurSessions(installer)
         val params =
             PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
         // Marks this as a managed/policy install rather than a user-initiated one;
@@ -55,7 +131,25 @@ class InstallerStrategy(private val context: Context) {
                 PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED,
             )
         }
+        // Naming the target package lets Android reject a mismatched APK before a
+        // single byte is written, rather than after the whole download.
+        params.setAppPackageName(context.packageName)
+
         val sessionId = installer.createSession(params)
+        try {
+            writeAndCommit(installer, sessionId, apk, versionCode)
+        } catch (t: Throwable) {
+            runCatching { installer.abandonSession(sessionId) }
+            throw t
+        }
+    }
+
+    private fun writeAndCommit(
+        installer: PackageInstaller,
+        sessionId: Int,
+        apk: File,
+        versionCode: Int,
+    ) {
         installer.openSession(sessionId).use { session ->
             apk.inputStream().use { input ->
                 session.openWrite("signagewall-player.apk", 0, apk.length()).use { output ->
@@ -66,10 +160,26 @@ class InstallerStrategy(private val context: Context) {
             val pending = PendingIntent.getBroadcast(
                 context,
                 sessionId,
-                Intent(context, InstallReceiver::class.java),
+                // The version rides along because PackageInstaller's result
+                // broadcast does not say which session it is about, and a failure
+                // that cannot be attributed to a version cannot be counted against
+                // one — which is what let a doomed APK retry forever.
+                Intent(context, InstallReceiver::class.java)
+                    .putExtra(InstallReceiver.EXTRA_VERSION_CODE, versionCode),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
             )
             session.commit(pending.intentSender)
+        }
+    }
+
+    /** Our own stale sessions, from installs that failed or were never confirmed. */
+    private fun abandonOurSessions(installer: PackageInstaller) {
+        try {
+            installer.mySessions.forEach { info ->
+                runCatching { installer.abandonSession(info.sessionId) }
+            }
+        } catch (_: Throwable) {
+            // Not being able to tidy up is never a reason to refuse to update.
         }
     }
 }

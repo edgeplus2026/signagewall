@@ -8,7 +8,7 @@ import { PageHero } from '@/components/marketing/page-hero'
 import { Card } from '@/components/ui/card'
 import { Section, SectionStack } from '@/components/ui/section'
 import { Title } from '@/components/ui/typography'
-import { localeAlternates } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 
 interface PageProps {
   params: Promise<{ locale: string }>
@@ -17,11 +17,12 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'contact.meta' })
-  return {
+  return pageMetadata({
+    locale,
+    path: '/contact',
     title: t('title'),
     description: t('description'),
-    alternates: localeAlternates(locale, '/contact'),
-  }
+  })
 }
 
 export default async function ContactPage({ params }: PageProps) {

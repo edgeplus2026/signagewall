@@ -13,7 +13,7 @@ import { Prose } from '@/components/ui/prose'
 import { Section, SectionStack } from '@/components/ui/section'
 import { Subtitle, Title } from '@/components/ui/typography'
 import { REGISTER_URL } from '@/lib/app-url'
-import { localeAlternates, openGraphMeta } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 import { cn } from '@/lib/utils'
 
 interface PageProps {
@@ -25,12 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const t = await getTranslations({ locale, namespace: 'about.meta' })
   const title = t('title')
   const description = t('description')
-  return {
-    title,
-    description,
-    alternates: localeAlternates(locale, '/about'),
-    openGraph: openGraphMeta({ locale, path: '/about', title, description }),
-  }
+  return pageMetadata({ locale, path: '/about', title, description })
 }
 
 /**

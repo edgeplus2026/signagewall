@@ -32,8 +32,20 @@ interface UpdateCheck {
 
 /** Outcome of the native `run_update` command. */
 interface RunResult {
-  /** `busy` = another apply is already in flight (Rust serializes them). */
-  kind: 'updating' | 'up-to-date' | 'busy' | 'error'
+  /**
+   * `busy`           another apply is already in flight (the shell serializes them)
+   * `unreachable`    the update channel could not be read — distinct from
+   *                  `up-to-date`, which used to swallow it
+   * `needs-operator` an update exists but Android will demand a human confirms it,
+   *                  and this screen is unattended
+   */
+  kind:
+    | 'updating'
+    | 'up-to-date'
+    | 'busy'
+    | 'error'
+    | 'unreachable'
+    | 'needs-operator'
   version?: string | null
 }
 
@@ -127,19 +139,51 @@ async function runUpdate(): Promise<RunResult | undefined> {
   try {
     const result = await nativeInvoke<RunResult>('run_update')
 
-    // A successful install never returns here — the process restarts into the
-    // new version — so anything we DO see is a terminal non-install outcome.
+    // A successful install never returns here — the process restarts into the new
+    // version — so anything we DO see is a non-install outcome. It is NOT necessarily
+    // terminal, and reporting them all as `up-to-date` was actively misleading: a
+    // download that had just started, an unreachable channel and a screen waiting for
+    // a technician all showed the fleet a green tick.
     if (result?.kind !== 'busy') {
       setApplyOutcome({
         currentVersion,
         lastCheckAt: new Date().toISOString(),
-        // undefined = the Rust command rejected (nativeInvoke swallows it).
-        lastResult: !result || result.kind === 'error' ? 'error' : 'up-to-date',
+        lastResult: applyResultFor(result),
       })
     }
     return result
   } finally {
     updateInFlight = false
+  }
+}
+
+/**
+ * What an apply attempt actually means for the fleet dashboard.
+ *
+ *  - `updating`       — the download has begun. The install either restarts us into
+ *                       the new version or lands a terminal state via the shell, so
+ *                       the honest interim answer is `installing`, not "done".
+ *  - `needs-operator` — the device found an update it is not allowed to install
+ *                       unattended (off Device Owner, Android insists a human
+ *                       confirms the first one). A task for a person, not a fault.
+ *  - `unreachable`    — the update channel could not be read at all. Silence here is
+ *                       how a fleet-wide bucket misconfiguration stays invisible.
+ *  - undefined        — the native command rejected; nativeInvoke swallows the reason.
+ */
+function applyResultFor(
+  result: RunResult | undefined,
+): NonNullable<DeviceUpdateStatus['lastResult']> {
+  if (!result) return 'error'
+  switch (result.kind) {
+    case 'error':
+    case 'unreachable':
+      return 'error'
+    case 'updating':
+      return 'installing'
+    case 'needs-operator':
+      return 'needs-operator'
+    default:
+      return 'up-to-date'
   }
 }
 

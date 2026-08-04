@@ -13,6 +13,9 @@ interface YouTubePlayer {
   unMute(): void
   getPlayerState(): number
   destroy(): void
+  /** Present since the IFrame API's first version; a hint, not a command — YouTube
+   *  may ignore it if the video has no such rendition. */
+  setPlaybackQuality?: (quality: string) => void
 }
 
 interface YouTubePlayerOptions {
@@ -36,6 +39,13 @@ declare global {
     onYouTubeIframeAPIReady?: () => void
   }
 }
+
+/**
+ * The largest rendition signage hardware reliably decodes. `hd1080` is 1920x1080 —
+ * inside the 1920x1088 ceiling shared by every hardware decoder on the boxes this
+ * runs on. Anything above it falls to a software decoder that crashes.
+ */
+const MAX_PLAYBACK_QUALITY = 'hd1080'
 
 /** `YT.PlayerState` values — the enum itself only exists once the API loads. */
 const STATE_PLAYING = 1
@@ -213,10 +223,26 @@ async function mount(id: string): Promise<void> {
       modestbranding: 1,
       iv_load_policy: 3,
       disablekb: 1,
+      // Ask for a rendition signage hardware can decode. Measured on an Android TV
+      // in the field: every one of its hardware video decoders caps at 1920x1088,
+      // and anything past that silently falls back to a software decoder whose
+      // H.264 implementation SEGV-crashed five times in one night, taking the whole
+      // player off screen. A 1440p or 2160p YouTube stream is exactly that case,
+      // and unlike our own media we cannot re-encode somebody else's video — asking
+      // for a smaller rendition is the only lever we have.
+      //
+      // `vq` is a hint YouTube is free to ignore, so it is paired with the
+      // setPlaybackQuality call in onReady rather than trusted on its own. Neither
+      // is a guarantee; both are better than requesting 4K onto a box that cannot
+      // decode it.
+      vq: MAX_PLAYBACK_QUALITY,
     },
     events: {
       onReady: () => {
         if (seq !== generation || !player) return
+        // Second attempt at the same thing as `vq` above: the playerVar is applied
+        // before the API is ready and is the more easily ignored of the two.
+        player.setPlaybackQuality?.(MAX_PLAYBACK_QUALITY)
         player.playVideo()
         watchPlayback(seq)
       },

@@ -1,45 +1,86 @@
 package com.signagewall.player.kiosk
 
+import android.os.SystemClock
+import com.signagewall.player.runtime.RuntimeState
+import com.signagewall.player.runtime.RuntimeStateStore
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * The two facts the keep-alive watchdog needs, shared between the Activity (which
- * knows them) and the service (which acts on them). Both live in the same process,
- * so this is a plain holder rather than IPC — but it is deliberately NOT owned by
- * either side: the service outlives the Activity (START_STICKY), and the Activity
- * is recreated on configuration changes.
+ * The supervisor's view of what this display should be doing and what it actually
+ * is doing. Shared between the Activity (which knows the "is") and the service
+ * (which acts on the gap), and owned by neither: the service outlives the
+ * Activity, and the Activity is recreated on configuration changes.
  *
- * The mode matters as much as the presence. Dragging the app back to the front
- * whenever it loses focus is correct for a locked signage screen and *wrong* for an
- * unlocked one — there it is indistinguishable from a device that refuses to quit,
- * which is exactly how it read on a TV before the Back fix.
+ * Seeded from disk in `PlayerApp.onCreate` — BEFORE any Activity exists — which is
+ * the whole point. The previous design initialised the mode to OFF in every fresh
+ * process and only ever wrote it when a loaded page called `setKioskLock`, so a
+ * process that came back WITHOUT its Activity (a sticky service restart, a
+ * low-memory kill, a package replace) could never launch one. It polled every ten
+ * seconds forever, showed a "player is running" notification, and did nothing.
+ *
+ * Two decisions come out of this class, and keeping them apart is the point:
+ *
+ *  - [shouldLaunch] — there is no Activity at all. This ignores the kiosk lock
+ *    entirely. A signage device with no player on screen is never the intended
+ *    state, locked or not; the lock governs whether people may leave the app, not
+ *    whether the app should exist.
+ *  - [shouldReclaimForeground] — the Activity exists but something is in front of
+ *    it. That is the lock's business, and only the lock's.
  */
 object KioskPresence {
+
     private val mode = AtomicReference(KioskController.Mode.OFF)
     private val resumed = AtomicBoolean(false)
+    private val activityAlive = AtomicBoolean(false)
+    private val desiredRunning = AtomicBoolean(true)
 
     /**
      * Set when the operator closes the player from the service bar, to tell that
-     * apart from an ACCIDENTAL exit — a swipe out of Recents, an OEM launcher
-     * grabbing focus — which the watchdog undoes instantly. A deliberate close has
-     * to actually be visible: putting the player back ~100ms later reads as a
-     * device that refuses to quit.
-     *
-     * It does NOT mean the close is permanent. That is decided by the kiosk lock:
-     * a locked screen comes back a few seconds later, because self-healing is the
-     * only thing the lock actually promises, and a PIN-less menu anyone can reach
-     * would otherwise hand that promise away to whoever holds the remote. An
-     * unlocked screen stays shut.
-     *
-     * Cleared when the Activity next starts, so it can never outlive the session
-     * that set it and leave a rebooted screen unguarded.
+     * apart from an accidental exit — a swipe out of Recents, an OEM launcher
+     * grabbing focus — which is undone at once. A deliberate close has to be
+     * visible: putting the player back ~100ms later reads as a device that refuses
+     * to quit. It does not decide whether the close is permanent; that is
+     * [desiredRunning], which the lock decides.
      */
     private val closedByOperator = AtomicBoolean(false)
 
-    /** Last mode the CMS asked for, as applied by [KioskController]. */
+    /**
+     * Wall against which reclaim attempts are held off, on `elapsedRealtime` so an
+     * NTP step can neither cancel nor extend it. The shell opens system screens
+     * itself — the overlay-permission grant, the install confirmation — and
+     * without this it drags itself back over them within seconds. Those are
+     * precisely the two flows that repair a screen's ability to heal and to
+     * update, so the keep-alive was making them impossible to complete.
+     */
+    private val suppressUntil = AtomicLong(0L)
+
+    /**
+     * Monotonic clock, injectable because `SystemClock` is a framework stub in unit
+     * tests. Monotonic and not wall-clock on purpose: an NTP step must be unable to
+     * either cancel or extend a suppression window.
+     */
+    @Volatile
+    private var clock: () -> Long = { SystemClock.elapsedRealtime() }
+
+    /** Where intent-to-run is persisted. Absent in unit tests, which is fine: every
+     *  setter tolerates null and the in-memory view stays authoritative. */
+    @Volatile
+    private var store: RuntimeStateStore? = null
+
+    /** Called once, from `PlayerApp.onCreate`, before anything else reads this. */
+    fun attach(store: RuntimeStateStore, state: RuntimeState) {
+        this.store = store
+        desiredRunning.set(state.isRunning)
+        mode.set(KioskController.parse(state.kioskMode))
+    }
+
+    /** Last mode the CMS asked for, as applied by [KioskController]. Persisted so a
+     *  reboot re-locks from disk instead of waiting for the page to load. */
     fun setMode(next: KioskController.Mode) {
         mode.set(next)
+        store?.update { it.copy(kioskMode = next.name.lowercase()) }
     }
 
     fun mode(): KioskController.Mode = mode.get()
@@ -51,19 +92,81 @@ object KioskPresence {
 
     fun isResumed(): Boolean = resumed.get()
 
-    /** Marks (or clears) a deliberate close from the service bar. */
+    /** Driven from the Activity's create/destroy — the "is there a player at all"
+     *  half of the supervisor's question. */
+    fun setActivityAlive(next: Boolean) {
+        activityAlive.set(next)
+    }
+
+    fun isActivityAlive(): Boolean = activityAlive.get()
+
+    /**
+     * Whether this display is supposed to be showing the player. Only "Close
+     * application" on an UNLOCKED screen sets it false, and boot resets it to true:
+     * closing a screen is an instruction for the rest of the day, not for the life
+     * of the device, and a display left dark through a power cut because of a tap
+     * three weeks ago is indistinguishable from a broken one.
+     */
+    fun setDesiredRunning(next: Boolean) {
+        desiredRunning.set(next)
+        store?.update {
+            it.copy(desiredState = if (next) RuntimeState.RUNNING else RuntimeState.STOPPED)
+        }
+    }
+
+    fun isDesiredRunning(): Boolean = desiredRunning.get()
+
     fun setClosedByOperator(next: Boolean) {
         closedByOperator.set(next)
     }
 
     fun wasClosedByOperator(): Boolean = closedByOperator.get()
 
+    /** Holds reclaims off for [millis] — used around system screens we open. */
+    fun suppressReclaim(millis: Long) {
+        suppressUntil.set(clock() + millis)
+    }
+
+    fun clearSuppression() {
+        suppressUntil.set(0L)
+    }
+
+    private fun suppressed(): Boolean = clock() < suppressUntil.get()
+
     /**
-     * Whether the watchdog should pull the player back to the front right now.
-     * Only while locked, and only when something else is actually in front — a
-     * deliberate close is handled by onTaskRemoved, which delays the return rather
-     * than suppressing it, so the operator sees the app actually go away.
+     * No Activity exists and one is supposed to. Deliberately independent of the
+     * kiosk lock: this is the case the old predicate excluded, and it is the case
+     * that leaves a screen dark for months.
+     */
+    fun shouldLaunch(): Boolean =
+        desiredRunning.get() && !activityAlive.get() && !suppressed()
+
+    /**
+     * The Activity is alive but something else is in front of it. Locked screens
+     * are dragged back; unlocked ones are left alone, or an operator could never
+     * put the player down.
      */
     fun shouldReclaimForeground(): Boolean =
-        mode.get() != KioskController.Mode.OFF && !resumed.get()
+        desiredRunning.get() &&
+            activityAlive.get() &&
+            !resumed.get() &&
+            mode.get() != KioskController.Mode.OFF &&
+            !suppressed()
+
+    /** Test seam: a deterministic clock in place of the framework stub. */
+    fun setClockForTests(next: () -> Long) {
+        clock = next
+    }
+
+    /** Test seam: drops every in-memory bit back to its default. */
+    fun resetForTests() {
+        clock = { SystemClock.elapsedRealtime() }
+        mode.set(KioskController.Mode.OFF)
+        resumed.set(false)
+        activityAlive.set(false)
+        desiredRunning.set(true)
+        closedByOperator.set(false)
+        suppressUntil.set(0L)
+        store = null
+    }
 }

@@ -11,7 +11,7 @@ import { Title } from '@/components/ui/typography'
 import { Link } from '@/i18n/navigation'
 import { REGISTER_URL } from '@/lib/app-url'
 import { formattedPrice, TRIAL_DAYS } from '@/lib/pricing'
-import { localeAlternates, openGraphMeta } from '@/lib/seo'
+import { pageMetadata } from '@/lib/seo'
 import { cn } from '@/lib/utils'
 
 interface PageProps {
@@ -23,18 +23,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const t = await getTranslations({ locale, namespace: 'whatIsSignage.meta' })
   const title = t('title')
   const description = t('description')
-  return {
+  return pageMetadata({
+    locale,
+    path: '/what-is-digital-signage',
+    type: 'article',
     title,
     description,
-    alternates: localeAlternates(locale, '/what-is-digital-signage'),
-    openGraph: openGraphMeta({
-      locale,
-      path: '/what-is-digital-signage',
-      type: 'article',
-      title,
-      description,
-    }),
-  }
+  })
 }
 
 /**

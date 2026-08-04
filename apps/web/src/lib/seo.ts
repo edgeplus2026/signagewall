@@ -174,6 +174,22 @@ export function resolveCanonicalUrl(value: string | undefined): string | undefin
  * slug (`/features`), or a per-language pair when they do not (a blog post).
  * Pass nothing for the home page.
  */
+/**
+ * RSS autodiscovery for the current language.
+ *
+ * The feeds existed but nothing pointed at them: a reader's browser extension
+ * and an aggregator both look for this tag, and neither reads a sitemap. It
+ * hangs off `localeAlternates` rather than the blog routes because that is the
+ * one function every route already calls — the same reason hreflang lives here.
+ */
+function feedAlternates(locale: SeoLocale) {
+  return {
+    'application/rss+xml': [
+      { url: `${absoluteUrl(locale, '/blog')}/feed.xml`, title: 'SignageWall Blog' },
+    ],
+  }
+}
+
 export function localeAlternates(
   locale: string,
   path: Route | LocaleRoutes = '/',
@@ -195,7 +211,11 @@ export function localeAlternates(
     languages['x-default'] = absoluteUrl('sr', paths.sr)
   }
 
-  return { canonical: absoluteUrl(currentLocale, self), languages }
+  return {
+    canonical: absoluteUrl(currentLocale, self),
+    languages,
+    types: feedAlternates(currentLocale),
+  }
 }
 
 export interface PageMetadataOptions extends OpenGraphOptions {
@@ -208,6 +228,14 @@ export interface PageMetadataOptions extends OpenGraphOptions {
   /** Social copy can be more descriptive than the search-result title. */
   ogTitle?: string | undefined
   ogDescription?: string | undefined
+  /**
+   * Replaces the `<title>` outright, bypassing the layout's `%s | SignageWall`
+   * template. Only the home page needs it: the template does not apply within
+   * the segment that declares it, so a plain string there ships the one title
+   * on the site with no brand in it. `title` still feeds Open Graph and
+   * Twitter, which want the unbranded form.
+   */
+  absoluteTitle?: string | undefined
 }
 
 /**
@@ -231,6 +259,7 @@ export function pageMetadata({
   canonical,
   ogTitle,
   ogDescription,
+  absoluteTitle,
 }: PageMetadataOptions): Metadata {
   const alternates = localeAlternates(locale, path, availability)
   const canonicalUrl = resolveCanonicalUrl(canonical)
@@ -241,13 +270,15 @@ export function pageMetadata({
   const socialDescription = ogDescription ?? description
 
   return {
-    title,
+    title: absoluteTitle ? { absolute: absoluteTitle } : title,
     ...(description ? { description } : {}),
     // A consolidated URL must not advertise local hreflang siblings unless
     // the canonical target supplies a reciprocal cluster of its own. The CMS
     // cannot verify that external contract, so canonical override is fail-safe:
     // one canonical and no alternate-language claims.
-    alternates: canonicalUrl ? { canonical: canonicalUrl } : alternates,
+    alternates: canonicalUrl
+      ? { canonical: canonicalUrl, types: feedAlternates(locale === 'sr' ? 'sr' : 'en') }
+      : alternates,
     robots: {
       index: indexable,
       // Links from an editorially unfinished page still help discovery of the

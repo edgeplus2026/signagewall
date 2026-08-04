@@ -1,4 +1,6 @@
 import type { PlayerSnapshot, Renderable } from '../types'
+import { reportError } from '../sentry'
+import { holdsVideoDecoder } from './decoder-apps'
 import { itemRequiresNetwork } from './network-apps'
 import { Slot } from './slot'
 
@@ -14,8 +16,16 @@ export interface PlaybackSlot {
    * Reveals the slot. `direction` is the loop's direction of travel and only
    * steers which edge the slide comes from; it is optional so a test fake can
    * ignore presentation entirely.
+   *
+   * `onFailed` is how a slot says the item stopped being viable AFTER it went on
+   * screen — a decode error, or a picture that simply stopped moving. Optional for
+   * the same reason: a fake that never plays anything can never fail.
    */
-  activate(onEnded: () => void, direction?: 1 | -1): void
+  activate(
+    onEnded: () => void,
+    direction?: 1 | -1,
+    onFailed?: (reason: string) => void,
+  ): void
   /** Sends the slot off the opposite edge; pass the same `direction`. */
   deactivate(direction?: 1 | -1): void
   release(): void
@@ -362,6 +372,33 @@ export class PlaybackController {
     }
   }
 
+  /**
+   * The on-screen item stopped being viable mid-playback — the decoder raised an
+   * error, or the picture simply stopped moving.
+   *
+   * Until now nothing watched an item after it was put on screen, so this ended as
+   * a frozen frame that only the stall watchdog would eventually clear — and that
+   * watchdog's patience is proportional to the clip's own length, so a ten-minute
+   * video bought ten minutes of a still image. Moving on immediately is what a
+   * screen in a shop window needs; the item is reported so the CMS can say which
+   * one, rather than the operator guessing.
+   */
+  private onPlaybackFailed(index: number, reason: string): void {
+    if (this.destroyed || index !== this.cursor) {
+      return
+    }
+    const item = this.items[index]
+    reportError(new Error(`playback failed: ${reason}`), {
+      itemId: item?.id,
+      url: item?.kind === 'video' ? item.url : undefined,
+    })
+    // Follow mode is driven by another device; skipping here would desynchronise
+    // the wall. A frozen follower is the lesser evil than a wall out of step.
+    if (!this.follow) {
+      this.advance()
+    }
+  }
+
   private advance(): void {
     if (this.items.length === 0) {
       return
@@ -418,13 +455,17 @@ export class PlaybackController {
     }
 
     const front = this.slots[this.activeIndex]
-    back.activate(() => {
-      // In follow mode the device drives advancement; a video ending here must
-      // not move us — we wait for the device's next now-playing report.
-      if (!this.follow) {
-        this.advance()
-      }
-    }, this.direction)
+    back.activate(
+      () => {
+        // In follow mode the device drives advancement; a video ending here must
+        // not move us — we wait for the device's next now-playing report.
+        if (!this.follow) {
+          this.advance()
+        }
+      },
+      this.direction,
+      (reason) => this.onPlaybackFailed(index, reason),
+    )
     // Slide the swap: the (decoded) back slot moves in while the front moves off
     // the opposite edge. Both are handed the SAME direction so they read as one
     // gesture — and a manual step back reverses it. We only change classes here
@@ -470,8 +511,10 @@ export class PlaybackController {
     // clip that had been playing happily. It survives once the new decode
     // session has had a moment to settle, so a video gets that moment before we
     // touch the other slot. Everything else warms as soon as the transition ends.
-    const settling =
-      this.items[this.cursor]?.kind === 'video' ? VIDEO_SETTLE_MS : 0
+    // Keyed on "does the on-screen item hold a decoder", not on its kind: an
+    // active YouTube or stream embed needs exactly the same settling room as an
+    // .mp4, and asking about `kind` skipped it for them.
+    const settling = holdsVideoDecoder(this.items[this.cursor]) ? VIDEO_SETTLE_MS : 0
     this.preloadTimer = window.setTimeout(() => {
       this.preloadTimer = undefined
       this.preloadNext()
@@ -494,19 +537,23 @@ export class PlaybackController {
       return
     }
 
-    // Never bring a second video to readiness while one is on screen. Modest
-    // hardware — an LG webOS TV, measured; cheap Android sticks and older
-    // signage players behave the same — has a single video decode session, and
-    // the newcomer takes it: the playing element is paused where it stands and
-    // cannot be resumed (re-playing it, or even releasing the second element
-    // first, leaves it reset rather than running). Nothing in the engine can
-    // recover from that, so the only fix is not to cause it. The item is
-    // prepared just-in-time instead, which costs under a second of the outgoing
-    // frame holding — `showAt` awaits prepare either way, so there is still no
-    // black flash. Apps are exempt: an app is mounted silent and inert until
-    // `activate`, so a preloaded YouTube/stream never opens a decoder.
-    const current = this.items[this.cursor]
-    if (current?.kind === 'video' && item.kind === 'video') {
+    // Never bring a second video to readiness while something already holds a
+    // decoder. Modest hardware — an LG webOS TV, measured; the Android TV
+    // measured here advertises exactly two hardware AVC instances; cheap sticks
+    // and older signage players are worse — hands the session to the newcomer:
+    // the playing element is paused where it stands and cannot be resumed
+    // (re-playing it, or even releasing the second element first, leaves it reset
+    // rather than running), or the decode falls back to a software codec that
+    // crashes outright. Nothing in the engine can recover from either, so the only
+    // fix is not to cause it. The item is prepared just-in-time instead, which
+    // costs under a second of the outgoing frame holding — `showAt` awaits prepare
+    // either way, so there is still no black flash.
+    //
+    // The ON-SCREEN side asks `holdsVideoDecoder`, so an active YouTube or stream
+    // counts. The INCOMING side deliberately still asks `kind`: a preloaded app is
+    // mounted silent and inert until `activate` and opens no decoder, so warming
+    // one behind a video is free and must not be suppressed.
+    if (holdsVideoDecoder(this.items[this.cursor]) && item.kind === 'video') {
       return
     }
 

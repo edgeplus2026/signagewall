@@ -12,6 +12,14 @@
          one only inside the ~10s grace period), 5/5 in ~4s with it. Granted by the
          operator once, from the service bar — see requestOverlayPermission. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- The recovery ladder's second rung is a full-screen-intent notification: a
+         background-activity-launch exemption DISTINCT from the overlay permission,
+         so it can work where the first rung is refused. Both permissions are
+         required for it to be anything at all — without them the notification is
+         posted, silently dropped, and the rung is a no-op that looks like a
+         working escalation in the log. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Level 3: prompted APK self-update on non-Device-Owner devices. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
@@ -60,9 +68,40 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
+            <!-- Offers the player as the device's HOME app. Two reasons: the
+                 Device-Owner HARD kiosk calls addPersistentPreferredActivity for
+                 HOME, which could never resolve to an activity that did not declare
+                 the category (so that code path has never done anything); and on a
+                 non-Device-Owner box, being chosen as the launcher is the only
+                 autostart route that survives a power cut, since the system starts
+                 the launcher itself rather than a background app. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <!-- Autostart on power-up. -->
+        <!-- Brings the player back after it updates itself. Without this every
+             successful unattended OTA left the screen on the TV's own menu until a
+             human power-cycled it: a package replace kills the process and Android
+             sends no boot broadcast and revives no sticky service. -->
+        <receiver
+            android:name=".boot.PackageReplacedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- The supervisor's pulse: an inexact alarm re-starts the service when
+             START_STICKY was not honoured. A supervisor cannot supervise its own
+             absence. -->
+        <receiver
+            android:name=".boot.HeartbeatReceiver"
+            android:exported="false" />
+
         <receiver
             android:name=".boot.BootReceiver"
             android:enabled="true"
