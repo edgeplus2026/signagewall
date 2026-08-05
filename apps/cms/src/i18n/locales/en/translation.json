@@ -1523,7 +1523,64 @@
       "notifications": "Notifications",
       "upgradeRequests": "Upgrade Requests",
       "billing": "Billing",
+      "crm": "CRM",
       "analytics": "Analytics"
+    },
+    "crm": {
+      "title": "Leads CRM",
+      "description": "{{count}} permanently stored contact and quote leads with acquisition context.",
+      "search": "Search name, email or company...",
+      "empty": "No leads match these filters.",
+      "error": "CRM leads could not be loaded.",
+      "updateSuccess": "Lead updated",
+      "updateError": "The lead could not be updated.",
+      "columns": {
+        "contact": "Contact",
+        "type": "Type",
+        "status": "Status",
+        "source": "Source / campaign",
+        "createdAt": "Received"
+      },
+      "filters": {
+        "allTypes": "All types",
+        "allStatuses": "All statuses"
+      },
+      "type": {
+        "contact": "Contact",
+        "quote": "Quote"
+      },
+      "status": {
+        "new": "New",
+        "contacted": "Contacted",
+        "qualified": "Qualified",
+        "won": "Won",
+        "lost": "Lost",
+        "spam": "Spam"
+      },
+      "emailStatus": {
+        "pending": "Pending",
+        "sent": "Sent",
+        "skipped": "Not configured",
+        "failed": "Failed"
+      },
+      "details": {
+        "contact": "Contact details",
+        "attribution": "Acquisition",
+        "firstTouch": "First touch",
+        "lastTouch": "Last touch",
+        "message": "Message",
+        "screens": "{{count}} screens",
+        "emailNotification": "Founder email",
+        "history": "Status history",
+        "notes": "Internal notes",
+        "noNotes": "No internal notes yet."
+      },
+      "edit": {
+        "status": "Lead status",
+        "note": "Add internal note",
+        "notePlaceholder": "Next step, call outcome, commercial context...",
+        "save": "Save changes"
+      }
     },
     "analytics": {
       "title": "Lifecycle analytics",

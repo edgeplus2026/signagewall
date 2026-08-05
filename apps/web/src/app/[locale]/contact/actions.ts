@@ -1,6 +1,6 @@
 'use server'
 
-import { recordLead } from '@/lib/server-funnel'
+import { createCrmLead } from '@/lib/server-crm'
 
 export interface ContactState {
   status: 'idle' | 'success' | 'error' | 'invalid'
@@ -25,40 +25,17 @@ export async function submitContact(
     return { status: 'invalid' }
   }
 
-  const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.MAIL_FROM
-  const to = process.env.CONTACT_NOTIFY_TO ?? process.env.MAIL_SUPPORT_TO
-
-  // Not configured (e.g. local dev without secrets): don't fail the UX — log and
-  // report success so the form can be exercised. A real deploy sets these envs.
-  if (!apiKey || !from || !to) {
-    console.warn('[contact] Resend not configured — skipping email send')
-    await recordLead(formData, 'contact')
-    return { status: 'success' }
-  }
-
   try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        reply_to: email,
-        subject: `Nova poruka sa sajta — ${name}`,
-        text: `Ime: ${name}\nEmail: ${email}\nKompanija: ${company || '—'}\n\nPoruka:\n${message}`,
-      }),
+    await createCrmLead(formData, {
+      type: 'contact',
+      name,
+      email,
+      ...(company ? { company } : {}),
+      message,
     })
-    if (!res.ok) {
-      throw new Error(`Resend responded ${res.status.toString()}`)
-    }
-    await recordLead(formData, 'contact')
     return { status: 'success' }
-  } catch (err) {
-    console.error('[contact] send failed', err)
+  } catch (error) {
+    console.error('[contact] CRM intake failed', error)
     return { status: 'error' }
   }
 }
