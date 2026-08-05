@@ -6,6 +6,8 @@ import { AnalyticsTab } from '@/features/analytics/components/AnalyticsTab'
 import { AppCatalogTab } from '@/features/apps/components/AppCatalogTab'
 import { BillingTab } from '@/features/billing/components/BillingTab'
 import { useBillingOverview } from '@/features/billing/hooks/useAdminBilling'
+import { CrmTab } from '@/features/crm/components/CrmTab'
+import { useCrmOverview } from '@/features/crm/hooks/useCrmLeads'
 import { AdminNotificationsTab } from '@/features/notifications/components/AdminNotificationsTab'
 import { AllUsersTab } from '@/features/super-admin/components/AllUsersTab'
 import { UpgradeRequestsTab } from '@/features/super-admin/components/UpgradeRequestsTab'
@@ -16,6 +18,7 @@ type SuperAdminTab =
   | 'users'
   | 'upgrade-requests'
   | 'billing'
+  | 'crm'
   | 'analytics'
   | 'apps'
   | 'notifications'
@@ -24,6 +27,7 @@ function getActiveTab(tab: string | null): SuperAdminTab {
   if (tab === 'apps') return 'apps'
   if (tab === 'notifications') return 'notifications'
   if (tab === 'billing') return 'billing'
+  if (tab === 'crm') return 'crm'
   if (tab === 'analytics') return 'analytics'
   if (tab === 'upgrade-requests') return 'upgrade-requests'
   return 'users'
@@ -36,6 +40,7 @@ export default function SuperAdminPage() {
   const { isRecovering } = useEnsureSuperAdminSession()
   const { data: openRequestCount = 0 } = useOpenUpgradeRequestCount()
   const { data: billingOverview } = useBillingOverview()
+  const { data: crmOverview } = useCrmOverview()
 
   if (isRecovering) {
     return (
@@ -78,6 +83,14 @@ export default function SuperAdminPage() {
               </span>
             ) : null}
           </TabsTrigger>
+          <TabsTrigger value="crm">
+            {t('superAdmin.tabs.crm')}
+            {(crmOverview?.byStatus.new ?? 0) > 0 ? (
+              <span className="bg-info/10 text-info ml-1.5 inline-flex min-w-4 items-center justify-center rounded-md px-1 py-0.5 text-[10px] font-medium">
+                {crmOverview?.byStatus.new}
+              </span>
+            ) : null}
+          </TabsTrigger>
           <TabsTrigger value="analytics">{t('superAdmin.tabs.analytics')}</TabsTrigger>
           <TabsTrigger value="apps">{t('superAdmin.tabs.apps')}</TabsTrigger>
           <TabsTrigger value="notifications">{t('superAdmin.tabs.notifications')}</TabsTrigger>
@@ -93,6 +106,10 @@ export default function SuperAdminPage() {
 
         <TabsContent value="billing" className="mt-0">
           <BillingTab />
+        </TabsContent>
+
+        <TabsContent value="crm" className="mt-0">
+          <CrmTab />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-0">

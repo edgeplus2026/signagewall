@@ -56,6 +56,8 @@ export default () => ({
     // Inbox that receives a notification on every new user registration.
     registrationsNotifyTo:
       process.env.MAIL_REGISTRATIONS_NOTIFY_TO ?? 'edgeplus2026@gmail.com',
+    // Founder/sales inbox for durable contact and quote leads.
+    crmNotifyTo: process.env.MAIL_CRM_NOTIFY_TO,
     // Founder/admin inbox for the daily manual-billing exception digest.
     billingAlertsTo: process.env.MAIL_BILLING_ALERTS_TO,
   },

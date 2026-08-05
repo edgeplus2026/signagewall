@@ -1505,7 +1505,64 @@
       "notifications": "Obaveštenja",
       "upgradeRequests": "Zahtevi za nadogradnju",
       "billing": "Naplata",
+      "crm": "CRM",
       "analytics": "Analitika"
+    },
+    "crm": {
+      "title": "CRM leadovi",
+      "description": "Trajno je sačuvano {{count}} kontakata i zahteva za ponudu sa podacima o izvoru.",
+      "search": "Pretraži ime, email ili kompaniju...",
+      "empty": "Nema leadova za izabrane filtere.",
+      "error": "CRM leadovi nisu mogli da se učitaju.",
+      "updateSuccess": "Lead je ažuriran",
+      "updateError": "Lead nije mogao da se ažurira.",
+      "columns": {
+        "contact": "Kontakt",
+        "type": "Tip",
+        "status": "Status",
+        "source": "Izvor / kampanja",
+        "createdAt": "Primljen"
+      },
+      "filters": {
+        "allTypes": "Svi tipovi",
+        "allStatuses": "Svi statusi"
+      },
+      "type": {
+        "contact": "Kontakt",
+        "quote": "Ponuda"
+      },
+      "status": {
+        "new": "Nov",
+        "contacted": "Kontaktiran",
+        "qualified": "Kvalifikovan",
+        "won": "Dobijen",
+        "lost": "Izgubljen",
+        "spam": "Spam"
+      },
+      "emailStatus": {
+        "pending": "Na čekanju",
+        "sent": "Poslat",
+        "skipped": "Email nije podešen",
+        "failed": "Neuspešno"
+      },
+      "details": {
+        "contact": "Kontakt podaci",
+        "attribution": "Izvor leada",
+        "firstTouch": "Prvi kontakt",
+        "lastTouch": "Poslednji kontakt",
+        "message": "Poruka",
+        "screens": "{{count}} ekrana",
+        "emailNotification": "Email founderu",
+        "history": "Istorija statusa",
+        "notes": "Interne beleške",
+        "noNotes": "Još nema internih beleški."
+      },
+      "edit": {
+        "status": "Status leada",
+        "note": "Dodaj internu belešku",
+        "notePlaceholder": "Sledeći korak, ishod poziva, komercijalni kontekst...",
+        "save": "Sačuvaj izmene"
+      }
     },
     "analytics": {
       "title": "Lifecycle analitika",

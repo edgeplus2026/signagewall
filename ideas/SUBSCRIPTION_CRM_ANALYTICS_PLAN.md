@@ -28,7 +28,7 @@ Fakturisanje se u prvoj fazi radi ručno. Poslovna logika se ipak projektuje kro
 
 ---
 
-## Status implementacije — 4. avgust 2026.
+## Status implementacije — 5. avgust 2026.
 
 Implementiran je prvi bezbedan vertikalni presek ručnog billing lifecycle-a:
 
@@ -76,15 +76,46 @@ Implementiran je i kompletan first-party analytics presek, bez Stripe-a:
   `GA_MEASUREMENT_ID`/`GA_API_SECRET`. Mongo ostaje autoritativan i kada je GA
   isključen.
 
+Implementiran je i prvi trajni CRM presek za javne leadove:
+
+- kontakt i quote forme više ne zavise od emaila kao jedinog zapisa, već Next
+  server action prvo poziva backend `POST /crm/leads`;
+- novi backend `CrmModule` i MongoDB `crmleads` kolekcija trajno čuvaju ime,
+  email, telefon, kompaniju, poruku, lokaciju, broj ekrana, tip leada i vreme;
+- uz lead se čuvaju first-touch i last-touch izvor, medium, kampanja, landing
+  path i ostali sanitizovani attribution podaci;
+- svaki submission ima UUID idempotency ključ; ponovljeni zahtev ne pravi drugi
+  zapis niti drugi email;
+- javni intake ima ograničenje 5 zahteva u minuti po klijentu, honeypot i stroga
+  ograničenja tipova i dužine polja;
+- founderski email se šalje best-effort tek posle trajnog upisa; CRM čuva
+  `pending/sent/skipped/failed` status pa se vidi ako email nije podešen ili nije
+  uspeo;
+- `generate_lead` funnel događaj se pravi iz potvrđenog CRM zapisa, ali njegove
+  properties ne sadrže ime, email, telefon, poruku niti drugi PII;
+- super-admin CRM tab na `/super-admin?tab=crm` ima obojene statusne kartice,
+  pretragu i filtere, kontakt detalje, source/campaign, email status, istoriju
+  statusa i interne beleške;
+- CRM read/update rute štiti `SuperAdminGuard`, koji proverava aktivnog korisnika
+  i njegovu trenutnu `SUPER_ADMIN` ulogu iz baze; običan ili impersonirani
+  korisnik nema pristup CRM podacima.
+
 Za uključivanje email upozorenja u okruženju treba postaviti
 `MAIL_BILLING_ALERTS_TO`; ako nije postavljen, koristi se support/registration
 inbox. Zvanična faktura se i dalje pravi i šalje izvan SignageWall-a, a aplikacija
 čuva operativno stanje i audit događaje.
 
+Za founderske contact/quote notifikacije treba postaviti `MAIL_CRM_NOTIFY_TO` na
+backendu (uz `MAIL_ENABLED=true`, `RESEND_API_KEY` i `MAIL_FROM`). Ako nije
+postavljen, CRM koristi support/registration inbox. Stari web
+`CONTACT_NOTIFY_TO` više se ne koristi jer email sada šalje backend tek posle
+trajnog CRM upisa.
+
 Još nije implementirano: korisnička `/settings/billing` strana, upload/link PDF-a,
-poseban payment/subscription history model, CRM zapis sa PII podacima i lead
-pipeline-om, MFA, Redis rate limiting, Turnstile, aggregate trial resource kvote
-i Stripe adapter. Stripe je namerno van trenutnog scope-a.
+poseban payment/subscription history model, automatsko povezivanje CRM leada sa
+kasnijim user/billing zapisom, sales owner i SLA, MFA, Redis rate limiting,
+Turnstile, aggregate trial resource kvote i Stripe adapter. Stripe je namerno van
+trenutnog scope-a.
 
 ---
 
@@ -120,14 +151,17 @@ Trenutni `User` model ima `plan`, `screenLimit` i `trialEndsAt`. To radi za jedn
 
 Plan proizvoda, status pretplate i pravo korišćenja treba razdvojiti i vezati za poseban billing account.
 
-### 1.3. Quote i contact forme nemaju trajan CRM zapis
+### 1.3. Quote i contact forme — trajni CRM zapis implementiran
 
-Javne forme trenutno samo pokušavaju da pošalju email preko Resenda:
+Javne forme sada prvo upisuju lead u backend CRM:
 
 - `apps/web/src/components/quote/actions.ts`
 - `apps/web/src/app/[locale]/contact/actions.ts`
 
-Ako email konfiguracija nedostaje, forme vraćaju uspeh bez trajnog zapisa. Ako slanje zakaže, lead može biti izgubljen. Ne postoje status, owner, istorija komunikacije, source/campaign podaci ili veza sa kasnijom registracijom.
+Ako email konfiguracija nedostaje ili slanje zakaže, lead ostaje sačuvan, a ishod
+notifikacije je vidljiv founderu. Implementirani su status i istorija statusa,
+interne beleške i source/campaign podaci. Sales owner, activity model i veza sa
+kasnijom registracijom ostaju naredna faza.
 
 Authenticated upgrade zahtev jeste trajan zapis, ali ima samo `open/resolved` lifecycle i odvojen je od javnih leadova:
 
@@ -186,11 +220,11 @@ Poslovna pravila ne treba pisati direktno oko Stripe objekata. Uvodi se interfej
 
 ```ts
 interface BillingProvider {
-  issueInvoice(input: IssueInvoiceInput): Promise<ProviderInvoice>
-  voidInvoice(invoiceId: string): Promise<void>
-  recordPayment(input: RecordPaymentInput): Promise<ProviderPayment>
-  changeQuantity(input: ChangeQuantityInput): Promise<void>
-  cancelSubscription(input: CancelSubscriptionInput): Promise<void>
+  issueInvoice(input: IssueInvoiceInput): Promise<ProviderInvoice>;
+  voidInvoice(invoiceId: string): Promise<void>;
+  recordPayment(input: RecordPaymentInput): Promise<ProviderPayment>;
+  changeQuantity(input: ChangeQuantityInput): Promise<void>;
+  cancelSubscription(input: CancelSubscriptionInput): Promise<void>;
 }
 ```
 
@@ -363,15 +397,15 @@ suspended
 
 ### Entitlement matrica
 
-| Status | CMS | Kreiranje/izmene | Novi player snapshotovi | Keširan sadržaj na ekranu |
-|---|---|---|---|---|
-| `trialing` | pun pristup | dozvoljeno u okviru trial limita | da | da |
-| `trial_expired` | read-only + billing CTA | ne | ne | da |
-| `pending_invoice` | read-only ili grace | prema poslovnoj odluci | prema poslovnoj odluci | da |
-| `active` | pun pristup | prema plaćenoj količini | da | da |
-| `past_due` | pun ili ograničen tokom grace perioda | opciono ograničeno | da tokom grace perioda | da |
-| `suspended` | read-only | ne | ne | da |
-| `canceled` | read-only | ne | ne | da |
+| Status            | CMS                                   | Kreiranje/izmene                 | Novi player snapshotovi | Keširan sadržaj na ekranu |
+| ----------------- | ------------------------------------- | -------------------------------- | ----------------------- | ------------------------- |
+| `trialing`        | pun pristup                           | dozvoljeno u okviru trial limita | da                      | da                        |
+| `trial_expired`   | read-only + billing CTA               | ne                               | ne                      | da                        |
+| `pending_invoice` | read-only ili grace                   | prema poslovnoj odluci           | prema poslovnoj odluci  | da                        |
+| `active`          | pun pristup                           | prema plaćenoj količini          | da                      | da                        |
+| `past_due`        | pun ili ograničen tokom grace perioda | opciono ograničeno               | da tokom grace perioda  | da                        |
+| `suspended`       | read-only                             | ne                               | ne                      | da                        |
+| `canceled`        | read-only                             | ne                               | ne                      | da                        |
 
 Preporuka je da ekran nastavi da prikazuje poslednji lokalno keširan sadržaj, u skladu sa postojećim javnim obećanjem, ali da više ne dobija nove snapshotove.
 
@@ -484,26 +518,33 @@ Reference:
 
 ## 7. CRM i lead intake
 
-### Jedinstveni intake endpoint
+### Jedinstveni intake endpoint — implementiran
 
-Javne Next server actions treba da pozivaju potpisani backend endpoint, na primer:
+Javne Next server actions pozivaju backend endpoint:
 
 ```text
-POST /api/v1/public/leads/intake
+POST /api/v1/crm/leads
 ```
 
-Endpoint se ne poziva direktno iz browsera sa tajnim servisnim tokenom. Next server action validira podatke i zatim server-to-server poziva backend.
+Browser šalje formu Next server action-u, koji validira podatke i zatim
+server-to-server poziva backend. Endpoint je javan da bi deployment ostao
+jednostavan, ali ima zaseban stroži rate limit, honeypot, validaciju i idempotency
+ključ. Ako se kasnije dozvoli direktan browser intake, treba dodati proveru
+Origin-a i Turnstile pre povećanja limita.
 
 Tok:
 
 1. validacija i normalizacija;
 2. anti-spam/rate-limit provera;
-3. deduplikacija ili pronalaženje canonical leada;
-4. upis/izmena `Lead` dokumenta;
-5. dodavanje `LeadActivity` zapisa;
-6. upis outbox događaja u istoj transakciji;
-7. vraćanje uspeha tek kada je trajan zapis napravljen;
-8. asinhrono slanje email notifikacije.
+3. idempotency provera po `submissionId`;
+4. upis `CrmLead` dokumenta sa početnim `new` statusom;
+5. upis prvog status-history zapisa;
+6. emitovanje anonimnog `generate_lead` događaja bez PII-ja;
+7. vraćanje uspeha tek kada je trajan CRM zapis napravljen;
+8. asinhrono slanje email notifikacije i čuvanje njenog ishoda.
+
+Canonical spajanje više različitih submissiona po emailu i pravi transactional
+outbox još nisu deo ovog preseka.
 
 ### Zaštita od duplikata i spama
 
@@ -531,16 +572,16 @@ Kasnije se može dodati adapter za HubSpot, Salesforce ili drugi CRM. Interni za
 
 ### Automatske CRM tranzicije
 
-| Događaj | CRM promena |
-|---|---|
-| Contact/quote submission | kreiraj lead kao `new` |
-| Registracija povezana sa leadom | poveži `userId`, lifecycle `trial` |
-| Prvi aktivni ekran | označi PQL/activated milestone |
-| Upgrade ili subscription zahtev | kreiraj/otvori opportunity |
-| Ponuda poslata | `proposal_sent` |
-| Uplata evidentirana | `won/customer` |
-| Odbijena ponuda | `lost` uz razlog |
-| Trial istekao bez aktivacije | nurture segment, ne automatski `lost` |
+| Događaj                         | CRM promena                           |
+| ------------------------------- | ------------------------------------- |
+| Contact/quote submission        | kreiraj lead kao `new`                |
+| Registracija povezana sa leadom | poveži `userId`, lifecycle `trial`    |
+| Prvi aktivni ekran              | označi PQL/activated milestone        |
+| Upgrade ili subscription zahtev | kreiraj/otvori opportunity            |
+| Ponuda poslata                  | `proposal_sent`                       |
+| Uplata evidentirana             | `won/customer`                        |
+| Odbijena ponuda                 | `lost` uz razlog                      |
+| Trial istekao bez aktivacije    | nurture segment, ne automatski `lost` |
 
 ---
 
@@ -597,30 +638,30 @@ Google preporučuje isti GA web stream/tag ID i cross-domain konfiguraciju za po
 
 ### Glavni događaji
 
-| Faza | Događaj | Autoritativni trenutak | Destinacije |
-|---|---|---|---|
-| Acquisition | `marketing_landing` | validan landing/campaign capture | first-party, GA |
-| Acquisition | `marketing_cta_clicked` | korisnik kliknuo CTA | Vercel, GA |
-| Lead | `quote_started` | otvorena quote forma | Vercel, GA |
-| Lead | `generate_lead` | lead trajno upisan | first-party, GA, CRM |
-| Signup | `registration_started` | register forma prikazana/aktivirana | GA/Vercel |
-| Signup | `sign_up` | korisnik trajno kreiran | first-party, GA, CRM |
-| Signup | `email_verified` | verifikacija završena | first-party, CRM |
-| Trial | `trial_started` | billing account/trial kreiran | first-party, CRM, GA custom |
-| Onboarding | `organization_created` | organizacija kreirana | first-party |
-| Onboarding | `screen_created` | Screen dokument kreiran | first-party |
-| Onboarding | `content_published` | prvi sadržaj dodat ekranu | first-party |
-| Onboarding | `device_paired` | uređaj uspešno uparen | first-party |
-| Activation | `first_screen_activated` | prvi realni `now-playing` | first-party, CRM, GA custom |
-| Revenue | `subscription_requested` | prihvaćeni cena i količina | first-party, CRM |
-| Revenue | `invoice_issued` | zvanična faktura poslata | first-party, CRM |
-| Revenue | `payment_received` | uplata evidentirana | first-party, CRM |
-| Revenue | `purchase` | invoice `paid` i subscription `active` | first-party, GA |
-| Retention | `subscription_renewed` | renewal uplata evidentirana | first-party, GA |
-| Retention | `payment_overdue` | rok fakture prošao | first-party, CRM |
-| Retention | `subscription_suspended` | grace period istekao | first-party, CRM |
-| Retention | `subscription_canceled` | otkazivanje zakazano ili završeno | first-party, CRM |
-| Retention | `subscription_reactivated` | pretplata ponovo aktivna | first-party, CRM, GA |
+| Faza        | Događaj                    | Autoritativni trenutak                 | Destinacije                 |
+| ----------- | -------------------------- | -------------------------------------- | --------------------------- |
+| Acquisition | `marketing_landing`        | validan landing/campaign capture       | first-party, GA             |
+| Acquisition | `marketing_cta_clicked`    | korisnik kliknuo CTA                   | Vercel, GA                  |
+| Lead        | `quote_started`            | otvorena quote forma                   | Vercel, GA                  |
+| Lead        | `generate_lead`            | lead trajno upisan                     | first-party, GA, CRM        |
+| Signup      | `registration_started`     | register forma prikazana/aktivirana    | GA/Vercel                   |
+| Signup      | `sign_up`                  | korisnik trajno kreiran                | first-party, GA, CRM        |
+| Signup      | `email_verified`           | verifikacija završena                  | first-party, CRM            |
+| Trial       | `trial_started`            | billing account/trial kreiran          | first-party, CRM, GA custom |
+| Onboarding  | `organization_created`     | organizacija kreirana                  | first-party                 |
+| Onboarding  | `screen_created`           | Screen dokument kreiran                | first-party                 |
+| Onboarding  | `content_published`        | prvi sadržaj dodat ekranu              | first-party                 |
+| Onboarding  | `device_paired`            | uređaj uspešno uparen                  | first-party                 |
+| Activation  | `first_screen_activated`   | prvi realni `now-playing`              | first-party, CRM, GA custom |
+| Revenue     | `subscription_requested`   | prihvaćeni cena i količina             | first-party, CRM            |
+| Revenue     | `invoice_issued`           | zvanična faktura poslata               | first-party, CRM            |
+| Revenue     | `payment_received`         | uplata evidentirana                    | first-party, CRM            |
+| Revenue     | `purchase`                 | invoice `paid` i subscription `active` | first-party, GA             |
+| Retention   | `subscription_renewed`     | renewal uplata evidentirana            | first-party, GA             |
+| Retention   | `payment_overdue`          | rok fakture prošao                     | first-party, CRM            |
+| Retention   | `subscription_suspended`   | grace period istekao                   | first-party, CRM            |
+| Retention   | `subscription_canceled`    | otkazivanje zakazano ili završeno      | first-party, CRM            |
+| Retention   | `subscription_reactivated` | pretplata ponovo aktivna               | first-party, CRM, GA        |
 
 ### Definicija activation milestone-a
 
@@ -666,12 +707,11 @@ Reference:
 ### Lead/attribution
 
 ```text
-POST /public/leads/intake
-POST /attribution/capture
-GET  /admin/leads
-GET  /admin/leads/:id
-PATCH /admin/leads/:id
-POST /admin/leads/:id/activities
+POST  /crm/leads
+GET   /crm/admin/leads/overview
+GET   /crm/admin/leads
+GET   /crm/admin/leads/:id
+PATCH /crm/admin/leads/:id
 ```
 
 ### Billing za kupca
@@ -778,12 +818,12 @@ Admin akcije koje menjaju finansijsko stanje treba da traže potvrdu i upisuju k
 
 ### Matrica pristupa
 
-| Uloga | Sopstveni billing | Globalni billing | Super-admin akcije |
-|---|---:|---:|---:|
-| Običan registrovani korisnik/član | ne | ne | ne |
-| Billing admin/vlasnik accounta | da, samo svoj account | ne | ne |
-| Support | read-only po potrebi | ograničeno | bez plan/payment promena |
-| Founder/super-admin | da | da | da, uz audit i step-up zaštitu |
+| Uloga                             |     Sopstveni billing | Globalni billing |             Super-admin akcije |
+| --------------------------------- | --------------------: | ---------------: | -----------------------------: |
+| Običan registrovani korisnik/član |                    ne |               ne |                             ne |
+| Billing admin/vlasnik accounta    | da, samo svoj account |               ne |                             ne |
+| Support                           |  read-only po potrebi |       ograničeno |       bez plan/payment promena |
+| Founder/super-admin               |                    da |               da | da, uz audit i step-up zaštitu |
 
 Founder nalog treba da bude zaseban privilegovani nalog sa MFA. Dugoročno treba
 razdvojiti `billing_admin`, `support/impersonate` i `super_admin`, umesto da svaka

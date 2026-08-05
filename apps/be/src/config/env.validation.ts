@@ -43,6 +43,7 @@ export const envValidationSchema = Joi.object({
   MAIL_FROM: Joi.string().optional(),
   MAIL_SUPPORT_TO: Joi.string().email().optional().allow(''),
   MAIL_REGISTRATIONS_NOTIFY_TO: Joi.string().email().optional().allow(''),
+  MAIL_CRM_NOTIFY_TO: Joi.string().email().optional().allow(''),
   MAIL_BILLING_ALERTS_TO: Joi.string().email().optional().allow(''),
   PASSWORD_RESET_EXPIRES_IN_HOURS: Joi.number().default(1),
   EMAIL_VERIFICATION_EXPIRES_IN_HOURS: Joi.number().default(24),

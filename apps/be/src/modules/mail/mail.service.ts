@@ -8,6 +8,8 @@ import {
   renderBillingAlertEmail,
 } from './templates/billing-alert.template';
 import { renderNewRegistrationEmail } from './templates/new-registration.template';
+import { renderCrmLeadEmail } from './templates/crm-lead.template';
+import type { CrmLeadDto } from '../crm/crm.mapper';
 import { renderPasswordResetEmail } from './templates/password-reset.template';
 import {
   renderFeedbackEmail,
@@ -29,6 +31,7 @@ export class MailService implements OnModuleInit {
   private readonly from: string;
   private readonly supportTo: string | undefined;
   private readonly registrationsNotifyTo: string | undefined;
+  private readonly crmNotifyTo: string | undefined;
   private readonly billingAlertsTo: string | undefined;
   private readonly enabled: boolean;
 
@@ -44,6 +47,10 @@ export class MailService implements OnModuleInit {
     this.registrationsNotifyTo = this.configService.get<string>(
       'mail.registrationsNotifyTo',
     );
+    this.crmNotifyTo =
+      this.configService.get<string>('mail.crmNotifyTo') ||
+      this.supportTo ||
+      this.registrationsNotifyTo;
     this.billingAlertsTo =
       this.configService.get<string>('mail.billingAlertsTo') ??
       this.supportTo ??
@@ -215,6 +222,21 @@ export class MailService implements OnModuleInit {
     await this.send({ to: this.registrationsNotifyTo, subject, html });
   }
 
+  /** Internal CRM notification. The Mongo lead remains authoritative. */
+  async sendCrmLeadEmail(lead: CrmLeadDto): Promise<boolean> {
+    const to = this.crmNotifyTo;
+    if (!to || !this.enabled || !this.resend) {
+      this.logger.warn(
+        `CRM notification skipped for lead ${lead.id}; mail delivery is not configured`,
+      );
+      return false;
+    }
+
+    const { subject, html } = renderCrmLeadEmail(lead);
+    await this.send({ to, subject, html, replyTo: lead.email });
+    return true;
+  }
+
   /** Daily founder-facing digest of manual billing exceptions. */
   async sendBillingAlertEmail(params: {
     items: BillingAlertEmailItem[];
@@ -255,6 +277,7 @@ export class MailService implements OnModuleInit {
     to: string;
     subject: string;
     html: string;
+    replyTo?: string;
   }): Promise<void> {
     if (!this.enabled) {
       this.logger.warn(
@@ -275,6 +298,7 @@ export class MailService implements OnModuleInit {
       to: params.to,
       subject: params.subject,
       html: params.html,
+      ...(params.replyTo ? { replyTo: params.replyTo } : {}),
     });
 
     if (error) {
