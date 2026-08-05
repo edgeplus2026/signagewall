@@ -58,12 +58,19 @@ function buildService(options: {
   /** Cache entries keyed by connector cacheKey, for `server` app data. */
   cacheByKey?: Record<
     string,
-    { payload: unknown; fetchedAt?: Date; lastError?: string }
+    {
+      payload: unknown;
+      fetchedAt?: Date;
+      lastError?: string;
+      pending?: boolean;
+    }
   >;
   /** Stored `screen.availability` subdocument, when the screen has one. */
   availability?: unknown;
   /** All app instances in the org (overlay resolution scans these). */
   orgInstances?: unknown[];
+  /** Optional private-asset boundary used by secure app payload tests. */
+  privateAssets?: { hydrateForPlayer: jest.Mock };
 }) {
   const screensRepository = {
     findById: jest.fn().mockResolvedValue({
@@ -123,6 +130,7 @@ function buildService(options: {
     appDataCacheRepository as never,
     organizationsRepository as never,
     configService as never,
+    options.privateAssets as never,
   );
 }
 
@@ -520,6 +528,45 @@ describe('PlayerContentService', () => {
     });
   });
 
+  it('sends pending metadata and changes revision for the first async export', async () => {
+    const appInstanceId = new Types.ObjectId();
+    const itemId = new Types.ObjectId('dddddddddddddddddddddddd');
+    const build = (pending: boolean) =>
+      buildService({
+        mediaById: {},
+        appsById: {
+          [appInstanceId.toString()]: {
+            _id: appInstanceId,
+            appSlug: 'weather',
+            config: { location: 'Belgrade' },
+            updatedAt: new Date('2024-03-01T00:00:00Z'),
+          },
+        },
+        cacheByKey: {
+          'weather:belgrade': { payload: undefined, pending },
+        },
+        screenItems: [
+          {
+            _id: itemId,
+            type: ScreenItemType.APP,
+            appInstanceId,
+            order: 0,
+            duration: 30,
+            disabled: false,
+          },
+        ],
+      });
+
+    const waiting = await build(true).resolveByScreenId('org', 'screen');
+    const idle = await build(false).resolveByScreenId('org', 'screen');
+
+    expect(waiting?.items[0]).toMatchObject({
+      data: null,
+      dataMeta: { stale: false, pending: true },
+    });
+    expect(waiting?.revision).not.toBe(idle?.revision);
+  });
+
   it('changes revision when a server app payload refreshes', async () => {
     const appInstanceId = new Types.ObjectId();
     const build = (fetchedAt: Date, payload: unknown) =>
@@ -554,6 +601,75 @@ describe('PlayerContentService', () => {
     }).resolveByScreenId('org', 'screen');
 
     expect(first?.revision).not.toBe(refreshed?.revision);
+  });
+
+  it('hydrates private app refs after revision calculation', async () => {
+    const appInstanceId = new Types.ObjectId();
+    const itemId = new Types.ObjectId('cccccccccccccccccccccccc');
+    const privateRef = {
+      kind: 'private-asset' as const,
+      key: `private-assets/v1/organizations/org/instances/${appInstanceId.toString()}/connections/connection/versions/revision-1/page.png`,
+      version: 'revision-1',
+      mimeType: 'image/png',
+    };
+    const build = async (renewal: number) => {
+      const hydrateForPlayer = jest.fn(async ({ payload }) => ({
+        ...(payload as Record<string, unknown>),
+        page: {
+          ...privateRef,
+          url: `https://private.test/${privateRef.key}?renewal=${renewal}`,
+        },
+      }));
+      const snapshot = await buildService({
+        mediaById: {},
+        appsById: {
+          [appInstanceId.toString()]: {
+            _id: appInstanceId,
+            appSlug: 'weather',
+            config: { location: 'Belgrade', connectionId: 'connection' },
+            updatedAt: new Date('2024-03-01T00:00:00Z'),
+          },
+        },
+        cacheByKey: {
+          'weather:belgrade': {
+            payload: { page: privateRef },
+            fetchedAt: new Date('2024-03-01T12:00:00Z'),
+          },
+        },
+        screenItems: [
+          {
+            _id: itemId,
+            type: ScreenItemType.APP,
+            appInstanceId,
+            order: 0,
+            duration: 30,
+            disabled: false,
+          },
+        ],
+        privateAssets: { hydrateForPlayer },
+      }).resolveByScreenId('org', 'screen');
+      return { snapshot, hydrateForPlayer };
+    };
+
+    const first = await build(1);
+    const renewed = await build(2);
+
+    expect(first.hydrateForPlayer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: 'org',
+        screenId: 'screen',
+        appInstanceId: appInstanceId.toString(),
+      }),
+    );
+    expect(first.snapshot?.items[0]).toHaveProperty(
+      'data.page.url',
+      expect.stringContaining('renewal=1'),
+    );
+    expect(renewed.snapshot?.items[0]).toHaveProperty(
+      'data.page.url',
+      expect.stringContaining('renewal=2'),
+    );
+    expect(first.snapshot?.revision).toBe(renewed.snapshot?.revision);
   });
 
   it('produces a stable revision that changes when media changes', async () => {

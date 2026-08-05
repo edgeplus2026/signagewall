@@ -24,6 +24,9 @@ interface DueCandidate {
   /** A representative instance config (all instances of a key share output). */
   config: Record<string, unknown>;
   refreshSeconds: number;
+  /** Persisted owner expected for scheduler-driven connected fetches. */
+  organizationId?: string;
+  appInstanceId?: string;
 }
 
 /** Live-preview connector payload + freshness for a `server` app instance. */
@@ -122,6 +125,8 @@ export class AppDataService {
           payload: entry.payload,
           version: entry.version,
           secrets: entry.secrets,
+          pending: Boolean(entry.pending),
+          stale: Boolean(entry.lastError),
         },
       ]),
     );
@@ -212,7 +217,10 @@ export class AppDataService {
       if (!cacheKey || byKey.has(cacheKey)) {
         continue;
       }
-      const refreshSeconds = this.refreshSecondsFor(instance.appSlug);
+      const refreshSeconds = this.refreshSecondsFor(
+        instance.appSlug,
+        instance.config,
+      );
       if (refreshSeconds === undefined) {
         continue;
       }
@@ -232,12 +240,24 @@ export class AppDataService {
         slug: instance.appSlug,
         config: instance.config,
         refreshSeconds,
+        organizationId: instance.organizationId.toString(),
+        appInstanceId: instance._id.toString(),
       });
     }
     return [...byKey.values()];
   }
 
-  private refreshSecondsFor(slug: string): number | undefined {
+  private refreshSecondsFor(
+    slug: string,
+    config: Record<string, unknown> = {},
+  ): number | undefined {
+    const configured = getConnector(slug)?.refreshSeconds?.(config);
+    if (configured !== undefined) {
+      if (!Number.isFinite(configured) || configured < 1) {
+        throw new Error(`Invalid connector refresh cadence for ${slug}`);
+      }
+      return Math.floor(configured);
+    }
     return APP_MANIFESTS.find((manifest) => manifest.slug === slug)
       ?.refreshSeconds;
   }
@@ -291,6 +311,8 @@ export class AppDataService {
       payload: unknown;
       version?: string;
       secrets?: Record<string, unknown>;
+      pending?: boolean;
+      stale?: boolean;
     },
   ): Promise<boolean> {
     try {
@@ -300,7 +322,10 @@ export class AppDataService {
       );
       // A pending result kept the last-known payload; nothing changed to fan out.
       if (pending) {
-        return false;
+        return (
+          previous.pending !== Boolean(saved.pending) ||
+          previous.stale !== Boolean(saved.lastError)
+        );
       }
       // Prefer the connector's stable version (ETag) when it provides one — so a
       // payload with volatile fields (rotating URLs) doesn't look "changed" every
@@ -379,6 +404,7 @@ export class AppDataService {
           candidate.slug,
           candidate.refreshSeconds,
           result.secrets,
+          result.error,
         );
         return { saved, pending: true };
       }
@@ -430,7 +456,7 @@ export class AppDataService {
       return { data: null, meta: null };
     }
 
-    const refreshSeconds = this.refreshSecondsFor(slug) ?? 900;
+    const refreshSeconds = this.refreshSecondsFor(slug, config) ?? 900;
     const candidate: DueCandidate = { cacheKey, slug, config, refreshSeconds };
 
     const [existing] = await this.cacheRepository.findByCacheKeys([cacheKey]);
@@ -453,10 +479,19 @@ export class AppDataService {
       // An async job is still running: keep the last-known payload (if any) and
       // flag `pending` so the preview polls until the export finishes.
       if (pending) {
+        if (
+          Boolean(existing?.pending) !== Boolean(saved.pending) ||
+          Boolean(existing?.lastError) !== Boolean(saved.lastError)
+        ) {
+          this.eventEmitter.emit(PlayerEvents.AppDataChanged, {
+            cacheKey,
+            slug,
+          } satisfies AppDataChangedEvent);
+        }
         return this.toPreviewResult(
           saved.payload,
           saved.fetchedAt,
-          false,
+          Boolean(saved.lastError),
           true,
         );
       }
@@ -521,7 +556,17 @@ export class AppDataService {
     if (typeof connectionId !== 'string' || !connectionId) {
       throw new Error('connected app has no connectionId');
     }
-    return this.connectionsService.resolveConnection(connectionId);
+    const connection =
+      await this.connectionsService.resolveConnection(connectionId);
+    if (
+      (candidate.organizationId &&
+        connection.organizationId !== candidate.organizationId) ||
+      (candidate.appInstanceId &&
+        connection.appInstanceId !== candidate.appInstanceId)
+    ) {
+      throw new Error('connected app ownership mismatch');
+    }
+    return connection;
   }
 
   /** Structured logger handed to connectors (bridges to the Nest logger). */

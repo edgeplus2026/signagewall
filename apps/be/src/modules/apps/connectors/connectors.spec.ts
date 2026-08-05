@@ -261,6 +261,8 @@ describe('fetchData normalization', () => {
 describe('gcal connector (connected)', () => {
   const connection: ResolvedConnection = {
     id: 'conn-1',
+    organizationId: 'org-1',
+    appInstanceId: 'instance-1',
     provider: 'google',
     accountLabel: 'user@example.com',
     accessToken: 'tok-abc',
@@ -496,6 +498,8 @@ describe('gcal connector (connected)', () => {
 describe('canva connector (connected)', () => {
   const connection: ResolvedConnection = {
     id: 'conn-1',
+    organizationId: 'org-1',
+    appInstanceId: 'instance-1',
     provider: 'canva',
     accountLabel: 'user@example.com',
     accessToken: 'tok-canva',
@@ -1353,6 +1357,8 @@ describe('gslides connector (connected)', () => {
     ...ctx,
     connection: {
       id: 'c1',
+      organizationId: 'org-1',
+      appInstanceId: 'instance-1',
       provider: 'google',
       accountLabel: 'me@example.com',
       accessToken: 'tok',
@@ -1480,6 +1486,8 @@ describe('outlook connector (connected, microsoft)', () => {
     ...ctx,
     connection: {
       id: 'c1',
+      organizationId: 'org-1',
+      appInstanceId: 'instance-1',
       provider: 'microsoft',
       accountLabel: 'me@example.com',
       accessToken: 'tok',
@@ -1536,6 +1544,8 @@ describe('instagram connector (connected, meta)', () => {
     ...ctx,
     connection: {
       id: 'c1',
+      organizationId: 'org-1',
+      appInstanceId: 'instance-1',
       provider: 'meta',
       accountLabel: 'Acme',
       accessToken: 'user-tok',
@@ -1609,6 +1619,8 @@ describe('facebook connector (connected, meta)', () => {
     ...ctx,
     connection: {
       id: 'c1',
+      organizationId: 'org-1',
+      appInstanceId: 'instance-1',
       provider: 'meta',
       accountLabel: 'Acme',
       accessToken: 'user-tok',
@@ -1674,6 +1686,8 @@ describe('linkedin connector (connected, linkedin)', () => {
     ...ctx,
     connection: {
       id: 'c1',
+      organizationId: 'org-1',
+      appInstanceId: 'instance-1',
       provider: 'linkedin',
       accountLabel: 'Robin Kline',
       accessToken: 'tok',
@@ -1786,6 +1800,8 @@ describe('teams connector (connected, microsoft)', () => {
     ...ctx,
     connection: {
       id: 'c1',
+      organizationId: 'org-1',
+      appInstanceId: 'instance-1',
       provider: 'microsoft',
       accountLabel: 'me@example.com',
       accessToken: 'tok',

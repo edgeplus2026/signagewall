@@ -1,21 +1,10 @@
 import { resolvePowerPointSource } from '@signagewall/apps'
 import { buildConfigZod, buildDefaultConfig } from '@signagewall/apps-contract'
-import {
-  ListVideoIcon,
-  MonitorIcon,
-  MoreHorizontalIcon,
-  Trash2Icon,
-} from 'lucide-react'
+import { ListVideoIcon, MonitorIcon, MoreHorizontalIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Navigate,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-
 
 import { Button } from '@/components/ui/button'
 import {
@@ -206,17 +195,13 @@ export default function AppInstanceConfigPage() {
   const activeName = nameDraft ?? instance.name
   const trimmedName = activeName.trim()
   const nameError =
-    nameTouched && trimmedName.length === 0
-      ? t('apps.instances.config.name.required')
-      : undefined
+    nameTouched && trimmedName.length === 0 ? t('apps.instances.config.name.required') : undefined
 
   const isConfigDirty = !configEquals(activeDraft, baseline)
   const isNameDirty = trimmedName !== instance.name
   const isDirty = isConfigDirty || isNameDirty
 
-  const isConfigValid = buildConfigZod(app.configSchema, activeDraft).safeParse(
-    activeDraft,
-  ).success
+  const isConfigValid = buildConfigZod(app.configSchema, activeDraft).safeParse(activeDraft).success
   const isValid = isConfigValid && trimmedName.length > 0
 
   const isSaving = updateInstanceConfig.isPending || renameInstance.isPending
@@ -251,8 +236,8 @@ export default function AppInstanceConfigPage() {
               className="size-12 shrink-0 rounded-xl shadow-md"
             />
             <div className="flex min-w-0 flex-col gap-0.5">
-              <h2 className="text-sm font-semibold text-primary">{app.name}</h2>
-              <p className="text-xs text-secondary">{appTagline(t, app.slug)}</p>
+              <h2 className="text-primary text-sm font-semibold">{app.name}</h2>
+              <p className="text-secondary text-xs">{appTagline(t, app.slug)}</p>
             </div>
           </div>
 
@@ -288,7 +273,7 @@ export default function AppInstanceConfigPage() {
 
           <div className="flex min-w-0 flex-1 items-center justify-center">
             <AppLivePreview color={app.color}>
-              <AppInstanceScreen app={app} config={activeDraft} />
+              <AppInstanceScreen app={app} config={activeDraft} instanceId={instance.id} />
             </AppLivePreview>
           </div>
         </div>

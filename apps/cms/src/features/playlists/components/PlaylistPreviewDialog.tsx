@@ -124,21 +124,15 @@ function PreviewStage({ draftItems }: { draftItems: ContentDraftItem[] }) {
   const safeIndex = currentIndex < playable.length ? currentIndex : 0
   const current = playable[safeIndex]
   const currentMeta = current ? resolveMeta(current) : null
-  const isVideo =
-    current?.type === 'media' &&
-    (currentMeta as MediaItem | null)?.type === 'video'
+  const isVideo = current?.type === 'media' && (currentMeta as MediaItem | null)?.type === 'video'
 
   const goNext = useCallback(() => {
-    setCurrentIndex((index) =>
-      playable.length === 0 ? 0 : (index + 1) % playable.length,
-    )
+    setCurrentIndex((index) => (playable.length === 0 ? 0 : (index + 1) % playable.length))
   }, [playable.length])
 
   const goPrev = useCallback(() => {
     setCurrentIndex((index) =>
-      playable.length === 0
-        ? 0
-        : (index - 1 + playable.length) % playable.length,
+      playable.length === 0 ? 0 : (index - 1 + playable.length) % playable.length,
     )
   }, [playable.length])
 
@@ -228,23 +222,15 @@ function PreviewStage({ draftItems }: { draftItems: ContentDraftItem[] }) {
       <div className="absolute inset-x-0 bottom-0 z-20 flex items-center justify-center gap-4 bg-linear-to-t from-black/60 to-transparent p-4">
         <button
           type="button"
-          aria-label={
-            isPlaying
-              ? t('playlists.preview.pause')
-              : t('playlists.preview.play')
-          }
+          aria-label={isPlaying ? t('playlists.preview.pause') : t('playlists.preview.play')}
           onClick={() => {
             setIsPlaying((playing) => !playing)
           }}
           className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
         >
-          {isPlaying ? (
-            <PauseIcon className="size-5" />
-          ) : (
-            <PlayIcon className="size-5" />
-          )}
+          {isPlaying ? <PauseIcon className="size-5" /> : <PlayIcon className="size-5" />}
         </button>
-        <span className="text-sm tabular-nums text-white/80">
+        <span className="text-sm text-white/80 tabular-nums">
           {t('playlists.preview.counter', {
             current: safeIndex + 1,
             total: playable.length,
@@ -300,11 +286,7 @@ function MediaSlide({
             className="absolute inset-0 size-full object-contain"
           />
         ) : previewUrl ? (
-          <img
-            src={previewUrl}
-            alt=""
-            className="absolute inset-0 size-full object-contain"
-          />
+          <img src={previewUrl} alt="" className="absolute inset-0 size-full object-contain" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             {meta?.type === 'video' ? (
@@ -335,20 +317,9 @@ function AppSlide({ meta }: { meta: AppMeta | null }) {
  * Split out so `useAppPreviewData` is only ever called with a defined app,
  * keeping the hook call unconditional within this component.
  */
-function AppSlideInner({
-  instance,
-  app,
-}: {
-  instance: AppInstance
-  app: CatalogApp
-}) {
-  const { data, meta } = useAppPreviewData(app, instance.config)
+function AppSlideInner({ instance, app }: { instance: AppInstance; app: CatalogApp }) {
+  const { data, meta } = useAppPreviewData(app, instance.config, instance.id)
   return (
-    <AppPreviewFrame
-      slug={instance.appSlug}
-      config={instance.config}
-      data={data}
-      meta={meta}
-    />
+    <AppPreviewFrame slug={instance.appSlug} config={instance.config} data={data} meta={meta} />
   )
 }

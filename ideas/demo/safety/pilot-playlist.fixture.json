@@ -1,0 +1,81 @@
+{
+  "fixtureVersion": 1,
+  "fixtureKind": "playlist-assembly-plan",
+  "name": "Safety pilot — one screen",
+  "siteTimezone": "Europe/Belgrade",
+  "replaceBeforeUse": {
+    "countdownTarget": "Replace 2026-08-01T00:00 with the actual incident-free start in the screen site's local time.",
+    "contentOwner": "The customer's named HSE owner must approve every displayed value and notice."
+  },
+  "appInstances": [
+    {
+      "ref": "safety-board",
+      "slug": "opsboard",
+      "name": "Safety status — pilot",
+      "configRef": "./opsboard-safety.fixture.json#config"
+    },
+    {
+      "ref": "incident-free-days",
+      "slug": "countdown",
+      "name": "Incident-free days — pilot",
+      "config": {
+        "title": "Incident-free time",
+        "target": "2026-08-01T00:00",
+        "mode": "up",
+        "finishedText": "",
+        "showLabels": true,
+        "theme": "dark",
+        "backgroundColor": "#071A12",
+        "textColor": "#FFFFFF",
+        "accentColor": "#22C55E"
+      }
+    },
+    {
+      "ref": "planned-safety-notice",
+      "slug": "alert",
+      "name": "Planned PPE notice — rotation item",
+      "config": {
+        "headline": "Hearing protection required",
+        "message": "Press area 2 · until the end of this shift",
+        "severity": "warning",
+        "showIcon": true,
+        "pulse": false
+      },
+      "currentBehavior": "ordinary-rotation-item-not-emergency-takeover"
+    }
+  ],
+  "playlist": {
+    "name": "Safety pilot rotation",
+    "description": "Pilot content only. The Alert instance is scheduled content and cannot interrupt another item or an offline screen that did not already receive this playlist.",
+    "items": [
+      {
+        "order": 0,
+        "type": "app",
+        "appRef": "safety-board",
+        "durationSeconds": 40,
+        "disabled": false
+      },
+      {
+        "order": 1,
+        "type": "app",
+        "appRef": "incident-free-days",
+        "durationSeconds": 20,
+        "disabled": false
+      },
+      {
+        "order": 2,
+        "type": "app",
+        "appRef": "planned-safety-notice",
+        "durationSeconds": 15,
+        "disabled": false
+      }
+    ]
+  },
+  "expectedBehavior": [
+    "OpsBoard shows the four safety rows from its manual config.",
+    "Countdown counts up from the configured screen-local incident start without duplicating date arithmetic in OpsBoard.",
+    "Alert occupies the full viewport only during its 15-second playlist turn and then ordinary rotation continues.",
+    "After one successful online load, these static/manual app configs remain usable while the player is offline.",
+    "No item in this fixture provides instant, organization-wide or priority screen takeover."
+  ]
+}

@@ -1,16 +1,8 @@
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { appsApi } from '@/features/apps/api/appsApi'
 import { connectionsApi } from '@/features/apps/api/connectionsApi'
-import {
-  appInstanceDetailQueryKey,
-  appsQueryKey,
-} from '@/features/apps/lib/appsQueryKeys'
+import { appInstanceDetailQueryKey, appsQueryKey } from '@/features/apps/lib/appsQueryKeys'
 import type { ConnectionProvider } from '@/features/apps/types/connection.types'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
 
@@ -33,19 +25,22 @@ export function useRemoteOptions(
   connectionId: string | undefined,
   source: string,
   query: string,
+  context: Record<string, string> = {},
+  contextReady = true,
 ) {
   const organizationId = useActiveOrganizationId()
+  const contextKey = Object.entries(context).sort(([left], [right]) => left.localeCompare(right))
   return useQuery({
     queryKey: [
       ...connectionsQueryKey(organizationId),
       'browse',
       source,
       connectionId ?? 'none',
+      contextKey,
       query,
     ],
-    queryFn: () =>
-      connectionsApi.browseRemoteOptions(connectionId ?? '', source, query),
-    enabled: Boolean(organizationId) && Boolean(connectionId),
+    queryFn: () => connectionsApi.browseRemoteOptions(connectionId ?? '', source, query, context),
+    enabled: Boolean(organizationId) && Boolean(connectionId) && contextReady,
     placeholderData: keepPreviousData,
   })
 }
@@ -54,11 +49,7 @@ export function useRemoteOptions(
 export function useConnection(connectionId: string | undefined) {
   const organizationId = useActiveOrganizationId()
   return useQuery({
-    queryKey: [
-      ...connectionsQueryKey(organizationId),
-      'detail',
-      connectionId ?? 'none',
-    ],
+    queryKey: [...connectionsQueryKey(organizationId), 'detail', connectionId ?? 'none'],
     queryFn: () => connectionsApi.getOne(connectionId ?? ''),
     enabled: Boolean(organizationId) && Boolean(connectionId),
   })

@@ -1,0 +1,9 @@
+Linija / radni centar,Plan,Realizacija,Status,Blokada / instrukcija,Zona / smena,Redosled
+Pakovanje A1,4 800 kom,3 360 kom · 70%,U toku,Plan potvrđen; sledeća provera u 11:00,Hala A · Smena 1,10
+Punjenje A2,6 200 kom,4 050 kom · 65%,Kašnjenje,Foto-senzor daje povremenu grešku; tehničar na liniji,Hala A · Smena 1,20
+Mešanje B1,18 šarži,12 šarži · 67%,Aktivno,Šarža 13 u obradi,Hala B · Smena 1,30
+Etiketiranje B2,5 200 kom,5 200 kom · 100%,Završeno,Serija predata završnoj kontroli,Hala B · Smena 1,40
+Paletizacija C1,96 paleta,61 paleta · 64%,Blokirano,Nedostaje streč-folija; dopuna najavljena za 10:45,Hala C · Smena 1,50
+Kontrola C2,40 uzoraka,28 uzoraka · 70%,U toku,Uzorak 29 čeka laboratoriju,Hala C · Smena 1,60
+Promena formata A2,Početak 14:00,Tim potvrđen,Planirano,Pripremiti alat i probnu ambalažu,Hala A · Smena 2,70
+Preventivni pregled B1,Početak 13:20,Radni nalog spreman,Zakazano,Planirani zastoj 20 minuta,Hala B · Smena 2,80

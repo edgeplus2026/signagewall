@@ -2030,6 +2030,7 @@
     },
     "remoteSelect": {
       "placeholder": "Search and pick…",
+      "selectParentFirst": "Choose the preceding Power BI item first…",
       "search": "Search…",
       "empty": "No results"
     },
@@ -2349,6 +2350,16 @@
         "tagline": "Put a published Power BI report on the wall",
         "description": "Embed a Power BI report you have published to the web, and reload it on a schedule so the numbers stay current.",
         "about": "Show a Power BI report on the big screen for everyone to follow. In Power BI use File, Embed report, Publish to web to create a public link, paste it here, and optionally set the whole report to reload every so often. Since it relies on a public publish-to-web link rather than a login, it is a straightforward choice for operations rooms, team walls and KPI displays."
+      },
+      "powerbi-secure": {
+        "tagline": "Private Power BI snapshots for unattended screens",
+        "description": "Export private Power BI report pages to an authorized screen without a public report link or a Microsoft login on the display.",
+        "about": "Connect a read-only Microsoft account, select an export-compatible workspace and report, and show privately stored page snapshots on unattended screens. The player keeps the last successful export while a refresh is pending or the connection is unavailable. This app requires supported Premium, Embedded or Fabric capacity and tenant export permissions; PPU is not supported."
+      },
+      "opsboard": {
+        "tagline": "Live shift, dispatch, KPI and safety boards",
+        "description": "Turn a manual table, Google Sheet or Excel workbook into a clear operational screen that keeps its last known data offline.",
+        "about": "Put the part of daily operations that usually lives in a spreadsheet onto a screen people can read at a glance. Start with a live shift, dispatch, KPI or safety preset, enter rows manually or connect Google Sheets or Excel, and map the columns once. Statuses are colour-coded, long boards paginate automatically, updates sync in the background, and the player keeps the last successful snapshot when the source or network is temporarily unavailable."
       },
       "gsheets": {
         "tagline": "Put a Google Sheet on the wall",

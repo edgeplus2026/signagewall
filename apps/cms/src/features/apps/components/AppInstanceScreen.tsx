@@ -5,6 +5,7 @@ import type { AppInstanceConfig, CatalogApp } from '@/features/apps/types/app.ty
 interface AppInstanceScreenProps {
   app: CatalogApp
   config: AppInstanceConfig
+  instanceId: string
 }
 
 /** Apps that can produce sound — the preview offers an unmute control for these. */
@@ -16,8 +17,8 @@ const AUDIO_CAPABLE_SLUGS = new Set(['stream', 'youtube'])
  * config (plus, for `server` apps, the connector payload from the preview-data
  * endpoint). No per-app code — adding an app needs no change here.
  */
-export function AppInstanceScreen({ app, config }: AppInstanceScreenProps) {
-  const { data, meta } = useAppPreviewData(app, config)
+export function AppInstanceScreen({ app, config, instanceId }: AppInstanceScreenProps) {
+  const { data, meta } = useAppPreviewData(app, config, instanceId)
   return (
     <AppPreviewFrame
       slug={app.slug}

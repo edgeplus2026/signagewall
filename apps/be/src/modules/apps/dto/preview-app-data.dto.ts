@@ -1,8 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsObject } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsMongoId, IsObject, IsOptional } from 'class-validator';
 
 /** Draft instance config to resolve live-preview connector data for. */
 export class PreviewAppDataDto {
+  @ApiPropertyOptional({
+    description:
+      'Owned app instance whose connection/private assets may be previewed.',
+  })
+  @IsOptional()
+  @IsMongoId()
+  appInstanceId?: string;
+
   @ApiProperty({
     type: 'object',
     additionalProperties: true,

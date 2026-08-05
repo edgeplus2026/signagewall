@@ -1,0 +1,9 @@
+Kamion / rampa,Termin,Prevoznik,Status,Instrukcija,Zona,Redosled
+Rampa 01 · TRK-DEMO-104,09:30,Sever Trans,U toku,Utovar 18 od 24 palete,Izlaz A,10
+Rampa 02 · TRK-DEMO-217,09:45,Dunav Logistika,Kašnjenje,Dolazak najavljen u 10:20; zadržati rampu,Izlaz A,20
+Rampa 03 · TRK-DEMO-083,10:00,Atlas Cargo,Zakazano,Čeka poziv dispečera,Izlaz B,30
+Rampa 04 · TRK-DEMO-331,10:15,Panonija Freight,Blokirano,Nedostaje izvozni dokument; kontaktirati špeditera,Izlaz B,40
+Rampa 05 · TRK-DEMO-146,10:30,Sava Transport,Planirano,Pripremiti 12 povratnih paleta,Izlaz C,50
+Rampa 06 · TRK-DEMO-290,09:10,Morava Cargo,Isporučeno,Dokumentacija predata vozaču,Izlaz C,60
+Čekanje · TRK-DEMO-405,10:45,Balkan Route,Planirano,Parkirati u zoni Q2 do dodele rampe,Čekaonica Q2,70
+Čekanje · TRK-DEMO-512,11:00,Adria Line,Zakazano,Temperaturni režim 2–8 °C,Čekaonica Q1,80

@@ -18,6 +18,8 @@ import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensService } from '../screens/screens.service';
 import { cacheKeyForInstance } from './connectors/cache-key.util';
 import { getConnector } from './connectors/connector-registry';
+import { cleanupPowerBiSecureState } from './connectors/powerbi-secure.connector';
+import { AppDataCacheRepository } from './app-data-cache.repository';
 import { isOverlaySlug, overlayScreenIds } from './overlay.util';
 import { AppInstancesRepository } from './app-instances.repository';
 import { AppsRepository } from './apps.repository';
@@ -44,6 +46,7 @@ export class AppInstancesService {
     @Inject(forwardRef(() => ScreensService))
     private readonly screensService: ScreensService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly appDataCacheRepository: AppDataCacheRepository,
   ) {}
 
   async list(
@@ -138,6 +141,8 @@ export class AppInstancesService {
       result.data,
     );
 
+    await this.cleanupChangedPrivateConnectorState(instance, result.data);
+
     // Overlay apps name their screens in config: remember the PREVIOUS
     // assignment so screens dropped by this edit also get a push (the changed
     // event below only resolves the current assignment).
@@ -208,6 +213,7 @@ export class AppInstancesService {
         ? { source: POWERPOINT_SOURCE_MICROSOFT }
         : {}),
     };
+    await this.cleanupChangedPrivateConnectorState(instance, config);
     const updated = await this.instancesRepository.updateById(
       organizationId,
       instanceId,
@@ -230,6 +236,7 @@ export class AppInstancesService {
     instanceId: string,
   ): Promise<AppInstanceResponseDto> {
     const instance = await this.requireInstance(organizationId, instanceId);
+    await this.cleanupPrivateConnectorState(instance);
     await this.connectionsService.deleteByInstance(organizationId, instanceId);
     const config = { ...instance.config };
     delete config.connectionId;
@@ -337,6 +344,7 @@ export class AppInstancesService {
   async remove(organizationId: string, id: string): Promise<void> {
     // 404 up front so a bad id can't run a partial cascade.
     const instance = await this.requireInstance(organizationId, id);
+    await this.cleanupPrivateConnectorState(instance);
 
     // Overlay assignment lives in the instance's own config — capture it now so
     // those screens can re-resolve (and drop the band) after the delete.
@@ -411,6 +419,9 @@ export class AppInstancesService {
       return;
     }
     const instanceIds = instances.map((instance) => instance._id.toString());
+    for (const instance of instances) {
+      await this.cleanupPrivateConnectorState(instance);
+    }
     const overlayScreens = instances
       .filter((instance) => isOverlaySlug(instance.appSlug))
       .flatMap((instance) => overlayScreenIds(instance.config));
@@ -473,6 +484,73 @@ export class AppInstancesService {
       throw BusinessException.notFound('Instance not found');
     }
     return instance;
+  }
+
+  /**
+   * Delete an instance's private Power BI objects before its persisted owner is
+   * removed. The cache supplies exact refs; the connection supplies ownership.
+   * Failure is intentionally blocking so disconnect/uninstall cannot silently
+   * orphan customer dashboard exports in private storage.
+   */
+  private async cleanupPrivateConnectorState(
+    instance: AppInstanceDocument,
+    cacheKey = cacheKeyForInstance(instance),
+  ): Promise<void> {
+    if (instance.appSlug !== 'powerbi-secure') {
+      return;
+    }
+    if (!cacheKey) {
+      return;
+    }
+    const [cached] = await this.appDataCacheRepository.findByCacheKeys([
+      cacheKey,
+    ]);
+    if (!cached) {
+      return;
+    }
+    if (cached.slug !== 'powerbi-secure') {
+      // A key collision must never let one connector delete another's state.
+      throw BusinessException.conflict(
+        'Private snapshot cleanup could not verify its cache entry.',
+      );
+    }
+    const connectionId = instance.config.connectionId;
+    if (typeof connectionId !== 'string' || !connectionId) {
+      throw new Error(
+        'Cannot securely delete Power BI state without its owned connection',
+      );
+    }
+    const instanceId = instance._id.toString();
+    const owner = await this.connectionsService.getOwnedIdentity(
+      instance.organizationId.toString(),
+      instanceId,
+      connectionId,
+    );
+    await cleanupPowerBiSecureState(owner, cached.secrets);
+    await this.appDataCacheRepository.deleteByCacheKey(cacheKey);
+  }
+
+  /**
+   * A presentation-only change keeps the same immutable snapshots. A changed
+   * connection/workspace/report/page produces a different private cache key,
+   * so tear down the old state before saving the new selection.
+   */
+  private async cleanupChangedPrivateConnectorState(
+    instance: AppInstanceDocument,
+    nextConfig: Record<string, unknown>,
+  ): Promise<void> {
+    if (instance.appSlug !== 'powerbi-secure') {
+      return;
+    }
+    const previousKey = cacheKeyForInstance(instance);
+    const nextKey = cacheKeyForInstance({
+      ...instance,
+      config: nextConfig,
+    } as AppInstanceDocument);
+    if (!previousKey || previousKey === nextKey) {
+      return;
+    }
+    await this.cleanupPrivateConnectorState(instance, previousKey);
   }
 
   private async requirePublicApp(appId: string): Promise<AppDocument> {

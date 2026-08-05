@@ -2,6 +2,8 @@ import { effect } from '@preact/signals'
 
 import { snapshot } from '../store'
 import type { PlayerSnapshot } from '../types'
+import { privateAppAssetCacheKey } from './private-app-asset-cache-key'
+import { collectPrivateAppAssetUrls } from './private-app-assets'
 
 /**
  * Warms the service-worker media cache with *every* item in the current
@@ -116,7 +118,17 @@ const defaultDeps: PrefetchDeps = {
       // `ignoreVary` for the same reason the SW routes set it: a CORS response
       // carrying `Vary: Origin` would never match this header-less lookup, and we
       // would re-download the whole playlist on every pass.
-      return (await caches.match(url, { ignoreVary: true })) !== undefined
+      if ((await caches.match(url, { ignoreVary: true })) !== undefined) {
+        return true
+      }
+      const parsed = new URL(url)
+      if (!parsed.pathname.includes('/private-assets/v1/')) {
+        return false
+      }
+      const immutableKey = privateAppAssetCacheKey(url)
+      return immutableKey
+        ? (await caches.match(immutableKey, { ignoreVary: true })) !== undefined
+        : false
     } catch {
       return false
     }
@@ -142,9 +154,10 @@ function mediaUrls(snap: PlayerSnapshot | null): string[] {
   if (!snap) {
     return []
   }
-  return snap.items.flatMap((item) =>
+  const publicMedia = snap.items.flatMap((item) =>
     item.kind === 'image' || item.kind === 'video' ? [item.url] : [],
   )
+  return [...new Set([...publicMedia, ...collectPrivateAppAssetUrls(snap)])]
 }
 
 /**

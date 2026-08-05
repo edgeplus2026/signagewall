@@ -2014,6 +2014,7 @@
     },
     "remoteSelect": {
       "placeholder": "Pretražite i izaberite…",
+      "selectParentFirst": "Prvo izaberite prethodnu Power BI stavku…",
       "search": "Pretraga…",
       "empty": "Nema rezultata"
     },
@@ -2333,6 +2334,16 @@
         "tagline": "Objavljeni Power BI izveštaj na zidu",
         "description": "Ugradite Power BI izveštaj objavljen na webu i osvežavajte ga po rasporedu da brojke ostanu aktuelne.",
         "about": "Prikažite Power BI izveštaj na velikom ekranu da ga svi prate. U alatu Power BI izaberite File, Embed report, Publish to web da napravite javni link, nalepite ga ovde i po želji podesite da se ceo izveštaj povremeno ponovo učita. Pošto koristi javni publish-to-web link, a ne prijavljivanje, jednostavan je izbor za operativne centre, timske zidove i prikaze pokazatelja."
+      },
+      "powerbi-secure": {
+        "tagline": "Privatni Power BI snapshot-i za ekrane bez korisnika",
+        "description": "Izvezite stranice privatnog Power BI izveštaja na autorizovani ekran bez javnog linka ili Microsoft prijave na displeju.",
+        "about": "Povežite Microsoft nalog sa read-only dozvolama, izaberite workspace i izveštaj koji podržavaju export i prikažite privatno sačuvane snapshot-e stranica na ekranima bez korisnika. Player zadržava poslednji uspešan export dok je novo osvežavanje u toku ili konekcija nije dostupna. Aplikacija zahteva podržan Premium, Embedded ili Fabric capacity i dozvoljen tenant export; PPU nije podržan."
+      },
+      "opsboard": {
+        "tagline": "Smene, otprema, KPI i bezbednost uživo",
+        "description": "Pretvorite ručnu tabelu, Google Sheet ili Excel radnu svesku u jasan operativni ekran koji čuva poslednje poznate podatke i bez mreže.",
+        "about": "Postavite deo svakodnevnih operacija koji obično živi u tabeli na ekran koji ljudi mogu da razumeju jednim pogledom. Počnite od šablona za smene, otpremu, KPI ili bezbednost, unesite redove ručno ili povežite Google Sheets ili Excel i jednom mapirajte kolone. Statusi su označeni bojama, duge table automatski menjaju stranice, podaci se osvežavaju u pozadini, a plejer zadržava poslednju uspešnu verziju kada izvor ili mreža privremeno nisu dostupni."
       },
       "gsheets": {
         "tagline": "Postavite Google Sheet na zid",

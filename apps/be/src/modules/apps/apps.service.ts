@@ -131,11 +131,13 @@ export class AppsService implements OnModuleInit {
   }
 
   async uninstall(organizationId: string, id: string): Promise<void> {
-    await this.orgAppsRepository.uninstall(organizationId, id);
     // Uninstalling removes the org's instances of the app — cascading the same
     // way a single delete does, so it never leaves dangling references in
-    // playlists/screens or orphaned OAuth connections behind.
+    // playlists/screens or orphaned OAuth connections behind. Remove instances
+    // first so a private-storage failure leaves the installation and persisted
+    // owner identity intact for a safe retry.
     await this.instancesService.removeAllForApp(organizationId, id);
+    await this.orgAppsRepository.uninstall(organizationId, id);
   }
 
   private async requirePublicApp(id: string): Promise<AppDocument> {

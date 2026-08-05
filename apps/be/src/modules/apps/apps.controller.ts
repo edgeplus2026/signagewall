@@ -22,8 +22,13 @@ import {
   ApiSuccessResponse,
 } from '../../common/swagger';
 import { AppDataService } from './app-data.service';
+import { AppInstancesRepository } from './app-instances.repository';
 import { AppsService } from './apps.service';
 import { PreviewAppDataDto } from './dto/preview-app-data.dto';
+import { PrivateAssetsPreviewService } from './private-assets-preview.service';
+import { ConnectionsService } from '../connections/connections.service';
+import { containsPrivateAssetRef } from '../player/private-assets-hydration.service';
+import { BusinessException } from '../../common/exceptions/business.exception';
 
 /** Organization-facing catalog browse + install. */
 @ApiTags('apps')
@@ -35,6 +40,9 @@ export class AppsController {
   constructor(
     private readonly appsService: AppsService,
     private readonly appDataService: AppDataService,
+    private readonly appInstancesRepository: AppInstancesRepository,
+    private readonly connectionsService: ConnectionsService,
+    private readonly privateAssetsPreview: PrivateAssetsPreviewService,
   ) {}
 
   @Get()
@@ -85,7 +93,44 @@ export class AppsController {
   @Post(':slug/preview-data')
   @RequireOrgRole()
   @ApiSuccessResponse(Object)
-  previewData(@Param('slug') slug: string, @Body() dto: PreviewAppDataDto) {
-    return this.appDataService.getPreviewData(slug, dto.config);
+  async previewData(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('slug') slug: string,
+    @Body() dto: PreviewAppDataDto,
+  ) {
+    const connectionId = dto.config.connectionId;
+    if (typeof connectionId === 'string' && connectionId) {
+      if (!dto.appInstanceId) {
+        throw BusinessException.badRequest(
+          'Connected app preview requires an app instance.',
+        );
+      }
+      const instance = await this.appInstancesRepository.findById(
+        organizationId,
+        dto.appInstanceId,
+      );
+      if (!instance || instance.appSlug !== slug) {
+        throw BusinessException.notFound('App instance not found.');
+      }
+      await this.connectionsService.assertOwnedByInstance(
+        organizationId,
+        dto.appInstanceId,
+        connectionId,
+      );
+    }
+
+    const result = await this.appDataService.getPreviewData(slug, dto.config);
+    if (!containsPrivateAssetRef(result.data)) return result;
+    if (!dto.appInstanceId) {
+      throw BusinessException.forbidden('Private asset access denied');
+    }
+    return {
+      ...result,
+      data: await this.privateAssetsPreview.hydrate({
+        organizationId,
+        appInstanceId: dto.appInstanceId,
+        payload: result.data,
+      }),
+    };
   }
 }

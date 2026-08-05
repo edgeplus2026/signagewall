@@ -46,6 +46,8 @@ export interface AppRenderable {
   dataMeta?: {
     /** ISO time `data` was last successfully fetched, if ever. */
     fetchedAt?: string
+    /** True while an asynchronous connector job is still in progress. */
+    pending?: boolean
     /** True when the latest fetch failed (`data` is last-known-good). */
     stale?: boolean
   }

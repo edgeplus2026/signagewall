@@ -13,6 +13,8 @@ import {
 
 const connection: ResolvedConnection = {
   id: 'conn1',
+  organizationId: 'org-1',
+  appInstanceId: 'instance-1',
   provider: 'microsoft',
   accountLabel: 'user@example.com',
   accessToken: 'token-abc',

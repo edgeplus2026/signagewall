@@ -14,6 +14,7 @@ import { CmsGateway } from './cms.gateway';
 import { DevicePairingController } from './device-pairing.controller';
 import { DevicesRepository } from './devices.repository';
 import { PlayerContentService } from './player-content.service';
+import { PrivateAssetsHydrationService } from './private-assets-hydration.service';
 import { PlayerController } from './player.controller';
 import { PlayerGateway } from './player.gateway';
 import { PlayerService } from './player.service';
@@ -37,6 +38,7 @@ import { Device, DeviceSchema } from './schemas/device.schema';
   providers: [
     PlayerService,
     PlayerContentService,
+    PrivateAssetsHydrationService,
     PlayerTokensService,
     DevicesRepository,
     PlayerGateway,

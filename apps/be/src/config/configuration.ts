@@ -103,6 +103,18 @@ export default () => ({
     bucket: process.env.R2_BUCKET,
     publicUrl: process.env.R2_PUBLIC_URL?.replace(/\/$/, ''),
   },
+  // Tenant-private app assets. This must be a separate, non-public R2 bucket;
+  // it deliberately has no public URL and never falls back to `r2.*`.
+  privateR2: {
+    accountId: process.env.PRIVATE_R2_ACCOUNT_ID,
+    accessKeyId: process.env.PRIVATE_R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.PRIVATE_R2_SECRET_ACCESS_KEY,
+    bucket: process.env.PRIVATE_R2_BUCKET,
+    signedUrlTtlSeconds: parseInt(
+      process.env.PRIVATE_R2_SIGNED_URL_TTL_SECONDS ?? '900',
+      10,
+    ),
+  },
   media: {
     maxFileSizeBytes: parseInt(
       process.env.MEDIA_MAX_FILE_SIZE_BYTES ?? String(10 * 1024 * 1024),

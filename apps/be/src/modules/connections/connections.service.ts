@@ -1,6 +1,6 @@
 import { randomBytes, createHash } from 'node:crypto';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -10,6 +10,7 @@ import {
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { EncryptionService } from '../../common/services/encryption.service';
+import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { getConnector } from '../apps/connectors/connector-registry';
 import { ConnectionsRepository } from './connections.repository';
 import { searchCanvaDesigns } from './providers/canva-api';
@@ -31,6 +32,11 @@ import {
 } from './providers/microsoft-api';
 import { listFacebookPages, listInstagramAccounts } from './providers/meta-api';
 import { listLinkedInOrganizations } from './providers/linkedin-api';
+import {
+  listPowerBiReportPages,
+  listPowerBiReports,
+  listPowerBiWorkspaces,
+} from './providers/powerbi-api';
 import { canvaOAuthProvider } from './providers/canva.oauth';
 import { googleOAuthProvider } from './providers/google.oauth';
 import { linkedinOAuthProvider } from './providers/linkedin.oauth';
@@ -49,6 +55,12 @@ export interface RemoteOption {
   thumbnailUrl?: string;
 }
 
+/** Validated, token-free parent ids used by cascading remote pickers. */
+export interface RemoteBrowseContext {
+  workspaceId?: string;
+  reportId?: string;
+}
+
 /** Public (token-free) view of a connection for the CMS. */
 export interface ConnectionSummary {
   id: string;
@@ -56,6 +68,13 @@ export interface ConnectionSummary {
   accountLabel: string;
   scopes: string[];
   createdAt: string;
+}
+
+/** Token-free persisted ownership used for private-asset teardown. */
+export interface ConnectionOwnerIdentity {
+  id: string;
+  organizationId: string;
+  appInstanceId: string;
 }
 
 /** Signed OAuth `state` payload (CSRF + context binding). */
@@ -121,6 +140,8 @@ export class ConnectionsService {
     private readonly encryption: EncryptionService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    @Inject(forwardRef(() => AppInstancesRepository))
+    private readonly appInstancesRepository: AppInstancesRepository,
   ) {}
 
   /** Whether connected apps can be used at all (encryption key configured). */
@@ -199,18 +220,43 @@ export class ConnectionsService {
   }
 
   /**
+   * Resolve only persisted ownership, without decrypting or refreshing OAuth
+   * tokens. Cleanup must not depend on the upstream account still being live.
+   */
+  async getOwnedIdentity(
+    organizationId: string,
+    instanceId: string,
+    id: string,
+  ): Promise<ConnectionOwnerIdentity> {
+    const doc = await this.repository.findById(organizationId, id);
+    if (!doc || doc.instanceId.toString() !== instanceId) {
+      throw BusinessException.notFound('Connection not found.');
+    }
+    return {
+      id: doc._id.toString(),
+      organizationId: doc.organizationId.toString(),
+      appInstanceId: doc.instanceId.toString(),
+    };
+  }
+
+  /**
    * Build the provider authorization URL for an OAuth start. The scopes come
    * from the connected app's connector OAuth descriptor, so each app requests
    * exactly what it needs.
    */
-  buildAuthorizationUrl(params: {
+  async buildAuthorizationUrl(params: {
     organizationId: string;
     userId: string;
     provider: ConnectionProvider;
     appSlug: string;
     instanceId: string;
-  }): string {
+  }): Promise<string> {
     this.assertEnabled();
+    await this.assertOwnedAppInstance(
+      params.organizationId,
+      params.instanceId,
+      params.appSlug,
+    );
     const provider = this.getProvider(params.provider);
     const credentials = this.getCredentials(params.provider);
     const scopes = this.scopesForApp(params.appSlug, params.provider);
@@ -265,6 +311,15 @@ export class ConnectionsService {
       throw BusinessException.badRequest('OAuth state/provider mismatch.');
     }
 
+    // The signed state proves what was requested, not that the target still
+    // exists or still belongs to the same tenant. Check before exchanging the
+    // authorization code so a foreign/deleted instance can never receive tokens.
+    await this.assertOwnedAppInstance(
+      payload.organizationId,
+      payload.instanceId,
+      payload.appSlug,
+    );
+
     const adapter = this.getProvider(provider);
     const credentials = this.getCredentials(provider);
     const result = await adapter.exchangeCode({
@@ -274,6 +329,14 @@ export class ConnectionsService {
       code,
       ...(payload.codeVerifier ? { codeVerifier: payload.codeVerifier } : {}),
     });
+
+    // Re-check after the external round trip. This closes the practical TOCTOU
+    // window between state validation and the ownership-scoped upsert.
+    await this.assertOwnedAppInstance(
+      payload.organizationId,
+      payload.instanceId,
+      payload.appSlug,
+    );
 
     const doc = await this.repository.upsertByInstance({
       organizationId: payload.organizationId,
@@ -296,6 +359,20 @@ export class ConnectionsService {
       instanceId: payload.instanceId,
       connection: this.toSummary(doc),
     };
+  }
+
+  private async assertOwnedAppInstance(
+    organizationId: string,
+    instanceId: string,
+    appSlug: string,
+  ): Promise<void> {
+    const instance = await this.appInstancesRepository.findById(
+      organizationId,
+      instanceId,
+    );
+    if (!instance || instance.appSlug !== appSlug) {
+      throw BusinessException.notFound('App instance not found.');
+    }
   }
 
   /**
@@ -321,6 +398,8 @@ export class ConnectionsService {
 
     return {
       id: doc._id.toString(),
+      organizationId: doc.organizationId.toString(),
+      appInstanceId: doc.instanceId.toString(),
       provider: doc.provider,
       accountLabel: doc.accountLabel,
       accessToken,
@@ -350,6 +429,7 @@ export class ConnectionsService {
     id: string,
     source: string,
     query: string,
+    context: RemoteBrowseContext = {},
   ): Promise<RemoteOption[]> {
     await this.assertOwned(organizationId, id);
     const connection = await this.resolveConnection(id);
@@ -388,6 +468,34 @@ export class ConnectionsService {
       case 'linkedin-orgs':
         this.assertProvider(connection.provider, ConnectionProvider.LINKEDIN);
         return listLinkedInOrganizations(connection.accessToken, query);
+      case 'powerbi-workspaces':
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        return listPowerBiWorkspaces(connection.accessToken, query);
+      case 'powerbi-reports':
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        if (!context.workspaceId) {
+          throw BusinessException.badRequest(
+            'Select a Power BI workspace first.',
+          );
+        }
+        return listPowerBiReports(
+          connection.accessToken,
+          context.workspaceId,
+          query,
+        );
+      case 'powerbi-pages':
+        this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
+        if (!context.workspaceId || !context.reportId) {
+          throw BusinessException.badRequest(
+            'Select a Power BI workspace and report first.',
+          );
+        }
+        return listPowerBiReportPages(
+          connection.accessToken,
+          context.workspaceId,
+          context.reportId,
+          query,
+        );
       default:
         throw BusinessException.badRequest(
           `Unknown browse source "${source}".`,

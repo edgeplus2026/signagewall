@@ -88,6 +88,7 @@ export class AppDataCacheRepository {
     slug: string,
     refreshSeconds: number,
     secrets: Record<string, unknown> | undefined,
+    error?: string,
   ): Promise<AppDataCacheDocument> {
     return this.model.findOneAndUpdate(
       { cacheKey },
@@ -98,8 +99,9 @@ export class AppDataCacheRepository {
           lastAttemptAt: new Date(),
           pending: true,
           secrets: secrets ?? null,
+          ...(error ? { lastError: error } : {}),
         },
-        $unset: { lastError: '' },
+        ...(!error ? { $unset: { lastError: '' } } : {}),
       },
       { returnDocument: 'after', upsert: true },
     );
@@ -156,5 +158,10 @@ export class AppDataCacheRepository {
   async deleteStale(cutoff: Date): Promise<number> {
     const result = await this.model.deleteMany({ updatedAt: { $lt: cutoff } });
     return result.deletedCount;
+  }
+
+  /** Delete one connector state after its instance-owned private assets are gone. */
+  async deleteByCacheKey(cacheKey: string): Promise<void> {
+    await this.model.deleteOne({ cacheKey });
   }
 }

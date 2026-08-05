@@ -59,6 +59,15 @@ export const envValidationSchema = Joi.object({
   R2_SECRET_ACCESS_KEY: Joi.string().optional().allow(''),
   R2_BUCKET: Joi.string().optional().allow(''),
   R2_PUBLIC_URL: Joi.string().uri().optional().allow(''),
+  PRIVATE_R2_ACCOUNT_ID: Joi.string().optional().allow(''),
+  PRIVATE_R2_ACCESS_KEY_ID: Joi.string().optional().allow(''),
+  PRIVATE_R2_SECRET_ACCESS_KEY: Joi.string().optional().allow(''),
+  PRIVATE_R2_BUCKET: Joi.string().optional().allow(''),
+  PRIVATE_R2_SIGNED_URL_TTL_SECONDS: Joi.number()
+    .integer()
+    .min(1)
+    .max(7 * 24 * 60 * 60)
+    .default(900),
   MEDIA_MAX_FILE_SIZE_BYTES: Joi.number().default(10 * 1024 * 1024),
   MEDIA_MAX_FILES_PER_UPLOAD: Joi.number().default(10),
   PEXELS_API_KEY: Joi.string().optional().allow(''),

@@ -52,6 +52,8 @@ export const APP_CATEGORY_MEMBERSHIP: Record<string, string[]> = {
   stream: ['video'],
   // Dashboards & Data
   powerbi: ['dashboards'],
+  'powerbi-secure': ['dashboards'],
+  opsboard: ['dashboards', 'workplace'],
   gsheets: ['dashboards'],
   web: ['dashboards'],
   // Calendars & Workplace

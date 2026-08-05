@@ -56,7 +56,11 @@ export async function clearSnapshot(): Promise<void> {
 }
 
 /** Workbox runtime caches that hold downloaded media bytes. */
-const MEDIA_CACHE_NAMES = ['signagewall-media', 'signagewall-video']
+const MEDIA_CACHE_NAMES = [
+  'signagewall-media',
+  'signagewall-video',
+  'signagewall-private-app-assets',
+]
 
 /**
  * Media-cache format generation, bumped whenever a change makes already-cached
