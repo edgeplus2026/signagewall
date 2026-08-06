@@ -25,11 +25,21 @@ export const api = axios.create({
   timeout: 10_000,
 })
 
+interface RefreshWaiter {
+  onToken: (token: string) => void
+  onFail: (error: unknown) => void
+}
+
 let isRefreshing = false
-let refreshQueue: ((token: string) => void)[] = []
+let refreshQueue: RefreshWaiter[] = []
 
 const processRefreshQueue = (token: string) => {
-  refreshQueue.forEach((callback) => { callback(token); })
+  refreshQueue.forEach((waiter) => { waiter.onToken(token); })
+  refreshQueue = []
+}
+
+const failRefreshQueue = (error: unknown) => {
+  refreshQueue.forEach((waiter) => { waiter.onFail(error); })
   refreshQueue = []
 }
 
@@ -95,11 +105,20 @@ api.interceptors.response.use(
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
-          refreshQueue.push((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-            resolve(api(originalRequest))
+          // The timeout is only a backstop against a refresh that never
+          // settles; a failed refresh rejects the whole queue immediately.
+          const timer = setTimeout(() => { reject(toApiError(axiosError)); }, 10_000)
+          refreshQueue.push({
+            onToken: (token) => {
+              clearTimeout(timer)
+              originalRequest.headers.Authorization = `Bearer ${token}`
+              resolve(api(originalRequest))
+            },
+            onFail: (refreshError) => {
+              clearTimeout(timer)
+              reject(toApiError(refreshError))
+            },
           })
-          setTimeout(() => { reject(toApiError(axiosError)); }, 10_000)
         })
       }
 
@@ -124,7 +143,7 @@ api.interceptors.response.use(
         processRefreshQueue(tokens.accessToken)
         refreshedToken = tokens.accessToken
       } catch (refreshError) {
-        refreshQueue = []
+        failRefreshQueue(refreshError)
         useAuthStore.getState().logout()
         window.location.href = '/login'
         throw toApiError(refreshError)

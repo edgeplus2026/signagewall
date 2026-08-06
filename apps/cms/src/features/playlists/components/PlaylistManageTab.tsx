@@ -135,8 +135,9 @@ export function PlaylistManageTab({ playlist }: PlaylistManageTabProps) {
       setDraftItems(playlistItemsToDraftItems(saved.items))
       toast.success(t('playlists.content.saveSuccess'))
     } catch (error) {
-      // The hook reloads the playlist on conflict; we just inform the user that
-      // their unsaved changes were dropped in favor of the latest version.
+      // The hook reloads the playlist on conflict; the container keeps the
+      // dirty draft on top of the fresh baseline, so the user reviews and
+      // re-saves — knowing a re-save applies their edits over the other change.
       if (error instanceof ApiError && error.code === 'CONFLICT') {
         toast.error(t('playlists.content.conflict'))
         return

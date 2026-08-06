@@ -12,6 +12,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useSt
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { QueryErrorState } from '@/components/common/QueryErrorState'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -130,11 +131,21 @@ export const MediaBrowser = forwardRef<MediaBrowserHandle, MediaBrowserProps>(fu
   const moveMedia = useMoveMedia()
   const enqueueFiles = useUploadStore((state) => state.enqueueFiles)
 
-  const { data: folders = [], isPending: foldersPending, isFetching: foldersFetching } =
-    useFolders(currentFolderId)
+  const {
+    data: folders = [],
+    isPending: foldersPending,
+    isFetching: foldersFetching,
+    isError: foldersError,
+    refetch: refetchFolders,
+  } = useFolders(currentFolderId)
 
-  const { data: rawMediaItems = [], isPending: mediaPending, isFetching: mediaFetching } =
-    useMediaFiles(currentFolderId)
+  const {
+    data: rawMediaItems = [],
+    isPending: mediaPending,
+    isFetching: mediaFetching,
+    isError: mediaError,
+    refetch: refetchMedia,
+  } = useMediaFiles(currentFolderId)
 
   const mediaItems = useMemo(
     () =>
@@ -424,6 +435,13 @@ export const MediaBrowser = forwardRef<MediaBrowserHandle, MediaBrowserProps>(fu
 
           {showMediaSkeleton ? (
             viewMode === 'grid' ? <MediaGridSkeleton /> : <MediaTableSkeleton />
+          ) : mediaError || foldersError ? (
+            <QueryErrorState
+              onRetry={() => {
+                if (foldersError) void refetchFolders()
+                if (mediaError) void refetchMedia()
+              }}
+            />
           ) : mediaItems.length === 0 ? (
             <Empty className="min-h-48 py-12">
               <EmptyHeader>

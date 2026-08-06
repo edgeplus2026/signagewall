@@ -27,7 +27,11 @@
     "actions": "Actions",
     "cancel": "Cancel",
     "decrease": "Decrease",
-    "increase": "Increase"
+    "increase": "Increase",
+    "loadError": "Something went wrong",
+    "loadErrorDescription": "We couldn't load this data. Check your connection and try again.",
+    "retry": "Try again",
+    "unsavedChangesPrompt": "You have unsaved changes. Leave without saving?"
   },
   "dataTable": {
     "search": "Search...",
@@ -765,7 +769,7 @@
       "saveChanges": "Save changes",
       "saveSuccess": "Playlist saved successfully",
       "saveError": "Could not save playlist. Please try again.",
-      "conflict": "This playlist was changed elsewhere. Your unsaved changes were discarded and the latest version was loaded.",
+      "conflict": "This playlist was changed elsewhere. The latest version was loaded and your unsaved edits were kept — review them before saving, since saving will overwrite the other changes.",
       "mediaUnavailable": "Media unavailable",
       "unknownMedia": "Unknown media"
     },
@@ -1047,7 +1051,7 @@
       "addApp": {
         "add": "Add"
       },
-      "conflict": "This screen was changed elsewhere. Your unsaved changes were discarded and the latest version was loaded."
+      "conflict": "This screen was changed elsewhere. The latest version was loaded and your unsaved edits were kept — review them before saving, since saving will overwrite the other changes."
     },
     "layout": {
       "fullscreen": "Fullscreen",

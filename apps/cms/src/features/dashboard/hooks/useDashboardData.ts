@@ -23,6 +23,10 @@ export interface GrowthPoint {
 
 export interface DashboardData {
   isLoading: boolean
+  /** True when any of the underlying list queries failed. */
+  isError: boolean
+  /** Re-runs the failed queries. */
+  retry: () => void
   counts: {
     screens: number
     playlists: number
@@ -61,9 +65,24 @@ function countCreatedUpTo(times: number[], cutoff: number): number {
 }
 
 export function useDashboardData(): DashboardData {
-  const { data: playlists = [], isLoading: playlistsLoading } = usePlaylists()
-  const { data: screens = [], isLoading: screensLoading } = useScreens()
-  const { data: media = [], isLoading: mediaLoading } = useAllMediaFiles()
+  const {
+    data: playlists = [],
+    isLoading: playlistsLoading,
+    isError: playlistsError,
+    refetch: refetchPlaylists,
+  } = usePlaylists()
+  const {
+    data: screens = [],
+    isLoading: screensLoading,
+    isError: screensError,
+    refetch: refetchScreens,
+  } = useScreens()
+  const {
+    data: media = [],
+    isLoading: mediaLoading,
+    isError: mediaError,
+    refetch: refetchMedia,
+  } = useAllMediaFiles()
   const presenceMap = useContext(PresenceContext)
 
   return useMemo(() => {
@@ -111,6 +130,12 @@ export function useDashboardData(): DashboardData {
 
     return {
       isLoading: playlistsLoading || screensLoading || mediaLoading,
+      isError: playlistsError || screensError || mediaError,
+      retry: () => {
+        if (playlistsError) void refetchPlaylists()
+        if (screensError) void refetchScreens()
+        if (mediaError) void refetchMedia()
+      },
       counts: {
         screens: total,
         playlists: playlists.length,
@@ -128,5 +153,19 @@ export function useDashboardData(): DashboardData {
       growth,
       recentPlaylists,
     }
-  }, [playlists, screens, media, presenceMap, playlistsLoading, screensLoading, mediaLoading])
+  }, [
+    playlists,
+    screens,
+    media,
+    presenceMap,
+    playlistsLoading,
+    screensLoading,
+    mediaLoading,
+    playlistsError,
+    screensError,
+    mediaError,
+    refetchPlaylists,
+    refetchScreens,
+    refetchMedia,
+  ])
 }

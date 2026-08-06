@@ -11,6 +11,7 @@ import { useCallback, useContext, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
+import { QueryErrorState } from '@/components/common/QueryErrorState'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -62,10 +63,18 @@ function ScreensTableSkeleton() {
 interface ScreensBrowserProps {
   screens: ScreenSummary[]
   isLoading: boolean
+  isError?: boolean
+  onRetry?: () => void
   onCreateClick: () => void
 }
 
-export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBrowserProps) {
+export function ScreensBrowser({
+  screens,
+  isLoading,
+  isError,
+  onRetry,
+  onCreateClick,
+}: ScreensBrowserProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
@@ -283,6 +292,8 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
           ) : (
             <ScreensTableSkeleton />
           )
+        ) : isError ? (
+          <QueryErrorState onRetry={onRetry} />
         ) : filteredScreens.length === 0 ? (
           <Empty className="min-h-48 py-12">
             <EmptyHeader>

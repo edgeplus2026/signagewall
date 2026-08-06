@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { QueryErrorState } from '@/components/common/QueryErrorState'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -63,10 +64,18 @@ function PlaylistsTableSkeleton() {
 interface PlaylistsBrowserProps {
   playlists: PlaylistSummary[]
   isLoading: boolean
+  isError?: boolean
+  onRetry?: () => void
   onCreateClick: () => void
 }
 
-export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: PlaylistsBrowserProps) {
+export function PlaylistsBrowser({
+  playlists,
+  isLoading,
+  isError,
+  onRetry,
+  onCreateClick,
+}: PlaylistsBrowserProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const duplicatePlaylist = useDuplicatePlaylist()
@@ -266,6 +275,8 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
           ) : (
             <PlaylistsTableSkeleton />
           )
+        ) : isError ? (
+          <QueryErrorState onRetry={onRetry} />
         ) : filteredPlaylists.length === 0 ? (
           <Empty className="min-h-48 py-12">
             <EmptyHeader>

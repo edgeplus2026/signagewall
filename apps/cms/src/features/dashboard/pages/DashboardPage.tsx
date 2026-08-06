@@ -2,6 +2,7 @@ import { ImageIcon, ListVideoIcon, MonitorIcon, WifiIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { QueryErrorState } from '@/components/common/QueryErrorState'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { ContentGrowthChart } from '@/features/dashboard/components/ContentGrowthChart'
@@ -42,6 +43,14 @@ export default function DashboardPage() {
 
   if (data.isLoading) {
     return <DashboardSkeleton />
+  }
+
+  if (data.isError) {
+    return (
+      <div className="flex w-full min-w-0 flex-col gap-6 lg:px-10">
+        <QueryErrorState className="min-h-96 py-12" onRetry={data.retry} />
+      </div>
+    )
   }
 
   return (

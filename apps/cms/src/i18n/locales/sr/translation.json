@@ -27,7 +27,11 @@
     "actions": "Akcije",
     "cancel": "Otkaži",
     "decrease": "Smanji",
-    "increase": "Povećaj"
+    "increase": "Povećaj",
+    "loadError": "Nešto je pošlo naopako",
+    "loadErrorDescription": "Nismo uspeli da učitamo podatke. Proverite konekciju i pokušajte ponovo.",
+    "retry": "Pokušaj ponovo",
+    "unsavedChangesPrompt": "Imate nesačuvane izmene. Da li želite da napustite stranicu bez čuvanja?"
   },
   "dataTable": {
     "search": "Pretraga...",
@@ -743,7 +747,7 @@
       "saveChanges": "Sačuvaj izmene",
       "saveSuccess": "Plejlista je uspešno sačuvana",
       "saveError": "Čuvanje plejliste nije uspelo. Pokušajte ponovo.",
-      "conflict": "Ova plejlista je izmenjena na drugom mestu. Vaše nesačuvane izmene su odbačene i učitana je najnovija verzija.",
+      "conflict": "Ova plejlista je izmenjena na drugom mestu. Učitana je najnovija verzija, a vaše nesačuvane izmene su zadržane — proverite ih pre čuvanja, jer će čuvanje pregaziti tuđe izmene.",
       "mediaUnavailable": "Medij nije dostupan",
       "unknownMedia": "Nepoznat medij"
     },
@@ -1026,7 +1030,7 @@
       "addApp": {
         "add": "Dodaj"
       },
-      "conflict": "Ovaj ekran je izmenjen na drugom mestu. Vaše nesačuvane izmene su odbačene i učitana je najnovija verzija."
+      "conflict": "Ovaj ekran je izmenjen na drugom mestu. Učitana je najnovija verzija, a vaše nesačuvane izmene su zadržane — proverite ih pre čuvanja, jer će čuvanje pregaziti tuđe izmene."
     },
     "layout": {
       "fullscreen": "Ceo ekran",

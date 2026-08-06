@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 
+import { useDirtyDraftGuard } from "@/features/content/hooks/useDirtyDraftGuard"
 import { isDraftDirty } from "@/features/content/lib/contentDraft"
 import type { NormalizedSavedItem } from "@/features/content/registry/contentType.types"
 import { getContentTypeDefinition } from "@/features/content/registry/contentTypeRegistry"
@@ -45,6 +46,15 @@ export function useContentContainer<TEntity>({
     setDraftItems((current) => (isDraftDirty(current, baseline) ? current : baseline))
   }, [baseline])
 
+  const dirty = useMemo(
+    () => isDraftDirty(draftItems, baseline),
+    [draftItems, baseline],
+  )
+
+  // Unsaved edits survive refetches (above) but not navigation — hold in-app
+  // navigation and tab close behind a confirmation while the draft is dirty.
+  useDirtyDraftGuard(dirty)
+
   /**
    * Normalized, registry-mapped save entries for the allowed types. Each
    * container narrows these to its own API request shape.
@@ -63,6 +73,7 @@ export function useContentContainer<TEntity>({
   return {
     baseline,
     draftItems,
+    dirty,
     setDraftItems,
     buildSavePayload,
   }
