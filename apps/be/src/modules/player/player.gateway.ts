@@ -37,6 +37,8 @@ import type {
 interface HandshakeAuth {
   deviceId?: string;
   token?: string;
+  /** Single-use operator-minted code; the tokenless recovery path. */
+  recoveryCode?: string;
   revision?: string;
   profile?: ReportedProfile;
   /**
@@ -127,7 +129,17 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
         deviceId,
         auth.token,
         auth.profile,
+        auth.recoveryCode,
       );
+
+      if (result.kind === 'recovery-required') {
+        // Known paired id without proof of possession. Tell the client to
+        // discard its identity and re-enter pairing; keep the socket open so
+        // the instruction is actually delivered (a disconnect would just
+        // trigger socket.io's automatic reconnect with the same bad auth).
+        client.emit(PlayerSocketEvents.RecoveryRequired);
+        return;
+      }
 
       if (result.kind === 'unpaired') {
         if (result.tokenWasInvalid) {

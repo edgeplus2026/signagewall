@@ -873,7 +873,8 @@
         "frameTitle": "Pregled sadržaja ekrana uživo",
         "previous": "Prethodna stavka",
         "next": "Sledeća stavka",
-        "openWebPlayer": "Otvori web plejer"
+        "openWebPlayer": "Otvori web plejer",
+        "openWebPlayerError": "Nije uspelo otvaranje web plejera. Pokušajte ponovo."
       },
       "pair": {
         "submit": "Upari uređaj",

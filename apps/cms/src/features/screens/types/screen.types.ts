@@ -77,6 +77,13 @@ export interface PairDeviceRequest {
   code: string
 }
 
+/** Single-use recovery grant for opening the web player as a paired device. */
+export interface ScreenDeviceRecoveryLink {
+  deviceId: string
+  recoveryCode: string
+  expiresAt: string
+}
+
 export interface SetDeviceDailyReloadRequest {
   enabled: boolean
   time: string

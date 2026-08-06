@@ -165,6 +165,43 @@ export class DevicesRepository {
       .exec();
   }
 
+  /** Arms a fresh single-use recovery code, replacing any previous one. */
+  async setRecoveryCode(
+    deviceId: string,
+    recoveryCodeHash: string,
+    recoveryCodeExpiresAt: Date,
+  ): Promise<DeviceDocument | null> {
+    return this.deviceModel
+      .findOneAndUpdate(
+        { deviceId },
+        { $set: { recoveryCodeHash, recoveryCodeExpiresAt } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+  }
+
+  /**
+   * Atomically redeems a recovery code: the matching, unexpired code is unset
+   * in the same operation, so it can never be redeemed twice — even by
+   * concurrent connections racing with the same URL.
+   */
+  async claimRecoveryCode(
+    deviceId: string,
+    recoveryCodeHash: string,
+  ): Promise<DeviceDocument | null> {
+    return this.deviceModel
+      .findOneAndUpdate(
+        {
+          deviceId,
+          recoveryCodeHash,
+          recoveryCodeExpiresAt: { $gt: new Date() },
+        },
+        { $unset: { recoveryCodeHash: '', recoveryCodeExpiresAt: '' } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+  }
+
   /** Marks presence and returns the updated device (for downstream events). */
   async setPresence(
     deviceId: string,

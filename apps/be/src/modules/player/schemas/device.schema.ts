@@ -211,6 +211,18 @@ export class Device {
   @Prop({ index: true, sparse: true })
   tokenHash?: string;
 
+  /**
+   * SHA-256 of a single-use recovery code minted by an operator ("Open web
+   * player"). Lets a device whose storage was wiped re-adopt its identity
+   * without the bare `deviceId` acting as a bearer credential. Consumed
+   * atomically on first use.
+   */
+  @Prop()
+  recoveryCodeHash?: string;
+
+  @Prop()
+  recoveryCodeExpiresAt?: Date;
+
   @Prop()
   lastSeenAt?: Date;
 

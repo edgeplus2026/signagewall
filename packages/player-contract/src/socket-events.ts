@@ -5,6 +5,14 @@
 export const PlayerSocketEvents = {
   PairingCode: 'pairing:code',
   Paired: 'paired',
+  /**
+   * Server → device: this connection presented a known paired `deviceId` but
+   * neither the device token nor a valid one-time recovery code — the server
+   * refuses to re-admit on bare identity. The client should discard its local
+   * identity, mint a fresh `deviceId` and reconnect into the normal pairing
+   * flow.
+   */
+  RecoveryRequired: 'recovery:required',
   ContentUpdate: 'content:update',
   Sleep: 'sleep',
   Command: 'command',

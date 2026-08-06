@@ -11,7 +11,13 @@ import {
   setCachedPairingCode,
   setToken,
 } from '../device'
+import { deactivateDevice } from '../native/service'
 import { clearMediaCaches, clearSnapshot, saveSnapshot } from '../persistence/idb'
+import {
+  clearUrlDeviceId,
+  clearUrlRecoveryCode,
+  getUrlRecoveryCode,
+} from '../recovery'
 import { applyCommand, applySettings, applyVolume } from './commands'
 import { playbackShowItem } from './playback-bus'
 import {
@@ -59,6 +65,9 @@ export function connectPlayer(): void {
       cb({
         deviceId,
         token: getToken(),
+        // Single-use CMS-minted code (?recovery=); the server consumes it on
+        // first redemption, so re-sending a spent one on reconnect is inert.
+        recoveryCode: getUrlRecoveryCode(),
         revision: snapshot.value?.revision,
         profile: getProfile(),
       }),
@@ -104,6 +113,9 @@ export function connectPlayer(): void {
   socket.on('paired', (payload: PairedPayload) => {
     if (payload.token) {
       setToken(payload.token)
+      // Any recovery code in the URL is now consumed (or moot) — strip it so
+      // the address bar never shows a spent credential.
+      clearUrlRecoveryCode()
     }
     if (payload.volume !== undefined) {
       applyVolume(payload.volume)
@@ -123,6 +135,16 @@ export function connectPlayer(): void {
 
   socket.on('command', (command: PlayerCommand) => {
     applyCommand(command)
+  })
+
+  // The server refused this known paired deviceId: no device token, no valid
+  // recovery code. The identity is unusable — wipe it and boot fresh into the
+  // pairing flow. URL params go first, otherwise the clean boot would re-adopt
+  // the exact id that was just refused and loop forever.
+  socket.on('recovery:required', () => {
+    clearUrlDeviceId()
+    clearUrlRecoveryCode()
+    void deactivateDevice()
   })
 
   socket.on('paired:revoked', () => {

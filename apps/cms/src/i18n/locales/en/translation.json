@@ -895,7 +895,8 @@
         "frameTitle": "Live preview of the screen's content",
         "previous": "Previous item",
         "next": "Next item",
-        "openWebPlayer": "Open web player"
+        "openWebPlayer": "Open web player",
+        "openWebPlayerError": "Couldn't open the web player. Please try again."
       },
       "pair": {
         "submit": "Pair device",

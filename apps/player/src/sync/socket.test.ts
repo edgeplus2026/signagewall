@@ -6,6 +6,10 @@ const { ioMock } = vi.hoisted(() => ({ ioMock: vi.fn() }))
 
 const setToken = vi.fn()
 const clearToken = vi.fn()
+const deactivateDevice = vi.fn()
+const clearUrlDeviceId = vi.fn()
+const clearUrlRecoveryCode = vi.fn()
+let urlRecoveryCode: string | undefined
 const setCachedPairingCode = vi.fn()
 const clearCachedPairingCode = vi.fn()
 const saveSnapshot = vi.fn()
@@ -41,6 +45,12 @@ vi.mock('../persistence/idb', () => ({
 }))
 vi.mock('./commands', () => ({ applyCommand, applySettings, applyVolume }))
 vi.mock('./playback-bus', () => ({ playbackShowItem }))
+vi.mock('../native/service', () => ({ deactivateDevice }))
+vi.mock('../recovery', () => ({
+  getUrlRecoveryCode: () => urlRecoveryCode,
+  clearUrlDeviceId,
+  clearUrlRecoveryCode,
+}))
 
 // Imported after the mocks so socket.ts binds to the stubbed leaf modules.
 const { connectPlayer, disconnectPlayer } = await import('./socket')
@@ -89,6 +99,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   socket = createFakeSocket()
   ioMock.mockReturnValue(socket)
+  urlRecoveryCode = undefined
   connection.value = 'offline'
   paired.value = false
   pairingCode.value = null
@@ -130,6 +141,45 @@ describe('pairing lifecycle', () => {
     expect(paired.value).toBe(true)
     expect(pairingCode.value).toBeNull()
     expect(clearCachedPairingCode).toHaveBeenCalled()
+  })
+
+  it('sends a URL recovery code in the connect auth payload', () => {
+    urlRecoveryCode = 'one-time-code'
+    connectPlayer()
+
+    const options = ioMock.mock.calls[0][1] as {
+      auth: (cb: (payload: Record<string, unknown>) => void) => void
+    }
+    const receive = vi.fn()
+    options.auth(receive)
+
+    expect(receive).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deviceId: 'device-1',
+        token: 'token-1',
+        recoveryCode: 'one-time-code',
+      }),
+    )
+  })
+
+  it('strips the consumed recovery code from the URL once paired', () => {
+    connectPlayer()
+
+    socket.fire('paired', { token: 'fresh-token' })
+
+    expect(clearUrlRecoveryCode).toHaveBeenCalled()
+  })
+
+  it('resets identity and reboots into pairing on recovery:required', () => {
+    connectPlayer()
+
+    socket.fire('recovery:required')
+
+    // URL params must go before the wipe-and-restart: a clean boot that still
+    // sees ?device= would re-adopt the exact identity the server just refused.
+    expect(clearUrlDeviceId).toHaveBeenCalled()
+    expect(clearUrlRecoveryCode).toHaveBeenCalled()
+    expect(deactivateDevice).toHaveBeenCalled()
   })
 
   it('wipes token, snapshot and media caches on revoke', () => {

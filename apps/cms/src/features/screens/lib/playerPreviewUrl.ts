@@ -1,5 +1,6 @@
 import type {
   ScreenDeviceOrientation,
+  ScreenDeviceRecoveryLink,
   ScreenDeviceScale,
 } from '@/features/screens/types/screen.types'
 
@@ -17,21 +18,18 @@ interface PreviewUrlParams {
 export const PLAYER_ORIGIN: string = new URL(PLAYER_URL).origin
 
 /**
- * Builds the "Open web player" URL for an already-paired screen, carrying the
- * device's stable `deviceId` (`?device=<uuid>`). The player uses it as an
- * identity-recovery anchor: if the player's localStorage was wiped, opening this
- * URL lets it re-adopt the same `deviceId` and slide back into this screen — the
- * backend re-issues its token on reconnect, so no re-pairing is needed.
- *
- * SECURITY: the backend re-issues a token to any connection that presents a known
- * paired `deviceId` (it does NOT prove prior ownership), so this link effectively
- * acts as a recovery credential for the screen — anyone who obtains it can bind a
- * fresh browser to this device. Treat it as sensitive: it lands in browser history
- * and server access logs. The `deviceId` is a 122-bit UUID (unguessable), so the
- * risk is disclosure of the link, not brute force.
+ * Builds the "Open web player" URL for an already-paired screen from a freshly
+ * minted recovery grant: the device's stable identity (`?device=<uuid>`) plus a
+ * single-use, short-lived recovery code (`?recovery=<code>`). The backend
+ * consumes the code atomically on first connect and rotates the device token —
+ * a bare `deviceId` is deliberately NOT a credential, so a stale or leaked copy
+ * of this URL admits nobody.
  */
-export function buildPlayerDeviceUrl(deviceId: string): string {
-  return `${PLAYER_URL}/?device=${encodeURIComponent(deviceId)}`
+export function buildPlayerRecoveryUrl(link: ScreenDeviceRecoveryLink): string {
+  return (
+    `${PLAYER_URL}/?device=${encodeURIComponent(link.deviceId)}` +
+    `&recovery=${encodeURIComponent(link.recoveryCode)}`
+  )
 }
 
 /**
