@@ -229,6 +229,14 @@ export class Device {
   @Prop({ default: false })
   online!: boolean;
 
+  /**
+   * When the offline alert email for the CURRENT offline episode was sent.
+   * Cleared the moment the device reports back online, so the next episode
+   * alerts again — one alert per outage, not one per sweep.
+   */
+  @Prop()
+  offlineAlertedAt?: Date;
+
   /** Playback volume 0–100, applied by the player to its video audio. */
   @Prop({ default: 100, min: 0, max: 100 })
   volume!: number;

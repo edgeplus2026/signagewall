@@ -17,6 +17,10 @@ import {
   type SupportEmailContext,
 } from './templates/support-email.template';
 import { renderOrganizationInviteEmail } from './templates/organization-invite.template';
+import {
+  OfflineScreenSummary,
+  renderScreenOfflineEmail,
+} from './templates/screen-offline.template';
 import { renderTrialExpiringEmail } from './templates/trial-expiring.template';
 import {
   renderUpgradeRequestEmail,
@@ -178,6 +182,24 @@ export class MailService implements OnModuleInit {
       name: params.name,
       expiresAt: params.expiresAt,
       upgradeUrl: params.loginUrl,
+    });
+
+    await this.send({ to: params.to, subject, html });
+  }
+
+  /** Tells an org member their screen(s) crossed the offline threshold. */
+  async sendScreenOfflineAlertEmail(params: {
+    to: string;
+    organizationName: string;
+    screens: OfflineScreenSummary[];
+    offlineMinutes: number;
+    screensUrl: string;
+  }): Promise<void> {
+    const { subject, html } = renderScreenOfflineEmail({
+      organizationName: params.organizationName,
+      screens: params.screens,
+      offlineMinutes: params.offlineMinutes,
+      screensUrl: params.screensUrl,
     });
 
     await this.send({ to: params.to, subject, html });

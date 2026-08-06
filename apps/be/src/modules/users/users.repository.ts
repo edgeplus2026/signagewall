@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ClientSession, Model } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 
 import { User, UserDocument, UserPlan, UserRole } from './schemas/user.schema';
 
@@ -226,6 +226,16 @@ export class UsersRepository {
 
   findByGoogleId(googleId: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ googleId }).exec();
+  }
+
+  /** Bulk lookup for notification fan-out (e.g. org-wide alert emails). */
+  findManyByIds(ids: string[]): Promise<UserDocument[]> {
+    if (ids.length === 0) {
+      return Promise.resolve([]);
+    }
+    return this.userModel
+      .find({ _id: { $in: ids.map((id) => new Types.ObjectId(id)) } })
+      .exec();
   }
 
   /** Legacy paid projections that should have a corresponding billing record. */

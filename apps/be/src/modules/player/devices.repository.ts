@@ -217,8 +217,45 @@ export class DevicesRepository {
             lastSeenAt: new Date(),
             ...(profile ? { profile } : {}),
           },
+          // Coming back online closes the offline episode, re-arming the
+          // offline alert for the next outage.
+          ...(online ? { $unset: { offlineAlertedAt: '' } } : {}),
         },
         { returnDocument: 'after' },
+      )
+      .exec();
+  }
+
+  /**
+   * Paired devices that have been offline since before `cutoff` and have not
+   * yet been alerted for this episode. Drives the offline-alert sweep.
+   */
+  findOfflineForAlert(cutoff: Date): Promise<DeviceDocument[]> {
+    return this.deviceModel
+      .find({
+        status: DeviceStatus.PAIRED,
+        online: false,
+        lastSeenAt: { $lte: cutoff },
+        offlineAlertedAt: { $exists: false },
+        screenId: { $exists: true },
+        organizationId: { $exists: true },
+      })
+      .exec();
+  }
+
+  /**
+   * Stamps the alert BEFORE the email goes out (at-most-once): a crash between
+   * stamp and send loses one email, while stamping after a send could double-
+   * alert every screen on a retry — the worse failure for an inbox.
+   */
+  async markOfflineAlerted(deviceIds: string[]): Promise<void> {
+    if (deviceIds.length === 0) {
+      return;
+    }
+    await this.deviceModel
+      .updateMany(
+        { deviceId: { $in: deviceIds } },
+        { $set: { offlineAlertedAt: new Date() } },
       )
       .exec();
   }

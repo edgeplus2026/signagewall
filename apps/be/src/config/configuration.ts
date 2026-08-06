@@ -164,6 +164,12 @@ export default () => ({
       process.env.PLAYER_OFFLINE_AFTER_SECONDS ?? '90',
       10,
     ),
+    // Email org members after a paired screen has been offline this long.
+    // 0 disables the alert entirely.
+    offlineAlertMinutes: parseInt(
+      process.env.SCREEN_OFFLINE_ALERT_MINUTES ?? '10',
+      10,
+    ),
   },
   // Redis — backs the BullMQ queue used by the AI content generator. A full
   // `REDIS_URL` (e.g. rediss://…) takes precedence over host/port when set.

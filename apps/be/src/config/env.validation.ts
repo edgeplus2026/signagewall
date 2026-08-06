@@ -79,6 +79,9 @@ export const envValidationSchema = Joi.object({
   STOCK_MEDIA_MAX_IMPORT_BYTES: Joi.number().default(50 * 1024 * 1024),
   PLAYER_PAIRING_CODE_TTL_MINUTES: Joi.number().default(15),
   PLAYER_OFFLINE_AFTER_SECONDS: Joi.number().default(90),
+  // Minutes a paired screen must be offline before org members are emailed;
+  // 0 disables the alert.
+  SCREEN_OFFLINE_ALERT_MINUTES: Joi.number().integer().min(0).default(10),
   // Redis (BullMQ). REDIS_URL takes precedence over host/port when provided.
   REDIS_URL: Joi.string().optional().allow(''),
   REDIS_HOST: Joi.string().default('localhost'),
