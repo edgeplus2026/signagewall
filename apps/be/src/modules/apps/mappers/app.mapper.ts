@@ -27,6 +27,13 @@ export interface AppCatalogResponseDto {
   isInstalled: boolean;
 }
 
+/** One organization's entitlement to a (typically non-public) app. */
+export interface AppGrantResponseDto {
+  organizationId: string;
+  organizationName: string;
+  grantedAt: string;
+}
+
 /** Full catalog shape for super-admin management (adds governance fields). */
 export interface AppAdminResponseDto extends AppCatalogResponseDto {
   isPublic: boolean;

@@ -23,6 +23,7 @@ import { AppDataCacheRepository } from './app-data-cache.repository';
 import { isOverlaySlug, overlayScreenIds } from './overlay.util';
 import { AppInstancesRepository } from './app-instances.repository';
 import { AppsRepository } from './apps.repository';
+import { OrgAppsRepository } from './org-apps.repository';
 import {
   AppInstanceResponseDto,
   toAppInstanceResponse,
@@ -47,6 +48,7 @@ export class AppInstancesService {
     private readonly screensService: ScreensService,
     private readonly eventEmitter: EventEmitter2,
     private readonly appDataCacheRepository: AppDataCacheRepository,
+    private readonly orgAppsRepository: OrgAppsRepository,
   ) {}
 
   async list(
@@ -74,7 +76,7 @@ export class AppInstancesService {
     appId: string,
     name?: string,
   ): Promise<AppInstanceResponseDto> {
-    const app = await this.requirePublicApp(appId);
+    const app = await this.requireEntitledApp(organizationId, appId);
     const schema = app.configSchema ?? [];
     const count = await this.instancesRepository.countForApp(
       organizationId,
@@ -553,10 +555,28 @@ export class AppInstancesService {
     await this.cleanupPrivateConnectorState(instance, previousKey);
   }
 
-  private async requirePublicApp(appId: string): Promise<AppDocument> {
+  /**
+   * An organization may instantiate an app it is entitled to: any public app,
+   * or a non-public one it has installed (a super-admin beta grant writes the
+   * same install record). Anything else is a 404 — a non-entitled org must
+   * not even learn the app exists.
+   */
+  private async requireEntitledApp(
+    organizationId: string,
+    appId: string,
+  ): Promise<AppDocument> {
     const app = await this.appsRepository.findById(appId);
-    if (!app || !app.isPublic) {
+    if (!app) {
       throw BusinessException.notFound('App not found');
+    }
+    if (!app.isPublic) {
+      const installed = await this.orgAppsRepository.isInstalled(
+        organizationId,
+        appId,
+      );
+      if (!installed) {
+        throw BusinessException.notFound('App not found');
+      }
     }
     return app;
   }

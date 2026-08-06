@@ -34,7 +34,8 @@ verification) live in [POST_MERGE.md](POST_MERGE.md).
 
 - [x] **FT-1: Screen-offline email alert** — minute sweep emails active+verified org members once per outage episode (`SCREEN_OFFLINE_ALERT_MINUTES`, default 10, 0 disables); grouped per org so a site outage is one email; re-arms when the device reports back online.
 - [ ] **FT-2: Fleet health dashboard** — online/last-seen/cache status per screen (UI over existing data).
-- [ ] **FT-3: Beta entitlement path + operator diagnostics (INT-03)** — unblocks OpsBoard demo org and design-partner Power BI.
+- [x] **FT-3a: Beta entitlement path (INT-03 items 1–3)** — super-admin `POST/GET/DELETE /admin/apps/:id/grants`; granted non-public apps appear in that org's catalog and are instantiable; the normal install endpoint stays public-only; revoke runs the full uninstall cascade.
+- [ ] **FT-3b: Operator diagnostics (INT-03 items 4–6)** — fixed allowlist of safe connector error codes/messages to the CMS (consent, permission, capacity, throttling, retry guidance), never upstream bodies or credentials.
 - [ ] **FT-4: Proof-of-play reporting** — persist `now-playing` events, per-screen playback report.
 - [ ] **FT-5: Viewer/editor org roles** (all members currently default ADMIN).
 - [ ] **FT-6: Stripe/Paddle self-serve checkout** — gate on Menu Starter funnel signal; unblocks SEO→signup→pay motion.

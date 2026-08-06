@@ -78,7 +78,17 @@ merges. Code-side work stays in [TODO.md](TODO.md).
       time in a private window must NOT be admitted — it should reset to a
       pairing code within a few seconds.
 
-## 6. Larger items intentionally NOT in this PR (tracked in TODO.md)
+## 6. OpsBoard demo enablement (new capability in this PR)
+
+- [ ] Grant OpsBoard to the internal/demo organization:
+      `POST /api/v1/admin/apps/<opsBoardAppId>/grants` with
+      `{ "organizationId": "<demoOrgId>" }` as a super-admin (app ids via
+      `GET /admin/apps`). The app then appears in that org's catalog and can
+      be instantiated; it stays invisible to every other org.
+- [ ] Run the OpsBoard go-checklist from TODO.md against that org (real
+      Sheet + Excel tenant, physical player, offline/reconnect, latency).
+
+## 7. Larger items intentionally NOT in this PR (tracked in TODO.md)
 
 - PL-5: health-gated/canary promotion for the web player bundle (infra).
 - Gate C external verification for Secure Power BI (real tenant, capacity

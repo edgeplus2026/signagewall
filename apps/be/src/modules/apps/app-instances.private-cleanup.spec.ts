@@ -161,6 +161,7 @@ function buildService(
     screensService as never,
     eventEmitter as never,
     appDataCacheRepository as never,
+    { isInstalled: jest.fn().mockResolvedValue(true) } as never, // orgAppsRepository
   );
   return {
     service,
@@ -446,6 +447,7 @@ describe('AppsService uninstall ordering', () => {
       {} as never,
       orgAppsRepository as never,
       instancesService as never,
+      {} as never, // organizationsRepository
     );
 
     await expect(service.uninstall('org-1', 'app-1')).rejects.toBe(
@@ -465,6 +467,7 @@ describe('AppsService uninstall ordering', () => {
       {} as never,
       orgAppsRepository as never,
       instancesService as never,
+      {} as never, // organizationsRepository
     );
 
     await service.uninstall('org-1', 'app-1');
