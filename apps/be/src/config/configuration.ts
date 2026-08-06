@@ -1,6 +1,14 @@
 export default () => ({
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: parseInt(process.env.PORT ?? '3000', 10),
+  // Reverse-proxy hops in front of this API (Railway = 1). Express needs it to
+  // resolve req.ip from X-Forwarded-For; otherwise every client shares the
+  // proxy's IP and per-client throttling collapses into one global bucket.
+  trustProxyHops: parseInt(
+    process.env.TRUST_PROXY_HOPS ??
+      ((process.env.NODE_ENV ?? 'development') === 'production' ? '1' : '0'),
+    10,
+  ),
   apiPrefix: process.env.API_PREFIX ?? 'api',
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
   playerUrl: process.env.PLAYER_URL ?? 'http://localhost:5174',
@@ -72,6 +80,16 @@ export default () => ({
     ),
     inviteExpiresInDays: parseInt(
       process.env.INVITE_EXPIRES_IN_DAYS ?? '7',
+      10,
+    ),
+    // Consecutive failed password attempts before a temporary lock. Per-account
+    // complement to the per-IP AuthThrottle, which a distributed attacker evades.
+    maxFailedLoginAttempts: parseInt(
+      process.env.AUTH_MAX_FAILED_LOGIN_ATTEMPTS ?? '5',
+      10,
+    ),
+    loginLockoutMinutes: parseInt(
+      process.env.AUTH_LOGIN_LOCKOUT_MINUTES ?? '15',
       10,
     ),
   },

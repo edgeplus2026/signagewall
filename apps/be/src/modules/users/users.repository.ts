@@ -28,7 +28,9 @@ export type UserSelectField =
   | 'passwordResetToken'
   | 'passwordResetExpiresAt'
   | 'emailVerificationToken'
-  | 'emailVerificationExpiresAt';
+  | 'emailVerificationExpiresAt'
+  | 'failedLoginAttempts'
+  | 'loginLockedUntil';
 
 export interface FindUserOptions {
   select?: UserSelectField[];
@@ -250,6 +252,24 @@ export class UsersRepository {
       .exec();
   }
 
+  /**
+   * Atomically redeems a one-time Google login code: the matching, unexpired
+   * code is unset in the same operation, so a code can never be exchanged
+   * twice even by concurrent requests.
+   */
+  claimGoogleLoginCode(codeHash: string): Promise<UserDocument | null> {
+    return this.userModel
+      .findOneAndUpdate(
+        {
+          googleLoginCode: codeHash,
+          googleLoginCodeExpiresAt: { $gt: new Date() },
+        },
+        { $unset: { googleLoginCode: 1, googleLoginCodeExpiresAt: 1 } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+  }
+
   findByEmailVerificationTokenHash(
     tokenHash: string,
   ): Promise<UserDocument | null> {
@@ -265,6 +285,52 @@ export class UsersRepository {
   updateById(id: string, data: Partial<User>): Promise<UserDocument | null> {
     return this.userModel
       .findByIdAndUpdate(id, data, { returnDocument: 'after' })
+      .exec();
+  }
+
+  /**
+   * Counts a failed password attempt atomically and locks the account once
+   * `maxAttempts` consecutive failures accumulate. Concurrent failures can at
+   * worst re-apply the same lock, never skip it. Returns whether the account
+   * is now locked.
+   */
+  async recordFailedLogin(
+    id: string,
+    maxAttempts: number,
+    lockoutMs: number,
+  ): Promise<{ locked: boolean }> {
+    const user = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        { $inc: { failedLoginAttempts: 1 } },
+        { returnDocument: 'after' },
+      )
+      .select('+failedLoginAttempts')
+      .exec();
+
+    if (!user || (user.failedLoginAttempts ?? 0) < maxAttempts) {
+      return { locked: false };
+    }
+
+    await this.userModel
+      .updateOne(
+        { _id: user._id },
+        {
+          $set: { loginLockedUntil: new Date(Date.now() + lockoutMs) },
+          $unset: { failedLoginAttempts: 1 },
+        },
+      )
+      .exec();
+    return { locked: true };
+  }
+
+  /** Clears the failure counter and any lock after a successful login. */
+  async clearLoginLock(id: string): Promise<void> {
+    await this.userModel
+      .updateOne(
+        { _id: id },
+        { $unset: { failedLoginAttempts: 1, loginLockedUntil: 1 } },
+      )
       .exec();
   }
 

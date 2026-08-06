@@ -79,6 +79,21 @@ export class User {
   @Prop({ select: false })
   refreshTokenHash?: string;
 
+  /** Hash of the single-use code minted by the Google OAuth redirect. */
+  @Prop({ select: false })
+  googleLoginCode?: string;
+
+  @Prop({ select: false })
+  googleLoginCodeExpiresAt?: Date;
+
+  /** Consecutive failed password attempts since the last successful login. */
+  @Prop({ select: false })
+  failedLoginAttempts?: number;
+
+  /** Login is refused until this instant after too many consecutive failures. */
+  @Prop({ select: false })
+  loginLockedUntil?: Date;
+
   /**
    * Billing tier. There is no payment integration — a plan only ever changes
    * because a super-admin changed it after an invoice was settled.

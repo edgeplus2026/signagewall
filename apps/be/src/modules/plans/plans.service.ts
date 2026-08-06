@@ -189,13 +189,14 @@ export class PlansService {
 
     if (!owner) {
       // No owner resolvable — an organization mid-deletion, or one whose owner
-      // was erased before ownership could move on. Fail open: refusing every
-      // screen for the remaining team is a worse failure than one uncounted
-      // screen, and `transferOwnership` keeps this off the normal paths.
+      // was erased before ownership could move on. Fail closed: an ownerless
+      // organization has no licences to spend, and failing open would let the
+      // remaining members grow an uncounted, unbilled fleet indefinitely.
+      // `transferOwnership` is the fix for the stuck workspace.
       this.logger.warn(
-        `No owner resolved for organization ${organizationId}; skipping plan check`,
+        `No owner resolved for organization ${organizationId}; refusing screen create`,
       );
-      return;
+      throw BusinessException.forbidden(this.i18n.t('plans.ownerUnresolved'));
     }
 
     const entitlement = await this.resolveForUser(owner);
@@ -204,7 +205,76 @@ export class PlansService {
       return;
     }
 
-    throw BusinessException.forbidden(
+    throw this.screenLimitError(entitlement);
+  }
+
+  /**
+   * Post-insert half of the screen gate. `assertCanCreateScreen` is a
+   * read-then-check, so two concurrent creates can both pass it and land the
+   * owner over the cap. Callers pass the freshly inserted screen id: when the
+   * owner is now over the limit, the oldest `limit` screens survive and each
+   * racer judges only its own insert — so exactly the over-cap extras are
+   * rolled back (deleted) and the same 403 is thrown.
+   */
+  async assertCreatedScreenWithinLimit(
+    organizationId: string,
+    screenId: string,
+  ): Promise<void> {
+    const ownerId = await this.resolveOwnerUserId(organizationId);
+    const owner = ownerId ? await this.usersRepository.findById(ownerId) : null;
+
+    if (!owner) {
+      // Owner vanished between the pre-check and the insert. Same fail-closed
+      // stance: take the screen back out.
+      await this.screenModel
+        .deleteOne({ _id: new Types.ObjectId(screenId) })
+        .exec();
+      throw BusinessException.forbidden(this.i18n.t('plans.ownerUnresolved'));
+    }
+
+    const entitlement = await this.resolveForUser(owner);
+    if (
+      entitlement.screenLimit === null ||
+      entitlement.screensUsed <= entitlement.screenLimit
+    ) {
+      return;
+    }
+
+    // `.limit(0)` means "no limit" to Mongo, so a zero-licence owner gets no
+    // survivor query at all.
+    const survivors =
+      entitlement.screenLimit === 0
+        ? []
+        : await this.screenModel
+            .find({
+              organizationId: {
+                $in: entitlement.ownedOrganizationIds.map(
+                  (id) => new Types.ObjectId(id),
+                ),
+              },
+            })
+            .sort({ _id: 1 })
+            .limit(entitlement.screenLimit)
+            .select('_id')
+            .exec();
+
+    if (survivors.some((screen) => screen._id.toString() === screenId)) {
+      return;
+    }
+
+    await this.screenModel
+      .deleteOne({ _id: new Types.ObjectId(screenId) })
+      .exec();
+    this.logger.warn(
+      `Rolled back screen ${screenId}: owner ${entitlement.userId} exceeded limit ${entitlement.screenLimit} in a concurrent create`,
+    );
+    throw this.screenLimitError(entitlement);
+  }
+
+  private screenLimitError(
+    entitlement: ResolvedEntitlement,
+  ): BusinessException {
+    return BusinessException.forbidden(
       this.i18n.t(
         entitlement.plan === UserPlan.FREE
           ? 'plans.screenLimitFree'

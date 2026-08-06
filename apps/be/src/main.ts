@@ -23,6 +23,13 @@ async function bootstrap() {
   app.useBodyParser('json', { limit: '15mb' });
   app.useBodyParser('urlencoded', { extended: true, limit: '15mb' });
 
+  // Behind Railway's proxy req.ip is the proxy address unless Express is told
+  // how many hops to trust; per-IP throttling is meaningless without this.
+  const trustProxyHops = configService.getOrThrow<number>('trustProxyHops');
+  if (trustProxyHops > 0) {
+    app.set('trust proxy', trustProxyHops);
+  }
+
   const apiPrefix = configService.getOrThrow<string>('apiPrefix');
   const frontendUrl = configService.getOrThrow<string>('frontendUrl');
   const playerUrl = configService.getOrThrow<string>('playerUrl');

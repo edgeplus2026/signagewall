@@ -2,5 +2,6 @@
   "screenLimitFree": "Your free trial includes {limit} screen. Upgrade your plan to add more.",
   "screenLimitEnterprise": "Your plan covers {limit} screen(s). Request more licences to add another.",
   "organizationLimitFree": "Your free trial includes {limit} organization. Upgrade your plan to create another.",
-  "upgradeRequestNotFound": "Upgrade request not found."
+  "upgradeRequestNotFound": "Upgrade request not found.",
+  "ownerUnresolved": "This workspace has no owner, so new screens can't be added. Contact support to restore ownership."
 }

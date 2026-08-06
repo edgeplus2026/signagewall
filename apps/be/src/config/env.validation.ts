@@ -47,6 +47,10 @@ export const envValidationSchema = Joi.object({
   MAIL_BILLING_ALERTS_TO: Joi.string().email().optional().allow(''),
   PASSWORD_RESET_EXPIRES_IN_HOURS: Joi.number().default(1),
   EMAIL_VERIFICATION_EXPIRES_IN_HOURS: Joi.number().default(24),
+  // Reverse-proxy hops for Express `trust proxy` (Railway = 1, local dev = 0).
+  TRUST_PROXY_HOPS: Joi.number().integer().min(0).optional(),
+  AUTH_MAX_FAILED_LOGIN_ATTEMPTS: Joi.number().integer().min(1).default(5),
+  AUTH_LOGIN_LOCKOUT_MINUTES: Joi.number().integer().min(1).default(15),
   THROTTLE_TTL_SECONDS: Joi.number().default(60),
   THROTTLE_LIMIT: Joi.number().default(120),
   THROTTLE_AUTH_TTL_SECONDS: Joi.number().default(60),

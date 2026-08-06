@@ -19,6 +19,11 @@ const sortSelectQuery = (result: unknown) => ({
   sort: jest.fn(() => selectQuery(result)),
 });
 
+/** Query stub for `.sort(...).limit(...).select(...).exec()`. */
+const sortLimitSelectQuery = (result: unknown) => ({
+  sort: jest.fn(() => ({ limit: jest.fn(() => selectQuery(result)) })),
+});
+
 const OWNER_ID = new Types.ObjectId();
 const MEMBER_ID = new Types.ObjectId();
 const ORG_ID = new Types.ObjectId();
@@ -54,6 +59,8 @@ interface Deps {
   /** Memberships the user has at all. */
   memberships?: { organizationId: Types.ObjectId }[];
   screenCount?: number;
+  /** Screens returned by the post-insert survivor query, oldest first. */
+  survivingScreens?: { _id: Types.ObjectId }[];
   /** `ownerUserId` returned by findById(orgId).select('ownerUserId'). */
   organizationOwner?: Types.ObjectId | null;
 }
@@ -86,11 +93,14 @@ function build(deps: Deps) {
 
   const screenModel = {
     countDocuments: jest.fn(() => query(deps.screenCount ?? 0)),
+    find: jest.fn(() => sortLimitSelectQuery(deps.survivingScreens ?? [])),
+    deleteOne: jest.fn(() => query({ deletedCount: 1 })),
   };
 
   const usersRepository = {
-    findById: jest.fn((id: string) =>
-      Promise.resolve(deps.users?.[id] ?? user()),
+    findById: jest.fn(
+      (id: string): Promise<UserStub | null> =>
+        Promise.resolve(deps.users?.[id] ?? user()),
     ),
   };
 
@@ -105,7 +115,13 @@ function build(deps: Deps) {
     { record: jest.fn().mockResolvedValue(undefined) } as never,
   );
 
-  return { service, organizationModel, membershipModel, usersRepository };
+  return {
+    service,
+    organizationModel,
+    membershipModel,
+    screenModel,
+    usersRepository,
+  };
 }
 
 describe('PlansService.assertCanCreateScreen', () => {
@@ -192,7 +208,9 @@ describe('PlansService.assertCanCreateScreen', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('fails open when no owner can be resolved', async () => {
+  it('fails closed when no owner can be resolved', async () => {
+    // An ownerless organization has no licences to spend; failing open would
+    // let the remaining members grow an uncounted fleet.
     const { service } = build({
       organizationOwner: null,
       ownedOrganizations: [],
@@ -200,19 +218,108 @@ describe('PlansService.assertCanCreateScreen', () => {
 
     await expect(
       service.assertCanCreateScreen(ORG_ID.toString()),
-    ).resolves.toBeUndefined();
+    ).rejects.toBeInstanceOf(BusinessException);
   });
 
-  it('fails open rather than 404s when the owner row is gone', async () => {
-    // Ownership normally moves on when an owner leaves; this is the backstop
-    // for data where it did not. Refusing every screen would break a team that
-    // did nothing wrong.
+  it('fails closed when the owner row is gone', async () => {
     const { service, usersRepository } = build({ ownedOrganizations: [] });
     usersRepository.findById.mockResolvedValue(null);
 
     await expect(
       service.assertCanCreateScreen(ORG_ID.toString()),
+    ).rejects.toBeInstanceOf(BusinessException);
+  });
+});
+
+describe('PlansService.assertCreatedScreenWithinLimit', () => {
+  const SCREEN_ID = new Types.ObjectId();
+
+  it('keeps the screen when the owner is within the limit', async () => {
+    const { service, screenModel } = build({
+      users: { [OWNER_ID.toString()]: user({ screenLimit: 2 }) },
+      ownedOrganizations: [{ _id: ORG_ID }],
+      screenCount: 2,
+    });
+
+    await expect(
+      service.assertCreatedScreenWithinLimit(
+        ORG_ID.toString(),
+        SCREEN_ID.toString(),
+      ),
     ).resolves.toBeUndefined();
+    expect(screenModel.deleteOne).not.toHaveBeenCalled();
+  });
+
+  it('keeps the screen when over the limit but it is among the oldest', async () => {
+    // Two racers passed the pre-check; the older insert survives.
+    const { service, screenModel } = build({
+      users: { [OWNER_ID.toString()]: user({ screenLimit: 1 }) },
+      ownedOrganizations: [{ _id: ORG_ID }],
+      screenCount: 2,
+      survivingScreens: [{ _id: SCREEN_ID }],
+    });
+
+    await expect(
+      service.assertCreatedScreenWithinLimit(
+        ORG_ID.toString(),
+        SCREEN_ID.toString(),
+      ),
+    ).resolves.toBeUndefined();
+    expect(screenModel.deleteOne).not.toHaveBeenCalled();
+  });
+
+  it('rolls back and throws when the screen is the over-cap extra', async () => {
+    const olderScreen = new Types.ObjectId();
+    const { service, screenModel } = build({
+      users: { [OWNER_ID.toString()]: user({ screenLimit: 1 }) },
+      ownedOrganizations: [{ _id: ORG_ID }],
+      screenCount: 2,
+      survivingScreens: [{ _id: olderScreen }],
+    });
+
+    await expect(
+      service.assertCreatedScreenWithinLimit(
+        ORG_ID.toString(),
+        SCREEN_ID.toString(),
+      ),
+    ).rejects.toMatchObject({
+      details: { reason: 'PLAN_LIMIT_REACHED', limitOf: 'screens' },
+    });
+    expect(screenModel.deleteOne).toHaveBeenCalledWith({ _id: SCREEN_ID });
+  });
+
+  it('rolls back and throws when the owner vanished mid-create', async () => {
+    const { service, screenModel } = build({
+      organizationOwner: null,
+      ownedOrganizations: [],
+    });
+
+    await expect(
+      service.assertCreatedScreenWithinLimit(
+        ORG_ID.toString(),
+        SCREEN_ID.toString(),
+      ),
+    ).rejects.toBeInstanceOf(BusinessException);
+    expect(screenModel.deleteOne).toHaveBeenCalledWith({ _id: SCREEN_ID });
+  });
+
+  it('rolls back a zero-licence owner without querying survivors', async () => {
+    // `.limit(0)` would mean "no limit" to Mongo, so the zero-cap path must
+    // not run the survivor query at all.
+    const { service, screenModel } = build({
+      users: { [OWNER_ID.toString()]: user({ screenLimit: 0 }) },
+      ownedOrganizations: [{ _id: ORG_ID }],
+      screenCount: 1,
+    });
+
+    await expect(
+      service.assertCreatedScreenWithinLimit(
+        ORG_ID.toString(),
+        SCREEN_ID.toString(),
+      ),
+    ).rejects.toBeInstanceOf(BusinessException);
+    expect(screenModel.find).not.toHaveBeenCalled();
+    expect(screenModel.deleteOne).toHaveBeenCalledWith({ _id: SCREEN_ID });
   });
 });
 

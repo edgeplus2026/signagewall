@@ -1,11 +1,25 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 
+import { AuthThrottle } from '../../common/decorators/auth-throttle.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { ApiCommonErrorResponses } from '../../common/swagger';
+import {
+  ApiCommonErrorResponses,
+  ApiSuccessResponse,
+  AuthResponseSchema,
+} from '../../common/swagger';
 import { AuthService } from './auth.service';
+import { ExchangeGoogleCodeDto } from './dto/exchange-google-code.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { GoogleProfile } from './strategies/google.strategy';
 
@@ -44,7 +58,10 @@ export class GoogleAuthController {
     },
     @Res() res: Response,
   ): Promise<void> {
-    const authResponse = await this.authService.loginWithGoogle(
+    // The redirect carries a single-use short-lived code, never the JWTs: a
+    // token in a URL survives in proxy logs, browser history and Referer
+    // headers long after the redirect. The CMS redeems it right away.
+    const code = await this.authService.createGoogleLoginCode(
       req.user,
       this.readCookie(req.headers.cookie, 'sw_acquisition'),
     );
@@ -52,16 +69,22 @@ export class GoogleAuthController {
     const frontendUrl = this.configService.getOrThrow<string>('frontendUrl');
 
     const redirectUrl = new URL('/auth/google/callback', frontendUrl);
-    redirectUrl.searchParams.set(
-      'accessToken',
-      authResponse.tokens.accessToken,
-    );
-    redirectUrl.searchParams.set(
-      'refreshToken',
-      authResponse.tokens.refreshToken,
-    );
+    redirectUrl.searchParams.set('code', code);
 
     res.redirect(redirectUrl.toString());
+  }
+
+  @Public()
+  @AuthThrottle()
+  @Post('google/exchange')
+  @ApiSuccessResponse(AuthResponseSchema)
+  @ApiOperation({
+    summary: 'Exchange a Google login code',
+    description:
+      'Redeems the single-use code from the Google callback redirect for JWT tokens.',
+  })
+  exchangeGoogleCode(@Body() dto: ExchangeGoogleCodeDto) {
+    return this.authService.exchangeGoogleLoginCode(dto.code);
   }
 
   private readCookie(
