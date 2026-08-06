@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
+import { requestIdMiddleware } from './common/middleware/request-id.middleware';
 import { setupSwagger } from './common/swagger';
 
 async function bootstrap() {
@@ -48,6 +49,7 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
+  app.use(requestIdMiddleware);
   app.use(
     helmet({
       contentSecurityPolicy: swaggerEnabled ? false : undefined,

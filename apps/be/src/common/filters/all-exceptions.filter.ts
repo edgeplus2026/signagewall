@@ -12,6 +12,7 @@ import { I18nContext } from 'nestjs-i18n';
 import { ErrorCodes } from '../constants/error-codes';
 import { BusinessException } from '../exceptions/business.exception';
 import { ApiErrorResponse } from '../interfaces/api-response.interface';
+import { getRequestId } from '../middleware/request-id.middleware';
 
 /**
  * The boundary above which a response is our fault, not the caller's — only
@@ -35,10 +36,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception,
       i18n,
     );
+    const requestId = getRequestId(response);
 
     if (status >= SERVER_ERROR_STATUS) {
       this.logger.error(
-        `${request.method} ${request.url}`,
+        `${request.method} ${request.url} rid=${requestId}`,
         exception instanceof Error ? exception.stack : String(exception),
       );
     }
@@ -52,6 +54,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       },
       path: request.url,
       timestamp: new Date().toISOString(),
+      requestId,
     };
 
     response.status(status).json(body);

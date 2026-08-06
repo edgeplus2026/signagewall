@@ -16,4 +16,6 @@ export interface ApiErrorResponse {
   error: ApiErrorBody;
   path: string;
   timestamp: string;
+  /** Correlates this response with the server log lines (`rid=`). */
+  requestId?: string;
 }
