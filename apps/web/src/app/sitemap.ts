@@ -40,6 +40,10 @@ function entries(route: Route | LocaleRoutes, options: EntryOptions = {}): Entry
   return [...(en ? [{ url: en, ...common }] : []), ...(sr ? [{ url: sr, ...common }] : [])]
 }
 
+/* Static pages only change when a deploy ships them — the build moment is
+   their truthful `lastmod` (inlined per deploy via next.config.ts `env`). */
+const STATIC_LASTMOD = process.env.NEXT_PUBLIC_BUILD_TIME
+
 const STATIC_ROUTES: Route[] = [
   '/',
   '/how-it-works',
@@ -68,7 +72,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const apps = await listAppPageRefs()
 
   return [
-    ...STATIC_ROUTES.flatMap((route) => entries(route)),
+    ...STATIC_ROUTES.flatMap((route) =>
+      entries(route, STATIC_LASTMOD ? { lastModified: STATIC_LASTMOD } : {}),
+    ),
     // A technical app manifest is not editorial approval. Only reviewed,
     // indexable App Page locale versions are eligible for discovery here.
     ...apps.flatMap((app) =>
