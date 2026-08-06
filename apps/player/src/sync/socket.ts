@@ -36,6 +36,10 @@ let socket: Socket | null = null
 let heartbeatTimer: number | undefined
 /** Disposes the effect that streams now-playing to the server (real device). */
 let stopNowPlaying: (() => void) | undefined
+/** Pending manual reconnect after a server-initiated disconnect. */
+let serverReconnectTimer: number | undefined
+/** Consecutive server-initiated disconnects since the last successful connect. */
+let serverDisconnects = 0
 
 /**
  * Opens the realtime channel. The auth payload is a function so the freshest
@@ -65,6 +69,7 @@ export function connectPlayer(): void {
 
   socket.on('connect', () => {
     connection.value = 'online'
+    serverDisconnects = 0
   })
   socket.io.on('reconnect_attempt', () => {
     connection.value = 'reconnecting'
@@ -75,9 +80,18 @@ export function connectPlayer(): void {
     // 'io server disconnect', and socket.io does NOT auto-reconnect in that
     // case. Reconnect manually so the player immediately re-handshakes
     // token-less and gets a fresh pairing code — no page refresh required.
+    // The first retry is near-instant to keep re-pairing snappy, but repeats
+    // back off exponentially so a server that keeps force-disconnecting (bad
+    // deploy, incident) isn't hammered by the whole fleet in a tight loop.
     if (reason === 'io server disconnect') {
       connection.value = 'reconnecting'
-      socket?.connect()
+      const delay =
+        serverDisconnects === 0
+          ? 250
+          : Math.min(1000 * 2 ** (serverDisconnects - 1), 30_000)
+      serverDisconnects += 1
+      clearTimeout(serverReconnectTimer)
+      serverReconnectTimer = window.setTimeout(() => socket?.connect(), delay)
     }
   })
 
@@ -139,10 +153,14 @@ export function connectPlayer(): void {
   // Stream the on-screen item to the server as it changes, so CMS preview
   // spectators mirror this device 1:1. The signal updates once per transition,
   // so this fires exactly on each item change (and once for the first item).
+  // Volatile: while disconnected socket.io would otherwise buffer every emit
+  // and replay a stale burst on reconnect (unbounded memory on a screen that
+  // is offline for days). A dropped transition self-heals via
+  // 'now-playing:request' when a preview attaches.
   stopNowPlaying = effect(() => {
     const itemId = playingItemId.value
     if (itemId) {
-      socket?.emit('now-playing', { itemId })
+      socket?.volatile.emit('now-playing', { itemId })
     }
   })
 }
@@ -151,6 +169,9 @@ export function disconnectPlayer(): void {
   stopHeartbeat()
   stopNowPlaying?.()
   stopNowPlaying = undefined
+  clearTimeout(serverReconnectTimer)
+  serverReconnectTimer = undefined
+  serverDisconnects = 0
   socket?.disconnect()
   socket = null
 }
@@ -234,7 +255,10 @@ export function connectPreview(params: {
 function startHeartbeat(): void {
   stopHeartbeat()
   heartbeatTimer = window.setInterval(() => {
-    socket?.emit('heartbeat', {
+    // Volatile: a heartbeat is only meaningful now. Buffered emits would pile
+    // up for the whole offline period and flood the server as a stale burst on
+    // reconnect.
+    socket?.volatile.emit('heartbeat', {
       profile: getProfile(),
       revision: snapshot.value?.revision,
       playingItemId: playingItemId.value,
