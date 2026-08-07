@@ -1,3 +1,4 @@
+import { AppPreviewErrorNotice } from '@/features/apps/components/AppPreviewErrorNotice'
 import { AppPreviewFrame } from '@/features/apps/components/AppPreviewFrame'
 import { useAppPreviewData } from '@/features/apps/hooks/useAppPreviewData'
 import type { AppInstanceConfig, CatalogApp } from '@/features/apps/types/app.types'
@@ -20,12 +21,15 @@ const AUDIO_CAPABLE_SLUGS = new Set(['stream', 'youtube'])
 export function AppInstanceScreen({ app, config, instanceId }: AppInstanceScreenProps) {
   const { data, meta } = useAppPreviewData(app, config, instanceId)
   return (
-    <AppPreviewFrame
-      slug={app.slug}
-      config={config}
-      data={data}
-      meta={meta}
-      audioCapable={AUDIO_CAPABLE_SLUGS.has(app.slug)}
-    />
+    <div className="relative h-full w-full">
+      {meta?.errorCode && <AppPreviewErrorNotice code={meta.errorCode} />}
+      <AppPreviewFrame
+        slug={app.slug}
+        config={config}
+        data={data}
+        meta={meta}
+        audioCapable={AUDIO_CAPABLE_SLUGS.has(app.slug)}
+      />
+    </div>
   )
 }

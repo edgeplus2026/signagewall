@@ -3,7 +3,7 @@
 Source: full architecture / backend security / player+CMS reliability / SEO audit.
 Ordered by (sales leverage × severity) ÷ effort.
 
-Checked items were implemented on 2026-08-06 (verified: be 421 tests, player 250 tests, all four apps type-check).
+Checked items were implemented on 2026-08-06/07 (verified: be 431 tests, player 250 tests, all four apps type-check).
 Deploy-time and ops-only steps (env vars, deploy order, SEO backfill, rollout
 verification) live in [POST_MERGE.md](POST_MERGE.md).
 
@@ -35,7 +35,7 @@ verification) live in [POST_MERGE.md](POST_MERGE.md).
 - [x] **FT-1: Screen-offline email alert** — minute sweep emails active+verified org members once per outage episode (`SCREEN_OFFLINE_ALERT_MINUTES`, default 10, 0 disables); grouped per org so a site outage is one email; re-arms when the device reports back online.
 - [ ] **FT-2: Fleet health dashboard** — online/last-seen/cache status per screen (UI over existing data).
 - [x] **FT-3a: Beta entitlement path (INT-03 items 1–3)** — super-admin `POST/GET/DELETE /admin/apps/:id/grants`; granted non-public apps appear in that org's catalog and are instantiable; the normal install endpoint stays public-only; revoke runs the full uninstall cascade.
-- [ ] **FT-3b: Operator diagnostics (INT-03 items 4–6)** — fixed allowlist of safe connector error codes/messages to the CMS (consent, permission, capacity, throttling, retry guidance), never upstream bodies or credentials.
+- [x] **FT-3b: Operator diagnostics (INT-03 items 4–5)** — fixed `ConnectorErrorCode` allowlist end-to-end (contract → cache → preview meta → CMS banner with en/sr remediation); typed `ConnectorError` lets connectors name consent/capacity precisely; raw provider errors never leave the backend. Per-connector fine-mapping (e.g. PBI capacity detection) can be added by throwing `ConnectorError` where providers are called.
 - [ ] **FT-4: Proof-of-play reporting** — persist `now-playing` events, per-screen playback report.
 - [ ] **FT-5: Viewer/editor org roles** (all members currently default ADMIN).
 - [ ] **FT-6: Stripe/Paddle self-serve checkout** — gate on Menu Starter funnel signal; unblocks SEO→signup→pay motion.

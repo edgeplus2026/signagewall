@@ -5,15 +5,21 @@ import { APP_MANIFESTS } from '@signagewall/apps';
 import type {
   AppConnector,
   AppDataMeta,
+  ConnectorErrorCode,
   ConnectorLogger,
   ResolvedConnection,
 } from '@signagewall/apps-contract';
+import { isConnectorErrorCode } from '@signagewall/apps-contract';
 
 import { ConnectionsService } from '../connections/connections.service';
 import { AppDataChangedEvent, PlayerEvents } from '../player/player.events';
 import { AppDataCacheRepository } from './app-data-cache.repository';
 import { AppInstancesRepository } from './app-instances.repository';
 import { cacheKeyForInstance } from './connectors/cache-key.util';
+import {
+  classifyConnectorError,
+  classifyConnectorMessage,
+} from './connectors/_shared/classify-connector-error';
 import { connectorSlugs, getConnector } from './connectors/connector-registry';
 import { AppDataCacheDocument } from './schemas/app-data-cache.schema';
 
@@ -344,6 +350,7 @@ export class AppDataService {
         candidate.slug,
         candidate.refreshSeconds,
         message,
+        classifyConnectorError(error),
       );
       return false;
     }
@@ -405,6 +412,9 @@ export class AppDataService {
           candidate.refreshSeconds,
           result.secrets,
           result.error,
+          result.error
+            ? (result.errorCode ?? classifyConnectorMessage(result.error))
+            : undefined,
         );
         return { saved, pending: true };
       }
@@ -493,6 +503,7 @@ export class AppDataService {
           saved.fetchedAt,
           Boolean(saved.lastError),
           true,
+          this.savedErrorCode(saved),
         );
       }
       // The preview writes into the SAME global connector cache the players read
@@ -513,12 +524,33 @@ export class AppDataService {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(`Preview fetch failed for ${cacheKey}: ${message}`);
-      // Fall back to the last-known-good payload, flagged stale; null otherwise.
+      const errorCode = classifyConnectorError(error);
+      // Fall back to the last-known-good payload, flagged stale — and even with
+      // nothing cached, the operator still gets the failure code: a broken
+      // first-time setup must say WHY, not render an empty screen.
       if (existing?.payload !== undefined) {
-        return this.toPreviewResult(existing.payload, existing.fetchedAt, true);
+        return this.toPreviewResult(
+          existing.payload,
+          existing.fetchedAt,
+          true,
+          false,
+          errorCode,
+        );
       }
-      return { data: null, meta: null };
+      return { data: null, meta: { stale: true, errorCode } };
     }
+  }
+
+  /** The persisted error classification, revalidated against the allowlist. */
+  private savedErrorCode(
+    saved: AppDataCacheDocument,
+  ): ConnectorErrorCode | undefined {
+    if (!saved.lastError) {
+      return undefined;
+    }
+    return isConnectorErrorCode(saved.lastErrorCode)
+      ? saved.lastErrorCode
+      : classifyConnectorMessage(saved.lastError);
   }
 
   private toPreviewResult(
@@ -526,6 +558,7 @@ export class AppDataService {
     fetchedAt: Date | undefined,
     stale: boolean,
     pending = false,
+    errorCode?: ConnectorErrorCode,
   ): PreviewDataResult {
     return {
       data: payload ?? null,
@@ -533,6 +566,7 @@ export class AppDataService {
         ...(fetchedAt ? { fetchedAt: fetchedAt.toISOString() } : {}),
         stale,
         ...(pending ? { pending: true } : {}),
+        ...(errorCode ? { errorCode } : {}),
       },
     };
   }

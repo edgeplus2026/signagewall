@@ -9,6 +9,8 @@
  * `Config` is the validated instance config; `Payload` is the normalized shape
  * the player render component consumes.
  */
+
+import type { ConnectorErrorCode } from './connector-error.js';
 export interface AppConnector<
   Config = Record<string, unknown>,
   Payload = unknown,
@@ -144,6 +146,12 @@ export interface ConnectorResult<Payload> {
    * tokens, signed URLs, or raw upstream response bodies.
    */
   error?: string;
+  /**
+   * Operator-safe classification of {@link error}, when the connector can name
+   * it better than the host's generic mapping (consent vs capacity vs
+   * throttling). One of the fixed allowlisted codes only.
+   */
+  errorCode?: ConnectorErrorCode;
   /** Optional private data persisted server-side only (never sent to players). */
   secrets?: Record<string, unknown>;
   /**

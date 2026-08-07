@@ -2496,6 +2496,46 @@
         "description": "A clean board of items and prices — for cafés, canteens and shops. Add a row per item.",
         "about": "Present a polished menu or price list, with a design to match the room: Classic, Chalkboard, Gallery cards with photos, a bold Counter board, or understated Noir. Add a heading, pick a currency, then type items row by row — or sync them live from a Google Sheets or Excel file so prices update themselves. It is built for cafés, canteens, bakeries and shops."
       }
+    },
+    "preview": {
+      "errors": {
+        "auth_expired": {
+          "title": "Account connection expired",
+          "hint": "Reconnect the account in this app's settings to resume updates."
+        },
+        "consent_required": {
+          "title": "Consent required",
+          "hint": "The provider needs consent or an admin grant for this account. Re-run the connection and accept the requested permissions."
+        },
+        "permission_denied": {
+          "title": "No access to this resource",
+          "hint": "The connected account can't open the selected item. Pick another item or ask its owner for access."
+        },
+        "not_found": {
+          "title": "Source not found",
+          "hint": "The selected file, report or feed no longer exists upstream. Pick it again in the settings."
+        },
+        "capacity_required": {
+          "title": "Provider capacity required",
+          "hint": "The provider plan doesn't allow this operation (e.g. report export needs capacity). Check the workspace's licensing."
+        },
+        "throttled": {
+          "title": "Rate limited by the provider",
+          "hint": "Too many requests right now. This resolves by itself — updates resume automatically."
+        },
+        "timeout": {
+          "title": "The provider timed out",
+          "hint": "The upstream service was slow to respond. Usually temporary; the next refresh retries automatically."
+        },
+        "config_invalid": {
+          "title": "Settings no longer valid",
+          "hint": "Review this app's settings — something they point to has changed."
+        },
+        "upstream_error": {
+          "title": "The provider returned an error",
+          "hint": "Usually temporary; the next refresh retries automatically. If it persists, reconnect the account or review the settings."
+        }
+      }
     }
   },
   "legal": {

@@ -2480,6 +2480,46 @@
         "description": "Uredna tabla stavki i cena — za kafiće, kantine i radnje. Dodajte red po stavci.",
         "about": "Predstavite doteran meni ili cenovnik, sa dizajnom koji odgovara prostoru: Classic, Chalkboard, Gallery kartice sa fotografijama, upadljiva Counter tabla ili suzdržani Noir. Dodajte naslov, izaberite valutu, pa unosite stavke red po red — ili ih uživo sinhronizujte iz Google Sheets ili Excel datoteke da se cene same ažuriraju. Napravljeno za kafiće, kantine, pekare i radnje."
       }
+    },
+    "preview": {
+      "errors": {
+        "auth_expired": {
+          "title": "Veza sa nalogom je istekla",
+          "hint": "Ponovo povežite nalog u podešavanjima aplikacije da bi se ažuriranja nastavila."
+        },
+        "consent_required": {
+          "title": "Potrebna je saglasnost",
+          "hint": "Provajder traži saglasnost ili odobrenje administratora za ovaj nalog. Ponovite povezivanje i prihvatite tražene dozvole."
+        },
+        "permission_denied": {
+          "title": "Nema pristupa ovom resursu",
+          "hint": "Povezani nalog ne može da otvori izabranu stavku. Izaberite drugu ili zatražite pristup od vlasnika."
+        },
+        "not_found": {
+          "title": "Izvor nije pronađen",
+          "hint": "Izabrani fajl, izveštaj ili feed više ne postoji. Izaberite ga ponovo u podešavanjima."
+        },
+        "capacity_required": {
+          "title": "Potreban je kapacitet provajdera",
+          "hint": "Plan provajdera ne dozvoljava ovu operaciju (npr. izvoz izveštaja zahteva kapacitet). Proverite licenciranje radnog prostora."
+        },
+        "throttled": {
+          "title": "Provajder ograničava broj zahteva",
+          "hint": "Trenutno ima previše zahteva. Rešava se samo od sebe — ažuriranja se automatski nastavljaju."
+        },
+        "timeout": {
+          "title": "Provajder ne odgovara",
+          "hint": "Spoljni servis je spor. Obično je privremeno; sledeće osvežavanje pokušava ponovo automatski."
+        },
+        "config_invalid": {
+          "title": "Podešavanja više ne važe",
+          "hint": "Proverite podešavanja aplikacije — nešto na šta pokazuju se promenilo."
+        },
+        "upstream_error": {
+          "title": "Provajder je vratio grešku",
+          "hint": "Obično je privremeno; sledeće osvežavanje pokušava ponovo. Ako se ponavlja, ponovo povežite nalog ili proverite podešavanja."
+        }
+      }
     }
   },
   "legal": {

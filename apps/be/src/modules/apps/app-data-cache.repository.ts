@@ -70,7 +70,7 @@ export class AppDataCacheRepository {
           secrets: data.secrets ?? null,
           pending: false,
         },
-        $unset: { lastError: '' },
+        $unset: { lastError: '', lastErrorCode: '' },
       },
       { returnDocument: 'after', upsert: true },
     );
@@ -89,6 +89,7 @@ export class AppDataCacheRepository {
     refreshSeconds: number,
     secrets: Record<string, unknown> | undefined,
     error?: string,
+    errorCode?: string,
   ): Promise<AppDataCacheDocument> {
     return this.model.findOneAndUpdate(
       { cacheKey },
@@ -100,8 +101,9 @@ export class AppDataCacheRepository {
           pending: true,
           secrets: secrets ?? null,
           ...(error ? { lastError: error } : {}),
+          ...(error && errorCode ? { lastErrorCode: errorCode } : {}),
         },
-        ...(!error ? { $unset: { lastError: '' } } : {}),
+        ...(!error ? { $unset: { lastError: '', lastErrorCode: '' } } : {}),
       },
       { returnDocument: 'after', upsert: true },
     );
@@ -118,6 +120,7 @@ export class AppDataCacheRepository {
     slug: string,
     refreshSeconds: number,
     message: string,
+    errorCode?: string,
   ): Promise<void> {
     await this.model.updateOne(
       { cacheKey },
@@ -126,6 +129,7 @@ export class AppDataCacheRepository {
           slug,
           refreshSeconds,
           lastError: message,
+          ...(errorCode ? { lastErrorCode: errorCode } : {}),
           lastAttemptAt: new Date(),
           // A failed attempt ends any in-flight job so a retry re-creates it.
           pending: false,

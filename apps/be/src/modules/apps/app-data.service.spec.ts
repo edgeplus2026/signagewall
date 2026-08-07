@@ -268,6 +268,7 @@ describe('AppDataService.refreshDue', () => {
       'weather',
       900,
       'connected app ownership mismatch',
+      'upstream_error',
     );
   });
 
@@ -554,6 +555,7 @@ describe('AppDataService async export jobs (pending)', () => {
       900,
       { job: { id: 'job-x' } },
       'Upstream export is temporarily unavailable',
+      'upstream_error',
     );
     expect(emit).toHaveBeenCalledTimes(1);
   });
