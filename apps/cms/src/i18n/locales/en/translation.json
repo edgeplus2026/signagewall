@@ -254,6 +254,18 @@
           "description": "Pair a display and play your content."
         }
       }
+    },
+    "fleet": {
+      "title": "Fleet health",
+      "subtitle": "Problem screens first — offline displays, then unpaired screens.",
+      "viewAll": "View all screens",
+      "online": "Online",
+      "offline": "Offline",
+      "offlineFor": "Offline · {{duration}}",
+      "notPaired": "Not paired",
+      "emptyTitle": "No screens yet",
+      "empty": "Pair your first display to see its health here.",
+      "setup": "Set up a screen"
     }
   },
   "organizations": {

@@ -231,6 +231,18 @@
           "description": "Upari displej i pusti sadržaj."
         }
       }
+    },
+    "fleet": {
+      "title": "Zdravlje ekrana",
+      "subtitle": "Problemi prvi — ekrani van mreže, zatim neupareni.",
+      "viewAll": "Svi ekrani",
+      "online": "Na mreži",
+      "offline": "Van mreže",
+      "offlineFor": "Van mreže · {{duration}}",
+      "notPaired": "Nije uparen",
+      "emptyTitle": "Još nema ekrana",
+      "empty": "Uparite prvi ekran da biste ovde pratili njegovo stanje.",
+      "setup": "Podesi ekran"
     }
   },
   "organizations": {

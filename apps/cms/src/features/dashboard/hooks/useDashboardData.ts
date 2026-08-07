@@ -21,6 +21,18 @@ export interface GrowthPoint {
   total: number
 }
 
+/** One screen's health row for the fleet panel, problem-first ordered. */
+export interface FleetScreen {
+  id: string
+  name: string
+  /** False when the screen has no bound device at all (setup incomplete). */
+  paired: boolean
+  online: boolean
+  lastSeenAt?: string
+  platform?: string
+  appVersion?: string
+}
+
 export interface DashboardData {
   isLoading: boolean
   /** True when any of the underlying list queries failed. */
@@ -49,6 +61,8 @@ export interface DashboardData {
   }
   growth: GrowthPoint[]
   recentPlaylists: PlaylistSummary[]
+  /** Per-screen health, offline-longest first, then unpaired, then online. */
+  fleet: FleetScreen[]
 }
 
 function toTime(iso: string): number {
@@ -128,6 +142,31 @@ export function useDashboardData(): DashboardData {
       .sort((a, b) => toTime(b.updatedAt) - toTime(a.updatedAt))
       .slice(0, 5)
 
+    // Problem-first: a dead paired display (longest down first) outranks a
+    // never-paired screen, which outranks everything healthy.
+    const fleetRank = (s: FleetScreen) => (s.paired && !s.online ? 0 : s.paired ? 2 : 1)
+    const fleet: FleetScreen[] = screens
+      .map((screen) => {
+        const presence = presenceMap[screen.id]
+        return {
+          id: screen.id,
+          name: screen.name,
+          paired: Boolean(presence?.paired),
+          online: presence?.online === true,
+          ...(presence?.lastSeenAt ? { lastSeenAt: presence.lastSeenAt } : {}),
+          ...(presence?.profile?.platform ? { platform: presence.profile.platform } : {}),
+          ...(presence?.profile?.appVersion ? { appVersion: presence.profile.appVersion } : {}),
+        }
+      })
+      .sort((a, b) => {
+        const rank = fleetRank(a) - fleetRank(b)
+        if (rank !== 0) return rank
+        if (fleetRank(a) === 0) {
+          return toTime(a.lastSeenAt ?? '') - toTime(b.lastSeenAt ?? '')
+        }
+        return a.name.localeCompare(b.name)
+      })
+
     return {
       isLoading: playlistsLoading || screensLoading || mediaLoading,
       isError: playlistsError || screensError || mediaError,
@@ -152,6 +191,7 @@ export function useDashboardData(): DashboardData {
       },
       growth,
       recentPlaylists,
+      fleet,
     }
   }, [
     playlists,

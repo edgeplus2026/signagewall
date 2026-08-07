@@ -9,6 +9,7 @@ import { ContentGrowthChart } from '@/features/dashboard/components/ContentGrowt
 import { DashboardHero } from '@/features/dashboard/components/DashboardHero'
 import { DashboardPanel } from '@/features/dashboard/components/DashboardPanel'
 import { DashboardStatCard } from '@/features/dashboard/components/DashboardStatCard'
+import { FleetHealth } from '@/features/dashboard/components/FleetHealth'
 import { GettingStarted } from '@/features/dashboard/components/GettingStarted'
 import { MediaBreakdownChart } from '@/features/dashboard/components/MediaBreakdownChart'
 import { RecentPlaylists } from '@/features/dashboard/components/RecentPlaylists'
@@ -104,10 +105,18 @@ export default function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <DashboardPanel
           className="lg:col-span-2"
-          title={t('dashboard.charts.growth.title')}
-          description={t('dashboard.charts.growth.subtitle')}
+          title={t('dashboard.fleet.title')}
+          description={t('dashboard.fleet.subtitle')}
+          action={
+            <Link
+              to="/screens"
+              className="text-secondary hover:text-primary text-xs font-medium transition-colors"
+            >
+              {t('dashboard.fleet.viewAll')}
+            </Link>
+          }
         >
-          <ContentGrowthChart data={data.growth} />
+          <FleetHealth fleet={data.fleet} />
         </DashboardPanel>
         <DashboardPanel
           title={t('dashboard.screens.title')}
@@ -120,6 +129,13 @@ export default function DashboardPage() {
           />
         </DashboardPanel>
       </div>
+
+      <DashboardPanel
+        title={t('dashboard.charts.growth.title')}
+        description={t('dashboard.charts.growth.subtitle')}
+      >
+        <ContentGrowthChart data={data.growth} />
+      </DashboardPanel>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <DashboardPanel
