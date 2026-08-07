@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "title": "Free digital signage software: an honest look",
+    "description": "What free digital signage actually costs, when a free tool is genuinely the right call, and what SignageWall gives you free for {trialDays} days — no card."
+  },
+  "hero": {
+    "eyebrow": "Free digital signage",
+    "title": "Free digital signage software, honestly.",
+    "subtitle": "Free options exist and sometimes they are the right call. Here is where they work, where they quietly get expensive, and exactly what we give away — written by people with an obvious interest, so check our reasoning, not our word."
+  },
+  "sections": [
+    {
+      "heading": "The short answer",
+      "body": "SignageWall is not free forever: the full product is free for {trialDays} days with no card, and after that it costs {price} per screen per month. If what you need is genuinely covered by a free tool, use the free tool — this page is for working out whether it is."
+    },
+    {
+      "heading": "What \"free\" means in signage",
+      "body": "Free digital signage comes in three shapes. Free tiers of commercial products: real, but limited in screens, features or branding, and priced so that the useful version is the paid one. Open-source software you host yourself: genuinely free to license, never free to run — somebody sets it up, updates it and fixes it at nine in the evening. And the USB stick in the back of the TV: free, instant, and the reason so many screens show last month's menu."
+    },
+    {
+      "heading": "Where free is genuinely the right call",
+      "body": "One screen, content that changes a few times a year, and a technical person who enjoys maintaining it — a self-hosted open-source player on that screen is a fine setup, and paying a subscription for it would be waste. The same goes for a temporary screen at a one-off event. We would rather tell you this than have you discover it after subscribing."
+    },
+    {
+      "heading": "Where free gets expensive",
+      "body": "The cost of free tools is time, and it arrives later. The screen that needs a ladder and a USB stick for every price change. The self-hosted server nobody dares update because the person who installed it left. The free tier that needed three workarounds, each owned by the one colleague who understands them. None of this shows up in month one; all of it shows up in year one. A fair comparison is your hourly cost times the hours — not zero against {price}."
+    },
+    {
+      "heading": "What SignageWall gives you free",
+      "body": "The complete product for {trialDays} days: pair a real screen, build playlists, connect apps, and see whether updates reach the display fast enough for your workflow. No card at any point, and no feature held back to force the upgrade — the trial is the product. If it does not earn the subscription in three weeks of real use, it should not get it."
+    },
+    {
+      "heading": "What happens when the trial ends",
+      "body": "The trial simply stops. Your content and settings stay in the account, and the screen keeps showing the last content it downloaded — it does not go black and it does not show our logo. If you subscribe later, everything is where you left it. If you do not, you have lost {trialDays} days of rent on one screen and nothing else."
+    },
+    {
+      "heading": "How to evaluate any signage software in an afternoon",
+      "body": "Put a real screen on the wall it will actually hang on. Change a price from your phone and time how long the screen takes. Pull the network cable for ten minutes and watch what the screen does. Ask a non-technical colleague to swap an image without help. Whatever tool passes those four checks — free or paid — is the right one for you."
+    }
+  ],
+  "faq": {
+    "title": "Free signage questions",
+    "items": [
+      {
+        "q": "Is SignageWall free?",
+        "a": "The full product is free for {trialDays} days, with no card and nothing switched off. After that it is {price} per screen per month. There is no permanent free tier — we would rather be clear about that than surprise you at day {trialDays}."
+      },
+      {
+        "q": "Do I need a credit card for the trial?",
+        "a": "No. You create an account, pair a screen and use everything for {trialDays} days. There is no card to enter at any point — if you continue, the first invoice arrives after the trial."
+      },
+      {
+        "q": "What happens after the trial?",
+        "a": "The trial simply stops. Your content and settings stay in the account, so if you come back a month later everything is where you left it. Screens stop syncing new content until you subscribe."
+      },
+      {
+        "q": "Is open-source digital signage really free?",
+        "a": "The license is free; the running is not. You host it, update it, secure it and fix it — which is a fine trade if you have the person and the time, and an expensive one if that person is you at eleven at night before a launch."
+      },
+      {
+        "q": "What is the cheapest way to run one screen?",
+        "a": "A TV you already own, an Android box for around €30–60, and software. With SignageWall the software is {price} a month after the trial; a free tool saves that and costs your time instead. Our hardware guide covers the rest — we sell neither screens nor boxes, so it has no reason to flatter."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Try the whole product on a real screen.",
+    "body": "{trialDays} days, every feature, no card. If a free tool serves you better after that, use the free tool.",
+    "primary": "Start the free trial",
+    "secondary": "See pricing"
+  }
+}

@@ -6,7 +6,7 @@
   "hero": {
     "eyebrow": "Download",
     "title": "Download the SignageWall player.",
-    "subtitle": "A lightweight app that turns any TV or computer into a smart screen. Install it, scan the QR code, and the screen is paired."
+    "subtitle": "A lightweight app that turns any TV or computer into a smart screen. Install it, enter the pairing code, and the screen is ready."
   },
   "platforms": {
     "title": "Choose your platform.",
@@ -34,7 +34,7 @@
       },
       {
         "title": "Pair",
-        "body": "Scan the QR code from your dashboard to link the screen to your account."
+        "body": "The player shows a six-character code — enter it in your dashboard to link the screen to your account."
       },
       {
         "title": "Publish",

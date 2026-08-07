@@ -12,6 +12,7 @@ type FooterHref =
   | '/how-it-works'
   | '/features'
   | '/pricing'
+  | '/free-digital-signage-software'
   | '/apps'
   | '/download'
   | '/hardware'
@@ -45,6 +46,7 @@ export async function Footer() {
         { href: '/how-it-works', label: t('product.howItWorks') },
         { href: '/features', label: t('product.features') },
         { href: '/pricing', label: t('product.pricing') },
+        { href: '/free-digital-signage-software', label: t('product.freeSignage') },
         { href: '/apps', label: t('product.apps') },
         { href: '/hardware', label: t('product.hardware') },
         { href: '/download', label: t('product.download') },

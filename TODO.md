@@ -52,7 +52,7 @@ verification) live in [POST_MERGE.md](POST_MERGE.md).
 ## P4 — SEO content (the growth lever, in intent order)
 
 - [ ] **CNT-1: Competitor/alternative pages** — "Yodeck alternative", "ScreenCloud vs OptiSigns", "best digital signage software 2026" (new route/collection; plumbing exists).
-- [ ] **CNT-2: "Free digital signage software" page** positioned on the no-card trial.
+- [x] **CNT-2: "Free digital signage software" page** — `/free-digital-signage-software` (sr `/besplatan-digital-signage`), honest no-forever-free positioning in the hardware-page voice, FAQ + JSON-LD, sitemap + footer link, en+sr. Also fixed the banned QR-pairing claim on /download and added the missing opsboard/powerbi-secure catalog copy (content audit now green).
 - [ ] **CNT-3: Per-platform player pages** — Android box, Fire TV Stick, Raspberry Pi, Samsung/LG TV, Windows.
 - [ ] **CNT-4: Re-launch retired verticals** — healthcare, gyms, salons, events, transport, banking (11 currently 404 without redirect).
 - [ ] **CNT-5: Bottom-funnel how-tos** — "show Power BI on a TV", "menu board from Google Sheets"; templates gallery content.

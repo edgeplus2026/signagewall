@@ -7,6 +7,7 @@ import common from './common.json'
 import contact from './contact.json'
 import download from './download.json'
 import features from './features.json'
+import freeSignage from './freeSignage.json'
 import footer from './footer.json'
 import hardware from './hardware.json'
 import home from './home.json'
@@ -30,6 +31,7 @@ const messages = {
   pricing,
   quote,
   whatIsSignage,
+  freeSignage,
   hardware,
   solutions,
   about,

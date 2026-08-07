@@ -6,7 +6,7 @@
   "hero": {
     "eyebrow": "Preuzimanje",
     "title": "Preuzmite SignageWall plejer.",
-    "subtitle": "Lagana aplikacija koja pretvara bilo koji TV ili računar u pametan ekran. Instalirajte, skenirajte QR kod i ekran je uparen."
+    "subtitle": "Lagana aplikacija koja pretvara bilo koji TV ili računar u pametan ekran. Instalirajte, unesite kod za uparivanje i ekran je spreman."
   },
   "platforms": {
     "title": "Izaberite platformu.",
@@ -34,7 +34,7 @@
       },
       {
         "title": "Uparite",
-        "body": "Skenirajte QR kod iz kontrolne table da povežete ekran sa nalogom."
+        "body": "Plejer prikazuje kod od šest znakova — unesite ga u kontrolnu tablu da povežete ekran sa nalogom."
       },
       {
         "title": "Objavite",

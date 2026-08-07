@@ -50,6 +50,7 @@ const STATIC_ROUTES: Route[] = [
   '/features',
   '/pricing',
   '/what-is-digital-signage',
+  '/free-digital-signage-software',
   '/apps',
   '/solutions',
   '/blog',
