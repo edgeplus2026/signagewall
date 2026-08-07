@@ -19,8 +19,12 @@ import type { RequestUser } from '../interfaces/request-user.interface';
 /** Request key under which the resolved membership is attached. */
 export const CURRENT_MEMBERSHIP_KEY = 'organizationMembership';
 
+/** HTTP methods a read-only viewer may use on membership-only routes. */
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
 interface GuardedRequest {
   user?: RequestUser;
+  method: string;
   params: Record<string, string>;
   headers: Record<string, string | string[] | undefined>;
   [CURRENT_MEMBERSHIP_KEY]?: OrganizationMembershipDocument;
@@ -96,6 +100,17 @@ export class OrgMembershipGuard implements CanActivate {
           this.i18n.t('organizations.adminOnly'),
         );
       }
+    }
+
+    // A viewer is read-only. Routes that declare no explicit role are the
+    // content surface (screens, playlists, media, app instances) and most of
+    // them mutate — so a viewer passes them only for reads. Enforced here
+    // centrally so a newly added write route cannot forget it.
+    if (
+      normalizeOrganizationRole(membership.role) === OrganizationRole.VIEWER &&
+      !SAFE_METHODS.has(request.method.toUpperCase())
+    ) {
+      throw BusinessException.forbidden(this.i18n.t('organizations.readOnly'));
     }
 
     request[CURRENT_MEMBERSHIP_KEY] = membership;

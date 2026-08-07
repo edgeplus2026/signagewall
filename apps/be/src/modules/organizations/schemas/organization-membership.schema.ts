@@ -9,14 +9,14 @@ export enum OrganizationRole {
   OWNER = 'owner',
   ADMIN = 'admin',
   MEMBER = 'member',
+  /** Read-only: sees everything in the organization, changes nothing. */
+  VIEWER = 'viewer',
 }
 
 export function normalizeOrganizationRole(
   role: OrganizationRole,
-): OrganizationRole.ADMIN | OrganizationRole.MEMBER {
-  return role === OrganizationRole.MEMBER
-    ? OrganizationRole.MEMBER
-    : OrganizationRole.ADMIN;
+): Exclude<OrganizationRole, OrganizationRole.OWNER> {
+  return role === OrganizationRole.OWNER ? OrganizationRole.ADMIN : role;
 }
 
 @Schema({

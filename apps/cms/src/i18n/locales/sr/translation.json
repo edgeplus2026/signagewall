@@ -440,11 +440,13 @@
     },
     "roles": {
       "admin": "Administrator",
-      "member": "Član"
+      "member": "Član",
+      "viewer": "Pregledač"
     },
     "roleDescriptions": {
       "admin": "Može da poziva i upravlja korisnicima, podešavanjima organizacije i svim sadržajem.",
-      "member": "Može da koristi ekrane, plejliste i medije, ali ne može da upravlja korisnicima ili podešavanjima."
+      "member": "Može da koristi ekrane, plejliste i medije, ali ne može da upravlja korisnicima ili podešavanjima.",
+      "viewer": "Vidi ekrane, plejliste i medije, ali ne može ništa da menja."
     },
     "actions": {
       "edit": "Izmeni korisnika",

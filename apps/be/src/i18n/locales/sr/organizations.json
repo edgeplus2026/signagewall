@@ -3,5 +3,6 @@
   "notMember": "Nemate pristup ovoj organizaciji.",
   "cannotDeleteLast": "Morate zadržati bar jednu organizaciju.",
   "adminOnly": "Samo administratori organizacije mogu izvršiti ovu akciju.",
-  "organizationRequired": "Kontekst organizacije je obavezan."
+  "organizationRequired": "Kontekst organizacije je obavezan.",
+  "readOnly": "Vaša uloga u ovom radnom prostoru je samo za pregled."
 }

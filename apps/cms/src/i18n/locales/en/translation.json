@@ -463,11 +463,13 @@
     },
     "roles": {
       "admin": "Admin",
-      "member": "Member"
+      "member": "Member",
+      "viewer": "Viewer"
     },
     "roleDescriptions": {
       "admin": "Can invite and manage users, organization settings, and all content.",
-      "member": "Can use screens, playlists, and media but cannot manage users or settings."
+      "member": "Can use screens, playlists, and media but cannot manage users or settings.",
+      "viewer": "Can see screens, playlists and media but cannot change anything."
     },
     "actions": {
       "edit": "Update user",

@@ -5,7 +5,10 @@ import {
 import { OrganizationInvitationDocument } from '../schemas/organization-invitation.schema';
 
 export type MemberStatus = 'approved' | 'pending';
-export type MemberRole = OrganizationRole.ADMIN | OrganizationRole.MEMBER;
+export type MemberRole =
+  | OrganizationRole.ADMIN
+  | OrganizationRole.MEMBER
+  | OrganizationRole.VIEWER;
 
 export interface MemberResponseDto {
   id: string;

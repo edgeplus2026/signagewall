@@ -37,7 +37,7 @@ verification) live in [POST_MERGE.md](POST_MERGE.md).
 - [x] **FT-3a: Beta entitlement path (INT-03 items 1–3)** — super-admin `POST/GET/DELETE /admin/apps/:id/grants`; granted non-public apps appear in that org's catalog and are instantiable; the normal install endpoint stays public-only; revoke runs the full uninstall cascade.
 - [x] **FT-3b: Operator diagnostics (INT-03 items 4–5)** — fixed `ConnectorErrorCode` allowlist end-to-end (contract → cache → preview meta → CMS banner with en/sr remediation); typed `ConnectorError` lets connectors name consent/capacity precisely; raw provider errors never leave the backend. Per-connector fine-mapping (e.g. PBI capacity detection) can be added by throwing `ConnectorError` where providers are called.
 - [ ] **FT-4: Proof-of-play reporting** — persist `now-playing` events, per-screen playback report.
-- [ ] **FT-5: Viewer/editor org roles** (all members currently default ADMIN).
+- [x] **FT-5: Viewer role** — new read-only `viewer` org role, enforced centrally in `OrgMembershipGuard` (non-GET on any membership-only route → 403, admin routes unchanged), invitable/assignable from the members UI; moving the last admin to any lesser role stays blocked. CMS-side hiding of edit affordances for viewers is cosmetic follow-up (server enforces).
 - [ ] **FT-6: Stripe/Paddle self-serve checkout** — gate on Menu Starter funnel signal; unblocks SEO→signup→pay motion.
 - [ ] **FT-7: Template gallery** (menu boards, ops boards) — activation + SEO asset.
 
