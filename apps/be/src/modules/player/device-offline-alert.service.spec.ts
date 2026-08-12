@@ -43,6 +43,7 @@ function build(deps: Deps = {}) {
   const devicesRepository = {
     findOfflineForAlert: jest.fn().mockResolvedValue(deps.offlineDevices ?? []),
     markOfflineAlerted: jest.fn().mockResolvedValue(undefined),
+    rearmRecoveredDevices: jest.fn().mockResolvedValue(0),
   };
   const screensRepository = {
     findSummariesByIds: jest.fn((organizationId: string, ids: string[]) =>
@@ -216,5 +217,77 @@ describe('DeviceOfflineAlertService.sweep', () => {
         }
       ).to,
     ).toBe('ok@example.com');
+  });
+
+  /**
+   * `offlineAlertedAt` is a new field, so on the first sweep after deploy every
+   * historically-dark screen has no stamp. Only the bounded window stops that
+   * from becoming one email listing screens retired months ago.
+   */
+  it('bounds the query to a recent window and a per-sweep ceiling', async () => {
+    const { service, devicesRepository } = build({
+      offlineDevices: [device('d-1', ORG_A)],
+    });
+
+    await service.sweep();
+
+    expect(devicesRepository.findOfflineForAlert).toHaveBeenCalledTimes(1);
+    const [cutoff, notBefore, limit] = devicesRepository.findOfflineForAlert
+      .mock.calls[0] as [Date, Date, number];
+
+    expect(notBefore.getTime()).toBeLessThan(cutoff.getTime());
+    // Default lookback is 24h, cutoff is 10 minutes back.
+    expect(cutoff.getTime() - notBefore.getTime()).toBe(
+      24 * 3_600_000 - 10 * 60_000,
+    );
+    expect(limit).toBe(200);
+  });
+
+  it('still alerts the remaining members when one delivery throws', async () => {
+    const { service, mailService } = build({
+      offlineDevices: [device('d-1', ORG_A)],
+      members: [
+        { userId: new Types.ObjectId() },
+        { userId: new Types.ObjectId() },
+        { userId: new Types.ObjectId() },
+      ],
+      users: [
+        {
+          _id: new Types.ObjectId(),
+          email: 'first@example.com',
+          isActive: true,
+          isEmailVerified: true,
+        },
+        {
+          _id: new Types.ObjectId(),
+          email: 'bounces@example.com',
+          isActive: true,
+          isEmailVerified: true,
+        },
+        {
+          _id: new Types.ObjectId(),
+          email: 'third@example.com',
+          isActive: true,
+          isEmailVerified: true,
+        },
+      ],
+    });
+    mailService.sendScreenOfflineAlertEmail.mockImplementation(
+      ({ to }: { to: string }) =>
+        to === 'bounces@example.com'
+          ? Promise.reject(new Error('rate limited'))
+          : Promise.resolve(undefined),
+    );
+
+    await expect(service.sweep()).resolves.toBeUndefined();
+
+    const recipients = mailService.sendScreenOfflineAlertEmail.mock.calls.map(
+      (call) => (call[0] as { to: string }).to,
+    );
+    expect(recipients).toEqual([
+      'first@example.com',
+      'bounces@example.com',
+      'third@example.com',
+    ]);
   });
 });

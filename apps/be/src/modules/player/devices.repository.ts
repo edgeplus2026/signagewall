@@ -208,39 +208,109 @@ export class DevicesRepository {
     online: boolean,
     profile?: DeviceProfile,
   ): Promise<DeviceDocument | null> {
+    const now = new Date();
+
+    if (!online) {
+      return this.deviceModel
+        .findOneAndUpdate(
+          { deviceId },
+          {
+            $set: {
+              online,
+              lastSeenAt: now,
+              ...(profile ? { profile } : {}),
+            },
+            $unset: { onlineSince: '' },
+          },
+          { returnDocument: 'after' },
+        )
+        .exec();
+    }
+
+    // Coming back online closes the offline episode and re-arms the alert —
+    // but only once the device has PROVEN it is back. A flapping screen
+    // (reconnecting for seconds at a time, then dropping) would otherwise
+    // clear the stamp on every blip and re-alert on every sweep, turning one
+    // bad display into a stream of emails. `onlineSince` records when the
+    // current healthy streak began; the sweep's re-arm reads it.
     return this.deviceModel
       .findOneAndUpdate(
         { deviceId },
-        {
-          $set: {
-            online,
-            lastSeenAt: new Date(),
-            ...(profile ? { profile } : {}),
+        [
+          {
+            $set: {
+              online: true,
+              lastSeenAt: now,
+              ...(profile ? { profile } : {}),
+              // Preserve an existing streak start; only stamp a new one when
+              // the device was previously offline.
+              onlineSince: {
+                $cond: [
+                  { $eq: ['$online', true] },
+                  { $ifNull: ['$onlineSince', now] },
+                  now,
+                ],
+              },
+            },
           },
-          // Coming back online closes the offline episode, re-arming the
-          // offline alert for the next outage.
-          ...(online ? { $unset: { offlineAlertedAt: '' } } : {}),
-        },
+        ],
         { returnDocument: 'after' },
       )
       .exec();
   }
 
   /**
-   * Paired devices that have been offline since before `cutoff` and have not
-   * yet been alerted for this episode. Drives the offline-alert sweep.
+   * Re-arms the offline alert for devices that have now been continuously
+   * online for at least `stableFor`. Separating this from {@link setPresence}
+   * is what makes the debounce hold: a device that flaps never accumulates a
+   * long enough streak, so its `offlineAlertedAt` stamp survives and it is not
+   * alerted again.
    */
-  findOfflineForAlert(cutoff: Date): Promise<DeviceDocument[]> {
-    return this.deviceModel
-      .find({
-        status: DeviceStatus.PAIRED,
-        online: false,
-        lastSeenAt: { $lte: cutoff },
-        offlineAlertedAt: { $exists: false },
-        screenId: { $exists: true },
-        organizationId: { $exists: true },
-      })
+  async rearmRecoveredDevices(stableSince: Date): Promise<number> {
+    const result = await this.deviceModel
+      .updateMany(
+        {
+          online: true,
+          onlineSince: { $lte: stableSince },
+          offlineAlertedAt: { $exists: true },
+        },
+        { $unset: { offlineAlertedAt: '' } },
+      )
       .exec();
+    return result.modifiedCount;
+  }
+
+  /**
+   * Paired devices whose outage started between `notBefore` and `cutoff` and
+   * that have not yet been alerted for this episode. Drives the offline-alert
+   * sweep.
+   *
+   * `notBefore` is what keeps the FIRST sweep after a deploy sane: without it,
+   * `offlineAlertedAt` being a new field means every device that has been dark
+   * for weeks matches at once and the org gets one email listing screens it
+   * retired months ago. `limit` bounds a genuine mass outage.
+   */
+  findOfflineForAlert(
+    cutoff: Date,
+    notBefore: Date,
+    limit: number,
+  ): Promise<DeviceDocument[]> {
+    return (
+      this.deviceModel
+        .find({
+          status: DeviceStatus.PAIRED,
+          online: false,
+          lastSeenAt: { $gt: notBefore, $lte: cutoff },
+          offlineAlertedAt: { $exists: false },
+          screenId: { $exists: true },
+          organizationId: { $exists: true },
+        })
+        // Most recently lost first: if the limit truncates, it keeps the
+        // outages an operator can still act on.
+        .sort({ lastSeenAt: -1 })
+        .limit(limit)
+        .exec()
+    );
   }
 
   /**

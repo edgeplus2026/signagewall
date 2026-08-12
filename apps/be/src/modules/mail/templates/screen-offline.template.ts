@@ -53,9 +53,12 @@ export const renderScreenOfflineEmail = (params: {
   return {
     subject,
     html: renderEmailLayout({
+      // Escaped like the body below: a screen or org name is member-supplied,
+      // and the preheader is interpolated into markup — an unescaped closing
+      // tag there renders attacker HTML inside a DKIM-signed email.
       previewText: single
-        ? `"${params.screens[0].name}" stopped reporting in ${params.organizationName}`
-        : `${params.screens.length} screens stopped reporting in ${params.organizationName}`,
+        ? `"${escapeHtml(params.screens[0].name)}" stopped reporting in ${escapeHtml(params.organizationName)}`
+        : `${params.screens.length} screens stopped reporting in ${escapeHtml(params.organizationName)}`,
       title: single ? 'A screen went offline' : 'Screens went offline',
       bodyHtml: `
       <p style="margin:0 0 12px;">${

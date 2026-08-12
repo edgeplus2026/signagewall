@@ -170,6 +170,19 @@ export default () => ({
       process.env.SCREEN_OFFLINE_ALERT_MINUTES ?? '10',
       10,
     ),
+    // How far back an outage still counts as "new". A screen that went dark
+    // days ago is not news, and without this bound the first sweep after any
+    // deploy alerts on the entire historical backlog at once.
+    offlineAlertLookbackHours: parseInt(
+      process.env.SCREEN_OFFLINE_ALERT_LOOKBACK_HOURS ?? '24',
+      10,
+    ),
+    // Hard ceiling on one sweep, so a mass outage cannot turn into an
+    // unbounded find() plus a mail burst.
+    offlineAlertMaxPerSweep: parseInt(
+      process.env.SCREEN_OFFLINE_ALERT_MAX_PER_SWEEP ?? '200',
+      10,
+    ),
   },
   // Redis — backs the BullMQ queue used by the AI content generator. A full
   // `REDIS_URL` (e.g. rediss://…) takes precedence over host/port when set.

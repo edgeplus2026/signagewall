@@ -22,6 +22,13 @@ import { DeviceDocument } from './schemas/device.schema';
  * back online (see {@link DevicesRepository.setPresence}). Screens are grouped
  * so a venue-wide outage produces one email per member, not one per display.
  */
+/**
+ * How long a device must stay continuously online before its offline episode
+ * is considered closed. Comfortably longer than the sweep interval, so one
+ * good heartbeat is not mistaken for a recovery.
+ */
+const REARM_STABLE_MS = 5 * 60_000;
+
 @Injectable()
 export class DeviceOfflineAlertService {
   private readonly logger = new Logger(DeviceOfflineAlertService.name);
@@ -44,10 +51,37 @@ export class DeviceOfflineAlertService {
       return;
     }
 
-    const cutoff = new Date(Date.now() - offlineMinutes * 60_000);
-    const devices = await this.devicesRepository.findOfflineForAlert(cutoff);
+    const lookbackHours = this.configService.get<number>(
+      'player.offlineAlertLookbackHours',
+      24,
+    );
+    const maxPerSweep = this.configService.get<number>(
+      'player.offlineAlertMaxPerSweep',
+      200,
+    );
+
+    const now = Date.now();
+    const cutoff = new Date(now - offlineMinutes * 60_000);
+    const notBefore = new Date(now - lookbackHours * 3_600_000);
+
+    // Re-arm before selecting: a device that has been solidly back for the
+    // re-arm window closes its episode here, so a genuine second outage later
+    // still alerts, while a screen flapping every few seconds never does.
+    await this.devicesRepository.rearmRecoveredDevices(
+      new Date(now - REARM_STABLE_MS),
+    );
+    const devices = await this.devicesRepository.findOfflineForAlert(
+      cutoff,
+      notBefore,
+      maxPerSweep,
+    );
     if (devices.length === 0) {
       return;
+    }
+    if (devices.length === maxPerSweep) {
+      this.logger.warn(
+        `Offline alert sweep hit the ${maxPerSweep}-device ceiling; older outages roll into the next tick`,
+      );
     }
 
     // Stamp before sending: at-most-once per episode. A crash here costs one
@@ -122,18 +156,33 @@ export class DeviceOfflineAlertService {
 
     const screensUrl = `${this.configService.getOrThrow<string>('frontendUrl')}/screens`;
 
-    for (const to of recipients) {
-      await this.mailService.sendScreenOfflineAlertEmail({
-        to,
-        organizationName: organization.name,
-        screens: summaries,
-        offlineMinutes,
-        screensUrl,
-      });
+    // One bad address (or a provider rate-limit rejection) must not cost the
+    // remaining members their alert: `markOfflineAlerted` has already stamped
+    // every device, so anything skipped here is never retried.
+    const results = await Promise.allSettled(
+      recipients.map((to) =>
+        this.mailService.sendScreenOfflineAlertEmail({
+          to,
+          organizationName: organization.name,
+          screens: summaries,
+          offlineMinutes,
+          screensUrl,
+        }),
+      ),
+    );
+
+    const failed = results.filter((result) => result.status === 'rejected');
+    for (const failure of failed) {
+      this.logger.error(
+        `Offline alert delivery failed for one member of organization ${organizationId}`,
+        failure.reason instanceof Error
+          ? failure.reason.stack
+          : String(failure.reason),
+      );
     }
 
     this.logger.log(
-      `Offline alert sent for ${summaries.length} screen(s) in organization ${organizationId} to ${recipients.length} member(s)`,
+      `Offline alert sent for ${summaries.length} screen(s) in organization ${organizationId} to ${recipients.length - failed.length}/${recipients.length} member(s)`,
     );
   }
 

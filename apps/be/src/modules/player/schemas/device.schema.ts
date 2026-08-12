@@ -231,11 +231,20 @@ export class Device {
 
   /**
    * When the offline alert email for the CURRENT offline episode was sent.
-   * Cleared the moment the device reports back online, so the next episode
-   * alerts again — one alert per outage, not one per sweep.
+   * Cleared once the device has been back online continuously for the
+   * re-arm window, so the next episode alerts again — one alert per outage,
+   * not one per sweep, and not one per reconnect on a flapping screen.
    */
   @Prop()
   offlineAlertedAt?: Date;
+
+  /**
+   * Start of the device's current uninterrupted online streak. Unset while
+   * offline. Only used to decide when an alerted device has recovered for
+   * real rather than momentarily.
+   */
+  @Prop()
+  onlineSince?: Date;
 
   /** Playback volume 0–100, applied by the player to its video audio. */
   @Prop({ default: 100, min: 0, max: 100 })
