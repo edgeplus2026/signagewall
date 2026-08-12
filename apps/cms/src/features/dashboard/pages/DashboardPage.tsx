@@ -2,7 +2,10 @@ import { ImageIcon, ListVideoIcon, MonitorIcon, WifiIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { QueryErrorState } from '@/components/common/QueryErrorState'
+import {
+  QueryErrorBanner,
+  QueryErrorState,
+} from '@/components/common/QueryErrorState'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { ContentGrowthChart } from '@/features/dashboard/components/ContentGrowthChart'
@@ -56,6 +59,8 @@ export default function DashboardPage() {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-6 lg:px-10">
+      {data.hasPartialError && <QueryErrorBanner onRetry={data.retry} />}
+
       <DashboardHero
         userName={firstName}
         online={data.presence.online}

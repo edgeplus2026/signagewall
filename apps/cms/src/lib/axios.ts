@@ -93,7 +93,12 @@ api.interceptors.response.use(
       !originalRequest._retry &&
       !originalRequest.url?.includes('/auth/refresh') &&
       !originalRequest.url?.includes('/auth/login') &&
-      !originalRequest.url?.includes('/auth/register')
+      !originalRequest.url?.includes('/auth/register') &&
+      // Redeeming a Google login code is itself an authentication attempt: a
+      // 401 here means the code was spent or expired, and refreshing a token
+      // the user does not have yet cannot help. Retrying would also burn the
+      // single-use code.
+      !originalRequest.url?.includes('/auth/google/exchange')
     ) {
       const { refreshToken } = useAuthStore.getState()
 
@@ -107,8 +112,18 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           // The timeout is only a backstop against a refresh that never
           // settles; a failed refresh rejects the whole queue immediately.
-          const timer = setTimeout(() => { reject(toApiError(axiosError)); }, 10_000)
-          refreshQueue.push({
+          const timer = setTimeout(() => {
+            // Drop the waiter as well as rejecting it. Left in the queue it
+            // would still be called by processRefreshQueue/failRefreshQueue
+            // later — replaying a request whose caller already gave up, and
+            // holding its closure (and originalRequest) alive until then.
+            const index = refreshQueue.indexOf(waiter)
+            if (index !== -1) {
+              refreshQueue.splice(index, 1)
+            }
+            reject(toApiError(axiosError))
+          }, 10_000)
+          const waiter: RefreshWaiter = {
             onToken: (token) => {
               clearTimeout(timer)
               originalRequest.headers.Authorization = `Bearer ${token}`
@@ -118,7 +133,8 @@ api.interceptors.response.use(
               clearTimeout(timer)
               reject(toApiError(refreshError))
             },
-          })
+          }
+          refreshQueue.push(waiter)
         })
       }
 
@@ -135,7 +151,13 @@ api.interceptors.response.use(
         const { data } = await axios.post<ApiEnvelope<AuthTokens>>(
           `${baseURL}/auth/refresh`,
           { refreshToken },
-          { headers: { 'Content-Type': 'application/json' } },
+          {
+            headers: { 'Content-Type': 'application/json' },
+            // Bare `axios`, not the configured instance, so it does not inherit
+            // the 10s timeout. Without this a hung refresh keeps `isRefreshing`
+            // true forever and every later 401 queues behind it.
+            timeout: 10_000,
+          },
         )
 
         const tokens = data.data

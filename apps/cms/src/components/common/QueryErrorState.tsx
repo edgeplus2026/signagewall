@@ -17,8 +17,41 @@ interface QueryErrorStateProps {
 }
 
 /**
+ * Non-blocking refresh failure, for when the list already has data on screen.
+ *
+ * Replacing a rendered list with a full-page error throws away results the
+ * operator can still act on — during a blip they lose the screen they were
+ * halfway through editing. Cached data stays; this says it may be stale.
+ */
+export function QueryErrorBanner({ onRetry, className }: QueryErrorStateProps) {
+  const { t } = useTranslation()
+
+  return (
+    <div
+      role="status"
+      className={
+        className ??
+        'border-warning/40 bg-warning/10 text-warning-foreground mb-3 flex items-center gap-2 rounded-md border px-3 py-2 text-sm'
+      }
+    >
+      <AlertTriangleIcon className="size-4 shrink-0" aria-hidden />
+      <span className="flex-1">{t('common.loadErrorStale')}</span>
+      {onRetry && (
+        <Button variant="ghost" size="sm" onClick={onRetry}>
+          <RotateCwIcon aria-hidden />
+          {t('common.retry')}
+        </Button>
+      )}
+    </div>
+  )
+}
+
+/**
  * Failed-query fallback for list pages. Deliberately distinct from the empty
  * state: an API outage must never read as "you have no data yet".
+ *
+ * Only use this when there is nothing cached to show — otherwise
+ * {@link QueryErrorBanner}.
  */
 export function QueryErrorState({ onRetry, className }: QueryErrorStateProps) {
   const { t } = useTranslation()

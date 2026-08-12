@@ -14,6 +14,7 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty'
 import type { FleetScreen } from '@/features/dashboard/hooks/useDashboardData'
+import { useNow } from '@/hooks/useNow'
 import { cn } from '@/lib/utils'
 
 interface FleetHealthProps {
@@ -32,6 +33,9 @@ const MAX_ROWS = 6
 export function FleetHealth({ fleet }: FleetHealthProps) {
   const { t, i18n } = useTranslation()
   const locale = i18n.language.startsWith('sr') ? srLatn : undefined
+  // Presence pushes arrive over the socket, but a screen that simply STAYS
+  // offline produces no event — without a ticker its "offline for X" freezes.
+  const now = useNow(30_000)
 
   if (fleet.length === 0) {
     return (
@@ -60,8 +64,15 @@ export function FleetHealth({ fleet }: FleetHealthProps) {
       return t('dashboard.fleet.online')
     }
     if (screen.lastSeenAt) {
+      const lastSeen = new Date(screen.lastSeenAt).getTime()
+      if (Number.isNaN(lastSeen)) {
+        return t('dashboard.fleet.offline')
+      }
+      // Clamp to now: a device whose clock runs ahead reports a future
+      // `lastSeenAt`, and date-fns would render that as "in 4 hours" on a row
+      // labelled offline.
       return t('dashboard.fleet.offlineFor', {
-        duration: formatDistanceToNowStrict(new Date(screen.lastSeenAt), {
+        duration: formatDistanceToNowStrict(new Date(Math.min(lastSeen, now)), {
           ...(locale ? { locale } : {}),
         }),
       })

@@ -67,15 +67,43 @@ const STATIC_ROUTES: Route[] = [
    window itself, so a shorter one would only buy database round trips. */
 export const revalidate = 172_800
 
+/** Newest `updatedAt` across a collection, or undefined when it is empty. */
+function newestUpdatedAt(
+  refs: { updatedAt?: string | Date | undefined }[],
+): string | undefined {
+  let newest: number | undefined
+  for (const ref of refs) {
+    if (!ref.updatedAt) continue
+    const time = new Date(ref.updatedAt).getTime()
+    if (Number.isNaN(time)) continue
+    if (newest === undefined || time > newest) newest = time
+  }
+  return newest === undefined ? undefined : new Date(newest).toISOString()
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const industries = await listSolutionSlugs()
   const posts = await listPostRefs()
   const apps = await listAppPageRefs()
 
+  // The three index pages list content that changes in the CMS between
+  // deploys, so the build moment understates them: a post published today
+  // would advertise a `lastmod` from the last deploy and crawlers would
+  // deprioritise a page that genuinely changed. Their newest child is the
+  // truthful value; every other static page really does only change on deploy.
+  const indexLastmod = new Map<string, string | undefined>([
+    ['/blog', newestUpdatedAt(posts)],
+    ['/apps', newestUpdatedAt(apps)],
+    ['/solutions', newestUpdatedAt(industries)],
+  ])
+
   return [
-    ...STATIC_ROUTES.flatMap((route) =>
-      entries(route, STATIC_LASTMOD ? { lastModified: STATIC_LASTMOD } : {}),
-    ),
+    ...STATIC_ROUTES.flatMap((route) => {
+      const lastModified =
+        (typeof route === 'string' ? indexLastmod.get(route) : undefined) ??
+        STATIC_LASTMOD
+      return entries(route, lastModified ? { lastModified } : {})
+    }),
     // A technical app manifest is not editorial approval. Only reviewed,
     // indexable App Page locale versions are eligible for discovery here.
     ...apps.flatMap((app) =>

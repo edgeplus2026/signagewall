@@ -35,8 +35,10 @@ export interface FleetScreen {
 
 export interface DashboardData {
   isLoading: boolean
-  /** True when any of the underlying list queries failed. */
+  /** True only when EVERY underlying list query failed — nothing to render. */
   isError: boolean
+  /** Some data loaded, some didn't: render the panels, warn about the rest. */
+  hasPartialError: boolean
   /** Re-runs the failed queries. */
   retry: () => void
   counts: {
@@ -169,7 +171,14 @@ export function useDashboardData(): DashboardData {
 
     return {
       isLoading: playlistsLoading || screensLoading || mediaLoading,
-      isError: playlistsError || screensError || mediaError,
+      // Only a total outage blanks the dashboard. If media is down but screens
+      // and playlists loaded, the fleet panel is exactly what the operator
+      // opened the page for — replacing it with one error card throws away
+      // working data.
+      isError: playlistsError && screensError && mediaError,
+      hasPartialError:
+        (playlistsError || screensError || mediaError) &&
+        !(playlistsError && screensError && mediaError),
       retry: () => {
         if (playlistsError) void refetchPlaylists()
         if (screensError) void refetchScreens()

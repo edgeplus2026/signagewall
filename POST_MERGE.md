@@ -5,11 +5,18 @@ merges. Code-side work stays in [TODO.md](TODO.md).
 
 ## 1. Deploy order (required)
 
-- [ ] **Deploy the CMS (Vercel) before the backend (Railway).** The Google
-      login flow changed: the backend now redirects with a one-time `code`
-      instead of tokens in the URL. The new CMS callback page handles both
-      shapes; the old one cannot redeem a code. Wrong order = broken Google
-      login until the CMS deploy lands.
+- [ ] **Deploy the CMS (Vercel) before the backend (Railway) — mandatory.** The
+      Google login flow changed: the backend now redirects with a one-time
+      `code` instead of tokens in the URL. The old CMS callback page cannot
+      redeem a code, and the new one accepts *only* a code (the legacy
+      token-in-URL branch was removed — it was unreachable from any backend
+      path and doubled as a session-fixation vector). Wrong order = broken
+      Google login until the CMS deploy lands.
+- [ ] **Google logins in flight across the backend deploy fail once.** The
+      callback now verifies a CSRF `state` against an HttpOnly cookie minted
+      when the flow started, so a user sitting on Google's account chooser
+      during the restart lands back on `/login` with the normal error and just
+      signs in again. Expected, self-healing — not a broken deploy.
 - [ ] Player and marketing site have no ordering constraints, with one skew
       caveat from the BE-4 recovery change: after the backend deploys, an
       **old** player build that lost its device token (the rare storage-wipe
@@ -30,6 +37,21 @@ merges. Code-side work stays in [TODO.md](TODO.md).
       disables) — requires `MAIL_ENABLED=true`. Every active+verified org
       member is emailed once per outage; verify the first real alert lands and
       reads well before the pilot.
+      The first sweep runs 60s after boot. `offlineAlertedAt` is a new field,
+      so nothing is stamped yet — the sweep is bounded by
+      `SCREEN_OFFLINE_ALERT_LOOKBACK_HOURS` (default 24) and
+      `SCREEN_OFFLINE_ALERT_MAX_PER_SWEEP` (default 200) so it cannot alert on
+      the whole historical backlog. If the fleet has many screens dark for
+      under 24h, deploy with `SCREEN_OFFLINE_ALERT_MINUTES=0`, confirm the
+      device list is what you expect, then set the real value.
+- [ ] **Private R2 (required before any Secure Power BI use):**
+      `PRIVATE_R2_ACCOUNT_ID`, `PRIVATE_R2_ACCESS_KEY_ID`,
+      `PRIVATE_R2_SECRET_ACCESS_KEY`, `PRIVATE_R2_BUCKET`, and optionally
+      `PRIVATE_R2_SIGNED_URL_TTL_SECONDS` (default 900). Unset, the service
+      only logs "Private R2 storage is not configured" at boot and every
+      snapshot operation then throws at runtime. Two hard requirements: the
+      bucket must **not** equal `R2_BUCKET` (enforced at boot), and it must
+      have no `r2.dev` or custom public domain attached.
 - [ ] After deploy, verify throttling sees real client IPs: two logins from
       different networks must not share a throttle bucket (check logs or lower
       `THROTTLE_AUTH_LIMIT` on a staging env to test).
@@ -77,9 +99,23 @@ merges. Code-side work stays in [TODO.md](TODO.md).
       recovery param disappears after pairing); opening the same URL a second
       time in a private window must NOT be admitted — it should reset to a
       pairing code within a few seconds.
+      **Test this on an offline/spare screen, not a live one.** Redeeming a
+      recovery grant rotates the device token, so it takes the identity over:
+      the previous holder is now revoked immediately (it used to fail silently
+      at its next reconnect). The CMS asks for confirmation when the screen is
+      online — that prompt is the intended behaviour, not a bug.
 
 ## 6. OpsBoard demo enablement (new capability in this PR)
 
+- [ ] **Create the catalog entries first.** `syncManifestDefinitions` does not
+      auto-add new manifests (`if (!existing) continue;` — super-admin curates
+      what enters the catalog), so `GET /admin/apps` returns nothing for the
+      two new apps until you create them. As super-admin:
+      `POST /api/v1/admin/apps` with
+      `{ "slug": "opsboard", "name": "OpsBoard", "isPublic": false }`, and the
+      same for `"powerbi-secure"`. Slug is validated against `APP_MANIFESTS`;
+      icon/colour/schema come from code, only name and visibility from the
+      request. Keep both non-public.
 - [ ] Grant OpsBoard to the internal/demo organization:
       `POST /api/v1/admin/apps/<opsBoardAppId>/grants` with
       `{ "organizationId": "<demoOrgId>" }` as a super-admin (app ids via

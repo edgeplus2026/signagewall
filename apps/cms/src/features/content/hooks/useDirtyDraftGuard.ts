@@ -11,10 +11,21 @@ import { useBlocker } from 'react-router-dom'
 export function useDirtyDraftGuard(isDirty: boolean): void {
   const { t } = useTranslation()
 
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      isDirty && currentLocation.pathname !== nextLocation.pathname,
-  )
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    if (!isDirty) {
+      return false
+    }
+    if (currentLocation.pathname !== nextLocation.pathname) {
+      return true
+    }
+    // Same pathname, different `tab` search param. ScreenPage switches tabs
+    // with setSearchParams and Radix unmounts the inactive tab's content, so
+    // this destroys the draft exactly like navigating away does — a pathname
+    // comparison alone misses the most common way the editor is left.
+    const currentTab = new URLSearchParams(currentLocation.search).get('tab')
+    const nextTab = new URLSearchParams(nextLocation.search).get('tab')
+    return currentTab !== nextTab
+  })
 
   useEffect(() => {
     if (blocker.state !== 'blocked') {
