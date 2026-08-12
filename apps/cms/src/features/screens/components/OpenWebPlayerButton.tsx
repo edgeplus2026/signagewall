@@ -4,6 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { screensApi } from '@/features/screens/api/screensApi'
 import {
   buildPlayerRecoveryUrl,
@@ -21,6 +29,14 @@ interface OpenWebPlayerButtonProps {
    * player, which pairs through the normal code flow.
    */
   paired: boolean
+  /**
+   * Whether that paired device is currently reporting in. Redeeming a recovery
+   * grant rotates the device token, so opening the web player TAKES OVER the
+   * identity — a live display is signed out and drops to a pairing code. That
+   * is fine for a dead screen (it is the recovery path) and destructive for a
+   * healthy one, so the healthy case asks first.
+   */
+  deviceOnline?: boolean
 }
 
 /**
@@ -33,9 +49,11 @@ export function OpenWebPlayerButton({
   className,
   screenId,
   paired,
+  deviceOnline = false,
 }: OpenWebPlayerButtonProps) {
   const { t } = useTranslation()
   const [isMinting, setIsMinting] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const openWebPlayer = async () => {
     if (!paired) {
@@ -71,18 +89,59 @@ export function OpenWebPlayerButton({
     }
   }
 
+  const handleClick = () => {
+    if (paired && deviceOnline) {
+      setConfirmOpen(true)
+      return
+    }
+    void openWebPlayer()
+  }
+
   return (
-    <Button
-      variant="secondary"
-      size="sm"
-      className={className}
-      disabled={isMinting}
-      onClick={() => {
-        void openWebPlayer()
-      }}
-    >
-      <ScreenShare className="size-4" />
-      {t('screens.device.preview.openWebPlayer')}
-    </Button>
+    <>
+      <Button
+        variant="secondary"
+        size="sm"
+        className={className}
+        disabled={isMinting}
+        onClick={handleClick}
+      >
+        <ScreenShare className="size-4" />
+        {t('screens.device.preview.openWebPlayer')}
+      </Button>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>
+              {t('screens.device.preview.takeoverTitle')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('screens.device.preview.takeoverDescription')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setConfirmOpen(false)
+              }}
+            >
+              {t('screens.device.preview.takeoverCancel')}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={isMinting}
+              onClick={() => {
+                setConfirmOpen(false)
+                void openWebPlayer()
+              }}
+            >
+              {t('screens.device.preview.takeoverConfirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

@@ -910,7 +910,11 @@
         "previous": "Previous item",
         "next": "Next item",
         "openWebPlayer": "Open web player",
-        "openWebPlayerError": "Couldn't open the web player. Please try again."
+        "openWebPlayerError": "Couldn't open the web player. Please try again.",
+        "takeoverTitle": "Take over this display?",
+        "takeoverDescription": "This screen is online right now. Opening the web player signs the current display out — it will stop playing and show a pairing code until someone re-pairs it on site. Use this only to recover a screen you cannot reach.",
+        "takeoverCancel": "Cancel",
+        "takeoverConfirm": "Take over anyway"
       },
       "pair": {
         "submit": "Pair device",

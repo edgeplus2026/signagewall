@@ -138,6 +138,13 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // the instruction is actually delivered (a disconnect would just
         // trigger socket.io's automatic reconnect with the same bad auth).
         client.emit(PlayerSocketEvents.RecoveryRequired);
+        // Strip the identity this socket was NOT admitted under. Leaving it in
+        // place let an unadmitted socket keep writing presence and an
+        // attacker-supplied profile through `handleHeartbeat`, and kept the
+        // device room non-empty so `handleDisconnect` never marked the real
+        // screen offline — which silently suppressed its outage alert.
+        await client.leave(deviceRoom(deviceId));
+        delete data.deviceId;
         return;
       }
 
@@ -150,6 +157,28 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
           expiresAt: result.expiresAt.toISOString(),
         });
         return;
+      }
+
+      if (result.displacedPreviousHolder) {
+        // A recovery code was redeemed while another holder (typically the
+        // physical display) still had the old token. That token is now dead,
+        // so tell those sockets immediately instead of letting them discover
+        // it at their next reconnect — by then nobody is watching, and the
+        // player hard-resets to a pairing code unattended.
+        // `except(client.id)` is essential: this socket already joined the
+        // device room above, and revoking it would kill the recovery it just
+        // completed.
+        this.server
+          .to(deviceRoom(deviceId))
+          .except(client.id)
+          .emit(PlayerSocketEvents.Revoked);
+        this.server
+          .in(deviceRoom(deviceId))
+          .except(client.id)
+          .disconnectSockets(true);
+        this.logger.warn(
+          `Recovery grant redeemed for device ${deviceId}; displaced the previous token holder`,
+        );
       }
 
       data.screenId = result.screenId;

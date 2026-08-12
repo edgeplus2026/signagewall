@@ -54,6 +54,14 @@ export type ConnectResult =
       settings: DeviceSettingsPayload;
       /** Present only when a token was (re)issued and must be persisted client-side. */
       token?: string;
+      /**
+       * A recovery code was redeemed against a device that already held a
+       * valid token, so whoever held that token (typically the physical
+       * display) has just been displaced. The gateway must revoke the other
+       * sockets on this device id — silently invalidating them leaves the TV
+       * looking fine until its next reconnect, when it hard-resets.
+       */
+      displacedPreviousHolder?: boolean;
     }
   | {
       /**
@@ -151,6 +159,9 @@ export class PlayerService {
     }
 
     let issuedToken: string | undefined;
+    // True when the device already had a token that someone else may still be
+    // holding — i.e. this admission displaces a live player.
+    let displacedPreviousHolder = false;
     const providedHash = token
       ? this.tokensService.hashToken(token)
       : undefined;
@@ -159,6 +170,7 @@ export class PlayerService {
     );
 
     if (!tokenValid) {
+      displacedPreviousHolder = Boolean(device.tokenHash);
       issuedToken = await this.recoverWithoutToken(device, recoveryCode);
       if (issuedToken === undefined) {
         this.logger.warn(
@@ -195,6 +207,7 @@ export class PlayerService {
       volume: device.volume ?? 100,
       settings: this.toSettingsPayload(device.settings),
       ...(issuedToken ? { token: issuedToken } : {}),
+      ...(displacedPreviousHolder ? { displacedPreviousHolder: true } : {}),
     };
   }
 

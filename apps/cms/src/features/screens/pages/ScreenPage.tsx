@@ -121,6 +121,7 @@ export default function ScreenPage() {
               <OpenWebPlayerButton
                 screenId={screenId}
                 paired={Boolean(deviceSnapshot?.deviceId)}
+                deviceOnline={Boolean(presence?.online)}
               />
               <ScreenAvailabilityBadge status={availabilityStatus ?? undefined} />
               <ScreenPresenceBadge device={presence} />

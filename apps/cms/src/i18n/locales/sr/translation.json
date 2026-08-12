@@ -888,7 +888,11 @@
         "previous": "Prethodna stavka",
         "next": "Sledeća stavka",
         "openWebPlayer": "Otvori web plejer",
-        "openWebPlayerError": "Nije uspelo otvaranje web plejera. Pokušajte ponovo."
+        "openWebPlayerError": "Nije uspelo otvaranje web plejera. Pokušajte ponovo.",
+        "takeoverTitle": "Preuzeti ovaj ekran?",
+        "takeoverDescription": "Ovaj ekran je trenutno na mreži. Otvaranje web plejera odjavljuje trenutni prikaz — prestaće da pušta sadržaj i prikazaće kod za uparivanje dok ga neko ponovo ne upari na licu mesta. Koristite ovo samo da povratite ekran do kog ne možete da dođete.",
+        "takeoverCancel": "Otkaži",
+        "takeoverConfirm": "Ipak preuzmi"
       },
       "pair": {
         "submit": "Upari uređaj",

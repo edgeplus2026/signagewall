@@ -139,6 +139,32 @@ describe('PlayerService.handleConnect — paired admission', () => {
       'hash:fresh-token',
     );
     expect(result).toMatchObject({ kind: 'paired', token: 'fresh-token' });
+    // The previous holder — normally the physical display — just lost its
+    // token. The gateway relies on this flag to revoke it now rather than
+    // letting it hard-reset unattended at its next reconnect.
+    expect(result).toMatchObject({ displacedPreviousHolder: true });
+  });
+
+  it('does not report a displacement when the record never had a token', async () => {
+    const { service } = build(pairedDevice({ tokenHash: undefined }));
+
+    const result = await service.handleConnect(DEVICE_ID, undefined, undefined);
+
+    expect(result).toMatchObject({ kind: 'paired' });
+    expect(result).not.toHaveProperty('displacedPreviousHolder');
+  });
+
+  it('does not report a displacement when a valid token is presented', async () => {
+    const { service } = build(pairedDevice());
+
+    const result = await service.handleConnect(
+      DEVICE_ID,
+      'stored-token',
+      undefined,
+    );
+
+    expect(result).toMatchObject({ kind: 'paired' });
+    expect(result).not.toHaveProperty('displacedPreviousHolder');
   });
 
   it('refuses a spent or expired recovery code', async () => {

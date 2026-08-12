@@ -7,12 +7,17 @@
  * new identity and strand its paired screen on the old, orphaned `deviceId`.
  *
  * To make that recoverable we mirror the `deviceId` into the URL as
- * `?device=<uuid>`. Because the backend re-issues a token for a known `deviceId`
- * that reconnects over the `/player` socket without a valid one, simply restoring
- * the old `deviceId` is enough to slide straight back into the paired screen — no
- * operator action, no new endpoint. So reopening the same URL (or the CMS
- * "Open web player" link, which carries the paired screen's `deviceId`) fully
- * recovers a device whose localStorage was cleared.
+ * `?device=<uuid>`, and the operator's "Open web player" link additionally
+ * carries a single-use grant as `?recovery=<code>`. Restoring the `deviceId`
+ * alone is NOT enough to re-enter the paired screen — it only names which
+ * device is being claimed. Admission needs one of:
+ *
+ *   - the device token this browser still holds (the ordinary case, where
+ *     nothing was actually lost), or
+ *   - a `?recovery=<code>` grant an operator just minted in the CMS.
+ *
+ * Anything else is refused, so recovering a genuinely wiped screen is an
+ * explicit operator action rather than something a stale URL does silently.
  *
  * We deliberately carry the `deviceId`, not the pairing code: the code is
  * ephemeral (expires and is cleared once paired) and short enough to guess, which
