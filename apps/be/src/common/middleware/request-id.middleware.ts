@@ -23,10 +23,26 @@ export function requestIdMiddleware(
   next: NextFunction,
 ): void {
   const inbound = req.headers[REQUEST_ID_HEADER];
-  const requestId =
+  const candidate =
     typeof inbound === 'string' && INBOUND_ID_PATTERN.test(inbound)
       ? inbound
-      : randomUUID();
+      : undefined;
+
+  // Adopt an inbound id only when the request actually came through our proxy.
+  // `trust proxy` is what makes `X-Forwarded-For` meaningful, and Express only
+  // populates `req.ips` when it is set AND the header is present — so a
+  // non-empty `req.ips` is the signal that a proxy, not an arbitrary caller,
+  // is upstream. Without this any client could pin its own id and deliberately
+  // collide with another tenant's traces.
+  const viaTrustedProxy = req.ips.length > 0;
+
+  const requestId = candidate && viaTrustedProxy ? candidate : randomUUID();
+
+  // Keep a caller-supplied id we chose not to trust: still useful for
+  // correlating with a customer's own logs, but never confusable with ours.
+  if (candidate && !viaTrustedProxy) {
+    res.locals.clientRequestId = candidate;
+  }
 
   res.locals.requestId = requestId;
   res.setHeader(REQUEST_ID_HEADER, requestId);
@@ -36,4 +52,10 @@ export function requestIdMiddleware(
 export function getRequestId(res: Response): string {
   const { requestId } = res.locals as { requestId?: unknown };
   return typeof requestId === 'string' ? requestId : '-';
+}
+
+/** A client-supplied `X-Request-Id` that was NOT adopted, for log correlation. */
+export function getClientRequestId(res: Response): string | undefined {
+  const { clientRequestId } = res.locals as { clientRequestId?: unknown };
+  return typeof clientRequestId === 'string' ? clientRequestId : undefined;
 }
