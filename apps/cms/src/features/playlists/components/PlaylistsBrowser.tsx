@@ -11,7 +11,10 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { QueryErrorState } from '@/components/common/QueryErrorState'
+import {
+  QueryErrorBanner,
+  QueryErrorState,
+} from '@/components/common/QueryErrorState'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -32,6 +35,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { mediaGridClassName } from '@/features/media/lib/mediaActionCardStyles'
+import { useCanEditOrgContent } from '@/features/organizations/hooks/useIsOrgAdmin'
 import { DeletePlaylistDialog } from '@/features/playlists/components/DeletePlaylistDialog'
 import { PlaylistsBulkActionsBar } from '@/features/playlists/components/PlaylistsBulkActionsBar'
 import { PlaylistsGrid } from '@/features/playlists/components/PlaylistsGrid'
@@ -83,6 +87,8 @@ export function PlaylistsBrowser({
   const [sortBy, setSortBy] = useState<PlaylistSortField>('name')
   const [sortDirection, setSortDirection] = useState<PlaylistSortDirection>('asc')
   const [viewMode, setViewMode] = useViewMode('playlists')
+  // Server-enforced; hiding the buttons just stops a viewer walking into a 403.
+  const canEdit = useCanEditOrgContent()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteIds, setDeleteIds] = useState<string[]>([])
   const [addToScreenIds, setAddToScreenIds] = useState<string[]>([])
@@ -258,6 +264,7 @@ export function PlaylistsBrowser({
           </TooltipProvider>
         </div>
 
+        {canEdit && (
         <PlaylistsBulkActionsBar
           selectedCount={selectedIds.size}
           onAddToScreen={() => {
@@ -268,6 +275,11 @@ export function PlaylistsBrowser({
           }}
           onClear={clearSelection}
         />
+        )}
+
+        {isError && playlists.length > 0 && (
+          <QueryErrorBanner onRetry={onRetry} />
+        )}
 
         {isLoading ? (
           viewMode === 'grid' ? (
@@ -275,7 +287,7 @@ export function PlaylistsBrowser({
           ) : (
             <PlaylistsTableSkeleton />
           )
-        ) : isError ? (
+        ) : isError && playlists.length === 0 ? (
           <QueryErrorState onRetry={onRetry} />
         ) : filteredPlaylists.length === 0 ? (
           <Empty className="min-h-48 py-12">
@@ -304,12 +316,12 @@ export function PlaylistsBrowser({
                 >
                   {t('playlists.emptyClearSearch')}
                 </Button>
-              ) : (
+              ) : canEdit ? (
                 <Button type="button" variant="outline" size="sm" onClick={onCreateClick}>
                   <ListVideoIcon data-icon="inline-start" />
                   {t('playlists.create.button')}
                 </Button>
-              )}
+              ) : null}
             </EmptyContent>
           </Empty>
         ) : viewMode === 'grid' ? (

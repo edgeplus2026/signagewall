@@ -15,6 +15,13 @@ export interface OrgRolesMetadata {
    * When omitted, the org id is read from the `x-organization-id` header.
    */
   idParam?: string;
+  /**
+   * Marks the route as write-intent even though its HTTP method is safe.
+   * The viewer check treats GET/HEAD/OPTIONS as read-only by default; a GET
+   * that mutates (e.g. starting an OAuth flow that rebinds a connection) must
+   * set this or a read-only viewer would pass straight through it.
+   */
+  write?: boolean;
 }
 
 /**

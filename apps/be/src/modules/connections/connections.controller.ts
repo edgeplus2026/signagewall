@@ -114,7 +114,9 @@ export class ConnectionsController {
   @Get('oauth/:provider/start')
   @ApiOrgScoped()
   @UseGuards(OrgMembershipGuard)
-  @RequireOrgRole()
+  // Write-intent despite the GET: completing this flow rebinds the instance's
+  // connection credentials, so a read-only viewer must not be able to start it.
+  @RequireOrgRole({ write: true })
   @ApiSuccessResponse(Object)
   @ApiOperation({
     summary:

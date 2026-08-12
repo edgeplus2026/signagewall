@@ -93,6 +93,30 @@ describe('OrgMembershipGuard — viewer read-only enforcement', () => {
     await expect(guard.canActivate(context)).resolves.toBe(true);
   });
 
+  // `GET /connections/oauth/:provider/start` mutates: completing the flow it
+  // begins rebinds the instance's connection. Method alone would admit a viewer.
+  it('refuses a viewer a GET that declares write intent', async () => {
+    const { guard, context } = build({
+      role: OrganizationRole.VIEWER,
+      method: 'GET',
+      metadata: { write: true },
+    });
+
+    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(
+      BusinessException,
+    );
+  });
+
+  it('still admits a member to a write-intent GET', async () => {
+    const { guard, context } = build({
+      role: OrganizationRole.MEMBER,
+      method: 'GET',
+      metadata: { write: true },
+    });
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+  });
+
   it('never lets a viewer satisfy an admin-only route, even for GET', async () => {
     const { guard, context } = build({
       role: OrganizationRole.VIEWER,

@@ -106,9 +106,14 @@ export class OrgMembershipGuard implements CanActivate {
     // content surface (screens, playlists, media, app instances) and most of
     // them mutate — so a viewer passes them only for reads. Enforced here
     // centrally so a newly added write route cannot forget it.
+    //
+    // The HTTP method is only a default: a safe-looking GET that actually
+    // mutates must declare `write: true`, otherwise the read-only guarantee
+    // would be false for that route.
     if (
       normalizeOrganizationRole(membership.role) === OrganizationRole.VIEWER &&
-      !SAFE_METHODS.has(request.method.toUpperCase())
+      (metadata.write === true ||
+        !SAFE_METHODS.has(request.method.toUpperCase()))
     ) {
       throw BusinessException.forbidden(this.i18n.t('organizations.readOnly'));
     }

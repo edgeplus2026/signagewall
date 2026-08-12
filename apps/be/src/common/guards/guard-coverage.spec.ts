@@ -6,6 +6,7 @@ import * as path from 'path';
 import { GUARDS_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { ORG_ROLES_KEY } from '../decorators/org-roles.decorator';
 
 /**
  * Authorization regression net.
@@ -51,13 +52,31 @@ const REVIEWED_JWT_ONLY_OR_PUBLIC = new Set([
   'SettingsController', // own profile, password, export, feedback
 ]);
 
+/**
+ * Individual routes on an org-scoped controller that legitimately carry no
+ * `@RequireOrgRole`, because they run BEFORE any org context exists. Each entry
+ * asserts the handler scopes strictly by the authenticated user's own id.
+ *
+ * Per-route rather than per-controller on purpose: allowlisting
+ * `OrganizationsController` wholesale would also exempt its `PATCH /:id`.
+ */
+const REVIEWED_OWN_DATA_ROUTES = new Set([
+  // Lists only the orgs this user is a member of — there is no org to scope to.
+  'OrganizationsController.list',
+  // Creates a new org for the caller; the caller becomes its first admin.
+  'OrganizationsController.create',
+]);
+
 function findControllerFiles(dir: string): string[] {
   const found: string[] = [];
   for (const entry of readdirSync(dir)) {
     const full = path.join(dir, entry);
     if (statSync(full).isDirectory()) {
       found.push(...findControllerFiles(full));
-    } else if (entry.endsWith('.controller.ts') && !entry.endsWith('.spec.ts')) {
+    } else if (
+      entry.endsWith('.controller.ts') &&
+      !entry.endsWith('.spec.ts')
+    ) {
       found.push(full);
     }
   }
@@ -78,12 +97,12 @@ function guardNames(target: object): string[] {
 }
 
 /** Route handlers are the prototype methods that carry HTTP path metadata. */
-function routeHandlers(cls: ClassLike): object[] {
+function routeHandlers(cls: ClassLike): { name: string }[] {
   return Object.getOwnPropertyNames(cls.prototype)
     .filter((name) => name !== 'constructor')
     .map((name) => cls.prototype[name])
     .filter(
-      (member): member is object =>
+      (member): member is { name: string } =>
         typeof member === 'function' &&
         Reflect.getMetadata(PATH_METADATA, member) !== undefined,
     );
@@ -115,20 +134,51 @@ describe('guard coverage sweep', () => {
           continue;
         }
 
-        const classGuarded = guardNames(controller).some((name) =>
+        const classGuards = guardNames(controller);
+        const classGuarded = classGuards.some((name) =>
           AUTHORIZING_GUARDS.has(name),
         );
-        if (classGuarded) {
+
+        // `OrgMembershipGuard` is metadata-driven: with no `@RequireOrgRole` it
+        // finds nothing to enforce and returns true. So a class-level guard is
+        // NOT by itself coverage — a handler that forgets the decorator is an
+        // authenticated, unscoped route on a controller that looks protected.
+        // Every other authorizing guard scopes on its own, so for those the
+        // class-level annotation is enough.
+        const orgScopedClass =
+          classGuards.includes('OrgMembershipGuard') ||
+          Reflect.getMetadata(ORG_ROLES_KEY, controller) !== undefined;
+        if (classGuarded && !orgScopedClass) {
           continue;
         }
 
         const uncovered = routeHandlers(controller).filter((handler) => {
-          const routeGuarded = guardNames(handler).some((name) =>
-            AUTHORIZING_GUARDS.has(name),
-          );
           const routePublic =
             Reflect.getMetadata(IS_PUBLIC_KEY, handler) === true;
-          return !routeGuarded && !routePublic;
+          if (routePublic) {
+            return false;
+          }
+          if (
+            REVIEWED_OWN_DATA_ROUTES.has(`${controller.name}.${handler.name}`)
+          ) {
+            return false;
+          }
+
+          const routeGuards = guardNames(handler);
+          const routeGuarded = routeGuards.some((name) =>
+            AUTHORIZING_GUARDS.has(name),
+          );
+
+          if (orgScopedClass || routeGuards.includes('OrgMembershipGuard')) {
+            // Resolved the way the guard itself resolves it: handler first,
+            // then class.
+            const roles =
+              Reflect.getMetadata(ORG_ROLES_KEY, handler) ??
+              Reflect.getMetadata(ORG_ROLES_KEY, controller);
+            return roles === undefined;
+          }
+
+          return !routeGuarded;
         });
 
         if (uncovered.length > 0) {
@@ -142,6 +192,22 @@ describe('guard coverage sweep', () => {
     // A name listed here means: add an authorization guard, mark the route
     // @Public on purpose, or allowlist the controller above with a reason.
     expect(offenders).toEqual([]);
+  });
+
+  it('own-data route allowlist holds no stale entries', () => {
+    const seen = new Set(
+      files.flatMap((file) =>
+        controllersIn(file).flatMap((controller) =>
+          routeHandlers(controller).map(
+            (handler) => `${controller.name}.${handler.name}`,
+          ),
+        ),
+      ),
+    );
+    const stale = [...REVIEWED_OWN_DATA_ROUTES].filter(
+      (name) => !seen.has(name),
+    );
+    expect(stale).toEqual([]);
   });
 
   it('allowlist holds no stale entries', () => {
