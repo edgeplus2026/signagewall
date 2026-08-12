@@ -21,17 +21,13 @@ export default function GoogleCallbackPage() {
     }
     hasExchanged.current = true
     // The backend redirects with a single-use code the page redeems via POST,
-    // so the JWTs never appear in the URL. The token params are a fallback for
-    // a backend that predates the exchange flow.
+    // so the JWTs never appear in the URL. `code` is the ONLY accepted shape:
+    // accepting tokens straight from the query string would let anyone hand a
+    // signed-in user a link that silently swaps their session for someone
+    // else's, which is exactly what the exchange flow exists to prevent.
     const code = searchParams.get('code')
-    const legacyAccessToken = searchParams.get('accessToken')
-    const legacyRefreshToken = searchParams.get('refreshToken')
-    const legacyTokens =
-      legacyAccessToken && legacyRefreshToken
-        ? { accessToken: legacyAccessToken, refreshToken: legacyRefreshToken }
-        : null
 
-    if (!code && !legacyTokens) {
+    if (!code) {
       void navigate('/login', {
         replace: true,
         state: { formError: t('auth.google.error') },
@@ -41,14 +37,8 @@ export default function GoogleCallbackPage() {
 
     void (async () => {
       try {
-        if (code) {
-          const { user, tokens } = await authApi.exchangeGoogleCode(code)
-          setAuth(user, tokens.accessToken, tokens.refreshToken)
-        } else if (legacyTokens) {
-          useAuthStore.getState().setTokens(legacyTokens.accessToken, legacyTokens.refreshToken)
-          const user = await authApi.getUser()
-          setAuth(user, legacyTokens.accessToken, legacyTokens.refreshToken)
-        }
+        const { user, tokens } = await authApi.exchangeGoogleCode(code)
+        setAuth(user, tokens.accessToken, tokens.refreshToken)
         toast.success(t('auth.google.success'))
         void navigate('/dashboard', { replace: true })
       } catch {

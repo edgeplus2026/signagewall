@@ -45,6 +45,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       );
     }
 
+    // A handler or guard that already answered (e.g. the Google OAuth guard
+    // redirecting the browser back to the CMS before short-circuiting) leaves
+    // nothing to write. Attempting it anyway throws ERR_HTTP_HEADERS_SENT and
+    // masks the original failure.
+    if (response.headersSent) {
+      return;
+    }
+
     const body: ApiErrorResponse = {
       success: false,
       error: {

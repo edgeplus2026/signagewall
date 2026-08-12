@@ -437,6 +437,12 @@ export class AuthService {
       passwordResetExpiresAt: undefined,
       refreshTokenHash: undefined,
     });
+
+    // Proving control of the mailbox ends the lockout. The lock check runs
+    // before the password comparison, so without this the user follows the
+    // "reset your password" advice in the lockout message and still gets a
+    // 429 with their brand-new password.
+    await this.usersRepository.clearLoginLock(user._id.toString());
   }
 
   async refreshTokens(refreshToken: string): Promise<AuthTokens> {
@@ -629,9 +635,7 @@ export class AuthService {
     const rawCode = randomBytes(32).toString('hex');
     await this.usersRepository.updateById(user._id.toString(), {
       googleLoginCode: this.hashToken(rawCode),
-      googleLoginCodeExpiresAt: new Date(
-        Date.now() + GOOGLE_LOGIN_CODE_TTL_MS,
-      ),
+      googleLoginCodeExpiresAt: new Date(Date.now() + GOOGLE_LOGIN_CODE_TTL_MS),
     });
     return rawCode;
   }
@@ -704,6 +708,8 @@ export class AuthService {
       password: hashedPassword,
       refreshTokenHash: undefined,
     });
+
+    await this.usersRepository.clearLoginLock(userId);
   }
 
   private async mapUserResponse(user: UserDocument): Promise<UserResponseDto> {
