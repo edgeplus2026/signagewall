@@ -134,7 +134,14 @@ export class AppDataCacheRepository {
           // A failed attempt ends any in-flight job so a retry re-creates it.
           pending: false,
         },
-        $unset: { secrets: '' },
+        // `secrets` is deliberately PRESERVED. For powerbi-secure it is the
+        // only record of which private R2 objects this key owns, so clearing
+        // it on a transient fetch error orphans every exported PNG: the next
+        // export cannot diff against the previous set, and instance deletion
+        // later finds nothing to clean while reporting success. Connectors
+        // already guard their own staleness (see the JOB_MAX_AGE_MS / same-
+        // selection checks in powerbi-secure), and `pending: false` above is
+        // what actually lets a retry start a fresh job.
       },
       { upsert: true },
     );

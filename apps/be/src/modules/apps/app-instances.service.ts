@@ -546,9 +546,9 @@ export class AppInstancesService {
     }
     const previousKey = cacheKeyForInstance(instance);
     const nextKey = cacheKeyForInstance({
-      ...instance,
+      appSlug: instance.appSlug,
       config: nextConfig,
-    } as AppInstanceDocument);
+    });
     if (!previousKey || previousKey === nextKey) {
       return;
     }

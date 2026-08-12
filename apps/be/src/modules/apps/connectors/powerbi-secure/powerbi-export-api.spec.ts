@@ -91,7 +91,9 @@ describe('powerBiExportApi', () => {
   it('rejects an unsafe export id returned by Power BI before it can be cached', async () => {
     global.fetch = jest
       .fn()
-      .mockResolvedValue(response({ id: '../foreign-job', status: 'Running' }, 202));
+      .mockResolvedValue(
+        response({ id: '../foreign-job', status: 'Running' }, 202),
+      );
 
     await expect(
       powerBiExportApi.start({

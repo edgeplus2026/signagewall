@@ -24,6 +24,29 @@ function valueIdentity(value: unknown): unknown {
   return value
 }
 
+/**
+ * Every value that only makes sense for the previously connected account.
+ *
+ * `remote-select` and `column-mapping` values are ids and header names read out
+ * of one specific tenant's Drive/Power BI/Excel. They do NOT declare the
+ * connection field in `remoteParams` (they hang off each other, not off the
+ * account), so {@link clearRemoteDependents} alone leaves them behind when the
+ * operator reconnects as somebody else — and the config then points at a file
+ * in an organization the new account cannot see.
+ */
+function clearConnectionScopedValues(
+  schema: ConfigSchema,
+  values: ConfigValues,
+): ConfigValues {
+  const next = { ...values }
+  for (const field of schema) {
+    if (field.type === 'remote-select' || field.type === 'column-mapping') {
+      Reflect.deleteProperty(next, field.key)
+    }
+  }
+  return next
+}
+
 /** Clear every cascading remote picker downstream of a changed parent. */
 function clearRemoteDependents(
   schema: ConfigSchema,
@@ -121,6 +144,22 @@ export function SchemaForm({
     return map
   }, [schema])
 
+  /**
+   * Fields that identify the connected account: the `oauth` controls plus
+   * whatever a `column-mapping` names as its connection sibling. Changing one
+   * invalidates every id picked out of the old tenant.
+   */
+  const connectionFieldKeys = useMemo(() => {
+    const keys = new Set<string>()
+    for (const field of schema) {
+      if (field.type === 'oauth') keys.add(field.key)
+      if (field.columnMapping?.connectionKey) {
+        keys.add(field.columnMapping.connectionKey)
+      }
+    }
+    return keys
+  }, [schema])
+
   const errors = useMemo(() => {
     const map: Record<string, string> = {}
     // Pass `value` so conditionally-hidden (visibleWhen) fields aren't enforced.
@@ -180,7 +219,19 @@ export function SchemaForm({
         <ConfigValuesProvider value={value}>
           <ConfigPatchProvider
             value={(patch) => {
-              onChange({ ...value, ...patch })
+              let next = { ...value, ...patch }
+              for (const [key, patched] of Object.entries(patch)) {
+                if (valueIdentity(value[key]) === valueIdentity(patched)) {
+                  continue
+                }
+                // The `oauth` control patches the connection field. Anything
+                // picked out of the old account has to go with it.
+                if (connectionFieldKeys.has(key)) {
+                  next = clearConnectionScopedValues(schema, next)
+                }
+                next = clearRemoteDependents(schema, next, key)
+              }
+              onChange(next)
             }}
           >
             <div className="flex flex-col gap-4">

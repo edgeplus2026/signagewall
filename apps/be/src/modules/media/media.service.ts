@@ -1012,7 +1012,9 @@ export class MediaService {
       // is not a large video on a signage box, it is an unplayable one, and serving
       // it anyway puts a black rectangle on a customer's wall with nothing in the
       // CMS to explain it. Better a failure the operator can see.
-      const oversized = await this.isOversizedForPlayback(item).catch(() => false);
+      const oversized = await this.isOversizedForPlayback(item).catch(
+        () => false,
+      );
       this.logger.warn(
         `Failed to transcode video ${item._id.toString()}; ` +
           (oversized

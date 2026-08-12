@@ -63,6 +63,8 @@ export const opsboardManifest: AppManifest = {
     },
     ...tabularSourceFields({
       itemsKey: 'rows',
+      // The OpsBoard connector returns `playerPayload: { rows }`, not `items`.
+      payloadItemsKey: 'rows',
       targets: [
         { key: 'label', label: 'Line / vehicle / KPI / item', required: true },
         { key: 'primary', label: 'Plan / appointment / primary value' },

@@ -1,7 +1,12 @@
 import { powerbiSecureManifest } from '@signagewall/apps';
-import { Types } from 'mongoose';
+import {
+  Schema as MongooseSchema,
+  Types,
+  model as mongooseModel,
+} from 'mongoose';
 
 import { AppInstancesService } from './app-instances.service';
+import { AppInstanceSchema } from './schemas/app-instance.schema';
 import { AppsService } from './apps.service';
 import {
   clearPowerBiPrivateStorage,
@@ -9,6 +14,13 @@ import {
 } from './connectors/powerbi-secure/storage.registry';
 
 const NOW = new Date('2026-08-05T12:00:00.000Z');
+
+/** A throwaway model per call, so repeated compiles never collide. */
+let modelSeq = 0;
+function model_(schema: MongooseSchema) {
+  modelSeq += 1;
+  return mongooseModel(`AppInstanceSpec${modelSeq}`, schema);
+}
 
 function powerBiInstance(
   overrides: Partial<ReturnType<typeof basePowerBiInstance>> = {},
@@ -72,7 +84,18 @@ function buildService(
         _organizationId: string,
         _instanceId: string,
         update: { config?: Record<string, unknown> },
-      ) => Promise.resolve({ ...instance, ...update }),
+      ) => {
+        // `instance` may be a hydrated document, which does not spread — take
+        // its plain form first so the merged result keeps `_id`/`appSlug`.
+        const asDoc = instance as unknown as {
+          toObject?: () => Record<string, unknown>;
+        };
+        const base =
+          typeof asDoc.toObject === 'function'
+            ? asDoc.toObject()
+            : { ...instance };
+        return Promise.resolve({ ...base, ...update });
+      },
     ),
     deleteById: jest.fn().mockResolvedValue(true),
     deleteByApp: jest.fn().mockResolvedValue(1),
@@ -267,6 +290,33 @@ describe('AppInstancesService Power BI private cleanup', () => {
     expect(built.instancesRepository.updateById).toHaveBeenCalledTimes(1);
   });
 
+  /**
+   * Regression: `cleanupChangedPrivateConnectorState` used to build the "next"
+   * key by spreading the instance (`{ ...instance, config }`). Spreading a
+   * HYDRATED Mongoose document yields only `$__`/`_doc`, so `appSlug` was
+   * undefined, the next key was always null, and every presentation-only save
+   * wiped the exported snapshots. The plain-object fixture above cannot catch
+   * that — the repository returns a real document in production.
+   */
+  it('keeps snapshots for a presentation-only change on a hydrated document', async () => {
+    const plain = basePowerBiInstance();
+    const hydrated = model_(AppInstanceSchema).hydrate(
+      plain,
+    ) as unknown as ReturnType<typeof powerBiInstance>;
+    const built = buildService({ instance: hydrated });
+
+    await built.service.updateConfig(
+      plain.organizationId.toString(),
+      plain._id.toString(),
+      { ...plain.config, slideDuration: 30 },
+    );
+
+    expect(built.storage.deleteAssetSet).not.toHaveBeenCalled();
+    expect(
+      built.appDataCacheRepository.deleteByCacheKey,
+    ).not.toHaveBeenCalled();
+  });
+
   it('cleans the old selection when bindConnection replaces its id', async () => {
     const built = buildService();
     const nextConnectionId = new Types.ObjectId().toString();
@@ -399,7 +449,7 @@ describe('AppInstancesService Power BI private cleanup', () => {
   it('does not delete a colliding cache entry from another connector', async () => {
     const built = buildService();
     built.appDataCacheRepository.findByCacheKeys.mockResolvedValueOnce([
-      { slug: 'weather', secrets: {} },
+      { slug: 'weather', secrets: {} } as never,
     ]);
 
     await expect(

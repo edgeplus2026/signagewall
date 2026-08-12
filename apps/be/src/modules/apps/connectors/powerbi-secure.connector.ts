@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import type {
   AppConnector,
+  ConnectorErrorCode,
   ConnectorResult,
   PrivateAssetRef,
   ResolvedConnection,
@@ -14,6 +15,7 @@ import type {
 import {
   POWER_BI_SNAPSHOT_DELEGATED_SCOPES,
   PowerBiApiError,
+  type PowerBiApiErrorCode,
 } from '../../connections/providers/powerbi-api';
 import type { PrivateAssetOwner } from '../../media/storage/private-r2-storage.service';
 import {
@@ -219,13 +221,59 @@ function pending(
   return { pending: true, secrets: persisted(state) };
 }
 
+/**
+ * Power BI's own error vocabulary → the fixed operator-facing allowlist.
+ *
+ * Without this the host falls back to regex-matching the English message, so a
+ * revoked Microsoft consent reads as "usually temporary, retry automatically"
+ * and nobody is ever told to reconnect the account.
+ */
+const API_ERROR_CODE_TO_CONNECTOR_CODE: Record<
+  PowerBiApiErrorCode,
+  ConnectorErrorCode
+> = {
+  AUTHENTICATION_REQUIRED: 'auth_expired',
+  PERMISSION_DENIED: 'permission_denied',
+  NOT_FOUND: 'not_found',
+  THROTTLED: 'throttled',
+  CAPACITY_REQUIRED: 'capacity_required',
+  INVALID_IDENTIFIER: 'config_invalid',
+  MALFORMED_RESPONSE: 'upstream_error',
+  UPSTREAM_ERROR: 'upstream_error',
+};
+
+/** Internal job-failure codes → the same allowlist. */
+const JOB_ERROR_CODE_TO_CONNECTOR_CODE: Record<string, ConnectorErrorCode> = {
+  EXPORT_TIMEOUT: 'timeout',
+  EXPORT_FAILED: 'upstream_error',
+  STORAGE_UNAVAILABLE: 'upstream_error',
+  UNSAFE_EXPORT: 'upstream_error',
+};
+
+/**
+ * Classify a code persisted in `state.lastError` — it may have come from either
+ * table, since the deferred-retry path re-reports whatever failed last.
+ */
+function connectorCodeFor(code: string): ConnectorErrorCode {
+  return (
+    API_ERROR_CODE_TO_CONNECTOR_CODE[code as PowerBiApiErrorCode] ??
+    JOB_ERROR_CODE_TO_CONNECTOR_CODE[code] ??
+    'upstream_error'
+  );
+}
+
 function pendingFailure(
   state: PowerBiConnectorState,
   message: string,
+  errorCode?: ConnectorErrorCode,
 ): ConnectorResult<SecurePowerBiPayload> {
   // `error` is part of the integration contract; assigning through an inferred
   // value keeps this branch buildable while the shared package change lands.
-  const result = { ...pending(state), error: message };
+  const result = {
+    ...pending(state),
+    error: message,
+    ...(errorCode ? { errorCode } : {}),
+  };
   return result;
 }
 
@@ -247,6 +295,7 @@ function failedJob(
       },
     },
     message,
+    JOB_ERROR_CODE_TO_CONNECTOR_CODE[code] ?? 'upstream_error',
   );
 }
 
@@ -274,6 +323,7 @@ function upstreamFailure(
       },
     },
     error.message,
+    API_ERROR_CODE_TO_CONNECTOR_CODE[error.code],
   );
 }
 
@@ -385,7 +435,11 @@ export function createPowerBiSecureConnector(
         }
 
         if (retryDeferred(previous, instant)) {
-          return pendingFailure(previous, previous.lastError!.message);
+          return pendingFailure(
+            previous,
+            previous.lastError!.message,
+            connectorCodeFor(previous.lastError!.code),
+          );
         }
 
         let status: PowerBiExportJobStatus;
@@ -488,7 +542,7 @@ export function createPowerBiSecureConnector(
               }),
             );
           }
-        } catch (error) {
+        } catch {
           await storage.deleteAssetSet(owner, uploaded).catch(() => undefined);
           ctx.logger.warn('powerbi-secure private snapshot upload failed', {
             hasLastKnownGood: Boolean(previous.rendered),
@@ -523,7 +577,11 @@ export function createPowerBiSecureConnector(
       // A mismatching persisted job belongs to an old selection and is ignored;
       // it contains no asset and therefore needs no object cleanup.
       if (retryDeferred(previous, instant)) {
-        return pendingFailure(previous, previous.lastError!.message);
+        return pendingFailure(
+          previous,
+          previous.lastError!.message,
+          connectorCodeFor(previous.lastError!.code),
+        );
       }
       let started: PowerBiExportJobStatus;
       try {

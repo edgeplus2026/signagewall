@@ -60,10 +60,12 @@ export function TabularPreviewControl({ field, disabled }: FieldControlProps) {
     return <p className="text-sm text-secondary">{t('apps.tabular.preview.notReady')}</p>
   }
 
-  const payload = query.data?.data as { items?: unknown } | null | undefined
-  const rows: SyncedRow[] = Array.isArray(payload?.items)
-    ? (payload.items as SyncedRow[])
-    : []
+  // Connectors disagree on the payload key: the menu connector emits `items`,
+  // OpsBoard emits `rows`. Read what the spec declares rather than assuming.
+  const payloadItemsKey = spec.payloadItemsKey ?? 'items'
+  const payload = query.data?.data as Record<string, unknown> | null | undefined
+  const payloadRows = payload?.[payloadItemsKey]
+  const rows: SyncedRow[] = Array.isArray(payloadRows) ? (payloadRows as SyncedRow[]) : []
   const meta: AppDataMeta | null = query.data?.meta ?? null
   const shownRows = rows.slice(0, 30)
 

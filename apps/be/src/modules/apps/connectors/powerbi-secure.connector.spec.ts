@@ -348,12 +348,53 @@ describe('powerbiSecureConnector', () => {
     });
     expect(JSON.stringify(result)).not.toContain(connection.accessToken);
     expect(JSON.stringify(result)).not.toContain('SECRET_REFRESH_TOKEN');
+    // Throttling is transient — the operator should be told to wait, not to
+    // reconnect. See the auth_expired case below for the contrast.
+    expect(result).toMatchObject({ errorCode: 'throttled' });
   });
+
+  /**
+   * The whole point of the error taxonomy: an expired Microsoft consent must
+   * reach the operator as "reconnect the account". Without an explicit
+   * `errorCode` the host falls back to regex-matching the English message and
+   * classifies this as `upstream_error` — "usually temporary, retry
+   * automatically" — so nobody ever reconnects and the board stays dark.
+   */
+  it.each([
+    ['AUTHENTICATION_REQUIRED' as const, 'auth_expired'],
+    ['PERMISSION_DENIED' as const, 'permission_denied'],
+    ['CAPACITY_REQUIRED' as const, 'capacity_required'],
+    ['NOT_FOUND' as const, 'not_found'],
+    ['INVALID_IDENTIFIER' as const, 'config_invalid'],
+  ])(
+    'maps a %s upstream failure to errorCode %s',
+    async (apiCode, expected) => {
+      const api = apiMock({
+        poll: jest
+          .fn()
+          .mockRejectedValue(
+            new PowerBiApiError(apiCode, 'Upstream refused', 401),
+          ),
+      });
+      const connector = createPowerBiSecureConnector({
+        api,
+        storage: storageMock(),
+        now: () => FIXED_NOW,
+      });
+
+      const result = await connector.fetchData(
+        config,
+        context(renderedSecrets()),
+      );
+
+      expect(result).toMatchObject({ pending: true, errorCode: expected });
+    },
+  );
 
   it('does not hit Power BI again before a persisted retry window expires', async () => {
     const api = apiMock();
     const state = renderedSecrets();
-    state.powerBiSecure.lastError = {
+    (state.powerBiSecure as Record<string, unknown>).lastError = {
       code: 'THROTTLED',
       message: 'Try later',
       at: FIXED_NOW.toISOString(),

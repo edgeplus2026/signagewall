@@ -190,6 +190,14 @@ export class PrivateR2StorageService implements OnModuleInit {
     };
   }
 
+  /**
+   * NOT wired to any route yet — today every consumer takes a signed URL and
+   * fetches R2 directly, which is cheaper. Kept because proxying through the
+   * backend is what SEC-03 (signed-URL renewal) and any future
+   * CORS-restricted-player path need, and because both methods share
+   * `getAuthorizedObject`, so the ownership check cannot drift from the
+   * signing path. Their specs assert that check, not a live route.
+   */
   async downloadAsset(
     owner: PrivateAssetOwner,
     ref: PrivateAssetRef,

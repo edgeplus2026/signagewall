@@ -156,6 +156,13 @@ export interface ColumnMappingSpec {
    * synced rows should be copied.
    */
   itemsKey?: string;
+  /**
+   * Key under which the connector's `playerPayload` carries the synced rows.
+   * Defaults to `items` (what the menu connector emits); OpsBoard emits `rows`.
+   * The preview control reads this instead of assuming a shape, so a third
+   * tabular app cannot silently render an empty verification panel.
+   */
+  payloadItemsKey?: string;
 }
 
 export interface FieldValidation {

@@ -226,13 +226,30 @@ export function parsePowerBiPngExport(body: Buffer): ExportedPngPage[] {
   });
 }
 
-function crc32(body: Buffer): number {
-  let crc = 0xffffffff;
-  for (const byte of body) {
-    crc ^= byte;
+/**
+ * Standard CRC-32 lookup table, built once at module load.
+ *
+ * The bit-serial form this replaces did eight shift/xor rounds PER BYTE, on
+ * exports that can reach ~100 MB — tens of millions of iterations on the event
+ * loop, blocking every other request for the duration. One table lookup per
+ * byte is ~8x less work for an identical result.
+ */
+const CRC_TABLE = (() => {
+  const table = new Int32Array(256);
+  for (let index = 0; index < 256; index += 1) {
+    let value = index;
     for (let bit = 0; bit < 8; bit += 1) {
-      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+      value = (value >>> 1) ^ (0xedb88320 & -(value & 1));
     }
+    table[index] = value;
   }
-  return (crc ^ 0xffffffff) >>> 0;
+  return table;
+})();
+
+function crc32(body: Buffer): number {
+  let crc = -1;
+  for (const byte of body) {
+    crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ byte) & 0xff];
+  }
+  return (crc ^ -1) >>> 0;
 }

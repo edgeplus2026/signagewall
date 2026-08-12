@@ -183,7 +183,12 @@ export class CacheWarmer {
 
   /** New content: (re)warm only if the media set changed. */
   onContent(urls: string[]): void {
-    const key = urls.join('\n')
+    // Compare on the STABLE cache identity, not the raw URL. A private app
+    // asset arrives as a signed URL whose signature/`X-Amz-Date` changes on
+    // every push, so keying on the raw string made any re-push of a screen
+    // carrying a Power BI Secure instance look like a brand-new set — aborting
+    // a partially-downloaded large video that then never finished caching.
+    const key = urls.map((url) => privateAppAssetCacheKey(url) ?? url).join('\n')
     if (key === this.lastKey) {
       return
     }

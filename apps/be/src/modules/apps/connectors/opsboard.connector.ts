@@ -196,6 +196,18 @@ export const opsboardConnector: AppConnector<
       normalizedRows: rows.length,
     });
 
+    // A sheet with data that maps to nothing means the mapping no longer fits
+    // the sheet — almost always a renamed or deleted header column. Returning
+    // an empty payload would SUCCEED, overwriting a good board with a blank
+    // one mid-shift and clearing `lastError`. Throwing instead routes through
+    // the host's failure path, which preserves the last known good rows and
+    // shows the operator a stale badge with a reason.
+    if (table.rows.length > 0 && rows.length === 0) {
+      throw new Error(
+        'opsboard: no rows matched the column mapping — a mapped column is missing from the sheet',
+      );
+    }
+
     return {
       playerPayload: {
         rows,

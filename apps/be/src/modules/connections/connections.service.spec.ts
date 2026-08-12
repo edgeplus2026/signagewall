@@ -41,11 +41,11 @@ function buildService(options: {
   };
   const jwtService = { sign: jest.fn(), verify: jest.fn() };
   const appInstancesRepository = {
-    findById: jest.fn().mockResolvedValue(
-      options.instance === undefined
-        ? { appSlug: 'gcal' }
-        : options.instance,
-    ),
+    findById: jest
+      .fn()
+      .mockResolvedValue(
+        options.instance === undefined ? { appSlug: 'gcal' } : options.instance,
+      ),
   };
 
   const service = new ConnectionsService(
@@ -107,7 +107,9 @@ describe('ConnectionsService OAuth instance ownership', () => {
   });
 
   it('rejects a foreign/deleted callback before token exchange or upsert', async () => {
-    const { service, repository, jwtService } = buildService({ instance: null });
+    const { service, repository, jwtService } = buildService({
+      instance: null,
+    });
     jwtService.verify.mockReturnValue({
       organizationId,
       userId,

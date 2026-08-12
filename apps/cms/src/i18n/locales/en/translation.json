@@ -2045,7 +2045,8 @@
       "disconnect": "Disconnect",
       "connect": "Connect account",
       "switch": "Switch account",
-      "providerMismatch": "This account doesn't match the selected source. Switch to reconnect with the right provider."
+      "providerMismatch": "This account doesn't match the selected source. Switch to reconnect with the right provider.",
+      "selectAccountFirst": "Connect an account first to choose a file."
     },
     "screensField": {
       "placeholder": "Choose screens…",

@@ -2029,7 +2029,8 @@
       "disconnect": "Prekini vezu",
       "connect": "Poveži nalog",
       "switch": "Promeni nalog",
-      "providerMismatch": "Ovaj nalog ne odgovara izabranom izvoru. Promeni nalog da se povežeš sa pravim servisom."
+      "providerMismatch": "Ovaj nalog ne odgovara izabranom izvoru. Promeni nalog da se povežeš sa pravim servisom.",
+      "selectAccountFirst": "Prvo povežite nalog da biste izabrali fajl."
     },
     "screensField": {
       "placeholder": "Izaberite ekrane…",

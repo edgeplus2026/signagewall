@@ -7,6 +7,7 @@ import {
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { PrivateR2StorageService } from '../media/storage/private-r2-storage.service';
+import { containsPrivateAssetRef } from '../player/private-assets-hydration.service';
 import { AppInstancesRepository } from './app-instances.repository';
 
 /** Hydrates private refs only after proving CMS ownership of the saved instance. */
@@ -30,7 +31,7 @@ export class PrivateAssetsPreviewService {
 
     const connectionId = instance.config.connectionId;
     if (typeof connectionId !== 'string' || !connectionId) {
-      if (containsPrivateMarker(params.payload)) throw accessDenied();
+      if (containsPrivateAssetRef(params.payload)) throw accessDenied();
       return params.payload;
     }
 
@@ -95,16 +96,6 @@ async function hydratePreviewRefs<T>(
   };
 
   return (await visit(payload)) as T;
-}
-
-function containsPrivateMarker(value: unknown): boolean {
-  if (!value || typeof value !== 'object') return false;
-  if ((value as Record<string, unknown>).kind === 'private-asset') return true;
-  if (Array.isArray(value)) return value.some(containsPrivateMarker);
-  if (isPlainObject(value)) {
-    return Object.values(value).some(containsPrivateMarker);
-  }
-  return false;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

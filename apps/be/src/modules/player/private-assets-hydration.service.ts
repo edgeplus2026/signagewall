@@ -76,28 +76,6 @@ export class PrivateAssetsHydrationService {
     );
   }
 
-  /** CMS previews must name an existing instance owned by the current org. */
-  async hydrateForOwnedPreview<T>(params: {
-    organizationId: string;
-    appInstanceId: string;
-    payload: T;
-  }): Promise<T> {
-    const instance = await this.appInstancesRepository.findById(
-      params.organizationId,
-      params.appInstanceId,
-    );
-    if (!instance) {
-      throw accessDenied();
-    }
-
-    return this.hydrateOwnedPayload(
-      params.organizationId,
-      params.appInstanceId,
-      instance.config.connectionId,
-      params.payload,
-    );
-  }
-
   private async hydrateOwnedPayload<T>(
     organizationId: string,
     appInstanceId: string,
@@ -212,48 +190,6 @@ export async function hydratePrivateAssetRefs<T>(
   };
 
   return (await visit(payload)) as T;
-}
-
-/**
- * Remove temporary URLs before revision calculation. The same object version
- * therefore has the same logical revision after every signature renewal.
- */
-export function privateAssetLogicalPayload<T>(payload: T): T {
-  const visiting = new WeakSet<object>();
-  const visit = (value: unknown): unknown => {
-    if (!value || typeof value !== 'object') {
-      return value;
-    }
-    if (isPrivateAssetMarker(value)) {
-      if (!isPrivateAssetRef(value)) {
-        throw new Error('Malformed private asset reference');
-      }
-      return {
-        kind: value.kind,
-        key: value.key,
-        version: value.version,
-        mimeType: value.mimeType,
-      } satisfies PrivateAssetRef;
-    }
-    if (!isPlainObject(value) && !Array.isArray(value)) {
-      return value;
-    }
-    if (visiting.has(value)) {
-      throw new Error('Cyclic private asset payload');
-    }
-    visiting.add(value);
-    try {
-      if (Array.isArray(value)) {
-        return value.map(visit);
-      }
-      return Object.fromEntries(
-        Object.entries(value).map(([key, nested]) => [key, visit(nested)]),
-      );
-    } finally {
-      visiting.delete(value);
-    }
-  };
-  return visit(payload) as T;
 }
 
 export function containsPrivateAssetRef(value: unknown): boolean {

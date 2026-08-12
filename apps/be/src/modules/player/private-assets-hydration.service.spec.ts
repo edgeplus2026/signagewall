@@ -8,7 +8,6 @@ import {
 import {
   PrivateAssetsHydrationService,
   hydratePrivateAssetRefs,
-  privateAssetLogicalPayload,
 } from './private-assets-hydration.service';
 
 const ref: PrivateAssetRef = {
@@ -115,26 +114,6 @@ describe('private asset contract and hydration', () => {
     expect(payload.pages[0]).not.toHaveProperty('url');
   });
 
-  it('strips renewed URLs from logical revision input but retains version changes', () => {
-    const first = privateAssetLogicalPayload({
-      page: { ...ref, url: temporaryUrl(ref, 1) },
-    });
-    const renewed = privateAssetLogicalPayload({
-      page: { ...ref, url: temporaryUrl(ref, 2) },
-    });
-    const nextVersion = privateAssetLogicalPayload({
-      page: {
-        ...ref,
-        key: ref.key.replaceAll('revision-1', 'revision-2'),
-        version: 'revision-2',
-        url: temporaryUrl(ref, 3),
-      },
-    });
-
-    expect(first).toEqual(renewed);
-    expect(first).not.toEqual(nextVersion);
-  });
-
   it('hydrates only after player assignment and passes tenant ownership to storage', async () => {
     const { service, signGetUrl } = buildService();
 
@@ -195,30 +174,5 @@ describe('private asset contract and hydration', () => {
       status: HttpStatus.FORBIDDEN,
     });
     expect(signGetUrl).not.toHaveBeenCalled();
-  });
-
-  it('enforces organization ownership for CMS preview', async () => {
-    const { service, signGetUrl } = buildService();
-
-    await expect(
-      service.hydrateForOwnedPreview({
-        organizationId: 'org-b',
-        appInstanceId: 'instance-a',
-        payload: { pages: [ref] },
-      }),
-    ).rejects.toMatchObject({ status: HttpStatus.FORBIDDEN });
-    expect(signGetUrl).not.toHaveBeenCalled();
-  });
-
-  it('propagates signing failure without returning a partial payload', async () => {
-    const { service } = buildService({ signingFailure: true });
-
-    await expect(
-      service.hydrateForOwnedPreview({
-        organizationId: 'org-a',
-        appInstanceId: 'instance-a',
-        payload: { pages: [ref] },
-      }),
-    ).rejects.toThrow('signer unavailable');
   });
 });

@@ -60,11 +60,24 @@ export function createMicrosoftOAuthProvider(tenant: string): OAuthProvider {
         throw new Error('microsoft: no access_token in response');
       }
 
-      const profile = await fetchMe(tokens.accessToken);
+      // Identity comes from the id_token first. Graph `/me` only works when the
+      // access token's audience IS Graph — a Power BI-scoped connection gets an
+      // `analysis.windows.net` token, so `/me` 401s and every Power BI
+      // connection would show the useless "Microsoft account". `openid email`
+      // are always requested, so the id_token carries the address regardless of
+      // which data scopes were granted.
+      const claims = readIdTokenClaims(readString(token, 'id_token'));
+      const fromIdToken =
+        claims.email ?? claims.preferred_username ?? claims.upn;
+
+      const profile = fromIdToken ? {} : await fetchMe(tokens.accessToken);
       return {
         ...tokens,
         accountLabel:
-          profile.mail ?? profile.userPrincipalName ?? 'Microsoft account',
+          fromIdToken ??
+          profile.mail ??
+          profile.userPrincipalName ??
+          'Microsoft account',
       };
     },
 
@@ -78,6 +91,37 @@ export function createMicrosoftOAuthProvider(tenant: string): OAuthProvider {
       return parseTokenResponse(token);
     },
   };
+}
+
+/**
+ * Reads the display-name claims out of an id_token payload.
+ *
+ * Deliberately NOT verified: the token came straight from Microsoft's token
+ * endpoint over TLS in the response to our own authenticated request, and the
+ * only thing taken from it is a label shown back to the operator who just
+ * completed the consent. Nothing here is an authorization decision.
+ */
+function readIdTokenClaims(idToken: string | undefined): {
+  email?: string;
+  preferred_username?: string;
+  upn?: string;
+} {
+  const payload = idToken?.split('.')[1];
+  if (!payload) {
+    return {};
+  }
+  try {
+    const decoded = JSON.parse(
+      Buffer.from(payload, 'base64url').toString('utf8'),
+    ) as Record<string, unknown>;
+    return {
+      email: readString(decoded, 'email'),
+      preferred_username: readString(decoded, 'preferred_username'),
+      upn: readString(decoded, 'upn'),
+    };
+  } catch {
+    return {};
+  }
 }
 
 async function fetchMe(
