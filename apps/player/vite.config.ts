@@ -98,31 +98,21 @@ export default defineConfig({
             urlPattern: ({ request, url }) =>
               request.destination === 'video' ||
               /\.(?:mp4|webm|mov|m4v|ogg)$/i.test(url.pathname),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'signagewall-video',
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-                purgeOnQuotaError: true,
-              },
-              // 200 ONLY — deliberately NOT 0, unlike images above. `rangeRequests`
-              // can only answer a `Range:` request by slicing the cached bytes,
-              // and an opaque response's body is unreadable (it slices to zero
-              // length). Safari/iOS range-requests every media resource, so a
-              // cached opaque entry gets answered with `416 Range Not Satisfiable`
-              // — a permanently black video and a "video load error", surviving
-              // reloads because CacheFirst keeps serving the poisoned entry.
-              // Worse, an opaque 206 also reports status 0, so iOS's own 2-byte
-              // probe response would be cached AS the whole file.
-              // Restricting this to readable 200s means the cache either serves a
-              // correct 206 or misses and the request goes to the network — right
-              // on every browser. `sync/prefetch.ts` fetches in `cors` mode so the
-              // warm-up can still fill this cache for offline playback.
-              cacheableResponse: { statuses: [200] },
-              matchOptions: { ignoreVary: true },
-              rangeRequests: true,
-            },
+            // Video is NOT cached, and that is a retreat from a feature that had
+            // never once run. The prefetch could not fill this cache until today,
+            // so `rangeRequests` slicing was dead code in production. The moment
+            // the cache did fill — two entries, both byte-for-byte identical to
+            // the origin file, verified from the device — every clip started
+            // failing with MEDIA_ERR_DECODE. The stored bytes are correct, so the
+            // fault is in serving them: a `Range:` answered from cache hands the
+            // decoder something it cannot read, and the player then skips the item
+            // and races through the playlist.
+            //
+            // NetworkOnly restores exactly the behaviour that ran all day.
+            // Playback is not negotiable; an offline copy that plays nothing is
+            // worth less than no offline copy. Images keep their cache — that path
+            // is confirmed working and needs no slicing.
+            handler: 'NetworkOnly',
           },
         ],
       },

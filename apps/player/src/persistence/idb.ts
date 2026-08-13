@@ -74,8 +74,14 @@ const MEDIA_CACHE_NAMES = ['signagewall-media', 'signagewall-video']
  * cache in `cors` mode, and that pairing is a network error by spec. Devices
  * that cached one keep failing every prefetch pass for that image until the
  * entry is gone, and nothing else would remove it.
+ *
+ * v4 — video is no longer cached at all (see `vite.config.ts`). Entries written
+ * by v3 are byte-perfect and still unusable: served back through range slicing
+ * they decode to nothing, and a device holding one skips every video it owns.
+ * They are inert once the route stops reading them, but they are also tens of
+ * megabytes of storage bought for nothing.
  */
-const MEDIA_CACHE_GENERATION = '3'
+const MEDIA_CACHE_GENERATION = '4'
 const MEDIA_CACHE_GENERATION_KEY = 'signagewall.player.mediaCacheGeneration'
 
 /**
