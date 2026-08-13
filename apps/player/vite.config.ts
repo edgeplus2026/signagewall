@@ -45,7 +45,14 @@ export default defineConfig({
         icons: [],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // `webp` is here for the pairing splash, which is part of the shell and
+        // not content: bundled, hash-named, and the only bitmap the app ships.
+        // It was left out on the assumption that an unpaired device is by
+        // definition online — but a paired device that loses its connection
+        // shows that screen too, and offline it failed to load, which is the one
+        // moment the screen has something to say. Cheap to include now that it
+        // is 428KB rather than the 7.5MB it used to be.
+        globPatterns: ['**/*.{js,css,html,svg,woff2,webp}'],
         // Media bytes (images/video) are served from public R2 URLs. Cache them
         // aggressively so a brief network drop or a reload never blacks out the
         // screen. The engine preloads the next item and proactively prefetches
