@@ -99,23 +99,30 @@ function originOf(url: string): string {
 }
 
 /**
- * Whether the service worker would route this URL to the video cache. Mirrors
- * the extension test in `vite.config.ts` — its companion `destination === 'video'`
- * check can never fire here, because a `fetch()` has destination `empty`.
+ * One warm-up fetch. Low priority so it never starves the on-screen item.
+ *
+ * `cache: 'reload'` skips the browser's HTTP cache on the way out and replaces
+ * whatever was in it with the response. That is deliberate repair, not
+ * distrust: a URL an element already loaded `no-cors` is stored WITHOUT
+ * `Access-Control-Allow-Origin` and, because R2 omits `Vary` on those, as the
+ * only variant for that URL — so this `cors` request would be served it and
+ * fail the CORS check without a byte crossing the network. Objects carry
+ * `immutable, max-age=1y`, so nothing else would ever dislodge it.
+ *
+ * It costs no extra traffic: the caller already skips any URL the service
+ * worker holds, so everything reaching here has to be downloaded regardless.
  */
-function isVideoUrl(url: string): boolean {
-  return /\.(?:mp4|webm|mov|m4v|ogg)$/i.test(url.split(/[?#]/, 1)[0] ?? url)
-}
-
-/** One warm-up fetch. Low priority so it never starves the on-screen item. */
 function warmFetch(
   url: string,
   mode: RequestMode,
   signal: AbortSignal,
 ): Promise<Response> {
-  return fetch(url, { mode, signal, priority: 'low' } as RequestInit & {
-    priority: 'low'
-  })
+  return fetch(url, {
+    mode,
+    signal,
+    cache: 'reload',
+    priority: 'low',
+  } as RequestInit & { priority: 'low' })
 }
 
 /**
@@ -164,13 +171,12 @@ export async function warmMediaUrl(
 ): Promise<void> {
   const origin = originOf(url)
   if (noCorsOrigins.has(origin)) {
-    // A host we already know sends no CORS headers. Images are still worth
-    // warming (the image cache keeps opaque responses), but a video would be
-    // downloaded in full only for the SW to refuse it — burning the clip's whole
-    // size again on every content change. Skip it and let it stream live.
-    if (!isVideoUrl(url)) {
-      await drainBody(await warmFetch(url, 'no-cors', signal))
-    }
+    // A host we already know sends no CORS headers. Nothing to do: both runtime
+    // caches now keep readable 200s only, so an opaque response would be
+    // downloaded in full and then refused — the whole file's bandwidth spent on
+    // every content change for an entry that is never stored. Images used to be
+    // warmed here, back when that cache accepted opaque; it no longer does.
+    // Such a host simply has no offline copy and streams live.
     return
   }
   // Only the HEADER exchange decides the CORS question, so the fallback is kept
