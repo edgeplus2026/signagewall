@@ -98,21 +98,38 @@ export default defineConfig({
             urlPattern: ({ request, url }) =>
               request.destination === 'video' ||
               /\.(?:mp4|webm|mov|m4v|ogg)$/i.test(url.pathname),
-            // Video is NOT cached, and that is a retreat from a feature that had
-            // never once run. The prefetch could not fill this cache until today,
-            // so `rangeRequests` slicing was dead code in production. The moment
-            // the cache did fill — two entries, both byte-for-byte identical to
-            // the origin file, verified from the device — every clip started
-            // failing with MEDIA_ERR_DECODE. The stored bytes are correct, so the
-            // fault is in serving them: a `Range:` answered from cache hands the
-            // decoder something it cannot read, and the player then skips the item
-            // and races through the playlist.
-            //
-            // NetworkOnly restores exactly the behaviour that ran all day.
-            // Playback is not negotiable; an offline copy that plays nothing is
-            // worth less than no offline copy. Images keep their cache — that path
-            // is confirmed working and needs no slicing.
-            handler: 'NetworkOnly',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'signagewall-video',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+                purgeOnQuotaError: true,
+              },
+              // 200 ONLY, never opaque: an unreadable body slices to zero length,
+              // and iOS's own 2-byte probe reports status 0 and would be cached AS
+              // the whole file.
+              cacheableResponse: { statuses: [200] },
+              matchOptions: { ignoreVary: true },
+              // NO `rangeRequests`. It could not run in production until the
+              // prefetch was fixed today, and the first time it did, every cached
+              // clip failed with MEDIA_ERR_DECODE and the player skipped its way
+              // through the playlist.
+              //
+              // What was ruled out, each verified rather than assumed: the stored
+              // file decodes completely (900/900 frames, no errors); the cached
+              // body is byte-identical to the origin (21,074,201 both); Workbox's
+              // own slicing returns byte-exact ranges when run against that file;
+              // and nothing is content-encoded. What is left is the synthetic 206
+              // itself — a fresh Response carrying the original's headers, built in
+              // the worker — which cannot be tested outside a browser.
+              //
+              // Dropping the plugin means a `Range:` request is answered with the
+              // whole cached 200. That is a legal answer — it is what any server
+              // without range support returns — and the media stack reads it from
+              // the start. Seeking loses its shortcut, which costs a linear signage
+              // playlist nothing. The cache, and with it offline playback, stays.
+            },
           },
         ],
       },
