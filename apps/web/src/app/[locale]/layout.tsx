@@ -93,12 +93,21 @@ export async function generateMetadata({
       title: t('title'),
       description: t('description'),
     },
-    /* Search Console proves ownership by finding this exact tag on the site.
-       Kept in source rather than an env var because it is a public constant
-       tied to this domain, and routing it through the host would only add a
-       way for the verification to disappear silently on a redeploy. */
+    /* Search Console and Bing Webmaster Tools each prove ownership by finding
+       their exact tag on the site. Kept in source rather than an env var
+       because these are public constants tied to this domain, and routing them
+       through the host would only add a way for the verification to disappear
+       silently on a redeploy.
+
+       Bing asks for the tag on the home page; declaring it in the layout puts
+       it on every page instead, which verifies the same and keeps working if
+       the check ever moves. `other` is how Next emits a verification tag it has
+       no named field for — `msvalidate.01` is Bing's. */
     verification: {
       google: 'Ics0AooSvLIHv2tpJyDgxxwHX2vLJZf95JXCu39L-UU',
+      other: {
+        'msvalidate.01': 'B8B8E27781C0E62DA1D51094005300B9',
+      },
     },
     /* No `alternates` here on purpose. Metadata inherits, so a layout-level
        hreflang becomes every page's hreflang unless that page overrides it —
