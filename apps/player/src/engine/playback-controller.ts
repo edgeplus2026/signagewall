@@ -107,6 +107,27 @@ export class PlaybackController {
   private targetIndex = 0
   private transitioning = false
   private preload: { index: number; promise: Promise<void> } | null = null
+  /**
+   * The prepare currently in flight on the back slot, whether it came from a
+   * preload or was started just-in-time. Kept so a transition that returns to an
+   * item already loading REUSES that load instead of restarting it: `prepare()`
+   * begins with `release()`, which drops the `<video>` src and throws away every
+   * buffered byte. Measured on a real screen — the same 34MB clip issued three
+   * `loadstart`s while the operator stepped around it, each one starting the
+   * download from zero, which is why an already-slow clip became an endless one.
+   */
+  private inFlight: { index: number; promise: Promise<void> } | null = null
+  /**
+   * Set while a transition is parked on {@link awaitPrep}; calling it makes that
+   * wait give up so a newer request can proceed. See {@link requestTransition}.
+   */
+  private supersede: (() => void) | null = null
+  /**
+   * Loads whose failure has already been surfaced. A prepare can be abandoned by
+   * a newer request and then reused by it, so without this the same rejection
+   * would be reported from both places.
+   */
+  private readonly reported = new WeakSet<Promise<void>>()
 
   private advanceTimer: number | undefined
   private watchdogTimer: number | undefined
@@ -119,6 +140,19 @@ export class PlaybackController {
 
   /** Direction of travel (1 = forward, -1 = back); steers skip-on-failure. */
   private direction: 1 | -1 = 1
+
+  /**
+   * The index navigation steps FROM — the last item we ATTEMPTED, which is not
+   * the same thing as {@link cursor}, the last item that actually reached the
+   * screen.
+   *
+   * They diverge exactly when an item fails to load, and keying `next()` off the
+   * cursor there is what let one broken clip trap the loop: the cursor stayed on
+   * the last good item, so every press re-computed the same failing neighbour and
+   * re-targeted it, forever. Stepping from what we last tried means a bad item is
+   * walked over on the first press, the way an operator expects.
+   */
+  private navIndex = 0
 
   /** Mirror mode — never auto-advances; driven only by {@link showItem}. */
   private readonly follow: boolean
@@ -191,8 +225,10 @@ export class PlaybackController {
     this.revision = snapshot.revision
     this.items = snapshot.items
     this.cursor = 0
+    this.navIndex = 0
     this.direction = 1
     this.preload = null
+    this.inFlight = null
     this.clearPreloadTimer()
 
     // Follow mode mirrors the device 1:1 and starts at the head; otherwise begin
@@ -301,6 +337,9 @@ export class PlaybackController {
   destroy(): void {
     this.destroyed = true
     this.epoch += 1
+    // Release a transition parked on a load, so teardown never waits out a
+    // 12-second media timeout before the slots are freed.
+    this.supersede?.()
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.handleVisibility)
       document.removeEventListener('pointerdown', this.handleUserGesture)
@@ -313,6 +352,7 @@ export class PlaybackController {
       this.watchdogTimer = undefined
     }
     this.preload = null
+    this.inFlight = null
     for (const slot of this.slots) {
       slot.release()
       slot.el.remove()
@@ -330,7 +370,7 @@ export class PlaybackController {
       return
     }
     this.direction = -1
-    const target = this.nextPlayable(this.cursor, -1)
+    const target = this.nextPlayable(this.navIndex, -1)
     if (target !== -1) {
       this.requestTransition(target)
     }
@@ -348,9 +388,78 @@ export class PlaybackController {
     this.clearPreloadTimer()
     this.epoch += 1
     this.targetIndex = index
+    // Recorded on REQUEST, not when the load starts: a burst of presses is
+    // synchronous, so keying the next step off anything the loop only learns
+    // later means every press in the burst computes from the same stale place
+    // and five taps move you one item.
+    this.navIndex = index
+    // Stop any transition that is parked on a slow media load. Bumping the epoch
+    // alone used to be the whole story here, which meant a request arriving during
+    // a load was recorded but not ACTED on until that load finished — up to
+    // LOAD_TIMEOUT_MS later. On a cold cache that is a screen which ignores its
+    // operator for nine seconds and then jumps somewhere unrelated, because only
+    // the last of the presses it swallowed survived as `targetIndex`.
+    this.supersede?.()
     if (!this.transitioning) {
       this.run()
     }
+  }
+
+  /**
+   * Awaits a slot's prepare, but stops waiting the moment {@link supersede} is
+   * called. Resolves true when the content is ready, false when a newer request
+   * took over — in which case the caller must not touch the slots, since
+   * {@link runTransition}'s `finally` is about to re-run toward the new target.
+   *
+   * The abandoned load is deliberately left running rather than released: if the
+   * new target is the same item (step away and straight back) {@link showAt}
+   * reuses it via {@link inFlight}, and otherwise the next `prepare()` releases
+   * that slot anyway.
+   */
+  private awaitPrep(prep: Promise<void>): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      this.supersede = () => {
+        resolve(false)
+      }
+      // A rejection arriving after we already resolved `false` is inert, but the
+      // handler must still be attached or it surfaces as an unhandled rejection.
+      prep.then(() => {
+        resolve(true)
+      }, reject)
+    }).finally(() => {
+      this.supersede = null
+    })
+  }
+
+  /**
+   * Surfaces a prepare failure exactly once, whichever path notices it.
+   *
+   * Deduped on the promise rather than the item, because the same load can be
+   * abandoned by a press and then picked back up by the request that abandoned
+   * it — reporting per call site would double-count that.
+   */
+  private report(prep: Promise<void>, error: unknown, item: Renderable): void {
+    if (this.destroyed || this.reported.has(prep)) {
+      return
+    }
+    this.reported.add(prep)
+    this.callbacks.onError?.(error, item)
+  }
+
+  /**
+   * Keeps watching a load we walked away from, purely so its failure is still
+   * reported.
+   *
+   * This is the hole that made the original bug so hard to see. A press aborts
+   * the WAIT, not the load, so a clip that goes on to fail does so with nobody
+   * listening — and the harder an operator jabbed at the controls, the more
+   * failures got swallowed, until a screen that was visibly broken produced a
+   * completely empty console.
+   */
+  private watchAbandoned(prep: Promise<void>, item: Renderable): void {
+    prep.catch((error: unknown) => {
+      this.report(prep, error, item)
+    })
   }
 
   private run(): void {
@@ -404,7 +513,7 @@ export class PlaybackController {
       return
     }
     this.direction = 1
-    const target = this.nextPlayable(this.cursor, 1)
+    const target = this.nextPlayable(this.navIndex, 1)
     if (target !== -1) {
       this.requestTransition(target)
     }
@@ -425,23 +534,37 @@ export class PlaybackController {
 
     const back = this.slots[this.activeIndex ^ 1]
 
-    // Await the matching preload if present, else prepare just-in-time. Either
-    // way we only proceed once the content is decoded/buffered (resolved).
+    // Await the matching preload if present, else the load already in flight for
+    // this very item (never restart one — see {@link inFlight}), else prepare
+    // just-in-time. Either way we only proceed once the content is ready.
     let prep: Promise<void>
     if (this.preload && this.preload.index === index) {
       prep = this.preload.promise
+    } else if (this.inFlight && this.inFlight.index === index) {
+      prep = this.inFlight.promise
     } else {
       prep = back.prepare(item, this.volume)
     }
     this.preload = null
+    this.inFlight = { index, promise: prep }
 
     try {
-      await prep
-    } catch (error) {
-      if (this.destroyed || epoch !== this.epoch) {
+      if (!(await this.awaitPrep(prep))) {
+        // A newer request arrived while we waited. Leave `inFlight` alone so it
+        // can be reused, and let runTransition's `finally` drive the new target —
+        // but keep listening, or this load's failure would go unreported.
+        this.watchAbandoned(prep, item)
         return
       }
-      this.callbacks.onError?.(error, item)
+    } catch (error) {
+      this.inFlight = null
+      if (this.destroyed) {
+        return
+      }
+      this.report(prep, error, item)
+      if (epoch !== this.epoch) {
+        return
+      }
       // Follow mode doesn't skip on its own — it waits for the device to move on.
       if (!this.follow) {
         this.scheduleSkip(index)
@@ -453,6 +576,7 @@ export class PlaybackController {
     if (this.destroyed || epoch !== this.epoch) {
       return
     }
+    this.inFlight = null
 
     const front = this.slots[this.activeIndex]
     back.activate(
@@ -566,7 +690,7 @@ export class PlaybackController {
       // duplicate onError for the same rejection.
       if (this.preload?.index === next) {
         this.preload = null
-        this.callbacks.onError?.(error, item)
+        this.report(promise, error, item)
       }
     })
   }

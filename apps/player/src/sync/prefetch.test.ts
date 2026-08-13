@@ -7,15 +7,20 @@ vi.mock('../store', () => ({ snapshot: { value: null } }))
 
 function makeDeps(over: Partial<PrefetchDeps> = {}) {
   const fetched: string[] = []
+  // A fetch that actually fills the cache, so "warmed" can be asserted the way
+  // the warmer now defines it: bytes present, not merely a request that returned.
+  const cached = new Set<string>()
   const deps: PrefetchDeps = {
     fetch: vi.fn(async (url: string) => {
       fetched.push(url)
+      cached.add(url)
     }),
-    isCached: vi.fn(async () => false),
+    isCached: vi.fn(async (url: string) => cached.has(url)),
     overBudget: vi.fn(async () => false),
+    ready: vi.fn(async () => undefined),
     ...over,
   }
-  return { deps, fetched }
+  return { deps, fetched, cached }
 }
 
 describe('CacheWarmer', () => {
@@ -74,7 +79,9 @@ describe('CacheWarmer', () => {
     warmer.onContent(['a', 'b'])
     await warmer.settle()
 
-    expect(fetched).toEqual(['a', 'a', 'b'])
+    // The changed set does start a fresh pass — but 'a' is genuinely cached by
+    // now, so it is skipped rather than downloaded a second time.
+    expect(fetched).toEqual(['a', 'b'])
   })
 
   it('retries the current set on reconnect when idle', async () => {
@@ -110,10 +117,49 @@ describe('CacheWarmer', () => {
 
     // Everything is warmed; a flapping link's `online` events must not re-scan
     // the whole set (a Cache lookup per URL) again.
+    const lookupsAfterFirstPass = vi.mocked(deps.isCached).mock.calls.length
     warmer.onOnline(['a', 'b'])
     await warmer.settle()
     expect(fetched).toEqual(['a', 'b']) // no extra fetches
-    expect(deps.isCached).toHaveBeenCalledTimes(2) // scanned once, not twice
+    expect(deps.isCached).toHaveBeenCalledTimes(lookupsAfterFirstPass) // no rescan
+  })
+
+  it('retries on reconnect when a "successful" fetch cached nothing', async () => {
+    // The failure mode this guards: fetch() resolves on headers, so a pass can
+    // sail through without a byte landing in the cache. Trusting it left the
+    // device permanently uncached, because `complete` then blocked every retry.
+    const { deps, fetched } = makeDeps({
+      fetch: vi.fn(async (url: string) => {
+        fetched.push(url) // resolves, but nothing reaches the cache
+      }),
+    })
+    const warmer = new CacheWarmer(deps)
+
+    warmer.onContent(['a', 'b'])
+    await warmer.settle()
+    expect(fetched).toEqual(['a', 'b'])
+
+    warmer.onOnline(['a', 'b'])
+    await warmer.settle()
+    expect(fetched).toEqual(['a', 'b', 'a', 'b']) // retried, not written off
+  })
+
+  it('warms only once the service worker controls the page', async () => {
+    let claim!: () => void
+    const controlled = new Promise<void>((resolve) => {
+      claim = resolve
+    })
+    const { deps, fetched } = makeDeps({ ready: vi.fn(() => controlled) })
+    const warmer = new CacheWarmer(deps)
+
+    warmer.onContent(['a', 'b'])
+    await Promise.resolve()
+    // Fetching here would bypass an uncontrolled page's worker and cache nothing.
+    expect(fetched).toEqual([])
+
+    claim()
+    await warmer.settle()
+    expect(fetched).toEqual(['a', 'b'])
   })
 
   it('does not stack a second pass while one is running', async () => {

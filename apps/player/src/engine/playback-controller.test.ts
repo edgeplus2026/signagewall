@@ -165,12 +165,14 @@ describe('PlaybackController', () => {
     await flush()
     // Fired synchronously before the first prepare resolves: each bumps the
     // epoch while a transition is in flight, so only the last target survives.
+    // Each one still COUNTS, though — a burst steps as far as it was pressed,
+    // rather than every press after the first re-computing from the same place.
     controller.next() // -> B
-    controller.next() // -> B (cursor hasn't moved yet)
-    controller.previous() // -> D (wrap back from A), direction flips
+    controller.next() // -> C
+    controller.previous() // -> B again, direction flips
     await flush()
-    // Only the final target swaps in; B is never revealed.
-    expect(onItemIds).toEqual(['A', 'D'])
+    // Only the final target swaps in; C is never revealed.
+    expect(onItemIds).toEqual(['A', 'B'])
     expect(errors).toHaveLength(0)
     controller.destroy()
   })
@@ -257,7 +259,7 @@ describe('PlaybackController', () => {
   })
 
   it('reports a persistent stall only once per episode', async () => {
-    const { controller, media, errors } = build()
+    const { controller, media, errors, onItemIds } = build()
     media.hangIds.add('B') // B's prepare never settles -> the loop stalls on it
     controller.load(snapshot([img('A'), img('B'), img('C')]))
     await flush()
@@ -267,7 +269,15 @@ describe('PlaybackController', () => {
     const stalls = errors.filter(
       (e) => e.error instanceof Error && e.error.message.includes('stalled'),
     )
-    expect(stalls).toHaveLength(1)
+    // Eight watchdog ticks fit in that window, so a report per TICK — the noise
+    // this guards against — would be eight errors. Each report here is one
+    // episode: the forced advance now steps PAST the hung item and the rotation
+    // keeps running, so it can only stall again once it comes back round to it,
+    // which is a new episode rather than the same one repeated.
+    expect(stalls.length).toBeGreaterThan(0)
+    expect(stalls.length).toBeLessThan(4)
+    // And the screen escaped instead of sitting on the hung item forever.
+    expect(onItemIds).toContain('C')
     controller.destroy()
   })
 
