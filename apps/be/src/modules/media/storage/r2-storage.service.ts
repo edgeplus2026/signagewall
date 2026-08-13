@@ -8,8 +8,11 @@ import {
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomUUID } from 'crypto';
+import { createReadStream, createWriteStream } from 'fs';
+import { stat } from 'fs/promises';
 import { extname } from 'path';
 import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 
 @Injectable()
 export class R2StorageService implements OnModuleInit {
@@ -209,6 +212,52 @@ export class R2StorageService implements OnModuleInit {
       contentType: response.ContentType,
       contentLength: response.ContentLength,
     };
+  }
+
+  /**
+   * Streams an object straight to a file on disk, never holding it in the heap.
+   * For anything that is then handed to an external tool (ffmpeg), this is what
+   * `getObject` should have been: a 34MB clip buffered into memory is 34MB the
+   * encoder next to it no longer has.
+   */
+  async downloadToFile(
+    key: string,
+    destinationPath: string,
+  ): Promise<{ contentType?: string }> {
+    const { stream, contentType } = await this.getObjectStream(key);
+    await pipeline(stream, createWriteStream(destinationPath));
+
+    return contentType !== undefined ? { contentType } : {};
+  }
+
+  /**
+   * Uploads a file from disk without reading it into memory. `ContentLength` is
+   * taken from the file itself — S3/R2 require an explicit length for a
+   * streamed body, and without it the SDK would buffer the stream to measure it,
+   * defeating the point.
+   */
+  async uploadFile(
+    key: string,
+    sourcePath: string,
+    contentType: string,
+  ): Promise<{ size: number }> {
+    if (!this.client) {
+      throw new Error('R2 storage is not configured');
+    }
+
+    const { size } = await stat(sourcePath);
+
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: createReadStream(sourcePath),
+        ContentType: contentType,
+        ContentLength: size,
+      }),
+    );
+
+    return { size };
   }
 
   async deleteObject(key: string): Promise<void> {
