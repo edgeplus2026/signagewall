@@ -105,7 +105,7 @@ async function activeVideoSlot(onFailed: (reason: string) => void) {
   const slot = new Slot()
   const prepared = slot.prepare(VIDEO, 1)
   fire('loadeddata')
-  fire('canplaythrough')
+  fire('canplay')
   await prepared
   slot.activate(() => undefined, 1, onFailed)
   return slot

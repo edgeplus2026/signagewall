@@ -23,6 +23,58 @@ export interface PrefetchDeps {
   isCached: (url: string) => Promise<boolean>
   /** True when cached bytes are near the storage quota — stop warming. */
   overBudget: () => Promise<boolean>
+  /** Resolves once warming can actually reach the service worker. */
+  ready: () => Promise<void>
+}
+
+/** How long to wait for the worker to take over before warming regardless. */
+const SW_CONTROL_TIMEOUT_MS = 10_000
+
+/**
+ * Resolves once the service worker actually CONTROLS this page.
+ *
+ * Warming before that is silently pointless: an uncontrolled page's `fetch()`
+ * never passes through the worker, so nothing lands in the runtime caches — and
+ * because every request still succeeds, the pass then marks itself complete and
+ * no retry is ever attempted. Registration happens on `window.load` and takes a
+ * moment, so a screen that just booted lost that race routinely and cached
+ * nothing at all for its whole session; a device inspected in the field had an
+ * empty video cache after a full rotation.
+ *
+ * Bounded, because a worker that never registers (unsupported browser, a failed
+ * update) must not disable warming forever — an uncached player still plays fine
+ * while online, and trying is strictly better than not.
+ */
+function serviceWorkerControlled(): Promise<void> {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+    return Promise.resolve()
+  }
+  const container = navigator.serviceWorker
+  if (container.controller) {
+    return Promise.resolve()
+  }
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(() => {
+      settle()
+    }, SW_CONTROL_TIMEOUT_MS)
+    const onChange = (): void => {
+      settle()
+    }
+    function settle(): void {
+      clearTimeout(timer)
+      container.removeEventListener('controllerchange', onChange)
+      resolve()
+    }
+    // `ready` resolves on ACTIVATION, which is not the same as this page being
+    // controlled — on a first-ever load the worker activates and only then claims
+    // its clients. `controllerchange` is the event that says the claim landed.
+    container.addEventListener('controllerchange', onChange)
+    void container.ready.then(() => {
+      if (container.controller) {
+        settle()
+      }
+    })
+  })
 }
 
 /**
@@ -67,6 +119,37 @@ function warmFetch(
 }
 
 /**
+ * Reads a warm-up response to the end and throws the bytes away.
+ *
+ * `fetch()` resolves the moment the HEADERS arrive, so awaiting it says nothing
+ * about whether the file was downloaded. Without this the pass marched through a
+ * whole playlist in milliseconds, declared every URL warmed, and set `complete` —
+ * while not one clip had actually been fetched. The service worker can only
+ * finish its `cache.put` once the body has flowed, so draining is what makes the
+ * cache fill at all.
+ *
+ * Read in chunks and discarded rather than buffered whole: these are 30MB+ video
+ * clips on devices with very little memory to spare.
+ */
+async function drainBody(response: Response): Promise<void> {
+  const body = response.body
+  if (!body) {
+    // An opaque (`no-cors`) response exposes no readable stream. Nothing to do —
+    // the worker's own copy is fetched independently of ours.
+    return
+  }
+  const reader = body.getReader()
+  try {
+    let done = false
+    while (!done) {
+      done = (await reader.read()).done
+    }
+  } finally {
+    reader.releaseLock()
+  }
+}
+
+/**
  * Warms one media URL into the service-worker cache.
  *
  * `cors` first, and the mode is the whole point: an opaque (`no-cors`) response
@@ -86,13 +169,18 @@ export async function warmMediaUrl(
     // downloaded in full only for the SW to refuse it — burning the clip's whole
     // size again on every content change. Skip it and let it stream live.
     if (!isVideoUrl(url)) {
-      await warmFetch(url, 'no-cors', signal)
+      await drainBody(await warmFetch(url, 'no-cors', signal))
     }
     return
   }
+  // Only the HEADER exchange decides the CORS question, so the fallback is kept
+  // around the fetch alone. Draining below must not be able to mark an origin
+  // no-CORS: a connection dropped halfway through a 30MB clip says nothing about
+  // its headers, and mistaking it for one would stop warming that host's video
+  // for the rest of the session.
+  let response: Response
   try {
-    await warmFetch(url, 'cors', signal)
-    return
+    response = await warmFetch(url, 'cors', signal)
   } catch (error) {
     if (signal.aborted) {
       throw error
@@ -101,9 +189,10 @@ export async function warmMediaUrl(
     // remember it and stop paying the doomed round trip for its other URLs. If it
     // fails too we were merely offline — leave the origin unmarked so the next
     // pass leads with `cors` again.
-    await warmFetch(url, 'no-cors', signal)
+    response = await warmFetch(url, 'no-cors', signal)
     noCorsOrigins.add(origin)
   }
+  await drainBody(response)
 }
 
 const defaultDeps: PrefetchDeps = {
@@ -136,6 +225,7 @@ const defaultDeps: PrefetchDeps = {
       return false
     }
   },
+  ready: serviceWorkerControlled,
 }
 
 function mediaUrls(snap: PlayerSnapshot | null): string[] {
@@ -218,6 +308,9 @@ export class CacheWarmer {
       // when the whole set is genuinely warmed and a reconnect can safely skip it.
       let allWarmed = true
       try {
+        // Nothing is cacheable until the worker controls the page — see
+        // {@link serviceWorkerControlled}.
+        await this.deps.ready()
         for (const url of urls) {
           if (ctrl.signal.aborted) {
             allWarmed = false
@@ -240,6 +333,14 @@ export class CacheWarmer {
           }
           try {
             await this.deps.fetch(url, ctrl.signal)
+            // "Warmed" has to mean the bytes are IN the cache, not that a
+            // request came back. Taking the fetch at its word is what let a
+            // pass that cached nothing still set `complete` — the one flag
+            // that then blocks every reconnect retry, so a single bad pass
+            // left the device permanently uncached.
+            if (!(await this.deps.isCached(url))) {
+              allWarmed = false
+            }
           } catch {
             // Offline or transient — leave it for the next reconnect.
             allWarmed = false

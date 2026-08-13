@@ -5,6 +5,24 @@ import type { Renderable } from '../types'
 const LOAD_TIMEOUT_MS = 12_000
 
 /**
+ * The event that counts as "this video is ready to go on screen".
+ *
+ * Deliberately `canplay` (HAVE_FUTURE_DATA) and not `canplaythrough`
+ * (HAVE_ENOUGH_DATA). `canplaythrough` is not a guarantee — it is the browser
+ * GUESSING that the whole clip will arrive faster than it plays — and paying for
+ * that guess means holding the previous item on screen until enough of the file
+ * has buffered. Measured on a real screen: a 34MB, 48s, 5.6Mbit/s clip served
+ * from a non-CDN bucket at ~1.5MB/s took NINE SECONDS to reach it.
+ *
+ * `canplay` means the browser can start playing now. If the download then falls
+ * behind, the picture stops moving and {@link Slot.startProgressWatchdog} — which
+ * exists precisely because a stalled decoder produces no error — declares the item
+ * dead and the loop moves on. A stall detected in ~8s beats a guaranteed 9s wait
+ * on every cold video, and the two failure modes are handled by the same code.
+ */
+const READY_EVENT = 'canplay'
+
+/**
  * Forces the element's pending style changes to be applied, so a transition
  * started right after begins from them rather than from the previous frame.
  * Reading a layout property is what does it; the value is deliberately unused.
@@ -541,7 +559,7 @@ export class Slot {
       }
       const cleanup = (): void => {
         window.clearTimeout(timeout)
-        this.video.removeEventListener('canplaythrough', onReady)
+        this.video.removeEventListener(READY_EVENT, onReady)
         this.video.removeEventListener('error', onError)
       }
 
@@ -549,7 +567,7 @@ export class Slot {
       // muted/volume just before play().
       this.video.muted = true
       this.video.volume = this.volume
-      this.video.addEventListener('canplaythrough', onReady, { once: true })
+      this.video.addEventListener(READY_EVENT, onReady, { once: true })
       this.video.addEventListener('error', onError, { once: true })
       this.video.src = url
       this.video.load()

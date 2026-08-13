@@ -53,6 +53,29 @@ export const COMPRESSED_IMAGE_EXTENSION = '.webp';
 export const VIDEO_TRANSCODE_CRF = 28;
 
 /**
+ * x264 speed preset and thread cap. Both exist to bound MEMORY, not time.
+ *
+ * Measured on a 48s 1080p clip, peak RSS of the ffmpeg process alone:
+ *
+ *   preset=medium,   threads=auto (was)   667 MB   16.8s
+ *   preset=medium,   threads=2            473 MB   43.8s
+ *   preset=faster,   threads=2            357 MB   21.3s
+ *   preset=veryfast, threads=2            295 MB   12.2s
+ *
+ * The old settings got the container's ffmpeg OOM-killed on Railway — SIGKILL,
+ * mid-encode, on an ordinary stock import. Every thread keeps its own frame
+ * buffers, so an uncapped encoder scales its footprint with the host's core
+ * count: it survived a laptop and died on a small container.
+ *
+ * `veryfast` is both the lightest AND the fastest here, because the per-frame
+ * work it skips outweighs the two threads it gives up. What it costs is
+ * compression efficiency at a fixed CRF — invisible on signage content, and a
+ * clip that encodes is worth more than one that is marginally smaller.
+ */
+export const VIDEO_TRANSCODE_PRESET = 'veryfast';
+export const VIDEO_TRANSCODE_THREADS = 2;
+
+/**
  * The envelope a signage player can actually decode in HARDWARE.
  *
  * Not a storage-size preference — a hard capability limit. Measured on an Android

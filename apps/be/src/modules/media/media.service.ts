@@ -2,6 +2,9 @@ import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { I18nService } from 'nestjs-i18n';
+import { mkdtemp, rm } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { Readable } from 'stream';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -713,11 +716,12 @@ export class MediaService {
       );
       uploadedKeys.push(thumbnailLargeKey);
 
-      // Re-encode videos to a smaller H.264 MP4 and swap the stored object.
-      // Images were already compressed to WebP synchronously on upload.
+      // Normalise every video to an H.264/AAC MP4 and swap the stored object —
+      // unconditionally, whatever it arrived as. Images were already compressed
+      // to WebP synchronously on upload.
       const transcode = isImage
         ? null
-        : await this.transcodeVideoIfWorthwhile(item, organizationId, userId);
+        : await this.normalizeVideoToMp4(item, organizationId, userId);
 
       // Prefer real dimensions from the transcode, else the thumbnail's.
       const width = transcode?.width ?? thumbnails.width;
@@ -951,7 +955,7 @@ export class MediaService {
    * didn't help or failed — in which case the original is left in place. A
    * failure here is non-fatal: the item still becomes READY with its original.
    */
-  private async transcodeVideoIfWorthwhile(
+  private async normalizeVideoToMp4(
     item: MediaItemDocument,
     organizationId: string,
     userId: string,
@@ -967,16 +971,24 @@ export class MediaService {
       return null;
     }
 
-    try {
-      const original = await this.r2StorageService.getObject(sourceKey);
-      const transcoded = await this.mediaVideoService.transcodeIfSmaller(
-        original.body,
-        item.size ?? original.body.length,
-      );
+    // Staged on disk end to end: R2 → file → ffmpeg → file → R2. Nothing here
+    // ever holds the clip in the heap, which is the whole point — the encoder
+    // beside it needs every megabyte it can get, and this process has already
+    // been OOM-killed once for handing it less.
+    const dir = await mkdtemp(join(tmpdir(), 'media-normalize-'));
+    const inputPath = join(dir, 'source');
+    const outputPath = join(dir, 'normalized.mp4');
 
-      if (!transcoded) {
-        return null;
-      }
+    try {
+      const { contentType } = await this.r2StorageService.downloadToFile(
+        sourceKey,
+        inputPath,
+      );
+      const normalized = await this.mediaVideoService.normalizeToMp4(
+        inputPath,
+        outputPath,
+        contentType ?? item.mimeType,
+      );
 
       const newKey = this.r2StorageService.buildObjectKey(
         organizationId,
@@ -984,9 +996,9 @@ export class MediaService {
         this.withMp4Extension(item.name),
       );
 
-      await this.r2StorageService.uploadObject(
+      const { size } = await this.r2StorageService.uploadFile(
         newKey,
-        transcoded.buffer,
+        outputPath,
         TRANSCODED_VIDEO_MIME_TYPE,
       );
 
@@ -1000,54 +1012,25 @@ export class MediaService {
 
       return {
         storageKey: newKey,
-        size: transcoded.buffer.length,
-        width: transcoded.width,
-        height: transcoded.height,
-        durationSeconds: transcoded.durationSeconds,
+        size,
+        width: normalized.width,
+        height: normalized.height,
+        durationSeconds: normalized.durationSeconds,
       };
     } catch (error) {
-      // Whether keeping the original is acceptable depends entirely on what the
-      // original IS. A clip already inside the decodable envelope is fine as it
-      // stands — the transcode was only ever a storage optimisation. One outside it
-      // is not a large video on a signage box, it is an unplayable one, and serving
-      // it anyway puts a black rectangle on a customer's wall with nothing in the
-      // CMS to explain it. Better a failure the operator can see.
-      const oversized = await this.isOversizedForPlayback(item).catch(() => false);
-      this.logger.warn(
-        `Failed to transcode video ${item._id.toString()}; ` +
-          (oversized
-            ? 'source is too large to play on signage hardware'
-            : 'keeping original'),
+      // No fallback to the original — that IS the bug this replaces. Keeping the
+      // source whenever the encoder was unhappy is how an unplayable file reached
+      // a customer's wall as a black rectangle, with a `status: READY` in the CMS
+      // insisting everything was fine. Failing here marks the item FAILED after
+      // its retries, which is a state an operator can see and act on.
+      this.logger.error(
+        `Failed to normalise video ${item._id.toString()} to MP4`,
         error,
       );
-      if (oversized) {
-        throw error;
-      }
-      return null;
+      throw error;
+    } finally {
+      await rm(dir, { recursive: true, force: true }).catch(() => undefined);
     }
-  }
-
-  /**
-   * Whether the stored original is outside what signage hardware decodes. Used only
-   * on the transcode-failure path, to decide between "keep the original" and "fail
-   * loudly". Measured limits live in media.constants.
-   */
-  private async isOversizedForPlayback(
-    item: MediaItemDocument,
-  ): Promise<boolean> {
-    if (item.width !== undefined && item.height !== undefined) {
-      return this.mediaVideoService.exceedsDecodableEnvelope({
-        width: item.width,
-        height: item.height,
-      });
-    }
-    const key = item.storageKey;
-    if (!key) {
-      return false;
-    }
-    const original = await this.r2StorageService.getObject(key);
-    const probed = await this.mediaVideoService.probeBuffer(original.body);
-    return this.mediaVideoService.exceedsDecodableEnvelope(probed);
   }
 
   private async assertFolderExists(
