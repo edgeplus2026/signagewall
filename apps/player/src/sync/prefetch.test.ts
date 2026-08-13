@@ -249,7 +249,11 @@ describe('warmMediaUrl', () => {
     expect(modesOf(fetchMock)).toEqual(['cors', 'no-cors'])
   })
 
-  it('remembers that host and stops re-trying cors for it', async () => {
+  // Neither cache keeps an opaque response any more, so there is nothing left to
+  // warm from such a host: the download would be paid in full and then refused,
+  // again on every content change. Images were still warmed here until the image
+  // cache stopped accepting opaque too.
+  it('stops warming anything from a host that has no CORS headers', async () => {
     const warmMediaUrl = await loadWarm()
     const fetchMock = stubFetch()
     fetchMock
@@ -258,26 +262,27 @@ describe('warmMediaUrl', () => {
     const signal = new AbortController().signal
 
     await warmMediaUrl('https://cdn.test/a.mp4', signal)
-    await warmMediaUrl('https://cdn.test/b.jpg', signal)
-
-    expect(modesOf(fetchMock)).toEqual(['cors', 'no-cors', 'no-cors'])
-  })
-
-  // The SW will not keep an opaque video response, so warming one downloads the
-  // whole clip for nothing — again on every content change.
-  it('stops warming video from a host that has no CORS headers', async () => {
-    const warmMediaUrl = await loadWarm()
-    const fetchMock = stubFetch()
-    fetchMock
-      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
-      .mockResolvedValue(new Response(''))
-    const signal = new AbortController().signal
-
-    await warmMediaUrl('https://cdn.test/a.jpg', signal)
     fetchMock.mockClear()
+
+    await warmMediaUrl('https://cdn.test/b.jpg', signal)
     await warmMediaUrl('https://cdn.test/clip.mp4?v=2', signal)
 
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  // A URL an element already loaded `no-cors` sits in the HTTP cache with no
+  // CORS headers and, since R2 omits `Vary` on those, as the only variant for
+  // that URL — so this request would be served it and fail the CORS check
+  // without reaching the network. `immutable, max-age=1y` means nothing else
+  // ever dislodges it.
+  it('bypasses the HTTP cache so a poisoned entry cannot answer', async () => {
+    const warmMediaUrl = await loadWarm()
+    const fetchMock = stubFetch()
+    fetchMock.mockResolvedValue(new Response(''))
+
+    await warmMediaUrl('https://cdn.test/a.mp4', new AbortController().signal)
+
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ cache: 'reload' })
   })
 
   it('does not downgrade a host just because we were offline', async () => {
