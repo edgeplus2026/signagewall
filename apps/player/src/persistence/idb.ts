@@ -68,8 +68,14 @@ const MEDIA_CACHE_NAMES = ['signagewall-media', 'signagewall-video']
  * v1 have unreadable bodies, so the range slicing that every Safari/iOS media
  * request depends on answers them with `416 Range Not Satisfiable`: a black
  * frame and a "video load error", permanently, on any device that cached one.
+ *
+ * v3 — the image cache no longer accepts them either. An opaque entry there is
+ * readable enough for the <img> that wrote it, but the prefetch reads the same
+ * cache in `cors` mode, and that pairing is a network error by spec. Devices
+ * that cached one keep failing every prefetch pass for that image until the
+ * entry is gone, and nothing else would remove it.
  */
-const MEDIA_CACHE_GENERATION = '2'
+const MEDIA_CACHE_GENERATION = '3'
 const MEDIA_CACHE_GENERATION_KEY = 'signagewall.player.mediaCacheGeneration'
 
 /**

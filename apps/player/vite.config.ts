@@ -76,10 +76,21 @@ export default defineConfig({
                 maxAgeSeconds: 60 * 60 * 24 * 30,
                 purgeOnQuotaError: true,
               },
-              // Opaque (0) is fine here: an <img> only ever asks for the whole
-              // resource, so a body we cannot read is still a body the browser
-              // can decode.
-              cacheableResponse: { statuses: [0, 200] },
+              // 200 ONLY, for the same reason as the video cache below, reached
+              // by a different route. An opaque body IS enough for the <img> that
+              // wrote it — but this cache has a second reader. `sync/prefetch.ts`
+              // fetches in `cors` mode, and the spec forbids answering a `cors`
+              // request with an opaque response: the fetch fails as a network
+              // error. Chrome reports that as "No 'Access-Control-Allow-Origin'
+              // header is present" even though the header is there and the
+              // request never left the device — sending you to debug CORS, the
+              // bucket and the CDN, none of which are involved.
+              //
+              // So the <img> no longer fills this cache; the prefetch does, as it
+              // already does for video. An element load still reads what the
+              // prefetch stored — a no-cors request may be answered from a cached
+              // cors response, just not the reverse.
+              cacheableResponse: { statuses: [200] },
               matchOptions: { ignoreVary: true },
             },
           },
