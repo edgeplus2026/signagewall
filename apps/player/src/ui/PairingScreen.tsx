@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
 
-import splashImage from "../assets/images/splashscreen.jpg";
+import splashImage from "../assets/images/splashscreen.webp";
 import { connection, pairingCode, paired } from "../store";
 
 /** Copies text to the clipboard, falling back to a hidden textarea on older TVs. */
