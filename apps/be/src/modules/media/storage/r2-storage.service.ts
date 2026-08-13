@@ -14,6 +14,23 @@ import { extname } from 'path';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 
+/**
+ * Sent with every object we store.
+ *
+ * `immutable` is a strong claim, and it holds here by construction: no key in
+ * this system is ever rewritten with different bytes. Uploads and thumbnails are
+ * UUID-prefixed (`buildObjectKey` / `buildThumbnailKey`), and the rendered
+ * PowerPoint and Google Slides decks carry a hash of the source's version in
+ * their prefix — change the deck and the whole path changes. A cached copy can
+ * therefore never be stale, only unused.
+ *
+ * The Cloudflare cache rule on the media domain already overrides both TTLs, so
+ * this is not what makes the CDN work. It matters where that rule does not
+ * reach: any client fetching the object directly, and the day the rule is
+ * edited or removed by someone who does not know it was load-bearing.
+ */
+const OBJECT_CACHE_CONTROL = 'public, max-age=31536000, immutable';
+
 @Injectable()
 export class R2StorageService implements OnModuleInit {
   private readonly logger = new Logger(R2StorageService.name);
@@ -154,6 +171,7 @@ export class R2StorageService implements OnModuleInit {
         Key: key,
         Body: body,
         ContentType: contentType,
+        CacheControl: OBJECT_CACHE_CONTROL,
       }),
     );
   }
@@ -254,6 +272,7 @@ export class R2StorageService implements OnModuleInit {
         Body: createReadStream(sourcePath),
         ContentType: contentType,
         ContentLength: size,
+        CacheControl: OBJECT_CACHE_CONTROL,
       }),
     );
 
