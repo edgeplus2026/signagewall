@@ -137,35 +137,33 @@ export class Slot {
     this.el = document.createElement('div')
     this.el.className = 'player-slot'
 
-    // `crossOrigin` on both, and it is not about this element at all — it is
-    // about the HTTP cache entry the element leaves behind.
+    // Deliberately NO `crossOrigin` here, though it looks like the obvious fix
+    // for the CORS mismatch these elements cause. They fetch `no-cors`, R2 answers
+    // without `Access-Control-Allow-Origin` and — because there was no `Origin`
+    // to answer — without `Vary` either, so the browser files that as the only
+    // variant for the URL and a later `cors` request is served it and rejected.
     //
-    // Without it an element fetches `no-cors`, sending no `Origin`. R2 answers
-    // those with neither `Access-Control-Allow-Origin` NOR `Vary: Origin` — it
-    // only emits CORS headers when there is an Origin to answer. The browser
-    // therefore files that response as the ONE variant for that URL, and the
-    // prefetch's later `cors` request is served it, fails the CORS check, and
-    // reports "No 'Access-Control-Allow-Origin' header is present" for a request
-    // that never left the device and a URL whose headers are correct.
+    // Asking for CORS here does prevent that, and it was tried: it also means any
+    // hiccup in the CORS path stops the media from PLAYING rather than merely from
+    // caching. Live devices went from a poisoned cache entry to a black screen and
+    // "video load error", because an entry poisoned before the change was still
+    // there and now failed the element's own CORS check.
     //
-    // Stored objects carry `immutable, max-age=1y`, so that entry never
-    // revalidates: one element load poisons the URL for good. Asking for CORS
-    // up front means there is only ever one variant and it is the right one.
-    //
-    // The tradeoff is real: media from a host that sends no CORS headers now
-    // fails to load rather than merely failing to cache. Every media URL comes
-    // from our own bucket, whose CORS policy allows exactly these origins.
+    // The prefetch already solves this from the other side — it fetches with
+    // `cache: 'reload'`, so it never reads a poisoned entry and its response is
+    // what fills the service-worker cache. These elements then read from that
+    // cache, and a poisoned HTTP entry no one consults is harmless. A `no-cors`
+    // element load has no CORS check to fail, so the worst case stays "plays
+    // without an offline copy" instead of "does not play".
     this.img = document.createElement('img')
     this.img.className = 'player-media'
     this.img.decoding = 'async'
-    this.img.crossOrigin = 'anonymous'
 
     this.video = document.createElement('video')
     this.video.className = 'player-media'
     this.video.muted = true
     this.video.playsInline = true
     this.video.preload = 'auto'
-    this.video.crossOrigin = 'anonymous'
     this.video.setAttribute('playsinline', '')
 
     this.appHost = document.createElement('div')
