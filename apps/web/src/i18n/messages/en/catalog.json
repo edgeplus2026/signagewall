@@ -6,22 +6,22 @@
   },
   "alert": {
     "tagline": "Full-screen urgent message",
-    "description": "Show a high-visibility alert full-screen — a headline, optional details and a severity color. Works offline.",
-    "about": "When something needs everyone's attention, this takes over the whole screen with a bold headline and optional details. Type your message, choose a severity — critical red, warning amber or information blue — and turn the icon and slow pulsing edge on or off. It keeps working even if the network drops, so it is ready for evacuations, safety notices and other urgent moments in offices, factories and public spaces."
+    "description": "Show a high-visibility alert full-screen: a headline, optional details and a severity color. Works offline.",
+    "about": "When something needs everyone's attention, this takes over the whole screen with a bold headline and optional details. Type your message, choose a severity (critical red, warning amber or information blue) and turn the icon and slow pulsing edge on or off. It keeps working even if the network drops, so it is ready for evacuations, safety notices and other urgent moments in offices, factories and public spaces."
   },
   "qr": {
     "tagline": "Show a scannable QR code",
     "description": "Turn a link or text into a QR code your audience can scan from the screen.",
-    "about": "Display a large QR code that people can scan from across the room. Choose what it does — open a website, dial a number, start a text or email, join a Wi-Fi network, or leave a Google review — then fill in the details and add a caption inviting people to scan. You can even set the code and background colors. Perfect for collecting reviews, sharing guest Wi-Fi and promoting offers."
+    "about": "Display a large QR code that people can scan from across the room. Choose what it does: open a website, dial a number, start a text or email, join a Wi-Fi network, or leave a Google review, then fill in the details and add a caption inviting people to scan. You can even set the code and background colors. Perfect for collecting reviews, sharing guest Wi-Fi and promoting offers."
   },
   "countdown": {
-    "tagline": "Count down to a moment — or up since one",
+    "tagline": "Count down to a moment, or up since one",
     "description": "Show a live countdown to an event, or count up since a date. Ticks on its own, on or offline.",
-    "about": "Build anticipation with a live timer that counts down to a big moment or up from a date that already passed. Give it a title, set the target date and time, choose the direction, and add a message to show when a countdown hits zero. It ticks on its own with or without a connection — great for product launches and event openings, or as a days-since-incident safety board in workshops and warehouses."
+    "about": "Build anticipation with a live timer that counts down to a big moment or up from a date that already passed. Give it a title, set the target date and time, choose the direction, and add a message to show when a countdown hits zero. It ticks on its own with or without a connection: great for product launches and event openings, or as a days-since-incident safety board in workshops and warehouses."
   },
   "ticker": {
     "tagline": "Scroll announcements across the screen",
-    "description": "A moving band of short messages — news, notices, opening hours. Add a row per message.",
+    "description": "A moving band of short messages: news, notices, opening hours. Add a row per message.",
     "about": "A moving band of text that scrolls along the top or bottom of the screen, staying visible over whatever else is playing. Choose the screens to show it on, then feed it your own messages row by row or a live RSS feed of headlines, and set the speed, direction, position and colors. It is a handy way to layer notices, opening hours and news over your regular content."
   },
   "powerpoint": {
@@ -31,28 +31,28 @@
   },
   "gslides": {
     "tagline": "Loop a private Google Slides deck from your account",
-    "description": "Connect your Google account and play a private Google Slides deck as a slideshow — it updates on screen the moment the deck changes.",
-    "about": "Run a private Google Slides presentation as a self-advancing slideshow, without publishing it to the web. Sign in to your Google account, choose the deck from your Drive, and set how long each slide stays up and how many slides to include. Edit the deck and the screens pick up the new version within seconds, and because the slides are stored rather than streamed they keep playing even if the screen loses its connection — well suited to internal updates, onboarding and team comms in offices and staff areas."
+    "description": "Connect your Google account and play a private Google Slides deck as a slideshow. It updates on screen the moment the deck changes.",
+    "about": "Run a private Google Slides presentation as a self-advancing slideshow, without publishing it to the web. Sign in to your Google account, choose the deck from your Drive, and set how long each slide stays up and how many slides to include. Edit the deck and the screens pick up the new version within seconds, and because the slides are stored rather than streamed they keep playing even if the screen loses its connection: well suited to internal updates, onboarding and team comms in offices and staff areas."
   },
   "pdf": {
     "tagline": "Show a PDF on screen",
     "description": "Upload a PDF and display it full-screen. A multi-page PDF flips through its pages automatically at a speed you choose.",
-    "about": "Upload a PDF and show it full-screen, with no viewer controls in the way. If it has several pages, it flips through them automatically at the speed you pick — slow, medium or fast. Files up to 10 MB are supported, making it a simple way to display menus, price sheets, notices, brochures and reports in shops, offices and waiting areas."
+    "about": "Upload a PDF and show it full-screen, with no viewer controls in the way. If it has several pages, it flips through them automatically at the speed you pick: slow, medium or fast. Files up to 10 MB are supported, making it a simple way to display menus, price sheets, notices, brochures and reports in shops, offices and waiting areas."
   },
   "canva": {
     "tagline": "Show a Canva design on your screens",
-    "description": "Connect your Canva account and display any design — it re-exports automatically so the screen always shows the latest version.",
-    "about": "Put a design you made in Canva straight onto your screens, kept in sync with the original. Sign in to Canva once, search for the design you want, and for multi-page designs set how many seconds each page shows and how many pages to run. Whenever you edit the design in Canva, the screen catches up on its own — handy for posters, promotions and event graphics in shops, lobbies and offices."
+    "description": "Connect your Canva account and display any design. It re-exports automatically so the screen always shows the latest version.",
+    "about": "Put a design you made in Canva straight onto your screens, kept in sync with the original. Sign in to Canva once, search for the design you want, and for multi-page designs set how many seconds each page shows and how many pages to run. Whenever you edit the design in Canva, the screen catches up on its own: handy for posters, promotions and event graphics in shops, lobbies and offices."
   },
   "youtube": {
     "tagline": "Play a YouTube video on your screens",
-    "description": "Paste a YouTube link and play the video across your displays — no downloads, no fuss.",
-    "about": "Play a YouTube video across your displays with nothing to download. Copy the link from YouTube's address bar or its Share button and paste it in — one video per app, and playlists are not supported. It plays cleanly on screen, making it a quick way to run brand videos, promos, explainers and ambient footage in lobbies, shops and at events."
+    "description": "Paste a YouTube link and play the video across your displays: no downloads, no fuss.",
+    "about": "Play a YouTube video across your displays with nothing to download. Copy the link from YouTube's address bar or its Share button and paste it in, one video per app, and playlists are not supported. It plays cleanly on screen, making it a quick way to run brand videos, promos, explainers and ambient footage in lobbies, shops and at events."
   },
   "stream": {
     "tagline": "Play a live video stream on your screens",
-    "description": "Show a live HLS video stream — a camera, a TV channel, an event feed. Paste the stream's .m3u8 link.",
-    "about": "Play a live HLS video stream on your screens — a security camera, a TV channel or an event feed. Paste the stream's address ending in .m3u8, choose whether to show the whole picture or fill the screen and crop, and turn audio on or off. It runs continuously, making it useful for lobbies, control rooms, live events and venues showing a broadcast."
+    "description": "Show a live HLS video stream: a camera, a TV channel, an event feed. Paste the stream's .m3u8 link.",
+    "about": "Play a live HLS video stream on your screens: a security camera, a TV channel or an event feed. Paste the stream's address ending in .m3u8, choose whether to show the whole picture or fill the screen and crop, and turn audio on or off. It runs continuously, making it useful for lobbies, control rooms, live events and venues showing a broadcast."
   },
   "powerbi": {
     "tagline": "Put a published Power BI report on the wall",
@@ -61,18 +61,18 @@
   },
   "gsheets": {
     "tagline": "Put a Google Sheet on the wall",
-    "description": "Show a range from one of your Google Sheets as a live table or a single KPI — it refreshes on its own.",
+    "description": "Show a range from one of your Google Sheets as a live table or a single KPI. It refreshes on its own.",
     "about": "Turn a range from a Google Sheet into a clean on-screen table or a single headline KPI. Connect your Google account, pick the spreadsheet, and enter the cells to show in A1 notation such as Sheet1!A1:D20; choose the table or KPI layout and whether the first row is a header. It refreshes on its own, so sales figures, targets and rosters stay current in offices and staff rooms."
   },
   "web": {
     "tagline": "Show any website or dashboard",
     "description": "Embed any web page or live dashboard on your screens by URL.",
-    "about": "Point a screen at any web page by pasting its address. It is the catch-all when there is no dedicated app — a page you own, an internal tool or a public dashboard share link. Note that some sites, including Google, social networks and most banking sites, refuse to be embedded and show blank, so pages you control work best. Useful for intranets, status boards and live web content."
+    "about": "Point a screen at any web page by pasting its address. It is the catch-all when there is no dedicated app. A page you own, an internal tool or a public dashboard share link. Note that some sites, including Google, social networks and most banking sites, refuse to be embedded and show blank, so pages you control work best. Useful for intranets, status boards and live web content."
   },
   "gcal": {
     "tagline": "Show upcoming events from a Google Calendar",
-    "description": "Display the next events from a connected Google Calendar — great for meeting rooms and lobbies.",
-    "about": "See what's coming up straight from a Google Calendar, laid out as a day, week, month or rolling schedule. Connect your Google account, choose the calendar to show, and set options like upcoming-only, gentle auto-scroll for long lists, and the on-screen language. SignageWall only reads the calendar, never changes it — perfect outside meeting rooms, in reception areas and staff spaces."
+    "description": "Display the next events from a connected Google Calendar, great for meeting rooms and lobbies.",
+    "about": "See what's coming up straight from a Google Calendar, laid out as a day, week, month or rolling schedule. Connect your Google account, choose the calendar to show, and set options like upcoming-only, gentle auto-scroll for long lists, and the on-screen language. SignageWall only reads the calendar, never changes it: perfect outside meeting rooms, in reception areas and staff spaces."
   },
   "outlook": {
     "tagline": "Show an Outlook calendar on your screens",
@@ -82,86 +82,86 @@
   "teams": {
     "tagline": "Show a Teams channel on your screens",
     "description": "Connect a Microsoft account and display a Teams channel's latest messages and announcements as a spotlight or a grid.",
-    "about": "Surface the latest messages and announcements from a Microsoft Teams channel on screen, one at a time in a rotating spotlight or several in a grid. Sign in with a work or school account, choose the team and channel, and set the timing and whether author names show. SignageWall only reads messages and never posts, and your Microsoft admin approves access the first time — great for keeping staff areas and internal spaces informed."
+    "about": "Surface the latest messages and announcements from a Microsoft Teams channel on screen, one at a time in a rotating spotlight or several in a grid. Sign in with a work or school account, choose the team and channel, and set the timing and whether author names show. SignageWall only reads messages and never posts, and your Microsoft admin approves access the first time, great for keeping staff areas and internal spaces informed."
   },
   "facebook": {
     "tagline": "Show a Facebook Page feed on your screens",
     "description": "Connect a Facebook account and display a Page's latest posts as a rotating spotlight or a grid.",
-    "about": "Turn a Facebook Page's latest posts into on-screen content, either one post at a time in a rotating spotlight or several together in a grid. Sign in with the account that manages the Page, choose which Page to show, set how long each post stays up and whether to include the post text. SignageWall only reads posts, never writes them — ideal for showing your social presence in shops, lobbies and reception areas."
+    "about": "Turn a Facebook Page's latest posts into on-screen content, either one post at a time in a rotating spotlight or several together in a grid. Sign in with the account that manages the Page, choose which Page to show, set how long each post stays up and whether to include the post text. SignageWall only reads posts, never writes them: ideal for showing your social presence in shops, lobbies and reception areas."
   },
   "instagram": {
     "tagline": "Show an Instagram feed on your screens",
     "description": "Connect a professional Instagram account and display its latest posts as a rotating spotlight or a grid.",
-    "about": "Bring a professional Instagram account's latest posts to your screens, either one at a time in a rotating spotlight or together in a grid. Sign in with the Facebook account that manages the Instagram profile, select the account, and choose the layout, timing and whether captions show. SignageWall only reads posts — a polished way to showcase your brand and campaigns in retail, cafés and reception areas."
+    "about": "Bring a professional Instagram account's latest posts to your screens, either one at a time in a rotating spotlight or together in a grid. Sign in with the Facebook account that manages the Instagram profile, select the account, and choose the layout, timing and whether captions show. SignageWall only reads posts: a polished way to showcase your brand and campaigns in retail, cafés and reception areas."
   },
   "linkedin": {
     "tagline": "Show a LinkedIn Page feed on your screens",
     "description": "Connect a LinkedIn account and display a Page's latest posts as a rotating spotlight or a grid.",
-    "about": "Put your company's latest LinkedIn posts on screen, one at a time in a rotating spotlight or several together in a grid. Sign in with the account that administers the Page, choose which Page to show, and set the layout and timing. Posts appear as text, since LinkedIn only releases post images to apps that can also publish on your behalf — access SignageWall never asks for. Ideal for office walls, reception areas and recruitment displays."
+    "about": "Put your company's latest LinkedIn posts on screen, one at a time in a rotating spotlight or several together in a grid. Sign in with the account that administers the Page, choose which Page to show, and set the layout and timing. Posts appear as text, since LinkedIn only releases post images to apps that can also publish on your behalf, access SignageWall never asks for. Ideal for office walls, reception areas and recruitment displays."
   },
   "rss": {
     "tagline": "Show the latest stories from any feed",
-    "description": "Point it at a news site or blog and the screen shows its latest stories — refreshed on its own.",
-    "about": "Bring any RSS or Atom feed to your screens — a news site, an industry blog or your own company feed. Paste the feed address, usually the site's homepage with /feed or /rss on the end, choose one of many layouts from a single story to a full mosaic, and optionally add a QR code to keep reading on a phone. Stories refresh on their own, so it stays fresh in lobbies and break rooms."
+    "description": "Point it at a news site or blog and the screen shows its latest stories, refreshed on its own.",
+    "about": "Bring any RSS or Atom feed to your screens: a news site, an industry blog or your own company feed. Paste the feed address, usually the site's homepage with /feed or /rss on the end, choose one of many layouts from a single story to a full mosaic, and optionally add a QR code to keep reading on a phone. Stories refresh on their own, so it stays fresh in lobbies and break rooms."
   },
   "cnn": {
     "tagline": "Latest world headlines from CNN",
-    "description": "Show CNN's latest world headlines on your screens — refreshed automatically.",
-    "about": "Put CNN's latest world headlines on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+    "description": "Show CNN's latest world headlines on your screens, refreshed automatically.",
+    "about": "Put CNN's latest world headlines on your screens, refreshed on their own. Pick a layout (a single story, a full-screen cover, a rolling list) and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
   },
   "bbc": {
     "tagline": "World news from the BBC",
-    "description": "Show the BBC's latest world news on your screens — refreshed automatically.",
-    "about": "Put the BBC's latest world news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+    "description": "Show the BBC's latest world news on your screens, refreshed automatically.",
+    "about": "Put the BBC's latest world news on your screens, refreshed on their own. Pick a layout (a single story, a full-screen cover, a rolling list) and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
   },
   "aljazeera": {
     "tagline": "Global news from Al Jazeera",
-    "description": "Show Al Jazeera's latest news on your screens — refreshed automatically.",
-    "about": "Put Al Jazeera's latest global news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+    "description": "Show Al Jazeera's latest news on your screens, refreshed automatically.",
+    "about": "Put Al Jazeera's latest global news on your screens, refreshed on their own. Pick a layout (a single story, a full-screen cover, a rolling list) and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
   },
   "guardian": {
     "tagline": "World news from The Guardian",
-    "description": "Show The Guardian's latest world news on your screens — refreshed automatically.",
-    "about": "Put The Guardian's latest world news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+    "description": "Show The Guardian's latest world news on your screens, refreshed automatically.",
+    "about": "Put The Guardian's latest world news on your screens, refreshed on their own. Pick a layout (a single story, a full-screen cover, a rolling list) and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
   },
   "dw": {
     "tagline": "World news from Deutsche Welle",
-    "description": "Show Deutsche Welle's latest world news on your screens — refreshed automatically.",
-    "about": "Put Deutsche Welle's latest world news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+    "description": "Show Deutsche Welle's latest world news on your screens, refreshed automatically.",
+    "about": "Put Deutsche Welle's latest world news on your screens, refreshed on their own. Pick a layout (a single story, a full-screen cover, a rolling list) and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
   },
   "france24": {
     "tagline": "International news from France 24",
-    "description": "Show France 24's latest international news on your screens — refreshed automatically.",
-    "about": "Put France 24's latest international news on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+    "description": "Show France 24's latest international news on your screens, refreshed automatically.",
+    "about": "Put France 24's latest international news on your screens, refreshed on their own. Pick a layout (a single story, a full-screen cover, a rolling list) and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
   },
   "skynews": {
     "tagline": "Breaking world news from Sky News",
-    "description": "Show Sky News's latest world headlines on your screens — refreshed automatically.",
-    "about": "Put Sky News's latest world headlines on your screens, refreshed on their own. Pick a layout — a single story, a full-screen cover, a rolling list — and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
+    "description": "Show Sky News's latest world headlines on your screens, refreshed automatically.",
+    "about": "Put Sky News's latest world headlines on your screens, refreshed on their own. Pick a layout (a single story, a full-screen cover, a rolling list) and optionally show a QR code so people can keep reading on their phone. Nothing to set up: the feed is built in."
   },
   "onthisday": {
     "tagline": "Historical events for today's date",
-    "description": "Show notable things that happened on today's date through history — engaging lobby and waiting-room content.",
+    "description": "Show notable things that happened on today's date through history, engaging lobby and waiting-room content.",
     "about": "Each day this shows notable events that happened on today's date through history, drawn from Wikipedia. Choose the language, how many events to list and a light or dark theme; the list refreshes automatically as the date rolls over. It makes engaging, ever-changing filler for lobbies, waiting rooms, schools and museums, giving people something to read while they wait."
   },
   "holidays": {
     "tagline": "Upcoming public holidays",
-    "description": "Show the next public holidays for a country — handy for offices, lobbies and staff areas.",
+    "description": "Show the next public holidays for a country: handy for offices, lobbies and staff areas.",
     "about": "List the next public holidays for a chosen country so everyone can plan around them. Select the country and how many holidays to show, then a light or dark theme; the dates update automatically as holidays pass. It is a friendly addition to office lobbies, HR noticeboards and staff areas, helping teams keep track of long weekends and closures."
   },
   "wisdom": {
     "tagline": "A new quote on the wall every day",
-    "description": "Shows a handful of inspiring quotes, each one in a different design — refreshed on its own, every day.",
-    "about": "Rotate a set of inspiring quotes on your screen, each presented in its own distinctive design. Pick the topics you want — Motivation, Wisdom, Success, Health and more — then set how many quotes to cycle through and how long each stays up. A fresh selection appears every day on its own, adding a lift to gyms, waiting rooms, offices and reception areas."
+    "description": "Shows a handful of inspiring quotes, each one in a different design: refreshed on its own, every day.",
+    "about": "Rotate a set of inspiring quotes on your screen, each presented in its own distinctive design. Pick the topics you want (Motivation, Wisdom, Success, Health and more) then set how many quotes to cycle through and how long each stays up. A fresh selection appears every day on its own, adding a lift to gyms, waiting rooms, offices and reception areas."
   },
   "weather": {
     "tagline": "Live local weather on your screens",
-    "description": "Show the current weather and a short forecast for any city — updated automatically.",
-    "about": "Show the current conditions and a short forecast for any city, in a layout to suit the room — at a glance, hour by hour, the full week, a minimal temperature, or a news-desk style panel. Search for the location, choose Celsius or Fahrenheit and the on-screen language, and let the theme follow the sky or fix it light or dark. It refreshes automatically, brightening lobbies, receptions and cafés."
+    "description": "Show the current weather and a short forecast for any city, updated automatically.",
+    "about": "Show the current conditions and a short forecast for any city, in a layout to suit the room: at a glance, hour by hour, the full week, a minimal temperature, or a news-desk style panel. Search for the location, choose Celsius or Fahrenheit and the on-screen language, and let the theme follow the sky or fix it light or dark. It refreshes automatically, brightening lobbies, receptions and cafés."
   },
   "airquality": {
     "tagline": "Live air quality for any location",
-    "description": "Show the current air-quality index and key pollutants for a place — updated automatically.",
+    "description": "Show the current air-quality index and key pollutants for a place, updated automatically.",
     "about": "This app reports the current air-quality index alongside key pollutants, color-coded from good to hazardous. Search for a city, choose the European (EAQI) or US (AQI) scale, and pick a light or dark theme; the readings refresh on their own throughout the day. It suits building lobbies, gyms, clinics and any workplace where indoor or outdoor air matters."
   },
   "crypto": {
@@ -171,22 +171,22 @@
   },
   "currency": {
     "tagline": "Live currency exchange rates",
-    "description": "Show exchange rates from a base currency to the ones you choose — updated automatically from ECB reference rates.",
+    "description": "Show exchange rates from a base currency to the ones you choose, updated automatically from ECB reference rates.",
     "about": "Display up-to-date exchange rates from one base currency into the currencies you care about. Choose the base, pick the currencies to list against it, and select a light or dark theme; rates come from official ECB reference rates and update on their own. It is a natural fit for bank branches, exchange bureaus, hotel receptions and travel desks where visitors want the day's rates at a glance."
   },
   "power-prices": {
     "tagline": "Live electricity spot prices",
-    "description": "Show the current electricity spot price and today's hourly curve for a price area — from Energinet.",
-    "about": "Track the electricity market with the current spot price and today's hour-by-hour curve for a chosen price area, sourced from Energinet. Select the area — DK1, DK2, SE3, SE4 or NO2 — the currency (DKK or EUR) and a theme; the figures update automatically through the day. It helps offices, workshops and energy-aware Nordic businesses time their usage to cheaper hours."
+    "description": "Show the current electricity spot price and today's hourly curve for a price area, from Energinet.",
+    "about": "Track the electricity market with the current spot price and today's hour-by-hour curve for a chosen price area, sourced from Energinet. Select the area (DK1, DK2, SE3, SE4 or NO2) the currency (DKK or EUR) and a theme; the figures update automatically through the day. It helps offices, workshops and energy-aware Nordic businesses time their usage to cheaper hours."
   },
   "clock": {
     "tagline": "Show the current time on your screens",
-    "description": "Display a live clock — 12- or 24-hour, with optional seconds and date.",
+    "description": "Display a live clock: 12- or 24-hour, with optional seconds and date.",
     "about": "A live clock for your screens, in whichever style fits the room: digital numbers, an analogue face, a split-flap board, the time spelled out in words, or closing orbit rings. Choose 12- or 24-hour time, show or hide seconds and the date, and set the background, text and accent colors. It looks at home in receptions, studios, meeting rooms and anywhere the time should be easy to read."
   },
   "menu": {
     "tagline": "Show a menu or price list",
-    "description": "A clean board of items and prices — for cafés, canteens and shops. Add a row per item.",
-    "about": "Present a polished menu or price list, with a design to match the room: Classic, Chalkboard, Gallery cards with photos, a bold Counter board, or understated Noir. Add a heading, pick a currency, then type items row by row — or sync them live from a Google Sheets or Excel file so prices update themselves. It is built for cafés, canteens, bakeries and shops."
+    "description": "A clean board of items and prices: for cafés, canteens and shops. Add a row per item.",
+    "about": "Present a polished menu or price list, with a design to match the room: Classic, Chalkboard, Gallery cards with photos, a bold Counter board, or understated Noir. Add a heading, pick a currency, then type items row by row, or sync them live from a Google Sheets or Excel file so prices update themselves. It is built for cafés, canteens, bakeries and shops."
   }
 }

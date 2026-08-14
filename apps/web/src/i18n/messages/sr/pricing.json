@@ -1,15 +1,15 @@
 {
   "meta": {
-    "title": "Cene — {price} po ekranu mesečno",
-    "description": "{price} po ekranu mesečno do pet ekrana, sve funkcije uključene. {trialDays} dana besplatno, bez kartice i ugovora. Preko pet — cena na upit."
+    "title": "Cena digital signage softvera — {price} po ekranu",
+    "description": "Cena digital signage softvera je javna: {price} po ekranu mesečno do pet ekrana, sve funkcije uključene. {trialDays} dana besplatno, bez kartice i bez ugovora."
   },
   "hero": {
     "eyebrow": "Cene",
-    "title": "Cena je objavljena.",
-    "subtitle": "{price} po ekranu mesečno, sa svime uključenim — do pet ekrana. Preko pet, cenu dajemo prema veličini mreže.",
+    "title": "Cena digital signage softvera, objavljena.",
+    "subtitle": "{price} po ekranu mesečno, sa svime uključenim, do pet ekrana. Preko pet, cenu dajemo prema veličini mreže.",
     "ctaPrimary": "Probajte besplatno {trialDays} dana",
     "ctaSecondary": "Javite nam se",
-    "note": "Bez kartice na startu. Fakturišemo mesečno."
+    "note": "Besplatan probni period traje {trialDays} dana, bez kartice. Fakturišemo mesečno."
   },
   "faq": {
     "title": "Pitanja o ceni",
@@ -20,7 +20,7 @@
       },
       {
         "q": "Treba li kartica za probni period?",
-        "a": "Ne. Otvorite nalog, uparite ekran i koristite sve {trialDays} dana. Kartica se nigde ne unosi — ako nastavite, prva faktura stiže posle probnog perioda."
+        "a": "Ne. Otvorite nalog, uparite ekran i koristite sve {trialDays} dana. Kartica se nigde ne unosi. Ako nastavite, prva faktura stiže posle probnog perioda."
       },
       {
         "q": "Šta se dešava posle {trialDays} dana?",
@@ -28,15 +28,15 @@
       },
       {
         "q": "Mogu li sa samo jednim ekranom?",
-        "a": "Da, i mnogi tako rade — pekara, salon, čekaonica. Jedan ekran je {price} mesečno i ništa u proizvodu nije isključeno na donjem kraju."
+        "a": "Da, i mnogi tako rade: pekara, salon, čekaonica. Jedan ekran je {price} mesečno i ništa u proizvodu nije isključeno na donjem kraju."
       },
       {
         "q": "Šta se dešava preko pet ekrana?",
-        "a": "Prelazite na Enterprise: isti proizvod, sa cenom koja se daje prema veličini mreže umesto sa ove stranice. Recite koliko ekrana imate i poslaćemo broj — nema ničega da se otključa niti funkcije koja čeka iza toga."
+        "a": "Prelazite na Enterprise: isti proizvod, sa cenom koja se daje prema veličini mreže umesto sa ove stranice. Recite koliko ekrana imate i poslaćemo broj. Nema ničega da se otključa niti funkcije koja čeka iza toga."
       },
       {
         "q": "Šta nije uključeno u cenu?",
-        "a": "Hardver. Treba vam ekran i mali plejer uređaj — Android boks, mini-PC ili računar koji već imate. Ne preprodajemo hardver, pa ga kupujete tamo gde je vama najpovoljnije."
+        "a": "Hardver. Treba vam ekran i mali plejer uređaj: Android boks, mini računar ili računar koji već imate. Ne preprodajemo hardver, pa ga kupujete tamo gde je vama najpovoljnije."
       },
       {
         "q": "Da li se naplaćuje po korisniku?",
@@ -48,7 +48,7 @@
       },
       {
         "q": "Kako ide plaćanje?",
-        "a": "Sve je iskazano u evrima i nema unosa kartice — ne koristimo platni sistem. Svakog meseca dobijate fakturu i plaćate je uplatnicom, po uslovima na koje je vaše računovodstvo naviklo."
+        "a": "Sve je iskazano u evrima i nema unosa kartice, ne koristimo platni sistem. Svakog meseca dobijate fakturu i plaćate je uplatnicom, po uslovima na koje je vaše računovodstvo naviklo."
       },
       {
         "q": "Postoji li besplatan plan?",
@@ -58,7 +58,7 @@
   },
   "plans": {
     "title": "Dva načina",
-    "subtitle": "Isti proizvod u oba slučaja — broj ekrana odlučuje na kom ste.",
+    "subtitle": "Isti proizvod u oba slučaja. Broj ekrana odlučuje na kom ste.",
     "billing": "Mesečna faktura, plaćanje uplatnicom. Bez unosa kartice i bez platnog sistema.",
     "basic": {
       "name": "Basic",
@@ -68,9 +68,9 @@
       "trial": "{trialDays} dana besplatno, bez kartice",
       "cta": "Započnite besplatno",
       "included": [
-        "Sve aplikacije iz kataloga — njih {appCount}, ne ograničen izbor",
+        "Sve aplikacije iz kataloga: njih {appCount}, ne ograničen izbor",
         "Neograničen sadržaj, plejliste i zakazivanje",
-        "Rad offline — ekran nastavlja da radi i kad padne veza",
+        "Rad offline. Ekran nastavlja da radi i kad padne veza",
         "Plejer za Android, Windows, macOS i Linux",
         "Zone i rasporedi na ekranu",
         "Vaš brend, bez vodenog žiga na ekranu",
@@ -86,7 +86,7 @@
       "body": "Recite nam koliko ekrana imate i poslaćemo cenu, obično u roku od jednog radnog dana.",
       "cta": "Javite nam se",
       "included": [
-        "Sve iz Basic-a — proizvod je isti",
+        "Sve iz Basic-a. Proizvod je isti",
         "Cena prema veličini vaše mreže",
         "Jedna mesečna faktura za sve ekrane",
         "Bez minimalnog trajanja, isto kao u Basic-u"

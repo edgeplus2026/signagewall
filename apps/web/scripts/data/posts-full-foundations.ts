@@ -490,7 +490,7 @@ export const POSTS_FULL_FOUNDATIONS = {
       content: [
         [
           'p',
-          'Android boks i mini-PC mogu izgledati kao zamene za isti posao: primaju sadržaj i šalju sliku na ekran. Ipak, naziv kategorije ne govori da li će konkretan uređaj pokrenuti vaš player, ostati stabilan tokom radnog dana ili dozvoliti potrebna podešavanja. Zato odluka počinje kompatibilnošću, a završava se pilot testom tačnog modela — ne tabelom procesora.',
+          'Android boks i mini-PC mogu izgledati kao zamene za isti posao: primaju sadržaj i šalju sliku na ekran. Ipak, naziv kategorije ne govori da li će konkretan uređaj pokrenuti vaš player, ostati stabilan tokom radnog dana ili dozvoliti potrebna podešavanja. Zato odluka počinje kompatibilnošću, a završava se pilot testom tačnog modela, ne tabelom procesora.',
         ],
         ['h', 'Prvi filter je softver, ne cena'],
         [

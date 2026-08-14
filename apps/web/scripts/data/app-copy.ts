@@ -2,14 +2,14 @@
 /**
  * Editorial copy for the App Pages, keyed by the manifest slug.
  *
- * Written against each app's manifest — its data source, refresh interval and
- * config fields — rather than paraphrasing the one-line tagline, because a page
+ * Written against each app's manifest (its data source, refresh interval and
+ * config fields) rather than paraphrasing the one-line tagline, because a page
  * that only restates the catalogue is the thin page the SEO gate exists to keep
  * out. Requirements in particular are factual: they have to match what the
  * connector actually does, since a visitor plans around them.
  *
  * Primary queries have to stay distinct from every Blog post, Solution and
- * other App page — the indexing gate compares them and refuses near-duplicates.
+ * other App page. The indexing gate compares them and refuses near-duplicates.
  * PowerPoint is framed around the OneDrive link and PDF around a file you
  * upload, which is the actual difference a visitor is choosing between.
  *
@@ -436,7 +436,7 @@ export const APP_COPY = {
         refreshBehavior: 'Proverava se na svaka dva minuta.',
         offlineBehavior: 'Poslednje povučene poruke ostaju na ekranu dok se veza ne vrati.',
         limitations:
-          'Čitanje poruka iz kanala traži saglasnost Azure AD administratora — bez nje povezivanje ne prolazi. Prikazuju se samo kanali timova; lične prepiske nisu u ponudi.',
+          'Čitanje poruka iz kanala traži saglasnost Azure AD administratora, bez nje povezivanje ne prolazi. Prikazuju se samo kanali timova; lične prepiske nisu u ponudi.',
       },
       faq: [
         {
@@ -466,10 +466,10 @@ export const APP_COPY = {
         notTargeting: 'Posting into Teams; the Outlook calendar.',
       },
       summary:
-        'Connect a Microsoft account, pick one channel, and its recent posts rotate on the screen — one at a time or several at once.',
+        'Connect a Microsoft account, pick one channel, and its recent posts rotate on the screen, one at a time or several at once.',
       benefits: [
         'Announcements reach people with no Teams on a phone or a desk',
-        'The channel stays the only place anyone writes — the screen only shows',
+        'The channel stays the only place anyone writes. The screen only shows',
         'Many screens on one channel cost a single fetch',
       ],
       features: [
@@ -523,7 +523,7 @@ export const APP_COPY = {
         refreshBehavior: 'Checked every two minutes.',
         offlineBehavior: 'The last fetched messages stay on screen until the connection returns.',
         limitations:
-          'Reading channel messages needs Azure AD admin consent — without it the connection cannot be made. Only team channels are offered; private chats are not.',
+          'Reading channel messages needs Azure AD admin consent, without it the connection cannot be made. Only team channels are offered; private chats are not.',
       },
       faq: [
         {
@@ -612,7 +612,7 @@ export const APP_COPY = {
         refreshBehavior: 'Proverava se na svakih trideset minuta.',
         offlineBehavior: 'Poslednji povučeni raspored ostaje na ekranu i bez mreže.',
         limitations:
-          'Ekran prikazuje, ne rezerviše — termin se i dalje zakazuje u Outlooku. Izmena zakazana u poslednjem trenutku vidi se tek pri sledećoj proveri.',
+          'Ekran prikazuje, ne rezerviše, termin se i dalje zakazuje u Outlooku. Izmena zakazana u poslednjem trenutku vidi se tek pri sledećoj proveri.',
       },
       faq: [
         {
@@ -698,7 +698,7 @@ export const APP_COPY = {
         refreshBehavior: 'Checked every thirty minutes.',
         offlineBehavior: 'The last fetched schedule stays on screen without a network.',
         limitations:
-          'The screen displays, it does not book — meetings are still made in Outlook. A last-minute change appears at the next check, not instantly.',
+          'The screen displays, it does not book, meetings are still made in Outlook. A last-minute change appears at the next check, not instantly.',
       },
       faq: [
         {
@@ -744,7 +744,7 @@ export const APP_COPY = {
         },
         {
           title: 'Osvežavanje po vašoj meri',
-          body: 'Zadajete na koliko minuta se izveštaj ponovo učitava — često za dnevni pregon, retko za mesečni pregled.',
+          body: 'Zadajete na koliko minuta se izveštaj ponovo učitava, često za dnevni pregon, retko za mesečni pregled.',
         },
         {
           title: 'Izolovan prikaz',
@@ -783,12 +783,12 @@ export const APP_COPY = {
         account:
           'Na ekranu nije potreban nalog. Izveštaj mora biti objavljen kroz „Publish to web".',
         dataSource: 'Prikazuje se javno objavljen Power BI izveštaj sa adrese koju nalepite.',
-        network: 'Stalna veza je obavezna — izveštaj se učitava sa Microsoftovih servera.',
+        network: 'Stalna veza je obavezna, izveštaj se učitava sa Microsoftovih servera.',
         refreshBehavior: 'Ponovo se učitava na interval koji sami zadate.',
         offlineBehavior:
           'Bez veze izveštaj ne može da se učita, pa se ta stavka preskače u rotaciji dok se mreža ne vrati.',
         limitations:
-          'Radi samo sa izveštajem objavljenim kroz „Publish to web". Obična adresa izveštaja traži prijavu i na ekranu bez čoveka se neće učitati. Imajte u vidu da „Publish to web" čini izveštaj dostupnim svakome ko ima link — nemojte ga koristiti za poverljive podatke.',
+          'Radi samo sa izveštajem objavljenim kroz „Publish to web". Obična adresa izveštaja traži prijavu i na ekranu bez čoveka se neće učitati. Imajte u vidu da „Publish to web" čini izveštaj dostupnim svakome ko ima link, nemojte ga koristiti za poverljive podatke.',
       },
       faq: [
         {
@@ -831,7 +831,7 @@ export const APP_COPY = {
         },
         {
           title: 'A refresh you choose',
-          body: 'Set how many minutes between reloads — often for a daily operations board, rarely for a monthly review.',
+          body: 'Set how many minutes between reloads, often for a daily operations board, rarely for a monthly review.',
         },
         {
           title: 'Kept in its own frame',
@@ -870,12 +870,12 @@ export const APP_COPY = {
         account:
           'No account is needed on the screen. The report must be published with “Publish to web”.',
         dataSource: 'A publicly published Power BI report is loaded from the address you paste.',
-        network: 'A permanent connection is required — the report loads from Microsoft’s servers.',
+        network: 'A permanent connection is required. The report loads from Microsoft’s servers.',
         refreshBehavior: 'Reloaded on the interval you set.',
         offlineBehavior:
           'Without a connection the report cannot load, so the item is skipped in rotation until the network returns.',
         limitations:
-          'Only works with a report published through “Publish to web”. A normal report address asks for a login and will not load on an unattended screen. Note that “Publish to web” makes the report readable by anyone with the link — do not use it for confidential data.',
+          'Only works with a report published through “Publish to web”. A normal report address asks for a login and will not load on an unattended screen. Note that “Publish to web” makes the report readable by anyone with the link, do not use it for confidential data.',
       },
       faq: [
         {
@@ -910,7 +910,7 @@ export const APP_COPY = {
       summary:
         'Povežete Google nalog, izaberete prezentaciju sa Drive-a, i ona se vrti na ekranima. Kada je izmenite, ekrani pređu na novu verziju.',
       benefits: [
-        'Prezentacija ostaje privatna — ne mora da se objavljuje na vebu',
+        'Prezentacija ostaje privatna, ne mora da se objavljuje na vebu',
         'Izmena u Drive-u stiže na ekran u trenutku, ne pri sledećoj proveri',
         'Slajdovi se čuvaju na uređaju, pa prikaz preživi prekid veze',
       ],
@@ -965,7 +965,7 @@ export const APP_COPY = {
           'Izmena u Drive-u pokreće ponovni izvoz odmah; kao rezerva, proverava se i na svakih petnaest minuta.',
         offlineBehavior: 'Preuzeti slajdovi ostaju na uređaju i prikazuju se bez mreže.',
         limitations:
-          'Animacije i prelazi se ne prikazuju — slajdovi se izvoze kao slike. Za pokret koristite video.',
+          'Animacije i prelazi se ne prikazuju, slajdovi se izvoze kao slike. Za pokret koristite video.',
       },
       faq: [
         {
@@ -974,7 +974,7 @@ export const APP_COPY = {
         },
         {
           q: 'Koliko brzo se izmena vidi?',
-          a: 'Gotovo odmah — Drive javi da je fajl promenjen, pa se slajdovi ponovo izvoze.',
+          a: 'Gotovo odmah, Drive javi da je fajl promenjen, pa se slajdovi ponovo izvoze.',
         },
         {
           q: 'Radi li bez interneta?',
@@ -997,7 +997,7 @@ export const APP_COPY = {
       summary:
         'Connect a Google account, pick a deck from Drive, and it loops on the screens. Edit it and the screens move to the new version.',
       benefits: [
-        'The deck stays private — nothing has to be published to the web',
+        'The deck stays private, nothing has to be published to the web',
         'An edit in Drive reaches the screen at once, not at the next check',
         'Slides are stored on the device, so the display survives an outage',
       ],
@@ -1052,7 +1052,7 @@ export const APP_COPY = {
           'A change in Drive triggers an immediate re-export; as a fallback it is also checked every fifteen minutes.',
         offlineBehavior: 'Downloaded slides stay on the device and play without a network.',
         limitations:
-          'Animations and transitions are not shown — slides are exported as images. For motion, use video.',
+          'Animations and transitions are not shown, slides are exported as images. For motion, use video.',
       },
       faq: [
         {
@@ -1061,7 +1061,7 @@ export const APP_COPY = {
         },
         {
           q: 'How quickly does an edit show?',
-          a: 'Almost immediately — Drive reports the file changed and the slides are exported again.',
+          a: 'Almost immediately, Drive reports the file changed and the slides are exported again.',
         },
         {
           q: 'Does it work without internet?',
@@ -1084,10 +1084,10 @@ export const APP_COPY = {
         notTargeting: 'Objavljivanje na Instagram; Facebook stranica.',
       },
       summary:
-        'Povežete nalog, izaberete profil, i poslednje objave se smenjuju na ekranu — jedna preko celog ekrana ili više njih u mreži.',
+        'Povežete nalog, izaberete profil, i poslednje objave se smenjuju na ekranu, jedna preko celog ekrana ili više njih u mreži.',
       benefits: [
         'Ono što ionako objavljujete vidi i gost koji vas ne prati',
-        'Nema drugog posla — objavite na Instagramu i ekran se sam menja',
+        'Nema drugog posla, objavite na Instagramu i ekran se sam menja',
         'Više ekrana sa istim profilom troši jedno povlačenje',
       ],
       features: [
@@ -1136,17 +1136,17 @@ export const APP_COPY = {
         account:
           'Facebook nalog koji upravlja stranicom sa povezanim profesionalnim (Business ili Creator) Instagram nalogom.',
         dataSource: 'Povlače se poslednje objave sa izabranog Instagram naloga.',
-        network: 'Stalna veza je obavezna — slike se preuzimaju sa Meta servera.',
+        network: 'Stalna veza je obavezna, slike se preuzimaju sa Meta servera.',
         refreshBehavior: 'Proverava se na svaka dva minuta.',
         offlineBehavior:
           'Bez veze slike ne mogu da se učitaju, pa ova stavka izlazi iz rotacije dok se mreža ne vrati.',
         limitations:
-          'Lični Instagram nalog nije podržan — mora profesionalni, povezan sa Facebook stranicom. Za tuđe naloge potrebno je i odobrenje kroz Meta proveru aplikacije.',
+          'Lični Instagram nalog nije podržan: mora profesionalni, povezan sa Facebook stranicom. Za tuđe naloge potrebno je i odobrenje kroz Meta proveru aplikacije.',
       },
       faq: [
         {
           q: 'Radi li sa običnim, ličnim profilom?',
-          a: 'Ne. Nalog mora biti prebačen u Business ili Creator i povezan sa Facebook stranicom — to je besplatno i radi se u podešavanjima Instagrama.',
+          a: 'Ne. Nalog mora biti prebačen u Business ili Creator i povezan sa Facebook stranicom. To je besplatno i radi se u podešavanjima Instagrama.',
         },
         {
           q: 'Mogu li da prikažem tuđi profil?',
@@ -1171,10 +1171,10 @@ export const APP_COPY = {
         notTargeting: 'Posting to Instagram; a Facebook Page feed.',
       },
       summary:
-        'Connect an account, pick the profile, and its recent posts rotate on the screen — one filling it, or several in a grid.',
+        'Connect an account, pick the profile, and its recent posts rotate on the screen, one filling it, or several in a grid.',
       benefits: [
         'What you post anyway reaches the guest who does not follow you',
-        'No second job — post to Instagram and the screen changes itself',
+        'No second job, post to Instagram and the screen changes itself',
         'Several screens on one profile cost a single fetch',
       ],
       features: [
@@ -1223,17 +1223,17 @@ export const APP_COPY = {
         account:
           'A Facebook account managing a Page with a linked professional (Business or Creator) Instagram account.',
         dataSource: 'Recent posts are fetched from the chosen Instagram account.',
-        network: 'A permanent connection is required — images stream from Meta’s servers.',
+        network: 'A permanent connection is required, images stream from Meta’s servers.',
         refreshBehavior: 'Checked every two minutes.',
         offlineBehavior:
           'Without a connection the images cannot load, so this item drops out of rotation until the network returns.',
         limitations:
-          'A personal Instagram account is not supported — it must be professional and linked to a Facebook Page. Accounts you do not own also need clearance through Meta App Review.',
+          'A personal Instagram account is not supported. It must be professional and linked to a Facebook Page. Accounts you do not own also need clearance through Meta App Review.',
       },
       faq: [
         {
           q: 'Does it work with an ordinary personal profile?',
-          a: 'No. The account has to be switched to Business or Creator and linked to a Facebook Page — that is free and done in Instagram’s settings.',
+          a: 'No. The account has to be switched to Business or Creator and linked to a Facebook Page. That is free and done in Instagram’s settings.',
         },
         {
           q: 'Can I show someone else’s profile?',
@@ -1312,7 +1312,7 @@ export const APP_COPY = {
       requirements: {
         account: 'Facebook nalog koji upravlja stranicom, povezan jednom.',
         dataSource: 'Povlače se poslednje objavljene objave sa izabrane stranice.',
-        network: 'Stalna veza je obavezna — slike se preuzimaju sa Meta servera.',
+        network: 'Stalna veza je obavezna: slike se preuzimaju sa Meta servera.',
         refreshBehavior: 'Proverava se na svaka dva minuta.',
         offlineBehavior:
           'Bez veze slike ne mogu da se učitaju, pa ova stavka izlazi iz rotacije dok se mreža ne vrati.',
@@ -1356,7 +1356,7 @@ export const APP_COPY = {
       features: [
         {
           title: 'Only the Page’s own posts',
-          body: 'What the Page published is shown — not comments, not what others posted to it. A screen in a public building should not carry an argument.',
+          body: 'What the Page published is shown, not comments, not what others posted to it. A screen in a public building should not carry an argument.',
         },
         {
           title: 'Spotlight or grid',
@@ -1398,7 +1398,7 @@ export const APP_COPY = {
       requirements: {
         account: 'A Facebook account that manages the Page, connected once.',
         dataSource: 'Recently published posts are fetched from the chosen Page.',
-        network: 'A permanent connection is required — images stream from Meta’s servers.',
+        network: 'A permanent connection is required, images stream from Meta’s servers.',
         refreshBehavior: 'Checked every two minutes.',
         offlineBehavior:
           'Without a connection the images cannot load, so this item drops out of rotation until the network returns.',
@@ -1445,7 +1445,7 @@ export const APP_COPY = {
       features: [
         {
           title: 'Tekst koji se čita iz prolaza',
-          body: 'Pošto nema slika, tekst dobija ceo ekran i postavlja se krupno — što je zapravo bolje za objavu koja se čita u hodu.',
+          body: 'Pošto nema slika, tekst dobija ceo ekran i postavlja se krupno, što je zapravo bolje za objavu koja se čita u hodu.',
         },
         {
           title: 'Jedna objava ili više njih',
@@ -1491,7 +1491,7 @@ export const APP_COPY = {
         refreshBehavior: 'Proverava se na svakih trideset minuta.',
         offlineBehavior: 'Poslednje povučene objave ostaju na ekranu i bez mreže.',
         limitations:
-          'Objave se prikazuju bez slika. Slika u LinkedIn objavi dostupna je samo uz dozvolu za pisanje po vašoj stranici, koju namerno ne tražimo — pa se prikazuje tekst. Lični profili nisu podržani.',
+          'Objave se prikazuju bez slika. Slika u LinkedIn objavi dostupna je samo uz dozvolu za pisanje po vašoj stranici, koju namerno ne tražimo, pa se prikazuje tekst. Lični profili nisu podržani.',
       },
       faq: [
         {
@@ -1530,7 +1530,7 @@ export const APP_COPY = {
       features: [
         {
           title: 'Text that reads from a walkway',
-          body: 'With no images, the text gets the whole screen and is set large — which suits a post read while walking past.',
+          body: 'With no images, the text gets the whole screen and is set large, which suits a post read while walking past.',
         },
         {
           title: 'One post or several',
@@ -1576,7 +1576,7 @@ export const APP_COPY = {
         refreshBehavior: 'Checked every thirty minutes.',
         offlineBehavior: 'The last fetched posts stay on screen without a network.',
         limitations:
-          'Posts are shown without images. LinkedIn only releases post images to an app holding write access to your Page, which we deliberately do not request — so the text is shown instead. Personal profiles are not supported.',
+          'Posts are shown without images. LinkedIn only releases post images to an app holding write access to your Page, which we deliberately do not request. So the text is shown instead. Personal profiles are not supported.',
       },
       faq: [
         {
@@ -1610,7 +1610,7 @@ export const APP_COPY = {
       summary:
         'Izaberete valute i valutu prikaza, i tabla sa cenama i promenom u poslednja 24 sata stoji na ekranu, osvežena sama.',
       benefits: [
-        'Bez naloga i bez ključa — izaberete valute i tabla radi',
+        'Bez naloga i bez ključa, izaberete valute i tabla radi',
         'Promena u 24 sata odmah pokazuje da li je dan bio zelen ili crven',
         'Više ekrana sa istom listom troši jedan poziv ka izvoru',
       ],
@@ -1663,7 +1663,7 @@ export const APP_COPY = {
         refreshBehavior: 'Osvežava se na svakih pet minuta.',
         offlineBehavior: 'Poslednje povučene cene ostaju na ekranu dok se veza ne vrati.',
         limitations:
-          'Cene se osvežavaju na pet minuta i informativne su — nisu berzanski prikaz u realnom vremenu i ne treba da budu osnov za trgovanje.',
+          'Cene se osvežavaju na pet minuta i informativne su, nisu berzanski prikaz u realnom vremenu i ne treba da budu osnov za trgovanje.',
       },
       faq: [
         {
@@ -1672,7 +1672,7 @@ export const APP_COPY = {
         },
         {
           q: 'Koliko su cene sveže?',
-          a: 'Osvežavaju se na pet minuta, što je namerno — izvor je besplatan i ima ograničenje broja poziva.',
+          a: 'Osvežavaju se na pet minuta, što je namerno, izvor je besplatan i ima ograničenje broja poziva.',
         },
         {
           q: 'Koliko valuta mogu da prikažem?',
@@ -1695,7 +1695,7 @@ export const APP_COPY = {
       summary:
         'Pick the coins and the display currency, and a board of prices with the 24-hour change holds the screen, refreshed on its own.',
       benefits: [
-        'No account and no API key — pick the coins and the board runs',
+        'No account and no API key. Pick the coins and the board runs',
         'The 24-hour change shows at a glance whether the day was green or red',
         'Many screens on one list cost a single call upstream',
       ],
@@ -1748,7 +1748,7 @@ export const APP_COPY = {
         refreshBehavior: 'Refreshed every five minutes.',
         offlineBehavior: 'The last fetched prices stay on screen until the connection returns.',
         limitations:
-          'Prices refresh every five minutes and are informational — this is not a real-time trading display and should not be the basis for a trade.',
+          'Prices refresh every five minutes and are informational. This is not a real-time trading display and should not be the basis for a trade.',
       },
       faq: [
         {
@@ -1757,7 +1757,7 @@ export const APP_COPY = {
         },
         {
           q: 'How fresh are the prices?',
-          a: 'They refresh every five minutes, deliberately — the source is free and rate-limited.',
+          a: 'They refresh every five minutes, deliberately. The source is free and rate-limited.',
         },
         {
           q: 'How many coins can I show?',
@@ -1784,7 +1784,7 @@ export const APP_COPY = {
       benefits: [
         'Niko ne prepisuje kurseve na tablu svakog jutra',
         'Pokriveni su i dinar, konvertibilna marka i denar, ne samo velike valute',
-        'Bez naloga i bez ključa — izaberete valute i lista radi',
+        'Bez naloga i bez ključa, izaberete valute i lista radi',
       ],
       features: [
         {
@@ -1797,7 +1797,7 @@ export const APP_COPY = {
         },
         {
           title: 'Osvežava se kad ima šta',
-          body: 'Kursevi se objavljuju jednom dnevno, pa se proverava na sat vremena — dovoljno da nov dan stigne brzo, bez uzaludnih poziva.',
+          body: 'Kursevi se objavljuju jednom dnevno, pa se proverava na sat vremena, dovoljno da nov dan stigne brzo, bez uzaludnih poziva.',
         },
       ],
       useCases: [
@@ -1817,7 +1817,7 @@ export const APP_COPY = {
       setupSteps: [
         {
           title: 'Izaberite osnovnu valutu',
-          body: 'Ona iz koje se gleda odnos — obično domaća.',
+          body: 'Ona iz koje se gleda odnos. Obično domaća.',
         },
         {
           title: 'Dodajte valute koje se prate',
@@ -1870,7 +1870,7 @@ export const APP_COPY = {
       benefits: [
         'Nobody copies rates onto a board each morning',
         'Regional currencies are covered, not only the major ones',
-        'No account and no API key — pick the currencies and it runs',
+        'No account and no API key. Pick the currencies and it runs',
       ],
       features: [
         {
@@ -1883,7 +1883,7 @@ export const APP_COPY = {
         },
         {
           title: 'Refreshed when there is something to refresh',
-          body: 'Rates publish once a day, so it checks hourly — quick to pick up the new day without hammering the source.',
+          body: 'Rates publish once a day, so it checks hourly, quick to pick up the new day without hammering the source.',
         },
       ],
       useCases: [
@@ -1903,7 +1903,7 @@ export const APP_COPY = {
       setupSteps: [
         {
           title: 'Pick the base currency',
-          body: 'The one the rates are read from — usually the local one.',
+          body: 'The one the rates are read from, usually the local one.',
         },
         {
           title: 'Add the currencies to track',
@@ -1971,7 +1971,7 @@ export const APP_COPY = {
         },
         {
           title: 'Bilo koja lokacija',
-          body: 'Postavlja se mesto po izboru, ne najbliži grad — što je bitno kada je ekran u naselju van centra.',
+          body: 'Postavlja se mesto po izboru, ne najbliži grad, što je bitno kada je ekran u naselju van centra.',
         },
       ],
       useCases: [
@@ -2010,7 +2010,7 @@ export const APP_COPY = {
         refreshBehavior: 'Osvežava se na svakih petnaest minuta.',
         offlineBehavior: 'Poslednje povučene vrednosti ostaju na ekranu dok se veza ne vrati.',
         limitations:
-          'Prikazuje vazduh napolju, na osnovu modela za izabranu lokaciju — ne meri vazduh u prostoriji i ne zamenjuje senzor.',
+          'Prikazuje vazduh napolju, na osnovu modela za izabranu lokaciju: ne meri vazduh u prostoriji i ne zamenjuje senzor.',
       },
       faq: [
         {
@@ -2096,7 +2096,7 @@ export const APP_COPY = {
         refreshBehavior: 'Refreshed every fifteen minutes.',
         offlineBehavior: 'The last fetched readings stay on screen until the connection returns.',
         limitations:
-          'It shows modelled outdoor air for the chosen location — it does not measure the air in the room and does not replace a sensor.',
+          'It shows modelled outdoor air for the chosen location. It does not measure the air in the room and does not replace a sensor.',
       },
       faq: [
         {
@@ -2133,7 +2133,7 @@ export const APP_COPY = {
       benefits: [
         'Tim vidi kada je struja skupa, a kada jeftina, bez otvaranja portala',
         'Pokrivena je Srbija uz glavna evropska tržišta',
-        'Bez naloga i bez ključa — izaberete oblast i radi',
+        'Bez naloga i bez ključa, izaberete oblast i radi',
       ],
       features: [
         {
@@ -2185,7 +2185,7 @@ export const APP_COPY = {
         refreshBehavior: 'Osvežava se na svakih trideset minuta.',
         offlineBehavior: 'Poslednje povučene cene ostaju na ekranu dok se veza ne vrati.',
         limitations:
-          'Prikazuje veleprodajnu dan-unapred cenu u evrima. To nije cena sa vašeg računa za struju — ona uključuje mrežarinu, takse i maržu snabdevača.',
+          'Prikazuje veleprodajnu dan-unapred cenu u evrima. To nije cena sa vašeg računa za struju, ona uključuje mrežarinu, takse i maržu snabdevača.',
       },
       faq: [
         {
@@ -2219,7 +2219,7 @@ export const APP_COPY = {
       benefits: [
         'The team sees when power is expensive without opening a portal',
         'Serbia is covered alongside the main European markets',
-        'No account and no key — pick the area and it runs',
+        'No account and no key. Pick the area and it runs',
       ],
       features: [
         {
@@ -2302,7 +2302,7 @@ export const APP_COPY = {
         notTargeting: 'Snimljeni video fajlovi; YouTube video u petlji.',
       },
       summary:
-        'Nalepite link prenosa — HLS, DASH, video fajl, WebRTC ili kanal sa Twitch-a, Kick-a, YouTube-a, Vimeo-a, Facebook-a ili Dailymotion-a — i ekran ga pušta.',
+        'Nalepite link prenosa, HLS, DASH, video fajl, WebRTC ili kanal sa Twitch-a, Kick-a, YouTube-a, Vimeo-a, Facebook-a ili Dailymotion-a, i ekran ga pušta.',
       benefits: [
         'Jedan link pokriva i tehničke prenose i platforme, bez posebnih podešavanja',
         'Format se prepoznaje sam, a može i ručno da se izabere',
@@ -2354,13 +2354,13 @@ export const APP_COPY = {
         account:
           'Nije potreban nalog za tehničke prenose. Za platforme važe njihova pravila prikazivanja.',
         dataSource:
-          'Pušta se prenos sa adrese koju nalepite — HLS, DASH, video fajl, WebRTC, ili kanal sa podržane platforme.',
+          'Pušta se prenos sa adrese koju nalepite, HLS, DASH, video fajl, WebRTC, ili kanal sa podržane platforme.',
         network: 'Stalna veza je obavezna, jer se prenos preuzima u trenutku gledanja.',
         refreshBehavior: 'Prenos ide uživo; nema intervala osvežavanja.',
         offlineBehavior:
           'Bez veze prenosa nema, pa ova stavka izlazi iz rotacije dok se mreža ne vrati.',
         limitations:
-          'RTMP i RTSP adrese ne mogu da se puštaju u pregledaču — pretvorite ih u HLS ili WebRTC na izvoru. Prenos se zaustavlja dok stavka nije na ekranu, da ne troši vezu i ne pušta zvuk u pozadini.',
+          'RTMP i RTSP adrese ne mogu da se puštaju u pregledaču, pretvorite ih u HLS ili WebRTC na izvoru. Prenos se zaustavlja dok stavka nije na ekranu, da ne troši vezu i ne pušta zvuk u pozadini.',
       },
       faq: [
         {
@@ -2390,7 +2390,7 @@ export const APP_COPY = {
         notTargeting: 'Recorded video files; a looping YouTube video.',
       },
       summary:
-        'Paste a stream link — HLS, DASH, a video file, WebRTC, or a channel on Twitch, Kick, YouTube, Vimeo, Facebook or Dailymotion — and the screen plays it.',
+        'Paste a stream link, HLS, DASH, a video file, WebRTC, or a channel on Twitch, Kick, YouTube, Vimeo, Facebook or Dailymotion, and the screen plays it.',
       benefits: [
         'One link covers both technical streams and platforms, with no special setup',
         'The format is detected on its own, and can be set by hand',
@@ -2442,13 +2442,13 @@ export const APP_COPY = {
         account:
           'No account is needed for technical streams. Platform channels follow that platform’s own rules.',
         dataSource:
-          'The stream is played from the address you paste — HLS, DASH, a video file, WebRTC, or a channel on a supported platform.',
+          'The stream is played from the address you paste, HLS, DASH, a video file, WebRTC, or a channel on a supported platform.',
         network: 'A permanent connection is required, because the stream is fetched as it plays.',
         refreshBehavior: 'The stream runs live; there is no refresh interval.',
         offlineBehavior:
           'With no connection there is no stream, so the item drops out of rotation until the network returns.',
         limitations:
-          'RTMP and RTSP addresses cannot play in a browser — convert them to HLS or WebRTC at the source. The stream is torn down while the item is off-screen, so it does not hold a connection or make noise in the background.',
+          'RTMP and RTSP addresses cannot play in a browser, convert them to HLS or WebRTC at the source. The stream is torn down while the item is off-screen, so it does not hold a connection or make noise in the background.',
       },
       faq: [
         {
@@ -2536,7 +2536,7 @@ export const APP_COPY = {
         refreshBehavior: 'RSS naslovi se proveravaju na svakih pet minuta.',
         offlineBehavior: 'Poslednje poruke ostaju u traci i bez mreže.',
         limitations:
-          'Traka je namenjena kratkim porukama — dugačak tekst prođe presporo da bi ga iko ispratio. Za poruku koja mora da zaustavi sve koristite hitno obaveštenje preko celog ekrana.',
+          'Traka je namenjena kratkim porukama, dugačak tekst prođe presporo da bi ga iko ispratio. Za poruku koja mora da zaustavi sve koristite hitno obaveštenje preko celog ekrana.',
       },
       faq: [
         {
@@ -2621,7 +2621,7 @@ export const APP_COPY = {
         refreshBehavior: 'RSS headlines are checked every five minutes.',
         offlineBehavior: 'The last messages stay in the band without a network.',
         limitations:
-          'The band is meant for short messages — a long one crawls past too slowly for anyone to follow. For a message that must stop everything, use the full-screen emergency alert.',
+          'The band is meant for short messages, a long one crawls past too slowly for anyone to follow. For a message that must stop everything, use the full-screen emergency alert.',
       },
       faq: [
         {
@@ -2654,7 +2654,7 @@ export const APP_COPY = {
         notTargeting: 'Traka sa obaveštenjima; redovna obaveštenja u rotaciji.',
       },
       summary:
-        'Krupan naslov, opis po potrebi i boja koja odgovara stepenu hitnosti — preko celog ekrana, čitljivo iz daljine.',
+        'Krupan naslov, opis po potrebi i boja koja odgovara stepenu hitnosti, preko celog ekrana, čitljivo iz daljine.',
       benefits: [
         'Radi i kada internet ne radi, jer ništa ne povlači spolja',
         'Stepen hitnosti bira ceo izgled, pa niko ne bira boje u žurbi',
@@ -2663,7 +2663,7 @@ export const APP_COPY = {
       features: [
         {
           title: 'Stepen hitnosti bira izgled',
-          body: 'Umesto da u vanrednoj situaciji birate boje, birate stepen — boja i znak dolaze uz njega, već usklađeni.',
+          body: 'Umesto da u vanrednoj situaciji birate boje, birate stepen, boja i znak dolaze uz njega, već usklađeni.',
         },
         {
           title: 'Postavljeno da se čita iz daljine',
@@ -2706,9 +2706,9 @@ export const APP_COPY = {
         account: 'Nije potreban nijedan nalog.',
         dataSource: 'Prikazuje se tekst koji ste uneli; ništa se ne povlači spolja.',
         network: 'Veza je potrebna samo da bi poruka stigla do ekrana.',
-        refreshBehavior: 'Nema osvežavanja — poruka stoji dok je ne sklonite.',
+        refreshBehavior: 'Nema osvežavanja, poruka stoji dok je ne sklonite.',
         offlineBehavior:
-          'Kada je jednom na ekranu, radi u potpunosti bez mreže — što je i poenta ove aplikacije.',
+          'Kada je jednom na ekranu, radi u potpunosti bez mreže, što je i poenta ove aplikacije.',
         limitations:
           'Poruka mora da stigne do ekrana dok veza postoji. Ekran koji je već bio bez mreže neće primiti novo obaveštenje dok se veza ne vrati.',
       },
@@ -2740,7 +2740,7 @@ export const APP_COPY = {
         notTargeting: 'A scrolling ticker; ordinary notices in the rotation.',
       },
       summary:
-        'A large headline, details if needed, and a colour that matches the severity — full-screen and readable from a distance.',
+        'A large headline, details if needed, and a colour that matches the severity, full-screen and readable from a distance.',
       benefits: [
         'Works when the internet does not, because nothing is fetched',
         'Severity picks the whole look, so nobody chooses colours in a hurry',
@@ -2749,7 +2749,7 @@ export const APP_COPY = {
       features: [
         {
           title: 'Severity picks the look',
-          body: 'Instead of choosing colours during an emergency, you choose a severity — the colour and icon come with it, already matched.',
+          body: 'Instead of choosing colours during an emergency, you choose a severity. The colour and icon come with it, already matched.',
         },
         {
           title: 'Set to read from a distance',
@@ -2792,7 +2792,7 @@ export const APP_COPY = {
         account: 'No account of any kind is needed.',
         dataSource: 'The text you enter is shown; nothing is fetched externally.',
         network: 'A connection is needed only for the message to reach the screen.',
-        refreshBehavior: 'There is no refresh — the message holds until you remove it.',
+        refreshBehavior: 'There is no refresh. The message holds until you remove it.',
         offlineBehavior:
           'Once it is on the screen it runs entirely without a network, which is the whole point of this app.',
         limitations:
@@ -2817,7 +2817,7 @@ export const APP_COPY = {
 
   countdown: {
     sr: {
-      heroTitle: 'Odbrojavanje do datuma — ili brojanje dana od njega',
+      heroTitle: 'Odbrojavanje do datuma, ili brojanje dana od njega',
       intent: {
         primaryQuery: 'odbrojavanje do datuma na ekranu',
         intentType: 'commercial-investigation',
@@ -2829,7 +2829,7 @@ export const APP_COPY = {
         notTargeting: 'Sat i tačno vreme; kalendar sa terminima.',
       },
       summary:
-        'Postavite datum i aplikacija odbrojava do njega — ili broji dane od njega, kada je poenta koliko dugo nešto traje.',
+        'Postavite datum i aplikacija odbrojava do njega, ili broji dane od njega, kada je poenta koliko dugo nešto traje.',
       benefits: [
         'Broji sama, bez ijedne izmene posle postavljanja',
         'Radi mesecima na ekranu koji nema vezu',
@@ -2838,7 +2838,7 @@ export const APP_COPY = {
       features: [
         {
           title: 'Oba smera',
-          body: 'Odbrojava do trenutka koji dolazi, ili broji od onog koji je prošao — „N dana bez povrede" je isti alat kao i najava otvaranja.',
+          body: 'Odbrojava do trenutka koji dolazi, ili broji od onog koji je prošao, „N dana bez povrede" je isti alat kao i najava otvaranja.',
         },
         {
           title: 'Poruka za kraj',
@@ -2902,7 +2902,7 @@ export const APP_COPY = {
       ],
     },
     en: {
-      heroTitle: 'Count down to a date — or up since one',
+      heroTitle: 'Count down to a date, or up since one',
       intent: {
         primaryQuery: 'countdown timer to a date on a screen',
         intentType: 'commercial-investigation',
@@ -2914,7 +2914,7 @@ export const APP_COPY = {
         notTargeting: 'A clock and the current time; a calendar of bookings.',
       },
       summary:
-        'Set a date and it counts down to it — or counts the days since it, when the point is how long something has held.',
+        'Set a date and it counts down to it, or counts the days since it, when the point is how long something has held.',
       benefits: [
         'Counts on its own, with nothing to change after setup',
         'Runs for months on a screen with no connection',
@@ -2923,7 +2923,7 @@ export const APP_COPY = {
       features: [
         {
           title: 'Both directions',
-          body: 'Count down to a moment ahead, or up from one behind — “N days without an injury” is the same app as a launch announcement.',
+          body: 'Count down to a moment ahead, or up from one behind, “N days without an injury” is the same app as a launch announcement.',
         },
         {
           title: 'A message for the end',
@@ -2968,7 +2968,7 @@ export const APP_COPY = {
         network: 'A connection is needed only to set it up and publish.',
         refreshBehavior: 'It counts continuously, on the device itself.',
         offlineBehavior:
-          'Runs indefinitely without a network — still counting after a month offline.',
+          'Runs indefinitely without a network, still counting after a month offline.',
         limitations:
           'Time is taken from the device’s own clock. A screen set to the wrong time will show the wrong number.',
       },
@@ -3006,7 +3006,7 @@ export const APP_COPY = {
       benefits: [
         'Niko ne proverava kada je sledeći neradni dan',
         'Radi za bilo koju zemlju, korisno kada tim nije samo domaći',
-        'Bez naloga i bez ključa — izaberete zemlju i radi',
+        'Bez naloga i bez ključa, izaberete zemlju i radi',
       ],
       features: [
         {
@@ -3015,7 +3015,7 @@ export const APP_COPY = {
         },
         {
           title: 'Koliko praznika se vidi',
-          body: 'Zadajete koliko narednih praznika stoji na ekranu — nekoliko za pregled, više kada se planira unapred.',
+          body: 'Zadajete koliko narednih praznika stoji na ekranu, nekoliko za pregled, više kada se planira unapred.',
         },
         {
           title: 'Sam se pomera dalje',
@@ -3055,7 +3055,7 @@ export const APP_COPY = {
         dataSource: 'Spisak praznika dolazi sa javnog Nager.Date servisa.',
         network: 'Veza je potrebna za povlačenje spiska.',
         refreshBehavior:
-          'Proverava se nekoliko puta dnevno — spisak praznika se ionako menja retko.',
+          'Proverava se nekoliko puta dnevno: spisak praznika se ionako menja retko.',
         offlineBehavior: 'Poslednji povučeni spisak ostaje na ekranu i bez mreže.',
         limitations:
           'Prikazuju se državni praznici zemlje. Verski i lokalni neradni dani koji nisu na zvaničnom spisku neće se pojaviti, kao ni interni neradni dani vaše firme.',
@@ -3091,7 +3091,7 @@ export const APP_COPY = {
       benefits: [
         'Nobody looks up when the next day off falls',
         'Works for any country, which matters when the team is not all local',
-        'No account and no key — pick the country and it runs',
+        'No account and no key. Pick the country and it runs',
       ],
       features: [
         {
@@ -3100,7 +3100,7 @@ export const APP_COPY = {
         },
         {
           title: 'How many are shown',
-          body: 'Set how many upcoming holidays stand on the screen — a few for an overview, more where planning runs ahead.',
+          body: 'Set how many upcoming holidays stand on the screen, a few for an overview, more where planning runs ahead.',
         },
         {
           title: 'Moves along by itself',
@@ -3139,7 +3139,7 @@ export const APP_COPY = {
         account: 'No account and no key are needed.',
         dataSource: 'The holiday list comes from the public Nager.Date service.',
         network: 'A connection is needed to fetch the list.',
-        refreshBehavior: 'Checked a few times a day — a holiday list changes slowly anyway.',
+        refreshBehavior: 'Checked a few times a day, a holiday list changes slowly anyway.',
         offlineBehavior: 'The last fetched list stays on screen without a network.',
         limitations:
           'It shows a country’s public holidays. Religious or local days off that are not on the official list will not appear, and neither will your own company’s closures.',
@@ -3187,7 +3187,7 @@ export const APP_COPY = {
         },
         {
           title: 'Koliko događaja se vidi',
-          body: 'Zadajete koliko ih stoji na ekranu — nekoliko za kratak pogled, više za prostor u kome se duže čeka.',
+          body: 'Zadajete koliko ih stoji na ekranu, nekoliko za kratak pogled, više za prostor u kome se duže čeka.',
         },
         {
           title: 'Jedno povlačenje za sve ekrane',

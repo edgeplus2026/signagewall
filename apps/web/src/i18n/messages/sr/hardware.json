@@ -1,14 +1,14 @@
 {
   "meta": {
-    "title": "Hardver za digital signage — šta kupiti",
-    "description": "Šta je plejer za digital signage, da li Android boks ili mini-PC, kakav ekran vam stvarno treba i koliko šta otprilike košta. Hardver ne prodajemo."
+    "title": "Digital signage plejer — koji kupiti",
+    "description": "Šta je digital signage plejer, da li Android boks ili mini računar, kakav ekran vam stvarno treba i koliko šta otprilike košta. Hardver ne prodajemo."
   },
   "hero": {
     "eyebrow": "Hardver",
-    "title": "Šta vam stvarno treba da kupite.",
-    "subtitle": "Tri stvari, a jednu verovatno već imate. Ne prodajemo hardver, što znači da nemamo razlog da vam kažemo da vam ga treba više nego što treba."
+    "title": "Koji digital signage plejer da kupite.",
+    "subtitle": "Tri stvari, a jednu verovatno već imate: ekran, medija plejer i nalog. Komercijalni displej se isplati ako radi šesnaest sati dnevno; za sve ostalo je dovoljan običan televizor. Ne prodajemo hardver, što znači da nemamo razlog da vam kažemo da vam ga treba više nego što treba."
   },
-  "intro": "Svaka signage postavka je ekran, plejer i softver. Softver smo mi; druga dva kupujete gde je najpovoljnije. Ova stranica je ono što bismo rekli prijatelju koji pita, uključujući i delove koji nas koštaju prodaje.",
+  "intro": "Svaka signage postavka je ekran, plejer i softver. Softver smo mi; druga dva kupujete gde je najpovoljnije. Ova stranica je ono što bismo rekli prijatelju koji pita, uključujući i delove koji nas koštaju prodaje. Ako su vam pojmovi novi, počnite od toga <whatIs>šta je digital signage</whatIs>.",
   "sections": [
     {
       "title": "Ekran",
@@ -37,7 +37,7 @@
     },
     {
       "title": "Šta vam ne treba",
-      "body": "Ne treba vam server, poseban internet, plejer sa logom proizvođača signage softvera, ni trogodišnji ugovor za hardver. Ako vam dobavljač kaže da njihov softver radi samo na njihovoj kutiji, to je hardverski posao sa softverom u prilogu — legitiman model, ali ga tako i izračunajte: njihova marža, njihov ciklus zamene, njihov rok.",
+      "body": "Ne treba vam server, poseban internet, plejer sa logom proizvođača signage softvera, ni trogodišnji ugovor za hardver. Ako vam dobavljač kaže da njihov softver radi samo na njihovoj kutiji, to je hardverski posao sa softverom u prilogu. Legitiman model, ali ga tako i izračunajte: njihova marža, njihov ciklus zamene, njihov rok.",
       "rows": []
     }
   ],
@@ -50,7 +50,7 @@
       },
       {
         "q": "Hoće li raditi na televizoru koji već imam?",
-        "a": "Skoro sigurno, ako ima HDMI ulaz. Televizor ne mora da bude smart — plejer iza njega radi posao, a običan ekran je čak i bolji, jer nema interfejsa koji pokušava da preuzme."
+        "a": "Skoro sigurno, ako ima HDMI ulaz. Televizor ne mora da bude smart. Plejer iza njega radi posao, a običan ekran je čak i bolji, jer nema interfejsa koji pokušava da preuzme."
       },
       {
         "q": "Android boks ili mini-PC?",
@@ -66,11 +66,11 @@
       },
       {
         "q": "Koliko hardver traje?",
-        "a": "Komercijalni panel je obično deklarisan na 50.000 sati i više; običan televizor uopšte nije deklarisan za neprekidan rad ali obično traje nekoliko godina pri normalnim satima. Plejeri više variraju — jeftin Android boks pod stalnim opterećenjem je deo za dve do tri godine."
+        "a": "Komercijalni panel je obično deklarisan na 50.000 sati i više; običan televizor uopšte nije deklarisan za neprekidan rad ali obično traje nekoliko godina pri normalnim satima. Plejeri više variraju. Jeftin Android boks pod stalnim opterećenjem je deo za dve do tri godine."
       },
       {
         "q": "Šta se dešava posle nestanka struje?",
-        "a": "Plejer bi trebalo da se sam podigne pravo u sadržaj, bez da iko dira daljinski. Proverite to na uređaju koji kupujete, jer to ne radi svaka kutija podrazumevano — neke se probude na početni ekran i čekaju."
+        "a": "Plejer bi trebalo da se sam podigne pravo u sadržaj, bez da iko dira daljinski. Proverite to na uređaju koji kupujete, jer to ne radi svaka kutija podrazumevano. Neke se probude na početni ekran i čekaju."
       },
       {
         "q": "Treba li mi poseban plejer po ekranu?",

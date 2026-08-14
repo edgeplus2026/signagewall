@@ -1,27 +1,27 @@
 {
   "meta": {
     "title": "Kako radi digital signage — u 3 koraka",
-    "description": "Od praznog ekrana do žive izloge za par minuta — povežite ekran, sastavite sadržaj i objavite na daljinu."
+    "description": "Od praznog ekrana do žive izloge za par minuta: povežite ekran, sastavite sadržaj i objavite na daljinu."
   },
   "hero": {
     "eyebrow": "Kako radi",
-    "title": "Od praznog ekrana do žive izloge — za par minuta.",
-    "subtitle": "Bez kablova, bez tehničara, bez koda. Tri koraka vas dele od ekrana koji rade za vas."
+    "title": "Od praznog ekrana do žive izloge, za par minuta.",
+    "subtitle": "Kako radi digital signage u praksi? Digital signage plejer prikaže registracioni kod, vi ga unesete u kontrolnu tablu i sastavite sadržaj u pregledaču. Objava sadržaja ide na daljinu, bez kablova, bez tehničara i bez koda."
   },
   "steps": {
     "title": "Tri koraka do prvog ekrana.",
     "items": [
       {
         "title": "Povežite ekran",
-        "body": "Instalirajte SignageWall plejer na Android TV boks, mini-PC ili desktop koji već imate. Otvorite ekran, skenirajte QR kod iz kontrolne table — i ekran je uparen. Bez kablova i bez tehničara."
+        "body": "<download>Instalirajte SignageWall plejer</download> na Android TV boks, mini računar ili desktop koji već imate. Otvorite ekran, skenirajte QR kod iz kontrolne table i ekran je uparen. Bez kablova i bez tehničara. Ako uređaj još niste kupili, <hardware>koji digital signage plejer da kupite</hardware> pokriva to pre svega."
       },
       {
         "title": "Sastavite sadržaj",
-        "body": "Birajte iz {count} gotovih aplikacija — meni, vreme, kursna lista, društvene mreže — ili otpremite svoje slike i video. Složite ih u plejlistu i podelite ekran na zone ako treba."
+        "body": "Birajte iz {count} gotovih aplikacija (meni, vreme, kursna lista, društvene mreže) ili otpremite svoje slike i video. Složite ih u plejlistu i podelite ekran na zone ako treba."
       },
       {
         "title": "Objavite na daljinu",
-        "body": "Pošaljite na jedan ekran ili celu mrežu. Zakažite promene unapred i menjajte bilo šta u realnom vremenu — sa telefona ili računara, odakle god da ste."
+        "body": "Pošaljite na jedan ekran ili celu mrežu. Zakažite promene unapred i menjajte bilo šta u realnom vremenu: sa telefona ili računara, odakle god da ste."
       }
     ]
   },
@@ -35,7 +35,7 @@
       },
       {
         "title": "Zakazivanje",
-        "body": "Različit sadržaj po satu, danu ili prilici — pripremljen unapred."
+        "body": "Različit sadržaj po satu, danu ili prilici. Pripremljen unapred."
       },
       {
         "title": "Zone na ekranu",
@@ -60,7 +60,7 @@
       },
       {
         "q": "Koliko ekrana mogu da povežem?",
-        "a": "Od jednog do hiljadu — svima upravljate sa istog mesta, bez dodatne komplikacije."
+        "a": "Od jednog do hiljadu: svima upravljate sa istog mesta, bez dodatne komplikacije."
       },
       {
         "q": "Da li je potrebno tehničko znanje?",

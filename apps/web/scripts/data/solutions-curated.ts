@@ -213,7 +213,7 @@ A menu can sit alongside a QR code, a short text notice, weather, a clock or a t
         'Promotivni sadržaj za izlog, prodajni prostor i kasu, sa centralnim pregledom povezanih uređaja. Odabrani mediji, plejliste i aplikacije mogu se dodati na više eksplicitno izabranih ekrana.',
       title: 'Digital signage za maloprodajne objekte',
       subtitle:
-        'Pripremite različite poruke za različite tačke prodajnog puta, daljinski izmenite sadržaj i proverite da li je plejer povezan — bez tvrdnji o POS ili zalihama.',
+        'Pripremite različite poruke za različite tačke prodajnog puta, daljinski izmenite sadržaj i proverite da li je plejer povezan, bez tvrdnji o POS ili zalihama.',
       metaTitle: 'Digital signage za maloprodaju',
       metaDescription:
         'Upravljajte promotivnim ekranima u izlogu, prodajnom prostoru i kod kase koristeći medije, plejliste, QR kod, PDF i cenovnike sa jednog naloga.',
@@ -582,7 +582,7 @@ The Teams app can display posts and announcements from a connected channel when 
         'Informacije za hotelski hol, konferencijski deo i zajedničke prostore. Kombinujte tekst, prognozu, sat, kalendar događaja, QR kod i cenovnik usluga.',
       title: 'Digitalni ekrani za hotelski hol i goste',
       subtitle:
-        'Prikažite informacije koje hotel već održava — vreme usluga, događaje, prognozu i korisne linkove — bez predstavljanja SignageWall-a kao hotelskog ili in-room TV sistema.',
+        'Prikažite informacije koje hotel već održava (vreme usluga, događaje, prognozu i korisne linkove) bez predstavljanja SignageWall-a kao hotelskog ili in-room TV sistema.',
       metaTitle: 'Digitalni ekrani za hotele i hotelski hol',
       metaDescription:
         'Prikažite hotelske informacije, vremensku prognozu, kalendar događaja, QR linkove i cenovnik usluga na ekranima u holu i konferencijskom delu.',
@@ -666,7 +666,7 @@ Za više jezika hotel može napraviti zasebne tekstualne ili medijske stavke i s
         'Information for hotel lobbies, conference areas and shared spaces. Combine text, weather, a clock, event calendars, QR codes and service price lists.',
       title: 'Digital signage for hotel lobbies and guests',
       subtitle:
-        'Display information the hotel already maintains—service times, events, weather and useful links—without presenting SignageWall as a hotel-management or in-room TV system.',
+        'Display information the hotel already maintains (service times, events, weather and useful links) without presenting SignageWall as a hotel-management or in-room TV system.',
       metaTitle: 'Digital signage for hotels and lobbies',
       metaDescription:
         'Show hotel information, weather, event calendars, QR links and service price lists on managed screens in lobbies, shared spaces and conference areas.',

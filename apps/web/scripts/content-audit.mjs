@@ -211,6 +211,34 @@ async function importTypeScriptData(filePath, transform = (source) => source) {
   return import(dataUrl)
 }
 
+/**
+ * Locale copy for the routes this repository owns, keyed by namespace, so the
+ * keyword audit can read what a page actually says rather than what its brief
+ * claims it says.
+ */
+async function loadRouteCopy(namespaces) {
+  return Object.fromEntries(
+    await Promise.all(
+      LOCALES.map(async (locale) => [
+        locale,
+        Object.fromEntries(
+          await Promise.all(
+            namespaces.map(async (namespace) => [
+              namespace,
+              JSON.parse(
+                await readFile(
+                  join(WEB_ROOT, `src/i18n/messages/${locale}/${namespace}.json`),
+                  'utf8',
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ]),
+    ),
+  )
+}
+
 async function loadRepositoryContent() {
   const postsOne = await importTypeScriptData(join(DATA_ROOT, 'posts.ts'), (source) =>
     source
@@ -256,7 +284,16 @@ async function loadRepositoryContent() {
     postTechnical.POSTS_FULL_TECHNICAL,
   ]
 
+  const { ROUTE_KEYWORDS } = await importTypeScriptData(
+    join(WEB_ROOT, 'src/content/keywords.ts'),
+  )
+  const routeCopy = await loadRouteCopy([
+    ...new Set(ROUTE_KEYWORDS.map((route) => route.messages)),
+  ])
+
   return {
+    routeKeywords: ROUTE_KEYWORDS,
+    routeCopy,
     posts: [...postsOne.POSTS_1, ...postsTwo.POSTS_2],
     categories: postsOne.CATEGORIES,
     postsFull: Object.assign({}, ...postFullBatches),
@@ -697,6 +734,76 @@ function jaccard(left, right) {
   return intersection / (left.size + right.size - intersection)
 }
 
+/**
+ * Holds the repository-owned pages to the same contract the CMS content already
+ * meets: one declared search intent each, no two pages chasing the same query,
+ * and — the check that motivated the file — copy that actually contains the
+ * term the page is written to win. A title tag claiming "digital signage
+ * player" above a page whose body never says it is a promise the page breaks.
+ *
+ * Absent primary query is an error because the page cannot do its job without
+ * it. Absent secondary vocabulary is a warning: it is a prompt to look, not a
+ * quota, and a sentence that reads worse for containing a term should not.
+ */
+/**
+ * Whether `copy` uses `term`, allowing for the case endings Serbian puts on it.
+ *
+ * "plejliste" is "plejlista" declined, "sadržaju za ekrane" is "sadržaj za
+ * ekrane" in the locative, and "{count} aplikacija" is what the language does
+ * to a noun after a number. Demanding the nominative would make the audit push
+ * the copy into shapes no Serbian speaker writes — the exact disease it exists
+ * to cure — so tokens of five letters or more may differ in their ending.
+ *
+ * English is matched strictly: it does not inflect this way, and the looser
+ * pattern would only invite false matches.
+ */
+function usesTerm(copy, term, locale) {
+  const tokens = normalise(term).split(' ').filter(Boolean)
+  if (tokens.length === 0) return true
+  if (locale !== 'sr') return copy.includes(tokens.join(' '))
+
+  const pattern = tokens
+    .map((token) => (token.length >= 5 ? `${token.slice(0, -2)}\\p{L}{0,3}` : token))
+    .join(' ')
+  return new RegExp(`(^|\\s)${pattern}(\\s|$)`, 'u').test(copy)
+}
+
+function auditRouteKeywords(content, intentEntries) {
+  for (const route of content.routeKeywords ?? []) {
+    for (const locale of LOCALES) {
+      const label = `page ${route.route}:${locale}`
+      const intent = route[locale]
+      auditIntent(intent, label, intentEntries)
+
+      const source = `src/i18n/messages/${locale}/${route.messages}.json`
+      const copy = normalise(flattenText(content.routeCopy?.[locale]?.[route.messages]))
+      const primaryQuery = intent?.primaryQuery
+
+      /* A navigational page is reached by brand name, not by a phrase in its
+         body, so requiring it to contain its own query would only teach the
+         author to bury a keyword where no reader needs one. */
+      const searched = intent?.intentType !== 'navigational'
+
+      if (searched && primaryQuery && !usesTerm(copy, primaryQuery, locale)) {
+        error('PRIMARY_QUERY_ABSENT', `${label} never uses the query it targets.`, [
+          `primary query: ${intent.primaryQuery}`,
+          `copy: ${source}`,
+        ])
+      }
+
+      const missing = (route.secondary?.[locale] ?? []).filter(
+        (term) => !usesTerm(copy, term, locale),
+      )
+      if (missing.length > 0) {
+        warn('SECONDARY_VOCABULARY_ABSENT', `${label} uses none of its supporting terms.`, [
+          ...missing.map((term) => `missing: ${term}`),
+          `copy: ${source}`,
+        ])
+      }
+    }
+  }
+}
+
 function auditIntentSeparation(intentEntries) {
   for (const locale of LOCALES) {
     const entries = intentEntries.filter((entry) => entry.id.endsWith(`:${locale}`))
@@ -932,6 +1039,9 @@ async function main() {
 
   auditPosts(content, indexes, metadataEntries, intentEntries)
   auditSolutions(content, indexes, metadataEntries, intentEntries)
+  /* Before the separation pass, so a landing page competing with a solution
+     page for the same query is caught by the same check. */
+  auditRouteKeywords(content, intentEntries)
   auditIntentSeparation(intentEntries)
   auditApps(content, manifestIndex, metadataEntries)
   auditMetadata(metadataEntries)

@@ -11,14 +11,14 @@
   "story": {
     "title": "Zašto smo ga napravili.",
     "paragraphs": [
-      "Stalno smo ulazili u istu prostoriju. Ekran ugašen, ili zamrznut na slici iz prošlog proleća, ili sa greškom koju nedelju dana niko nije primetio. Ne zato što firmu nije bilo briga — nego zato što je promena značila prisetiti se lozinke, otvoriti alat pravljen za nekog drugog, i otkriti da je ono što vam treba u planu koji niste kupili.",
+      "Stalno smo ulazili u istu prostoriju. Ekran ugašen, ili zamrznut na slici iz prošlog proleća, ili sa greškom koju nedelju dana niko nije primetio. Ne zato što firmu nije bilo briga, nego zato što je promena značila prisetiti se lozinke, otvoriti alat pravljen za nekog drugog, i otkriti da je ono što vam treba u planu koji niste kupili.",
       "Zato je proizvod oblikovan oko dve ideje. Cena je jedan broj sa svim uključenim, jer je matrica funkcija samo način da vam se naplati dvaput. A plejer pretpostavlja da će mreža pasti, jer hoće: drži lokalnu kopiju, radi kroz prekid, i sam se restartuje ako se zaglavi."
     ]
   },
   "build": {
     "eyebrow": "Kako je napravljen",
     "title": "Delovi na kojima smo proveli najviše vremena.",
-    "subtitle": "Ne oni koji dobro izgledaju na demou — oni koji odlučuju da li je ekran ispravan i posle šest meseci.",
+    "subtitle": "Ne oni koji dobro izgledaju na demou, oni koji odlučuju da li je ekran ispravan i posle šest meseci.",
     "items": [
       {
         "title": "Offline prvo, ne offline-podnošljivo",
@@ -26,7 +26,7 @@
       },
       {
         "title": "Watchdog koji ne čeka na vas",
-        "body": "Odvojen proces proverava da plejer ne samo radi, nego stvarno iscrtava sliku — i restartuje ga ako se zaglavi. Većina signage kvarova nisu padovi, nego zamrznuta slika koju danima niko ne prijavi."
+        "body": "Odvojen proces proverava da plejer ne samo radi, nego stvarno iscrtava sliku, i restartuje ga ako se zaglavi. Većina signage kvarova nisu padovi, nego zamrznuta slika koju danima niko ne prijavi."
       },
       {
         "title": "Ažuriranja koja ne mogu da ugase ekran",
@@ -34,7 +34,7 @@
       },
       {
         "title": "Jedna cena, i tako ostaje",
-        "body": "Sve mogućnosti su uključene na svakom nalogu. Nema matrice planova za održavanje — što ujedno znači da nemamo interes da ono na šta se oslanjate sledeće godine premestimo u viši nivo."
+        "body": "Sve mogućnosti su uključene na svakom nalogu. Nema matrice planova za održavanje, što ujedno znači da nemamo interes da ono na šta se oslanjate sledeće godine premestimo u viši nivo."
       }
     ]
   },
@@ -61,7 +61,7 @@
   },
   "contact": {
     "title": "Javite nam se.",
-    "body": "Pitanja o tome kako radi, da li vam odgovara, ili koliko bi koštalo za vašu mrežu — odgovaramo u roku od jednog radnog dana.",
+    "body": "Pitanja o tome kako radi, da li vam odgovara, ili koliko bi koštalo za vašu mrežu. Odgovaramo u roku od jednog radnog dana.",
     "cta": "Javite nam se",
     "ctaSecondary": "Počnite besplatno"
   }

@@ -1,12 +1,12 @@
 {
   "meta": {
-    "title": "Mogućnosti digital signage softvera",
-    "description": "Upravljanje na daljinu, zakazivanje, {count} aplikacija, rad offline, zone na ekranu i vaš brend — sve što ekranu treba."
+    "title": "Digital signage kontrolna tabla za sve ekrane",
+    "description": "Digital signage softver sa upravljanjem na daljinu: zakazivanje, plejliste, {count} aplikacija, rad offline, zone na ekranu i vaš brend."
   },
   "hero": {
     "eyebrow": "Mogućnosti",
-    "title": "Sve što ekranu treba — i ništa što mu smeta.",
-    "subtitle": "SignageWall spaja jednostavnost i kontrolu: napravite sadržaj za par minuta, a zadržite moć nad celom mrežom ekrana."
+    "title": "Jedna digital signage kontrolna tabla za sve vaše ekrane.",
+    "subtitle": "Upravljanje sadržajem, plejliste i zakazivanje u pregledaču: dovoljno kontrole za mrežu od više ekrana, dovoljno jednostavno za televizor na recepciji."
   },
   "grid": {
     "title": "Napravljeno da svakodnevni rad bude lak.",
@@ -17,7 +17,7 @@
       },
       {
         "title": "Zakazivanje",
-        "body": "Sadržaj po satu, danu ili prilici — pripremljen unapred."
+        "body": "Sadržaj po satu, danu ili prilici. Pripremljen unapred."
       },
       {
         "title": "{count} aplikacija",
@@ -45,14 +45,14 @@
       },
       {
         "title": "Pouzdanost",
-        "body": "Automatska ažuriranja i oporavak — ekran se sam vraća."
+        "body": "Automatska ažuriranja i oporavak. Ekran se sam vraća."
       }
     ]
   },
   "spotlight": {
     "eyebrow": "Kontrola",
     "title": "Cela mreža ekrana, iz jednog panela.",
-    "body": "Bez obzira da li imate jedan ekran ili sto lokacija, sve je na jednom mestu — pregledno, brzo i pod kontrolom.",
+    "body": "Bez obzira da li imate jedan ekran ili sto lokacija, sve je na jednom mestu: pregledno, brzo i pod kontrolom.",
     "points": [
       "Objavite na sve ekrane odjednom ili ciljano po grupi",
       "Vidite šta se trenutno prikazuje na svakom ekranu",
@@ -64,7 +64,7 @@
     "items": [
       {
         "q": "Mogu li da prilagodim izgled svom brendu?",
-        "a": "Da — boje, logo, fontovi i rasporedi. Nema vodenog žiga ni na jednom planu, uključujući probu, pa ništa na ekranu ne govori koji je softver iza njega."
+        "a": "Da. Boje, logo, fontovi i rasporedi. Nema vodenog žiga ni na jednom planu, uključujući probu, pa ništa na ekranu ne govori koji je softver iza njega."
       },
       {
         "q": "Mogu li da zakažem sadržaj unapred?",
@@ -80,7 +80,7 @@
       },
       {
         "q": "Treba li mi dizajner?",
-        "a": "Ne. Aplikacije dolaze sa rasporedima koje popunite — meni, cenovnik, obaveštenje. Bitni su krupna tipografija i jak kontrast, a šabloni to već rešavaju."
+        "a": "Ne. Aplikacije dolaze sa rasporedima koje popunite: meni, cenovnik, obaveštenje. Bitni su krupna tipografija i jak kontrast, a šabloni to već rešavaju."
       },
       {
         "q": "Mogu li da podelim ekran?",
@@ -111,7 +111,7 @@
       {
         "id": "remote",
         "title": "Promenite ekran odakle god da ste",
-        "body": "Sve se dešava u pregledaču. Izmenite cenu, zamenite ponudu, okačite obaveštenje — na ekranu je pre nego što ste spustili telefon. Nema aplikacije za instalaciju, nema VPN-a, i niko ne mora da bude u objektu. Za mrežu po više lokacija to je cela razlika između sadržaja koji je aktuelan i sadržaja koji stari dok neko ne dođe kolima.",
+        "body": "Sve se dešava u pregledaču. Izmenite cenu, zamenite ponudu, okačite obaveštenje, na ekranu je pre nego što ste spustili telefon. Nema aplikacije za instalaciju, nema VPN-a, i niko ne mora da bude u objektu. Za mrežu po više lokacija to je cela razlika između sadržaja koji je aktuelan i sadržaja koji stari dok neko ne dođe kolima.",
         "example": "Kafić menja cenu ručka u 11:40 iz kuhinje. Svi ekrani na tri lokacije pokazuju novu pre prve porudžbine."
       },
       {
@@ -123,13 +123,13 @@
       {
         "id": "apps",
         "title": "{appCount} aplikacija, bez koda",
-        "body": "Meniji, cenovnici, vremenska prognoza, kursna lista, vesti, kalendari, društvene mreže, QR kodovi, odbrojavanja, PDF i PowerPoint, žive table iz Google Sheets-a i Power BI-ja. Izaberete jednu, unesete svoje podatke i objavite. Sve aplikacije su na svakom nalogu — ne postoji plan u kom žive one korisne.",
+        "body": "Meniji, cenovnici, vremenska prognoza, kursna lista, vesti, kalendari, društvene mreže, QR kodovi, odbrojavanja, PDF i PowerPoint, žive table iz Google Sheets-a i Power BI-ja. Izaberete jednu, unesete svoje podatke i objavite. Sve aplikacije su na svakom nalogu, ne postoji plan u kom žive one korisne.",
         "example": "Teretana stavlja raspored treninga na ekran direktno iz Google tabele koju menadžer ionako održava. Promeni se tabela, ekran prati."
       },
       {
         "id": "offline",
         "title": "Ekrani koji prežive mrežu",
-        "body": "Plejer preuzme sadržaj i pušta ga sa lokalnog diska, pa prekid veze ne menja ništa za onog ko stoji ispred ekrana. Watchdog proverava da plejer stvarno iscrtava sliku i restartuje ga ako se zaglavi — jer čest kvar nije pad, nego zamrznuta slika koju danima niko ne prijavi.",
+        "body": "Plejer preuzme sadržaj i pušta ga sa lokalnog diska, pa prekid veze ne menja ništa za onog ko stoji ispred ekrana. Watchdog proverava da plejer stvarno iscrtava sliku i restartuje ga ako se zaglavi, jer čest kvar nije pad, nego zamrznuta slika koju danima niko ne prijavi.",
         "example": "Internet na pumpi padne na šest sati. Ekrani nastavljaju da rade i pokupe novu kampanju čim se veza vrati."
       },
       {
@@ -141,13 +141,13 @@
       {
         "id": "fleet",
         "title": "Trideset ekrana nije trideset uređaja",
-        "body": "Ekrani se grupišu po lokaciji, prostoriji ili tipu. Objavljujete grupi — svi kafići, svi izlozi, sve u Beogradu — umesto da birate uređaj po uređaj. Kontrolna tabla pokazuje šta svaki ekran trenutno pušta i koji su utihnuli, pa je mrtav ekran nešto što primetite, a ne nešto što vam kupac kaže.",
+        "body": "Ekrani se grupišu po lokaciji, prostoriji ili tipu. Objavljujete grupi (svi kafići, svi izlozi, sve u Beogradu) umesto da birate uređaj po uređaj. Kontrolna tabla pokazuje šta svaki ekran trenutno pušta i koji su utihnuli, pa je mrtav ekran nešto što primetite, a ne nešto što vam kupac kaže.",
         "example": "Lanac šalje kampanju na četrdeset izloga odjednom, dok svaka radnja zadržava svoje radno vreme na ekranu kod kase."
       },
       {
         "id": "branding",
         "title": "Izgleda kao vaš posao",
-        "body": "Vaše boje, vaš logo, vaša tipografija, vaši rasporedi. Bez vodenog žiga ni na jednom planu, uključujući probu — ekran je reklama za vas, a značka signage proizvođača u njegovom uglu je reklama za njih.",
+        "body": "Vaše boje, vaš logo, vaša tipografija, vaši rasporedi. Bez vodenog žiga ni na jednom planu, uključujući probu. Ekran je reklama za vas, a značka signage proizvođača u njegovom uglu je reklama za njih.",
         "example": "Hotel vodi isti font i paletu na ekranima kao i na štampanim materijalima. Ništa na zidu ne govori koji ga je softver napravio."
       },
       {
@@ -159,7 +159,7 @@
       {
         "id": "reliable",
         "title": "Popravi se pre nego što primetite",
-        "body": "Plejeri se ažuriraju sami, provere preuzeto pre nego što pređu na njega, i vrate se na staru verziju ako se nova ne podigne ispravno. Restartuju se posle nestanka struje i nastavljaju odakle su stali. Cilj je ekran o kome prestanete da razmišljate — a to je teže napraviti nego ekran sa više funkcija.",
+        "body": "Plejeri se ažuriraju sami, provere preuzeto pre nego što pređu na njega, i vrate se na staru verziju ako se nova ne podigne ispravno. Restartuju se posle nestanka struje i nastavljaju odakle su stali. Cilj je ekran o kome prestanete da razmišljate, a to je teže napraviti nego ekran sa više funkcija.",
         "example": "Struja nestane preko noći. Svi ekrani su pre otvaranja opet na ispravnom sadržaju, bez ikoga na licu mesta."
       }
     ]

@@ -1,11 +1,11 @@
 {
   "meta": {
-    "title": "Preuzmite plejer za Android i desktop",
-    "description": "Preuzmite SignageWall plejer za Android ili desktop i uparite ekran za nekoliko sekundi."
+    "title": "Preuzimanje digital signage plejera — Android, desktop",
+    "description": "Preuzimanje digital signage plejera za Android ili desktop. Instalirajte SignageWall plejer i uparite ekran za nekoliko sekundi."
   },
   "hero": {
     "eyebrow": "Preuzimanje",
-    "title": "Preuzmite SignageWall plejer.",
+    "title": "Preuzmite digital signage plejer.",
     "subtitle": "Lagana aplikacija koja pretvara bilo koji TV ili računar u pametan ekran. Instalirajte, skenirajte QR kod i ekran je uparen."
   },
   "platforms": {
@@ -23,7 +23,7 @@
       "cta": "Preuzmite za desktop"
     },
     "ctaUnavailable": "Zatražite pristup",
-    "unavailableNote": "Instalacija još nije javno dostupna — javite nam se i poslaćemo vam je."
+    "unavailableNote": "Instalacija još nije javno dostupna. Javite nam se i poslaćemo vam je."
   },
   "steps": {
     "title": "Instalacija u tri koraka.",
@@ -38,7 +38,7 @@
       },
       {
         "title": "Objavite",
-        "body": "Pošaljite sadržaj sa panela — i ekran odmah oživi."
+        "body": "Pošaljite sadržaj sa panela, i ekran odmah oživi."
       }
     ]
   },

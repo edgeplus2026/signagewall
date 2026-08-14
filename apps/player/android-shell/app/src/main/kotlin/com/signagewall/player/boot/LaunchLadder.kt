@@ -183,7 +183,7 @@ class LaunchLadder(
                 Notification.Builder(context, CHANNEL_ID)
                     .setContentTitle("SignageWall Player")
                     .setContentText("Reopening the player…")
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setSmallIcon(R.drawable.ic_notification)
                     .setFullScreenIntent(pending, true)
                     .setAutoCancel(true)
                     .build(),

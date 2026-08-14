@@ -1,12 +1,12 @@
 {
   "meta": {
     "title": "Digital signage software for your screens",
-    "description": "Digital signage software for menus, prices and announcements. Change what is on screen in 30 seconds — on one screen or a hundred, from your phone."
+    "description": "Digital signage software for menus, prices and announcements. Change what is on screen in 30 seconds: on one screen or a hundred, from your phone."
   },
   "hero": {
     "eyebrow": "Digital signage software",
     "title": "Run every screen in your business from your phone.",
-    "subtitle": "SignageWall turns any TV into a screen you update in seconds — menus, offers, announcements. One screen or two hundred, and they keep playing when the internet drops.",
+    "subtitle": "SignageWall turns any TV into a screen you update in seconds: menus, offers, announcements. One screen or two hundred, and they keep playing when the internet drops.",
     "ctaPrimary": "Start free for {trialDays} days",
     "ctaSecondary": "Get in touch",
     "trialNote": "{trialDays} days free · no credit card · no contract"
@@ -34,21 +34,21 @@
   "whatIs": {
     "eyebrow": "New to this?",
     "title": "Digital signage, in three sentences.",
-    "body": "A digital sign is a screen that shows what you tell it to — a menu, a price list, an offer, a notice — and changes the moment you change your mind. You need three things: a screen you probably already own, a small player device behind it, and software to control it from anywhere. SignageWall is the third one.",
+    "body": "A digital sign is a screen that shows what you tell it to (a menu, a price list, an offer, a notice) and changes the moment you change your mind. You need three things: a screen you probably already own, a small player device behind it, and software to control it from anywhere. SignageWall is the third one.",
     "cta": "What is digital signage?"
   },
   "features": {
     "eyebrow": "Features",
     "title": "Everything for your screens, in one place.",
-    "subtitle": "No technical know-how, no agency, no waiting. Open SignageWall, change what needs changing — and it is already on the screen.",
+    "subtitle": "No technical know-how, no agency, no waiting. Open SignageWall, change what needs changing, and it is already on the screen.",
     "items": [
       {
         "title": "Change it from your phone",
-        "body": "A new price, a new offer, a notice — type it and it is up. On one screen or on a hundred, from wherever you happen to be."
+        "body": "A new price, a new offer, a notice: type it and it is up. Remote management for one screen or a hundred, from wherever you happen to be."
       },
       {
         "title": "Runs on your timetable",
-        "body": "Breakfast in the morning, lunch at noon, cocktails in the evening. Set it once and it keeps changing itself, without you."
+        "body": "Breakfast in the morning, lunch at noon, cocktails in the evening. Scheduling you set once, and it keeps changing itself without you."
       },
       {
         "title": "{count} ready-made apps",
@@ -60,7 +60,7 @@
       },
       {
         "title": "Works on any screen",
-        "body": "A TV, a monitor or a professional display — use whatever is already up in the room."
+        "body": "A TV, a monitor or a professional display. Use whatever is already up in the room."
       },
       {
         "title": "Looks like you",
@@ -95,14 +95,14 @@
   "apps": {
     "eyebrow": "Apps",
     "title": "{count} apps, ready for the screen.",
-    "body": "Everything a screen needs — without writing code. Add an app, set it up and publish.",
+    "body": "Everything a screen needs, without writing code. Add an app, set it up and publish.",
     "cta": "Explore all apps",
     "all": "All apps"
   },
   "platform": {
     "eyebrow": "Platform",
-    "title": "Dashboard, player, screen — one whole.",
-    "subtitle": "Three parts that work seamlessly together.",
+    "title": "Dashboard, player, screen: one digital signage system.",
+    "subtitle": "Three parts, one system, nothing for you to integrate.",
     "items": [
       {
         "title": "Dashboard",
@@ -123,7 +123,7 @@
     "items": [
       {
         "q": "What do I need to get started?",
-        "a": "A screen, a small player device and an account. The screen can be an ordinary TV you already own. The player is an Android box, a mini-PC or a computer that is already sitting there — you install our app on it, scan the code that appears on screen, and it is paired."
+        "a": "A screen, a small player device and an account. The screen can be an ordinary TV you already own. The player is an Android box, a mini-PC or a computer that is already sitting there. You install our app on it, scan the code that appears on screen, and it is paired."
       },
       {
         "q": "Do I need technical knowledge?",
@@ -135,11 +135,11 @@
       },
       {
         "q": "How much does it cost?",
-        "a": "{price} per screen per month up to five screens, with every feature included — a café pays the same rate per screen as a small chain. Above five screens the price is quoted for the size of your network."
+        "a": "{price} per screen per month up to five screens, with every feature included, a café pays the same rate per screen as a small chain. Above five screens the price is quoted for the size of your network."
       },
       {
         "q": "Can I try it before paying?",
-        "a": "Yes — {trialDays} days with everything switched on, no credit card. Nothing is charged automatically when the trial ends; if you do not continue, your content simply waits in the account."
+        "a": "Yes. {trialDays} days with everything switched on, no credit card. Nothing is charged automatically when the trial ends; if you do not continue, your content simply waits in the account."
       },
       {
         "q": "Can I run just one screen?",
@@ -147,7 +147,7 @@
       },
       {
         "q": "Does it work on my existing screens?",
-        "a": "Almost certainly. Any TV, monitor or professional display with an HDMI input works. Purpose-built signage displays earn their price if you run sixteen hours a day or put a screen in direct sunlight — for everything else, an ordinary TV lasts years."
+        "a": "Almost certainly. Any TV, monitor or professional display with an HDMI input works. Purpose-built signage displays earn their price if you run sixteen hours a day or put a screen in direct sunlight: for everything else, an ordinary TV lasts years."
       },
       {
         "q": "How many screens can I manage?",

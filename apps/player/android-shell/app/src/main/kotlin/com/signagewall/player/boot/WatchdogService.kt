@@ -203,7 +203,7 @@ class WatchdogService : Service() {
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("SignageWall Player")
             .setContentText("Signage player is running")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
             .build()
     }

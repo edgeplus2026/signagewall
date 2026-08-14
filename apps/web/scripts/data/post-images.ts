@@ -186,7 +186,7 @@ export const POST_IMAGES = {
         query: 'supermarket aisle shopping customer',
         alt: { sr: 'Kupac u prolazu među policama', en: 'A shopper in a supermarket aisle' },
         caption: {
-          sr: 'Kupac u izlogu i kupac na kasi nisu ista publika — razdvaja ih već doneta odluka.',
+          sr: 'Kupac u izlogu i kupac na kasi nisu ista publika, razdvaja ih već doneta odluka.',
           en: 'The window shopper and the queuing customer aren’t the same audience.',
         },
       },
@@ -218,7 +218,7 @@ export const POST_IMAGES = {
         query: 'person working spreadsheet office desk',
         alt: { sr: 'Rad u tabeli za radnim stolom', en: 'Working in a spreadsheet at a desk' },
         caption: {
-          sr: 'Jedan red — jedna stavka, bez spojenih ćelija. Zaključano zaglavlje rešava većinu kvarova.',
+          sr: 'Jedan red: jedna stavka, bez spojenih ćelija. Zaključano zaglavlje rešava većinu kvarova.',
           en: 'One row, one item, no merged cells. A locked header row prevents most breakages.',
         },
       },
@@ -314,8 +314,8 @@ export const POST_IMAGES = {
         query: 'video camera filming production screen',
         alt: { sr: 'Snimanje video materijala', en: 'Filming video content' },
         caption: {
-          sr: 'Video bez zvuka mora da se razume bez zvuka — u prostoru se ton skoro nikad ne pušta.',
-          en: 'Silent video has to work silently — sound is almost never on in a public space.',
+          sr: 'Video bez zvuka mora da se razume bez zvuka, u prostoru se ton skoro nikad ne pušta.',
+          en: 'Silent video has to work silently, sound is almost never on in a public space.',
         },
       },
     ],

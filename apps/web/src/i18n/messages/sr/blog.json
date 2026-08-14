@@ -1,12 +1,12 @@
 {
   "meta": {
-    "title": "Vodiči i saveti za digitalne ekrane",
-    "description": "Saveti, vodiči i novosti o digitalnim ekranima — kako da izvučete najviše iz svojih ekrana."
+    "title": "Vodiči za digital signage i saveti",
+    "description": "Vodiči za digital signage, saveti i novosti. Kako da izvučete najviše iz svojih ekrana."
   },
   "hero": {
     "eyebrow": "Blog",
-    "title": "Saveti, vodiči i novosti o digitalnim ekranima.",
-    "subtitle": "Praktični saveti kako da vaši ekrani rade još bolje — od menija do cele mreže lokacija."
+    "title": "Vodiči za digital signage, saveti i novosti.",
+    "subtitle": "Praktični saveti o sadržaju za ekrane i rasporedu ekrana. Od menija do cele mreže lokacija."
   },
   "empty": "Uskoro stižu prvi članci. Vratite se uskoro.",
   "back": "Nazad na blog",
@@ -20,7 +20,7 @@
   "readingTime": "{minutes} min čitanja",
   "subscribe": {
     "title": "Novi tekstovi na mejl",
-    "body": "Kratko i retko — kad izađe nov tekst o ekranima, sadržaju i tome šta se isplati. Bez spama, odjava jednim klikom.",
+    "body": "Kratko i retko: kad izađe nov tekst o ekranima, sadržaju i tome šta se isplati. Bez spama, odjava jednim klikom.",
     "placeholder": "vasa@adresa.com",
     "cta": "Prijavi se",
     "pending": "Šaljem…",

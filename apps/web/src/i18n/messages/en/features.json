@@ -1,23 +1,23 @@
 {
   "meta": {
-    "title": "Digital signage software features",
-    "description": "Remote management, scheduling, {count} apps, offline playback, on-screen zones and your own branding — everything a screen needs."
+    "title": "Digital signage CMS for every screen",
+    "description": "A digital signage CMS with remote screen management, scheduling, playlists, {count} apps, offline playback, on-screen zones and your own branding."
   },
   "hero": {
     "eyebrow": "Features",
-    "title": "Everything a screen needs — and nothing that gets in the way.",
-    "subtitle": "SignageWall pairs simplicity with control: build content in minutes, keep real power over your whole network of screens."
+    "title": "One digital signage CMS for every screen you run.",
+    "subtitle": "Screen management, playlists and scheduling in a browser tab: enough control for a multi-screen network, simple enough for the television in reception."
   },
   "grid": {
     "title": "Built to make the everyday easy.",
     "items": [
       {
         "title": "Manage remotely",
-        "body": "Change everything from your phone or laptop, from anywhere."
+        "body": "Remote management from your phone or laptop, wherever you are."
       },
       {
         "title": "Scheduling",
-        "body": "Content by hour, day or occasion — prepared in advance."
+        "body": "Content by hour, day or occasion, prepared in advance."
       },
       {
         "title": "{count} apps",
@@ -45,14 +45,14 @@
       },
       {
         "title": "Reliable",
-        "body": "Automatic updates and recovery — the screen brings itself back."
+        "body": "Automatic updates and recovery. The screen brings itself back."
       }
     ]
   },
   "spotlight": {
     "eyebrow": "Control",
     "title": "Your whole network of screens, from one panel.",
-    "body": "Whether you run one screen or a hundred locations, it's all in one place — clear, fast and under control.",
+    "body": "One screen or a hundred locations, the content management is the same: publish, see what is live, roll it back. Clear, fast, under control.",
     "points": [
       "Publish to every screen at once, or target a group",
       "See what's playing on each screen right now",
@@ -64,7 +64,7 @@
     "items": [
       {
         "q": "Can I match the look to my brand?",
-        "a": "Yes — colors, logo, fonts and layouts. There is no watermark on any plan, including the trial, so nothing on the screen says which software is behind it."
+        "a": "Yes. Colors, logo, fonts and layouts. There is no watermark on any plan, including the trial, so nothing on the screen says which software is behind it."
       },
       {
         "q": "Can I schedule content in advance?",
@@ -80,7 +80,7 @@
       },
       {
         "q": "Do I need a designer?",
-        "a": "No. The apps ship with layouts you fill in — a menu, a price list, a notice. What matters is large type and strong contrast, and the templates already handle both."
+        "a": "No. The apps ship with layouts you fill in: a menu, a price list, a notice. What matters is large type and strong contrast, and the templates already handle both."
       },
       {
         "q": "Can I split the screen?",
@@ -100,7 +100,7 @@
       },
       {
         "q": "Is any of this in a higher plan?",
-        "a": "No. Everything on this page is included at {price} per screen. There is one plan and one feature set."
+        "a": "No. Everything on this page is included at {price} per screen. The digital signage software ships as one plan with one feature set."
       }
     ]
   },
@@ -111,7 +111,7 @@
       {
         "id": "remote",
         "title": "Change a screen from wherever you are",
-        "body": "Everything happens in a browser. Edit a price, swap an offer, post a notice — it is on the screen before you have put the phone down. There is no app to install for the person doing the editing, no VPN, and nobody has to be in the building. For a network across several sites this is the whole difference between content that stays current and content that ages until somebody drives over.",
+        "body": "Everything happens in a browser. Edit a price, swap an offer, post a notice. It is on the screen before you have put the phone down. There is no app to install for the person doing the editing, no VPN, and nobody has to be in the building. For a network across several sites this is the whole difference between content that stays current and content that ages until somebody drives over.",
         "example": "A café changes the lunch price at 11:40 from the kitchen. Every screen in three locations shows the new one before the first order."
       },
       {
@@ -123,13 +123,13 @@
       {
         "id": "apps",
         "title": "{appCount} apps, no code",
-        "body": "Menus, price lists, weather, exchange rates, news, calendars, social feeds, QR codes, countdowns, PDF and PowerPoint, live dashboards from Google Sheets and Power BI. You pick one, fill in your own details, and publish. Every app is on every account — there is no plan where the useful ones live.",
+        "body": "Menus, price lists, weather, exchange rates, news, calendars, social feeds, QR codes, countdowns, PDF and PowerPoint, live dashboards from Google Sheets and Power BI. You pick one, fill in your own details, and publish. Every app is on every account. There is no plan where the useful ones live.",
         "example": "A gym puts its class timetable on screen straight from the Google Sheet the manager already maintains. Change the sheet, the screen follows."
       },
       {
         "id": "offline",
         "title": "Screens that survive the network",
-        "body": "The player downloads content and plays it from local storage, so a dropped connection changes nothing for anyone standing in front of the screen. A watchdog checks the player is actually drawing frames and restarts it if it stalls — because the common failure is not a crash, it is a frozen picture nobody reports for days.",
+        "body": "The player downloads content and plays it from local storage, so a dropped connection changes nothing for anyone standing in front of the screen. A watchdog checks the player is actually drawing frames and restarts it if it stalls, because the common failure is not a crash, it is a frozen picture nobody reports for days.",
         "example": "The internet goes down at a petrol station for six hours. The screens keep running and pick up the new campaign the moment it returns."
       },
       {
@@ -141,13 +141,13 @@
       {
         "id": "fleet",
         "title": "Managing thirty screens is not managing thirty devices",
-        "body": "Screens group by location, room or type. You publish to a group — all cafés, all window displays, everything in Berlin — instead of picking devices one at a time. The dashboard shows what each screen is playing right now and which ones have gone quiet, so a dead screen is something you notice rather than something a customer mentions.",
+        "body": "Screens group by location, room or type. You publish to a group (all cafés, all window displays, everything in Berlin) instead of picking devices one at a time. The dashboard shows what each screen is playing right now and which ones have gone quiet, so a dead screen is something you notice rather than something a customer mentions.",
         "example": "A retail chain sends a campaign to forty window screens at once, while each store keeps its own opening hours on the till screen."
       },
       {
         "id": "branding",
         "title": "It looks like your business",
-        "body": "Your colors, your logo, your type, your layouts. No watermark on any plan, including the trial — the screen is advertising for you, and a signage vendor's badge in the corner of it is advertising for them.",
+        "body": "Your colors, your logo, your type, your layouts. No watermark on any plan, including the trial. The screen is advertising for you, and a signage vendor's badge in the corner of it is advertising for them.",
         "example": "A hotel runs the same typeface and palette on screens as on its printed collateral. Nothing on the wall says which software made it."
       },
       {

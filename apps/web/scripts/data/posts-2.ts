@@ -9,7 +9,7 @@ export const POSTS_2 = [
     sr: {
       metaTitle: 'Gde postaviti digitalne ekrane u prodavnici',
       metaDescription:
-        'Mapa uloga za ekran u izlogu, na ulazu, uz policu i kod kase — sa proverom čitljivosti i pilotom na jednoj lokaciji.',
+        'Mapa uloga za ekran u izlogu, na ulazu, uz policu i kod kase, sa proverom čitljivosti i pilotom na jednoj lokaciji.',
       title: 'Gde postaviti digitalne ekrane: od izloga do kase',
       excerpt:
         'Izlog, ulaz, prolaz i kasa traže različitu poruku. Ovaj vodič pomaže da svakom mestu dodelite jasan posao pre montaže.',
@@ -97,7 +97,7 @@ export const POSTS_2 = [
     sr: {
       metaTitle: 'Kako izabrati svetlinu ekrana za izlog',
       metaDescription:
-        'Procena dnevnog svetla, odsjaja i toplote, izbor displeja i provera dizajna u podne i uveče — bez obećanja softverske kontrole svetline.',
+        'Procena dnevnog svetla, odsjaja i toplote, izbor displeja i provera dizajna u podne i uveče, bez obećanja softverske kontrole svetline.',
       title: 'Ekran u izlogu: čitljivost po danu i po noći',
       excerpt:
         'Isti ekran koji je savršen u sumrak može biti potpuno nevidljiv u dva popodne. Rešenje je delom hardver, delom dizajn.',
@@ -166,7 +166,7 @@ export const POSTS_2 = [
         'Kako imenovati ekrane, ponovo koristiti plejliste, dodeliti sadržaj izabranim uređajima i proveravati online i last-seen status.',
       title: 'Više lokacija, jedan tim: kako organizovati ekrane',
       excerpt:
-        'Više lokacija traži dosledna imena, plejliste za ponovnu upotrebu i jasan nedeljni pregled statusa — bez oslanjanja na grupe kojih nema.',
+        'Više lokacija traži dosledna imena, plejliste za ponovnu upotrebu i jasan nedeljni pregled statusa, bez oslanjanja na grupe kojih nema.',
     },
     en: {
       metaTitle: 'Managing a network of screens across locations',
@@ -175,7 +175,7 @@ export const POSTS_2 = [
       slug: 'managing-a-screen-network',
       title: 'Many locations, one team: organizing a screen network',
       excerpt:
-        'Multiple locations need consistent names, reusable playlists and a clear status-review routine—not a screen-group feature that is not present.',
+        'Multiple locations need consistent names, reusable playlists and a clear status-review routine, not a screen-group feature that is not present.',
     },
   },
   {

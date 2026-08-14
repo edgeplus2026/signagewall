@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The SignageWall mark: four screens in a wall, one of them playing. Transcribed
-  from apps/player/public/brand/signagewall-mark.svg — same 60x60 coordinate space,
-  same colours, with each <rect> written out as a <path> because VectorDrawable has
-  no rect primitive. Keep the two in step: this is a copy, not a reference.
-
-  The group scales that 60x60 art into the adaptive icon's safe zone. At 0.95 the
-  far corner of the artwork lands 32.7dp from the centre, just inside the 33dp
-  radius a round launcher mask keeps — so no corner of the wall gets clipped off.
+  Themed-icon layer (Android 13+): the same mark as a flat silhouette, which the
+  launcher re-tints to the user's wallpaper palette. Colours here are placeholders
+  and are thrown away — only the shapes and their alpha survive, which is why the
+  playing screen is drawn filled and the other three stay outlines: that contrast is
+  the whole mark, and it has to survive being reduced to one colour.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -21,30 +18,26 @@
         android:translateX="25.5"
         android:translateY="25.5">
 
-        <!-- Top-left screen (outline). -->
         <path
             android:fillColor="#00000000"
             android:pathData="M5.5,12 H20.5 A1.5,1.5 0 0 1 22,13.5 V24.5 A1.5,1.5 0 0 1 20.5,26 H5.5 A1.5,1.5 0 0 1 4,24.5 V13.5 A1.5,1.5 0 0 1 5.5,12 Z"
-            android:strokeColor="@color/brand_ink"
+            android:strokeColor="#000000"
             android:strokeWidth="4" />
 
-        <!-- Top-right screen — the one that is playing, and the only filled shape. -->
         <path
-            android:fillColor="@color/brand_orange"
+            android:fillColor="#000000"
             android:pathData="M31.5,10 H54.5 A3.5,3.5 0 0 1 58,13.5 V24.5 A3.5,3.5 0 0 1 54.5,28 H31.5 A3.5,3.5 0 0 1 28,24.5 V13.5 A3.5,3.5 0 0 1 31.5,10 Z" />
 
-        <!-- Bottom-left screen (outline). -->
         <path
             android:fillColor="#00000000"
             android:pathData="M5.5,34 H28.5 A1.5,1.5 0 0 1 30,35.5 V46.5 A1.5,1.5 0 0 1 28.5,48 H5.5 A1.5,1.5 0 0 1 4,46.5 V35.5 A1.5,1.5 0 0 1 5.5,34 Z"
-            android:strokeColor="@color/brand_ink"
+            android:strokeColor="#000000"
             android:strokeWidth="4" />
 
-        <!-- Bottom-right screen (outline). -->
         <path
             android:fillColor="#00000000"
             android:pathData="M39.5,34 H54.5 A1.5,1.5 0 0 1 56,35.5 V46.5 A1.5,1.5 0 0 1 54.5,48 H39.5 A1.5,1.5 0 0 1 38,46.5 V35.5 A1.5,1.5 0 0 1 39.5,34 Z"
-            android:strokeColor="@color/brand_ink"
+            android:strokeColor="#000000"
             android:strokeWidth="4" />
     </group>
 </vector>

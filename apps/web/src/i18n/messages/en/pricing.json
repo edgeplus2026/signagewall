@@ -1,12 +1,12 @@
 {
   "meta": {
-    "title": "Pricing — {price} per screen per month",
-    "description": "{price} per screen per month up to five screens, every feature included. {trialDays}-day free trial, no card, no contract. Above five, a quoted price."
+    "title": "Digital signage software pricing — {price} a screen",
+    "description": "Digital signage software pricing in public: {price} per screen per month up to five screens, every feature included. {trialDays}-day free trial, no card, no contract."
   },
   "hero": {
     "eyebrow": "Pricing",
-    "title": "Published pricing.",
-    "subtitle": "{price} per screen, per month, with every feature switched on — up to five screens. Above five, the price is quoted for the size of your network.",
+    "title": "Digital signage software pricing, published.",
+    "subtitle": "{price} per screen, per month, with every feature switched on, up to five screens. Above five, the price is quoted for the size of your network.",
     "ctaPrimary": "Start free for {trialDays} days",
     "ctaSecondary": "Get in touch",
     "note": "No credit card to start. We invoice monthly."
@@ -20,7 +20,7 @@
       },
       {
         "q": "Do I need a credit card to start the trial?",
-        "a": "No. You create an account, pair a screen and use everything for {trialDays} days. There is no card to enter at any point — if you continue, the first invoice arrives after the trial."
+        "a": "No. You create an account, pair a screen and use everything for {trialDays} days. There is no card to enter at any point. If you continue, the first invoice arrives after the trial."
       },
       {
         "q": "What happens after the {trialDays} days?",
@@ -28,15 +28,15 @@
       },
       {
         "q": "Can I run just one screen?",
-        "a": "Yes, and plenty of customers do — a bakery, a salon, a waiting room. One screen is {price} a month, and nothing about the product is switched off at the low end."
+        "a": "Yes, and plenty of customers do: a bakery, a salon, a waiting room. One screen is {price} a month, and nothing about the product is switched off at the low end."
       },
       {
         "q": "What happens above five screens?",
-        "a": "You move to Enterprise: the same product, with a price quoted for the size of your network rather than taken off this page. Tell us how many screens you run and we will send a number — there is nothing to unlock and no feature waiting behind it."
+        "a": "You move to Enterprise: the same product, with a price quoted for the size of your network rather than taken off this page. Tell us how many screens you run and we will send a number. There is nothing to unlock and no feature waiting behind it."
       },
       {
         "q": "What is not included in the price?",
-        "a": "The hardware. You need a screen and a small player device — an Android box, a mini-PC or a computer you already have. We do not resell hardware, so you buy it wherever it is cheapest for you."
+        "a": "The hardware. You need a screen and a small player device: an Android box, a mini-PC or a computer you already have. We do not resell hardware, so you buy it wherever it is cheapest for you."
       },
       {
         "q": "Do you charge per user?",
@@ -48,7 +48,7 @@
       },
       {
         "q": "How does payment work?",
-        "a": "Everything is priced in euros, and there is no card to enter — we do not run a payment gateway. You get an invoice each month and pay it by bank transfer, on the terms your finance team works with."
+        "a": "Everything is priced in euros, and there is no card to enter. We do not run a payment gateway. You get an invoice each month and pay it by bank transfer, on the terms your finance team works with."
       },
       {
         "q": "Is there a free plan?",
@@ -58,7 +58,7 @@
   },
   "plans": {
     "title": "Two ways to buy",
-    "subtitle": "The same product either way — the number of screens decides which one you are on.",
+    "subtitle": "The same product either way. The number of screens decides which one you are on.",
     "billing": "Monthly invoice, paid by bank transfer. No card details, no payment gateway.",
     "basic": {
       "name": "Basic",
@@ -68,9 +68,9 @@
       "trial": "{trialDays} days free, no card required",
       "cta": "Start free trial",
       "included": [
-        "Every app in the catalog — {appCount} of them, not a limited subset",
+        "Every app in the catalog: {appCount} of them, not a limited subset",
         "Unlimited content, playlists and scheduling",
-        "Offline playback — screens keep running when the connection drops",
+        "Offline playback, screens keep running when the connection drops",
         "Android, Windows, macOS and Linux players",
         "On-screen zones and layouts",
         "Your own branding, with no watermark on the screen",
@@ -86,7 +86,7 @@
       "body": "Tell us how many screens you run and we will send a price, usually within one business day.",
       "cta": "Get in touch",
       "included": [
-        "Everything in Basic — the product is identical",
+        "Everything in Basic. The product is identical",
         "A price quoted for the size of your network",
         "One monthly invoice covering every screen",
         "No minimum term, exactly as in Basic"

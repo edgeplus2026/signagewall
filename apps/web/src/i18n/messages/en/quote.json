@@ -1,6 +1,6 @@
 {
   "title": "Request a quote",
-  "subtitle": "Tell us how many screens you run and we will come back with a price — usually within one business day.",
+  "subtitle": "Tell us how many screens you run and we will come back with a price, usually within one business day.",
   "name": "Full name",
   "email": "Email",
   "phone": "Phone number",
@@ -9,13 +9,13 @@
   "country": "Country",
   "countryPlaceholder": "Select a country",
   "message": "Message",
-  "messagePlaceholder": "Anything that helps us answer — what the screens show, where they are, when you want to start.",
+  "messagePlaceholder": "Anything that helps us answer, what the screens show, where they are, when you want to start.",
   "submit": "Send request",
   "sending": "Sending…",
   "successTitle": "Request sent",
-  "success": "Thank you — we have it, and we will reply within one business day.",
+  "success": "Thank you. We have it, and we will reply within one business day.",
   "close": "Close",
   "invalid": "Please check your name, email and the number of screens.",
   "error": "Something went wrong. Please try again, or write to us directly.",
-  "note": "No obligation. We invoice monthly — there is no card to enter."
+  "note": "No obligation. We invoice monthly. There is no card to enter."
 }

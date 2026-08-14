@@ -1,12 +1,12 @@
 {
   "meta": {
     "title": "Digital signage softver za vaše ekrane",
-    "description": "Digital signage softver za menije, cene i najave. Promenite šta piše na ekranu za 30 sekundi — na jednom ekranu ili na svih sto, sa telefona."
+    "description": "Digital signage softver za menije, cene i najave. Promenite šta piše na ekranu za 30 sekundi: na jednom ekranu ili na svih sto, sa telefona."
   },
   "hero": {
     "eyebrow": "Digital signage softver",
     "title": "Vodite svaki ekran u firmi sa telefona.",
-    "subtitle": "SignageWall pretvara bilo koji TV u ekran koji menjate za nekoliko sekundi — meni, ponude, obaveštenja. Jedan ekran ili dvesta, i rade i kad internet padne.",
+    "subtitle": "SignageWall pretvara bilo koji TV u ekran koji menjate za nekoliko sekundi: meni, ponude, obaveštenja. Jedan ekran ili dvesta, i rade i kad internet padne.",
     "ctaPrimary": "Probajte besplatno {trialDays} dana",
     "ctaSecondary": "Javite nam se",
     "trialNote": "{trialDays} dana besplatno · bez kartice · bez ugovora"
@@ -34,21 +34,21 @@
   "whatIs": {
     "eyebrow": "Prvi put se srećete sa ovim?",
     "title": "Digital signage, u tri rečenice.",
-    "body": "Digitalni ekran prikazuje ono što mu kažete — meni, cenovnik, ponudu, obaveštenje — i menja se onog trenutka kad se vi predomislite. Treba vam troje: ekran koji verovatno već imate, mali plejer uređaj iza njega, i softver kojim upravljate sa bilo kog mesta. SignageWall je to treće.",
+    "body": "Digitalni ekran prikazuje ono što mu kažete (meni, cenovnik, ponudu, obaveštenje) i menja se onog trenutka kad se vi predomislite. Treba vam troje: ekran koji verovatno već imate, mali plejer uređaj iza njega, i softver kojim upravljate sa bilo kog mesta. SignageWall je to treće.",
     "cta": "Šta je digital signage?"
   },
   "features": {
     "eyebrow": "Mogućnosti",
     "title": "Sve za vaše ekrane, na jednom mestu.",
-    "subtitle": "Bez tehničkog znanja, bez agencije i bez čekanja. Otvorite SignageWall, promenite šta treba — i to je već na ekranu.",
+    "subtitle": "Bez tehničkog znanja, bez agencije i bez čekanja. Otvorite SignageWall, promenite šta treba, i to je već na ekranu.",
     "items": [
       {
         "title": "Menjate sa telefona",
-        "body": "Nova cena, nova ponuda, obaveštenje — otkucate i odmah je gore. Na jednom ekranu ili na svih sto, odakle god da ste."
+        "body": "Nova cena, nova ponuda, obaveštenje: otkucate i odmah je gore. Upravljanje na daljinu za jedan ekran ili za svih sto, odakle god da ste."
       },
       {
         "title": "Sadržaj po vašem satu",
-        "body": "Doručak ujutru, ručak u podne, koktel karta uveče. Podesite jednom i dalje se smenjuje samo, bez vas."
+        "body": "Doručak ujutru, ručak u podne, koktel karta uveče. Zakazivanje sadržaja podesite jednom, pa se dalje smenjuje samo, bez vas."
       },
       {
         "title": "{count} gotovih aplikacija",
@@ -60,7 +60,7 @@
       },
       {
         "title": "Radi na svakom ekranu",
-        "body": "Televizor, monitor ili profesionalni displej — koristite ono što već stoji u prostoru."
+        "body": "Televizor, monitor ili profesionalni displej. Koristite ono što već stoji u prostoru."
       },
       {
         "title": "Izgleda kao vaše",
@@ -95,14 +95,14 @@
   "apps": {
     "eyebrow": "Aplikacije",
     "title": "{count} aplikacija, spremnih za ekran.",
-    "body": "Sve što ekranu treba — bez pisanja koda. Dodajte aplikaciju, podesite je i objavite.",
+    "body": "Sve što ekranu treba, bez pisanja koda. Dodajte aplikaciju, podesite je i objavite.",
     "cta": "Istražite sve aplikacije",
     "all": "Sve aplikacije"
   },
   "platform": {
     "eyebrow": "Platforma",
-    "title": "Panel, plejer, ekran — jedna celina.",
-    "subtitle": "Tri dela koja rade besprekorno zajedno.",
+    "title": "Panel, plejer, ekran: jedan digital signage sistem.",
+    "subtitle": "Tri dela, jedan sistem, ništa što vi treba da povezujete.",
     "items": [
       {
         "title": "Kontrolna tabla",
@@ -123,7 +123,7 @@
     "items": [
       {
         "q": "Šta mi treba da počnem?",
-        "a": "Ekran, mali plejer uređaj i nalog. Ekran može biti običan televizor koji već imate. Plejer je Android boks, mini-PC ili računar koji već stoji tu — instalirate našu aplikaciju na njega, skenirate kod koji se pojavi na ekranu, i uparen je."
+        "a": "Ekran, mali plejer uređaj i nalog. Ekran može biti običan televizor koji već imate. Plejer je Android boks, mini-PC ili računar koji već stoji tu. Instalirate našu aplikaciju na njega, skenirate kod koji se pojavi na ekranu, i uparen je."
       },
       {
         "q": "Treba li mi tehničko znanje?",
@@ -135,11 +135,11 @@
       },
       {
         "q": "Koliko košta?",
-        "a": "{price} po ekranu mesečno do pet ekrana, sa svim mogućnostima uključenim — kafić plaća istu cenu po ekranu kao i mali lanac. Preko pet ekrana cenu dajemo prema veličini mreže."
+        "a": "{price} po ekranu mesečno do pet ekrana, sa svim mogućnostima uključenim. Kafić plaća istu cenu po ekranu kao i mali lanac. Preko pet ekrana cenu dajemo prema veličini mreže."
       },
       {
         "q": "Mogu li da probam pre plaćanja?",
-        "a": "Da — {trialDays} dana sa svim uključenim, bez kartice. Ništa se ne naplaćuje automatski kad proba istekne; ako ne nastavite, sadržaj jednostavno ostaje da čeka u nalogu."
+        "a": "Da. {trialDays} dana sa svim uključenim, bez kartice. Ništa se ne naplaćuje automatski kad proba istekne; ako ne nastavite, sadržaj jednostavno ostaje da čeka u nalogu."
       },
       {
         "q": "Mogu li sa samo jednim ekranom?",
@@ -147,11 +147,11 @@
       },
       {
         "q": "Radi li na mojim postojećim ekranima?",
-        "a": "Skoro sigurno. Bilo koji televizor, monitor ili profesionalni displej sa HDMI ulazom radi. Namenski signage ekrani se isplate ako radite šesnaest sati dnevno ili stavljate ekran na direktno sunce — za sve ostalo, običan TV traje godinama."
+        "a": "Skoro sigurno. Bilo koji televizor, monitor ili profesionalni displej sa HDMI ulazom radi. Namenski signage ekrani se isplate ako radite šesnaest sati dnevno ili stavljate ekran na direktno sunce: za sve ostalo, običan TV traje godinama."
       },
       {
         "q": "Koliko ekrana mogu da vodim?",
-        "a": "Od jednog do nekoliko stotina, iz iste kontrolne table. Ekrani se grupišu po lokaciji pa objavljujete grupi umesto uređaj po uređaj — a to je razlika koja počinje da se oseća negde oko desetog ekrana."
+        "a": "Od jednog do nekoliko stotina, iz iste kontrolne table. Ekrani se grupišu po lokaciji pa objavljujete grupi umesto uređaj po uređaj, a to je razlika koja počinje da se oseća negde oko desetog ekrana."
       }
     ]
   },

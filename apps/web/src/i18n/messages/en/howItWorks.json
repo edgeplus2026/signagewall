@@ -1,27 +1,27 @@
 {
   "meta": {
-    "title": "How digital signage works — in 3 steps",
-    "description": "From a blank screen to a living display in minutes — connect a screen, compose the content and publish remotely."
+    "title": "How does digital signage work? In 3 steps",
+    "description": "How does digital signage work in practice: pair a player with a pairing code, compose the content in a browser, and publish it to every screen remotely."
   },
   "hero": {
     "eyebrow": "How it works",
-    "title": "From a blank screen to a living display — in minutes.",
-    "subtitle": "No cables, no technician, no code. Three steps stand between you and screens that work for you."
+    "title": "From a blank screen to a working display, in minutes.",
+    "subtitle": "How does digital signage work in practice? You pair a digital signage player using a pairing code, build the content in a browser, and publish content to every screen remotely. No cables, no technician, no code."
   },
   "steps": {
-    "title": "Three steps to your first screen.",
+    "title": "Three steps to your first digital signage screen.",
     "items": [
       {
         "title": "Connect a screen",
-        "body": "Install the SignageWall player on an Android TV box, mini-PC or desktop you already have. Open the screen, scan the QR code from your dashboard — and it's paired. No cables, no technician."
+        "body": "<download>Install the SignageWall player</download> on an Android TV box, mini-PC or desktop you already have. Open the screen, scan the QR code from your dashboard and it is paired. No cables, no technician. If you have not bought the box yet, <hardware>which digital signage player to buy</hardware> covers that first."
       },
       {
         "title": "Compose the content",
-        "body": "Pick from {count} ready-made apps — menus, weather, exchange rates, social feeds — or upload your own images and video. Arrange them into a playlist and split the screen into zones if you like."
+        "body": "Pick from {count} ready-made apps (menus, weather, exchange rates, social feeds) or upload your own images and video. Arrange them into a playlist and split the screen into zones if you like."
       },
       {
         "title": "Publish remotely",
-        "body": "Send it to one screen or a whole network. Schedule changes ahead and edit anything in real time — from your phone or laptop, wherever you are."
+        "body": "Send it to one screen or a whole network. Schedule changes ahead and edit anything in real time, from your phone or laptop, wherever you are."
       }
     ]
   },
@@ -35,7 +35,7 @@
       },
       {
         "title": "Scheduling",
-        "body": "Different content by hour, day or occasion — prepared in advance."
+        "body": "Different content by hour, day or occasion, prepared in advance."
       },
       {
         "title": "On-screen zones",
@@ -60,7 +60,7 @@
       },
       {
         "q": "How many screens can I connect?",
-        "a": "From one to a thousand — you manage them all from the same place, with no added complexity."
+        "a": "From one to a thousand. You manage them all from the same place, with no added complexity."
       },
       {
         "q": "Is technical knowledge required?",

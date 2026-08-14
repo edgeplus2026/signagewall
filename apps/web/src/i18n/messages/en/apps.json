@@ -1,14 +1,14 @@
 {
   "meta": {
-    "title": "{count} apps for digital signage screens",
-    "description": "{count} apps ready for the screen — menus, weather, exchange rates, news, calendars, social feeds and much more.",
+    "title": "{count} digital signage apps for your screens",
+    "description": "{count} digital signage apps ready for the screen: menus, weather, exchange rates, news, calendars, social feeds and much more.",
     "detailTitle": "{name} for digital signage",
     "detailDescription": "{description} Included with SignageWall at {price} per screen, per month."
   },
   "hero": {
     "eyebrow": "Apps",
-    "title": "{count} apps, ready for the screen.",
-    "subtitle": "Everything a screen needs — without writing code. Search, pick and publish."
+    "title": "{count} digital signage apps, ready for the screen.",
+    "subtitle": "Digital signage content without writing code: a menu app for the counter, a dashboard app pulling live numbers, a forecast in the corner. Search, pick and publish."
   },
   "browser": {
     "placeholder": "Search apps…",
@@ -22,7 +22,7 @@
     "categoriesLabel": "Categories",
     "back": "All apps",
     "dataSource": {
-      "static": "Works with no account — just set it up and publish.",
+      "static": "Works with no account. Just set it up and publish.",
       "server": "Pulls live data automatically.",
       "connected": "Connects to your account (e.g. Google or Microsoft)."
     },

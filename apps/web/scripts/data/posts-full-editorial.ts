@@ -220,7 +220,7 @@ export const POSTS_FULL_EDITORIAL = {
         ],
         [
           'p',
-          'Trajanje nije dizajnerski ukras, nego dogovor između poruke i mesta. Kada se okolnosti promene — ekran se preseli, red postane kraći ili se doda aplikacija sa sopstvenom rotacijom — ponovite merenje. Dobar broj je onaj koji gledalac može da iskoristi, ne onaj koji lepo izgleda u podešavanjima.',
+          'Trajanje nije dizajnerski ukras, nego dogovor između poruke i mesta. Kada se okolnosti promene (ekran se preseli, red postane kraći ili se doda aplikacija sa sopstvenom rotacijom) ponovite merenje. Dobar broj je onaj koji gledalac može da iskoristi, ne onaj koji lepo izgleda u podešavanjima.',
         ],
       ],
     },
@@ -293,7 +293,7 @@ export const POSTS_FULL_EDITORIAL = {
         ],
         [
           'p',
-          'Duration is not a decorative design setting. It is an agreement between a message and a place. When the circumstances change — the display moves, the queue becomes shorter, or an app with its own rotation is added — measure again. The right number is the one a viewer can use, not the one that looks tidy in a settings field.',
+          'Duration is not a decorative design setting. It is an agreement between a message and a place. When the circumstances change (the display moves, the queue becomes shorter, or an app with its own rotation is added) measure again. The right number is the one a viewer can use, not the one that looks tidy in a settings field.',
         ],
       ],
     },
@@ -372,7 +372,7 @@ export const POSTS_FULL_EDITORIAL = {
         ['h', 'Zaključite samo ono što podaci podržavaju'],
         [
           'p',
-          'Uporedite promenu sa početnim stanjem, pogledajte dnevnik smetnji i zapišite šta biste sledeće testirali. Nemojte koristiti unapred zadat „normalan" procenat rasta; različita cena, publika i lokacija čine takav reper nepouzdanim. Ako se signal ponovi kada promenite poruku ili artikal, imate bolji razlog za odluku. Ako se ne ponovi, ekran možda nije uzrok — i to je koristan rezultat.',
+          'Uporedite promenu sa početnim stanjem, pogledajte dnevnik smetnji i zapišite šta biste sledeće testirali. Nemojte koristiti unapred zadat „normalan" procenat rasta; različita cena, publika i lokacija čine takav reper nepouzdanim. Ako se signal ponovi kada promenite poruku ili artikal, imate bolji razlog za odluku. Ako se ne ponovi, ekran možda nije uzrok, i to je koristan rezultat.',
         ],
       ],
     },
