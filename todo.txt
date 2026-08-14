@@ -1,9 +1,7 @@
 1. Bucket napraviti novi za website images + custom domain
 2. Google + microsft verifiction
-4. Da vratim na private git repo
-5. Da vidimo git actions da se optmiziuju malo
 
-6. Diskotovati o ceni da li 5e ili 8e ili sakriti cene
-7. Videti kako radi biling invoices i da li se automski nastavlja paid sve dok ne promenimo rucno
-8. Sta je ovo redis connect u railway
-9. Kupiti railway i domen setovati i zameniti u u env i svuda gde treba
+3. Diskotovati o ceni da li 5e ili 8e ili sakriti cene
+4. Videti kako radi biling invoices i da li se automski nastavlja paid sve dok ne promenimo rucno
+5. Sta je ovo redis connect u railway
+6. Kupiti railway i domen setovati i zameniti u u env i svuda gde treba

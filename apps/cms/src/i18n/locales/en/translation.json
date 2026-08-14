@@ -239,25 +239,6 @@
       "files": "files",
       "stored": "stored",
       "empty": "No media yet."
-    },
-    "gettingStarted": {
-      "title": "Get started with SignageWall",
-      "subtitle": "Three quick steps to put content on your screens.",
-      "dismiss": "Dismiss",
-      "steps": {
-        "media": {
-          "title": "Upload media",
-          "description": "Add images and videos to your library."
-        },
-        "playlists": {
-          "title": "Create a playlist",
-          "description": "Arrange your media into a playlist."
-        },
-        "screens": {
-          "title": "Add a screen",
-          "description": "Pair a display and play your content."
-        }
-      }
     }
   },
   "organizations": {
@@ -2519,6 +2500,78 @@
     "licences": {
       "cta": "Request more licences",
       "title": "Request more licences"
+    }
+  },
+  "onboarding": {
+    "title": "Get started",
+    "launcher": "Get started",
+    "progress": "{{completed}} of {{total}} steps done",
+    "minimize": "Minimize",
+    "dismiss": "Hide setup guide",
+    "header": {
+      "label": "Get started",
+      "tooltip": "Your setup progress"
+    },
+    "help": {
+      "prefix": "Need help?",
+      "link": "Read the FAQ"
+    },
+    "complete": {
+      "title": "You're all set",
+      "description": "Your content is on screen. This guide won't come back.",
+      "cta": "Finish"
+    },
+    "steps": {
+      "media": {
+        "title": "Add your media",
+        "description": "Everything you play starts here — images and videos live in your library.",
+        "bullets": [
+          "Drag files in, or import from Google Drive, OneDrive or Dropbox",
+          "Images and videos both work; folders keep the library tidy",
+          "You can also generate content with AI or pick a free stock photo"
+        ],
+        "cta": "Go to Media"
+      },
+      "playlist": {
+        "title": "Create a playlist",
+        "description": "A playlist is the loop your screen plays — your media, in the order you want it.",
+        "bullets": [
+          "Add media and set how long each item stays on screen",
+          "Drag to reorder; disable an item to skip it without deleting it",
+          "One playlist can run on as many screens as you like"
+        ],
+        "cta": "Go to Playlists"
+      },
+      "screen": {
+        "title": "Add a screen",
+        "description": "A screen here stands for one physical display in your space.",
+        "bullets": [
+          "Give it a name you will recognise, like “Reception TV”",
+          "Set working hours later so it only plays while you are open",
+          "Your plan decides how many screens you can create"
+        ],
+        "cta": "Go to Screens"
+      },
+      "pair": {
+        "title": "Install the player and pair it",
+        "description": "The player app turns any display into a SignageWall screen.",
+        "bullets": [
+          "Install the SignageWall player on your TV, Android box or PC",
+          "The player shows a 6-digit pairing code when it starts",
+          "Enter that code on the screen’s Device tab"
+        ],
+        "cta": "Pair a screen"
+      },
+      "assign": {
+        "title": "Send content to the screen",
+        "description": "Last step — tell the screen what to play.",
+        "bullets": [
+          "Add a playlist, a single media file or an app to the screen",
+          "Changes reach a paired display within seconds",
+          "The screen keeps playing from its cache even if the internet drops"
+        ],
+        "cta": "Assign content"
+      }
     }
   }
 }

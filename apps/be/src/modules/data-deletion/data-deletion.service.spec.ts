@@ -50,6 +50,7 @@ function build(deps: Deps) {
     noop as never, // appInstance
     noop as never, // orgApp
     noop as never, // appConnection
+    noop as never, // onboardingProgress
     {} as never, // mediaService
     usersRepository as never,
     { deleteByUser: jest.fn() } as never, // legalRepository

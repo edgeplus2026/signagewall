@@ -216,25 +216,6 @@
       "files": "fajlova",
       "stored": "sačuvano",
       "empty": "Još nema medija."
-    },
-    "gettingStarted": {
-      "title": "Počnite sa SignageWall-om",
-      "subtitle": "Tri brza koraka da sadržaj stigne na vaše ekrane.",
-      "dismiss": "Sakrij",
-      "steps": {
-        "media": {
-          "title": "Otpremi medije",
-          "description": "Dodaj slike i video u biblioteku."
-        },
-        "playlists": {
-          "title": "Napravi plejlistu",
-          "description": "Rasporedi medije u plejlistu."
-        },
-        "screens": {
-          "title": "Dodaj ekran",
-          "description": "Upari displej i pusti sadržaj."
-        }
-      }
     }
   },
   "organizations": {
@@ -2504,6 +2485,78 @@
     "licences": {
       "cta": "Zatraži još licenci",
       "title": "Zatražite još licenci"
+    }
+  },
+  "onboarding": {
+    "title": "Kako da počnete",
+    "launcher": "Kako da počnete",
+    "progress": "Završeno {{completed}} od {{total}} koraka",
+    "minimize": "Umanji",
+    "dismiss": "Sakrij vodič",
+    "header": {
+      "label": "Kako da počnete",
+      "tooltip": "Vaš napredak u podešavanju"
+    },
+    "help": {
+      "prefix": "Treba vam pomoć?",
+      "link": "Pogledajte česta pitanja"
+    },
+    "complete": {
+      "title": "Sve je spremno",
+      "description": "Vaš sadržaj je na ekranu. Ovaj vodič se više neće pojavljivati.",
+      "cta": "Završi"
+    },
+    "steps": {
+      "media": {
+        "title": "Dodaj medije",
+        "description": "Sve počinje ovde — slike i video žive u vašoj biblioteci.",
+        "bullets": [
+          "Prevucite fajlove ili uvezite iz Google Drive-a, OneDrive-a ili Dropbox-a",
+          "Rade i slike i video; folderi drže biblioteku urednom",
+          "Sadržaj možete i generisati pomoću AI-ja ili uzeti besplatnu stok fotografiju"
+        ],
+        "cta": "Otvori Medije"
+      },
+      "playlist": {
+        "title": "Napravi plejlistu",
+        "description": "Plejlista je petlja koju ekran pušta — vaši mediji, redom koji vi odredite.",
+        "bullets": [
+          "Dodajte medije i odredite koliko svaka stavka stoji na ekranu",
+          "Prevlačenjem menjate redosled; stavku možete isključiti bez brisanja",
+          "Jedna plejlista može da radi na koliko god ekrana želite"
+        ],
+        "cta": "Otvori Plejliste"
+      },
+      "screen": {
+        "title": "Dodaj ekran",
+        "description": "Ekran ovde predstavlja jedan fizički displej u vašem prostoru.",
+        "bullets": [
+          "Dajte mu ime koje ćete prepoznati, na primer „TV na recepciji“",
+          "Radno vreme podesite kasnije, da pušta samo dok radite",
+          "Vaš paket određuje koliko ekrana možete da napravite"
+        ],
+        "cta": "Otvori Ekrane"
+      },
+      "pair": {
+        "title": "Instaliraj plejer i upari ga",
+        "description": "Plejer aplikacija pretvara bilo koji displej u SignageWall ekran.",
+        "bullets": [
+          "Instalirajte SignageWall plejer na TV, Android box ili računar",
+          "Plejer pri pokretanju prikaže šestocifreni kod za uparivanje",
+          "Unesite taj kod u kartici Uređaj na ekranu"
+        ],
+        "cta": "Upari ekran"
+      },
+      "assign": {
+        "title": "Pošalji sadržaj na ekran",
+        "description": "Poslednji korak — recite ekranu šta da pušta.",
+        "bullets": [
+          "Dodajte ekranu plejlistu, pojedinačni fajl ili aplikaciju",
+          "Izmene stižu do uparenog displeja za nekoliko sekundi",
+          "Ekran nastavlja da pušta iz keša i kada internet padne"
+        ],
+        "cta": "Dodeli sadržaj"
+      }
     }
   }
 }

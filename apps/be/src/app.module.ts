@@ -34,6 +34,7 @@ import { DataDeletionModule } from './modules/data-deletion/data-deletion.module
 import { MembersModule } from './modules/members/members.module';
 import { MediaModule } from './modules/media/media.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { TrialModule } from './modules/plans/trial.module';
@@ -100,6 +101,7 @@ import { UsersModule } from './modules/users/users.module';
     DataDeletionModule,
     PlansModule,
     TrialModule,
+    OnboardingModule,
     HealthModule,
   ],
   providers: [

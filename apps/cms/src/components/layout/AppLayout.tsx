@@ -18,6 +18,8 @@ import { AiGeneratorSheet } from '@/features/ai-generator/components/AiGenerator
 import { useAiGenerationNotifications } from '@/features/ai-generator/hooks'
 import { UploadManager } from '@/features/media/components/UploadManager'
 import { NotificationBell } from '@/features/notifications/components/NotificationBell'
+import { OnboardingHeaderButton } from '@/features/onboarding/components/OnboardingHeaderButton'
+import { OnboardingWidget } from '@/features/onboarding/components/OnboardingWidget'
 import { OrganizationGate } from '@/features/organizations/components/OrganizationGate'
 import { PlanHeaderButton } from '@/features/plans/components/PlanHeaderButton'
 import { UpgradePlanDialog } from '@/features/plans/components/UpgradePlanDialog'
@@ -49,6 +51,7 @@ export default function AppLayout() {
             <SidebarTrigger />
             <AppPageBreadcrumb />
             <div className="ml-auto flex items-center gap-2">
+              <OnboardingHeaderButton />
               <PlanHeaderButton />
               <NotificationBell />
             </div>
@@ -56,6 +59,7 @@ export default function AppLayout() {
           <main className="bg-page min-w-0 flex-1 p-4 max-w-7xl mx-auto w-full">
             <Outlet />
           </main>
+          <OnboardingWidget />
           <UploadManager />
           <AiGeneratorSheet />
           {/* Mounted once: opened from the header, and from any create that the
