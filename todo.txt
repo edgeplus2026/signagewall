@@ -1,5 +1,0 @@
-1. Bucket napraviti novi za website images + custom domain
-2. Google + microsft verifiction
-3. Diskotovati o ceni da li 5e ili 8e ili sakriti cene
-4. Videti kako radi biling invoices i da li se automski nastavlja paid sve dok ne promenimo rucno
-5. Kupiti railway i domen setovati i zameniti u u env i svuda gde treba
