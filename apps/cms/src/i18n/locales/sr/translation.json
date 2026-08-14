@@ -2492,7 +2492,8 @@
     "launcher": "Kako da počnete",
     "progress": "Završeno {{completed}} od {{total}} koraka",
     "minimize": "Umanji",
-    "dismiss": "Sakrij vodič",
+    "dismiss": "Zatvori vodič",
+    "dismissHint": "Zatvori — možete ga vratiti preko „Kako da počnete“ u zaglavlju",
     "header": {
       "label": "Kako da počnete",
       "tooltip": "Vaš napredak u podešavanju"

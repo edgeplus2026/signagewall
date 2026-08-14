@@ -2,23 +2,29 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { OnboardingRing } from '@/features/onboarding/components/OnboardingRing'
-import { useOnboarding } from '@/features/onboarding/hooks/useOnboarding'
+import {
+  useOnboarding,
+  useUpdateOnboarding,
+} from '@/features/onboarding/hooks/useOnboarding'
 import { useOnboardingUiStore } from '@/features/onboarding/store/onboardingUiStore'
 
 /**
- * Permanent "where am I in setup" indicator in the app header, and the way back
- * to the checklist once it has been minimized.
+ * The setup indicator in the app header, and the only way back to the checklist.
  *
- * It disappears for good the moment onboarding is finished or dismissed —
- * an established customer should not carry a setup widget around forever.
+ * It stays put for the whole of onboarding — minimizing the panel or closing it
+ * with the X hides the floating card, never this. Losing the entry point would
+ * make closing the card irreversible, which is not what a close button means.
+ * It retires only once every step is genuinely done and the user has seen that.
  */
 export function OnboardingHeaderButton() {
   const { t } = useTranslation()
   const { data } = useOnboarding()
+  const update = useUpdateOnboarding()
   const open = useOnboardingUiStore((state) => state.open)
+  const setOpen = useOnboardingUiStore((state) => state.setOpen)
   const toggleOpen = useOnboardingUiStore((state) => state.toggleOpen)
 
-  if (!data || data.status === 'dismissed') {
+  if (!data) {
     return null
   }
 
@@ -26,12 +32,26 @@ export function OnboardingHeaderButton() {
     return null
   }
 
+  const dismissed = data.status === 'dismissed'
+
+  const handleClick = () => {
+    // Closed with the X: bring the card back rather than toggling a panel the
+    // user can no longer see.
+    if (dismissed) {
+      update.mutate({ dismissed: false })
+      setOpen(true)
+      return
+    }
+
+    toggleOpen()
+  }
+
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={toggleOpen}
-      aria-expanded={open}
+      onClick={handleClick}
+      aria-expanded={open && !dismissed}
       title={t('onboarding.header.tooltip')}
       className="gap-2"
     >

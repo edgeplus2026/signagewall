@@ -199,10 +199,13 @@ export function OnboardingWidget() {
       className={cn(
         position,
         'border-secondary bg-panel flex w-[min(100vw-2rem,23rem)] flex-col overflow-hidden rounded-2xl border shadow-xl',
+        // Never tall enough to reach the header: the progress button up there is
+        // the way back to this card, so covering it would strand the user.
+        'max-h-[calc(100dvh-6rem)]',
       )}
       aria-label={t('onboarding.title')}
     >
-      <header className="border-secondary flex items-center gap-2.5 border-b px-3.5 py-3">
+      <header className="border-secondary flex shrink-0 items-center gap-2.5 border-b px-3.5 py-3">
         <OnboardingRing percent={data.percent} size={26} />
         <div className="min-w-0 flex-1">
           <p className="text-primary text-sm font-semibold">{t('onboarding.title')}</p>
@@ -228,6 +231,7 @@ export function OnboardingWidget() {
           variant="ghost"
           size="icon-sm"
           aria-label={t('onboarding.dismiss')}
+          title={t('onboarding.dismissHint')}
           onClick={dismiss}
         >
           <XIcon />
@@ -256,9 +260,9 @@ export function OnboardingWidget() {
         </div>
       ) : (
         <>
-          {/* Sized so all five steps plus one expanded body fit on a laptop —
-              scrolling only kicks in on genuinely short viewports. */}
-          <ol className="max-h-[min(68vh,32rem)] space-y-1.5 overflow-y-auto p-2.5">
+          {/* Takes whatever height the card has left; scrolls on short windows
+              instead of pushing the card upwards. */}
+          <ol className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-2.5">
             {ONBOARDING_STEPS.map((config, index) => (
               <StepRow
                 key={config.key}
@@ -278,7 +282,7 @@ export function OnboardingWidget() {
             ))}
           </ol>
 
-          <footer className="border-secondary text-secondary border-t px-3.5 py-2.5 text-xs">
+          <footer className="border-secondary text-secondary shrink-0 border-t px-3.5 py-2.5 text-xs">
             {t('onboarding.help.prefix')}{' '}
             <Link
               to="/faq"
