@@ -13,7 +13,6 @@ export type {
   DeviceSettings,
   DeviceUpdateStatus,
   ImageRenderable,
-  KioskMode,
   PairedPayload,
   PairingCodePayload,
   PlayerCommand,
@@ -23,6 +22,9 @@ export type {
   ReportedProfile,
   VideoRenderable,
 } from '@signagewall/player-contract'
+
+/** Device-local, never on the wire — see device-settings.ts. */
+export type { KioskMode } from './device-settings'
 
 export type ConnectionState =
   | 'connecting'

@@ -25,7 +25,6 @@ import {
 } from '../../common/swagger';
 import { PairDeviceDto } from './dto/pair-device.dto';
 import { SetDeviceDailyReloadDto } from './dto/set-device-daily-reload.dto';
-import { SetDeviceKioskModeDto } from './dto/set-device-kiosk-mode.dto';
 import { SetDeviceOrientationDto } from './dto/set-device-orientation.dto';
 import { SetDeviceScaleDto } from './dto/set-device-scale.dto';
 import { SetDeviceVolumeDto } from './dto/set-device-volume.dto';
@@ -120,21 +119,6 @@ export class DevicePairingController {
       organizationId,
       screenId,
       dto.scale,
-    );
-  }
-
-  @Patch(':screenId/device/kiosk-mode')
-  @RequireOrgRole()
-  @ApiSuccessResponse(Object)
-  setKioskMode(
-    @RequiredOrganizationId() organizationId: string,
-    @Param('screenId', ParseObjectIdPipe) screenId: string,
-    @Body() dto: SetDeviceKioskModeDto,
-  ) {
-    return this.playerService.setScreenDeviceKioskMode(
-      organizationId,
-      screenId,
-      dto.kioskMode,
     );
   }
 

@@ -55,7 +55,7 @@ export const orientation = signal<DeviceOrientation>(getStoredOrientation())
 /** Content scale (object-fit mode), set from the CMS; persisted. */
 export const scale = signal<DeviceScale>(getStoredScale())
 
-/** Kiosk lockdown mode, set from the CMS; persisted + offline-safe. */
+/** Kiosk lockdown mode, set on the device in the service menu; persisted. */
 export const kioskMode = signal<KioskMode>(getStoredKioskMode())
 
 /** Automatic daily-reload setting, set from the CMS; persisted + offline-safe. */

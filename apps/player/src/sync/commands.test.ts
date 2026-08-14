@@ -16,15 +16,13 @@ vi.mock('./playback-bus', () => ({
 
 // Imported after the mocks so commands.ts binds to the stubbed leaf modules.
 const { applyCommand } = await import('./commands')
-const { dailyReload, kioskMode, orientation, scale, volume } =
-  await import('../store')
+const { dailyReload, orientation, scale, volume } = await import('../store')
 
 beforeEach(() => {
   vi.clearAllMocks()
   volume.value = 100
   orientation.value = 'landscape'
   scale.value = 'fit'
-  kioskMode.value = 'off'
   dailyReload.value = { enabled: true, time: '03:00' }
 })
 
@@ -58,16 +56,6 @@ describe('applyCommand — real device', () => {
     expect(scale.value).toBe('zoom')
     applyCommand({ type: 'scale', value: 'huge' as never } as PlayerCommand)
     expect(scale.value).toBe('zoom')
-  })
-
-  it('applies a known kiosk mode and ignores an unknown one', () => {
-    applyCommand({ type: 'kioskMode', value: 'hard' })
-    expect(kioskMode.value).toBe('hard')
-    applyCommand({
-      type: 'kioskMode',
-      value: 'locked' as never,
-    } as PlayerCommand)
-    expect(kioskMode.value).toBe('hard')
   })
 
   it('normalizes a malformed daily-reload time', () => {
@@ -105,17 +93,15 @@ describe('applyCommand — preview spectator', () => {
     expect(playbackPrevious).toHaveBeenCalledOnce()
   })
 
-  it('ignores device-only commands (volume, restart, dailyReload, kioskMode)', () => {
+  it('ignores device-only commands (volume, restart, dailyReload)', () => {
     applyCommand({ type: 'volume', value: 50 }, preview)
     applyCommand({ type: 'restart' }, preview)
     applyCommand(
       { type: 'dailyReload', value: { enabled: false, time: '04:00' } },
       preview,
     )
-    applyCommand({ type: 'kioskMode', value: 'hard' }, preview)
     expect(volume.value).toBe(100)
     expect(restartPlayer).not.toHaveBeenCalled()
     expect(dailyReload.value).toEqual({ enabled: true, time: '03:00' })
-    expect(kioskMode.value).toBe('off')
   })
 })

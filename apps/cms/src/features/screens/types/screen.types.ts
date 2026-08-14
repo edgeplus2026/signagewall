@@ -1,6 +1,5 @@
 import {
   DEFAULT_DAILY_RELOAD,
-  DEFAULT_KIOSK_MODE,
   DEFAULT_ORIENTATION,
   DEFAULT_SCALE,
   type DailyReloadSetting,
@@ -8,7 +7,6 @@ import {
   type DeviceScale,
   type DeviceSettings,
   type DeviceUpdateStatus,
-  type KioskMode,
   type PlayerRuntime,
 } from '@signagewall/player-contract'
 
@@ -35,12 +33,6 @@ export interface ScreenDeviceProfile {
   shellVersion?: string
   runtime?: PlayerRuntime
   updateStatus?: DeviceUpdateStatus
-  /**
-   * Android only: Device Owner provisioning, which is what decides whether a
-   * `hard` kiosk lock can actually hold. Absent elsewhere, and on shells too old
-   * to report it — so `false` means "confirmed unprovisioned", not "unknown".
-   */
-  deviceOwner?: boolean
 }
 
 // Device display + power settings come from @signagewall/player-contract — the single
@@ -48,7 +40,6 @@ export interface ScreenDeviceProfile {
 // `ScreenDevice*` names so the rest of the CMS keeps importing from here.
 export type ScreenDeviceOrientation = DeviceOrientation
 export type ScreenDeviceScale = DeviceScale
-export type ScreenDeviceKioskMode = KioskMode
 export type { DailyReloadSetting }
 export type ScreenDeviceSettings = DeviceSettings
 
@@ -56,7 +47,6 @@ export type ScreenDeviceSettings = DeviceSettings
 export const DEFAULT_DEVICE_SETTINGS: ScreenDeviceSettings = {
   orientation: DEFAULT_ORIENTATION,
   scale: DEFAULT_SCALE,
-  kioskMode: DEFAULT_KIOSK_MODE,
   dailyReload: { ...DEFAULT_DAILY_RELOAD },
 }
 

@@ -892,11 +892,6 @@
       "maintenance": {
         "title": "Održavanje"
       },
-      "kiosk": {
-        "title": "Kiosk",
-        "success": "Kiosk režim ažuriran.",
-        "error": "Nije moguće ažurirati kiosk režim. Pokušajte ponovo."
-      },
       "details": {
         "title": "Detalji uređaja"
       },
@@ -926,16 +921,6 @@
           "stretch": "Rastegni (popuni, izobliči)",
           "zoom": "Zumiraj (popuni, iseci)"
         }
-      },
-      "kioskMode": {
-        "title": "Kiosk zaključavanje",
-        "description": "Koliko je uređaj zaključan (samo Android ekrani).",
-        "options": {
-          "hard": "Tvrdo (potpuno zaključano)",
-          "soft": "Meko (korisnik može da izađe)",
-          "off": "Isključeno (bez zaključavanja)"
-        },
-        "notDeviceOwner": "Nije potpuno zaključano: uređaj nije registrovan kao Device Owner, pa aplikacija pada na screen pinning iz kog se može izaći. Pokreni Device Owner registraciju na uređaju za pravo zaključavanje."
       },
       "dailyReload": {
         "title": "Dnevni restart",

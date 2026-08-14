@@ -1,24 +1,37 @@
 import { effect } from '@preact/signals'
 
-import type { KioskMode } from '../types'
+import { setStoredKioskMode } from '../device'
+import { isKioskMode } from '../device-settings'
 import { kioskMode, snapshot } from '../store'
-import { applyKioskMode } from './commands'
+import type { KioskMode } from '../types'
 
 /**
- * The lock level to restore when the service menu switches the kiosk back ON.
- * The switch is a two-state control over a three-state setting, so turning it off
- * has to remember which level it turned off — otherwise a screen the CMS had
- * deliberately set to `soft` would come back `hard`. Defaults to `hard` because
- * that is what an operator who locks a signage box means; the shell degrades it
- * to screen-pinning by itself when the device isn't Device Owner.
+ * Kiosk lockdown is device-local: it is set here, on the screen itself, from the
+ * service menu, and never travels over the wire. It used to be a per-device CMS
+ * setting pushed down on connect — which meant every reconnect silently re-applied
+ * the dashboard's value over whatever the technician standing at the display had
+ * just chosen, and an operator could lock a box nobody was next to.
  */
-let lastLockedMode: KioskMode = 'hard'
+
+/**
+ * Applies + persists the kiosk lockdown mode, ignoring unknown values. Only the
+ * signal + storage are touched here; the native lock is driven reactively off the
+ * `kioskMode` signal by {@link startKioskLock} — so an offline reboot re-locks from
+ * the persisted value without anything having to ask it to.
+ */
+export function applyKioskMode(next: KioskMode): void {
+  if (!isKioskMode(next)) {
+    return
+  }
+  kioskMode.value = next
+  setStoredKioskMode(next)
+}
 
 /**
  * Drives the native shell's kiosk lockdown from the `kioskMode` signal. The
  * effect runs on mount with the persisted value — so an OFFLINE reboot re-applies
- * the lock before the socket reconnects — and again on every change pushed from
- * the CMS. Fire-and-forget over the Android bridge, guarded so a missing or
+ * the lock before anything else happens — and again whenever the service menu
+ * changes it. Fire-and-forget over the Android bridge, guarded so a missing or
  * throwing bridge never breaks playback. No-op off Android (a plain browser and
  * the Tauri desktop shell expose no `AndroidBridge`, and the OS handles kiosk
  * behavior there differently). Returns a disposer.
@@ -26,9 +39,6 @@ let lastLockedMode: KioskMode = 'hard'
 export function startKioskLock(): () => void {
   return effect(() => {
     const mode = kioskMode.value
-    if (mode !== 'off') {
-      lastLockedMode = mode
-    }
     try {
       window.AndroidBridge?.setKioskLock?.(mode)
     } catch {
@@ -58,13 +68,13 @@ export function startScreenNameBridge(): () => void {
 }
 
 /**
- * The service menu's kiosk switch. Writes through the same path as a CMS command
- * (`applyKioskMode`), so the choice persists and re-applies on an offline reboot
- * exactly like a remote one. The CMS stays the authority: its next push wins, and
- * this is the on-site override for a technician standing at the screen — which is
- * the whole reason it takes no PIN. Someone already holding the remote in front of
- * an unattended display is not who a PIN keeps out.
+ * The service menu's kiosk switch — the only thing that sets kiosk mode. Locking
+ * always asks for `hard`; the shell drops to escapable screen-pinning by itself on
+ * a box that isn't Device Owner, and the service menu says so next to the switch.
+ *
+ * It takes no PIN on purpose: someone already holding the remote in front of an
+ * unattended display is not who a PIN keeps out.
  */
 export function setKioskLockEnabled(enabled: boolean): void {
-  applyKioskMode(enabled ? lastLockedMode : 'off')
+  applyKioskMode(enabled ? 'hard' : 'off')
 }

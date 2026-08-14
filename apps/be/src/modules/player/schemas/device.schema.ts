@@ -2,13 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import {
   DEFAULT_DAILY_RELOAD_TIME,
-  KIOSK_MODES,
   ORIENTATIONS,
   SCALES,
   type DeviceOrientation as DeviceOrientationValue,
   type DeviceScale as DeviceScaleValue,
   type DeviceUpdateStatus as DeviceUpdateStatusValue,
-  type KioskMode as KioskModeValue,
   type PlayerRuntime,
 } from '@signagewall/player-contract';
 
@@ -44,17 +42,6 @@ export const DeviceScale = {
 } as const satisfies Record<string, DeviceScaleValue>;
 export type DeviceScale = DeviceScaleValue;
 
-/**
- * Kiosk lockdown level enforced by a native shell. Const object (not a TS `enum`)
- * so the value type IS the shared-contract union — same pattern as DeviceScale.
- */
-export const KioskMode = {
-  HARD: 'hard',
-  SOFT: 'soft',
-  OFF: 'off',
-} as const satisfies Record<string, KioskModeValue>;
-export type KioskMode = KioskModeValue;
-
 /** Automatic once-a-day player reload, in the device's local time. */
 @Schema({ _id: false })
 export class DailyReloadSetting {
@@ -73,6 +60,11 @@ export const DailyReloadSettingSchema =
  * Operator-controlled display + power settings pushed to the player. Grouped
  * under one subdocument so new device controls don't sprawl across top-level
  * scalars. (`volume` predates this and stays top-level for compatibility.)
+ *
+ * Kiosk lockdown used to live here. It doesn't any more: it is set on the device,
+ * in the player's service menu, and the backend never sees it. Documents written
+ * before that still carry a stray `settings.kioskMode` — harmless, since nothing
+ * reads it and Mongoose drops unknown paths on the next write.
  */
 @Schema({ _id: false })
 export class DeviceSettings {
@@ -85,9 +77,6 @@ export class DeviceSettings {
 
   @Prop({ type: String, enum: SCALES, default: DeviceScale.FIT })
   scale!: DeviceScale;
-
-  @Prop({ type: String, enum: KIOSK_MODES, default: KioskMode.OFF })
-  kioskMode!: KioskMode;
 
   @Prop({ type: DailyReloadSettingSchema, default: () => ({}) })
   dailyReload!: DailyReloadSetting;
@@ -155,10 +144,10 @@ export class DeviceProfile {
   updateStatus?: DeviceUpdateStatus;
 
   /**
-   * Android only: Device Owner provisioning. A `hard` kiosk lock only actually
-   * holds when this is true; without it the shell degrades to escapable
-   * screen-pinning, so the CMS must stop calling such a screen "fully locked".
-   * Undefined on a browser/desktop, and on shells too old to report it.
+   * Android only: Device Owner provisioning. A kiosk lock only actually holds
+   * when this is true; without it the shell degrades to escapable screen-pinning.
+   * Stored for fleet visibility only — the kiosk switch itself lives on the
+   * device. Undefined on a browser/desktop, and on shells too old to report it.
    */
   @Prop()
   deviceOwner?: boolean;
@@ -221,7 +210,7 @@ export class Device {
   @Prop({ default: 100, min: 0, max: 100 })
   volume!: number;
 
-  /** Display + power settings (orientation, scale, kiosk mode, daily reload). */
+  /** Display + power settings (orientation, scale, daily reload). */
   @Prop({ type: DeviceSettingsSchema, default: () => ({}) })
   settings!: DeviceSettings;
 

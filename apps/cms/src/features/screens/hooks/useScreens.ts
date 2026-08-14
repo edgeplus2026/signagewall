@@ -20,7 +20,6 @@ import {
   type ScreenAvailability,
   type ScreenAvailabilityStatus,
   type ScreenDevice,
-  type ScreenDeviceKioskMode,
   type ScreenDeviceOrientation,
   type ScreenDeviceScale,
   type ScreenDeviceSettings,
@@ -223,25 +222,6 @@ export function useSetDeviceScale() {
     onSuccess: (_data, variables) => {
       patchDevice(queryClient, variables.id, {
         settings: { scale: variables.scale },
-      })
-    },
-  })
-}
-
-export function useSetDeviceKioskMode() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({
-      id,
-      kioskMode,
-    }: {
-      id: string
-      kioskMode: ScreenDeviceKioskMode
-    }) => screensApi.setDeviceKioskMode(id, kioskMode),
-    onSuccess: (_data, variables) => {
-      patchDevice(queryClient, variables.id, {
-        settings: { kioskMode: variables.kioskMode },
       })
     },
   })

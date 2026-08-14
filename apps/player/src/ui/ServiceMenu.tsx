@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
-import type { JSX } from 'preact'
+import type { ComponentChildren, JSX } from 'preact'
 
 import { config } from '../config'
 import { getDeviceId } from '../device'
@@ -14,45 +14,56 @@ import {
   requestRecoveryPermission,
   type ShellDeviceInfo,
 } from '../native/service'
-import { connection, kioskMode, serviceMenuOpen, snapshot } from '../store'
+import { connection, kioskMode, paired, serviceMenuOpen, snapshot } from '../store'
 import { setKioskLockEnabled } from '../sync/kiosk'
 
 /**
- * The on-device service bar: what a technician standing in front of a screen
+ * The on-device service panel: what a technician standing in front of a screen
  * needs, reachable with the one key every remote has spare — UP.
  *
- * It rises from the bottom edge and spans the full width, like a TV's own
- * settings bar, so it reads as part of the device rather than as a dialog the
- * content threw up. Content keeps playing behind it; the bar covers only the
- * strip it needs.
+ * It is a sidebar down the right edge rather than a strip along the bottom. The
+ * shape matches the content it covers: signage is overwhelmingly landscape, so a
+ * column costs the artwork a third of its width instead of a band across the
+ * middle of it, and a vertical list is what a D-pad walks best — one axis, no
+ * wrapping, no guessing where the next item is on a different screen width.
  *
  * It lives in the web layer, not the shell, for two reasons: it can show what the
  * shell cannot (screen name, pairing state, player version) and it looks the same
  * on an Android box, a webOS TV and a browser, where a native dialog would exist
  * on exactly one of the three. The trade-off is real and worth stating: a page
- * that fails to load has no bar. That case is covered below this layer, by the
+ * that fails to load has no panel. That case is covered below this layer, by the
  * shell's key escape hatch, which unlocks the kiosk without needing the page.
  *
- * Navigation follows the shape: the actions sit side by side, so LEFT/RIGHT walks
- * them and OK activates whichever is focused. DOWN sends the bar back where it
- * came from. The destructive action sits at the far end, in danger colour, and is
- * the only one that asks twice.
+ * Navigation follows the shape: UP/DOWN walk the list, OK activates, and RIGHT
+ * sends the panel back off the edge it came from. The device facts are folded
+ * into one "Info" row that opens into a plain label/value list, so the panel
+ * opens as a short menu instead of a wall of small print.
  */
 
 /**
- * One action in the bar. Built as data rather than as fixed markup because the
- * set is not fixed: the recovery grant exists only on a device that still needs
- * it, and D-pad navigation has to walk whatever is actually there.
+ * One row in the panel. Built as data rather than as fixed markup because the set
+ * is not fixed: the recovery grant exists only on a device that still needs it,
+ * deactivation only on a paired one, and D-pad navigation has to walk whatever is
+ * actually there.
  */
 interface BarAction {
   key: string
   label: string
   hint: string
-  danger?: boolean
+  /**
+   * Something on this box needs a person. The panel's only accent colour, spent
+   * exclusively here — if everything is highlighted, nothing is.
+   */
+  attention?: boolean
   disabled?: boolean
-  /** Rendered as an on/off switch rather than a plain button. */
+  /** Rendered as an on/off switch rather than a plain row. */
   toggle?: boolean
   on?: boolean
+  /** Rendered as an expandable row (a chevron that turns). */
+  expandable?: boolean
+  expanded?: boolean
+  /** Shown under the row while it is expanded. */
+  detail?: JSX.Element
   activate: () => void
 }
 
@@ -60,6 +71,7 @@ export function ServiceMenu() {
   const open = serviceMenuOpen.value
   const [index, setIndex] = useState(0)
   const [confirming, setConfirming] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [info, setInfo] = useState<ShellDeviceInfo | undefined>(undefined)
   const [noSettingsScreen, setNoSettingsScreen] = useState(false)
@@ -69,23 +81,60 @@ export function ServiceMenu() {
   const close = useCallback((): void => {
     serviceMenuOpen.value = false
     setConfirming(false)
+    setInfoOpen(false)
     setIndex(0)
   }, [])
 
   const locked = kioskMode.value !== 'off'
   const canClose = Boolean(window.AndroidBridge?.closeApp)
   const screen = snapshot.value
+  const isPaired = paired.value
   // Undefined means a shell too old to answer — say nothing rather than accuse a
   // healthy device of being broken.
   const needsRecovery = info?.canRecover === false
 
   const actions: BarAction[] = []
 
-  // First, and only while it is missing. Without this the display cannot put
-  // itself back after anything knocks it off — which is the difference between a
-  // four-second blip and a screen that sits on the TV menu until a customer
-  // notices. Seen in the field: a firmware codec crash took the player off and
-  // 63 consecutive recovery attempts were refused by Android.
+  // First, and harmless to activate: whichever row the D-pad lands on when the
+  // panel opens is the one an impatient OK press hits, and that should be the row
+  // that only ever shows something.
+  actions.push({
+    key: 'info',
+    label: 'Info',
+    hint: 'Versions, model and device id',
+    expandable: true,
+    expanded: infoOpen,
+    detail: (
+      <div class="service-panel__info">
+        <dl class="service-panel__facts">
+          <Fact label="Player" value={config.appVersion} />
+          <Fact label="Shell" value={info?.shellVersion} />
+          <Fact label="Android" value={androidLabel(info)} />
+          <Fact label="Model" value={info?.model} />
+          <Fact label="Device" value={getDeviceId()} mono />
+        </dl>
+        {/* Only meaningful on Android, and only worth showing when the answer is
+            no: a box that isn't Device Owner cannot truly lock, and this is where
+            a technician finds out instead of assuming it did. */}
+        {info?.deviceOwner === false && (
+          <Note>Kiosk lock can be bypassed on this box</Note>
+        )}
+        {(info?.recoveryRung ?? 0) > 0 && (
+          <Note>Recovering repeatedly (step {info?.recoveryRung})</Note>
+        )}
+        {needsRecovery && (
+          <Note>Screen cannot restore itself if playback crashes</Note>
+        )}
+      </div>
+    ),
+    activate: () => setInfoOpen((shown) => !shown),
+  })
+
+  // Only while it is missing. Without this the display cannot put itself back
+  // after anything knocks it off — which is the difference between a four-second
+  // blip and a screen that sits on the TV menu until a customer notices. Seen in
+  // the field: a firmware codec crash took the player off and 63 consecutive
+  // recovery attempts were refused by Android.
   if (needsRecovery) {
     actions.push({
       key: 'recovery',
@@ -93,6 +142,7 @@ export function ServiceMenu() {
       hint: noSettingsScreen
         ? 'This TV has no screen for it — the player cannot restore itself'
         : 'Opens Android settings. Without it the screen stays blank if playback crashes.',
+      attention: true,
       disabled: noSettingsScreen,
       activate: () => {
         void requestRecoveryPermission().then((opened) => {
@@ -113,6 +163,7 @@ export function ServiceMenu() {
         updateState === 'updating'
           ? 'Confirm the system dialog when it appears; the player restarts itself'
           : 'This screen cannot install updates on its own — confirm it here, once',
+      attention: true,
       disabled: updateState === 'updating',
       activate: () => {
         setUpdateState('updating')
@@ -137,38 +188,43 @@ export function ServiceMenu() {
 
   actions.push({
     key: 'close',
-    label: 'Close application',
+    label: 'Close SignageWall',
     hint: canClose
       ? 'Exits to the TV menu. Nothing plays until it is reopened.'
       : 'Only available on the Android player app',
     disabled: !canClose,
-    // Off a native shell this is a no-op; the button is disabled there, so
-    // reaching here at all means a shell that promised `closeApp` and refused.
+    // Off a native shell this is a no-op; the row is disabled there, so reaching
+    // here at all means a shell that promised `closeApp` and refused.
     activate: () => void closeApp(),
   })
 
-  actions.push({
-    key: 'deactivate',
-    label: busy
-      ? 'Deactivating…'
-      : confirming
-        ? 'Press again to confirm'
-        : 'Deactivate player',
-    hint: 'Frees this device for another screen. It asks for a new registration code; your screen and its playlist stay in the dashboard.',
-    danger: true,
-    disabled: busy,
-    // First press arms, second confirms. Wiping a paired screen on a single
-    // D-pad press is not a mistake anyone should be able to make.
-    activate: () =>
-      setConfirming((armed) => {
-        if (!armed) {
+  // Nothing to deactivate on a display that was never paired: the row would ask
+  // to free a device that is already free, and it is the one row here that can
+  // cost someone a working screen. It comes back with the pairing.
+  if (isPaired) {
+    actions.push({
+      key: 'deactivate',
+      label: busy
+        ? 'Deactivating…'
+        : confirming
+          ? 'Press again to confirm'
+          : 'Deactivate player',
+      hint: 'Frees it for another screen and asks for a new code. Your content stays in the dashboard.',
+      attention: confirming,
+      disabled: busy,
+      // First press arms, second confirms. Wiping a paired screen on a single
+      // D-pad press is not a mistake anyone should be able to make.
+      activate: () =>
+        setConfirming((armed) => {
+          if (!armed) {
+            return true
+          }
+          setBusy(true)
+          void deactivateDevice()
           return true
-        }
-        setBusy(true)
-        void deactivateDevice()
-        return true
-      }),
-  })
+        }),
+    })
+  }
 
   // Mirrored into a ref so the key handler — registered once — always sees the
   // current selection and action set without re-subscribing on every keypress.
@@ -184,7 +240,7 @@ export function ServiceMenu() {
   }, [])
 
   // Signage has no pointer, so one window listener drives everything. It runs
-  // whether or not the bar is open, because UP is also what opens it.
+  // whether or not the panel is open, because UP is also what opens it.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       // Native shells only — see isServiceMenuAvailable. Checked per keypress
@@ -201,13 +257,13 @@ export function ServiceMenu() {
         return
       }
 
-      // While open, the bar owns the arrows: stopPropagation keeps the stage's
+      // While open, the panel owns the arrows: stopPropagation keeps the stage's
       // own left/right handler from paging the playlist behind us.
       switch (event.key) {
-        case 'ArrowLeft':
+        case 'ArrowUp':
           move(-1)
           break
-        case 'ArrowRight':
+        case 'ArrowDown':
           move(1)
           break
         case 'Enter':
@@ -218,14 +274,19 @@ export function ServiceMenu() {
           }
           break
         }
-        // Down dismisses — the bar goes back the way it came. Escape/Back are
+        // Right dismisses — the panel goes back the way it came. Escape/Back are
         // the same intent from a keyboard or a remote whose BACK the shell
         // forwards to us.
-        case 'ArrowDown':
+        case 'ArrowRight':
         case 'Escape':
         case 'Backspace':
         case 'GoBack':
           close()
+          break
+        // Swallowed, not acted on: LEFT points further into the panel, where
+        // there is nothing to go to, and letting it through would page the
+        // playlist behind an open menu.
+        case 'ArrowLeft':
           break
         default:
           return
@@ -234,17 +295,17 @@ export function ServiceMenu() {
       event.stopPropagation()
     }
 
-    // Capture phase so the bar sees the key before the stage's bubble-phase
+    // Capture phase so the panel sees the key before the stage's bubble-phase
     // handler, which is what makes stopPropagation above actually hold.
     window.addEventListener('keydown', onKeyDown, true)
     return () => window.removeEventListener('keydown', onKeyDown, true)
   }, [close, move])
 
-  // Let the native shell drive the bar too. On a signage screen the content is
+  // Let the native shell drive the panel too. On a signage screen the content is
   // usually an app in a cross-origin iframe, and while that iframe holds focus
   // the page never sees a key at all — so the shell intercepts UP above the
   // WebView and calls in here. It also needs to know we are open, so it can send
-  // its BACK to the bar instead of quitting the app.
+  // its BACK to the panel instead of quitting the app.
   useEffect(() => {
     if (!isServiceMenuAvailable()) {
       return undefined
@@ -264,7 +325,7 @@ export function ServiceMenu() {
     reportServiceMenuOpen(open)
   }, [open])
 
-  // Ask the shell for its device facts each time the bar opens rather than once
+  // Ask the shell for its device facts each time the panel opens rather than once
   // at boot: kiosk mode, Device Owner and the recovery permission can all change
   // while the player runs — the last one changes precisely because the operator
   // just granted it from here — and a service menu showing stale state is worse
@@ -289,87 +350,92 @@ export function ServiceMenu() {
     }
   }, [open])
 
+  // Keep the selection on screen. The list is short, but an expanded Info block
+  // on a phone-sized viewport can push the last rows past the fold, and a D-pad
+  // user steering a highlight they cannot see is lost.
+  const listRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+    listRef.current
+      ?.querySelector<HTMLElement>('[data-focused="true"]')
+      ?.scrollIntoView({ block: 'nearest' })
+  }, [open, index, infoOpen])
+
   if (!open) {
     return null
   }
 
   return (
-    <div class="service-bar" role="dialog" aria-modal="true" aria-label="Service menu">
-      <div class="service-bar__sheet">
-        <div class="service-bar__facts">
-          <span class="service-bar__name">{screen?.name ?? 'Unpaired display'}</span>
-          <Fact label="Status" value={screen ? connection.value : 'not paired'} />
-          <Fact label="Player" value={config.appVersion} />
-          <Fact label="Shell" value={info?.shellVersion} />
-          <Fact label="Android" value={androidLabel(info)} />
-          <Fact label="Model" value={info?.model} />
-          <Fact label="Device" value={getDeviceId()} mono />
-          {/* Only meaningful on Android, and only worth showing when the answer
-              is no: a box that isn't Device Owner cannot truly lock, and this is
-              where a technician finds out instead of assuming it did. */}
-          {info?.deviceOwner === false && (
-            <span class="service-bar__warn">
-              Kiosk lock can be bypassed on this box
-            </span>
-          )}
-          {(info?.recoveryRung ?? 0) > 0 && (
-            <span class="service-bar__warn">
-              Recovering repeatedly (step {info?.recoveryRung})
-            </span>
-          )}
-          {needsRecovery && (
-            <span class="service-bar__warn">
-              Screen cannot restore itself if playback crashes
-            </span>
-          )}
-        </div>
+    <div
+      class="service-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Service menu"
+    >
+      <div class="service-panel__sheet">
+        <header class="service-panel__header">
+          {/* A paired screen whose snapshot hasn't loaded yet has no name to show,
+              but it is emphatically not unpaired — saying so would send a
+              technician off to re-pair a display that is working. */}
+          <span class="service-panel__name">
+            {screen?.name ?? (isPaired ? 'Unnamed screen' : 'Unpaired display')}
+          </span>
+          <span class="service-panel__status">
+            {isPaired ? connection.value : 'not paired'}
+          </span>
+        </header>
 
-        <div
-          class="service-bar__actions"
-          style={`grid-template-columns: repeat(${actions.length}, 1fr)`}
-        >
+        <div class="service-panel__list" ref={listRef}>
           {actions.map((action, i) => (
-            <button
-              key={action.key}
-              type="button"
-              class={
-                action.danger
-                  ? 'service-bar__action service-bar__action--danger'
-                  : 'service-bar__action'
-              }
-              data-focused={index === i}
-              data-armed={action.danger ? confirming : undefined}
-              aria-pressed={action.toggle ? action.on : undefined}
-              disabled={action.disabled ?? false}
-              onClick={() => {
-                setIndex(i)
-                action.activate()
-              }}
-            >
-              <span class="service-bar__action-text">
-                <span class="service-bar__action-label">{action.label}</span>
-                <span class="service-bar__action-hint">{action.hint}</span>
-              </span>
-              {action.toggle && (
-                <span
-                  class="service-bar__switch"
-                  data-on={action.on ?? false}
-                  aria-hidden="true"
-                >
-                  <span class="service-bar__knob" />
+            <div class="service-panel__item" key={action.key}>
+              <button
+                type="button"
+                class="service-panel__action"
+                data-focused={index === i}
+                data-attention={action.attention ?? false}
+                aria-pressed={action.toggle ? action.on : undefined}
+                aria-expanded={action.expandable ? action.expanded : undefined}
+                disabled={action.disabled ?? false}
+                onClick={() => {
+                  setIndex(i)
+                  action.activate()
+                }}
+              >
+                <span class="service-panel__action-text">
+                  <span class="service-panel__action-label">{action.label}</span>
+                  <span class="service-panel__action-hint">{action.hint}</span>
                 </span>
-              )}
-            </button>
+                {action.toggle && (
+                  <span
+                    class="service-panel__switch"
+                    data-on={action.on ?? false}
+                    aria-hidden="true"
+                  >
+                    <span class="service-panel__knob" />
+                  </span>
+                )}
+                {action.expandable && (
+                  <span
+                    class="service-panel__chevron"
+                    data-open={action.expanded ?? false}
+                    aria-hidden="true"
+                  />
+                )}
+              </button>
+              {action.expanded ? action.detail : null}
+            </div>
           ))}
         </div>
 
-        <div class="service-bar__hints">◀ ▶ select · OK confirm · ▼ close</div>
+        <div class="service-panel__hints">▲ ▼ select · OK confirm · ▶ close</div>
       </div>
     </div>
   )
 }
 
-/** One inline label/value pair. Missing values render as an em dash, never blank. */
+/** One label/value row of the Info block. Missing values render as an em dash, never blank. */
 function Fact({
   label,
   value,
@@ -380,11 +446,16 @@ function Fact({
   mono?: boolean
 }): JSX.Element {
   return (
-    <span class="service-bar__fact">
-      <span class="service-bar__fact-label">{label}</span>
-      <span class={mono ? 'service-bar__mono' : undefined}>{value ?? '—'}</span>
-    </span>
+    <div class="service-panel__fact">
+      <dt class="service-panel__fact-label">{label}</dt>
+      <dd class={mono ? 'service-panel__mono' : undefined}>{value ?? '—'}</dd>
+    </div>
   )
+}
+
+/** A device fact that is bad news. Same list, marked — not a different design. */
+function Note({ children }: { children: ComponentChildren }): JSX.Element {
+  return <p class="service-panel__note">{children}</p>
 }
 
 /** "14 (SDK 34)" when both are known, and whichever one is when they aren't. */

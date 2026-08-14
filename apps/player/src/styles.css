@@ -507,228 +507,301 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   On-device service bar (UP on the remote). A full-width strip that rises from
-   the bottom edge, flush left/right/bottom, like a TV's own settings bar —
-   deliberately NOT a centred dialog, so the content behind it keeps playing and
-   stays visible. Sized in vmin/clamp so it reads the same on a 55" TV from four
-   metres and on a tablet held at arm's length.
+   On-device service panel (UP on the remote). A sidebar pinned to the right
+   edge, full height, over content that keeps playing to the left of it —
+   deliberately NOT a centred dialog, and no longer a bottom strip: signage is
+   landscape, so a column costs the artwork width it has to spare rather than a
+   band across the middle of it.
+
+   One palette, defined here and nowhere else. It is deliberately colourless: a
+   service menu is read, not browsed, and a screen full of competing accents is
+   how an operator ends up pressing the loud thing instead of the right thing.
+   `--svc-attention` is the single exception and means exactly one thing —
+   something on this box needs a person.
+
+   Sized in vmin/clamp so it reads the same on a 55" TV from four metres and on a
+   tablet held at arm's length.
    --------------------------------------------------------------------------- */
-.service-bar {
+.service-panel {
+  --svc-bg: #101012;
+  --svc-line: rgba(255, 255, 255, 0.09);
+  --svc-row: rgba(255, 255, 255, 0.045);
+  --svc-row-focus: rgba(255, 255, 255, 0.14);
+  --svc-edge-focus: rgba(255, 255, 255, 0.66);
+  --svc-text: #f1f1f2;
+  --svc-text-dim: rgba(241, 241, 242, 0.56);
+  --svc-text-faint: rgba(241, 241, 242, 0.34);
+  --svc-attention: #d8a25c;
+
   position: fixed;
-  inset: auto 0 0 0;
+  inset: 0 0 0 auto;
   z-index: 10000;
-  /* Only the strip itself is interactive: the area above stays untouched, which
-     is what keeps this a bar rather than a modal. */
+  display: flex;
+  justify-content: flex-end;
+  /* Only the sheet itself is interactive: the content to its left stays
+     untouched, which is what keeps this a panel rather than a modal. */
   pointer-events: none;
 }
 
-.service-bar__sheet {
+.service-panel__sheet {
   pointer-events: auto;
-  padding: clamp(14px, 2vmin, 22px) clamp(18px, 3vw, 44px)
-    clamp(16px, 2.2vmin, 24px);
-  background: linear-gradient(to top, #0b0d14 72%, rgba(11, 13, 20, 0.94));
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.55);
-  color: #f4f6fb;
+  display: flex;
+  flex-direction: column;
+  width: clamp(320px, 34vw, 460px);
+  max-width: 100%;
+  height: 100%;
+  background: var(--svc-bg);
+  border-left: 1px solid var(--svc-line);
+  box-shadow: -24px 0 64px rgba(0, 0, 0, 0.6);
+  color: var(--svc-text);
   font-family:
     system-ui,
     -apple-system,
     'Segoe UI',
     sans-serif;
-  animation: service-bar-rise 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: service-panel-slide 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Facts read as one line of small print above the actions — enough for a
-   technician to match this box against the CMS, without becoming the content. */
-.service-bar__facts {
+/* Who this screen is, in the two facts worth reading without opening anything:
+   the name the CMS lists it under, and whether it is talking to the server. */
+.service-panel__header {
+  flex: none;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px clamp(12px, 2vw, 24px);
-  margin-bottom: clamp(12px, 1.8vmin, 18px);
-  font-size: clamp(11px, 1.35vmin, 14px);
-  color: rgba(244, 246, 251, 0.72);
+  flex-direction: column;
+  gap: 4px;
+  padding: clamp(18px, 2.6vmin, 28px) clamp(18px, 2.2vmin, 26px)
+    clamp(14px, 2vmin, 20px);
+  border-bottom: 1px solid var(--svc-line);
 }
 
-.service-bar__name {
-  font-size: clamp(15px, 2vmin, 20px);
+.service-panel__name {
+  font-size: clamp(18px, 2.4vmin, 26px);
   font-weight: 600;
-  color: #fff;
+  line-height: 1.25;
 }
 
-.service-bar__fact {
-  display: inline-flex;
-  gap: 6px;
+.service-panel__status {
+  font-size: clamp(12px, 1.5vmin, 15px);
+  color: var(--svc-text-dim);
+  text-transform: lowercase;
 }
 
-.service-bar__fact-label {
-  color: rgba(244, 246, 251, 0.42);
+/* Scrolls on its own so the header and the key legend stay put — an expanded
+   Info block on a short viewport must never push the legend off the screen. */
+.service-panel__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: clamp(10px, 1.4vmin, 16px) clamp(12px, 1.6vmin, 18px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 0.8vmin, 10px);
 }
 
-.service-bar__mono {
-  font-family: ui-monospace, monospace;
-  font-size: 0.94em;
+.service-panel__item {
+  display: flex;
+  flex-direction: column;
 }
 
-.service-bar__warn {
-  color: #ffb454;
-}
-
-/* Equal columns so the focus ring lands somewhere predictable on every screen
-   width — a D-pad user is aiming without a pointer. The count is set inline: the
-   action set is not fixed, since the recovery grant only appears on a device that
-   still needs it. */
-.service-bar__actions {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(8px, 1.2vw, 16px);
-}
-
-.service-bar__action {
+.service-panel__action {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: clamp(12px, 1.7vmin, 18px) clamp(14px, 1.6vw, 22px);
-  border: 2px solid transparent;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.07);
+  gap: 14px;
+  width: 100%;
+  padding: clamp(12px, 1.7vmin, 18px) clamp(13px, 1.6vmin, 18px);
+  border: 0;
+  /* The focus ring is a bar down the leading edge rather than an outline: on a
+     vertical list it says "you are here" at a glance from across a room, and it
+     costs no colour to do it. */
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  background: var(--svc-row);
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
   transition:
     background 140ms ease,
-    border-color 140ms ease,
-    transform 140ms ease;
+    border-color 140ms ease;
+}
+
+/* The one accent in the panel. Still the same row — marked, not redesigned — so
+   a screen that needs attention reads as urgent without reading as broken. */
+.service-panel__action[data-attention='true'] {
+  border-left-color: var(--svc-attention);
+}
+
+.service-panel__action[data-attention='true'] .service-panel__action-label {
+  color: var(--svc-attention);
 }
 
 /* Driven by our own selection index rather than :focus — a WebView hands DOM
    focus to whatever it likes (an app iframe underneath, for one), and the
    highlight the operator steers with must track the key handler, not the
-   browser. */
-.service-bar__action[data-focused='true'] {
-  background: rgba(90, 140, 255, 0.24);
-  border-color: #5a8cff;
-  transform: translateY(-2px);
+   browser.
+
+   Declared AFTER the attention rule and at equal specificity, so on a row that is
+   both, focus wins the edge: where you are standing has to stay findable even
+   among rows shouting for attention. The amber label still says which row it is. */
+.service-panel__action[data-focused='true'] {
+  background: var(--svc-row-focus);
+  border-left-color: var(--svc-edge-focus);
 }
 
-/* The bar draws its own selection ring off `data-focused`, so the browser's
+/* The panel draws its own selection ring off `data-focused`, so the browser's
    default one would be a second, contradicting highlight — on the TV it landed
    on a different action than the one the D-pad was actually on. Same trade-off
    the playback controls already make. */
-.service-bar__action:focus,
-.service-bar__action:focus-visible {
+.service-panel__action:focus,
+.service-panel__action:focus-visible {
   outline: none;
 }
 
-.service-bar__action:disabled {
-  opacity: 0.45;
+.service-panel__action:disabled {
+  opacity: 0.42;
   cursor: not-allowed;
 }
 
-.service-bar__action-text {
+.service-panel__action-text {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
-.service-bar__action-label {
-  font-size: clamp(14px, 1.85vmin, 18px);
+.service-panel__action-label {
+  font-size: clamp(16px, 2vmin, 21px);
   font-weight: 500;
 }
 
-.service-bar__action-hint {
-  font-size: clamp(11px, 1.35vmin, 13px);
-  color: rgba(244, 246, 251, 0.5);
+.service-panel__action-hint {
+  font-size: clamp(12px, 1.45vmin, 15px);
+  line-height: 1.4;
+  color: var(--svc-text-dim);
 }
 
-.service-bar__action--danger {
-  background: rgba(255, 77, 79, 0.13);
-  color: #ff8b8d;
-}
-
-.service-bar__action--danger[data-focused='true'] {
-  background: rgba(255, 77, 79, 0.28);
-  border-color: #ff4d4f;
-}
-
-/* Armed = one press away from wiping the pairing. It stops looking like a menu
-   item and starts looking like a warning. */
-.service-bar__action--danger[data-armed='true'] {
-  background: #ff4d4f;
-  border-color: #ff4d4f;
-  color: #fff;
-}
-
-.service-bar__action--danger[data-armed='true'] .service-bar__action-hint {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.service-bar__switch {
+/* Small on purpose: it is a state readout the operator flips once, not the
+   subject of the row. The label beside it already says what it does. */
+.service-panel__switch {
   flex: none;
-  width: 52px;
-  height: 30px;
+  width: 42px;
+  height: 24px;
   padding: 3px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.16);
   transition: background 160ms ease;
 }
 
-.service-bar__switch[data-on='true'] {
-  background: #34c759;
+.service-panel__switch[data-on='true'] {
+  background: var(--svc-text);
 }
 
-.service-bar__knob {
+.service-panel__knob {
   display: block;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.75);
+  transition:
+    transform 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 160ms ease;
 }
 
-.service-bar__switch[data-on='true'] .service-bar__knob {
-  transform: translateX(22px);
+/* Dark knob on a light track: on/off stays legible without spending a colour on
+   it, and it survives a TV with the contrast pushed to either extreme. */
+.service-panel__switch[data-on='true'] .service-panel__knob {
+  background: var(--svc-bg);
+  transform: translateX(18px);
 }
 
-.service-bar__hints {
-  margin-top: clamp(10px, 1.4vmin, 14px);
-  font-size: clamp(11px, 1.35vmin, 13px);
-  color: rgba(244, 246, 251, 0.4);
+.service-panel__chevron {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  border-right: 2px solid var(--svc-text-faint);
+  border-bottom: 2px solid var(--svc-text-faint);
+  transform: rotate(-45deg);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.service-panel__chevron[data-open='true'] {
+  transform: rotate(45deg);
+}
+
+/* The Info block: one fact per line, labels in a column of their own, so a
+   technician reads down it instead of hunting through a run of small print. */
+.service-panel__info {
+  padding: clamp(10px, 1.4vmin, 16px) clamp(14px, 1.8vmin, 20px)
+    clamp(12px, 1.6vmin, 18px);
+  margin-left: 3px;
+}
+
+.service-panel__facts {
+  display: grid;
+  gap: clamp(6px, 0.9vmin, 10px);
+  font-size: clamp(13px, 1.65vmin, 17px);
+}
+
+.service-panel__fact {
+  display: grid;
+  grid-template-columns: minmax(0, 5.5em) 1fr;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.service-panel__fact-label {
+  color: var(--svc-text-faint);
+}
+
+.service-panel__mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+}
+
+/* A fact that is bad news. Same list, same size — only the colour and the rule
+   beside it say "this one matters". */
+.service-panel__note {
+  margin-top: clamp(8px, 1.1vmin, 12px);
+  padding-left: 10px;
+  border-left: 2px solid var(--svc-attention);
+  font-size: clamp(12px, 1.5vmin, 15px);
+  line-height: 1.4;
+  color: var(--svc-attention);
+}
+
+.service-panel__hints {
+  flex: none;
+  padding: clamp(12px, 1.6vmin, 18px);
+  border-top: 1px solid var(--svc-line);
+  font-size: clamp(12px, 1.45vmin, 15px);
+  color: var(--svc-text-faint);
   text-align: center;
 }
 
-/* Rises from below the bottom edge — the direction the key that opened it points,
-   so the gesture and the motion agree. */
-@keyframes service-bar-rise {
+/* Slides in from the right edge — the edge it sits on, so the motion says where
+   RIGHT will send it back to. */
+@keyframes service-panel-slide {
   from {
-    transform: translateY(100%);
+    transform: translateX(100%);
   }
   to {
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
-/* Narrow screens (a phone held upright) can't carry three columns; stack them
-   and the same left/right keys still walk top to bottom. */
-@media (max-width: 640px) {
-  .service-bar__actions {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Honour a reduced-motion preference: the bar still appears, it just doesn't
+/* Honour a reduced-motion preference: the panel still appears, it just doesn't
    travel. Same policy as the slide transition. */
 @media (prefers-reduced-motion: reduce) {
-  .service-bar__sheet {
+  .service-panel__sheet {
     animation-duration: 1ms;
   }
 
-  .service-bar__action,
-  .service-bar__switch,
-  .service-bar__knob {
+  .service-panel__action,
+  .service-panel__switch,
+  .service-panel__knob,
+  .service-panel__chevron {
     transition-duration: 1ms;
   }
 }

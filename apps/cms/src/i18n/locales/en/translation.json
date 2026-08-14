@@ -914,11 +914,6 @@
       "maintenance": {
         "title": "Maintenance"
       },
-      "kiosk": {
-        "title": "Kiosk",
-        "success": "Kiosk mode updated.",
-        "error": "Could not update the kiosk mode. Please try again."
-      },
       "details": {
         "title": "Device details"
       },
@@ -948,16 +943,6 @@
           "stretch": "Stretch (fill, distort)",
           "zoom": "Zoom (fill, crop)"
         }
-      },
-      "kioskMode": {
-        "title": "Kiosk lock",
-        "description": "How locked-down the device is (Android displays only).",
-        "options": {
-          "hard": "Hard (fully locked)",
-          "soft": "Soft (user can exit)",
-          "off": "Off (no lock)"
-        },
-        "notDeviceOwner": "Not fully locked: this device is not provisioned as Device Owner, so the shell falls back to screen pinning, which a viewer can exit. Run the Device Owner provisioning step on the device to enforce a hard lock."
       },
       "dailyReload": {
         "title": "Daily reload",
