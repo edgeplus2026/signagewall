@@ -639,6 +639,14 @@ export class PlayerService {
     return this.contentService.resolveByScreenId(organizationId, screenId);
   }
 
+  /** Snapshot of a playlist on its own, for the CMS content preview. */
+  resolvePlaylistSnapshot(
+    organizationId: string,
+    playlistId: string,
+  ): Promise<PlayerSnapshot | null> {
+    return this.contentService.resolveByPlaylistId(organizationId, playlistId);
+  }
+
   private emitRevoked(deviceId: string): void {
     this.eventEmitter.emit(PlayerEvents.DeviceRevoked, {
       deviceId,

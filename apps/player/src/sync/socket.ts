@@ -12,6 +12,7 @@ import {
   setToken,
 } from '../device'
 import { clearMediaCaches, clearSnapshot, saveSnapshot } from '../persistence/idb'
+import type { PreviewMode, PreviewTarget } from '../preview'
 import { applyCommand, applySettings, applyVolume } from './commands'
 import { playbackShowItem } from './playback-bus'
 import {
@@ -159,16 +160,22 @@ export function disconnectPlayer(): void {
  * Opens the realtime channel as a read-only CMS preview spectator. Unlike
  * {@link connectPlayer} it authenticates with the operator's access token (not
  * a device token), never persists snapshots, starts a heartbeat, or handles
- * pairing/revoke events. The server admits it to the screen's room without
- * creating a device or touching presence, so it stays invisible to the real
- * device's online/offline state.
+ * pairing/revoke events. The server admits it without creating a device or
+ * touching presence, so it stays invisible to the real device's online/offline
+ * state.
  *
- * It still applies live `command`s (orientation/scale, and remote next/prev) so
- * the preview mirrors the device in lockstep — except volume, which is forced
- * to 0: a preview is always muted so it never plays audio behind the operator.
+ * Volume is forced to 0: a preview is always muted so it never plays audio
+ * behind the operator.
+ *
+ * In `follow` mode (a screen mirror) it also tracks the device 1:1 — pulling
+ * the device's current item on join and applying live `command`s
+ * (orientation/scale, remote next/prev) so the two stay in lockstep. A
+ * `standalone` preview has no device to track: it just renders the snapshot and
+ * plays it on its own clock.
  */
 export function connectPreview(params: {
-  screenId: string
+  target: PreviewTarget
+  mode: PreviewMode
   token: string
 }): void {
   if (socket) {
@@ -178,9 +185,15 @@ export function connectPreview(params: {
   // A preview is always muted, regardless of the device's volume.
   volume.value = 0
 
+  const follow = params.mode === 'follow'
+  const target =
+    params.target.kind === 'screen'
+      ? { screenId: params.target.screenId }
+      : { playlistId: params.target.playlistId }
+
   socket = io(`${config.wsUrl}/player`, {
     transports: ['websocket', 'polling'],
-    auth: { preview: { screenId: params.screenId, token: params.token } },
+    auth: { preview: { ...target, token: params.token } },
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 15_000,
@@ -190,7 +203,9 @@ export function connectPreview(params: {
     connection.value = 'online'
     // Pull the device's current item so we sync on join, not on its next
     // transition. (Re-runs on every reconnect, which is what we want.)
-    socket?.emit('now-playing:request')
+    if (follow) {
+      socket?.emit('now-playing:request')
+    }
   })
   socket.io.on('reconnect_attempt', () => {
     connection.value = 'reconnecting'
@@ -214,21 +229,23 @@ export function connectPreview(params: {
     }
   })
 
-  // Mirror the device 1:1: jump to whatever item it reports as on screen. The
-  // preview's engine runs in follow mode, so this is what drives its playback.
-  socket.on('now-playing', (payload: { itemId?: string }) => {
-    if (payload?.itemId) {
-      lastNowPlayingId = payload.itemId
-      playbackShowItem(payload.itemId)
-    }
-  })
+  if (follow) {
+    // Mirror the device 1:1: jump to whatever item it reports as on screen. The
+    // preview's engine runs in follow mode, so this is what drives its playback.
+    socket.on('now-playing', (payload: { itemId?: string }) => {
+      if (payload?.itemId) {
+        lastNowPlayingId = payload.itemId
+        playbackShowItem(payload.itemId)
+      }
+    })
 
-  // Mirror live display commands so the preview tracks the device. The preview
-  // flag drops the device-only commands (volume — always muted — plus
-  // restart/dailyReload).
-  socket.on('command', (command: PlayerCommand) => {
-    applyCommand(command, { preview: true })
-  })
+    // Mirror live display commands so the preview tracks the device. The preview
+    // flag drops the device-only commands (volume — always muted — plus
+    // restart/dailyReload).
+    socket.on('command', (command: PlayerCommand) => {
+      applyCommand(command, { preview: true })
+    })
+  }
 }
 
 function startHeartbeat(): void {

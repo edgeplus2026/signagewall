@@ -1,4 +1,4 @@
-import { ListXIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react"
+import { EyeIcon, ListXIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -16,6 +16,7 @@ import {
   ContentEditor,
   type ContentEditorLabels,
 } from "@/features/content/components/ContentEditor"
+import { ContentPreviewDialog } from "@/features/content/components/ContentPreviewDialog"
 import { useContentContainer } from "@/features/content/hooks/useContentContainer"
 import {
   createAppDraftItem,
@@ -78,6 +79,7 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
   const navigate = useNavigate()
   const replaceScreenItems = useReplaceScreenItems()
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [mediaToEdit, setMediaToEdit] = useState<MediaItem | null>(null)
 
   const { baseline, draftItems, setDraftItems, buildSavePayload } =
@@ -202,6 +204,14 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-auto min-w-52">
+        <DropdownMenuItem
+          onClick={() => {
+            setPreviewOpen(true)
+          }}
+        >
+          <EyeIcon />
+          {t("screens.actions.preview")}
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleClearContent}>
           <ListXIcon />
           {t("screens.manage.actions.clearAllContent")}
@@ -263,6 +273,15 @@ export function ScreenContentTab({ screen }: ScreenContentTabProps) {
         item={mediaToEdit}
       />
 
+      {/* The preview plays the SAVED screen through the real player, so unsaved
+          edits in the editor are not reflected until they're saved. */}
+      <ContentPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        target={{ kind: "screen", screenId: screen.id }}
+        name={screen.name}
+        itemCount={screen.items.length}
+      />
     </>
   )
 }

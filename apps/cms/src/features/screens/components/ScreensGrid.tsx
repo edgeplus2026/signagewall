@@ -16,6 +16,7 @@ interface ScreensGridProps {
   onSelect: (id: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
   onOpen: (screen: ScreenSummary, tab: ScreenManageTab) => void
+  onPreview: (screen: ScreenSummary) => void
   onDelete: (ids: string[]) => void
   onCreate: () => void
 }
@@ -26,6 +27,7 @@ export function ScreensGrid({
   onSelect,
   onSelectAll,
   onOpen,
+  onPreview,
   onDelete,
   onCreate,
 }: ScreensGridProps) {
@@ -63,6 +65,7 @@ export function ScreensGrid({
             isSelected={selectedIds.has(screen.id)}
             onSelect={onSelect}
             onOpen={onOpen}
+            onPreview={onPreview}
             onDelete={(id) => {
               onDelete([id])
             }}

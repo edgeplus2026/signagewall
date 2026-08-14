@@ -2,7 +2,7 @@ import { effect } from '@preact/signals'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import { PlaybackController } from '../engine/playback-controller'
-import { isPreview } from '../preview'
+import { isFollowPreview, isPreview } from '../preview'
 import { OverlayLayer } from './OverlayLayer'
 import { reportError } from '../sentry'
 import { registerPlaybackControls } from '../sync/playback-bus'
@@ -92,8 +92,10 @@ export function Stage() {
         },
       },
       undefined,
-      // The preview mirrors the device; it never runs its own playback clock.
-      { follow: isPreview },
+      // A device-mirroring preview never runs its own playback clock — it moves
+      // only when the device says so. A standalone content preview does run one,
+      // exactly as a device would; there is nothing for it to mirror.
+      { follow: isFollowPreview },
     )
     controllerRef.current = controller
 

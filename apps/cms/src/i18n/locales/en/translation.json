@@ -27,7 +27,13 @@
     "actions": "Actions",
     "cancel": "Cancel",
     "decrease": "Decrease",
-    "increase": "Increase"
+    "increase": "Increase",
+    "preview": {
+      "title": "Preview",
+      "description": "Plays this content the way a display would.",
+      "frameTitle": "Content preview",
+      "empty": "There is no content to preview yet."
+    }
   },
   "dataTable": {
     "search": "Search...",
@@ -719,24 +725,12 @@
         "edit": "Update"
       },
       "actions": {
-        "playlistPreview": "Playlist preview",
         "addToScreen": "Add to screen",
         "clearAllContent": "Clear all content",
         "moveToTrash": "Delete playlist",
         "addComingSoon": "Adding media is not available yet.",
         "editComingSoon": "Edit is not available yet."
       }
-    },
-    "preview": {
-      "title": "Preview: {{name}}",
-      "description": "A slideshow preview of this playlist's content.",
-      "empty": "Add content to this playlist to preview it.",
-      "previous": "Previous item",
-      "next": "Next item",
-      "play": "Play",
-      "pause": "Pause",
-      "close": "Close preview",
-      "counter": "{{current}} / {{total}}"
     },
     "content": {
       "totalDuration": "Total duration",

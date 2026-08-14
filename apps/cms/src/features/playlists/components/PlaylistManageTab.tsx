@@ -23,6 +23,7 @@ import {
   ContentEditor,
   type ContentEditorLabels,
 } from '@/features/content/components/ContentEditor'
+import { ContentPreviewDialog } from '@/features/content/components/ContentPreviewDialog'
 import { useContentContainer } from '@/features/content/hooks/useContentContainer'
 import {
   createAppDraftItem,
@@ -32,7 +33,6 @@ import { MediaDetailSheet } from '@/features/media/components/MediaDetailSheet'
 import type { MediaItem } from '@/features/media/types/media.types'
 import { DeletePlaylistDialog } from '@/features/playlists/components/DeletePlaylistDialog'
 import { PlaylistManageSidebar } from '@/features/playlists/components/PlaylistManageSidebar'
-import { PlaylistPreviewDialog } from '@/features/playlists/components/PlaylistPreviewDialog'
 import {
   useDuplicatePlaylist,
   useReplacePlaylistItems,
@@ -181,7 +181,7 @@ export function PlaylistManageTab({ playlist }: PlaylistManageTabProps) {
       <DropdownMenuContent align="end" className="w-auto min-w-52">
         <DropdownMenuItem onClick={handlePreview}>
           <EyeIcon />
-          {t('playlists.manage.actions.playlistPreview')}
+          {t('playlists.actions.preview')}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
@@ -262,11 +262,14 @@ export function PlaylistManageTab({ playlist }: PlaylistManageTabProps) {
         playlistIds={[playlist.id]}
       />
 
-      <PlaylistPreviewDialog
+      {/* The preview plays the SAVED playlist through the real player, so
+          unsaved edits in the editor are not reflected until they're saved. */}
+      <ContentPreviewDialog
         open={previewOpen}
         onOpenChange={setPreviewOpen}
-        draftItems={draftItems}
-        playlistName={playlist.name}
+        target={{ kind: 'playlist', playlistId: playlist.id }}
+        name={playlist.name}
+        itemCount={playlist.items.length}
       />
     </>
   )

@@ -30,12 +30,14 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { ContentPreviewDialog } from '@/features/content/components/ContentPreviewDialog'
 import { mediaGridClassName } from '@/features/media/lib/mediaActionCardStyles'
 import { DeletePlaylistDialog } from '@/features/playlists/components/DeletePlaylistDialog'
 import { PlaylistsBulkActionsBar } from '@/features/playlists/components/PlaylistsBulkActionsBar'
 import { PlaylistsGrid } from '@/features/playlists/components/PlaylistsGrid'
 import { PlaylistsTable } from '@/features/playlists/components/PlaylistsTable'
 import { useDuplicatePlaylist } from '@/features/playlists/hooks/usePlaylists'
+import { getPlaylistItemCount } from '@/features/playlists/lib/playlistUtils'
 import type {
   PlaylistDetailTab,
   PlaylistSortDirection,
@@ -77,6 +79,7 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteIds, setDeleteIds] = useState<string[]>([])
   const [addToScreenIds, setAddToScreenIds] = useState<string[]>([])
+  const [previewPlaylist, setPreviewPlaylist] = useState<PlaylistSummary | null>(null)
 
   const filteredPlaylists = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -308,6 +311,7 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
             onSelect={handleSelect}
             onSelectAll={handleSelectAll}
             onOpen={openPlaylist}
+            onPreview={setPreviewPlaylist}
             onDuplicate={handleDuplicate}
             onAddToScreen={setAddToScreenIds}
             onDelete={setDeleteIds}
@@ -320,6 +324,7 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
             onSelect={handleSelect}
             onSelectAll={handleSelectAll}
             onOpen={openPlaylist}
+            onPreview={setPreviewPlaylist}
             onDuplicate={handleDuplicate}
             onAddToScreen={setAddToScreenIds}
             onDelete={setDeleteIds}
@@ -344,6 +349,22 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
         mode="playlists"
         playlistIds={addToScreenIds}
         onSuccess={clearSelection}
+      />
+
+      <ContentPreviewDialog
+        open={previewPlaylist !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewPlaylist(null)
+        }}
+        target={
+          previewPlaylist ? { kind: 'playlist', playlistId: previewPlaylist.id } : null
+        }
+        {...(previewPlaylist
+          ? {
+              name: previewPlaylist.name,
+              itemCount: getPlaylistItemCount(previewPlaylist),
+            }
+          : {})}
       />
     </>
   )

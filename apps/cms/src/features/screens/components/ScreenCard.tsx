@@ -28,6 +28,7 @@ interface ScreenCardProps {
   isSelected: boolean
   onSelect: (id: string, selected: boolean) => void
   onOpen: (screen: ScreenSummary, tab: ScreenManageTab) => void
+  onPreview: (screen: ScreenSummary) => void
   onDelete: (id: string) => void
 }
 
@@ -36,6 +37,7 @@ export function ScreenCard({
   isSelected,
   onSelect,
   onOpen,
+  onPreview,
   onDelete,
 }: ScreenCardProps) {
   const { t } = useTranslation()
@@ -81,7 +83,7 @@ export function ScreenCard({
         <DropdownMenuContent align="end" className="w-auto min-w-44">
           <DropdownMenuItem
             onClick={() => {
-              onOpen(screen, "content")
+              onPreview(screen)
             }}
           >
             <EyeIcon />

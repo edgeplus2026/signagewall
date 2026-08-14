@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { ContentPreviewDialog } from '@/features/content/components/ContentPreviewDialog'
 import { mediaGridClassName } from '@/features/media/lib/mediaActionCardStyles'
 import { DeleteScreenDialog } from '@/features/screens/components/DeleteScreenDialog'
 import { ScreensBulkActionsBar } from '@/features/screens/components/ScreensBulkActionsBar'
@@ -75,6 +76,7 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
   const [viewMode, setViewMode] = useViewMode('screens')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteIds, setDeleteIds] = useState<string[]>([])
+  const [previewScreen, setPreviewScreen] = useState<ScreenSummary | null>(null)
 
   const presence = useContext(PresenceContext)
   const isOnline = useCallback(
@@ -325,6 +327,7 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
             onSelect={handleSelect}
             onSelectAll={handleSelectAll}
             onOpen={openScreen}
+            onPreview={setPreviewScreen}
             onDelete={setDeleteIds}
             onCreate={onCreateClick}
           />
@@ -335,6 +338,7 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
             onSelect={handleSelect}
             onSelectAll={handleSelectAll}
             onOpen={openScreen}
+            onPreview={setPreviewScreen}
             onDelete={setDeleteIds}
           />
         )}
@@ -347,6 +351,17 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
         }}
         screenIds={deleteIds}
         onSuccess={clearSelection}
+      />
+
+      <ContentPreviewDialog
+        open={previewScreen !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewScreen(null)
+        }}
+        target={previewScreen ? { kind: 'screen', screenId: previewScreen.id } : null}
+        {...(previewScreen
+          ? { name: previewScreen.name, itemCount: previewScreen.itemCount }
+          : {})}
       />
     </>
   )

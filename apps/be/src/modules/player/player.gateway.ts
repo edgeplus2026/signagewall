@@ -40,15 +40,21 @@ interface HandshakeAuth {
   revision?: string;
   profile?: ReportedProfile;
   /**
-   * Present only for the CMS live-preview iframe. The operator's access token
-   * authorizes a read-only spectator on a single screen — no device is created,
-   * no presence/heartbeat is recorded.
+   * Present only for the CMS preview iframe. The operator's access token
+   * authorizes a read-only spectator on a single screen or playlist — no device
+   * is created, no presence/heartbeat is recorded.
    */
   preview?: PreviewAuth;
 }
 
+/**
+ * Exactly one of `screenId` / `playlistId` identifies what to preview. A screen
+ * preview joins that screen's room (live content updates + device mirroring); a
+ * playlist preview is a standalone content preview and joins nothing.
+ */
 interface PreviewAuth {
   screenId?: string;
+  playlistId?: string;
   token?: string;
 }
 
@@ -162,21 +168,35 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Admits a CMS live-preview spectator. Verifies the operator's access token,
-   * confirms they belong to the screen's organization, then joins the
-   * `screen:<id>` room read-only and pushes the current snapshot. Live content
-   * updates arrive for free via the same room the device path uses. Crucially
-   * it never creates a device, records presence, or starts a heartbeat — so an
-   * open preview tab is invisible to the real device's online/offline state.
+   * Admits a CMS preview spectator. Verifies the operator's access token,
+   * confirms they belong to the previewed content's organization, then pushes
+   * the current snapshot. Crucially it never creates a device, records
+   * presence, or starts a heartbeat — so an open preview tab is invisible to
+   * the real device's online/offline state.
+   *
+   * A screen preview additionally joins the `screen:<id>` room, which is what
+   * gets it live content updates and the device's now-playing for free, via the
+   * same room the device path uses.
    */
   private async handlePreviewConnection(
     client: Socket,
     preview: PreviewAuth,
   ): Promise<void> {
-    const screenId = preview.screenId;
     const userId = this.verifyCmsToken(preview.token);
 
-    if (!screenId || !userId) {
+    if (!userId) {
+      client.disconnect(true);
+      return;
+    }
+
+    if (preview.playlistId) {
+      await this.handlePlaylistPreview(client, preview.playlistId, userId);
+      return;
+    }
+
+    const screenId = preview.screenId;
+
+    if (!screenId) {
       client.disconnect(true);
       return;
     }
@@ -216,6 +236,59 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (error) {
       this.logger.error(
         `Failed to handle preview connection for screen ${screenId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      client.disconnect(true);
+    }
+  }
+
+  /**
+   * Admits a preview spectator for a playlist that stands on its own — the CMS
+   * content preview, which plays a playlist through the real player without it
+   * being assigned to any screen.
+   *
+   * It joins no room: a playlist has no device to mirror and no screen room to
+   * receive pushes on, so the snapshot handed over on connect is the whole
+   * conversation. Marked `preview` all the same, so the now-playing relay keeps
+   * ignoring it.
+   */
+  private async handlePlaylistPreview(
+    client: Socket,
+    playlistId: string,
+    userId: string,
+  ): Promise<void> {
+    try {
+      const organizationId =
+        await this.playlistsRepository.findOrganizationIdById(playlistId);
+
+      if (!organizationId) {
+        client.disconnect(true);
+        return;
+      }
+
+      const membership = await this.organizationsRepository.findMembership(
+        userId,
+        organizationId,
+      );
+
+      if (!membership) {
+        client.disconnect(true);
+        return;
+      }
+
+      (client.data as SocketData).preview = true;
+
+      const snapshot = await this.playerService.resolvePlaylistSnapshot(
+        organizationId,
+        playlistId,
+      );
+
+      if (snapshot) {
+        client.emit(PlayerSocketEvents.ContentUpdate, snapshot);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to handle preview connection for playlist ${playlistId}`,
         error instanceof Error ? error.stack : String(error),
       );
       client.disconnect(true);

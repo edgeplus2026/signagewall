@@ -58,6 +58,21 @@ export class PlaylistsRepository {
       .exec();
   }
 
+  /**
+   * Owning organization of a playlist, without needing to know it up front.
+   * Used by the preview socket, which is handed only a playlist id and has to
+   * resolve the org before it can check the operator's membership.
+   */
+  async findOrganizationIdById(id: string): Promise<string | null> {
+    const playlist = await this.playlistModel
+      .findOne({ _id: new Types.ObjectId(id) })
+      .select({ organizationId: 1 })
+      .lean()
+      .exec();
+
+    return playlist ? playlist.organizationId.toString() : null;
+  }
+
   async findSummaryById(
     organizationId: string,
     id: string,

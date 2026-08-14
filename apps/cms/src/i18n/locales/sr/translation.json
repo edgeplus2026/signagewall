@@ -27,7 +27,13 @@
     "actions": "Akcije",
     "cancel": "Otkaži",
     "decrease": "Smanji",
-    "increase": "Povećaj"
+    "increase": "Povećaj",
+    "preview": {
+      "title": "Pregled",
+      "description": "Prikazuje ovaj sadržaj onako kako bi ga prikazao ekran.",
+      "frameTitle": "Pregled sadržaja",
+      "empty": "Još uvek nema sadržaja za pregled."
+    }
   },
   "dataTable": {
     "search": "Pretraga...",
@@ -696,24 +702,12 @@
         "edit": "Izmeni"
       },
       "actions": {
-        "playlistPreview": "Pregled plejliste",
         "addToScreen": "Dodaj na ekran",
         "clearAllContent": "Obriši sav sadržaj",
         "moveToTrash": "Premesti u otpad",
         "addComingSoon": "Dodavanje medija još nije dostupno.",
         "editComingSoon": "Izmena još nije dostupna."
       }
-    },
-    "preview": {
-      "title": "Pregled: {{name}}",
-      "description": "Pregled sadržaja plejliste u vidu slajdšoua.",
-      "empty": "Dodajte sadržaj u ovu plejlistu da biste je pregledali.",
-      "previous": "Prethodna stavka",
-      "next": "Sledeća stavka",
-      "play": "Pusti",
-      "pause": "Pauziraj",
-      "close": "Zatvori pregled",
-      "counter": "{{current}} / {{total}}"
     },
     "content": {
       "totalDuration": "Ukupno trajanje",

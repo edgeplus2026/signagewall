@@ -13,7 +13,7 @@ import {
   startStandbyUpdate,
 } from './native/updater'
 import { loadSnapshot, purgeOutdatedMediaCaches } from './persistence/idb'
-import { isPreview, previewParams } from './preview'
+import { isFollowPreview, isPreview, previewParams } from './preview'
 import { reflectDeviceIdInUrl } from './recovery'
 import {
   connection,
@@ -69,8 +69,8 @@ export function App() {
   useEffect(() => {
     // Preview mode (CMS iframe): a read-only spectator. Skip the whole device
     // boot — no token, no persisted snapshot, no heartbeat, no daily-reload —
-    // and just mirror the screen's live content. Orientation/scale come from
-    // the URL so the rendered output matches the real device.
+    // and just render the previewed content. Orientation/scale come from the
+    // URL so the rendered output matches the real device.
     if (isPreview && previewParams) {
       const params = previewParams
       orientation.value = params.orientation
@@ -80,14 +80,17 @@ export function App() {
       // idempotent (guards on an existing socket), so a repeated token message
       // is harmless.
       const stopHandshake = requestPreviewToken((token) => {
-        connectPreview({ screenId: params.screenId, token })
+        connectPreview({ target: params.target, mode: params.mode, token })
       })
-      // Mirror standby too: the preview must go dark outside working hours
-      // exactly as the device will, evaluating the same rule from the snapshot.
-      const stopAvailability = startAvailability()
+      // A device mirror also mirrors standby: it must go dark outside working
+      // hours exactly as the device does, evaluating the same rule from the
+      // snapshot. A standalone content preview deliberately does NOT — the
+      // operator asked to see the content, and answering that with the black
+      // rectangle the screen happens to be showing right now reads as broken.
+      const stopAvailability = isFollowPreview ? startAvailability() : undefined
       return () => {
         stopHandshake()
-        stopAvailability()
+        stopAvailability?.()
       }
     }
 

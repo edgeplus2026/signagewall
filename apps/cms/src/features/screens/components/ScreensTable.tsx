@@ -36,6 +36,7 @@ interface ScreensTableProps {
   onSelect: (id: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
   onOpen: (screen: ScreenSummary, tab: ScreenManageTab) => void
+  onPreview: (screen: ScreenSummary) => void
   onDelete: (ids: string[]) => void
 }
 
@@ -45,6 +46,7 @@ export function ScreensTable({
   onSelect,
   onSelectAll,
   onOpen,
+  onPreview,
   onDelete,
 }: ScreensTableProps) {
   const { t } = useTranslation()
@@ -92,6 +94,7 @@ export function ScreensTable({
               isSelected={selectedIds.has(screen.id)}
               onSelect={onSelect}
               onOpen={onOpen}
+              onPreview={onPreview}
               onDelete={onDelete}
             />
           ))}
@@ -106,6 +109,7 @@ interface ScreenTableRowProps {
   isSelected: boolean
   onSelect: (id: string, selected: boolean) => void
   onOpen: (screen: ScreenSummary, tab: ScreenManageTab) => void
+  onPreview: (screen: ScreenSummary) => void
   onDelete: (ids: string[]) => void
 }
 
@@ -114,6 +118,7 @@ function ScreenTableRow({
   isSelected,
   onSelect,
   onOpen,
+  onPreview,
   onDelete,
 }: ScreenTableRowProps) {
   const { t, i18n } = useTranslation()
@@ -168,7 +173,7 @@ function ScreenTableRow({
           <DropdownMenuContent align="end" className="w-auto min-w-44">
             <DropdownMenuItem
               onClick={() => {
-                onOpen(screen, "content")
+                onPreview(screen)
               }}
             >
               <EyeIcon />
