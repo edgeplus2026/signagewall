@@ -1,3 +1,4 @@
+import { COMPANY } from '@/lib/company'
 import type { Route } from '@/lib/seo'
 import { absoluteUrl, resolveCanonicalUrl } from '@/lib/seo'
 import { SITE_URL as siteUrl } from '@/lib/site-url'
@@ -78,7 +79,25 @@ export function OrganizationJsonLd() {
             '@type': 'ImageObject',
             url: `${siteUrl}/brand/signagewall-mark-512.png`,
           },
-          description: 'Software for digital screens.',
+          /* The site's own words for what it sells. "Software for digital
+             screens" described a category rather than this company, and read
+             as a placeholder next to the description every page already
+             carries in its meta tags. */
+          description:
+            'Digital signage software for menus, offers and announcements. SignageWall turns any TV into a screen you update in seconds — one screen or two hundred, and they keep playing when the internet drops.',
+          email: COMPANY.email,
+          /* City and country only, and deliberately not `COMPANY.address`:
+             that field is the registered seat for the legal documents and is
+             still a visible `[NEDOSTAJE]` marker, which must never reach
+             structured data. What matters here is that the location agrees
+             with the one the company states on LinkedIn and will verify on
+             Google Business Profile — three answers to "where are you" that
+             disagree weaken the entity that `sameAs` is trying to establish. */
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Belgrade',
+            addressCountry: 'RS',
+          },
           /* The profiles this company owns. Without it a search engine has a
              site and four unrelated accounts that happen to share a name; with
              it they resolve to one entity, and a branded search returns the

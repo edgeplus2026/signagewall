@@ -31,9 +31,13 @@ export const COMPANY = {
    *
    * Deliberately the address the site already publishes rather than invented
    * `legal@` / `privacy@` aliases: a GDPR request has to reach a mailbox
-   * somebody actually reads. Split them out once those aliases exist.
+   * somebody actually reads. That is currently the Gmail account behind the
+   * brand — a published `office@signagewall.com` that nobody has created yet
+   * would bounce every request these documents promise to answer. Move it to
+   * the domain here, and in the `contact.json` message file of each locale,
+   * once that mailbox exists.
    */
-  email: 'office@signagewall.com',
+  email: 'signagewall@gmail.com',
 
   /** Canonical public origin, without protocol — for prose, not for links. */
   domain: 'www.signagewall.com',
