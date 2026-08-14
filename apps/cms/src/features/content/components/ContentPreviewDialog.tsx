@@ -1,4 +1,4 @@
-import { MonitorPlayIcon } from 'lucide-react'
+import { MonitorPlayIcon, MonitorXIcon } from 'lucide-react'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { usePlayerPreviewStatus } from '@/features/screens/hooks/usePlayerPreviewStatus'
 import { usePlayerPreviewToken } from '@/features/screens/hooks/usePlayerPreviewToken'
 import { useScreenDevice } from '@/features/screens/hooks/useScreens'
 import {
@@ -138,6 +139,11 @@ function PreviewStage({
   const { t } = useTranslation()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const token = usePlayerPreviewToken(iframeRef)
+  const status = usePlayerPreviewStatus(iframeRef)
+
+  // We know the target is empty before the player does whenever the caller
+  // counted its items, so say so immediately rather than after a round trip.
+  const empty = itemCount === 0 || status === 'empty'
 
   return (
     // `isolate` confines the bezel's z-index to this subtree so it never stacks
@@ -146,12 +152,7 @@ function PreviewStage({
       {/* Glass panel: always landscape — it stands in for the physical display,
           which is mounted landscape even when its content is portrait. */}
       <div className="relative aspect-video overflow-hidden rounded-lg bg-black ring-1 ring-black/60 ring-inset">
-        {itemCount === 0 ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center text-white/70">
-            <MonitorPlayIcon className="size-8 opacity-60" strokeWidth={1.25} />
-            <p className="text-xs">{t('common.preview.empty')}</p>
-          </div>
-        ) : ready && token ? (
+        {itemCount === 0 ? null : ready && token ? (
           // The player runs in a virtual 1080p viewport scaled down to fit — not
           // in the few hundred pixels this panel is actually wide. Apps size
           // themselves in `vw`/`vh`, so only a real-resolution viewport mirrors
@@ -172,7 +173,39 @@ function PreviewStage({
             />
           </ScaledViewport>
         ) : null}
+
+        {/* Over the frame, never instead of it: a black panel means four
+            different things (loading, nothing to play, refused, never started)
+            and an operator cannot tell them apart. Silence is the one case we
+            can't caption, so it stays as-is until the status hook's timeout. */}
+        {empty || status === 'unavailable' ? (
+          <PanelMessage
+            icon={empty ? MonitorPlayIcon : MonitorXIcon}
+            text={
+              empty
+                ? itemCount === 0
+                  ? t('common.preview.empty')
+                  : t('common.preview.nothingPlayable')
+                : t('common.preview.unavailable')
+            }
+          />
+        ) : null}
       </div>
+    </div>
+  )
+}
+
+function PanelMessage({
+  icon: Icon,
+  text,
+}: {
+  icon: typeof MonitorPlayIcon
+  text: string
+}) {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black px-6 text-center text-white/70">
+      <Icon className="size-8 opacity-60" strokeWidth={1.25} />
+      <p className="max-w-xs text-xs leading-relaxed">{text}</p>
     </div>
   )
 }

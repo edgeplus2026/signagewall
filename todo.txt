@@ -1,11 +1,9 @@
-1. Dodati preview za playlist + single playlist + screen + single screen (real player)
-2. Bucket napraviti novi za website images + custom domain
-3. Google + microsft verifiction
-4. Social media da se dodaju i linkuju na sajtu i da vidimo za exterlan links (g2 + captera)
-5. Da vratim na private git repo
-6. Da vidimo git actions da se optmiziuju malo
+1. Bucket napraviti novi za website images + custom domain
+2. Google + microsft verifiction
+4. Da vratim na private git repo
+5. Da vidimo git actions da se optmiziuju malo
 
-7. Diskotovati o ceni da li 5e ili 8e ili sakriti cene
-8. Videti kako radi biling invoices i da li se automski nastavlja paid sve dok ne promenimo rucno
-9. Sta je ovo redis connect u railway
-10. Kupiti railway i domen setovati i zameniti u u env i svuda gde treba
+6. Diskotovati o ceni da li 5e ili 8e ili sakriti cene
+7. Videti kako radi biling invoices i da li se automski nastavlja paid sve dok ne promenimo rucno
+8. Sta je ovo redis connect u railway
+9. Kupiti railway i domen setovati i zameniti u u env i svuda gde treba

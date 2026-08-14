@@ -15,6 +15,7 @@ import { clearMediaCaches, clearSnapshot, saveSnapshot } from '../persistence/id
 import type { PreviewMode, PreviewTarget } from '../preview'
 import { applyCommand, applySettings, applyVolume } from './commands'
 import { playbackShowItem } from './playback-bus'
+import { reportPreviewStatus } from './preview-handshake'
 import {
   connection,
   lastError,
@@ -210,8 +211,16 @@ export function connectPreview(params: {
   socket.io.on('reconnect_attempt', () => {
     connection.value = 'reconnecting'
   })
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
     connection.value = 'offline'
+    // The server hung up on us — an unknown target, an operator with no
+    // membership, a rejected token, or a backend that doesn't understand this
+    // preview. socket.io does NOT retry a server-initiated disconnect, so this
+    // is terminal: tell the CMS, or it is left showing an unexplained black
+    // rectangle forever.
+    if (reason === 'io server disconnect') {
+      reportPreviewStatus('unavailable')
+    }
   })
 
   // The device's last reported item, remembered so we can re-apply it after a
@@ -224,6 +233,10 @@ export function connectPreview(params: {
   // update doesn't leave us parked on item 0.
   socket.on('content:update', (next: PlayerSnapshot) => {
     snapshot.value = next
+    // A resolved-but-empty snapshot is a real answer, not a failure: every item
+    // may be disabled, or its media still processing. Say so, so the CMS can
+    // distinguish it from a preview that never got off the ground.
+    reportPreviewStatus(next.items.length > 0 ? 'playing' : 'empty')
     if (lastNowPlayingId) {
       playbackShowItem(lastNowPlayingId)
     }

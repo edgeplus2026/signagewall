@@ -32,7 +32,9 @@
       "title": "Preview",
       "description": "Plays this content the way a display would.",
       "frameTitle": "Content preview",
-      "empty": "There is no content to preview yet."
+      "empty": "There is no content to preview yet.",
+      "nothingPlayable": "Nothing to play — items may be disabled, or their media is still processing.",
+      "unavailable": "Preview could not be loaded. The player could not reach the content."
     }
   },
   "dataTable": {

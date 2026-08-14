@@ -32,7 +32,9 @@
       "title": "Pregled",
       "description": "Prikazuje ovaj sadržaj onako kako bi ga prikazao ekran.",
       "frameTitle": "Pregled sadržaja",
-      "empty": "Još uvek nema sadržaja za pregled."
+      "empty": "Još uvek nema sadržaja za pregled.",
+      "nothingPlayable": "Nema šta da se pusti — stavke su možda isključene ili se mediji još obrađuju.",
+      "unavailable": "Pregled nije moguće učitati. Player nije uspeo da dođe do sadržaja."
     }
   },
   "dataTable": {
