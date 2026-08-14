@@ -33,9 +33,9 @@ export function OnboardingRing({ percent, size = 18, className }: OnboardingRing
           r={radius}
           fill="none"
           strokeWidth={stroke}
-          // Raw vars: the theme exposes brand and border only through the text,
-          // border and background namespaces, so a plain `stroke-brand` would
-          // silently resolve to nothing.
+          // Raw var: the theme exposes borders only through the border
+          // namespace, so a plain `stroke-secondary` would silently resolve to
+          // nothing.
           className="stroke-(--border-primary)"
         />
         <circle
@@ -49,10 +49,9 @@ export function OnboardingRing({ percent, size = 18, className }: OnboardingRing
           strokeDashoffset={circumference * (1 - clamped / 100)}
           // Start the arc at 12 o'clock rather than 3 o'clock.
           transform={`rotate(-90 ${String(size / 2)} ${String(size / 2)})`}
-          className={cn(
-            'transition-[stroke-dashoffset] duration-500 ease-out',
-            complete ? 'stroke-success' : 'stroke-(--brand)',
-          )}
+          // Success green throughout, not only at 100%: progress here is
+          // always good news, and the brand ink reads as plain white on dark.
+          className="stroke-success transition-[stroke-dashoffset] duration-500 ease-out"
         />
       </svg>
       {complete ? (

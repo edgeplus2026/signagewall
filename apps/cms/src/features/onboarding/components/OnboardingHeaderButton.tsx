@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
 import { OnboardingRing } from '@/features/onboarding/components/OnboardingRing'
 import {
   useOnboarding,
@@ -47,19 +46,23 @@ export function OnboardingHeaderButton() {
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
+    // A status badge rather than another header action: it reports where setup
+    // stands, and only incidentally opens the card. Deliberately not the Button
+    // component — every one of its variants restyles itself on `aria-expanded`,
+    // which would repaint this grey the whole time the card is open. Height
+    // matches Button's `sm` so it lines up with the rest of the header.
+    <button
+      type="button"
       onClick={handleClick}
       aria-expanded={open && !dismissed}
       title={t('onboarding.header.tooltip')}
-      className="gap-2"
+      className="bg-success/10 text-success hover:bg-success/18 focus-visible:ring-success/40 inline-flex h-[1.925rem] shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-3"
     >
-      <OnboardingRing percent={data.percent} size={17} />
+      <OnboardingRing percent={data.percent} size={14} />
       <span className="hidden sm:inline">{t('onboarding.header.label')}</span>
-      <span className="text-secondary text-xs tabular-nums">
+      <span className="text-success/70 tabular-nums">
         {data.completedCount}/{data.totalCount}
       </span>
-    </Button>
+    </button>
   )
 }

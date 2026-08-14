@@ -93,7 +93,9 @@ function StepRow({
       </button>
 
       {expanded ? (
-        <div className="px-3 pb-3 pl-12.5">
+        // `pt-1`: the title above is a full-width hover target, so its
+        // highlight would otherwise end flush against this text.
+        <div className="px-3 pt-1 pb-3 pl-12.5">
           <p className="text-secondary text-xs">{t(`${base}.description`)}</p>
 
           <ul className="text-secondary mt-2 space-y-1 text-xs">
