@@ -1,6 +1,7 @@
 import type { Route } from '@/lib/seo'
 import { absoluteUrl, resolveCanonicalUrl } from '@/lib/seo'
 import { SITE_URL as siteUrl } from '@/lib/site-url'
+import { SOCIAL_SAME_AS } from '@/lib/social'
 
 export type JsonLdNode = Record<string, unknown>
 
@@ -78,6 +79,11 @@ export function OrganizationJsonLd() {
             url: `${siteUrl}/brand/signagewall-mark-512.png`,
           },
           description: 'Software for digital screens.',
+          /* The profiles this company owns. Without it a search engine has a
+             site and four unrelated accounts that happen to share a name; with
+             it they resolve to one entity, and a branded search returns the
+             site and its profiles instead of the industry's generic results. */
+          sameAs: SOCIAL_SAME_AS,
         },
         {
           '@type': 'WebSite',

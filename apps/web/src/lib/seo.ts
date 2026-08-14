@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { getPathname } from '@/i18n/navigation'
 import type { AppPathname } from '@/i18n/routing'
 import { SITE_URL } from '@/lib/site-url'
+import { X_HANDLE } from '@/lib/social'
 
 /**
  * A route, in the form `getPathname` understands: the internal pathname, plus
@@ -298,6 +299,11 @@ export function pageMetadata({
     }),
     twitter: {
       card: 'summary_large_image',
+      // Attribution on the card itself: without a handle a shared link is
+      // credited to whoever posted it, and the account that publishes the page
+      // goes unnamed to everyone who sees it in their timeline.
+      site: X_HANDLE,
+      creator: X_HANDLE,
       title: ogTitle ?? title,
       ...(socialDescription ? { description: socialDescription } : {}),
       images: [resolvedImage],
