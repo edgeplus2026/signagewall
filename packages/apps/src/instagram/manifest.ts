@@ -42,7 +42,7 @@ export const instagramManifest: AppManifest = {
       label: 'Facebook account',
       required: true,
       provider: 'meta',
-      help: 'Sign in with the Facebook account that manages your Instagram. SignageWall only reads posts — it never posts, likes or messages.',
+      help: 'Sign in with the Facebook account that manages your Instagram. SignageWall only reads posts. It never posts, likes or messages.',
     },
     {
       key: 'account',

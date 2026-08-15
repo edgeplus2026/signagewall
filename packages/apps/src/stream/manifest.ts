@@ -27,7 +27,7 @@ export const streamManifest: AppManifest = {
   name: 'Live stream',
   tagline: 'Play a live video stream on your screens',
   description:
-    'Show a live video — an HLS/DASH stream, a video file, a WebRTC feed, or a Twitch, Kick, YouTube, Vimeo, Facebook or Dailymotion channel.',
+    'Show a live video: an HLS/DASH stream, a video file, a WebRTC feed, or a Twitch, Kick, YouTube, Vimeo, Facebook or Dailymotion channel.',
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 2,
@@ -47,7 +47,7 @@ export const streamManifest: AppManifest = {
       label: 'Stream link',
       // The failure mode is a silent black screen, so tell them exactly what a
       // good link looks like across the formats we accept.
-      help: 'Paste the stream link — an .m3u8 / .mpd URL, a direct video file, a WebRTC (WHEP) endpoint, or the page of a Twitch / Kick / YouTube / Vimeo / Facebook / Dailymotion video or channel.',
+      help: 'Paste the stream link: an .m3u8 / .mpd URL, a direct video file, a WebRTC (WHEP) endpoint, or the page of a Twitch / Kick / YouTube / Vimeo / Facebook / Dailymotion video or channel.',
       required: true,
       placeholder: 'https://example.com/live/stream.m3u8',
       validation: { pattern: STREAM_URL_PATTERN },
@@ -56,7 +56,7 @@ export const streamManifest: AppManifest = {
       key: 'source',
       type: 'select',
       label: 'Source',
-      help: 'Leave on Auto-detect — SignageWall reads the format from the link. Only override it if a link is unusual (e.g. a WHEP endpoint with no .mpd/.m3u8 ending).',
+      help: 'Leave on Auto-detect. SignageWall reads the format from the link. Only override it if a link is unusual (e.g. A WHEP endpoint with no .mpd/.m3u8 ending).',
       default: 'auto',
       options: [
         { label: 'Auto-detect (recommended)', value: 'auto' },
@@ -76,7 +76,7 @@ export const streamManifest: AppManifest = {
       key: 'fit',
       type: 'select',
       label: 'Fit',
-      help: 'Contain shows the whole picture (with bars if needed). Cover fills the screen and may crop the edges. Only applies to direct streams — platform players size themselves.',
+      help: 'Contain shows the whole picture (with bars if needed). Cover fills the screen and may crop the edges. Only applies to direct streams, platform players size themselves.',
       default: 'contain',
       options: [
         { label: 'Contain (show all)', value: 'contain' },
@@ -89,7 +89,7 @@ export const streamManifest: AppManifest = {
       label: 'Play audio',
       // The default is silent: most signage streams are cameras, and audio also
       // depends on the screen's own volume — say both.
-      help: 'Off for a silent feed like a camera. On to play the stream\'s sound — it still follows the screen\'s volume.',
+      help: 'Off for a silent feed like a camera. On to play the stream\'s sound. It still follows the screen\'s volume.',
       default: false,
     },
   ],

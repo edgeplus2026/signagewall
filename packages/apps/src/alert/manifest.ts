@@ -22,7 +22,7 @@ export const alertManifest: AppManifest = {
   name: 'Emergency Alert',
   tagline: 'Full-screen urgent message',
   description:
-    'Show a high-visibility alert full-screen — a headline, optional details and a severity colour. Works offline.',
+    'Show a high-visibility alert full-screen: a headline, optional details and a severity colour. Works offline.',
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 2,
@@ -35,7 +35,7 @@ export const alertManifest: AppManifest = {
       label: 'Headline',
       required: true,
       placeholder: 'Evacuate the building',
-      help: 'The main message — keep it short so it reads from across the room.',
+      help: 'The main message. Keep it short so it reads from across the room.',
     },
     {
       key: 'message',

@@ -62,7 +62,7 @@ export function tabularSourceFields(options: TabularSourceOptions): Field[] {
       ...section,
       visibleWhen: syncVisible,
       providerFrom: { field: 'source', map: { gsheets: 'google', excel: 'microsoft' } },
-      help: 'Sign in once — SignageWall then lists your files to choose from.',
+      help: 'Sign in once. SignageWall then lists your files to choose from.',
     },
     {
       key: 'spreadsheet',

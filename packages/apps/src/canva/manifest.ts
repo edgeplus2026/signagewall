@@ -17,7 +17,7 @@ export const canvaManifest: AppManifest = {
   name: 'Canva',
   tagline: 'Show Canva designs, presentations and videos on your screens',
   description:
-    'Connect your Canva account and display any design — multi-page designs play as a slideshow and presentations/animations play as video. It re-exports automatically so the screen always shows the latest version.',
+    'Connect your Canva account and display any design, multi-page designs play as a slideshow and presentations/animations play as video. It re-exports automatically so the screen always shows the latest version.',
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 2,
@@ -41,7 +41,7 @@ export const canvaManifest: AppManifest = {
       label: 'Canva account',
       required: true,
       provider: 'canva',
-      help: 'Sign in once — SignageWall then finds your designs for you.',
+      help: 'Sign in once. SignageWall then finds your designs for you.',
     },
     {
       key: 'design',

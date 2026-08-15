@@ -18,7 +18,7 @@ export const outlookManifest: AppManifest = {
   name: 'Outlook Calendar',
   tagline: 'Show a Microsoft Outlook calendar on your screens',
   description:
-    'Display a connected Microsoft Outlook / Microsoft 365 calendar as a day, week, month or schedule view — great for meeting rooms and lobbies.',
+    'Display a connected Microsoft Outlook / Microsoft 365 calendar as a day, week, month or schedule view, great for meeting rooms and lobbies.',
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 1,
@@ -37,7 +37,7 @@ export const outlookManifest: AppManifest = {
       required: true,
       provider: 'microsoft',
       // Read-only promise, kept in step with the connector scope (Calendars.Read).
-      help: 'Sign in once. SignageWall only reads your calendars — it never adds, changes or deletes anything.',
+      help: 'Sign in once. SignageWall only reads your calendars. It never adds, changes or deletes anything.',
     },
     {
       key: 'calendar',

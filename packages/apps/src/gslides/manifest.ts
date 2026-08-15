@@ -23,7 +23,7 @@ export const gslidesManifest: AppManifest = {
   name: 'Google Slides',
   tagline: 'Loop a private Google Slides deck from your account',
   description:
-    'Connect your Google account and play a private Google Slides deck as a slideshow — it updates on screen the moment the deck changes.',
+    'Connect your Google account and play a private Google Slides deck as a slideshow. It updates on screen the moment the deck changes.',
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 2,
@@ -39,7 +39,7 @@ export const gslidesManifest: AppManifest = {
       label: 'Google account',
       required: true,
       provider: 'google',
-      help: 'Sign in once — SignageWall then lists your presentations to choose from.',
+      help: 'Sign in once. SignageWall then lists your presentations to choose from.',
     },
     {
       key: 'presentation',

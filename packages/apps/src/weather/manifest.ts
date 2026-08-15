@@ -31,7 +31,7 @@ export const weatherManifest: AppManifest = {
   name: 'Weather',
   tagline: 'Live local weather on your screens',
   description:
-    'Show the current weather and a short forecast for any city — updated automatically.',
+    'Show the current weather and a short forecast for any city, updated automatically.',
   runtimeKind: 'embed',
   dataSource: 'server',
   version: 3,
@@ -63,7 +63,7 @@ export const weatherManifest: AppManifest = {
       // sees a colour list expects to pick a colour, and needs telling that the
       // first option is the screen changing on its own — otherwise the first
       // thunderstorm reads as a fault.
-      help: 'Weather: the screen takes its colours from the sky — blue in clear weather, grey in rain, dark at night.',
+      help: 'Weather: the screen takes its colours from the sky: blue in clear weather, grey in rain, dark at night.',
       default: 'auto',
       options: [
         { label: 'Weather (follows the sky)', value: 'auto' },

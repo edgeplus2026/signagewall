@@ -36,7 +36,7 @@ export const teamsManifest: AppManifest = {
       label: 'Microsoft account',
       required: true,
       provider: 'microsoft',
-      help: 'Sign in with a work or school account. SignageWall only reads channel messages — it never posts. Your Microsoft admin must approve message access the first time.',
+      help: 'Sign in with a work or school account. SignageWall only reads channel messages. It never posts. Your Microsoft admin must approve message access the first time.',
     },
     {
       key: 'channel',

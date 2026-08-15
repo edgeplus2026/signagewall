@@ -12,11 +12,11 @@ import type { FieldOption } from '@signagewall/apps-contract'
  * reaching a screen as a blank frame.
  */
 export const MENU_TEMPLATES = [
-  { value: 'classic', label: 'Classic — a refined price list' },
-  { value: 'chalkboard', label: 'Chalkboard — a hand-written café board' },
-  { value: 'gallery', label: 'Gallery — cards with photos' },
-  { value: 'counter', label: 'Counter — a bold fast-food board' },
-  { value: 'noir', label: 'Noir — understated luxury' },
+  { value: 'classic', label: 'Classic. A refined price list' },
+  { value: 'chalkboard', label: 'Chalkboard. A hand-written café board' },
+  { value: 'gallery', label: 'Gallery, cards with photos' },
+  { value: 'counter', label: 'Counter. A bold fast-food board' },
+  { value: 'noir', label: 'Noir, understated luxury' },
 ] as const
 
 /** The `template` config values, narrowed to the designs we actually ship. */

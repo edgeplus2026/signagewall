@@ -32,7 +32,7 @@ export const APP_COPY = {
         notTargeting: 'Izrada prezentacija; Google Slides.',
       },
       summary:
-        'Povežete Microsoft nalog, izaberete prezentaciju sa OneDrive-a ili SharePointa, i ona se vrti na ekranima. Izmenite slajd — ekran se osveži sam.',
+        'Povežete Microsoft nalog, izaberete prezentaciju sa OneDrive-a ili SharePointa, i ona se vrti na ekranima. Izmenite slajd. Ekran se osveži sam.',
       benefits: [
         'Prezentacija ostaje tamo gde već stoji, na OneDrive-u ili SharePointu',
         'Izmena slajda stiže na ekran bez ponovnog otpremanja',
@@ -45,7 +45,7 @@ export const APP_COPY = {
         },
         {
           title: 'Tempo i uklapanje',
-          body: 'Podešava se koliko sekundi slajd stoji i kako se uklapa u ekran — po širini, po visini ili preko cele površine.',
+          body: 'Podešava se koliko sekundi slajd stoji i kako se uklapa u ekran: po širini, po visini ili preko cele površine.',
         },
         {
           title: 'Pozadina uz slajd',
@@ -89,7 +89,7 @@ export const APP_COPY = {
         refreshBehavior: 'Proverava se na svakih petnaest minuta.',
         offlineBehavior: 'Poslednja preuzeta verzija ostaje na ekranu i bez mreže.',
         limitations:
-          'Animacije i prelazi se ne prikazuju — slajdovi se pretvaraju u slike. Za animaciju koristite video.',
+          'Animacije i prelazi se ne prikazuju, slajdovi se pretvaraju u slike. Za animaciju koristite video.',
       },
       faq: [
         {
@@ -132,7 +132,7 @@ export const APP_COPY = {
         },
         {
           title: 'Pace and fit',
-          body: 'Set how long a slide holds and how it fits the screen — by width, by height, or filling it.',
+          body: 'Set how long a slide holds and how it fits the screen, by width, by height, or filling it.',
         },
         {
           title: 'A background behind the slide',
@@ -175,7 +175,7 @@ export const APP_COPY = {
         refreshBehavior: 'Checked every fifteen minutes.',
         offlineBehavior: 'The last fetched version stays on screen without a network.',
         limitations:
-          'Animations and transitions are not shown — slides are rendered as images. For motion, use video.',
+          'Animations and transitions are not shown, slides are rendered as images. For motion, use video.',
       },
       faq: [
         {
@@ -210,7 +210,7 @@ export const APP_COPY = {
       summary:
         'Otpremite PDF i prikazuje se preko celog ekrana, bez traka i dugmadi. Višestranični dokument sam lista stranice, tempom koji odredite.',
       benefits: [
-        'Radi bez ijednog naloga — otpremite fajl i gotovo',
+        'Radi bez ijednog naloga, otpremite fajl i gotovo',
         'Nastavlja da radi i kad mreža padne, jer je fajl na uređaju',
         'Bez traka i dugmadi pregledača preko sadržaja',
       ],
@@ -260,7 +260,7 @@ export const APP_COPY = {
         account: 'Nije potreban nijedan nalog.',
         dataSource: 'Prikazuje se fajl koji ste otpremili; ništa se ne povlači spolja.',
         network: 'Veza je potrebna samo za otpremanje i objavu.',
-        refreshBehavior: 'Nema osvežavanja — dokument stoji dok ne otpremite nov.',
+        refreshBehavior: 'Nema osvežavanja, dokument stoji dok ne otpremite nov.',
         offlineBehavior: 'Radi u potpunosti bez mreže, jer je fajl na uređaju.',
         limitations:
           'Fajl može da bude do 10 MB. Dokument pravljen za štampu često treba prelomiti krupnije da bi se čitao sa udaljenosti.',
@@ -295,7 +295,7 @@ export const APP_COPY = {
       summary:
         'Upload a PDF and it fills the screen, with no bars or buttons. A multi-page document turns its own pages at the speed you choose.',
       benefits: [
-        'Needs no account at all — upload the file and you are done',
+        'Needs no account at all. Upload the file and you are done',
         'Keeps working when the network drops, because the file is on the device',
         'No viewer toolbar sitting over the content',
       ],
@@ -306,7 +306,7 @@ export const APP_COPY = {
         },
         {
           title: 'Turns its own pages',
-          body: 'A multi-page document advances by itself — slow, medium or fast, depending on how much text a page carries.',
+          body: 'A multi-page document advances by itself: slow, medium or fast, depending on how much text a page carries.',
         },
         {
           title: 'Runs locally',
@@ -345,7 +345,7 @@ export const APP_COPY = {
         account: 'No account of any kind is needed.',
         dataSource: 'The file you upload is shown; nothing is fetched externally.',
         network: 'A connection is needed only to upload and publish.',
-        refreshBehavior: 'There is no refresh — the document stands until you upload a new one.',
+        refreshBehavior: 'There is no refresh. The document stands until you upload a new one.',
         offlineBehavior: 'Works fully without a network, because the file lives on the device.',
         limitations:
           'Files up to 10 MB. A document laid out for print usually needs setting larger to read from a distance.',
@@ -380,10 +380,10 @@ export const APP_COPY = {
         notTargeting: 'Slanje poruka u Teams; Outlook kalendar.',
       },
       summary:
-        'Povežete Microsoft nalog, izaberete jedan kanal, i poslednje objave iz njega se smenjuju na ekranu — jedna po jedna ili u mreži.',
+        'Povežete Microsoft nalog, izaberete jedan kanal, i poslednje objave iz njega se smenjuju na ekranu, jedna po jedna ili u mreži.',
       benefits: [
         'Obaveštenja vide i ljudi koji nemaju Teams ni na telefonu ni za stolom',
-        'Kanal ostaje jedino mesto gde se piše — ekran samo prikazuje',
+        'Kanal ostaje jedino mesto gde se piše. Ekran samo prikazuje',
         'Više ekrana na istom kanalu troši jedno povlačenje podataka',
       ],
       features: [
@@ -2882,7 +2882,7 @@ export const APP_COPY = {
         dataSource: 'Broji se prema datumu koji ste uneli; ništa se ne povlači spolja.',
         network: 'Veza je potrebna samo za postavljanje i objavu.',
         refreshBehavior: 'Broji neprekidno, na samom uređaju.',
-        offlineBehavior: 'Radi neograničeno bez mreže — i posle mesec dana bez veze i dalje broji.',
+        offlineBehavior: 'Radi neograničeno bez mreže, i posle mesec dana bez veze i dalje broji.',
         limitations:
           'Vreme se računa po satu samog uređaja. Ekran sa pogrešno podešenim vremenom pokazaće pogrešan broj.',
       },
@@ -3273,7 +3273,7 @@ export const APP_COPY = {
         },
         {
           title: 'How many events show',
-          body: 'Set how many stand on the screen — a few for a glance, more for a place where people wait longer.',
+          body: 'Set how many stand on the screen: a few for a glance, more for a place where people wait longer.',
         },
         {
           title: 'One fetch for every screen',
@@ -3350,7 +3350,7 @@ export const APP_COPY = {
       summary:
         'Izaberete kategorije koje odgovaraju prostoru i svakog dana dobijate nekoliko citata, svaki u drugačijem izgledu.',
       benefits: [
-        'Kategorije biraju ton — teretana i čekaonica ne dobijaju iste misli',
+        'Kategorije biraju ton, teretana i čekaonica ne dobijaju iste misli',
         'Ništa se ne povlači sa strane, pa ne može da presuši',
         'Svaki citat dolazi u drugom izgledu, pa se ekran ne ponavlja',
       ],
@@ -3361,7 +3361,7 @@ export const APP_COPY = {
         },
         {
           title: 'Drugi izgled za svaki citat',
-          body: 'Nema biranja dizajna, jer je poenta da svaki citat stigne u svom izgledu — ekran tako ostaje živ i posle mesec dana.',
+          body: 'Nema biranja dizajna, jer je poenta da svaki citat stigne u svom izgledu. Ekran tako ostaje živ i posle mesec dana.',
         },
         {
           title: 'Koliko citata i koliko traju',
@@ -3385,7 +3385,7 @@ export const APP_COPY = {
       setupSteps: [
         {
           title: 'Izaberite kategorije',
-          body: 'Ovo je najvažniji korak — kategorije određuju ton svega što se pojavi.',
+          body: 'Ovo je najvažniji korak, kategorije određuju ton svega što se pojavi.',
         },
         {
           title: 'Odredite broj citata',
@@ -3404,7 +3404,7 @@ export const APP_COPY = {
         refreshBehavior: 'Nov izbor jednom dnevno.',
         offlineBehavior: 'Poslednji povučeni citati ostaju na ekranu i bez mreže.',
         limitations:
-          'Citati su iz unapred pripremljene zbirke — ne mogu se dodavati sopstveni. Za svoju poruku koristite tekstualnu aplikaciju.',
+          'Citati su iz unapred pripremljene zbirke, ne mogu se dodavati sopstveni. Za svoju poruku koristite tekstualnu aplikaciju.',
       },
       faq: [
         {
@@ -3436,7 +3436,7 @@ export const APP_COPY = {
       summary:
         'Pick the categories that suit the room and each day brings a handful of quotes, every one in a different design.',
       benefits: [
-        'Categories set the tone — a gym and a waiting room do not get the same lines',
+        'Categories set the tone. A gym and a waiting room do not get the same lines',
         'Nothing is pulled from a third party, so it cannot dry up',
         'Every quote arrives in a different design, so the screen never looks repeated',
       ],
@@ -3447,7 +3447,7 @@ export const APP_COPY = {
         },
         {
           title: 'A different design each time',
-          body: 'There is no design picker, because the point is that each quote arrives in its own look — which is what keeps the screen alive after a month.',
+          body: 'There is no design picker, because the point is that each quote arrives in its own look, which is what keeps the screen alive after a month.',
         },
         {
           title: 'How many, and how long',
@@ -3461,7 +3461,7 @@ export const APP_COPY = {
         },
         {
           title: 'A waiting room',
-          body: 'Calmer categories — health and life — where people wait uneasily.',
+          body: 'Calmer categories (health and life) where people wait uneasily.',
         },
         {
           title: 'An office',
@@ -3471,7 +3471,7 @@ export const APP_COPY = {
       setupSteps: [
         {
           title: 'Pick the categories',
-          body: 'This is the step that matters — the categories set the tone of everything that appears.',
+          body: 'This is the step that matters. The categories set the tone of everything that appears.',
         },
         {
           title: 'Set how many quotes',
@@ -3490,7 +3490,7 @@ export const APP_COPY = {
         refreshBehavior: 'A new selection once a day.',
         offlineBehavior: 'The last fetched quotes stay on screen without a network.',
         limitations:
-          'Quotes come from a prepared corpus — your own cannot be added. For your own words, use the text app.',
+          'Quotes come from a prepared corpus, your own cannot be added. For your own words, use the text app.',
       },
       faq: [
         {

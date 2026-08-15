@@ -21,7 +21,7 @@ export const tickerManifest: AppManifest = {
   name: 'Ticker',
   tagline: 'Scroll announcements across the screen',
   description:
-    'A moving band of short messages or live RSS headlines, always visible over your content — pick the screens it shows on.',
+    'A moving band of short messages or live RSS headlines, always visible over your content. Pick the screens it shows on.',
   runtimeKind: 'embed',
   dataSource: 'server',
   version: 2,
@@ -52,7 +52,7 @@ export const tickerManifest: AppManifest = {
       key: 'messages',
       type: 'repeater',
       label: 'Messages',
-      help: 'The messages to scroll. They repeat in order — drag to reorder.',
+      help: 'The messages to scroll. They repeat in order, drag to reorder.',
       required: true,
       validation: { min: 1 },
       visibleWhen: { field: 'source', equals: 'messages' },
@@ -111,7 +111,7 @@ export const tickerManifest: AppManifest = {
       key: 'theme',
       type: 'select',
       label: 'Theme',
-      help: 'A starting point — it fills in the colors below, which you can still change.',
+      help: 'A starting point. It fills in the colors below, which you can still change.',
       default: 'dark',
       options: [
         {

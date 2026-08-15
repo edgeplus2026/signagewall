@@ -56,7 +56,7 @@ export const linkedinManifest: AppManifest = {
       label: 'LinkedIn account',
       required: true,
       provider: 'linkedin',
-      help: "Sign in with the LinkedIn account that administers the Page. LinkedIn's consent screen says “manage your Pages” because that is the only permission it offers for listing them — SignageWall only reads posts and never publishes.",
+      help: "Sign in with the LinkedIn account that administers the Page. LinkedIn's consent screen says “manage your Pages” because that is the only permission it offers for listing them. SignageWall only reads posts and never publishes.",
     },
     {
       key: 'organization',

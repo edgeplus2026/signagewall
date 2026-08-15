@@ -16,7 +16,7 @@ export const holidaysManifest: AppManifest = {
   name: 'Public holidays',
   tagline: 'Upcoming public holidays',
   description:
-    'Show the next public holidays for a country — handy for offices, lobbies and staff areas.',
+    'Show the next public holidays for a country: handy for offices, lobbies and staff areas.',
   runtimeKind: 'embed',
   dataSource: 'server',
   version: 2,

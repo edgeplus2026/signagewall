@@ -38,7 +38,7 @@ export const wisdomManifest: AppManifest = {
   name: 'Daily Wisdom',
   tagline: 'A new quote on the wall every day',
   description:
-    'Shows a handful of inspiring quotes, each one in a different design — refreshed on its own, every day.',
+    'Shows a handful of inspiring quotes, each one in a different design: refreshed on its own, every day.',
   runtimeKind: 'embed',
   dataSource: 'server',
   version: 1,
@@ -59,7 +59,7 @@ export const wisdomManifest: AppManifest = {
       label: 'Topics',
       // The one field that decides whether this app fits the room it hangs in, so
       // the help says what it is FOR, not what it does.
-      help: 'What the quotes should be about. Pick a few — a gym might choose Motivation and Sports, a waiting room Health & wellness and Life.',
+      help: 'What the quotes should be about. Pick a few: a gym might choose Motivation and Sports, a waiting room Health & wellness and Life.',
       default: DEFAULT_CATEGORIES,
       options: categoryOptions(),
       // At least one. The connector would quietly fall back to the defaults on an

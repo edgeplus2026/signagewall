@@ -21,7 +21,7 @@ export const clockManifest: AppManifest = {
   name: 'Clock',
   tagline: 'Show the current time on your screens',
   description:
-    'Display a live clock — digital, analogue, split-flap, orbit, or spelled out in words.',
+    'Display a live clock: digital, analogue, split-flap, orbit, or spelled out in words.',
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 4,
@@ -49,7 +49,7 @@ export const clockManifest: AppManifest = {
       key: 'theme',
       type: 'select',
       label: 'Theme',
-      help: 'A starting point — it fills in the colours below, which you can still change.',
+      help: 'A starting point. It fills in the colours below, which you can still change.',
       default: 'dark',
       options: [
         {
@@ -133,7 +133,7 @@ export const clockManifest: AppManifest = {
       type: 'color',
       label: 'Accent colour',
       section: 'Theme Settings',
-      help: 'The second hand, the ticking colon, the ring that closes — the one thing on the face that moves.',
+      help: 'The second hand, the ticking colon, the ring that closes. The one thing on the face that moves.',
       default: DEFAULT_ACCENT,
     },
   ],

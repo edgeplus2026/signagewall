@@ -20,7 +20,7 @@ export const onthisdayManifest: AppManifest = {
   name: 'On this day',
   tagline: "Historical events for today's date",
   description:
-    'Show notable things that happened on today\'s date through history — engaging lobby and waiting-room content.',
+    'Show notable things that happened on today\'s date through history, engaging lobby and waiting-room content.',
   runtimeKind: 'embed',
   dataSource: 'server',
   version: 2,

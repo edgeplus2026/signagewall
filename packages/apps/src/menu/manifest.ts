@@ -28,7 +28,7 @@ export const menuManifest: AppManifest = {
   name: 'Menu board',
   tagline: 'Show a menu or price list',
   description:
-    'A designed board of items and prices — for cafés, canteens and shops. Keep the items here, import a CSV, or sync them live from Google Sheets or Excel.',
+    'A designed board of items and prices: for cafés, canteens and shops. Keep the items here, import a CSV, or sync them live from Google Sheets or Excel.',
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 2,
@@ -111,7 +111,7 @@ export const menuManifest: AppManifest = {
       key: 'theme',
       type: 'select',
       label: 'Theme',
-      help: 'A starting point — it fills in the colours below, which you can still change.',
+      help: 'A starting point. It fills in the colours below, which you can still change.',
       default: 'dark',
       options: [
         {

@@ -19,7 +19,7 @@ export const gsheetsManifest: AppManifest = {
   name: 'Google Sheets',
   tagline: 'Put a Google Sheet on the wall',
   description:
-    'Show a range from one of your Google Sheets as a live table or a single KPI — it refreshes on its own.',
+    'Show a range from one of your Google Sheets as a live table or a single KPI. It refreshes on its own.',
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 3,
@@ -33,7 +33,7 @@ export const gsheetsManifest: AppManifest = {
       label: 'Google account',
       required: true,
       provider: 'google',
-      help: 'Sign in once — SignageWall then lists your spreadsheets to choose from.',
+      help: 'Sign in once. SignageWall then lists your spreadsheets to choose from.',
     },
     {
       key: 'spreadsheet',

@@ -42,7 +42,7 @@ export const facebookManifest: AppManifest = {
       label: 'Facebook account',
       required: true,
       provider: 'meta',
-      help: 'Sign in with the Facebook account that manages the Page. SignageWall only reads posts — it never posts on your behalf.',
+      help: 'Sign in with the Facebook account that manages the Page. SignageWall only reads posts. It never posts on your behalf.',
     },
     {
       key: 'page',

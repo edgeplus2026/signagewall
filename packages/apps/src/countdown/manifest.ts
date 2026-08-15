@@ -18,7 +18,7 @@ const COUNTDOWN_ICON =
 export const countdownManifest: AppManifest = {
   slug: 'countdown',
   name: 'Countdown',
-  tagline: 'Count down to a moment — or up since one',
+  tagline: 'Count down to a moment, or up since one',
   description:
     'Show a live countdown to an event, or count up since a date. Ticks on its own, on or offline.',
   runtimeKind: 'embed',
@@ -40,7 +40,7 @@ export const countdownManifest: AppManifest = {
       label: 'Date & time',
       // The picker gives a local time with no zone; say which clock that is, since
       // a screen may stand in a different timezone than whoever set it.
-      help: "The moment to count to — the screen's local time.",
+      help: "The moment to count to. The screen's local time.",
       required: true,
     },
     {
@@ -76,7 +76,7 @@ export const countdownManifest: AppManifest = {
       key: 'theme',
       type: 'select',
       label: 'Theme',
-      help: 'A starting point — it fills in the colours below, which you can still change.',
+      help: 'A starting point. It fills in the colours below, which you can still change.',
       default: 'dark',
       options: [
         {
