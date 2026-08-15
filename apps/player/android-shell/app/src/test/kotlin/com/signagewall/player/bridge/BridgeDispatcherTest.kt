@@ -13,10 +13,11 @@ import java.io.File
 import java.nio.file.Files
 
 /**
- * Verifies the eight commands produce the exact JSON `value` shapes the Tauri Rust
- * commands do — the contract the web `native/` layer depends on. (Do not write
- * that path with a star: Kotlin nests block comments, so a `/*` inside KDoc
- * swallows the closing `*/` and the file stops parsing.)
+ * Verifies the commands produce the exact JSON `value` shapes the web `native/`
+ * layer depends on — the same shapes as the Tauri Rust commands, except for the
+ * Android-only ones. (Do not write that path with a star: Kotlin nests block
+ * comments, so a `/*` inside KDoc swallows the closing `*/` and the file stops
+ * parsing.)
  */
 class BridgeDispatcherTest {
     private val uuid = "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
@@ -61,6 +62,26 @@ class BridgeDispatcherTest {
         val d = dispatcher()
         assertEquals(JsonNull, d.dispatch("report_alive", "{}"))
         assertEquals(JsonNull, d.dispatch("report_healthy", "{}"))
+    }
+
+    @Test
+    fun `free_disk returns the shell's reading`() {
+        val dir = Files.createTempDirectory("signagewall").toFile()
+        val d = BridgeDispatcher(
+            shellVersion = "0.1.0",
+            deviceIdStore = DeviceIdStore(File(dir, "device.json")),
+            updater = NoopUpdater("0.1.0"),
+            freeDiskBytes = { 1_234L },
+        )
+        assertEquals(JsonPrimitive(1_234L), d.dispatch("free_disk", "{}"))
+    }
+
+    @Test
+    fun `free_disk reports -1 when the device will not say`() {
+        // Not zero: the web layer reads -1 as "unknown" and falls back to the
+        // browser's quota, where zero would read as "full" and stop caching on a
+        // device that is actually fine.
+        assertEquals(JsonPrimitive(-1L), dispatcher().dispatch("free_disk", "{}"))
     }
 
     @Test(expected = IllegalArgumentException::class)

@@ -144,6 +144,28 @@ export function OrganizationJsonLd() {
           publisher: { '@id': ORGANIZATION_ID },
           inLanguage: ['sr', 'en'],
         },
+      ]}
+    />
+  )
+}
+
+/**
+ * The product itself. Render only on pages the product is the subject of.
+ *
+ * This used to sit in the root layout beside Organization and WebSite, which
+ * put a `SoftwareApplication` on all hundred-odd pages — including a blog post
+ * about how long a slide should stay up, which is not about the application in
+ * any sense a search engine should be told. It also multiplied one modelling
+ * decision into a hundred audit rows.
+ *
+ * `/pricing` declares this same `@id` through `PricingJsonLd`, so it must not
+ * render this as well; two declarations of one entity on a page is a conflict,
+ * not a reinforcement.
+ */
+export function SoftwareProductJsonLd() {
+  return (
+    <JsonLdGraph
+      nodes={[
         {
           '@type': 'SoftwareApplication',
           '@id': SOFTWARE_PRODUCT_ID,
@@ -286,7 +308,10 @@ function itemListNode(list: ItemListMeta): JsonLdNode {
   const elements = resolvedItems.map(({ item, url: resolvedUrl }, index) => {
     const type = item.type ?? 'WebPage'
     const fragment = ENTITY_FRAGMENTS[type]
-    const image = absoluteSchemaUrl(item.image)
+    /* `description` and `image` are no longer read here: the row is a reference
+       now, and both belong to the entity it points at, which states them on its
+       own page. Callers still pass them because the same entries feed visible
+       card components, so they are not dead — just not this function's. */
     const entityId = item.id ?? (fragment ? `${resolvedUrl}#${fragment}` : resolvedUrl)
 
     return {
@@ -294,17 +319,16 @@ function itemListNode(list: ItemListMeta): JsonLdNode {
       position: index + 1,
       name: item.name,
       url: resolvedUrl,
-      item: {
-        '@type': type,
-        '@id': entityId,
-        url: resolvedUrl,
-        name: item.name,
-        ...(item.description ? { description: item.description } : {}),
-        ...(image ? { image } : {}),
-        /* A list of apps is a list of `SoftwareApplication`s, and each one is
-           held to the same completeness rule as the entity on its own page. */
-        ...(type === 'SoftwareApplication' ? { offers: subscriptionOffer() } : {}),
-      },
+      /* A reference, not a second declaration.
+         This used to restate the entity — `@type` plus a handful of fields —
+         which made every row of /blog a `BlogPosting` without `headline`,
+         `datePublished` or `author`, and therefore an invalid one, twenty per
+         language. The complete entity already exists under this exact `@id` on
+         its own page; a node object carrying only `@id` points at it, and a
+         validator reads a pointer as a pointer rather than as a half-filled
+         copy. The row keeps its own `name` and `url` above, which is the shape
+         Google documents for a list that summarises detail pages. */
+      item: { '@id': entityId },
     }
   })
 

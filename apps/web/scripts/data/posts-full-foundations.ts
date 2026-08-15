@@ -11,7 +11,11 @@
 export const POSTS_FULL_FOUNDATIONS = {
   'digitalni-meni-povecava-prodaju': {
     links: {
-      posts: ['tipografija-za-ekrane', 'kako-meriti-da-li-ekran-radi-posao'],
+      posts: [
+        'tipografija-za-ekrane',
+        'kako-meriti-da-li-ekran-radi-posao',
+        'raspored-sadrzaja-koji-se-sam-menja',
+      ],
       solutions: ['hospitality'],
       apps: ['menu', 'qr'],
     },

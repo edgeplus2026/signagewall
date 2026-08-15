@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.os.Build
 import android.net.Uri
 import android.os.Bundle
+import android.os.StatFs
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -212,6 +213,7 @@ class KioskActivity : AppCompatActivity() {
                 updater = updater,
                 deviceOwner = { kioskController.isDeviceOwner() },
                 deviceInfo = { deviceInfoJson() },
+                freeDiskBytes = { freeDiskBytes() },
                 onDeactivate = { runOnUiThread { deactivatePlayer() } },
                 onRequestRecovery = { requestOverlayPermission() },
             ),
@@ -323,6 +325,23 @@ class KioskActivity : AppCompatActivity() {
     private fun onEscapeHatch() {
         kioskController.setMode("off")
     }
+
+    /**
+     * Free bytes where the app keeps its data — the WebView's caches included, since
+     * they live under this same partition. -1 when the device will not say, which the
+     * caller reads as "unknown" rather than as "full".
+     *
+     * `filesDir`, not the external/primary volume: a signage box often has a large SD
+     * card the browser cannot use, and answering with that would invite the cache to
+     * grow into space it can never reach.
+     */
+    private fun freeDiskBytes(): Long =
+        try {
+            StatFs(filesDir.absolutePath).availableBytes
+        } catch (t: Throwable) {
+            Log.w(TAG, "could not read free disk space", t)
+            -1L
+        }
 
     /**
      * The facts the web service menu shows. Assembled here because only the shell

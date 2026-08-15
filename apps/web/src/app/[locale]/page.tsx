@@ -12,6 +12,7 @@ import { TrustStrip } from '@/components/marketing/trust-strip'
 import { UseCases } from '@/components/marketing/use-cases'
 import { WhatIsSignage } from '@/components/marketing/what-is-signage'
 import { Plans } from '@/components/pricing/plans'
+import { SoftwareProductJsonLd } from '@/components/seo/json-ld'
 import { SectionStack } from '@/components/ui/section'
 import { pageMetadata } from '@/lib/seo'
 
@@ -55,6 +56,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
      it back as a section rather than smuggling it into a nearby one. */
   return (
     <SectionStack>
+      {/* The landing page is the one page whose subject is the product. */}
+      <SoftwareProductJsonLd />
       <Hero />
       <TrustStrip locale={locale} />
       <WhatIsSignage />

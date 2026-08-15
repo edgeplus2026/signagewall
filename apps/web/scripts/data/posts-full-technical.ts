@@ -13,6 +13,7 @@ export const POSTS_FULL_TECHNICAL = {
         'tipografija-za-ekrane',
         'vertikalni-ili-horizontalni-ekran',
         'sta-pitati-dobavljaca',
+        'zaglavljena-slika-burn-in',
       ],
       solutions: ['retail'],
       apps: ['text', 'canva'],

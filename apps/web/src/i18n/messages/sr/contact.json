@@ -10,10 +10,21 @@
   },
   "info": {
     "title": "Javite nam se",
-    "body": "Recite nam nešto o vašem prostoru i ekranima, a mi ćemo predložiti najbolji način da krenete.",
+    "body": "Recite nam ponešto o svom prostoru i ekranima, pa ćemo predložiti kako je najbolje da počnete.",
     "emailLabel": "Email",
     "email": "signagewall@gmail.com",
-    "responseTime": "Odgovaramo u roku od jednog radnog dana."
+    "responseTime": "Odgovaramo u roku od jednog radnog dana.",
+    "checklist": {
+      "title": "Šta nam pomaže da odgovorimo iz prve",
+      "items": [
+        "Koliko ekrana, i da li su na jednom mestu ili na više njih",
+        "Šta ide na njih: meni, cene, ponude, obaveštenja, tabla sa brojkama uživo",
+        "Kakvi su ekrani, i da li iza njih već stoji plejer",
+        "Kada biste želeli da prvi proradi"
+      ]
+    },
+    "enterprise": "Preko pet ekrana cenu dajemo prema veličini mreže. Pošaljite broj i mi šaljemo cenu nazad, umesto da vas upućujemo na stranicu koja taj broj ne može da zna.",
+    "selfServe": "Ne morate da nam pišete da biste počeli. Proba traje 21 dan sa svim uključenim i bez kartice, a uparivanje prvog ekrana je pitanje nekoliko minuta. Ova stranica je za pitanja na koja stranica ne može da odgovori: mreža na više lokacija, ekran na nezgodnom mestu, ili nabavka kojoj treba čovek sa druge strane."
   },
   "form": {
     "name": "Ime i prezime",

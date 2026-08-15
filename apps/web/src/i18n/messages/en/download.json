@@ -30,17 +30,17 @@
     "items": [
       {
         "title": "Install",
-        "body": "Download and run the SignageWall player on the device connected to your screen."
+        "body": "Download and run the SignageWall player on the device connected to your screen — an Android box, a mini PC, or a computer already sitting nearby. Nothing else has to be installed, and no server is involved."
       },
       {
         "title": "Pair",
-        "body": "Scan the QR code from your dashboard to link the screen to your account."
+        "body": "The player shows a short pairing code on the screen. Enter it in the Screens section of your dashboard and the device is linked to one logical screen in your account. No cables are moved and nobody has to visit the site again."
       },
       {
         "title": "Publish",
-        "body": "Send content from the panel, and the screen comes to life instantly."
+        "body": "Send content from the dashboard and the screen picks it up within seconds. From then on the player stores what it downloaded and keeps playing it through a dropped connection, syncing again the moment the network returns."
       }
     ]
   },
-  "note": "No account yet? Get in touch and we will help you set up your first screen."
+  "note": "No account yet? Get in touch and we will help you set up your first screen. The trial runs for 21 days with every feature switched on and needs no card, so a first screen can be running before you decide anything."
 }

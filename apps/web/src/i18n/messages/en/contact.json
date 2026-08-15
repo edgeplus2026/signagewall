@@ -13,7 +13,18 @@
     "body": "Tell us a little about your space and screens, and we'll suggest the best way to get started.",
     "emailLabel": "Email",
     "email": "signagewall@gmail.com",
-    "responseTime": "We reply within one business day."
+    "responseTime": "We reply within one business day.",
+    "checklist": {
+      "title": "What helps us answer in one go",
+      "items": [
+        "How many screens, and whether they sit in one place or several",
+        "What goes on them: a menu, prices, offers, notices, a live dashboard",
+        "What the screens are, and whether there is already a player behind them",
+        "When you would like the first one running"
+      ]
+    },
+    "enterprise": "Above five screens the price is quoted for the size of the network. Send the number and we will send one back, rather than pointing you at a page that cannot know it.",
+    "selfServe": "You do not have to write to us to start. The trial runs for 21 days with every feature switched on and no card, and pairing a first screen takes a few minutes. This page is for the questions a page cannot answer: a network across several sites, a screen in an awkward place, or a procurement process that needs a person on the other end."
   },
   "form": {
     "name": "Full name",

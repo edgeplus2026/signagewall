@@ -14,9 +14,13 @@ import com.signagewall.player.util.json
 
 /**
  * Routes a bridge command to its handler and produces the `value` JsonElement — or
- * throws, which the caller turns into an `{ok:false}` envelope. The eight commands
- * mirror the Tauri Rust commands 1:1 (lib.rs + updater.rs) with the same JSON
- * shapes. Quick commands do sub-millisecond work synchronously; `run_update` returns
+ * throws, which the caller turns into an `{ok:false}` envelope. Most commands mirror
+ * the Tauri Rust commands (lib.rs + updater.rs) with the same JSON shapes; the
+ * exception is `free_disk`, which is Android-only. An unknown command throws, and
+ * the web layer reads that as "this host cannot answer" — which is what lets a
+ * caller ask for something only one shell provides.
+ *
+ * Quick commands do sub-millisecond work synchronously; `run_update` returns
  * immediately (Level 3 runs the actual download/install on a background thread).
  */
 class BridgeDispatcher(
@@ -26,13 +30,21 @@ class BridgeDispatcher(
     /**
      * Whether this install is provisioned as Device Owner. Only then can a HARD
      * kiosk actually lock the box; without it the request silently degrades to
-     * escapable screen-pinning (see KioskController), and the CMS would keep
-     * telling the operator the screen was "fully locked" when it was not.
+     * escapable screen-pinning (see KioskController), which is why the service menu
+     * says so next to the switch instead of promising a lock it cannot hold.
      * A lambda so the dispatcher stays testable without a DevicePolicyManager.
      */
     private val deviceOwner: () -> Boolean = { false },
     /** Pre-serialised device facts for the web service menu. */
     private val deviceInfo: () -> String = { "{}" },
+    /**
+     * Free bytes on the partition the app stores data in, or -1 when the device
+     * would not say. The web layer's cache warming needs this because the browser
+     * cannot: a storage quota is a share of the disk's TOTAL size, so on a box that
+     * is already mostly full the quota exceeds what is actually left, and a guard
+     * written against it only trips after the disk is gone.
+     */
+    private val freeDiskBytes: () -> Long = { -1L },
     /** Unpairs this display locally: drops the device id and restarts. */
     private val onDeactivate: () -> Unit = {},
     /** Opens the overlay-permission settings screen; false if the device has none. */
@@ -44,6 +56,7 @@ class BridgeDispatcher(
         "shell_version" -> JsonPrimitive(shellVersion)
         "device_owner" -> JsonPrimitive(deviceOwner())
         "device_info" -> json.parseToJsonElement(deviceInfo())
+        "free_disk" -> JsonPrimitive(freeDiskBytes())
         "deactivate" -> {
             onDeactivate()
             JsonNull

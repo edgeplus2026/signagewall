@@ -1,9 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { CacheWarmer, type PrefetchDeps } from './prefetch'
+import { CacheWarmer, isOverBudget, type PrefetchDeps } from './prefetch'
 
 // Imported transitively by the module under test only for startPrefetch wiring.
 vi.mock('../store', () => ({ snapshot: { value: null } }))
+
+// The shell's free-disk reading. Hoisted so the factory below can reference it:
+// `vi.mock` is lifted above the imports, and a plain const would still be in its
+// temporal dead zone by the time the factory runs.
+const { freeDiskMock } = vi.hoisted(() => ({
+  freeDiskMock: vi.fn<() => Promise<number | undefined>>(),
+}))
+vi.mock('../native/runtime', () => ({ freeDiskBytes: freeDiskMock }))
 
 function makeDeps(over: Partial<PrefetchDeps> = {}) {
   const fetched: string[] = []
@@ -313,5 +321,75 @@ describe('warmMediaUrl', () => {
       warmMediaUrl('https://cdn.test/a.mp4', controller.signal),
     ).rejects.toThrow()
     expect(modesOf(fetchMock)).toEqual(['cors'])
+  })
+})
+
+/**
+ * The guard that decides when warming must stop to protect the device. Every case
+ * here is one the previous version answered "keep going" to — including the ones
+ * where it had just failed to measure anything at all.
+ */
+describe('isOverBudget', () => {
+  const RESERVE = 512 * 1024 * 1024
+
+  function stubEstimate(estimate: (() => Promise<StorageEstimate>) | null): void {
+    vi.stubGlobal('navigator', estimate ? { storage: { estimate } } : {})
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    freeDiskMock.mockReset()
+  })
+
+  it('stops when the device is below its free-space reserve', async () => {
+    freeDiskMock.mockResolvedValue(RESERVE - 1)
+    // No storage API stubbed at all: the native answer must be enough on its own.
+    stubEstimate(null)
+    await expect(isOverBudget()).resolves.toBe(true)
+  })
+
+  it('keeps warming while the device has room, and does not consult the quota', async () => {
+    freeDiskMock.mockResolvedValue(RESERVE * 4)
+    const estimate = vi.fn(async () => ({ usage: 99, quota: 100 }))
+    stubEstimate(estimate)
+    await expect(isOverBudget()).resolves.toBe(false)
+    // The quota would have said "full". Real free space outranks it.
+    expect(estimate).not.toHaveBeenCalled()
+  })
+
+  describe('off a native shell (no free-disk reading)', () => {
+    it('keeps warming where the platform has no estimate at all', async () => {
+      // A property of the browser, not a fault: refusing here would cost such a
+      // device its offline copy forever, and maxEntries still bounds the cache.
+      freeDiskMock.mockResolvedValue(undefined)
+      stubEstimate(null)
+      await expect(isOverBudget()).resolves.toBe(false)
+    })
+
+    it('stops past 90% of the quota', async () => {
+      freeDiskMock.mockResolvedValue(undefined)
+      stubEstimate(async () => ({ usage: 91, quota: 100 }))
+      await expect(isOverBudget()).resolves.toBe(true)
+    })
+
+    it('keeps warming on a fresh device that has cached nothing', async () => {
+      // usage 0 is a real measurement, not a missing one — the old `!usage` check
+      // could not tell the two apart.
+      freeDiskMock.mockResolvedValue(undefined)
+      stubEstimate(async () => ({ usage: 0, quota: 100 }))
+      await expect(isOverBudget()).resolves.toBe(false)
+    })
+
+    it('stops when estimate throws', async () => {
+      freeDiskMock.mockResolvedValue(undefined)
+      stubEstimate(() => Promise.reject(new Error('storage unavailable')))
+      await expect(isOverBudget()).resolves.toBe(true)
+    })
+
+    it('stops when the quota is unusable', async () => {
+      freeDiskMock.mockResolvedValue(undefined)
+      stubEstimate(async () => ({ usage: 10, quota: 0 }))
+      await expect(isOverBudget()).resolves.toBe(true)
+    })
   })
 })

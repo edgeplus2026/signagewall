@@ -1,5 +1,6 @@
 import { effect } from '@preact/signals'
 
+import { freeDiskBytes } from '../native/runtime'
 import { snapshot } from '../store'
 import type { PlayerSnapshot } from '../types'
 
@@ -201,6 +202,63 @@ export async function warmMediaUrl(
   await drainBody(response)
 }
 
+/**
+ * Free space to leave on the device, whatever the browser believes it may have.
+ *
+ * It has to cover the things that need room precisely when the cache is largest:
+ * an OTA APK downloading itself into app storage, the WebView's own scratch space,
+ * and Android's margin for not misbehaving. A signage box that fills its data
+ * partition does not fail loudly — it fails as an update that never installs and a
+ * screen nobody can fix remotely.
+ */
+const DISK_RESERVE_BYTES = 512 * 1024 * 1024
+
+/**
+ * Whether warming should stop to protect the device's storage.
+ *
+ * Asks the shell for real free bytes first, because the browser genuinely cannot
+ * answer this: a storage quota is a share of the disk's TOTAL size (Chrome allows an
+ * origin up to ~60% of it), so on a box that is already half full the quota is
+ * LARGER than what is actually left. Measured on the Android TV here — 4 GB
+ * partition, 1.7 GB free, so a quota near 2.4 GB and a 90%-of-quota guard that
+ * could only ever trip after the disk was already gone.
+ *
+ * Off a native shell the quota ratio is all there is, so it stays as the fallback —
+ * a weak proxy, but the desktop shell and a browser both run on machines where the
+ * question is far less sharp.
+ *
+ * The failure directions are deliberately different. A missing `estimate` is a
+ * property of the platform, stable and knowable, and refusing to warm there would
+ * cost every such device its offline copy for nothing — so that answers "keep
+ * going", with Workbox's `maxEntries` as the remaining bound. An `estimate` that
+ * THROWS, or returns a quota that cannot be reasoned about, is an anomaly on a
+ * platform that normally answers: that stops this pass and lets the next one retry.
+ * The previous version returned "keep going" for every one of these.
+ */
+export async function isOverBudget(): Promise<boolean> {
+  const free = await freeDiskBytes()
+  if (free !== undefined) {
+    return free < DISK_RESERVE_BYTES
+  }
+
+  const storage = navigator.storage as StorageManager | undefined
+  if (!storage?.estimate) {
+    return false
+  }
+  try {
+    const { usage, quota } = await storage.estimate()
+    if (quota === undefined || quota <= 0) {
+      return true
+    }
+    // `usage ?? 0`, not `!usage`: a device with nothing cached yet reports 0, and
+    // reading that as "could not measure" is how a fresh screen would decide it was
+    // out of space before it had stored a single byte.
+    return (usage ?? 0) / quota > 0.9
+  } catch {
+    return true
+  }
+}
+
 const defaultDeps: PrefetchDeps = {
   fetch: warmMediaUrl,
   isCached: async (url) => {
@@ -216,21 +274,7 @@ const defaultDeps: PrefetchDeps = {
       return false
     }
   },
-  overBudget: async () => {
-    const storage = navigator.storage as StorageManager | undefined
-    if (!storage?.estimate) {
-      return false
-    }
-    try {
-      const { usage, quota } = await storage.estimate()
-      if (!usage || !quota) {
-        return false
-      }
-      return usage / quota > 0.9
-    } catch {
-      return false
-    }
-  },
+  overBudget: isOverBudget,
   ready: serviceWorkerControlled,
 }
 
