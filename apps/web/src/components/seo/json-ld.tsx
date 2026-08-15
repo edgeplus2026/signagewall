@@ -1,4 +1,5 @@
 import { COMPANY } from '@/lib/company'
+import { CURRENCY, PRICE_PER_SCREEN } from '@/lib/pricing'
 import type { Route } from '@/lib/seo'
 import { absoluteUrl, resolveCanonicalUrl } from '@/lib/seo'
 import { SITE_URL as siteUrl } from '@/lib/site-url'
@@ -35,6 +36,37 @@ export function JsonLd({ data }: { data: unknown }) {
 export function JsonLdGraph({ nodes }: { nodes: JsonLdNode[] }) {
   if (nodes.length === 0) return null
   return <JsonLd data={{ '@context': 'https://schema.org', '@graph': nodes }} />
+}
+
+/**
+ * The subscription every SignageWall entity is sold under.
+ *
+ * Google treats a `SoftwareApplication` as incomplete unless it carries one of
+ * `offers`, `aggregateRating` or `review`. A site audit reported 180 invalid
+ * items for precisely that reason: the entity is emitted on every page, while
+ * the price used to live only on the pricing page. Rather than drop the entity
+ * or invent a rating, each one now states the price it is actually sold at.
+ *
+ * The number comes from `lib/pricing` — the same constant the pricing page
+ * renders — so the markup and the page can never quote different figures.
+ */
+function subscriptionOffer(url?: string): JsonLdNode {
+  return {
+    '@type': 'Offer',
+    price: PRICE_PER_SCREEN,
+    priceCurrency: CURRENCY,
+    // Per screen, per month — without this the number is meaningless.
+    priceSpecification: {
+      '@type': 'UnitPriceSpecification',
+      price: PRICE_PER_SCREEN,
+      priceCurrency: CURRENCY,
+      unitText: 'screen',
+      billingDuration: 1,
+      billingIncrement: 1,
+    },
+    availability: 'https://schema.org/InStock',
+    ...(url ? { url } : {}),
+  }
 }
 
 export const ORGANIZATION_ID = `${siteUrl}/#organization`
@@ -120,6 +152,7 @@ export function OrganizationJsonLd() {
           applicationCategory: 'BusinessApplication',
           applicationSubCategory: 'Digital signage',
           operatingSystem: 'Android, Windows, macOS, Linux',
+          offers: subscriptionOffer(),
           publisher: { '@id': ORGANIZATION_ID },
         },
       ]}
@@ -268,6 +301,9 @@ function itemListNode(list: ItemListMeta): JsonLdNode {
         name: item.name,
         ...(item.description ? { description: item.description } : {}),
         ...(image ? { image } : {}),
+        /* A list of apps is a list of `SoftwareApplication`s, and each one is
+           held to the same completeness rule as the entity on its own page. */
+        ...(type === 'SoftwareApplication' ? { offers: subscriptionOffer() } : {}),
       },
     }
   })
@@ -496,8 +532,12 @@ export interface SoftwareMeta {
 }
 
 /**
- * A catalogue app is a component of SignageWall, not a separately sold
- * product. Consequently this entity deliberately has no Offer.
+ * A catalogue app is a component of SignageWall rather than a separately sold
+ * product, so it carries the subscription's own offer rather than one of its
+ * own. It used to carry none at all, on the reasoning that a component is not
+ * for sale — which was true of the app and false of the markup: every one of
+ * these entities failed validation for the missing field, and a reader who
+ * lands on an app page can in fact buy it, at the price of the whole product.
  */
 export function SoftwareAppJsonLd({ app }: { app: SoftwareMeta }) {
   const url = contentUrl(app.locale, app.path, app.canonical)
@@ -531,6 +571,7 @@ export function SoftwareAppJsonLd({ app }: { app: SoftwareMeta }) {
           ...(app.features && app.features.length > 0 ? { featureList: app.features } : {}),
           ...(app.requirements ? { softwareRequirements: app.requirements } : {}),
           ...(image ? { image } : {}),
+          offers: subscriptionOffer(),
           isPartOf: { '@id': SOFTWARE_PRODUCT_ID },
           publisher: { '@id': ORGANIZATION_ID },
           url,
@@ -571,22 +612,11 @@ export function PricingJsonLd({ offer }: { offer: ProductOfferMeta }) {
         applicationCategory: 'BusinessApplication',
         operatingSystem: 'Android, Windows, macOS, Linux',
         publisher: { '@id': ORGANIZATION_ID },
-        offers: {
-          '@type': 'Offer',
-          price: offer.price,
-          priceCurrency: offer.currency,
-          // Per screen, per month — without this the number is meaningless.
-          priceSpecification: {
-            '@type': 'UnitPriceSpecification',
-            price: offer.price,
-            priceCurrency: offer.currency,
-            unitText: 'screen',
-            billingDuration: 1,
-            billingIncrement: 1,
-          },
-          availability: 'https://schema.org/InStock',
-          url,
-        },
+        /* The same offer every other entity carries, plus the URL of the page
+           stating it. `offer.price` and `offer.currency` come from the caller
+           for the page's own prose; the markup takes them from `lib/pricing`
+           directly, so a caller cannot publish a price the page does not show. */
+        offers: subscriptionOffer(url),
       }}
     />
   )

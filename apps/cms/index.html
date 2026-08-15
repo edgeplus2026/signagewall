@@ -6,6 +6,18 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      The dashboard is the product, not content. Every route here renders from
+      one HTML shell, so a crawler sees the same title on /login, /register and
+      everything behind them — which a site audit reported as duplicate titles,
+      a missing h1 and a missing description, none of which are worth fixing on
+      pages that should not be in an index at all.
+
+      noindex rather than a robots.txt Disallow: a disallowed URL can still be
+      listed from inbound links, with no content and no way for the crawler to
+      read this tag. Crawling stays open precisely so this is seen.
+    -->
+    <meta name="robots" content="noindex, nofollow" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

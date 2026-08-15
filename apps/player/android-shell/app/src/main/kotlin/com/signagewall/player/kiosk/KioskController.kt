@@ -12,7 +12,7 @@ import com.signagewall.player.KioskActivity
 
 /**
  * The kiosk-lockdown state machine, driven by the web via `AndroidBridge.setKioskLock`
- * (from the `kioskMode` per-device setting). Three modes, plus an implicit
+ * (set on the device, in the player's service menu). Three modes, plus an implicit
  * HARD_DEGRADED: a HARD request on a non-Device-Owner device falls back to SOFT and
  * logs the gap (you cannot un-escapably lock without provisioning).
  *

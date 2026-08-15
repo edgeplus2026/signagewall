@@ -29,7 +29,7 @@ data class RuntimeState(
      * ago is indistinguishable from a broken one.
      */
     @SerialName("desiredState") val desiredState: String = RUNNING,
-    /** Last kiosk mode the CMS asked for — `off` / `soft` / `hard`. */
+    /** Last kiosk mode set on the device, from the service menu — `off` / `soft` / `hard`. */
     @SerialName("kioskMode") val kioskMode: String = "off",
     /** Rung of the launch ladder currently in use; persisted so an escalation
      *  survives the process restart that is itself one of the rungs. */
