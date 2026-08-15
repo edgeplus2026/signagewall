@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import { ContactForm } from './contact-form'
 
+import { copyLinks } from '@/components/content/copy-links'
 import { PageHero } from '@/components/marketing/page-hero'
 import { Card } from '@/components/ui/card'
 import { Section, SectionStack } from '@/components/ui/section'
@@ -76,7 +77,11 @@ export default async function ContactPage({ params }: PageProps) {
             </ul>
           </div>
 
-          <p className="mt-8 text-sm text-secondary">{t('info.enterprise')}</p>
+          {/* Sending someone away from the contact form is the point: the two
+              questions this inbox receives most already have pages, and those
+              pages answer at once instead of tomorrow morning. */}
+          <p className="mt-8 text-sm text-secondary">{t.rich('info.answered', copyLinks)}</p>
+          <p className="mt-4 text-sm text-secondary">{t('info.enterprise')}</p>
           <p className="mt-4 text-sm text-secondary">{t('info.selfServe')}</p>
         </div>
 

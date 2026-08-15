@@ -24,7 +24,8 @@
       ]
     },
     "enterprise": "Preko pet ekrana cenu dajemo prema veličini mreže. Pošaljite broj i mi šaljemo cenu nazad, umesto da vas upućujemo na stranicu koja taj broj ne može da zna.",
-    "selfServe": "Ne morate da nam pišete da biste počeli. Proba traje 21 dan sa svim uključenim i bez kartice, a uparivanje prvog ekrana je pitanje nekoliko minuta. Ova stranica je za pitanja na koja stranica ne može da odgovori: mreža na više lokacija, ekran na nezgodnom mestu, ili nabavka kojoj treba čovek sa druge strane."
+    "selfServe": "Ne morate da nam pišete da biste počeli. Proba traje 21 dan sa svim uključenim i bez kartice, a uparivanje prvog ekrana je pitanje nekoliko minuta. Ova stranica je za pitanja na koja stranica ne može da odgovori: mreža na više lokacija, ekran na nezgodnom mestu, ili nabavka kojoj treba čovek sa druge strane.",
+    "answered": "Pre nego što pišete: koliko košta i šta je uključeno stoji na <pricing>stranici sa cenama</pricing>, a ako vam je sam pojam nov, <whatIs>šta je digital signage</whatIs> objašnjava celu priču od početka. To dvoje odgovara na većinu onoga što stigne u ovaj inbox, i odgovara brže nego mi."
   },
   "form": {
     "name": "Ime i prezime",
