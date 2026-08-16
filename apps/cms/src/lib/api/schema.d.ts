@@ -1900,6 +1900,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/screens/{screenId}/device/diagnostics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DevicePairingrequestDiagnostics"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/screens/{screenId}/device/apply-update": {
         parameters: {
             query?: never;
@@ -13383,6 +13399,84 @@ export interface operations {
         };
     };
     DevicePairingrestart: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                screenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    DevicePairingrequestDiagnostics: {
         parameters: {
             query?: never;
             header: {

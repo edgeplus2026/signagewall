@@ -4,11 +4,13 @@ import type { PlayerCommand } from '../types'
 
 const restartPlayer = vi.fn()
 const applyUpdateIfAvailable = vi.fn()
+const reportDiagnostics = vi.fn()
 const playbackNext = vi.fn()
 const playbackPrevious = vi.fn()
 
 vi.mock('../restart', () => ({ restartPlayer }))
 vi.mock('../native/updater', () => ({ applyUpdateIfAvailable }))
+vi.mock('./diagnostics-report', () => ({ reportDiagnostics }))
 vi.mock('./playback-bus', () => ({
   playbackNext,
   playbackPrevious,
@@ -73,6 +75,11 @@ describe('applyCommand — real device', () => {
     expect(restartPlayer).toHaveBeenCalledOnce()
   })
 
+  it('reports back on a sendDiagnostics command', () => {
+    applyCommand({ type: 'sendDiagnostics' })
+    expect(reportDiagnostics).toHaveBeenCalledOnce()
+  })
+
   it('applies a pending shell update on an applyUpdate command', () => {
     applyCommand({ type: 'applyUpdate' })
     expect(applyUpdateIfAvailable).toHaveBeenCalledOnce()
@@ -113,9 +120,13 @@ describe('applyCommand — preview spectator', () => {
     // A preview is a browser tab with no shell to update — running it there would
     // only ever report "no update", and the fleet broadcast reaches previews too.
     applyCommand({ type: 'applyUpdate' }, preview)
+    // A preview would answer with the operator's laptop state, under the device's
+    // name — worse than not answering at all.
+    applyCommand({ type: 'sendDiagnostics' }, preview)
     expect(volume.value).toBe(100)
     expect(restartPlayer).not.toHaveBeenCalled()
     expect(dailyReload.value).toEqual({ enabled: true, time: '03:00' })
     expect(applyUpdateIfAvailable).not.toHaveBeenCalled()
+    expect(reportDiagnostics).not.toHaveBeenCalled()
   })
 })

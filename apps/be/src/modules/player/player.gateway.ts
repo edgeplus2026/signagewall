@@ -20,7 +20,7 @@ import { OrganizationsRepository } from '../organizations/organizations.reposito
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensRepository } from '../screens/screens.repository';
 import { PlayerService } from './player.service';
-import type { ReportedProfile } from './player.service';
+import type { DiagnosticsReport, ReportedProfile } from './player.service';
 import { PlayerEvents, PlayerSocketEvents } from './player.events';
 import type {
   AppDataChangedEvent,
@@ -74,6 +74,14 @@ interface SocketData {
 interface HeartbeatMessage {
   profile?: ReportedProfile;
 }
+
+/**
+ * The device's answer to a `sendDiagnostics` command. Loosely typed on purpose:
+ * it arrives from a player that may be several versions behind this backend, and
+ * a strict shape would reject the report of exactly the device most worth hearing
+ * from. The service caps and normalises it.
+ */
+type DiagnosticsMessage = DiagnosticsReport;
 
 interface NowPlayingMessage {
   itemId?: string;
@@ -363,6 +371,23 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * device 1:1 (the preview runs no clock of its own). Only honored from a real
    * device socket — a preview spectator must never drive this.
    */
+  /**
+   * Stores the report the device just assembled. Only from a real device socket:
+   * a CMS preview spectator has no device row, and its browser's state is not
+   * what anyone asked about.
+   */
+  @SubscribeMessage(PlayerSocketEvents.Diagnostics)
+  async handleDiagnostics(
+    client: Socket,
+    payload: DiagnosticsMessage,
+  ): Promise<void> {
+    const { deviceId, preview } = client.data as SocketData;
+
+    if (deviceId && !preview) {
+      await this.playerService.recordDiagnostics(deviceId, payload);
+    }
+  }
+
   @SubscribeMessage(PlayerSocketEvents.NowPlaying)
   handleNowPlaying(client: Socket, payload: NowPlayingMessage): void {
     const { deviceId, screenId, preview } = client.data as SocketData;

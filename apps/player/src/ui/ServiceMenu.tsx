@@ -10,6 +10,7 @@ import {
   installUpdateNow,
   loadShellDeviceInfo,
   pendingUpdateVersion,
+  readShellLog,
   reportServiceMenuOpen,
   requestRecoveryPermission,
   setWebDebugging,
@@ -79,6 +80,8 @@ export function ServiceMenu() {
   const [pendingUpdate, setPendingUpdate] = useState<string | undefined>(undefined)
   /** Undefined until the shell answers — and stays undefined where it cannot. */
   const [webDebug, setWebDebug] = useState<boolean | undefined>(undefined)
+  const [log, setLog] = useState<string[]>([])
+  const [logOpen, setLogOpen] = useState(false)
   const [updateState, setUpdateState] = useState<string | undefined>(undefined)
 
   const close = useCallback((): void => {
@@ -192,6 +195,31 @@ export function ServiceMenu() {
     on: locked,
     activate: () => setKioskLockEnabled(kioskMode.peek() === 'off'),
   })
+
+  // Only when there is something to show. An empty log means either a host that
+  // keeps none or a screen that has had nothing worth recording — and in both
+  // cases an empty panel would just be a dead end.
+  if (log.length > 0) {
+    actions.push({
+      key: 'log',
+      label: 'Recent events',
+      hint: 'Recoveries, updates and crashes — what this screen did while nobody watched',
+      expandable: true,
+      expanded: logOpen,
+      detail: (
+        <div class="service-panel__log">
+          {/* Newest first: the answer to "what just happened" is at the end of the
+              file, and a technician should not have to scroll to reach it. */}
+          {[...log].reverse().map((line) => (
+            <p class="service-panel__log-line" key={line}>
+              {line}
+            </p>
+          ))}
+        </div>
+      ),
+      activate: () => setLogOpen((shown) => !shown),
+    })
+  }
 
   // Only where the shell can actually do it — its absence in `device_info` marks a
   // host with no such notion, and a switch that does nothing is worse than none.
@@ -370,6 +398,11 @@ export function ServiceMenu() {
     void pendingUpdateVersion().then((version) => {
       if (!cancelled) {
         setPendingUpdate(version)
+      }
+    })
+    void readShellLog().then((lines) => {
+      if (!cancelled) {
+        setLog(lines)
       }
     })
     return () => {

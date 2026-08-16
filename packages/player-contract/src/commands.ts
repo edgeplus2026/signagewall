@@ -42,6 +42,15 @@ export type PlayerCommand =
    * release, so the fix is always a higher version.
    */
   | { type: 'applyUpdate' }
+  /**
+   * Report back everything this screen knows about itself — cache state, storage,
+   * and the shell's recent event log — as one `diagnostics` message on the socket.
+   *
+   * The remote equivalent of walking up to the screen and opening the service menu.
+   * Pulled rather than pushed on every beat because the log is kilobytes and almost
+   * always uninteresting: it is worth sending exactly when somebody asks.
+   */
+  | { type: 'sendDiagnostics' }
   // Transient playback nudges (remote next/prev, e.g. from the CMS preview).
   | { type: 'next' }
   | { type: 'prev' }

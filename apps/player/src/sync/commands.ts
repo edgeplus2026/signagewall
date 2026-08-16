@@ -6,6 +6,7 @@ import {
 } from '../device'
 import { isOrientation, isScale, normalizeDailyReload } from '../device-settings'
 import { applyUpdateIfAvailable } from '../native/updater'
+import { reportDiagnostics } from './diagnostics-report'
 import { restartPlayer } from '../restart'
 import { dailyReload, orientation, scale, volume } from '../store'
 import type {
@@ -108,6 +109,13 @@ export function applyCommand(
     case 'dailyReload':
       if (!options.preview) {
         applyDailyReload(command.value)
+      }
+      break
+    // Same reason as applyUpdate: a preview tab is not the screen anyone is asking
+    // about, and letting it answer would put a laptop's state in the CMS.
+    case 'sendDiagnostics':
+      if (!options.preview) {
+        void reportDiagnostics()
       }
       break
     // Never mirrored into a CMS preview: the preview is a browser tab, it has no

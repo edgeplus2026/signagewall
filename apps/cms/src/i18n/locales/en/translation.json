@@ -974,6 +974,39 @@
         "submit": "Install now",
         "success": "Update requested.",
         "error": "Could not request the update. Please try again."
+      },
+      "cache": {
+        "title": "Offline copy",
+        "description": "How much of this screen's content is stored on the device. A complete copy is what lets it keep playing without a network.",
+        "value": "{{cached}} of {{total}} items cached"
+      },
+      "worker": {
+        "title": "Offline cache",
+        "description": "The component that stores content on the device.",
+        "uncontrolled": "Not active — this screen is storing nothing and will go blank if it loses its network"
+      },
+      "storage": {
+        "title": "Free storage",
+        "description": "Space left on the device. Content caching stops before it runs out, so updates always have room to land."
+      },
+      "diagnostics": {
+        "title": "Diagnostics",
+        "rowTitle": "Ask this screen to report",
+        "rowDescription": "Requests the screen's cache state, storage and recent events. It answers over its live connection, so an offline screen keeps showing its previous report.",
+        "button": "Request",
+        "requested": "Requested. The report appears here once the screen answers.",
+        "error": "Could not reach the screen. Please try again.",
+        "capturedAt": "Reported by the device at {{at}}",
+        "noLog": "No events recorded — this player has nothing to report yet, or its shell is too old to keep a log."
+      },
+      "recoveries": {
+        "title": "Recoveries",
+        "description": "How many times the player had to be put back on screen. Climbing means this screen keeps falling off and restoring itself.",
+        "value": "{{count}} times since install"
+      },
+      "lastCrash": {
+        "title": "Last crash",
+        "description": "The most recent uncaught error on this device."
       }
     },
     "update": {

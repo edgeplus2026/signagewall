@@ -7,6 +7,7 @@ import android.content.pm.PackageInstaller
 import android.util.Log
 import com.signagewall.player.kiosk.KioskPresence
 import java.io.File
+import com.signagewall.player.runtime.ShellLog
 
 /**
  * The authoritative outcome of an install.
@@ -46,6 +47,7 @@ class InstallReceiver : BroadcastReceiver() {
             PackageInstaller.STATUS_SUCCESS -> {
                 // Terminal and good. PackageReplacedReceiver puts the player back.
                 Log.i(TAG, "update installed")
+                ShellLog.of(context)?.record("update", "installed successfully")
                 record(store, "installing", null)
             }
 
@@ -53,6 +55,10 @@ class InstallReceiver : BroadcastReceiver() {
                 val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
                 val versionCode = intent.getIntExtra(EXTRA_VERSION_CODE, 0)
                 Log.w(TAG, "install failed: status=$status message=$message")
+                ShellLog.of(context)?.record(
+                    "update",
+                    "install FAILED status=$status $message",
+                )
                 record(store, "error", message ?: "install failed ($status)", versionCode)
             }
         }

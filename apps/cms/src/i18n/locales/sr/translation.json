@@ -952,6 +952,39 @@
         "submit": "Instaliraj odmah",
         "success": "Ažuriranje zatraženo.",
         "error": "Nije moguće zatražiti ažuriranje. Pokušajte ponovo."
+      },
+      "cache": {
+        "title": "Offline kopija",
+        "description": "Koliko je sadržaja ovog ekrana sačuvano na uređaju. Potpuna kopija je ono što mu omogućava da radi i bez mreže.",
+        "value": "{{cached}} od {{total}} stavki keširano"
+      },
+      "worker": {
+        "title": "Offline keš",
+        "description": "Komponenta koja čuva sadržaj na uređaju.",
+        "uncontrolled": "Nije aktivan — ovaj ekran ne čuva ništa i ostaće prazan ako izgubi mrežu"
+      },
+      "storage": {
+        "title": "Slobodan prostor",
+        "description": "Preostali prostor na uređaju. Keširanje sadržaja staje pre nego što se popuni, da ažuriranja uvek imaju gde da slete."
+      },
+      "diagnostics": {
+        "title": "Dijagnostika",
+        "rowTitle": "Zatraži izveštaj sa ekrana",
+        "rowDescription": "Traži stanje keša, prostora i skorašnjih događaja. Ekran odgovara preko svoje žive veze, pa offline ekran i dalje prikazuje prethodni izveštaj.",
+        "button": "Zatraži",
+        "requested": "Zatraženo. Izveštaj će se pojaviti ovde čim ekran odgovori.",
+        "error": "Ekran nije dostupan. Pokušajte ponovo.",
+        "capturedAt": "Uređaj je izvestio u {{at}}",
+        "noLog": "Nema zabeleženih događaja — ili plejer nema šta da prijavi, ili mu je ljuska starija od ove funkcije."
+      },
+      "recoveries": {
+        "title": "Oporavci",
+        "description": "Koliko puta je plejer morao da bude vraćen na ekran. Ako broj raste, ovaj ekran stalno ispada i sam se vraća.",
+        "value": "{{count}} puta od instalacije"
+      },
+      "lastCrash": {
+        "title": "Poslednji pad",
+        "description": "Poslednja neuhvaćena greška na ovom uređaju."
       }
     },
     "update": {

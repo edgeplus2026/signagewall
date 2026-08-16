@@ -206,6 +206,77 @@ describe('CacheWarmer', () => {
   })
 })
 
+describe('CacheWarmer.summary', () => {
+  it('counts what the cache holds, whether already there or just fetched', async () => {
+    const { deps } = makeDeps({
+      isCached: vi.fn(async (url: string) => url === 'a'),
+    })
+    const warmer = new CacheWarmer(deps)
+
+    warmer.onContent(['a', 'b', 'c'])
+    await warmer.settle()
+
+    // 'a' was already cached; 'b' and 'c' were fetched but the stub keeps
+    // reporting them uncached, so they must NOT be counted as stored.
+    expect(warmer.summary()).toEqual({
+      cachedMedia: 1,
+      totalMedia: 3,
+      cacheComplete: false,
+    })
+  })
+
+  it('reports a fully warmed set as complete', async () => {
+    const { deps } = makeDeps()
+    const warmer = new CacheWarmer(deps)
+
+    warmer.onContent(['a', 'b'])
+    await warmer.settle()
+
+    expect(warmer.summary()).toEqual({
+      cachedMedia: 2,
+      totalMedia: 2,
+      cacheComplete: true,
+    })
+  })
+
+  it('recounts from scratch when the set shrinks', async () => {
+    // A counter that only grew would keep reporting the old, larger total and
+    // show a half-replaced playlist as fully cached.
+    const { deps } = makeDeps()
+    const warmer = new CacheWarmer(deps)
+
+    warmer.onContent(['a', 'b', 'c'])
+    await warmer.settle()
+    warmer.onContent(['a'])
+    await warmer.settle()
+
+    expect(warmer.summary()).toEqual({
+      cachedMedia: 1,
+      totalMedia: 1,
+      cacheComplete: true,
+    })
+  })
+
+  it('stops counting where the budget guard stopped the pass', async () => {
+    const { deps } = makeDeps({
+      isCached: vi.fn(async (url: string) => url === 'a'),
+      overBudget: vi.fn(async () => true),
+    })
+    const warmer = new CacheWarmer(deps)
+
+    warmer.onContent(['a', 'b', 'c'])
+    await warmer.settle()
+
+    // 'a' counted, then the guard stopped the pass at 'b'. Reporting 1 of 3 and
+    // NOT complete is what tells an operator this screen cannot go offline.
+    expect(warmer.summary()).toEqual({
+      cachedMedia: 1,
+      totalMedia: 3,
+      cacheComplete: false,
+    })
+  })
+})
+
 /**
  * The mode matters, not just the bytes: only a CORS response has a body the
  * service worker can slice, and that slicing is what serves a `Range:` request —

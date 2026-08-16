@@ -223,6 +223,8 @@ class KioskActivity : AppCompatActivity() {
                 deviceInfo = { deviceInfoJson() },
                 freeDiskBytes = { freeDiskBytes() },
                 onSetWebDebugging = { enabled -> runOnUiThread { setWebDebugging(enabled) } },
+                readLog = { (application as? PlayerApp)?.shellLog?.tail() ?: emptyList() },
+                readHealth = { healthJson() },
                 onDeactivate = { runOnUiThread { deactivatePlayer() } },
                 onRequestRecovery = { requestOverlayPermission() },
             ),
@@ -351,6 +353,31 @@ class KioskActivity : AppCompatActivity() {
         WebView.setWebContentsDebuggingEnabled(enabled)
         webDebugging = enabled
         Log.i(TAG, "web contents debugging ${if (enabled) "enabled" else "disabled"}")
+    }
+
+    /**
+     * How hard this screen has been struggling, for the heartbeat.
+     *
+     * Only counters and a breadcrumb — no DevicePolicyManager, no Settings lookup,
+     * nothing that `device_info` does for the service menu. It is read every thirty
+     * seconds on hardware that is already short of everything.
+     *
+     * `lastCrash` is trimmed here rather than on the way out: it is the message of
+     * an arbitrary exception, and the one place that knows it should be short is
+     * the one place that knows why it is being sent.
+     */
+    private fun healthJson(): String {
+        val state = (application as? PlayerApp)?.runtimeStore?.read()
+        return json.encodeToString(
+            JsonObject.serializer(),
+            JsonObject(
+                mapOf(
+                    "recoveries" to JsonPrimitive(state?.recoveries ?: 0),
+                    "lastCrash" to JsonPrimitive(state?.lastCrash?.take(MAX_CRASH_REPORT_CHARS)),
+                    "lastCrashAt" to JsonPrimitive(state?.lastCrashAt ?: 0L),
+                ),
+            ),
+        )
     }
 
     /**
@@ -688,6 +715,9 @@ class KioskActivity : AppCompatActivity() {
         private val RENDERER_BACKOFF_MILLIS = listOf(0L, 2_000L, 8_000L)
 
         private const val OFFLINE_PAGE_URL = "file:///android_asset/offline.html"
+
+        /** Enough of a crash message to recognise it; short of shipping a stack. */
+        private const val MAX_CRASH_REPORT_CHARS = 200
 
     }
 

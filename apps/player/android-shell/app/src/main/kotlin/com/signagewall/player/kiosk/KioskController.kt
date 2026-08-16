@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
 import com.signagewall.player.KioskActivity
+import com.signagewall.player.runtime.ShellLog
 
 /**
  * The kiosk-lockdown state machine, driven by the web via `AndroidBridge.setKioskLock`
@@ -66,6 +67,10 @@ class KioskController(private val activity: Activity) {
     /** HARD requested but not Device Owner: the best we can do is SOFT. */
     private fun applyDegraded() {
         Log.w(TAG, "HARD kiosk requested but app is not Device Owner — degrading to SOFT")
+        ShellLog.of(activity)?.record(
+            "kiosk",
+            "hard lock requested but not Device Owner — degraded to escapable pinning",
+        )
         applySoft()
     }
 

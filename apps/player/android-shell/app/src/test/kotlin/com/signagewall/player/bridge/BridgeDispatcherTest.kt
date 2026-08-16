@@ -3,6 +3,7 @@ package com.signagewall.player.bridge
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
@@ -101,6 +102,25 @@ class BridgeDispatcherTest {
         d.dispatch("set_web_debugging", "not json")
         d.dispatch("set_web_debugging", "{}")
         assertEquals(listOf(true, true, false, false, false), seen)
+    }
+
+    @Test
+    fun `read_log returns the shell's entries, and an empty array when there are none`() {
+        val dir = Files.createTempDirectory("signagewall").toFile()
+        val withLog = BridgeDispatcher(
+            shellVersion = "0.1.0",
+            deviceIdStore = DeviceIdStore(File(dir, "device.json")),
+            updater = NoopUpdater("0.1.0"),
+            readLog = { listOf("08-17 01:02:03 boot process started") },
+        )
+        val lines = withLog.dispatch("read_log", "{}").jsonArray
+        assertEquals(1, lines.size)
+        assertEquals("08-17 01:02:03 boot process started", lines[0].jsonPrimitive.content)
+
+        // A host that keeps no log answers with an empty array, NOT an error: the
+        // menu then hides the row instead of showing a failure the operator
+        // cannot act on.
+        assertEquals(0, dispatcher().dispatch("read_log", "{}").jsonArray.size)
     }
 
     @Test(expected = IllegalArgumentException::class)

@@ -2,6 +2,7 @@ import { effect } from '@preact/signals'
 import { io, type Socket } from 'socket.io-client'
 
 import { config } from '../config'
+import { collectDiagnostics } from '../diagnostics'
 import {
   clearCachedPairingCode,
   clearToken,
@@ -14,6 +15,7 @@ import {
 import { clearMediaCaches, clearSnapshot, saveSnapshot } from '../persistence/idb'
 import type { PreviewMode, PreviewTarget } from '../preview'
 import { applyCommand, applySettings, applyVolume } from './commands'
+import { registerDiagnosticsSender } from './diagnostics-report'
 import { playbackShowItem } from './playback-bus'
 import { reportPreviewStatus } from './preview-handshake'
 import {
@@ -63,6 +65,14 @@ export function connectPlayer(): void {
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 15_000,
+  })
+
+  // Fire-and-forget: a report is a courtesy to whoever asked, never something the
+  // device should retry or queue. If the link drops before it lands, the operator
+  // asks again — one click, versus a device holding kilobytes of log for a request
+  // nobody remembers making.
+  registerDiagnosticsSender((report) => {
+    socket?.emit('diagnostics', report)
   })
 
   socket.on('connect', () => {
@@ -264,12 +274,20 @@ export function connectPreview(params: {
 function startHeartbeat(): void {
   stopHeartbeat()
   heartbeatTimer = window.setInterval(() => {
-    socket?.emit('heartbeat', {
-      profile: getProfile(),
-      revision: snapshot.value?.revision,
-      playingItemId: playingItemId.value,
-      lastError: lastError.value,
-    })
+    // Async only because the disk reading crosses the native bridge. Everything
+    // else is already in memory, and a beat that cannot gather its diagnostics
+    // must still report presence — so a failure here degrades to the old payload
+    // rather than costing the device its heartbeat.
+    void collectDiagnostics()
+      .catch(() => undefined)
+      .then((diagnostics) => {
+        socket?.emit('heartbeat', {
+          profile: { ...getProfile(), ...(diagnostics ? { diagnostics } : {}) },
+          revision: snapshot.value?.revision,
+          playingItemId: playingItemId.value,
+          lastError: lastError.value,
+        })
+      })
   }, HEARTBEAT_MS)
 }
 

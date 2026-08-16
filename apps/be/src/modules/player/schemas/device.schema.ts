@@ -110,6 +110,50 @@ export class DeviceUpdateStatus {
 export const DeviceUpdateStatusSchema =
   SchemaFactory.createForClass(DeviceUpdateStatus);
 
+/**
+ * Live health the player reports on every heartbeat — what the screen is DOING,
+ * as opposed to the stable facts around it. Every field is optional: a player too
+ * old to report one omits it, and the CMS then shows nothing rather than a zero
+ * that would read as a fault.
+ */
+@Schema({ _id: false })
+export class DeviceDiagnostics {
+  /** Media URLs the service-worker cache holds, out of `totalMedia`. */
+  @Prop()
+  cachedMedia?: number;
+
+  @Prop()
+  totalMedia?: number;
+
+  /** Whether the last warm-up pass finished with the whole set stored. */
+  @Prop()
+  cacheComplete?: boolean;
+
+  /** Free bytes on the device's data partition. Absent off a native shell. */
+  @Prop()
+  freeDiskBytes?: number;
+
+  /** Whether a service worker actually controls the page — false means nothing
+   *  is being cached, however healthy everything else looks. */
+  @Prop()
+  serviceWorkerControlled?: boolean;
+
+  /** How many times the shell has had to put the player back on screen. Only
+   *  climbs, so a screen that struggled overnight is still visible by morning. */
+  @Prop()
+  recoveries?: number;
+
+  /** Breadcrumb from the last uncaught crash, and when it happened. */
+  @Prop({ trim: true })
+  lastCrash?: string;
+
+  @Prop()
+  lastCrashAt?: number;
+}
+
+export const DeviceDiagnosticsSchema =
+  SchemaFactory.createForClass(DeviceDiagnostics);
+
 /** Hardware/runtime profile reported by the player at connect time. */
 @Schema({ _id: false })
 export class DeviceProfile {
@@ -142,6 +186,9 @@ export class DeviceProfile {
 
   @Prop({ type: DeviceUpdateStatusSchema })
   updateStatus?: DeviceUpdateStatus;
+
+  @Prop({ type: DeviceDiagnosticsSchema })
+  diagnostics?: DeviceDiagnostics;
 
   /**
    * Android only: Device Owner provisioning. A kiosk lock only actually holds
@@ -216,6 +263,16 @@ export class Device {
 
   @Prop({ type: DeviceProfileSchema })
   profile?: DeviceProfile;
+
+  /**
+   * The last on-demand diagnostics report, as sent. Schemaless on purpose: it is
+   * written by a player that may be newer than this backend, and the value of a
+   * report is that it carries whatever that version knew — a strict schema would
+   * silently drop the field that explains the fault. Size is capped by the
+   * service before it ever reaches here.
+   */
+  @Prop({ type: Object })
+  diagnosticsReport?: Record<string, unknown>;
 
   createdAt!: Date;
   updatedAt!: Date;

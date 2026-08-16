@@ -149,6 +149,18 @@ export class DevicePairingController {
     return null;
   }
 
+  @Post(':screenId/device/diagnostics')
+  @RequireOrgRole()
+  @HttpCode(HttpStatus.OK)
+  @ApiSuccessNullResponse()
+  async requestDiagnostics(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+  ): Promise<null> {
+    await this.playerService.requestDiagnostics(organizationId, screenId);
+    return null;
+  }
+
   @Post(':screenId/device/apply-update')
   @RequireOrgRole()
   @HttpCode(HttpStatus.OK)

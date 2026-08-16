@@ -154,6 +154,15 @@ export const screensApi = {
     return data
   },
 
+  /**
+   * Asks the screen to report its state back. The answer arrives over the socket
+   * and lands on the device record, so the caller refetches rather than reading a
+   * response body — there is nothing to return yet when this resolves.
+   */
+  requestDeviceDiagnostics: async (id: string): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/diagnostics`)
+  },
+
   /** Makes this one screen install a pending player update immediately. */
   applyDeviceUpdate: async (id: string): Promise<void> => {
     await api.post(`${SCREENS_BASE}/${id}/device/apply-update`)

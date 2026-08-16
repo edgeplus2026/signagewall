@@ -302,10 +302,30 @@ export class CacheWarmer {
   private complete = false
   /** The in-flight pass, exposed so tests can await it. */
   private pass: Promise<void> = Promise.resolve()
+  /** Media URLs in the current set, and how many of them the cache holds. */
+  private total = 0
+  private warmed = 0
   private readonly deps: PrefetchDeps
 
   constructor(deps: Partial<PrefetchDeps> = {}) {
     this.deps = { ...defaultDeps, ...deps }
+  }
+
+  /**
+   * Cache state for the heartbeat, counted DURING the pass that already walks
+   * every URL rather than recomputed on demand.
+   *
+   * The naive version asks the Cache API per URL each time it is read; at one
+   * heartbeat every thirty seconds and a twenty-item playlist that is forty
+   * lookups a minute, forever, so a screen can display "18/20". Nothing here
+   * costs anything — the pass had to know these numbers anyway.
+   */
+  summary(): { cachedMedia: number; totalMedia: number; cacheComplete: boolean } {
+    return {
+      cachedMedia: this.warmed,
+      totalMedia: this.total,
+      cacheComplete: this.complete,
+    }
   }
 
   /** New content: (re)warm only if the media set changed. */
@@ -357,6 +377,12 @@ export class CacheWarmer {
       // Cleared on any abort/budget-stop/fetch failure, so `complete` is only set
       // when the whole set is genuinely warmed and a reconnect can safely skip it.
       let allWarmed = true
+      // Recounted from scratch each pass rather than incremented across passes:
+      // the set can shrink, and a counter that only grows would report a screen
+      // as fully cached long after half its content was replaced.
+      let cached = 0
+      this.total = urls.length
+      this.warmed = 0
       try {
         // Nothing is cacheable until the worker controls the page — see
         // {@link serviceWorkerControlled}.
@@ -369,6 +395,7 @@ export class CacheWarmer {
           // Skip what the cache already holds so a reconnect resumes at the
           // first un-warmed item instead of redoing the head every time.
           if (await this.deps.isCached(url)) {
+            this.warmed = ++cached
             continue
           }
           if (ctrl.signal.aborted) {
@@ -388,7 +415,9 @@ export class CacheWarmer {
             // pass that cached nothing still set `complete` — the one flag
             // that then blocks every reconnect retry, so a single bad pass
             // left the device permanently uncached.
-            if (!(await this.deps.isCached(url))) {
+            if (await this.deps.isCached(url)) {
+              this.warmed = ++cached
+            } else {
               allWarmed = false
             }
           } catch {
@@ -412,8 +441,24 @@ export class CacheWarmer {
  * and the `online` event (retry after reconnect). Returns a disposer. Runs
  * independently of the Stage lifecycle, so standby never pauses cache warming.
  */
+/**
+ * The running warmer, so the heartbeat can report its cache state without owning
+ * it. Null before boot and after teardown, which reads as "nothing to say" rather
+ * than as an empty cache — a screen that has not started warming yet must not be
+ * reported as one that failed to.
+ */
+let active: CacheWarmer | null = null
+
+/** Cache state for the heartbeat, or undefined before warming has started. */
+export function prefetchSummary():
+  | ReturnType<CacheWarmer['summary']>
+  | undefined {
+  return active?.summary()
+}
+
 export function startPrefetch(): () => void {
   const warmer = new CacheWarmer()
+  active = warmer
   const stop = effect(() => {
     warmer.onContent(mediaUrls(snapshot.value))
   })
@@ -425,5 +470,8 @@ export function startPrefetch(): () => void {
     stop()
     window.removeEventListener('online', onOnline)
     warmer.stop()
+    if (active === warmer) {
+      active = null
+    }
   }
 }

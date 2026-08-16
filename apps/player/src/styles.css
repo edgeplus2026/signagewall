@@ -771,6 +771,24 @@ body {
   color: var(--svc-attention);
 }
 
+/* The rolling event log. Monospace and small: it is scanned for a timestamp and a
+   word, not read as prose, and a technician needs as many lines on screen as the
+   panel can carry. Scrolls inside its own box so the list below stays reachable. */
+.service-panel__log {
+  max-height: 40vh;
+  overflow-y: auto;
+  padding: clamp(10px, 1.4vmin, 16px) clamp(14px, 1.8vmin, 20px);
+  margin-left: 3px;
+  font-family: ui-monospace, monospace;
+  font-size: clamp(11px, 1.3vmin, 13px);
+  line-height: 1.5;
+  color: var(--svc-text-dim);
+}
+
+.service-panel__log-line {
+  overflow-wrap: anywhere;
+}
+
 .service-panel__hints {
   flex: none;
   padding: clamp(12px, 1.6vmin, 18px);

@@ -10,6 +10,7 @@ import android.util.Log
 import com.signagewall.player.boot.HeartbeatReceiver
 import com.signagewall.player.kiosk.KioskPresence
 import com.signagewall.player.runtime.RuntimeStateStore
+import com.signagewall.player.runtime.ShellLog
 import com.signagewall.player.update.HealthWatchdog
 import com.signagewall.player.update.NoopUpdater
 import com.signagewall.player.update.OtaUpdater
@@ -53,11 +54,33 @@ class PlayerApp : Application() {
     lateinit var runtimeStore: RuntimeStateStore
         private set
 
+    /**
+     * The rolling event log. Created before anything else that might want to write
+     * to it, and held on the Application so a restarted Activity keeps appending to
+     * the same file instead of starting a fresh story each time.
+     */
+    lateinit var shellLog: ShellLog
+        private set
+
+    /**
+     * Whether [shellLog] has been created yet. `lateinit` throws when read early,
+     * and the one caller who must never throw is a crash handler — so readers ask
+     * this instead of risking a second failure while reporting the first.
+     */
+    var logReady: Boolean = false
+        private set
+
     override fun onCreate() {
         super.onCreate()
 
+        shellLog = ShellLog(File(filesDir, "shell.log"))
+        logReady = true
         runtimeStore = RuntimeStateStore(File(filesDir, "runtime.json"))
         val state = runtimeStore.read()
+        // First line after every process start. Without it a log is a list of
+        // events with no way to tell "the screen recovered" from "the screen was
+        // restarted and then recovered" — and the difference is the whole diagnosis.
+        shellLog.record("boot", "process started, desiredState=${state.desiredState}")
         KioskPresence.attach(runtimeStore, state)
 
         // A deactivate asked the previous process to erase this device's identity.
@@ -117,6 +140,14 @@ class PlayerApp : Application() {
                         lastCrash = "${error.javaClass.simpleName}: ${error.message}"
                             .take(MAX_CRASH_CHARS),
                         lastCrashAt = System.currentTimeMillis(),
+                    )
+                }
+                // The single most valuable line in the file: the log survives the
+                // process, so the next person sees what killed it and when.
+                if (logReady) {
+                    shellLog.record(
+                        "crash",
+                        "${error.javaClass.simpleName}: ${error.message}",
                     )
                 }
                 scheduleRestart()

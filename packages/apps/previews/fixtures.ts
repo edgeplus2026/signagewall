@@ -26,7 +26,6 @@ export type PreviewNamespace =
   | 'menu'
   | 'weather'
   | 'rss'
-  | 'gsheets'
   | 'social'
   | 'calendar'
 
@@ -43,11 +42,11 @@ export interface PreviewFixture {
    */
   config: Record<string, unknown>
   /**
-   * Per-option config on top of {@link config}, for designs whose content brief
-   * genuinely differs. A gallery tile is a showcase, not a stress test: `noir`
-   * documents itself as a tasting-menu board, so showing it a ten-item canteen
-   * list produces a truthful picture of the wrong thing. Use sparingly — an
-   * override that exists to dodge a layout bug hides the bug instead.
+   * Per-option config on top of {@link config}, for a design whose content brief
+   * genuinely differs — a tasting-menu board shown a ten-item canteen list
+   * renders a truthful picture of the wrong thing. Nothing needs one today. Use
+   * sparingly: an override that exists to dodge a layout bug hides the bug
+   * instead of fixing it.
    */
   overrides?: Record<string, Record<string, unknown>>
   /** The connector payload; `null` for `static` apps, which have none. */
@@ -168,14 +167,14 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
         items: [
           { name: 'Espresso', price: 3.2, description: 'Double shot, house blend', category: 'Coffee', imageUrl: asset('coffee') },
           { name: 'Cappuccino', price: 4.1, description: 'Oat milk on request', category: 'Coffee', imageUrl: asset('cappuccino') },
-          { name: 'Flat White', price: 4.3, description: 'Silky microfoam, single origin', category: 'Coffee', imageUrl: asset('turkish') },
-          { name: 'Cold Brew', price: 4.6, description: 'Steeped 18 hours, over ice', category: 'Coffee', imageUrl: asset('cocoa') },
+          { name: 'Flat White', price: 4.3, description: 'Silky microfoam, single origin', category: 'Coffee', imageUrl: asset('flatwhite') },
+          { name: 'Cold Brew', price: 4.6, description: 'Steeped 18 hours, over ice', category: 'Coffee', imageUrl: asset('coldbrew') },
           { name: 'Fresh Lemonade', price: 4.8, description: 'Lemon, mint, still or sparkling', category: 'Coffee', imageUrl: asset('lemonade') },
-          { name: 'Truffle Mushroom Toast', price: 12.5, description: 'Sourdough, poached egg, chives', category: 'Kitchen', imageUrl: asset('grill') },
-          { name: 'Buttermilk Fried Chicken', price: 17.9, description: 'Slaw, pickles, brioche bun', category: 'Kitchen', imageUrl: asset('plate') },
+          { name: 'Truffle Mushroom Toast', price: 12.5, description: 'Sourdough, poached egg, chives', category: 'Kitchen', imageUrl: asset('toast') },
+          { name: 'Buttermilk Fried Chicken', price: 17.9, description: 'Slaw, pickles, brioche bun', category: 'Kitchen', imageUrl: asset('chicken') },
           { name: 'Roasted Beet Salad', price: 11.4, description: 'Goat cheese, walnut, honey', category: 'Kitchen', imageUrl: asset('salad') },
-          { name: 'Steak Frites', price: 24.5, description: 'Ribeye, peppercorn sauce', category: 'Kitchen', imageUrl: asset('burger') },
-          { name: 'Lemon Ricotta Pancakes', price: 10.9, description: 'Blueberry compote, maple', category: 'Kitchen', imageUrl: asset('crepes') },
+          { name: 'Steak Frites', price: 24.5, description: 'Ribeye, peppercorn sauce', category: 'Kitchen', imageUrl: asset('steak') },
+          { name: 'Lemon Ricotta Pancakes', price: 10.9, description: 'Blueberry compote, maple', category: 'Kitchen', imageUrl: asset('pancakes') },
         ],
       },
       data: null,
@@ -250,38 +249,6 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
       },
     },
 
-    gsheets: {
-      slug: 'gsheets',
-      field: 'layout',
-      values: ['modern', 'table'],
-      config: {
-        theme: 'dark',
-        showHeader: true,
-        pageSeconds: 20,
-      },
-      data: {
-        title: 'Q2 Regional Performance',
-        // Enough rows to fill a 1080p board — a short table leaves the bottom
-        // two-thirds empty and makes both layouts look identical.
-        values: [
-          ['Region', 'Revenue', 'Target', 'Variance', 'Owner'],
-          ['London', '€184,200', '€170,000', '+8.4%', 'M. Hartley'],
-          ['Amsterdam', '€96,500', '€105,000', '−8.1%', 'A. de Vries'],
-          ['Berlin', '€72,800', '€68,000', '+7.1%', 'S. Keller'],
-          ['Paris', '€54,100', '€52,000', '+4.0%', 'D. Moreau'],
-          ['Madrid', '€41,900', '€48,000', '−12.7%', 'J. Navarro'],
-          ['Milan', '€38,400', '€35,000', '+9.7%', 'N. Ferrari'],
-          ['Vienna', '€33,600', '€36,000', '−6.7%', 'V. Gruber'],
-          ['Stockholm', '€31,200', '€29,500', '+5.8%', 'B. Lindqvist'],
-          ['Copenhagen', '€28,700', '€30,000', '−4.3%', 'T. Sørensen'],
-          ['Dublin', '€26,400', '€24,000', '+10.0%', 'M. O’Brien'],
-          ['Lisbon', '€24,900', '€26,500', '−6.0%', 'K. Almeida'],
-          ['Warsaw', '€22,100', '€21,000', '+5.2%', 'R. Kowalski'],
-          ['Zurich', '€19,800', '€20,500', '−3.4%', 'I. Brunner'],
-        ],
-      },
-    },
-
     calendar: {
       // Outlook normalizes to `GcalPayload` and reuses this embed wholesale, so
       // one set of images serves both apps.
@@ -336,7 +303,7 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
           { id: '3', text: 'Live music Friday from 21:00', imageUrl: asset('music'), mediaType: 'image', timestamp: hoursAgo(20) },
           { id: '4', text: 'Pastries out of the oven every morning at seven', imageUrl: asset('pastry'), mediaType: 'image', timestamp: hoursAgo(28) },
           { id: '5', text: 'Thank you for a full house last night', imageUrl: asset('crowd'), mediaType: 'image', timestamp: hoursAgo(44) },
-          { id: '6', text: 'Sunday brunch starts at 10:00', imageUrl: asset('plate'), mediaType: 'image', timestamp: hoursAgo(52) },
+          { id: '6', text: 'Sunday brunch starts at 10:00', imageUrl: asset('brunch'), mediaType: 'image', timestamp: hoursAgo(52) },
         ],
       },
     },
@@ -353,14 +320,15 @@ export const PLACEHOLDER_ART: Record<string, readonly [string, string]> = {
   // Menu — warm kitchen tones.
   coffee: ['#3A2013', '#C8894A'],
   cappuccino: ['#4B2E19', '#E0B583'],
-  turkish: ['#2A1710', '#A9682F'],
-  cocoa: ['#2A1A12', '#8C5A38'],
-  grill: ['#33170F', '#B4552E'],
-  plate: ['#2C2419', '#C9A227'],
+  flatwhite: ['#2A1710', '#A9682F'],
+  coldbrew: ['#2A1A12', '#8C5A38'],
+  toast: ['#33170F', '#B4552E'],
+  chicken: ['#2C2419', '#C9A227'],
   salad: ['#1E3018', '#7FA845'],
-  burger: ['#301A10', '#B86A32'],
+  steak: ['#301A10', '#B86A32'],
   pastry: ['#42290C', '#E2A83B'],
-  crepes: ['#3A2612', '#D19A4E'],
+  pancakes: ['#3A2612', '#D19A4E'],
+  brunch: ['#33240F', '#C08A3E'],
   lemonade: ['#2E3512', '#C9CE55'],
   // Social.
   terrace: ['#0F3228', '#5FAE86'],

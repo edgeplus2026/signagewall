@@ -97,6 +97,19 @@ export async function loadShellDeviceInfo(): Promise<ShellDeviceInfo | undefined
 }
 
 /**
+ * The shell's rolling event log, oldest first, or an empty list where there is
+ * none (a browser, the desktop shell, an APK older than this).
+ *
+ * This is the only record of what a screen did overnight. logcat cannot serve the
+ * purpose: on the Android TV measured here the vendor's video driver writes a line
+ * per decoded frame and rolls the ring buffer past our entries within the hour.
+ */
+export async function readShellLog(): Promise<string[]> {
+  const lines = await nativeInvoke<string[]>('read_log')
+  return Array.isArray(lines) ? lines : []
+}
+
+/**
  * Opens or closes Chrome DevTools inspection of this page, for a technician who
  * is at the screen (or reached it over the fleet VPN) and needs to see inside the
  * player rather than infer its state from the outside.

@@ -166,6 +166,21 @@ export class DevicesRepository {
   }
 
   /** Marks presence and returns the updated device (for downstream events). */
+  /**
+   * Stores the device's latest on-demand report, replacing any previous one.
+   * Only the newest is kept: a history would grow without bound on a device
+   * nobody is investigating, and the question this answers is always "what is
+   * wrong with it now".
+   */
+  async setDiagnosticsReport(
+    deviceId: string,
+    report: Record<string, unknown>,
+  ): Promise<void> {
+    await this.deviceModel
+      .updateOne({ deviceId }, { $set: { diagnosticsReport: report } })
+      .exec();
+  }
+
   async setPresence(
     deviceId: string,
     online: boolean,

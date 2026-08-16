@@ -21,6 +21,12 @@ export const PlayerSocketEvents = {
    * the device's next natural transition.
    */
   NowPlayingRequest: 'now-playing:request',
+  /**
+   * Device → server: the answer to a `sendDiagnostics` command — cache state,
+   * storage and the shell's recent events. Its own message rather than a fatter
+   * heartbeat, because it is kilobytes and is worth sending only when asked.
+   */
+  Diagnostics: 'diagnostics',
 } as const
 
 export type PlayerSocketEvent =

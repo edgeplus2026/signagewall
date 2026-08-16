@@ -205,10 +205,10 @@ function columnWidths(rows: string[][], columns: number): string[] {
 }
 
 /**
- * The board. Both layouts are this table — they differ only in how a row is told
- * apart from the one above it: `table` bands alternate rows, `modern` marks each
- * with a colour bar down its left edge. Everything else — the column roles, the
- * widths, the type — is shared, which is why they read as one app.
+ * The board: one table, with each row marked by a colour bar down its left edge.
+ * A second "banded rows" layout used to be selectable; it was the same table
+ * with a different row separator, which is not a choice worth putting in front
+ * of someone who has just picked a spreadsheet.
  */
 function buildTable(
   header: string[],
@@ -216,11 +216,10 @@ function buildTable(
   roles: Role[],
   widths: string[],
   showHeader: boolean,
-  modern: boolean,
   bars: string[],
 ): HTMLElement {
   const table = document.createElement('table')
-  table.className = modern ? 'gs-table is-modern' : 'gs-table is-banded'
+  table.className = 'gs-table is-modern'
 
   const colgroup = document.createElement('colgroup')
   for (const width of widths) {
@@ -246,7 +245,7 @@ function buildTable(
   const tbody = document.createElement('tbody')
   rows.forEach((row, rowIndex) => {
     const tr = document.createElement('tr')
-    if (modern && bars[rowIndex]) {
+    if (bars[rowIndex]) {
       tr.style.setProperty('--gs-bar', bars[rowIndex] as string)
     }
     row.forEach((cell, index) => {
@@ -364,7 +363,6 @@ function render(
   }
 
   const showHeader = config.showHeader !== false
-  const modern = String(config.layout ?? 'modern') !== 'table'
 
   const rows = padded(data.values)
   const { header, body: bodyRows } = split(data.values)
@@ -390,7 +388,7 @@ function render(
   // Over EVERY row, once, then sliced per page — a page-local pass would restart
   // the "not the same as the one above" rule at each page boundary, so a row's
   // bar would change colour depending on which page it happened to land on.
-  const bars = modern ? barColours(bodyRows) : []
+  const bars = barColours(bodyRows)
 
   const build = (start: number, pageRows: string[][]): HTMLElement =>
     buildTable(
@@ -399,7 +397,6 @@ function render(
       roles,
       widths,
       showHeader,
-      modern,
       bars.slice(start, start + pageRows.length),
     )
 

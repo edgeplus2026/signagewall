@@ -254,6 +254,30 @@ export function useRestartDevice() {
 }
 
 /**
+ * Asks the screen to report its state. The device answers asynchronously over the
+ * socket, so this invalidates the device query on a delay rather than on success —
+ * resolving only means the request left the building.
+ */
+export function useRequestDeviceDiagnostics() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => screensApi.requestDeviceDiagnostics(id),
+    onSuccess: (_data, id) => {
+      // Two seconds is generous for a round trip the device answers immediately;
+      // if it is slower than that the operator presses again, which is far better
+      // than polling every screen in the fleet on the chance one was asked.
+      const organizationId = useOrganizationStore.getState().activeOrganizationId
+      setTimeout(() => {
+        void queryClient.invalidateQueries({
+          queryKey: screenDeviceQueryKey(organizationId, id),
+        })
+      }, 2000)
+    },
+  })
+}
+
+/**
  * Makes this screen install a pending player update now, rather than waiting for
  * its own windows. Fire-and-forget: the device answers by restarting into the new
  * version, and nothing in the cache describes that.

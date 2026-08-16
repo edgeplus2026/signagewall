@@ -1,5 +1,6 @@
 package com.signagewall.player.bridge
 
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
@@ -51,6 +52,19 @@ class BridgeDispatcher(
      * that has no such notion simply does not supply one.
      */
     private val onSetWebDebugging: (Boolean) -> Unit = {},
+    /**
+     * The shell's rolling event log, newest last. Supplied as a lambda so the
+     * dispatcher neither owns the file nor knows where it lives — and so a host
+     * that keeps no such log simply answers with nothing.
+     */
+    private val readLog: () -> List<String> = { emptyList() },
+    /**
+     * A few numbers about how hard this screen has been struggling, for the
+     * heartbeat. Deliberately separate from `device_info`, which assembles the
+     * whole service-menu payload: this one is called every thirty seconds and
+     * must stay cheap enough that nobody has to think about it.
+     */
+    private val readHealth: () -> String = { "{}" },
     /** Unpairs this display locally: drops the device id and restarts. */
     private val onDeactivate: () -> Unit = {},
     /** Opens the overlay-permission settings screen; false if the device has none. */
@@ -63,6 +77,8 @@ class BridgeDispatcher(
         "device_owner" -> JsonPrimitive(deviceOwner())
         "device_info" -> json.parseToJsonElement(deviceInfo())
         "free_disk" -> JsonPrimitive(freeDiskBytes())
+        "read_log" -> JsonArray(readLog().map { JsonPrimitive(it) })
+        "health" -> json.parseToJsonElement(readHealth())
         "set_web_debugging" -> {
             onSetWebDebugging(parseBooleanFlag(argsJson, "enabled"))
             JsonNull

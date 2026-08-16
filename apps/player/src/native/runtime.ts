@@ -84,6 +84,24 @@ export async function freeDiskBytes(): Promise<number | undefined> {
   return typeof bytes === 'number' && bytes >= 0 ? bytes : undefined
 }
 
+/** What the shell reports about how hard it has been working. */
+export interface ShellHealth {
+  recoveries?: number
+  lastCrash?: string
+  lastCrashAt?: number
+}
+
+/**
+ * How hard this screen has been struggling, or undefined off a native shell.
+ *
+ * Read fresh on every heartbeat rather than cached: a recovery count that only
+ * updated at boot would be zero on exactly the device that had been recovering
+ * all night.
+ */
+export async function shellHealth(): Promise<ShellHealth | undefined> {
+  return nativeInvoke<ShellHealth>('health')
+}
+
 /**
  * Composed OTA status for the heartbeat. An unresolved apply outcome (a rollback
  * awaiting operator action) wins over routine detection, so a rolled-back device

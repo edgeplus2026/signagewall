@@ -22,7 +22,7 @@ export const gsheetsManifest: AppManifest = {
     'Show a range from one of your Google Sheets as a live table or a single KPI. It refreshes on its own.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 3,
+  version: 4,
   refreshSeconds: 300,
   icon: GSHEETS_ICON,
   color: '#0F9D58',
@@ -48,18 +48,6 @@ export const gsheetsManifest: AppManifest = {
        on screen at all, which is the wrong first question for someone who has
        just picked a spreadsheet — and the answer was almost always "the sheet".
        The connector reads a generous default instead. */
-    {
-      key: 'layout',
-      type: 'select',
-      label: 'Layout',
-      default: 'modern',
-      previewGallery: 'gsheets',
-      options: [
-        { label: 'Modern', value: 'modern' },
-        { label: 'Table', value: 'table' },
-      ],
-      help: 'Both show every column. Modern marks each row with a colour bar; Table bands alternate rows instead.',
-    },
     {
       key: 'showHeader',
       type: 'switch',

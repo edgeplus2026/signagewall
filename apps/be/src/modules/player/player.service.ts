@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ReportedProfile } from '@signagewall/player-contract';
+import {
+  DiagnosticsReport,
+  ReportedProfile,
+} from '@signagewall/player-contract';
 import { I18nService } from 'nestjs-i18n';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -9,6 +12,7 @@ import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { ScreensRepository } from '../screens/screens.repository';
 import { DevicesRepository } from './devices.repository';
+import { boundDiagnosticsReport } from './diagnostics-report.util';
 import { PlayerContentService, PlayerSnapshot } from './player-content.service';
 import {
   DeviceCommandEvent,
@@ -34,7 +38,7 @@ import {
 // `ReportedProfile` (what the player reports on connect/heartbeat) is the shared
 // contract type from `@signagewall/player-contract` — imported above and re-exported so
 // existing importers (e.g. player.gateway) keep resolving it from here.
-export type { ReportedProfile };
+export type { DiagnosticsReport, ReportedProfile };
 
 export type ConnectResult =
   | {
@@ -56,12 +60,19 @@ export type ConnectResult =
       token?: string;
     };
 
+/** A stored report, plus when the backend received it. */
+export type StoredDiagnosticsReport = DiagnosticsReport & {
+  receivedAt?: string;
+};
+
 export interface DeviceStatusDto {
   paired: boolean;
   online: boolean;
   deviceId?: string;
   lastSeenAt?: string;
   profile?: ReportedProfile;
+  /** The last on-demand report this device sent, if any. */
+  diagnostics?: StoredDiagnosticsReport;
   /** Playback volume 0–100. */
   volume?: number;
   /** Display + power settings. */
@@ -487,6 +498,25 @@ export class PlayerService {
   }
 
   /**
+   * CMS action: ask this screen to report its state back. The answer arrives
+   * asynchronously on the socket, so this returns as soon as the request is out —
+   * an offline device simply never answers, and the CMS keeps showing the previous
+   * report with its own timestamp rather than pretending it is current.
+   */
+  async requestDiagnostics(
+    organizationId: string,
+    screenId: string,
+  ): Promise<void> {
+    const device = await this.resolveOwnedDevice(organizationId, screenId);
+
+    this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
+      deviceId: device.deviceId,
+      screenId,
+      command: { type: 'sendDiagnostics' },
+    } satisfies DeviceCommandEvent);
+  }
+
+  /**
    * Super-admin action: tell EVERY connected device to install a pending update.
    *
    * Owns no organization and resolves no device — it hands one command to the
@@ -572,6 +602,25 @@ export class PlayerService {
       this.toDeviceProfile(profile),
     );
     this.emitPresence(updated, true);
+  }
+
+  /**
+   * Stores the report a device just sent. Capped here rather than trusted: the
+   * log is written by a player that may be newer than this backend, and a device
+   * that starts sending megabytes must cost one truncated document, never a
+   * degraded database.
+   */
+  async recordDiagnostics(
+    deviceId: string,
+    report: DiagnosticsReport,
+  ): Promise<void> {
+    await this.devicesRepository.setDiagnosticsReport(deviceId, {
+      ...boundDiagnosticsReport(report as Record<string, unknown>),
+      // Stamped here, not by the device: a screen with a wrong clock would
+      // otherwise make a fresh report look days old, or worse, look current
+      // when it is not.
+      receivedAt: new Date().toISOString(),
+    });
   }
 
   async markOffline(deviceId: string): Promise<void> {
@@ -682,6 +731,9 @@ export class PlayerService {
       ...(device.profile
         ? { profile: this.toReportedProfile(device.profile) }
         : {}),
+      ...(device.diagnosticsReport
+        ? { diagnostics: device.diagnosticsReport as StoredDiagnosticsReport }
+        : {}),
     };
   }
 
@@ -713,6 +765,7 @@ export class PlayerService {
       ...(profile.shellVersion ? { shellVersion: profile.shellVersion } : {}),
       ...(profile.runtime ? { runtime: profile.runtime } : {}),
       ...(profile.updateStatus ? { updateStatus: profile.updateStatus } : {}),
+      ...(profile.diagnostics ? { diagnostics: profile.diagnostics } : {}),
       // Explicit `!== undefined`, never a truthiness test: `false` is the answer
       // that matters here — a box that CANNOT hold a kiosk lock — and a falsy
       // check would drop exactly that one and report it as "never said".
@@ -742,6 +795,7 @@ export class PlayerService {
       ...(profile.shellVersion ? { shellVersion: profile.shellVersion } : {}),
       ...(profile.runtime ? { runtime: profile.runtime } : {}),
       ...(profile.updateStatus ? { updateStatus: profile.updateStatus } : {}),
+      ...(profile.diagnostics ? { diagnostics: profile.diagnostics } : {}),
       // Same reason as the outbound mapper: `false` is the whole point of the
       // field, so it is tested for presence, not for truth. Without this the
       // player reported Device Owner on every heartbeat and the backend dropped

@@ -7,6 +7,8 @@ import {
   type DeviceScale,
   type DeviceSettings,
   type DeviceUpdateStatus,
+  type DiagnosticsReport,
+  type PlayerDiagnostics,
   type PlayerRuntime,
 } from '@signagewall/player-contract'
 
@@ -33,6 +35,8 @@ export interface ScreenDeviceProfile {
   shellVersion?: string
   runtime?: PlayerRuntime
   updateStatus?: DeviceUpdateStatus
+  /** Live health from the last heartbeat — cache state, storage, worker. */
+  diagnostics?: PlayerDiagnostics
   /**
    * Android only: Device Owner provisioning. `false` means the box cannot hold a
    * real kiosk lock — the shell degrades it to escapable screen-pinning. Absent
@@ -57,6 +61,9 @@ export const DEFAULT_DEVICE_SETTINGS: ScreenDeviceSettings = {
   dailyReload: { ...DEFAULT_DAILY_RELOAD },
 }
 
+/** The last on-demand report a device sent, plus when the backend received it. */
+export type StoredDiagnosticsReport = DiagnosticsReport & { receivedAt?: string }
+
 /** Pairing/online status of the physical display bound 1:1 to this screen. */
 export interface ScreenDevice {
   paired: boolean
@@ -68,6 +75,8 @@ export interface ScreenDevice {
   volume?: number
   /** Display + power settings. */
   settings?: ScreenDeviceSettings
+  /** The last on-demand diagnostics report, if one was ever requested. */
+  diagnostics?: StoredDiagnosticsReport
 }
 
 export interface PairDeviceRequest {
