@@ -52,6 +52,10 @@ export function TemplateGalleryControl({
   const stripRef = useRef<HTMLDivElement>(null)
   const [broken, setBroken] = useState<Record<string, true>>({})
   const [overflows, setOverflows] = useState(false)
+  const [atStart, setAtStart] = useState(true)
+  const [atEnd, setAtEnd] = useState(true)
+  /** Vertical centre of the thumbnails, in px from the top of the strip. */
+  const [thumbMidpoint, setThumbMidpoint] = useState(0)
 
   const options = field.options ?? []
   const namespace = field.previewGallery ?? ''
@@ -68,18 +72,33 @@ export function TemplateGalleryControl({
     strip.scrollBy({ left: step * direction, behavior: 'smooth' })
   }, [])
 
-  // Only offer the arrows when there is somewhere to scroll.
+  // Track how far the strip is scrolled, so each arrow can hide at its end. The
+  // arrows float OVER the cards, so one that does nothing is not just useless —
+  // it covers a thumbnail for no reason.
   useEffect(() => {
     const strip = stripRef.current
     if (!strip) return
     const measure = (): void => {
-      setOverflows(strip.scrollWidth > strip.clientWidth + 1)
+      const scrollable = strip.scrollWidth - strip.clientWidth
+      setOverflows(scrollable > 1)
+      setAtStart(strip.scrollLeft <= 1)
+      setAtEnd(strip.scrollLeft >= scrollable - 1)
+      // Centre the arrows on the PICTURES, not on the cards. A card is image +
+      // caption, so its midpoint sits low enough to straddle the two and read as
+      // misaligned. Measured rather than derived from the card's classes, so
+      // resizing the cards can't quietly leave the arrows behind.
+      const thumb = strip.querySelector<HTMLElement>('[data-thumb]')
+      if (thumb) {
+        setThumbMidpoint(thumb.offsetTop + thumb.offsetHeight / 2)
+      }
     }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(strip)
+    strip.addEventListener('scroll', measure, { passive: true })
     return () => {
       observer.disconnect()
+      strip.removeEventListener('scroll', measure)
     }
   }, [options.length])
 
@@ -108,8 +127,13 @@ export function TemplateGalleryControl({
     card?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
   }
 
+  /** Shared chrome for the two floating arrows. */
+  const arrowClass =
+    'absolute z-10 -translate-y-1/2 rounded-full border border-secondary bg-panel p-1 text-secondary shadow-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-tertiary/50'
+  const arrowStyle = { top: `${String(thumbMidpoint)}px` }
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className="relative">
       <div
         id={id}
         role="radiogroup"
@@ -151,6 +175,7 @@ export function TemplateGalleryControl({
               )}
             >
               <span
+                data-thumb
                 className={cn(
                   'flex aspect-video w-full items-center justify-center overflow-hidden rounded-md bg-sidebar ring-1 transition',
                   isSelected ? 'ring-brand' : 'ring-quaternary group-hover:opacity-100',
@@ -186,31 +211,34 @@ export function TemplateGalleryControl({
         })}
       </div>
 
-      {overflows ? (
-        <div className="flex justify-end gap-1">
-          <button
-            type="button"
-            aria-label={t('apps.templateGallery.previous')}
-            disabled={disabled ?? false}
-            onClick={() => {
-              scrollByCard(-1)
-            }}
-            className="rounded-md border border-secondary bg-panel p-1 text-secondary transition-colors hover:border-brand/50 hover:text-primary disabled:opacity-50"
-          >
-            <ChevronLeftIcon className="size-4" />
-          </button>
-          <button
-            type="button"
-            aria-label={t('apps.templateGallery.next')}
-            disabled={disabled ?? false}
-            onClick={() => {
-              scrollByCard(1)
-            }}
-            className="rounded-md border border-secondary bg-panel p-1 text-secondary transition-colors hover:border-brand/50 hover:text-primary disabled:opacity-50"
-          >
-            <ChevronRightIcon className="size-4" />
-          </button>
-        </div>
+      {/* Floating over the strip, one at each edge — the affordance sits where
+          the scrolling happens instead of in a row underneath it. Each hides at
+          its own end so it never covers a thumbnail pointlessly. */}
+      {overflows && !atStart && !(disabled ?? false) ? (
+        <button
+          type="button"
+          aria-label={t('apps.templateGallery.previous')}
+          onClick={() => {
+            scrollByCard(-1)
+          }}
+          style={arrowStyle}
+          className={cn(arrowClass, 'left-1')}
+        >
+          <ChevronLeftIcon className="size-4" />
+        </button>
+      ) : null}
+      {overflows && !atEnd && !(disabled ?? false) ? (
+        <button
+          type="button"
+          aria-label={t('apps.templateGallery.next')}
+          onClick={() => {
+            scrollByCard(1)
+          }}
+          style={arrowStyle}
+          className={cn(arrowClass, 'right-1')}
+        >
+          <ChevronRightIcon className="size-4" />
+        </button>
       ) : null}
     </div>
   )
