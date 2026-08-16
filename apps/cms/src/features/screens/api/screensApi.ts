@@ -154,6 +154,11 @@ export const screensApi = {
     return data
   },
 
+  /** Makes this one screen install a pending player update immediately. */
+  applyDeviceUpdate: async (id: string): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/apply-update`)
+  },
+
   setDeviceDailyReload: async (
     id: string,
     payload: SetDeviceDailyReloadRequest,

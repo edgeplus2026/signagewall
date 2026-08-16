@@ -942,6 +942,16 @@
       },
       "dangerZone": {
         "title": "Opasna zona"
+      },
+      "applyUpdate": {
+        "title": "Instaliraj ažuriranje odmah",
+        "rowDescription": "Odmah instalira ažuriranje plejera koje čeka, umesto da se sačeka termin samog ekrana. Ekran se restartuje.",
+        "button": "Instaliraj odmah",
+        "description": "Ekran će instalirati ažuriranje plejera koje čeka i restartovati se. Nakratko će biti crn. Ako ništa ne čeka, ništa se neće desiti.",
+        "cancel": "Otkaži",
+        "submit": "Instaliraj odmah",
+        "success": "Ažuriranje zatraženo.",
+        "error": "Nije moguće zatražiti ažuriranje. Pokušajte ponovo."
       }
     },
     "update": {
@@ -1471,7 +1481,8 @@
       "upgradeRequests": "Zahtevi za nadogradnju",
       "billing": "Naplata",
       "crm": "CRM",
-      "analytics": "Analitika"
+      "analytics": "Analitika",
+      "player": "Plejer"
     },
     "crm": {
       "title": "CRM leadovi",
@@ -1812,6 +1823,20 @@
           "active_account_missing_period": "Aktivni nalog nema billing period",
           "renewal_invoice_missing": "Period ističe bez fakture za obnovu"
         }
+      }
+    },
+    "player": {
+      "title": "Plejer",
+      "applyUpdate": {
+        "title": "Pošalji ažuriranje svim ekranima",
+        "rowDescription": "Nalaže svakom povezanom plejeru da odmah instalira ažuriranje koje čeka. Ugašeni i offline ekrani ažuriraju se po svom rasporedu.",
+        "button": "Pošalji floti",
+        "confirmTitle": "Ažurirati sve povezane ekrane?",
+        "confirmDescription": "Svaki povezan ekran instaliraće ažuriranje plejera i restartovati se, pa će nakratko biti crn — uključujući i ekrane koji su upravo sada pred mušterijama. Ovo se ne može poništiti; jedini put nazad je objavljivanje više verzije.",
+        "cancel": "Otkaži",
+        "submit": "Ažuriraj flotu",
+        "success": "Ažuriranje poslato svim povezanim ekranima.",
+        "error": "Slanje ažuriranja nije uspelo. Pokušajte ponovo."
       }
     }
   },

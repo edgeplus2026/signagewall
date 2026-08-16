@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { I18nService } from 'nestjs-i18n';
 
 import { toPaginatedResult } from '../../common/dto/paginated-result';
@@ -14,6 +15,7 @@ import {
 } from '../plans/mappers/plan.mapper';
 import { PlansRepository } from '../plans/plans.repository';
 import { PlansService } from '../plans/plans.service';
+import { PlayerEvents, type FleetCommandEvent } from '../player/player.events';
 import { toUserResponse, UserResponseDto } from '../users/mappers/user.mapper';
 import {
   FREE_SCREEN_LIMIT,
@@ -49,7 +51,26 @@ export class AdminService {
     private readonly plansRepository: PlansRepository,
     private readonly plansService: PlansService,
     private readonly i18n: I18nService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  /**
+   * Tells every connected player to install a pending shell update immediately.
+   *
+   * Emitted rather than called: the player module owns the websocket, and the
+   * admin module has no business importing a gateway — the same decoupling every
+   * other producer of player events uses.
+   *
+   * Reaches only devices connected at this instant. Everything else picks the
+   * update up on its own schedule (standby, the nightly reload, or the six-hour
+   * backstop), so this shortens the worst case rather than removing it.
+   */
+  applyPlayerUpdateToFleet(actorId: string): void {
+    this.logger.warn(`Super-admin ${actorId} pushed a fleet-wide player update`);
+    this.eventEmitter.emit(PlayerEvents.FleetCommand, {
+      command: { type: 'applyUpdate' },
+    } satisfies FleetCommandEvent);
+  }
 
   async listUsers(
     page: number,

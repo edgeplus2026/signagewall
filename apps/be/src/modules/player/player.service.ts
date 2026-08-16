@@ -12,6 +12,7 @@ import { DevicesRepository } from './devices.repository';
 import { PlayerContentService, PlayerSnapshot } from './player-content.service';
 import {
   DeviceCommandEvent,
+  FleetCommandEvent,
   DevicePairedEvent,
   DevicePresenceChangedEvent,
   DeviceRevokedEvent,
@@ -463,6 +464,39 @@ export class PlayerService {
       screenId,
       command: { type: 'restart' },
     } satisfies DeviceCommandEvent);
+  }
+
+  /**
+   * CMS action: make this one screen install a pending shell update now.
+   *
+   * The everyday use is not the emergency — it is proving a release on your own
+   * screen before it goes to anyone else's. A device with nothing pending simply
+   * reports back that there was no update; the command is safe to issue blind.
+   */
+  async applyUpdateOnScreenDevice(
+    organizationId: string,
+    screenId: string,
+  ): Promise<void> {
+    const device = await this.resolveOwnedDevice(organizationId, screenId);
+
+    this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
+      deviceId: device.deviceId,
+      screenId,
+      command: { type: 'applyUpdate' },
+    } satisfies DeviceCommandEvent);
+  }
+
+  /**
+   * Super-admin action: tell EVERY connected device to install a pending update.
+   *
+   * Owns no organization and resolves no device — it hands one command to the
+   * gateway, which broadcasts it. Reaches only what is connected at that instant;
+   * everything else updates on its own schedule.
+   */
+  applyUpdateOnAllDevices(): void {
+    this.eventEmitter.emit(PlayerEvents.FleetCommand, {
+      command: { type: 'applyUpdate' },
+    } satisfies FleetCommandEvent);
   }
 
   /**

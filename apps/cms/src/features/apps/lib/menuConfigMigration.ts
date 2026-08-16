@@ -1,9 +1,14 @@
+import { DEFAULT_MENU_TEMPLATE, RETIRED_MENU_TEMPLATES } from '@signagewall/apps'
+
 import type { AppInstanceConfig } from '@/features/apps/types/app.types'
 
+const RETIRED = new Set<string>(RETIRED_MENU_TEMPLATES)
+
 /**
- * Menu board v1 → v2 config normalization, applied when the config page loads a
- * pre-v2 instance (schema defaults for the new fields — `source`, `template`,
- * `currency` — are merged separately from `buildDefaultConfig`).
+ * Menu board config normalization, applied when the config page loads an
+ * instance saved against an older schema (schema defaults for newer fields —
+ * `source`, `template`, `currency` — are merged separately from
+ * `buildDefaultConfig`).
  *
  * v1 stored `price` as free-form text ("25 kr", "2,50"). v2 validates it as a
  * number, so an untouched v1 instance would fail validation on its first save.
@@ -15,19 +20,29 @@ import type { AppInstanceConfig } from '@/features/apps/types/app.types'
  * - genuinely non-numeric ("ask us") → price dropped, text kept by appending it
  *   to the description so nothing the operator wrote is lost
  * - the removed `columns` field is dropped (the design select replaced it)
+ * - a retired design (`gallery`, `noir`) falls back to the default one. The
+ *   embed already falls back at render time, but the config select compiles to
+ *   a `z.enum` of the designs that still ship, so leaving the old value would
+ *   fail validation and block saving a board the operator never touched.
  */
 export function migrateMenuConfig(config: AppInstanceConfig): AppInstanceConfig {
   const rest = { ...config }
   delete rest.columns
+  if (typeof rest.template === 'string' && RETIRED.has(rest.template)) {
+    rest.template = DEFAULT_MENU_TEMPLATE
+  }
   const items = Array.isArray(config.items)
     ? config.items.map((row) => migrateRow(row))
     : config.items
   return { ...rest, items }
 }
 
-/** Whether the stored config still carries v1 shapes worth migrating. */
+/** Whether the stored config still carries shapes worth migrating. */
 export function menuConfigNeedsMigration(config: AppInstanceConfig): boolean {
   if ('columns' in config) return true
+  if (typeof config.template === 'string' && RETIRED.has(config.template)) {
+    return true
+  }
   if (typeof config.items === 'string') return false // legacy textarea: embed-only
   return (
     Array.isArray(config.items) &&

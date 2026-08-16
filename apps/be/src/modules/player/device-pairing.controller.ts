@@ -149,6 +149,18 @@ export class DevicePairingController {
     return null;
   }
 
+  @Post(':screenId/device/apply-update')
+  @RequireOrgRole()
+  @HttpCode(HttpStatus.OK)
+  @ApiSuccessNullResponse()
+  async applyUpdate(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+  ): Promise<null> {
+    await this.playerService.applyUpdateOnScreenDevice(organizationId, screenId);
+    return null;
+  }
+
   @Post(':screenId/device/step')
   @RequireOrgRole()
   @HttpCode(HttpStatus.OK)

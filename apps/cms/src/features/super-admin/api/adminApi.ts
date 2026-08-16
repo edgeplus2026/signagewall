@@ -96,4 +96,9 @@ export const adminApi = {
     )
     return data
   },
+
+  /** Tells every currently connected player to install a pending update now. */
+  applyPlayerUpdate: async (): Promise<void> => {
+    await api.post(`${ADMIN_BASE}/player/apply-update`)
+  },
 }

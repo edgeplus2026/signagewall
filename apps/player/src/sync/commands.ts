@@ -5,6 +5,7 @@ import {
   setStoredVolume,
 } from '../device'
 import { isOrientation, isScale, normalizeDailyReload } from '../device-settings'
+import { applyUpdateIfAvailable } from '../native/updater'
 import { restartPlayer } from '../restart'
 import { dailyReload, orientation, scale, volume } from '../store'
 import type {
@@ -107,6 +108,13 @@ export function applyCommand(
     case 'dailyReload':
       if (!options.preview) {
         applyDailyReload(command.value)
+      }
+      break
+    // Never mirrored into a CMS preview: the preview is a browser tab, it has no
+    // shell to update, and running it there would only report "no update".
+    case 'applyUpdate':
+      if (!options.preview) {
+        void applyUpdateIfAvailable()
       }
       break
     case 'restart':

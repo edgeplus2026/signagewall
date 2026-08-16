@@ -237,6 +237,14 @@
        when a dropdown or the mobile menu opens; without this the scrollbar
        vanishes, the viewport widens, and the whole frame jumps sideways. */
     scrollbar-gutter: stable;
+    /* Which theme the BROWSER paints its own UI for — the scrollbar in that
+       reserved track, plus `<select>` popups and autofill. It assumes light
+       unless told, so without this the dark site gets a pale scrollbar. */
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
   }
   body {
     @apply bg-page font-sans text-primary antialiased;

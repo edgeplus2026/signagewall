@@ -14,10 +14,16 @@ import type { FieldOption } from '@signagewall/apps-contract'
 export const MENU_TEMPLATES = [
   { value: 'classic', label: 'Classic. A refined price list' },
   { value: 'chalkboard', label: 'Chalkboard. A hand-written café board' },
-  { value: 'gallery', label: 'Gallery, cards with photos' },
   { value: 'counter', label: 'Counter. A bold fast-food board' },
-  { value: 'noir', label: 'Noir, understated luxury' },
 ] as const
+
+/**
+ * Designs that used to ship and no longer do. Kept so saved instances that named
+ * one can be migrated to a design that exists — dropping a value out of
+ * {@link MENU_TEMPLATES} makes it fail the config's `z.enum`, which would show an
+ * operator "Invalid app configuration" on a board they never touched.
+ */
+export const RETIRED_MENU_TEMPLATES = ['gallery', 'noir'] as const
 
 /** The `template` config values, narrowed to the designs we actually ship. */
 export type MenuTemplate = (typeof MENU_TEMPLATES)[number]['value']

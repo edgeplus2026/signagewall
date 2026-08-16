@@ -55,6 +55,17 @@ export interface PreviewFixture {
 }
 
 /**
+ * The fictional venue every fixture shares, so the thumbnails read as one demo
+ * brand rather than five unrelated ones.
+ *
+ * English, and deliberately placeless: these images are the first thing a
+ * prospect sees of the product, and localized sample content (a Serbian café
+ * name, dinar prices, Cyrillic) reads as "built for somewhere else" to everyone
+ * outside that market — which is most of it.
+ */
+const DEMO_VENUE = 'Harbour & Vine'
+
+/**
  * Weekday-bearing content is pinned to a fixed date so a re-run does not churn
  * the committed images. Relative content ("2 hours ago") is not — see
  * {@link hoursAgo}.
@@ -138,8 +149,8 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
       field: 'template',
       values: MENU_TEMPLATES.map((template) => template.value),
       config: {
-        heading: 'Kafana Dunav',
-        currency: 'RSD',
+        heading: DEMO_VENUE,
+        currency: 'EUR',
         source: 'manual',
         // TWO categories, ten items, a picture on every one.
         //
@@ -151,36 +162,21 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
         // two-column designs render correctly. (The clipping itself is a real
         // menu-board bug; it is not this fixture's job to hide it.)
         //
-        // Every item carries a picture because `gallery` and `counter` are photo
-        // designs — a board where half the tiles fall back to a monogram shows
+        // Every item carries a picture because `counter` puts a thumbnail on
+        // every row — a board where half of them fall back to a monogram shows
         // the fallback rather than the design.
         items: [
-          { name: 'Espresso', price: 180, description: 'Double shot, house blend', category: 'Coffee', imageUrl: asset('coffee') },
-          { name: 'Cappuccino', price: 260, description: 'Oat milk on request', category: 'Coffee', imageUrl: asset('cappuccino') },
-          { name: 'Turkish coffee', price: 150, description: 'Served with rahat lokum', category: 'Coffee', imageUrl: asset('turkish') },
-          { name: 'Hot chocolate', price: 320, description: 'Dark, thick, unsweetened', category: 'Coffee', imageUrl: asset('cocoa') },
-          { name: 'Domaća limunada', price: 290, description: 'Lemon, mint, still or sparkling', category: 'Coffee', imageUrl: asset('lemonade') },
-          { name: 'Ćevapi in somun', price: 690, description: 'Ten pieces, onion, kajmak', category: 'Kitchen', imageUrl: asset('grill') },
-          { name: 'Karađorđeva šnicla', price: 940, description: 'Rolled, breaded, tartar sauce', category: 'Kitchen', imageUrl: asset('plate') },
-          { name: 'Šopska salata', price: 420, description: 'Tomato, cucumber, white cheese', category: 'Kitchen', imageUrl: asset('salad') },
-          { name: 'Pljeskavica', price: 720, description: 'With ajvar and fresh bread', category: 'Kitchen', imageUrl: asset('burger') },
-          { name: 'Palačinke', price: 340, description: 'Jam, walnut or chocolate', category: 'Kitchen', imageUrl: asset('crepes') },
+          { name: 'Espresso', price: 3.2, description: 'Double shot, house blend', category: 'Coffee', imageUrl: asset('coffee') },
+          { name: 'Cappuccino', price: 4.1, description: 'Oat milk on request', category: 'Coffee', imageUrl: asset('cappuccino') },
+          { name: 'Flat White', price: 4.3, description: 'Silky microfoam, single origin', category: 'Coffee', imageUrl: asset('turkish') },
+          { name: 'Cold Brew', price: 4.6, description: 'Steeped 18 hours, over ice', category: 'Coffee', imageUrl: asset('cocoa') },
+          { name: 'Fresh Lemonade', price: 4.8, description: 'Lemon, mint, still or sparkling', category: 'Coffee', imageUrl: asset('lemonade') },
+          { name: 'Truffle Mushroom Toast', price: 12.5, description: 'Sourdough, poached egg, chives', category: 'Kitchen', imageUrl: asset('grill') },
+          { name: 'Buttermilk Fried Chicken', price: 17.9, description: 'Slaw, pickles, brioche bun', category: 'Kitchen', imageUrl: asset('plate') },
+          { name: 'Roasted Beet Salad', price: 11.4, description: 'Goat cheese, walnut, honey', category: 'Kitchen', imageUrl: asset('salad') },
+          { name: 'Steak Frites', price: 24.5, description: 'Ribeye, peppercorn sauce', category: 'Kitchen', imageUrl: asset('burger') },
+          { name: 'Lemon Ricotta Pancakes', price: 10.9, description: 'Blueberry compote, maple', category: 'Kitchen', imageUrl: asset('crepes') },
         ],
-      },
-      overrides: {
-        // Noir is documented as a cocktail-bar / tasting-menu board: a single
-        // centred column with air around it. Ten described items overflow its
-        // fixed height (and `overflow: hidden` then clips the top and bottom),
-        // so the tile shows it doing the job it was designed for.
-        noir: {
-          items: [
-            { name: 'Negroni', price: 780, description: 'Gin, Campari, sweet vermouth', category: 'Cocktails' },
-            { name: 'Old Fashioned', price: 850, description: 'Bourbon, demerara, bitters', category: 'Cocktails' },
-            { name: 'Rakija flight', price: 940, description: 'Three house distillates', category: 'Cocktails' },
-            { name: 'Aged cheese board', price: 1180, description: 'Kajmak, walnut, honeycomb', category: 'To Share' },
-            { name: 'Cured meats', price: 1240, description: 'Njeguška pršuta, olives', category: 'To Share' },
-          ],
-        },
       },
       data: null,
     },
@@ -190,36 +186,36 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
       field: 'displayMode',
       values: WEATHER_DISPLAY_MODES.map((mode) => mode.value),
       config: {
-        location: { label: 'Beograd', lat: 44.7866, lng: 20.4489 },
+        location: { label: 'Copenhagen', lat: 55.6761, lng: 12.5683 },
         theme: 'dark',
         units: 'metric',
         language: 'en',
         showClock: true,
       },
       data: {
-        location: 'Beograd',
-        temperatureC: 27,
+        location: 'Copenhagen',
+        temperatureC: 21,
         weatherCode: 2,
         windKph: 14,
         humidity: 48,
         precipitationProbability: 15,
         observedAt: OBSERVED_AT,
         isDay: true,
-        feelsLikeC: 29,
+        feelsLikeC: 22,
         windDegrees: 315,
         daily: [
-          { date: isoDate(0), minC: 17, maxC: 29, weatherCode: 2, precipitationProbability: 15, uvIndexMax: 7, sunrise: `${isoDate(0)}T04:51`, sunset: `${isoDate(0)}T20:26` },
-          { date: isoDate(1), minC: 18, maxC: 31, weatherCode: 1, precipitationProbability: 5, uvIndexMax: 8 },
-          { date: isoDate(2), minC: 19, maxC: 33, weatherCode: 0, precipitationProbability: 0, uvIndexMax: 9 },
-          { date: isoDate(3), minC: 20, maxC: 30, weatherCode: 61, precipitationProbability: 55, uvIndexMax: 6 },
-          { date: isoDate(4), minC: 16, maxC: 24, weatherCode: 80, precipitationProbability: 70, uvIndexMax: 4 },
-          { date: isoDate(5), minC: 15, maxC: 26, weatherCode: 3, precipitationProbability: 25, uvIndexMax: 5 },
+          { date: isoDate(0), minC: 13, maxC: 22, weatherCode: 2, precipitationProbability: 15, uvIndexMax: 5, sunrise: `${isoDate(0)}T04:31`, sunset: `${isoDate(0)}T21:56` },
+          { date: isoDate(1), minC: 14, maxC: 24, weatherCode: 1, precipitationProbability: 5, uvIndexMax: 6 },
+          { date: isoDate(2), minC: 15, maxC: 26, weatherCode: 0, precipitationProbability: 0, uvIndexMax: 6 },
+          { date: isoDate(3), minC: 15, maxC: 23, weatherCode: 61, precipitationProbability: 55, uvIndexMax: 4 },
+          { date: isoDate(4), minC: 12, maxC: 18, weatherCode: 80, precipitationProbability: 70, uvIndexMax: 3 },
+          { date: isoDate(5), minC: 13, maxC: 20, weatherCode: 3, precipitationProbability: 25, uvIndexMax: 4 },
         ],
         hourly: Array.from({ length: 24 }, (_, i) => ({
           time: isoHour(i),
           // A gentle afternoon peak then an overnight dip — a flat series makes
           // the `hourly` curve and the `tiles` sparkline look broken.
-          temperatureC: Math.round(27 + 4 * Math.sin(((i + 2) / 24) * Math.PI * 2)),
+          temperatureC: Math.round(21 + 4 * Math.sin(((i + 2) / 24) * Math.PI * 2)),
           weatherCode: i < 6 ? 2 : i < 14 ? 1 : 61,
           precipitationProbability: i < 6 ? 15 : i < 14 ? 5 : 45,
           isDay: i < 7 || i > 20,
@@ -269,19 +265,19 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
         // two-thirds empty and makes both layouts look identical.
         values: [
           ['Region', 'Revenue', 'Target', 'Variance', 'Owner'],
-          ['Belgrade', '€184,200', '€170,000', '+8.4%', 'M. Jovanović'],
-          ['Novi Sad', '€96,500', '€105,000', '−8.1%', 'A. Petrović'],
-          ['Niš', '€72,800', '€68,000', '+7.1%', 'S. Ilić'],
-          ['Kragujevac', '€54,100', '€52,000', '+4.0%', 'D. Marković'],
-          ['Subotica', '€41,900', '€48,000', '−12.7%', 'J. Nikolić'],
-          ['Zrenjanin', '€38,400', '€35,000', '+9.7%', 'N. Stanković'],
-          ['Pančevo', '€33,600', '€36,000', '−6.7%', 'V. Đorđević'],
-          ['Čačak', '€31,200', '€29,500', '+5.8%', 'B. Todorović'],
-          ['Kraljevo', '€28,700', '€30,000', '−4.3%', 'T. Ristić'],
-          ['Leskovac', '€26,400', '€24,000', '+10.0%', 'M. Pavlović'],
-          ['Smederevo', '€24,900', '€26,500', '−6.0%', 'K. Simić'],
-          ['Valjevo', '€22,100', '€21,000', '+5.2%', 'R. Lukić'],
-          ['Šabac', '€19,800', '€20,500', '−3.4%', 'I. Milošević'],
+          ['London', '€184,200', '€170,000', '+8.4%', 'M. Hartley'],
+          ['Amsterdam', '€96,500', '€105,000', '−8.1%', 'A. de Vries'],
+          ['Berlin', '€72,800', '€68,000', '+7.1%', 'S. Keller'],
+          ['Paris', '€54,100', '€52,000', '+4.0%', 'D. Moreau'],
+          ['Madrid', '€41,900', '€48,000', '−12.7%', 'J. Navarro'],
+          ['Milan', '€38,400', '€35,000', '+9.7%', 'N. Ferrari'],
+          ['Vienna', '€33,600', '€36,000', '−6.7%', 'V. Gruber'],
+          ['Stockholm', '€31,200', '€29,500', '+5.8%', 'B. Lindqvist'],
+          ['Copenhagen', '€28,700', '€30,000', '−4.3%', 'T. Sørensen'],
+          ['Dublin', '€26,400', '€24,000', '+10.0%', 'M. O’Brien'],
+          ['Lisbon', '€24,900', '€26,500', '−6.0%', 'K. Almeida'],
+          ['Warsaw', '€22,100', '€21,000', '+5.2%', 'R. Kowalski'],
+          ['Zurich', '€19,800', '€20,500', '−3.4%', 'I. Brunner'],
         ],
       },
     },
@@ -313,7 +309,7 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
           { title: 'Standup', start: todayAt(9, 0), end: todayAt(9, 15), allDay: false, location: 'Room A' },
           { title: 'Design review — menu board templates', start: todayAt(10, 0), end: todayAt(11, 30), allDay: false, location: 'Room A' },
           { title: 'Lunch & learn', start: todayAt(12, 30), end: todayAt(13, 30), allDay: false, location: 'Canteen' },
-          { title: 'Customer call — Kafana Dunav', start: todayAt(15, 0), end: todayAt(16, 0), allDay: false },
+          { title: `Customer call — ${DEMO_VENUE}`, start: todayAt(15, 0), end: todayAt(16, 0), allDay: false },
           { title: 'Sprint planning', start: onWeekdayAt(3, 9, 30), end: onWeekdayAt(3, 11, 0), allDay: false, location: 'Room B' },
           { title: 'Company offsite', start: onWeekdayAt(4, 0, 0), allDay: true },
           { title: 'Release 2.4 to production', start: onWeekdayAt(4, 17, 0), end: onWeekdayAt(4, 18, 0), allDay: false },
@@ -333,12 +329,12 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
         showCaption: true,
       },
       data: {
-        accountLabel: '@kafanadunav',
+        accountLabel: '@harbourandvine',
         posts: [
-          { id: '1', text: 'New summer terrace is open every evening until midnight ☀️', imageUrl: asset('terrace'), mediaType: 'image', timestamp: hoursAgo(2) },
+          { id: '1', text: 'The summer terrace is open every evening until midnight ☀️', imageUrl: asset('terrace'), mediaType: 'image', timestamp: hoursAgo(2) },
           { id: '2', text: 'Roasting a new single origin this week — come and taste it', imageUrl: asset('coffee'), mediaType: 'image', timestamp: hoursAgo(6) },
           { id: '3', text: 'Live music Friday from 21:00', imageUrl: asset('music'), mediaType: 'image', timestamp: hoursAgo(20) },
-          { id: '4', text: 'Fresh baklava, straight out of the oven', imageUrl: asset('pastry'), mediaType: 'image', timestamp: hoursAgo(28) },
+          { id: '4', text: 'Pastries out of the oven every morning at seven', imageUrl: asset('pastry'), mediaType: 'image', timestamp: hoursAgo(28) },
           { id: '5', text: 'Thank you for a full house last night', imageUrl: asset('crowd'), mediaType: 'image', timestamp: hoursAgo(44) },
           { id: '6', text: 'Sunday brunch starts at 10:00', imageUrl: asset('plate'), mediaType: 'image', timestamp: hoursAgo(52) },
         ],

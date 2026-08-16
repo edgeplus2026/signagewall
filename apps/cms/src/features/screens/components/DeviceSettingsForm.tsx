@@ -1,4 +1,4 @@
-import { RotateCwIcon } from 'lucide-react'
+import { DownloadIcon, RotateCwIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -13,8 +13,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { ApplyDeviceUpdateDialog } from '@/features/screens/components/ApplyDeviceUpdateDialog'
 import { DeviceVolumeControl } from '@/features/screens/components/DeviceVolumeControl'
 import {
+  useApplyDeviceUpdate,
   useRestartDevice,
   useSetDeviceDailyReload,
   useSetDeviceOrientation,
@@ -240,6 +242,8 @@ function MaintenanceSettings({
   const { t } = useTranslation()
   const setDailyReload = useSetDeviceDailyReload()
   const restart = useRestartDevice()
+  const applyUpdate = useApplyDeviceUpdate()
+  const [updateOpen, setUpdateOpen] = useState(false)
 
   const [reloadEnabled, setReloadEnabled] = useState(savedReloadEnabled)
   const [reloadTime, setReloadTime] = useState(savedReloadTime)
@@ -270,6 +274,18 @@ function MaintenanceSettings({
     }
   }
 
+  const onApplyUpdate = async () => {
+    try {
+      await applyUpdate.mutateAsync(screenId)
+      setUpdateOpen(false)
+      toast.success(t('screens.device.applyUpdate.success'))
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error, t('screens.device.applyUpdate.error')),
+      )
+    }
+  }
+
   return (
     <SettingsSection title={t('screens.device.maintenance.title')}>
       <SettingsRow
@@ -286,6 +302,30 @@ function MaintenanceSettings({
           {t('screens.device.restart.button')}
         </Button>
       </SettingsRow>
+
+      <SettingsRow
+        label={t('screens.device.applyUpdate.title')}
+        description={t('screens.device.applyUpdate.rowDescription')}
+      >
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => {
+            setUpdateOpen(true)
+          }}
+          disabled={applyUpdate.isPending}
+        >
+          <DownloadIcon className="size-4" />
+          {t('screens.device.applyUpdate.button')}
+        </Button>
+      </SettingsRow>
+
+      <ApplyDeviceUpdateDialog
+        open={updateOpen}
+        onOpenChange={setUpdateOpen}
+        onConfirm={() => void onApplyUpdate()}
+        isPending={applyUpdate.isPending}
+      />
 
       <SettingsRow
         label={t('screens.device.dailyReload.title')}

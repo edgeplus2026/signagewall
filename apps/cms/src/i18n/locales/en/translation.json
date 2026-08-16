@@ -964,6 +964,16 @@
       },
       "dangerZone": {
         "title": "Danger zone"
+      },
+      "applyUpdate": {
+        "title": "Install update now",
+        "rowDescription": "Installs a pending player update immediately instead of waiting for the screen's own window. The display restarts.",
+        "button": "Install now",
+        "description": "The screen will install any pending player update and restart. It goes dark for a few seconds. If nothing is pending, nothing happens.",
+        "cancel": "Cancel",
+        "submit": "Install now",
+        "success": "Update requested.",
+        "error": "Could not request the update. Please try again."
       }
     },
     "update": {
@@ -1489,7 +1499,8 @@
       "upgradeRequests": "Upgrade Requests",
       "billing": "Billing",
       "crm": "CRM",
-      "analytics": "Analytics"
+      "analytics": "Analytics",
+      "player": "Player"
     },
     "crm": {
       "title": "Leads CRM",
@@ -1828,6 +1839,20 @@
           "active_account_missing_period": "Active account has no billing period",
           "renewal_invoice_missing": "Billing period ends without a renewal invoice"
         }
+      }
+    },
+    "player": {
+      "title": "Player",
+      "applyUpdate": {
+        "title": "Push update to all screens",
+        "rowDescription": "Tells every connected player to install a pending update now. Screens that are off or offline update on their own schedule.",
+        "button": "Push to fleet",
+        "confirmTitle": "Update every connected screen?",
+        "confirmDescription": "Every connected display installs the pending player update and restarts, going dark for a few seconds — including screens in front of customers right now. This cannot be undone; the only way back is publishing a higher version.",
+        "cancel": "Cancel",
+        "submit": "Update the fleet",
+        "success": "Update pushed to all connected screens.",
+        "error": "Could not push the update. Please try again."
       }
     }
   },

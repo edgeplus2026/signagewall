@@ -3,10 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PlayerCommand } from '../types'
 
 const restartPlayer = vi.fn()
+const applyUpdateIfAvailable = vi.fn()
 const playbackNext = vi.fn()
 const playbackPrevious = vi.fn()
 
 vi.mock('../restart', () => ({ restartPlayer }))
+vi.mock('../native/updater', () => ({ applyUpdateIfAvailable }))
 vi.mock('./playback-bus', () => ({
   playbackNext,
   playbackPrevious,
@@ -71,6 +73,14 @@ describe('applyCommand — real device', () => {
     expect(restartPlayer).toHaveBeenCalledOnce()
   })
 
+  it('applies a pending shell update on an applyUpdate command', () => {
+    applyCommand({ type: 'applyUpdate' })
+    expect(applyUpdateIfAvailable).toHaveBeenCalledOnce()
+    // Distinct from restart: this must NOT reload a device with nothing pending,
+    // which would blank a working screen for no reason.
+    expect(restartPlayer).not.toHaveBeenCalled()
+  })
+
   it('drives next/prev through the playback bus', () => {
     applyCommand({ type: 'next' })
     applyCommand({ type: 'prev' })
@@ -93,15 +103,19 @@ describe('applyCommand — preview spectator', () => {
     expect(playbackPrevious).toHaveBeenCalledOnce()
   })
 
-  it('ignores device-only commands (volume, restart, dailyReload)', () => {
+  it('ignores device-only commands (volume, restart, dailyReload, applyUpdate)', () => {
     applyCommand({ type: 'volume', value: 50 }, preview)
     applyCommand({ type: 'restart' }, preview)
     applyCommand(
       { type: 'dailyReload', value: { enabled: false, time: '04:00' } },
       preview,
     )
+    // A preview is a browser tab with no shell to update — running it there would
+    // only ever report "no update", and the fleet broadcast reaches previews too.
+    applyCommand({ type: 'applyUpdate' }, preview)
     expect(volume.value).toBe(100)
     expect(restartPlayer).not.toHaveBeenCalled()
     expect(dailyReload.value).toEqual({ enabled: true, time: '03:00' })
+    expect(applyUpdateIfAvailable).not.toHaveBeenCalled()
   })
 })

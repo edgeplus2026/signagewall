@@ -26,6 +26,7 @@ import type {
   AppDataChangedEvent,
   AppInstanceChangedEvent,
   DeviceCommandEvent,
+  FleetCommandEvent,
   DevicePairedEvent,
   DeviceRevokedEvent,
   MediaReadyEvent,
@@ -451,6 +452,24 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .to(deviceRoom(event.deviceId))
       .to(screenRoom(event.screenId))
       .emit(PlayerSocketEvents.Command, event.command);
+  }
+
+  /**
+   * Fleet-wide command: emitted to the whole namespace rather than to rooms.
+   *
+   * That deliberately includes CMS preview spectators, who are connected here too
+   * — but every command routed this way is one the player itself drops in preview
+   * mode (see `applyCommand`), so a spectator receiving it does nothing. Filtering
+   * them out here would mean tracking which sockets are previews, for no gain.
+   *
+   * Reaches only what is CONNECTED right now. A screen that is off, offline or
+   * asleep updates on its own schedule instead; there is no queue, and callers
+   * must not present this as a guarantee.
+   */
+  @OnEvent(PlayerEvents.FleetCommand)
+  onFleetCommand(event: FleetCommandEvent): void {
+    this.logger.log(`Fleet command broadcast: ${event.command.type}`);
+    this.server.emit(PlayerSocketEvents.Command, event.command);
   }
 
   @OnEvent(PlayerEvents.ScreenContentChanged)

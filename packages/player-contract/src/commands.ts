@@ -33,6 +33,15 @@ export type PlayerCommand =
   | { type: 'scale'; value: DeviceScale }
   | { type: 'restart' }
   | { type: 'dailyReload'; value: DailyReloadSetting }
+  /**
+   * Install a pending shell update NOW, instead of waiting for the device's own
+   * windows (standby, the nightly reload, or the six-hour backstop). Exists for
+   * one situation: a build shipped with a fault, and every hour it stays on the
+   * fleet is an hour of broken screens. It only ever moves FORWARD to whatever
+   * the update channel currently offers — there is no command that undoes a
+   * release, so the fix is always a higher version.
+   */
+  | { type: 'applyUpdate' }
   // Transient playback nudges (remote next/prev, e.g. from the CMS preview).
   | { type: 'next' }
   | { type: 'prev' }

@@ -1358,6 +1358,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/player/apply-update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pushes a pending player update to the whole fleet at once. POST because it
+         *     acts, and under `admin` because it crosses every tenant — no organization
+         *     owns it, and no org admin should be able to restart another customer's
+         *     screens.
+         */
+        post: operations["AdminapplyPlayerUpdate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -1872,6 +1894,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["DevicePairingrestart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/screens/{screenId}/device/apply-update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DevicePairingapplyUpdate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -10688,6 +10726,80 @@ export interface operations {
             };
         };
     };
+    AdminapplyPlayerUpdate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
     AdminlistUsers: {
         parameters: {
             query: {
@@ -13271,6 +13383,84 @@ export interface operations {
         };
     };
     DevicePairingrestart: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization id for tenant-scoped routes */
+                "x-organization-id": string;
+                /** @description API message language (`en` or `sr`) */
+                "Accept-Language"?: "en" | "sr";
+                /** @description Alternative language header (same as Accept-Language) */
+                "x-lang"?: "en" | "sr";
+            };
+            path: {
+                screenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        /** @example null */
+                        data: null | null;
+                    };
+                };
+            };
+            /** @description Validation or business error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
+                };
+            };
+        };
+    };
+    DevicePairingapplyUpdate: {
         parameters: {
             query?: never;
             header: {

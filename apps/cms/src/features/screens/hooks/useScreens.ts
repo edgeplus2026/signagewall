@@ -254,6 +254,17 @@ export function useRestartDevice() {
 }
 
 /**
+ * Makes this screen install a pending player update now, rather than waiting for
+ * its own windows. Fire-and-forget: the device answers by restarting into the new
+ * version, and nothing in the cache describes that.
+ */
+export function useApplyDeviceUpdate() {
+  return useMutation({
+    mutationFn: (id: string) => screensApi.applyDeviceUpdate(id),
+  })
+}
+
+/**
  * Steps the live display to the next/previous content item. Fire-and-forget —
  * the result is observed in the preview iframe, not the React Query cache.
  */
