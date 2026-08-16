@@ -1,5 +1,13 @@
 /* "Chalkboard" — hand-written café board. Committed look: always a dark slate
-   board in a warm frame; the operator's background colour is ignored. */
+   board in a warm frame. */
+
+/* The design owns its palette — see the note in `classic.css`. `.ch` paints the
+   frame and `.ch-board` the slate, so this only has to cover the root behind
+   them (and the empty state, which renders without either). */
+.menu.mb-chalkboard {
+  background: #4a3827;
+  color: #f4f1e8;
+}
 
 .ch {
   width: 100%;

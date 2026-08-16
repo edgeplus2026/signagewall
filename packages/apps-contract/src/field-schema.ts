@@ -207,6 +207,53 @@ export interface Field {
    */
   searchable?: boolean
   /**
+   * For `select`: render the options as a gallery of preview thumbnails instead
+   * of a dropdown, so the operator SEES each design before choosing it. Use it
+   * for fields that pick a look (a layout, a face, a design) — a text label can
+   * only ever describe a picture, and "Chalkboard. A hand-written café board"
+   * still has to be applied before anyone knows what it is.
+   *
+   * The value is the preview NAMESPACE: images are served from
+   * `${appsBase}/_previews/<namespace>/<option value>.webp`. It is a namespace
+   * rather than the app slug because several apps share ONE renderer and must
+   * therefore share one set of images — the seven branded RSS presets all
+   * render through `rss`, and Instagram/Facebook/LinkedIn/Teams all through
+   * `embeds/_shared/social-feed.ts`.
+   *
+   * The images are generated from the real bundles by
+   * `packages/apps/scripts/build-previews.mts` and committed under
+   * `packages/apps/previews/`. A missing one degrades to a label-only card, so
+   * marking a field before its thumbnails exist is safe.
+   *
+   * Purely a CMS form convenience — the backend ignores it when validating
+   * config, exactly like {@link Field.searchable}.
+   */
+  previewGallery?: string
+  /**
+   * For `select`: render the options as a segmented button group instead of a
+   * dropdown, so every choice is visible without opening anything. Use it for a
+   * short list (2–4) where the value is a MODE that changes the rest of the form
+   * — a dropdown hides the alternatives behind a click and reads as a value, not
+   * a switch. Purely a CMS form convenience; the backend ignores it.
+   */
+  buttonGroup?: boolean
+  /**
+   * For `repeater`: edit the rows in a wide modal instead of inline in the
+   * config sidebar. The sidebar is ~384px, so a row with several columns
+   * (name / price / description / category / photo) is unusable squeezed into
+   * it. The field renders a summary plus an "Edit" button. Purely a CMS form
+   * convenience; the stored value is identical either way.
+   */
+  editor?: 'dialog'
+  /**
+   * Set on a field to render ITS section expanded on first paint. Named sections
+   * are collapsed by default, which is right for optional trimming but wrong for
+   * a section holding the app's actual content — an operator should not have to
+   * find a disclosure triangle to add their first menu item. Purely a CMS form
+   * convenience; the backend ignores it.
+   */
+  sectionOpen?: boolean
+  /**
    * For `repeater`: the sub-fields of one row. Each row's value is an object
    * keyed by these fields' `key`s. Keep them simple (text / number / select /
    * switch) — they render inline as columns.

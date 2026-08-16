@@ -53,6 +53,7 @@ export const weatherManifest: AppManifest = {
       label: 'Layout',
       help: 'How the weather is arranged on the screen.',
       default: DEFAULT_WEATHER_MODE,
+      previewGallery: 'weather',
       options: weatherDisplayModeOptions(),
     },
     {

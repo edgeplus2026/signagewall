@@ -5,6 +5,16 @@ function buildService(options: {
     string,
     { clientState: string; cacheKey: string } | undefined
   >;
+  /** Rows the orphan sweep / renewal walk. */
+  stored?: {
+    subscriptionId: string;
+    cacheKey: string;
+    connectionId?: string;
+  }[];
+  /** Cache keys instances still resolve to. */
+  liveCacheKeys?: string[];
+  /** Connections that still exist (default: all of them). */
+  missingConnections?: string[];
   publicApiUrl?: string;
   webhookPublicUrl?: string;
 }) {
@@ -19,6 +29,12 @@ function buildService(options: {
     ),
     findByCacheKey: jest.fn().mockResolvedValue(null),
     findExpiringBefore: jest.fn().mockResolvedValue([]),
+    findAll: jest.fn().mockResolvedValue(
+      (options.stored ?? []).map((row) => ({
+        connectionId: row.connectionId ?? 'c1',
+        ...row,
+      })),
+    ),
     updateExpiry: jest.fn(),
     create: jest.fn(),
     deleteBySubscriptionId: jest.fn(),
@@ -27,6 +43,9 @@ function buildService(options: {
     resolveConnection: jest
       .fn()
       .mockResolvedValue({ id: 'c1', accessToken: 'tok' }),
+    connectionExists: jest.fn((id: string) =>
+      Promise.resolve(!(options.missingConnections ?? []).includes(id)),
+    ),
   };
   const configService = {
     get: (key: string) =>
@@ -37,7 +56,12 @@ function buildService(options: {
           : undefined,
     getOrThrow: () => options.publicApiUrl ?? '',
   };
-  const appDataService = { refreshCacheKey };
+  const appDataService = {
+    refreshCacheKey,
+    liveCacheKeys: jest
+      .fn()
+      .mockResolvedValue(new Set(options.liveCacheKeys ?? [])),
+  };
 
   const service = new GraphWebhookService(
     subscriptionsRepository as never,
@@ -45,7 +69,12 @@ function buildService(options: {
     configService as never,
     appDataService as never,
   );
-  return { service, refreshCacheKey, subscriptionsRepository };
+  return {
+    service,
+    refreshCacheKey,
+    subscriptionsRepository,
+    connectionsService,
+  };
 }
 
 describe('GraphWebhookService.handleNotifications', () => {
@@ -259,5 +288,139 @@ describe('GraphWebhookService.ensureSubscription', () => {
     });
 
     expect(subscriptionsRepository.create).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Subscriptions were created per cache key and never deleted by anything, so an
+ * instance delete or any edit that changes the cache key abandoned one — and the
+ * hourly cron then renewed it forever. These pin the lifecycle down, including
+ * the case the sweep must NOT collect: a key shared by another live instance.
+ */
+describe('GraphWebhookService.pruneOrphaned', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  function mockGraphDelete(): jest.Mock {
+    const fn = jest.fn().mockResolvedValue({ ok: true, status: 204 });
+    global.fetch = fn as never;
+    return fn;
+  }
+
+  it('deletes a subscription whose cache key no longer exists', async () => {
+    const { service, subscriptionsRepository } = buildService({
+      stored: [{ subscriptionId: 'sub-dead', cacheKey: 'menu:excel:gone' }],
+      liveCacheKeys: [],
+    });
+    const fetchMock = mockGraphDelete();
+
+    await expect(service.pruneOrphaned()).resolves.toBe(1);
+
+    // Told Graph to stop sending, then forgot the row.
+    const [url, init] = fetchMock.mock.calls[0] as [string, { method: string }];
+    expect(url).toContain('sub-dead');
+    expect(init.method).toBe('DELETE');
+    expect(subscriptionsRepository.deleteBySubscriptionId).toHaveBeenCalledWith(
+      'sub-dead',
+    );
+  });
+
+  it('keeps a subscription whose cache key is still live', async () => {
+    const { service, subscriptionsRepository } = buildService({
+      stored: [{ subscriptionId: 'sub-live', cacheKey: 'menu:excel:live' }],
+      liveCacheKeys: ['menu:excel:live'],
+    });
+    mockGraphDelete();
+
+    await expect(service.pruneOrphaned()).resolves.toBe(0);
+    expect(
+      subscriptionsRepository.deleteBySubscriptionId,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('keeps a shared key alive when only one of its instances went away', async () => {
+    // Two instances resolved to one cache key, so one subscription served both.
+    // Deleting either instance must not stop the other's push.
+    const { service, subscriptionsRepository } = buildService({
+      stored: [{ subscriptionId: 'sub-shared', cacheKey: 'menu:excel:shared' }],
+      liveCacheKeys: ['menu:excel:shared'],
+    });
+    mockGraphDelete();
+
+    await service.pruneOrphaned();
+    expect(
+      subscriptionsRepository.deleteBySubscriptionId,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('still forgets the row when Graph cannot be told (account disconnected)', async () => {
+    const { service, subscriptionsRepository } = buildService({
+      stored: [
+        {
+          subscriptionId: 'sub-orphan',
+          cacheKey: 'gone',
+          connectionId: 'dead',
+        },
+      ],
+      liveCacheKeys: [],
+    });
+    global.fetch = jest.fn().mockRejectedValue(new Error('401')) as never;
+
+    await expect(service.pruneOrphaned()).resolves.toBe(1);
+    expect(subscriptionsRepository.deleteBySubscriptionId).toHaveBeenCalledWith(
+      'sub-orphan',
+    );
+  });
+
+  it('does nothing when the table is empty (no live-key query needed)', async () => {
+    const { service, subscriptionsRepository } = buildService({ stored: [] });
+    await expect(service.pruneOrphaned()).resolves.toBe(0);
+    expect(
+      subscriptionsRepository.deleteBySubscriptionId,
+    ).not.toHaveBeenCalled();
+  });
+});
+
+describe('GraphWebhookService.renewExpiring', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('drops a subscription whose connection is gone instead of retrying forever', async () => {
+    // The instance (and its cache key) survives a disconnect, so the orphan
+    // sweep will never claim this row — but it can never be renewed again.
+    const { service, subscriptionsRepository, connectionsService } =
+      buildService({
+        publicApiUrl: 'https://api.example',
+        missingConnections: ['dead'],
+      });
+    subscriptionsRepository.findExpiringBefore.mockResolvedValue([
+      { subscriptionId: 'sub-x', cacheKey: 'k', connectionId: 'dead' },
+    ]);
+    connectionsService.resolveConnection.mockRejectedValue(
+      new Error('Connection not found.'),
+    );
+
+    await expect(service.renewExpiring()).resolves.toBe(0);
+    expect(subscriptionsRepository.deleteBySubscriptionId).toHaveBeenCalledWith(
+      'sub-x',
+    );
+  });
+
+  it('keeps a subscription whose connection merely failed to resolve this time', async () => {
+    const { service, subscriptionsRepository, connectionsService } =
+      buildService({ publicApiUrl: 'https://api.example' });
+    subscriptionsRepository.findExpiringBefore.mockResolvedValue([
+      { subscriptionId: 'sub-y', cacheKey: 'k', connectionId: 'c1' },
+    ]);
+    connectionsService.resolveConnection.mockRejectedValue(
+      new Error('token endpoint 503'),
+    );
+
+    await service.renewExpiring();
+    expect(
+      subscriptionsRepository.deleteBySubscriptionId,
+    ).not.toHaveBeenCalled();
   });
 });

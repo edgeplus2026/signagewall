@@ -46,6 +46,18 @@ if (!Number.isInteger(code) || code <= 0) {
   process.exit(1)
 }
 
+// Absolute, or the manifest ships a URL no device can resolve. A missing value is
+// already caught above; this catches the half-right one — a bare hostname, or the
+// bucket's internal endpoint — which reads fine to a human and is unusable to a
+// player. The manifest is the fleet's only route to a new build, so a wrong URL
+// here costs a visit to every screen rather than a re-publish.
+if (!/^https:\/\/[^/]+/.test(publicBase)) {
+  console.error(
+    `--public-base must be an absolute https:// URL, got '${publicBase}'`,
+  )
+  process.exit(1)
+}
+
 const apkBytes = readFileSync(apk)
 const sha256 = createHash('sha256').update(apkBytes).digest('hex')
 const url = `${publicBase.replace(/\/$/, '')}/signagewall-player/android/${version}/${basename(apk)}`

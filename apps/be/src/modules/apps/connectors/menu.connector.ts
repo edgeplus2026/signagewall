@@ -7,6 +7,7 @@ import type { MenuItem, MenuSyncPayload } from '@signagewall/apps';
 
 import { fetchSheetTable } from '../../connections/providers/google-api';
 import {
+  fetchDriveItemTag,
   fetchWorkbookTable,
   unpackDriveItem,
 } from '../../connections/providers/graph-api';
@@ -50,6 +51,27 @@ function isSynced(config: MenuConfig): boolean {
     config.connectionId !== '' &&
     fileIdOf(config) !== ''
   );
+}
+
+/**
+ * What the Excel path remembers between fetches: the workbook's content tag when
+ * we last read it, and the items that read produced. Keeping the items lets an
+ * unchanged workbook answer without touching the Workbook API at all — the same
+ * trick the PowerPoint connector uses to avoid re-rendering an unchanged deck.
+ */
+interface WorkbookState {
+  tag: string;
+  items: MenuItem[];
+}
+
+function readWorkbookState(
+  secrets: Record<string, unknown> | undefined,
+): WorkbookState | undefined {
+  const state = secrets?.workbook as Partial<WorkbookState> | undefined;
+  if (!state || typeof state.tag !== 'string' || !Array.isArray(state.items)) {
+    return undefined;
+  }
+  return { tag: state.tag, items: state.items };
 }
 
 /** A mapped row → normalized menu item; rows with no name are dropped. */
@@ -135,14 +157,41 @@ export const menuConnector: AppConnector<MenuConfig, MenuSyncPayload> = {
     }
     const worksheet = (config.worksheet ?? '').trim();
 
+    const title = fileLabelOf(config);
     let table: TabularTable;
     let secrets: Record<string, unknown> | undefined;
+    let version: string | undefined;
 
     if (config.source === 'excel') {
       const unpacked = unpackDriveItem(fileIdOf(config));
       if (!unpacked) {
         throw new Error('menu: invalid workbook id');
       }
+
+      // Graph only subscribes to a drive ROOT, never to one file, so a push
+      // arrives for every change anywhere in the operator's OneDrive — a photo
+      // upload re-reads every menu syncing from that drive. One cheap metadata
+      // call turns those into a no-op. An empty tag means Graph told us nothing,
+      // so fall through and read (never treat "unknown" as "unchanged").
+      const tag = await fetchDriveItemTag(
+        ctx.connection.accessToken,
+        unpacked.driveId,
+        unpacked.itemId,
+        ctx.signal,
+      );
+      const previous = readWorkbookState(ctx.secrets);
+      if (tag !== '' && previous && previous.tag === tag) {
+        ctx.logger.debug('menu workbook unchanged', { tag });
+        return {
+          playerPayload: {
+            items: previous.items,
+            ...(title ? { sourceTitle: title } : {}),
+          },
+          secrets: { workbook: previous },
+          version: tag,
+        };
+      }
+
       table = await fetchWorkbookTable(
         ctx.connection.accessToken,
         unpacked.driveId,
@@ -151,6 +200,9 @@ export const menuConnector: AppConnector<MenuConfig, MenuSyncPayload> = {
         MAX_TABULAR_ROWS,
         ctx.signal,
       );
+      if (tag !== '') {
+        version = tag;
+      }
     } else {
       const spreadsheetId = fileIdOf(config);
       table = await fetchSheetTable(
@@ -178,10 +230,16 @@ export const menuConnector: AppConnector<MenuConfig, MenuSyncPayload> = {
       items: items.length,
     });
 
-    const title = fileLabelOf(config);
+    // Remember the tag WITH the items it produced, so the next notification for
+    // an unrelated file in the same drive can be answered without a read.
+    if (version !== undefined) {
+      secrets = { workbook: { tag: version, items } satisfies WorkbookState };
+    }
+
     return {
       playerPayload: { items, ...(title ? { sourceTitle: title } : {}) },
       ...(secrets ? { secrets } : {}),
+      ...(version !== undefined ? { version } : {}),
     };
   },
 };

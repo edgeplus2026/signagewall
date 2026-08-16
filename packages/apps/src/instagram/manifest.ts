@@ -58,6 +58,9 @@ export const instagramManifest: AppManifest = {
       type: 'select',
       label: 'Layout',
       default: 'spotlight',
+      // One shared namespace across every app on the social-feed renderer
+      // (Instagram, Facebook, LinkedIn, Teams) — same two layouts, same pixels.
+      previewGallery: 'social',
       options: [
         { label: 'Spotlight (one post at a time)', value: 'spotlight' },
         { label: 'Grid', value: 'grid' },

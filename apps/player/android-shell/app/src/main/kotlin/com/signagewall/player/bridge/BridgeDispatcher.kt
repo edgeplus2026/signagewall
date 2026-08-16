@@ -45,6 +45,12 @@ class BridgeDispatcher(
      * written against it only trips after the disk is gone.
      */
     private val freeDiskBytes: () -> Long = { -1L },
+    /**
+     * Opens or closes Chrome DevTools inspection of the page, from the service
+     * menu. A lambda so the dispatcher never touches a WebView — and so a host
+     * that has no such notion simply does not supply one.
+     */
+    private val onSetWebDebugging: (Boolean) -> Unit = {},
     /** Unpairs this display locally: drops the device id and restarts. */
     private val onDeactivate: () -> Unit = {},
     /** Opens the overlay-permission settings screen; false if the device has none. */
@@ -57,6 +63,10 @@ class BridgeDispatcher(
         "device_owner" -> JsonPrimitive(deviceOwner())
         "device_info" -> json.parseToJsonElement(deviceInfo())
         "free_disk" -> JsonPrimitive(freeDiskBytes())
+        "set_web_debugging" -> {
+            onSetWebDebugging(parseBooleanFlag(argsJson, "enabled"))
+            JsonNull
+        }
         "deactivate" -> {
             onDeactivate()
             JsonNull
@@ -93,9 +103,19 @@ class BridgeDispatcher(
     }
 
     private fun parseOperatorFlag(argsJson: String): Boolean =
+        parseBooleanFlag(argsJson, "operator")
+
+    /**
+     * One named flag out of the args object. Compares the CONTENT, so a real JSON
+     * boolean and the string "true" both read the same — the web layer has sent
+     * both shapes over the years and neither should silently mean `false`.
+     * Anything unparseable is false: a command that cannot be read must not be
+     * taken as permission.
+     */
+    private fun parseBooleanFlag(argsJson: String, name: String): Boolean =
         try {
             json.parseToJsonElement(argsJson)
-                .jsonObject["operator"]
+                .jsonObject[name]
                 ?.jsonPrimitive
                 ?.content == "true"
         } catch (_: Throwable) {

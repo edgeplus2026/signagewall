@@ -53,6 +53,7 @@ export const gsheetsManifest: AppManifest = {
       type: 'select',
       label: 'Layout',
       default: 'modern',
+      previewGallery: 'gsheets',
       options: [
         { label: 'Modern', value: 'modern' },
         { label: 'Table', value: 'table' },

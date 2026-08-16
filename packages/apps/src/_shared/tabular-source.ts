@@ -25,6 +25,11 @@ export interface TabularSourceOptions {
   itemsKey: string
   /** Optional form section for the sync fields. */
   section?: string
+  /**
+   * Render that section expanded. Worth setting when the section holds the
+   * app's content rather than optional trimming — see {@link Field.sectionOpen}.
+   */
+  sectionOpen?: boolean
 }
 
 export function tabularSourceFields(options: TabularSourceOptions): Field[] {
@@ -32,6 +37,8 @@ export function tabularSourceFields(options: TabularSourceOptions): Field[] {
   // Spread-friendly under `exactOptionalPropertyTypes`: omit the key entirely
   // when no section was given.
   const section = options.section !== undefined ? { section: options.section } : {}
+  // Only the first field carries it; the CMS reads it per section, not per field.
+  const sectionOpen = options.sectionOpen === true ? { sectionOpen: true } : {}
   const mappingSpec: ColumnMappingSpec = {
     targets,
     connectionKey: 'connectionId',
@@ -47,12 +54,16 @@ export function tabularSourceFields(options: TabularSourceOptions): Field[] {
       type: 'select',
       label: 'Items come from',
       ...section,
+      ...sectionOpen,
       default: 'manual',
+      // Three mutually exclusive modes that rewrite the rest of the section —
+      // that is a switch, not a value, so show all three at once.
+      buttonGroup: true,
       help: 'Keep the rows here, or sync them live from a spreadsheet you already maintain.',
       options: [
         { label: 'Manual table', value: 'manual' },
-        { label: 'Google Sheets (live sync)', value: 'gsheets' },
-        { label: 'Microsoft Excel (live sync)', value: 'excel' },
+        { label: 'Google Sheets', value: 'gsheets' },
+        { label: 'Microsoft Excel', value: 'excel' },
       ],
     },
     {

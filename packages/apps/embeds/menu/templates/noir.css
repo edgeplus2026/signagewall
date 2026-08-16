@@ -1,5 +1,12 @@
 /* "Noir" — understated luxury: air, hairlines, thin serif, gold prices. */
 
+/* The design owns its palette — see the note in `classic.css`. Near-black with
+   a warm off-white, so the gold accent reads as metal rather than as yellow. */
+.menu.mb-noir {
+  background: #08070a;
+  color: #ede7dd;
+}
+
 .no {
   width: 100%;
   height: 100%;

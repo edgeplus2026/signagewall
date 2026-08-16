@@ -679,6 +679,12 @@ export class PlayerService {
       ...(profile.shellVersion ? { shellVersion: profile.shellVersion } : {}),
       ...(profile.runtime ? { runtime: profile.runtime } : {}),
       ...(profile.updateStatus ? { updateStatus: profile.updateStatus } : {}),
+      // Explicit `!== undefined`, never a truthiness test: `false` is the answer
+      // that matters here — a box that CANNOT hold a kiosk lock — and a falsy
+      // check would drop exactly that one and report it as "never said".
+      ...(profile.deviceOwner !== undefined
+        ? { deviceOwner: profile.deviceOwner }
+        : {}),
     };
   }
 
@@ -702,6 +708,14 @@ export class PlayerService {
       ...(profile.shellVersion ? { shellVersion: profile.shellVersion } : {}),
       ...(profile.runtime ? { runtime: profile.runtime } : {}),
       ...(profile.updateStatus ? { updateStatus: profile.updateStatus } : {}),
+      // Same reason as the outbound mapper: `false` is the whole point of the
+      // field, so it is tested for presence, not for truth. Without this the
+      // player reported Device Owner on every heartbeat and the backend dropped
+      // it on the floor — a column that existed in the schema and was never once
+      // written.
+      ...(profile.deviceOwner !== undefined
+        ? { deviceOwner: profile.deviceOwner }
+        : {}),
     };
   }
 

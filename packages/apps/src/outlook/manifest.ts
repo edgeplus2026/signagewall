@@ -54,6 +54,7 @@ export const outlookManifest: AppManifest = {
       label: 'Calendar view',
       help: 'How events are laid out on the screen.',
       default: 'schedule',
+      previewGallery: 'calendar',
       options: [
         { label: 'Day', value: 'day' },
         { label: 'Week', value: 'week' },

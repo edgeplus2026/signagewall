@@ -73,6 +73,14 @@ class KioskActivity : AppCompatActivity() {
     /** Set while the operator is away in the overlay-permission settings screen. */
     private var awaitingOverlayGrant: Boolean = false
 
+    /**
+     * Whether Chrome DevTools may inspect the page. Written from the JS bridge
+     * thread and read when assembling `device_info`, hence @Volatile. Starts false
+     * on every process start — see [setWebDebugging] for why it is never persisted.
+     */
+    @Volatile
+    private var webDebugging: Boolean = false
+
     /** True between a load starting and it finishing or failing — a slow network on a
      *  cold TV must not be mistaken for a hang. */
     private var pageLoading: Boolean = false
@@ -214,6 +222,7 @@ class KioskActivity : AppCompatActivity() {
                 deviceOwner = { kioskController.isDeviceOwner() },
                 deviceInfo = { deviceInfoJson() },
                 freeDiskBytes = { freeDiskBytes() },
+                onSetWebDebugging = { enabled -> runOnUiThread { setWebDebugging(enabled) } },
                 onDeactivate = { runOnUiThread { deactivatePlayer() } },
                 onRequestRecovery = { requestOverlayPermission() },
             ),
@@ -327,6 +336,24 @@ class KioskActivity : AppCompatActivity() {
     }
 
     /**
+     * Opens or closes Chrome DevTools inspection of the player page.
+     *
+     * Deliberately NOT persisted. A screen left inspectable is a screen anyone who
+     * reaches it can read and rewrite, and the one person who would remember to
+     * close it is the technician who has already driven away. So it dies with the
+     * process — every restart, update and power cut closes it — and the operator
+     * who needs it is present to switch it on again.
+     *
+     * The WebView API is static and has no getter, so the flag is mirrored here to
+     * answer `device_info`.
+     */
+    private fun setWebDebugging(enabled: Boolean) {
+        WebView.setWebContentsDebuggingEnabled(enabled)
+        webDebugging = enabled
+        Log.i(TAG, "web contents debugging ${if (enabled) "enabled" else "disabled"}")
+    }
+
+    /**
      * Free bytes where the app keeps its data — the WebView's caches included, since
      * they live under this same partition. -1 when the device will not say, which the
      * caller reads as "unknown" rather than as "full".
@@ -367,6 +394,16 @@ class KioskActivity : AppCompatActivity() {
                 // intervention, which from the outside is indistinguishable from a
                 // screen that is simply fine.
                 "recoveryRung" to JsonPrimitive(pageRecovery.currentRung()),
+                // Free bytes on the app's partition. Shown to the technician
+                // because it is the one resource that fails silently: the cache
+                // grows, updates stop landing, and the screen looks fine until
+                // the day the box has nothing left. -1 means the OS refused to
+                // measure, which the menu shows as unknown rather than as zero.
+                "freeDiskBytes" to JsonPrimitive(freeDiskBytes()),
+                // Present only on a shell that can actually do it, so the menu can
+                // hide the switch entirely rather than offer one that does nothing
+                // on a browser, the desktop shell, or an older APK.
+                "webDebugging" to JsonPrimitive(webDebugging),
             ),
         ),
     )

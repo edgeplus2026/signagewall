@@ -84,6 +84,25 @@ class BridgeDispatcherTest {
         assertEquals(JsonPrimitive(-1L), dispatcher().dispatch("free_disk", "{}"))
     }
 
+    @Test
+    fun `set_web_debugging passes the flag through and defaults to off`() {
+        val seen = mutableListOf<Boolean>()
+        val dir = Files.createTempDirectory("signagewall").toFile()
+        val d = BridgeDispatcher(
+            shellVersion = "0.1.0",
+            deviceIdStore = DeviceIdStore(File(dir, "device.json")),
+            updater = NoopUpdater("0.1.0"),
+            onSetWebDebugging = { seen.add(it) },
+        )
+        assertEquals(JsonNull, d.dispatch("set_web_debugging", """{"enabled":true}"""))
+        d.dispatch("set_web_debugging", """{"enabled":"true"}""")
+        d.dispatch("set_web_debugging", """{"enabled":false}""")
+        // Unreadable args must never read as permission to open the page up.
+        d.dispatch("set_web_debugging", "not json")
+        d.dispatch("set_web_debugging", "{}")
+        assertEquals(listOf(true, true, false, false, false), seen)
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun `unknown command throws`() {
         dispatcher().dispatch("bogus", "{}")

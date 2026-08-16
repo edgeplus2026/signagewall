@@ -7,10 +7,8 @@ import {
   type AppPreviewHandle,
   mountAppPreview,
 } from '@/features/apps/lib/appHostBridge'
+import { APPS_BASE } from '@/features/apps/lib/appsBase'
 import type { AppInstanceConfig } from '@/features/apps/types/app.types'
-
-/** Base path the embed bundles are served from (mirrors the player's config). */
-const APPS_BASE = (import.meta.env.VITE_APPS_BASE as string | undefined) ?? '/apps'
 
 interface AppPreviewFrameProps {
   /** App slug → loads `${APPS_BASE}/<slug>/index.html`. */

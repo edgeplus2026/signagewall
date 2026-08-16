@@ -12,6 +12,7 @@ import {
   pendingUpdateVersion,
   reportServiceMenuOpen,
   requestRecoveryPermission,
+  setWebDebugging,
   type ShellDeviceInfo,
 } from '../native/service'
 import { connection, kioskMode, paired, serviceMenuOpen, snapshot } from '../store'
@@ -76,6 +77,8 @@ export function ServiceMenu() {
   const [info, setInfo] = useState<ShellDeviceInfo | undefined>(undefined)
   const [noSettingsScreen, setNoSettingsScreen] = useState(false)
   const [pendingUpdate, setPendingUpdate] = useState<string | undefined>(undefined)
+  /** Undefined until the shell answers — and stays undefined where it cannot. */
+  const [webDebug, setWebDebug] = useState<boolean | undefined>(undefined)
   const [updateState, setUpdateState] = useState<string | undefined>(undefined)
 
   const close = useCallback((): void => {
@@ -111,6 +114,10 @@ export function ServiceMenu() {
           <Fact label="Shell" value={info?.shellVersion} />
           <Fact label="Android" value={androidLabel(info)} />
           <Fact label="Model" value={info?.model} />
+          {/* The one resource that runs out silently. Also the number the cache
+              warming's budget guard decides on, so a technician reading it here
+              sees exactly what that guard sees. */}
+          <Fact label="Storage" value={freeSpaceLabel(info?.freeDiskBytes)} />
           <Fact label="Device" value={getDeviceId()} mono />
         </dl>
         {/* Only meaningful on Android, and only worth showing when the answer is
@@ -185,6 +192,25 @@ export function ServiceMenu() {
     on: locked,
     activate: () => setKioskLockEnabled(kioskMode.peek() === 'off'),
   })
+
+  // Only where the shell can actually do it — its absence in `device_info` marks a
+  // host with no such notion, and a switch that does nothing is worse than none.
+  if (webDebug !== undefined) {
+    actions.push({
+      key: 'inspect',
+      label: 'Web inspector',
+      hint: webDebug
+        ? 'On — this screen can be inspected from a computer. Closes itself on restart.'
+        : 'Lets a computer see inside the player, for diagnosing a fault',
+      toggle: true,
+      on: webDebug,
+      activate: () => {
+        const next = !webDebug
+        setWebDebug(next)
+        void setWebDebugging(next)
+      },
+    })
+  }
 
   actions.push({
     key: 'close',
@@ -338,6 +364,7 @@ export function ServiceMenu() {
     void loadShellDeviceInfo().then((loaded) => {
       if (!cancelled) {
         setInfo(loaded)
+        setWebDebug(loaded?.webDebugging)
       }
     })
     void pendingUpdateVersion().then((version) => {
@@ -456,6 +483,21 @@ function Fact({
 /** A device fact that is bad news. Same list, marked — not a different design. */
 function Note({ children }: { children: ComponentChildren }): JSX.Element {
   return <p class="service-panel__note">{children}</p>
+}
+
+/**
+ * "1.8 GB free" — GB below a terabyte, MB below a gigabyte, because a signage box
+ * that is down to its last hundreds of megabytes is exactly when the difference
+ * between 0.4 and 0.04 GB matters and a rounded "0.4 GB" hides it.
+ */
+function freeSpaceLabel(bytes: number | undefined): string | undefined {
+  if (bytes === undefined) {
+    return undefined
+  }
+  const gb = bytes / 1024 ** 3
+  return gb >= 1
+    ? `${gb.toFixed(1)} GB free`
+    : `${Math.round(bytes / 1024 ** 2)} MB free`
 }
 
 /** "14 (SDK 34)" when both are known, and whichever one is when they aren't. */

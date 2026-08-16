@@ -34,6 +34,7 @@ export const clockManifest: AppManifest = {
       label: 'Face',
       help: 'How the clock tells the time.',
       default: DEFAULT_CLOCK_FACE,
+      previewGallery: 'clock',
       options: clockFaceOptions(),
     },
     // Picking a theme fills the three colour fields below (overwriting any custom

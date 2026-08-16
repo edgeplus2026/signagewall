@@ -72,6 +72,7 @@ export const linkedinManifest: AppManifest = {
       type: 'select',
       label: 'Layout',
       default: 'spotlight',
+      previewGallery: 'social',
       options: [
         { label: 'Spotlight (one post at a time)', value: 'spotlight' },
         { label: 'Grid', value: 'grid' },

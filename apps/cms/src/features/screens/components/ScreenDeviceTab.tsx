@@ -144,6 +144,21 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
               </SettingsRow>
             ) : null}
 
+            {/* Only on a confirmed `false`. A shell too old to report it says
+                nothing, and guessing there would put a warning on screens that
+                may well be fine — across a whole fleet that is how an operator
+                learns to ignore the column. */}
+            {device?.profile?.deviceOwner === false ? (
+              <SettingsRow
+                label={t('screens.device.kioskCapability')}
+                description={t('screens.device.kioskCapabilityDescription')}
+              >
+                <span className="text-warning text-sm">
+                  {t('screens.device.kioskCapabilityLimited')}
+                </span>
+              </SettingsRow>
+            ) : null}
+
             {device?.profile?.updateStatus?.lastResult ? (
               <SettingsRow
                 label={t('screens.device.updateStatus')}

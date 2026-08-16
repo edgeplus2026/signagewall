@@ -51,6 +51,9 @@ export const rssManifest: AppManifest = {
       label: 'Layout',
       help: 'How the stories are arranged on the screen.',
       default: DEFAULT_DISPLAY_MODE,
+      // Inherited by the seven branded presets built from this schema in
+      // `news.ts` — they render through this bundle, so they share its images.
+      previewGallery: 'rss',
       options: displayModeOptions(),
     },
     {

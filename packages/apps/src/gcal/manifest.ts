@@ -51,6 +51,8 @@ export const gcalManifest: AppManifest = {
       label: 'Calendar view',
       help: 'How events are laid out on the screen.',
       default: 'schedule',
+      // Shared with Outlook, which renders through this same embed.
+      previewGallery: 'calendar',
       options: [
         { label: 'Day', value: 'day' },
         { label: 'Week', value: 'week' },

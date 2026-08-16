@@ -894,6 +894,9 @@
       "unknown": "Unknown",
       "shellVersion": "Shell version",
       "shellVersionDescription": "The native shell (Tauri) version installed on the device.",
+      "kioskCapability": "Kiosk lock",
+      "kioskCapabilityDescription": "Whether this device can be locked down so a viewer cannot leave the player. Set on the device, in the player's service menu.",
+      "kioskCapabilityLimited": "Escapable on this device — not provisioned as Device Owner",
       "updateStatus": "Update status",
       "updateStatusDescription": "State of the device's automatic shell updates.",
       "updateResult": {
@@ -1984,6 +1987,7 @@
       "disconnect": "Disconnect",
       "connect": "Connect account",
       "switch": "Switch account",
+      "selectAccountFirst": "Connect an account first",
       "providerMismatch": "This account doesn't match the selected source. Switch to reconnect with the right provider."
     },
     "screensField": {
@@ -2001,6 +2005,18 @@
     },
     "carousel": {
       "goTo": "Go to image {{index}}"
+    },
+    "templateGallery": {
+      "previous": "Previous designs",
+      "next": "More designs",
+      "noPreview": "No preview"
+    },
+    "itemsEditor": {
+      "edit": "Edit",
+      "done": "Done",
+      "empty": "Nothing added yet",
+      "count_one": "{{count}} item",
+      "count_other": "{{count}} items"
     },
     "empty": {
       "store": {

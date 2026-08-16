@@ -198,6 +198,28 @@ export class AppDataService {
   }
 
   /**
+   * Every cache key some instance still resolves to, right now.
+   *
+   * Deliberately more permissive than {@link collectDistinctCandidates}: it
+   * applies NO readiness filtering (no refresh cadence, no "has a connection
+   * yet" check), because its consumers use it to decide what to DELETE. A key
+   * missing from this set is treated as garbage, so anything that narrows it
+   * turns into deleting live state.
+   */
+  async liveCacheKeys(): Promise<Set<string>> {
+    const instances =
+      await this.appInstancesRepository.findBySlugs(connectorSlugs());
+    const keys = new Set<string>();
+    for (const instance of instances) {
+      const cacheKey = cacheKeyForInstance(instance);
+      if (cacheKey) {
+        keys.add(cacheKey);
+      }
+    }
+    return keys;
+  }
+
+  /**
    * Enumerate every active `server`-app instance and reduce it to the distinct
    * set of cache keys (one fetch serves all instances sharing a key). The first
    * instance seen for a key supplies the representative config.

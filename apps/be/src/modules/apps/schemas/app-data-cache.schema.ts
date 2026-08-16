@@ -81,3 +81,15 @@ export class AppDataCache {
 export type AppDataCacheDocument = HydratedDocument<AppDataCache>;
 
 export const AppDataCacheSchema = SchemaFactory.createForClass(AppDataCache);
+
+/**
+ * Resolve a Google push ping to its cache key. `AppDataCacheRepository
+ * .findByChannelId` queries this exact path, and it runs once per Drive/Calendar
+ * notification — which arrive in bursts while someone is editing a sheet. Without
+ * the index that is a collection scan over every cached entry in the deployment,
+ * across all orgs and all connectors, per ping.
+ *
+ * Sparse because only the handful of file/calendar-backed entries ever register a
+ * channel; the rest (weather, RSS, crypto…) carry no `secrets.channel` at all.
+ */
+AppDataCacheSchema.index({ 'secrets.channel.id': 1 }, { sparse: true });

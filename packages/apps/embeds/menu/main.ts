@@ -1,9 +1,9 @@
 import { DEFAULT_ACCENT } from '../../src/_shared/theme.js'
 import type { MenuItem, MenuSyncPayload } from '../../src/menu/payload.js'
+import { DEFAULT_MENU_TEMPLATE } from '../../src/menu/templates.js'
 import { pickColor } from '../_shared/color.js'
 import { connectToHost } from '../_shared/host-bridge.js'
 import { formatPrice } from '../_shared/price.js'
-import { applyTextStyle } from '../_shared/text-style.js'
 import { groupItems } from './format.js'
 
 /*
@@ -19,8 +19,12 @@ import { templateFor } from './templates/index.js'
 
 /**
  * Menu board runtime. Owns what the designs shouldn't think about: the host
- * handshake, the theme, item normalization (three config generations + the
- * synced payload), currency formatting, page rotation, and image fallbacks.
+ * handshake, item normalization (three config generations + the synced
+ * payload), currency formatting, page rotation, and image fallbacks.
+ *
+ * It deliberately does NOT own the look. Each design sets its own background,
+ * text colour and type under its `.mb-<template>` root class; the only thing
+ * config contributes is `--menu-accent`.
  */
 
 const root = document.getElementById('app')
@@ -130,17 +134,27 @@ function escapeAttr(value: string): string {
 function render(): void {
   if (!root) return
 
-  root.style.background = pickColor(config.backgroundColor, '#0B1220')
-  root.style.color = pickColor(config.textColor, '#E2E8F0')
+  // The ACCENT is the only colour the operator sets; background, text and type
+  // belong to the design (`.mb-<template>` in each template's CSS). They used to
+  // be set inline here from config, which made every template a slave to whatever
+  // palette the operator had left behind — and an inline style on the root would
+  // now beat the template's own rule, so this must stay off the element.
   root.style.setProperty('--menu-accent', pickColor(config.accentColor, DEFAULT_ACCENT))
-  applyTextStyle(root, config)
 
   const items = normalizeItems()
-  const templateKey = typeof config.template === 'string' ? config.template : ''
+  // Fall back to the SAME key `templateFor` falls back to: the root class is what
+  // gives a design its palette now, so `mb-` on a config with no template would
+  // render classic's markup with no design at all.
+  const templateKey =
+    typeof config.template === 'string' && config.template !== ''
+      ? config.template
+      : DEFAULT_MENU_TEMPLATE
   const template = templateFor(templateKey)
 
   if (items.length === 0) {
-    root.innerHTML = '<div class="menu"><div class="menu-empty">Add a menu item</div></div>'
+    root.innerHTML = `<div class="menu mb-${escapeAttr(
+      templateKey,
+    )}"><div class="menu-empty">Add a menu item</div></div>`
     return
   }
 
@@ -149,8 +163,10 @@ function render(): void {
     groups: groupItems(items),
     items,
     page: 0,
+    // Always after the amount ("180 дин", "10 €"). A position toggle was one
+    // more field to answer for a difference nobody on a menu board cares about.
     price: (value: number | string | undefined) =>
-      formatPrice(value, str(config.currency), str(config.currencyPosition)),
+      formatPrice(value, str(config.currency), 'suffix'),
   }
   // Wrap rather than reset when the board shrank under the rotation (a sheet
   // edit mid-rotation, the operator deleting rows): the CMS re-sends config on

@@ -1,5 +1,11 @@
 /* "Gallery" — modern photo cards on a soft grid. */
 
+/* The design owns its palette — see the note in `classic.css`. */
+.menu.mb-gallery {
+  background: #0b1220;
+  color: #e2e8f0;
+}
+
 .ga {
   width: 100%;
   height: 100%;

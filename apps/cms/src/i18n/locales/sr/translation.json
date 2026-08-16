@@ -872,6 +872,9 @@
       "unknown": "Nepoznato",
       "shellVersion": "Verzija ljuske",
       "shellVersionDescription": "Verzija native ljuske (Tauri) instalirane na uređaju.",
+      "kioskCapability": "Kiosk zaključavanje",
+      "kioskCapabilityDescription": "Da li se ovaj uređaj može zaključati tako da gledalac ne može da izađe iz plejera. Podešava se na uređaju, u servisnom meniju plejera.",
+      "kioskCapabilityLimited": "Na ovom uređaju se može izaći — nije registrovan kao Device Owner",
       "updateStatus": "Status ažuriranja",
       "updateStatusDescription": "Stanje automatskog ažuriranja ljuske uređaja.",
       "updateResult": {
@@ -1968,6 +1971,7 @@
       "disconnect": "Prekini vezu",
       "connect": "Poveži nalog",
       "switch": "Promeni nalog",
+      "selectAccountFirst": "Prvo povežite nalog",
       "providerMismatch": "Ovaj nalog ne odgovara izabranom izvoru. Promeni nalog da se povežeš sa pravim servisom."
     },
     "screensField": {
@@ -1985,6 +1989,19 @@
     },
     "carousel": {
       "goTo": "Idi na sliku {{index}}"
+    },
+    "templateGallery": {
+      "previous": "Prethodni dizajni",
+      "next": "Više dizajna",
+      "noPreview": "Nema pregleda"
+    },
+    "itemsEditor": {
+      "edit": "Uredi",
+      "done": "Gotovo",
+      "empty": "Još nema stavki",
+      "count_one": "{{count}} stavka",
+      "count_few": "{{count}} stavke",
+      "count_other": "{{count}} stavki"
     },
     "empty": {
       "store": {
