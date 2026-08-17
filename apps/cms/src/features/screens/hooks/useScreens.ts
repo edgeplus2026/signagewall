@@ -23,6 +23,7 @@ import {
   type ScreenDeviceOrientation,
   type ScreenDeviceScale,
   type ScreenDeviceSettings,
+  type ShellCommand,
   type SetDeviceDailyReloadRequest,
   type UpdateScreenAvailabilityRequest,
   type UpdateScreenRequest,
@@ -250,6 +251,17 @@ export function useSetDeviceDailyReload() {
 export function useRestartDevice() {
   return useMutation({
     mutationFn: (id: string) => screensApi.restartDevice(id),
+  })
+}
+
+/**
+ * Queues a command for the native shell. Nothing to invalidate and nothing to
+ * await: the device collects it on its next check-in, which is minutes away.
+ */
+export function useQueueShellCommand() {
+  return useMutation({
+    mutationFn: ({ id, command }: { id: string; command: ShellCommand }) =>
+      screensApi.queueShellCommand(id, command),
   })
 }
 

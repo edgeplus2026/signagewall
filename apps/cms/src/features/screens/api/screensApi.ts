@@ -13,6 +13,7 @@ import type {
   ScreenDeviceOrientation,
   ScreenDeviceScale,
   ScreenItem,
+  ShellCommand,
   ScreenSummary,
   SetDeviceDailyReloadRequest,
   UpdateScreenAvailabilityRequest,
@@ -161,6 +162,19 @@ export const screensApi = {
    */
   requestDeviceDiagnostics: async (id: string): Promise<void> => {
     await api.post(`${SCREENS_BASE}/${id}/device/diagnostics`)
+  },
+
+  /**
+   * Queues a command for the native shell — the path that still works when the
+   * player page is the broken part. Slower than everything else here by design.
+   */
+  queueShellCommand: async (id: string, command: ShellCommand): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/shell/${command}`)
+  },
+
+  /** Asks the shell to bring its event log along on its next check-in. */
+  requestShellLog: async (id: string): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/shell-log`)
   },
 
   /** Makes this one screen install a pending player update immediately. */

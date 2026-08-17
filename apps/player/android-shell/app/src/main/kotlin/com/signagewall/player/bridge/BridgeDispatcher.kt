@@ -65,6 +65,13 @@ class BridgeDispatcher(
      * must stay cheap enough that nobody has to think about it.
      */
     private val readHealth: () -> String = { "{}" },
+    /**
+     * Hands the shell the API address and device token so it can reach the
+     * backend on its own. It comes from the page rather than from the build
+     * because the page is the only thing that knows both — and the shell keeps
+     * them, which is what makes the channel outlive the page that supplied it.
+     */
+    private val onChannelCredentials: (String, String) -> Unit = { _, _ -> },
     /** Unpairs this display locally: drops the device id and restarts. */
     private val onDeactivate: () -> Unit = {},
     /** Opens the overlay-permission settings screen; false if the device has none. */
@@ -79,6 +86,13 @@ class BridgeDispatcher(
         "free_disk" -> JsonPrimitive(freeDiskBytes())
         "read_log" -> JsonArray(readLog().map { JsonPrimitive(it) })
         "health" -> json.parseToJsonElement(readHealth())
+        "set_channel" -> {
+            onChannelCredentials(
+                parseStringArg(argsJson, "apiUrl"),
+                parseStringArg(argsJson, "token"),
+            )
+            JsonNull
+        }
         "set_web_debugging" -> {
             onSetWebDebugging(parseBooleanFlag(argsJson, "enabled"))
             JsonNull
@@ -149,6 +163,18 @@ class BridgeDispatcher(
                 ?.content == "true"
         } catch (_: Throwable) {
             false
+        }
+
+    /** One named string out of the args object; empty when absent or unreadable. */
+    private fun parseStringArg(argsJson: String, name: String): String =
+        try {
+            json.parseToJsonElement(argsJson)
+                .jsonObject[name]
+                ?.jsonPrimitive
+                ?.contentOrNull
+                ?: ""
+        } catch (_: Throwable) {
+            ""
         }
 
     /** The renderable currently on screen, if the page sent one. Absent on older

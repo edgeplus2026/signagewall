@@ -5,11 +5,14 @@ import android.app.Application
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.StatFs
 import android.os.SystemClock
 import android.util.Log
 import com.signagewall.player.boot.HeartbeatReceiver
 import com.signagewall.player.kiosk.KioskPresence
+import com.signagewall.player.runtime.PlayerLiveness
 import com.signagewall.player.runtime.RuntimeStateStore
+import com.signagewall.player.runtime.ShellChannel
 import com.signagewall.player.runtime.ShellLog
 import com.signagewall.player.update.HealthWatchdog
 import com.signagewall.player.update.NoopUpdater
@@ -63,6 +66,14 @@ class PlayerApp : Application() {
         private set
 
     /**
+     * The shell's own line to the backend. Created here, on the Application, for
+     * the same reason the updater is: it must exist in a process that has no
+     * Activity at all, which is exactly the process that needs it most.
+     */
+    lateinit var shellChannel: ShellChannel
+        private set
+
+    /**
      * Whether [shellLog] has been created yet. `lateinit` throws when read early,
      * and the one caller who must never throw is a crash handler — so readers ask
      * this instead of risking a second failure while reporting the first.
@@ -93,6 +104,20 @@ class PlayerApp : Application() {
             runtimeStore.update { it.copy(deactivatePending = false) }
         }
 
+        shellChannel = ShellChannel(
+            credentialsFile = File(filesDir, "channel.json"),
+            shellVersion = BuildConfig.VERSION_NAME,
+            readState = { runtimeStore.read() },
+            readFreeDisk = { freeDiskBytes() },
+            readLog = { shellLog.tail() },
+            // What the page cannot report about itself. PlayerLiveness is beaten by
+            // the page's own event loop, so a stale beat means the page is gone or
+            // frozen — the exact condition this channel exists to surface.
+            isPageAlive = { PlayerLiveness.sinceBeat() < PAGE_ALIVE_WINDOW_MILLIS },
+            onCommand = { command -> runShellCommand(command) },
+            log = shellLog,
+        )
+
         installCrashHandler()
 
         if (BuildConfig.UPDATE_MANIFEST_URL.isNotBlank()) {
@@ -118,6 +143,68 @@ class PlayerApp : Application() {
         } else {
             updater = NoopUpdater(BuildConfig.VERSION_NAME)
         }
+    }
+
+    /**
+     * Free bytes where the app keeps its data, for the shell's own report. The
+     * Activity has its own copy for `device_info`; this one exists because the
+     * process that most needs to report is the one with no Activity in it.
+     */
+    private fun freeDiskBytes(): Long =
+        try {
+            StatFs(filesDir.absolutePath).availableBytes
+        } catch (t: Throwable) {
+            Log.w(TAG, "could not read free disk space", t)
+            -1L
+        }
+
+    /**
+     * Runs a command that arrived on the shell's channel.
+     *
+     * The list is short and every entry is safe on a screen whose real state
+     * nobody knows — this path is only ever reached because something already
+     * went wrong. Unknown commands are ignored rather than rejected: a newer
+     * backend must be able to add one without breaking every older device.
+     */
+    private fun runShellCommand(command: String) {
+        shellLog.record("channel", "running $command")
+        when (command) {
+            "restart" -> restartFromShell()
+            "reload", "applyUpdate" -> {
+                // Both need the Activity: one reloads its WebView, the other
+                // installs and relaunches. Getting it on screen is the same first
+                // step, and if it will not come up, `restart` is the rung above.
+                val updater = updater
+                if (command == "applyUpdate" && updater is OtaUpdater) {
+                    updater.refreshAndMaybeApply()
+                } else {
+                    startPlayerActivity()
+                }
+            }
+            else -> Log.w(TAG, "unknown shell command: $command")
+        }
+    }
+
+    private fun startPlayerActivity() {
+        try {
+            startActivity(
+                Intent(this, KioskActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        } catch (t: Throwable) {
+            Log.w(TAG, "could not start the player", t)
+        }
+    }
+
+    /**
+     * Restarts by scheduling the alarm and exiting, rather than by starting an
+     * Activity first. The channel runs in a process that may have no Activity and
+     * no foreground at all, where a background-activity launch is exactly what
+     * Android refuses — the alarm has no such problem.
+     */
+    private fun restartFromShell() {
+        scheduleRestart()
+        Runtime.getRuntime().exit(0)
     }
 
     /**

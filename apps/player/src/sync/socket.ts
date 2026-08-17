@@ -16,6 +16,7 @@ import { clearMediaCaches, clearSnapshot, saveSnapshot } from '../persistence/id
 import type { PreviewMode, PreviewTarget } from '../preview'
 import { applyCommand, applySettings, applyVolume } from './commands'
 import { registerDiagnosticsSender } from './diagnostics-report'
+import { setShellChannel } from '../native/service'
 import { playbackShowItem } from './playback-bus'
 import { reportPreviewStatus } from './preview-handshake'
 import {
@@ -112,6 +113,13 @@ export function connectPlayer(): void {
     paired.value = true
     pairingCode.value = null
     clearCachedPairingCode()
+    // Hand the shell its own way to reach the backend, on every pair AND every
+    // paired reconnect — the token can be re-issued, and a shell holding a stale
+    // one has no channel at exactly the moment it is needed.
+    const token = getToken()
+    if (token) {
+      void setShellChannel(token)
+    }
   })
 
   socket.on('content:update', (next: PlayerSnapshot) => {

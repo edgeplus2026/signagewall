@@ -8,6 +8,7 @@ import { DeviceSettingsForm } from '@/features/screens/components/DeviceSettings
 import { PairingCodeFrame } from '@/features/screens/components/PairingCodeFrame'
 import { PlayerPreviewFrame } from '@/features/screens/components/PlayerPreviewFrame'
 import { ScreenPresenceBadge } from '@/features/screens/components/ScreenPresenceBadge'
+import { ShellChannelPanel } from '@/features/screens/components/ShellChannelPanel'
 import { UnpairDeviceDialog } from '@/features/screens/components/UnpairDeviceDialog'
 import {
   usePairScreenDevice,
@@ -104,6 +105,13 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
             screenId={screenId}
             savedVolume={savedVolume}
             savedSettings={savedSettings}
+          />
+
+          <ShellChannelPanel
+            screenId={screenId}
+            status={device?.shellStatus}
+            statusAt={device?.shellStatusAt}
+            pageOnline={device?.online ?? false}
           />
 
           <DeviceDiagnosticsPanel

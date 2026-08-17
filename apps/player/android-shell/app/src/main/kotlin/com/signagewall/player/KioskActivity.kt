@@ -225,6 +225,9 @@ class KioskActivity : AppCompatActivity() {
                 onSetWebDebugging = { enabled -> runOnUiThread { setWebDebugging(enabled) } },
                 readLog = { (application as? PlayerApp)?.shellLog?.tail() ?: emptyList() },
                 readHealth = { healthJson() },
+                onChannelCredentials = { apiUrl, token ->
+                    (application as? PlayerApp)?.shellChannel?.setCredentials(apiUrl, token)
+                },
                 onDeactivate = { runOnUiThread { deactivatePlayer() } },
                 onRequestRecovery = { requestOverlayPermission() },
             ),

@@ -10,6 +10,8 @@ import {
   type DiagnosticsReport,
   type PlayerDiagnostics,
   type PlayerRuntime,
+  type ShellCommand,
+  type ShellStatusReport,
 } from '@signagewall/player-contract'
 
 export type ScreenViewMode = 'grid' | 'list'
@@ -51,7 +53,7 @@ export interface ScreenDeviceProfile {
 // `ScreenDevice*` names so the rest of the CMS keeps importing from here.
 export type ScreenDeviceOrientation = DeviceOrientation
 export type ScreenDeviceScale = DeviceScale
-export type { DailyReloadSetting }
+export type { DailyReloadSetting, ShellCommand, ShellStatusReport }
 export type ScreenDeviceSettings = DeviceSettings
 
 /** Fallback used when a device has no persisted settings yet. */
@@ -77,6 +79,16 @@ export interface ScreenDevice {
   settings?: ScreenDeviceSettings
   /** The last on-demand diagnostics report, if one was ever requested. */
   diagnostics?: StoredDiagnosticsReport
+  /**
+   * What the native shell last said on its OWN channel, and when.
+   *
+   * Kept apart from `profile` on purpose: that is what the player page reports,
+   * and the entire point of this one is that it can disagree — a shell reporting
+   * in while the page has said nothing for an hour is the fingerprint of a broken
+   * web deploy, and merging the two would erase exactly that.
+   */
+  shellStatus?: ShellStatusReport
+  shellStatusAt?: string
 }
 
 export interface PairDeviceRequest {

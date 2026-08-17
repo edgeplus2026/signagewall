@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import type { ShellStatusReport } from '@signagewall/player-contract';
 
 import { Public } from '../../common/decorators/public.decorator';
 import { ApiSuccessResponse } from '../../common/swagger';
@@ -31,6 +32,24 @@ import type { DeviceDocument } from './schemas/device.schema';
 @UseGuards(PlayerTokenGuard)
 export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
+
+  /**
+   * The native shell's own check-in, authenticated by the same device token the
+   * page uses. Answers with whatever an operator queued for it.
+   *
+   * POST because it both reports and collects, and deliberately on the player
+   * path rather than the CMS one: this is a device talking about itself, not an
+   * operator acting on it.
+   */
+  @Post('shell/status')
+  @HttpCode(HttpStatus.OK)
+  @ApiSuccessResponse(Object)
+  shellStatus(
+    @CurrentDevice() device: DeviceDocument,
+    @Body() body: ShellStatusReport,
+  ) {
+    return this.playerService.recordShellStatus(device.deviceId, body ?? {});
+  }
 
   @Get('content')
   @ApiSuccessResponse(Object)

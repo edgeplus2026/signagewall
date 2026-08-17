@@ -985,6 +985,23 @@
       "lastCrash": {
         "title": "Poslednji pad",
         "description": "Poslednja neuhvaćena greška na ovom uređaju."
+      },
+      "shell": {
+        "title": "Native ljuska",
+        "statusTitle": "Javljanje ljuske",
+        "statusDescription": "Ljuska se javlja svojom linijom, odvojeno od stranice plejera — pa se ekran čija je stranica pukla i dalje vidi i može da se popravi.",
+        "pageAlive": "Javila se {{at}} — plejer radi",
+        "pageDead": "Javila se {{at}} — ljuska radi, ali stranica plejera ne",
+        "neverReported": "Nikad se nije javila. Ljuska nauči kako da nas dohvati prvi put kad se stranica učita.",
+        "restartTitle": "Restart preko ljuske",
+        "restartDescription": "Radi i kad stranica ne odgovara, jer ne ide kroz nju. Ljuska ga preuzme pri sledećem javljanju, za oko pet minuta.",
+        "restartButton": "Zakaži restart",
+        "confirmTitle": "Restartovati ovaj ekran preko ljuske?",
+        "confirmDescription": "Uređaj će restartovati celu aplikaciju pri sledećem javljanju — za oko pet minuta, ne odmah. Nakratko će biti crn.",
+        "cancel": "Otkaži",
+        "submit": "Zakaži restart",
+        "queued": "Zakazano. Ekran će ga preuzeti pri sledećem javljanju.",
+        "error": "Zakazivanje nije uspelo. Pokušajte ponovo."
       }
     },
     "update": {

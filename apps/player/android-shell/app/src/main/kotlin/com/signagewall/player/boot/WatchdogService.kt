@@ -19,6 +19,7 @@ import com.signagewall.player.update.OtaUpdater
 import com.signagewall.player.R
 import com.signagewall.player.kiosk.KioskController
 import com.signagewall.player.kiosk.KioskPresence
+import com.signagewall.player.runtime.ShellChannel
 
 /**
  * The supervisor. A foreground service that owns the player's lifecycle: it is the
@@ -55,10 +56,14 @@ class WatchdogService : Service() {
      */
     private var lastUpdateCheckAt: Long? = null
 
+    /** When the shell last checked in on its own channel. */
+    private var lastChannelPollAt = 0L
+
     private val tick = object : Runnable {
         override fun run() {
             try {
                 supervise()
+                pollShellChannel()
             } catch (t: Throwable) {
                 // The supervisor is the last thing standing; it must never be the
                 // thing that dies. A tick that throws still schedules the next.
@@ -66,6 +71,26 @@ class WatchdogService : Service() {
             }
             handler.postDelayed(this, POLL_MILLIS)
         }
+    }
+
+    /**
+     * The shell's own check-in, ridden on the supervisor's tick rather than given
+     * a timer of its own — the supervisor is already the thing guaranteed to be
+     * running when everything else is not, so anything that must survive that far
+     * belongs on the same heartbeat.
+     *
+     * Network work never runs on the main thread, so the poll goes to a background
+     * thread and its result comes back through the same callbacks the rest of the
+     * shell uses.
+     */
+    private fun pollShellChannel() {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastChannelPollAt < ShellChannel.POLL_INTERVAL_MILLIS) {
+            return
+        }
+        lastChannelPollAt = now
+        val channel = (application as? PlayerApp)?.shellChannel ?: return
+        Thread { channel.poll() }.start()
     }
 
     /**

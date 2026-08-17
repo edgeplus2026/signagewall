@@ -30,6 +30,10 @@ export const MAX_EXTRA_FIELDS = 20;
 
 /** Field names this backend understands; everything else counts as an extra. */
 const KNOWN_FIELDS = new Set([
+  // Shell-channel fields — the same bounding applies, because the same rule does:
+  // the shape is the device's business, the size is ours.
+  'shellVersion',
+  'pageAlive',
   'cachedMedia',
   'totalMedia',
   'cacheComplete',

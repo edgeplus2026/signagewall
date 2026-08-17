@@ -12,6 +12,9 @@ import {
 } from '@nestjs/common';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { ApiTags } from '@nestjs/swagger';
+import { isShellCommand } from '@signagewall/player-contract';
+
+import { BusinessException } from '../../common/exceptions/business.exception';
 
 import { AuthThrottle } from '../../common/decorators/auth-throttle.decorator';
 import { RequiredOrganizationId } from '../../common/decorators/current-organization.decorator';
@@ -170,6 +173,44 @@ export class DevicePairingController {
     @Param('screenId', ParseObjectIdPipe) screenId: string,
   ): Promise<null> {
     await this.playerService.applyUpdateOnScreenDevice(organizationId, screenId);
+    return null;
+  }
+
+  /**
+   * Queues a command for the native shell — the path that still works when the
+   * player page is the broken part. Slower than the socket by design: it waits
+   * for the shell's next poll.
+   */
+  @Post(':screenId/device/shell/:command')
+  @RequireOrgRole()
+  @HttpCode(HttpStatus.OK)
+  @ApiSuccessNullResponse()
+  async queueShellCommand(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+    @Param('command') command: string,
+  ): Promise<null> {
+    if (!isShellCommand(command)) {
+      throw BusinessException.badRequest(`Unknown shell command: ${command}`);
+    }
+    await this.playerService.queueShellCommand(
+      organizationId,
+      screenId,
+      command,
+    );
+    return null;
+  }
+
+  /** Asks the shell to bring its event log along on its next check-in. */
+  @Post(':screenId/device/shell-log')
+  @RequireOrgRole()
+  @HttpCode(HttpStatus.OK)
+  @ApiSuccessNullResponse()
+  async requestShellLog(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+  ): Promise<null> {
+    await this.playerService.requestShellLog(organizationId, screenId);
     return null;
   }
 

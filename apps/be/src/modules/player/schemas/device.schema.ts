@@ -265,6 +265,37 @@ export class Device {
   profile?: DeviceProfile;
 
   /**
+   * What the native shell last said on its OWN channel, independent of the page.
+   *
+   * Kept apart from `profile` on purpose. That one is what the player page
+   * reports; this one is what the shell reports, and the whole value of the
+   * second is that it can disagree with the first — a shell reporting health while the
+   * page has said nothing for an hour is the signature of a broken web deploy,
+   * and merging them would erase exactly that.
+   */
+  @Prop({ type: Object })
+  shellStatus?: Record<string, unknown>;
+
+  /** When that report arrived (ISO). Its own field so a stale shell is legible. */
+  @Prop({ trim: true })
+  shellStatusAt?: string;
+
+  /**
+   * Commands waiting for the shell to collect on its next poll. Handed over once
+   * and cleared: a queued `restart` that survived being taken would re-fire on
+   * every boot, which is a reboot loop dressed as a feature.
+   */
+  @Prop({ type: [String], default: undefined })
+  shellCommands?: string[];
+
+  /**
+   * Whether to ask the shell for its event log next time. Set by an operator in
+   * the CMS and cleared when the log arrives.
+   */
+  @Prop()
+  shellWantsLog?: boolean;
+
+  /**
    * The last on-demand diagnostics report, as sent. Schemaless on purpose: it is
    * written by a player that may be newer than this backend, and the value of a
    * report is that it carries whatever that version knew — a strict schema would

@@ -2,7 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   DiagnosticsReport,
+  isShellCommand,
   ReportedProfile,
+  type ShellCommand,
+  type ShellStatusReport,
+  type ShellStatusResponse,
 } from '@signagewall/player-contract';
 import { I18nService } from 'nestjs-i18n';
 
@@ -38,7 +42,13 @@ import {
 // `ReportedProfile` (what the player reports on connect/heartbeat) is the shared
 // contract type from `@signagewall/player-contract` — imported above and re-exported so
 // existing importers (e.g. player.gateway) keep resolving it from here.
-export type { DiagnosticsReport, ReportedProfile };
+export type {
+  DiagnosticsReport,
+  ReportedProfile,
+  ShellCommand,
+  ShellStatusReport,
+  ShellStatusResponse,
+};
 
 export type ConnectResult =
   | {
@@ -73,6 +83,9 @@ export interface DeviceStatusDto {
   profile?: ReportedProfile;
   /** The last on-demand report this device sent, if any. */
   diagnostics?: StoredDiagnosticsReport;
+  /** What the native shell last reported on its own channel, and when. */
+  shellStatus?: ShellStatusReport;
+  shellStatusAt?: string;
   /** Playback volume 0–100. */
   volume?: number;
   /** Display + power settings. */
@@ -623,6 +636,56 @@ export class PlayerService {
     });
   }
 
+  /**
+   * Records what the shell reports on its own channel, and hands back whatever
+   * was queued for it.
+   *
+   * Deliberately does NOT touch presence. Online/offline in this product means
+   * "the player page is talking to us", and a shell that is up while the page is
+   * dead is precisely the state an operator needs to see — marking such a screen
+   * green because its shell answered would hide the only fault this channel
+   * exists to reveal.
+   */
+  async recordShellStatus(
+    deviceId: string,
+    report: ShellStatusReport,
+  ): Promise<ShellStatusResponse> {
+    const taken = await this.devicesRepository.recordShellStatusAndTakeCommands(
+      deviceId,
+      boundDiagnosticsReport(report as Record<string, unknown>),
+    );
+
+    return {
+      commands: taken.commands.filter(isShellCommand),
+      ...(taken.wantsLog ? { wantsLog: true } : {}),
+    };
+  }
+
+  /**
+   * CMS action: queue a command for the shell.
+   *
+   * The slow path on purpose. Anything the page can do should go over the socket,
+   * which is instant; this is what remains when the page is the broken part, and
+   * it waits for the shell's next poll.
+   */
+  async queueShellCommand(
+    organizationId: string,
+    screenId: string,
+    command: ShellCommand,
+  ): Promise<void> {
+    const device = await this.resolveOwnedDevice(organizationId, screenId);
+    await this.devicesRepository.queueShellCommand(device.deviceId, command);
+  }
+
+  /** CMS action: ask the shell to bring its event log along next time. */
+  async requestShellLog(
+    organizationId: string,
+    screenId: string,
+  ): Promise<void> {
+    const device = await this.resolveOwnedDevice(organizationId, screenId);
+    await this.devicesRepository.requestShellLog(device.deviceId);
+  }
+
   async markOffline(deviceId: string): Promise<void> {
     const updated = await this.devicesRepository.setPresence(deviceId, false);
     // An offline flip is always a real change — never let a stale signature
@@ -734,6 +797,12 @@ export class PlayerService {
       ...(device.diagnosticsReport
         ? { diagnostics: device.diagnosticsReport as StoredDiagnosticsReport }
         : {}),
+      // Deliberately alongside `profile`, never merged into it: the whole value
+      // of this one is that it can disagree with what the page says.
+      ...(device.shellStatus
+        ? { shellStatus: device.shellStatus as ShellStatusReport }
+        : {}),
+      ...(device.shellStatusAt ? { shellStatusAt: device.shellStatusAt } : {}),
     };
   }
 

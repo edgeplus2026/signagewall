@@ -1007,6 +1007,23 @@
       "lastCrash": {
         "title": "Last crash",
         "description": "The most recent uncaught error on this device."
+      },
+      "shell": {
+        "title": "Native shell",
+        "statusTitle": "Shell check-in",
+        "statusDescription": "The shell reports on its own line, separately from the player page — so a screen whose page has broken can still be seen and acted on.",
+        "pageAlive": "Reported {{at}} — player running",
+        "pageDead": "Reported {{at}} — the shell is up but the player page is not",
+        "neverReported": "Never reported. The shell learns how to reach us the first time a page loads.",
+        "restartTitle": "Restart via shell",
+        "restartDescription": "Works when the page is unresponsive, because it does not go through the page. The shell collects it on its next check-in, within about five minutes.",
+        "restartButton": "Queue restart",
+        "confirmTitle": "Restart this screen through its shell?",
+        "confirmDescription": "The device restarts the whole player app on its next check-in — within about five minutes, not instantly. It goes dark for a few seconds.",
+        "cancel": "Cancel",
+        "submit": "Queue restart",
+        "queued": "Queued. The screen will pick it up on its next check-in.",
+        "error": "Could not queue the command. Please try again."
       }
     },
     "update": {
