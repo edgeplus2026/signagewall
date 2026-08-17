@@ -39,7 +39,9 @@
       "empty": "There is no content to preview yet.",
       "nothingPlayable": "Nothing to play — items may be disabled, or their media is still processing.",
       "unavailable": "Preview could not be loaded. The player could not reach the content."
-    }
+    },
+    "save": "Save",
+    "delete": "Delete"
   },
   "dataTable": {
     "search": "Search...",
@@ -167,7 +169,8 @@
       "confirm": "Log out"
     },
     "welcome": "Welcome to SignageWall.",
-    "dashboardPlaceholder": "Your dashboard content goes here."
+    "dashboardPlaceholder": "Your dashboard content goes here.",
+    "reports": "Reports"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -2723,6 +2726,117 @@
         ],
         "cta": "Assign content"
       }
+    }
+  },
+  "reports": {
+    "title": "Proof of play",
+    "description": "What each screen actually showed — measured on the device, not calculated from settings.",
+    "error": "The report could not be loaded.",
+    "retention": "Daily detail is kept for 90 days; monthly totals are kept indefinitely. Export a campaign before it ages out.",
+    "coverage": {
+      "heading": "Coverage by hour",
+      "label": "Coverage",
+      "day": "Day",
+      "screens_one": "{{count}} screen",
+      "screens_other": "{{count}} screens",
+      "truncated": "Only the first 200 screens are shown."
+    },
+    "legend": {
+      "scale": "less → more content",
+      "idle": "outside working hours",
+      "off": "screen unreachable",
+      "stuck": "stuck on one item",
+      "quiet": "did not run this hour",
+      "takeover": "emergency notice"
+    },
+    "cell": {
+      "covered": "{{percent}}% covered · {{plays}} plays"
+    },
+    "exceptions": {
+      "none": "Everything else ran as planned.",
+      "off": "unreachable for {{duration}}",
+      "stuck": "stuck on “{{item}}” for {{duration}}",
+      "takeover": "showed an emergency notice for {{duration}}"
+    },
+    "duration": {
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min",
+      "hours_one": "{{count}} h",
+      "hours_other": "{{count}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min"
+    },
+    "table": {
+      "heading": "By item",
+      "item": "Item",
+      "plays": "Plays",
+      "airtime": "Airtime",
+      "share": "Share",
+      "screens": "Screens",
+      "from": "From",
+      "to": "To",
+      "totalPlays": "Total plays",
+      "totalAirtime": "Total airtime",
+      "truncated": "Showing the top 500 items; totals cover everything.",
+      "empty": "Nothing was reported for this range.",
+      "campaign": "Campaign",
+      "unassigned": "Not assigned",
+      "assign": "Assign",
+      "byCampaign": "Group by campaign",
+      "byItem": "Show items",
+      "items": "Items",
+      "focus": "Show where and when this ran"
+    },
+    "export": {
+      "csv": "Export CSV",
+      "failed": "The export could not be downloaded.",
+      "pdf": "Export PDF"
+    },
+    "focus": {
+      "showing": "Showing only",
+      "clear": "Show everything",
+      "shareTitle": "Share of the day this item filled"
+    },
+    "dayparting": {
+      "heading": "By hour of day",
+      "total": "{{count}} plays in the period",
+      "cell": "{{hour}} · {{plays}} plays · {{minutes}} min"
+    },
+    "plan": {
+      "heading": "Planned against played",
+      "screen": "Screen",
+      "item": "Item",
+      "planned": "Planned",
+      "actual": "Played",
+      "delta": "Difference",
+      "basis": "Planned is derived from the rotation as it stands now.",
+      "allOnPlan": "Every item ran as often as the rotation allowed.",
+      "shortfalls_one": "{{count}} item ran short",
+      "shortfalls_other": "{{count}} items ran short",
+      "empty": "No screen had expected on-air time on this day.",
+      "truncated": "Showing the first 50 screens."
+    },
+    "campaigns": {
+      "heading": "Campaigns",
+      "newPlaceholder": "New campaign",
+      "none": "No campaigns yet",
+      "failed": "The campaign could not be saved."
+    },
+    "schedule": {
+      "heading": "Email this report",
+      "description": "An empty report is invisible until somebody goes looking.",
+      "recipients": "Recipients",
+      "frequency": "Frequency",
+      "hour": "Hour",
+      "frequencies": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "needsRecipient": "Add at least one recipient first.",
+      "saved": "Schedule saved.",
+      "failed": "The schedule could not be saved.",
+      "lastSent": "Last sent {{date}}.",
+      "lastError": "Last attempt failed: {{error}}"
     }
   }
 }

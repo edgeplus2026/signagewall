@@ -415,6 +415,9 @@ export class PlayerContentService {
       const cached = cacheKey ? cacheByKey.get(cacheKey) : undefined;
       overlays.push({
         id,
+        // An overlay has no slot to move between, so the two coincide — set it
+        // anyway so every renderable answers the same question the same way.
+        contentId: id,
         kind: 'app',
         slug: instance.appSlug,
         config: instance.config,
@@ -462,8 +465,14 @@ export class PlayerContentService {
         items.push(renderable);
         // Include the media's updatedAt so replacing a file (same id) or editing
         // a playlist changes the revision even when screen.updatedAt is untouched.
+        // `contentId` rides in the revision so the field actually REACHES a
+        // device. Without it, a screen whose content never changes would sit on
+        // an unchanged revision forever, keep reporting slot ids, and its
+        // proof-of-play would never line up with everyone else's. One extra
+        // re-push across the fleet, once — and the engine treats an unchanged
+        // sequence as a data-only update, so nothing restarts.
         context.revisionParts.push(
-          `${renderable.id}:${renderable.kind}:${renderable.url}:${renderable.durationMs}:${media?.updatedAt.getTime() ?? 0}`,
+          `${renderable.id}:${renderable.contentId ?? ''}:${renderable.kind}:${renderable.url}:${renderable.durationMs}:${media?.updatedAt.getTime() ?? 0}`,
         );
         continue;
       }
@@ -478,6 +487,8 @@ export class PlayerContentService {
       const cached = cacheKey ? context.cacheByKey.get(cacheKey) : undefined;
       items.push({
         id: entry.id,
+        // The instance itself — same reasoning as media above.
+        contentId: entry.appInstanceId,
         kind: 'app',
         slug: instance.appSlug,
         config: instance.config,
@@ -500,7 +511,10 @@ export class PlayerContentService {
       context.revisionParts.push(
         // Include the payload's fetch time AND staleness so both a refresh and a
         // healthy↔stale transition change the revision and re-push the snapshot.
-        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}:${cached?.pending ? 1 : 0}`,
+        // The instance id is in here as well as the slot id: a slot repointed at
+        // a different instance changes what `contentId` reports, and a snapshot
+        // that is not re-pushed would keep filing playback under the old one.
+        `${entry.id}:${entry.appInstanceId}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}:${cached?.pending ? 1 : 0}`,
       );
     }
     return items;
@@ -703,6 +717,9 @@ export class PlayerContentService {
     if (media.type === MediaItemType.IMAGE) {
       return {
         id: entry.id,
+        // The media itself, so a report survives the operator moving this item
+        // between playlists (which mints a new slot id).
+        contentId: entry.mediaId,
         kind: 'image',
         // Serve the 1280px WebP variant instead of the (up to 2560px) original:
         // it covers any <=1080p signage screen, decodes far faster, and is a
@@ -718,6 +735,9 @@ export class PlayerContentService {
     if (media.type === MediaItemType.VIDEO) {
       return {
         id: entry.id,
+        // The media itself, so a report survives the operator moving this item
+        // between playlists (which mints a new slot id).
+        contentId: entry.mediaId,
         kind: 'video',
         url: mapped.fileUrl,
         durationMs,

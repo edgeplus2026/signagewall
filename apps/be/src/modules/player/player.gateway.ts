@@ -11,6 +11,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import type { PlaybackAck, PlaybackBatch } from '@signagewall/player-contract';
+
 import { AnalyticsService } from '../analytics/analytics.service';
 import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import { AppInstancesRepository } from '../apps/app-instances.repository';
@@ -20,6 +22,8 @@ import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensRepository } from '../screens/screens.repository';
 import { PlayerService } from './player.service';
 import type { DiagnosticsReport, ReportedProfile } from './player.service';
+import { PlaybackService } from './playback.service';
+import type { PlaybackSource } from './playback.service';
 import { PlayerEvents, PlayerSocketEvents } from './player.events';
 import type {
   AppDataChangedEvent,
@@ -68,8 +72,16 @@ interface CmsTokenPayload {
 interface SocketData {
   deviceId?: string;
   screenId?: string;
+  /**
+   * Resolved at connect from the device's own pairing, never taken from the
+   * client. Proof-of-play rows are billed against it, so a device must not be
+   * able to file its playback under somebody else's organization.
+   */
+  organizationId?: string;
   /** True for a CMS preview spectator (skips presence/heartbeat bookkeeping). */
   preview?: boolean;
+  /** When this socket last had a playback batch accepted. See the handler. */
+  lastPlaybackAt?: number;
 }
 
 interface HeartbeatMessage {
@@ -87,6 +99,14 @@ type DiagnosticsMessage = DiagnosticsReport;
 interface NowPlayingMessage {
   itemId?: string;
 }
+
+/**
+ * Shortest gap between two accepted playback batches from one socket.
+ *
+ * Comfortably below the player's five-minute cadence, and above the burst a
+ * flapping connection produces when every `online` event triggers a flush.
+ */
+const MIN_PLAYBACK_INTERVAL_MS = 15_000;
 
 const deviceRoom = (deviceId: string): string => `device:${deviceId}`;
 const screenRoom = (screenId: string): string => `screen:${screenId}`;
@@ -156,6 +176,7 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly analytics: AnalyticsService,
+    private readonly playbackService: PlaybackService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -238,6 +259,7 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       data.screenId = result.screenId;
+      data.organizationId = result.organizationId;
       await client.join(screenRoom(result.screenId));
       client.emit(PlayerSocketEvents.Paired, {
         screenId: result.screenId,
@@ -468,6 +490,100 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (deviceId && !preview) {
       await this.playerService.recordDiagnostics(deviceId, payload);
     }
+  }
+
+  /**
+   * Records what a screen has played, and tells it whether it may forget it.
+   *
+   * The one device→server message that is answered rather than fired and
+   * forgotten: a heartbeat that goes missing costs nothing, whereas a batch of
+   * plays that goes missing is a hole in a report somebody bills against. The
+   * device holds the batch on disk until this returns `{ ok: true }`, so anything
+   * that fails here is retried rather than lost.
+   *
+   * Only from a real device socket. A preview spectator has no device row, and
+   * the screen it is watching is already reporting its own playback.
+   */
+  @SubscribeMessage(PlayerSocketEvents.Playback)
+  async handlePlayback(
+    client: Socket,
+    payload: PlaybackBatch,
+  ): Promise<PlaybackAck> {
+    const data = client.data as SocketData;
+
+    if (data.preview || !data.deviceId) {
+      return { ok: true };
+    }
+
+    // A paired device is trusted to report, not trusted to report continuously.
+    // The player sends every five minutes; a device with a bug — or one that has
+    // been tampered with — could send in a loop, and every message costs a
+    // normalise pass and a conditional write. Refusing is safe: the device keeps
+    // the batch and offers it again, which is exactly what it does when the
+    // network drops.
+    //
+    // Held on the socket rather than in a map keyed by device, so it cannot grow
+    // with fleet churn and cannot outlive the connection. A device that
+    // reconnects gets a fresh allowance, which socket.io's own backoff bounds.
+    const now = Date.now();
+    if (now - (data.lastPlaybackAt ?? 0) < MIN_PLAYBACK_INTERVAL_MS) {
+      return { ok: false };
+    }
+    data.lastPlaybackAt = now;
+
+    try {
+      const source = await this.playbackSource(data);
+      if (!source) {
+        // An unpaired device has nowhere to file playback, and no retry will
+        // change that — so this is an acknowledgement rather than a refusal: it
+        // must not spend the rest of its life re-sending a batch nobody can use.
+        return { ok: true };
+      }
+
+      const ok = await this.playbackService.record(source, payload);
+      return { ok };
+    } catch (error) {
+      this.logger.error(
+        `Failed to record playback for device ${data.deviceId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      // The device keeps the batch and tries again. Losing proof of play to a
+      // transient database error is the one failure this feature exists to avoid.
+      return { ok: false };
+    }
+  }
+
+  /**
+   * Which screen and organization this socket's playback belongs to.
+   *
+   * Taken from the socket where possible, and read from the device row when the
+   * socket predates its own pairing — see
+   * {@link PlayerService.resolveAttribution}. The answer is written back onto the
+   * socket so a screen paired mid-session pays for the lookup once rather than
+   * every five minutes.
+   */
+  private async playbackSource(
+    data: SocketData,
+  ): Promise<PlaybackSource | null> {
+    const deviceId = data.deviceId;
+    if (!deviceId) {
+      return null;
+    }
+    if (data.screenId && data.organizationId) {
+      return {
+        deviceId,
+        screenId: data.screenId,
+        organizationId: data.organizationId,
+      };
+    }
+
+    const resolved = await this.playerService.resolveAttribution(deviceId);
+    if (!resolved) {
+      return null;
+    }
+    data.screenId = resolved.screenId;
+    data.organizationId = resolved.organizationId;
+    return { deviceId, ...resolved };
   }
 
   /**

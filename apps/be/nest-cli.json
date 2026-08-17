@@ -21,6 +21,10 @@
       {
         "include": "modules/apps/connectors/wisdom/*.json",
         "watchAssets": true
+      },
+      {
+        "include": "modules/player/fonts/*",
+        "watchAssets": true
       }
     ]
   }

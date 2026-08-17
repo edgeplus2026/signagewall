@@ -1,4 +1,11 @@
-import { Film, LayoutDashboard, ListVideo, Monitor, Rocket } from 'lucide-react'
+import {
+  ChartNoAxesGantt,
+  Film,
+  LayoutDashboard,
+  ListVideo,
+  Monitor,
+  Rocket,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -16,6 +23,7 @@ const NAV_ITEMS = [
   { key: 'playlists', href: '/playlists', icon: ListVideo },
   { key: 'media', href: '/media', icon: Film },
   { key: 'apps', href: '/apps', icon: Rocket },
+  { key: 'reports', href: '/reports', icon: ChartNoAxesGantt },
 ] as const
 
 export function AppSidebarNav() {

@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { AnalyticsModule } from '../analytics/analytics.module';
 import { AppsModule } from '../apps/apps.module';
+import { CampaignsModule } from '../campaigns/campaigns.module';
 import { MailModule } from '../mail/mail.module';
 import { MediaModule } from '../media/media.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
@@ -17,30 +18,60 @@ import { DeviceOfflineAlertScheduler } from './device-offline-alert.scheduler';
 import { DeviceOfflineAlertService } from './device-offline-alert.service';
 import { DevicePairingController } from './device-pairing.controller';
 import { DevicesRepository } from './devices.repository';
+import { PlayerTokenGuard } from './guards/player-token.guard';
+import { PlaybackPdfService } from './playback-pdf.service';
+import { PlaybackReportService } from './playback-report.service';
+import { PlaybackVerifyController } from './playback-verify.controller';
+import { PlaybackController } from './playback.controller';
+import { PlaybackRepository } from './playback.repository';
+import { PlaybackService } from './playback.service';
 import { PlayerContentService } from './player-content.service';
-import { PrivateAssetsHydrationService } from './private-assets-hydration.service';
 import { PlayerController } from './player.controller';
 import { PlayerGateway } from './player.gateway';
 import { PlayerService } from './player.service';
-import { PlayerTokenGuard } from './guards/player-token.guard';
 import { PlayerTokensService } from './player-tokens.service';
+import { PrivateAssetsHydrationService } from './private-assets-hydration.service';
+import { ReportScheduleService } from './report-schedule.service';
 import { Device, DeviceSchema } from './schemas/device.schema';
+import {
+  PlaybackMonth,
+  PlaybackMonthSchema,
+} from './schemas/playback-month.schema';
+import {
+  PlaybackRecord,
+  PlaybackRecordSchema,
+} from './schemas/playback-record.schema';
+import {
+  ReportSchedule,
+  ReportScheduleSchema,
+} from './schemas/report-schedule.schema';
 
 @Module({
   imports: [
     ConfigModule,
     JwtModule.register({}),
-    MongooseModule.forFeature([{ name: Device.name, schema: DeviceSchema }]),
+    MongooseModule.forFeature([
+      { name: Device.name, schema: DeviceSchema },
+      { name: PlaybackRecord.name, schema: PlaybackRecordSchema },
+      { name: PlaybackMonth.name, schema: PlaybackMonthSchema },
+      { name: ReportSchedule.name, schema: ReportScheduleSchema },
+    ]),
     AnalyticsModule,
+    CampaignsModule,
+    MailModule,
     OrganizationsModule,
     ScreensModule,
     PlaylistsModule,
     MediaModule,
     AppsModule,
-    MailModule,
     UsersModule,
   ],
-  controllers: [PlayerController, DevicePairingController],
+  controllers: [
+    PlayerController,
+    DevicePairingController,
+    PlaybackController,
+    PlaybackVerifyController,
+  ],
   providers: [
     PlayerService,
     PlayerContentService,
@@ -49,6 +80,11 @@ import { Device, DeviceSchema } from './schemas/device.schema';
     DevicesRepository,
     DeviceOfflineAlertService,
     DeviceOfflineAlertScheduler,
+    PlaybackRepository,
+    PlaybackService,
+    PlaybackReportService,
+    PlaybackPdfService,
+    ReportScheduleService,
     PlayerGateway,
     CmsGateway,
     PlayerTokenGuard,

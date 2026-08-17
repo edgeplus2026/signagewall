@@ -123,6 +123,15 @@ function StepRow({
 }
 
 /**
+ * Room left above the panel for the app header — the progress button up there is
+ * the way back to this card, so the card must never cover it.
+ *
+ * 80px is the same clearance the default `max-h-[calc(100dvh-6rem)]` encodes:
+ * 6rem of cap minus the 1rem resting offset. Keep the two in step.
+ */
+const HEADER_CLEARANCE_PX = 80
+
+/**
  * The floating setup checklist.
  *
  * Deliberately not a page: a new customer's first hour is spent moving between
@@ -172,10 +181,22 @@ export function OnboardingWidget() {
   // Tailwind cannot express a number it only learns at runtime. It wins over the
   // `bottom-4` above, which stays as the resting position for every page that
   // claims nothing.
+  //
+  // The height has to move WITH the offset. The panel's default cap is
+  // `100dvh - 6rem`, which is the resting 1rem bottom plus 5rem of clearance for
+  // the app header — a card measured from the bottom of the screen. Lifting the
+  // card without re-capping it pushed the same height further up, so the top of
+  // the panel (its own header, and the only way to collapse it) ran off the top
+  // edge. Both numbers come from the same offset, so they are computed together
+  // here rather than left to drift apart.
+  const liftedBottom = bottomClearance > 0 ? bottomClearance + 16 : null
   const positionStyle =
-    bottomClearance > 0
-      ? { bottom: `${String(bottomClearance + 16)}px` }
-      : undefined
+    liftedBottom === null
+      ? undefined
+      : {
+          bottom: `${String(liftedBottom)}px`,
+          maxHeight: `calc(100dvh - ${String(liftedBottom + HEADER_CLEARANCE_PX)}px)`,
+        }
 
   const dismiss = () => {
     update.mutate({ dismissed: true })

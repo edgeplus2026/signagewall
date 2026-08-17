@@ -6,6 +6,7 @@ import { isFollowPreview, isPreview } from '../preview'
 import { OverlayLayer } from './OverlayLayer'
 import { reportError } from '../sentry'
 import { registerPlaybackControls } from '../sync/playback-bus'
+import { recordPlay } from '../sync/playback-log'
 import {
   lastError,
   online,
@@ -81,6 +82,9 @@ export function Stage() {
           // working on the next item (a no-op for images/videos).
           focusShield()
         },
+        // Proof-of-play. Only a real device counts: a CMS preview is somebody's
+        // browser tab, and its plays are not the screen's.
+        ...(isPreview ? {} : { onPlay: recordPlay }),
         onError: (error) => {
           lastError.value =
             error instanceof Error ? error.message : String(error)

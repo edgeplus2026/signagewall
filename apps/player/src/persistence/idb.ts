@@ -55,6 +55,64 @@ export async function clearSnapshot(): Promise<void> {
   }
 }
 
+/**
+ * Proof-of-play state, kept in the same store as the snapshot.
+ *
+ * Deliberately a plain key rather than its own object store: a new store means a
+ * schema version bump, and a version bump on a device that then rolls back to an
+ * older bundle leaves IndexedDB refusing to open at all — which would cost the
+ * screen its offline snapshot too. A key costs nothing and cannot do that.
+ */
+const PLAYBACK_KEY = 'playback'
+
+/** What the device is holding: unsent tallies, plus the batch sequence. */
+export interface PersistedPlayback {
+  tallies: unknown[]
+  /** Last batch number this device used. Monotonic; the server dedupes on it. */
+  seq: number
+  /** Which counter that number belongs to — see `PlaybackBatch.origin`. */
+  origin?: string
+  /**
+   * A batch that went out but was never acknowledged, kept verbatim.
+   *
+   * Stored so a device that loses power mid-delivery re-sends the SAME batch
+   * under the SAME number instead of assembling a fresh one. The server may
+   * already have written it; only an identical repeat lets it recognise that and
+   * refuse to count it twice. Shape-checked on the way back in, never trusted.
+   */
+  pending?: unknown
+}
+
+export async function savePlayback(state: PersistedPlayback): Promise<void> {
+  try {
+    const db = await getDb()
+    await db.put(STORE, state, PLAYBACK_KEY)
+  } catch {
+    // A full or unavailable store must never stop playback. The tallies stay in
+    // memory and the next flush still sends them; only a reload would lose them.
+  }
+}
+
+export async function loadPlayback(): Promise<PersistedPlayback | null> {
+  try {
+    const db = await getDb()
+    const saved = (await db.get(STORE, PLAYBACK_KEY)) as
+      | Partial<PersistedPlayback>
+      | undefined
+    if (!saved || !Array.isArray(saved.tallies)) {
+      return null
+    }
+    return {
+      tallies: saved.tallies,
+      seq: typeof saved.seq === 'number' && saved.seq >= 0 ? saved.seq : 0,
+      origin: typeof saved.origin === 'string' ? saved.origin : undefined,
+      pending: saved.pending,
+    }
+  } catch {
+    return null
+  }
+}
+
 /** Workbox runtime caches that hold downloaded media bytes. */
 const MEDIA_CACHE_NAMES = [
   'signagewall-media',

@@ -295,11 +295,29 @@ export class MailService implements OnModuleInit {
     });
   }
 
+  /**
+   * Sends a scheduled proof-of-play report to one recipient.
+   *
+   * Public because the report module owns the schedule and the rendering; the
+   * mail service only knows how to put an envelope round it. The attachments
+   * are the deliverable — the body is a summary so the recipient knows what
+   * they are opening.
+   */
+  async sendPlaybackReportEmail(params: {
+    to: string;
+    subject: string;
+    html: string;
+    attachments: { filename: string; content: Buffer }[];
+  }): Promise<void> {
+    await this.send(params);
+  }
+
   private async send(params: {
     to: string;
     subject: string;
     html: string;
     replyTo?: string;
+    attachments?: { filename: string; content: Buffer }[];
   }): Promise<void> {
     if (!this.enabled) {
       this.logger.warn(
@@ -321,6 +339,9 @@ export class MailService implements OnModuleInit {
       subject: params.subject,
       html: params.html,
       ...(params.replyTo ? { replyTo: params.replyTo } : {}),
+      ...(params.attachments?.length
+        ? { attachments: params.attachments }
+        : {}),
     });
 
     if (error) {

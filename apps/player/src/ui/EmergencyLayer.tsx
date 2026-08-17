@@ -5,6 +5,7 @@ import { type AppHostHandle, mountAppHost } from '../apps/host-bridge'
 import { activeTakeover } from '../apps/takeover-apps'
 import { config } from '../config'
 import { reportError } from '../sentry'
+import { recordPlay } from '../sync/playback-log'
 import { orientation, snapshot } from '../store'
 import type { AppRenderable } from '../types'
 
@@ -50,6 +51,50 @@ export function EmergencyLayer() {
 
     let mounted: { handle: AppHostHandle; signature: string } | null = null
 
+    /**
+     * The takeover records its own airtime, because nothing else can.
+     *
+     * The playback engine is not running while this layer is up — that is the
+     * whole point of it — so without this the hours an alert held the screen
+     * arrive at the report as nothing at all, and the coverage matrix reads them
+     * as "screen unreachable". That is precisely backwards: the screen was
+     * working, and it was showing what it was told to. An advertiser asking why
+     * their spot did not run for two hours on Tuesday is entitled to the real
+     * answer, which is why the design counts a takeover rather than ignoring it.
+     */
+    let showing: { contentId: string; slug?: string; startedAt: number } | null =
+      null
+
+    const endTakeover = (): void => {
+      const open = showing
+      showing = null
+      if (!open) {
+        return
+      }
+      recordPlay({
+        contentId: open.contentId,
+        kind: 'app',
+        ...(open.slug ? { slug: open.slug } : {}),
+        startedAt: open.startedAt,
+        endedAt: Date.now(),
+      })
+    }
+
+    const beginTakeover = (overlay: AppRenderable): void => {
+      const contentId = overlay.contentId ?? overlay.id
+      if (showing?.contentId === contentId) {
+        return
+      }
+      // A different alert replacing this one closes the first one's record
+      // rather than merging the two.
+      endTakeover()
+      showing = {
+        contentId,
+        ...(overlay.slug ? { slug: overlay.slug } : {}),
+        startedAt: Date.now(),
+      }
+    }
+
     const dispose = (): void => {
       mounted?.handle.dispose()
       mounted = null
@@ -64,10 +109,16 @@ export function EmergencyLayer() {
       const overlay = activeTakeover(snapshot.value)
       setAlert(overlay)
       if (!overlay) {
+        endTakeover()
         dispose()
         setFailed(false)
         return
       }
+
+      // Started here rather than after the handshake: the fallback holds the
+      // screen just as the bundle does, and an alert that took the screen for an
+      // hour took it for an hour either way.
+      beginTakeover(overlay)
 
       // A config edit while the alert is UP (fixing a typo mid-incident) should
       // change the words, not blink the screen — the handshake carries it.
@@ -103,6 +154,9 @@ export function EmergencyLayer() {
 
     return () => {
       stop()
+      // Closes the record on the way out — an alert that is still up when the
+      // page reloads at midnight would otherwise never be counted at all.
+      endTakeover()
       dispose()
     }
   }, [])

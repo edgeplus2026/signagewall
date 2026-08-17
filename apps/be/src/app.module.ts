@@ -29,6 +29,7 @@ import { AiContentModule } from './modules/ai-content/ai-content.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AppsModule } from './modules/apps/apps.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { ConnectionsModule } from './modules/connections/connections.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { DataDeletionModule } from './modules/data-deletion/data-deletion.module';
@@ -99,6 +100,7 @@ import { UsersModule } from './modules/users/users.module';
     AppsModule,
     AiContentModule,
     ConnectionsModule,
+    CampaignsModule,
     PlayerModule,
     NotificationsModule,
     LegalModule,

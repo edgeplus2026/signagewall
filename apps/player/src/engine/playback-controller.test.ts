@@ -4,6 +4,7 @@ import type { PlayerSnapshot, Renderable } from '../types'
 import {
   PlaybackController,
   type ControllerOptions,
+  type PlaybackRecord,
   type PlaybackSlot,
 } from './playback-controller'
 
@@ -114,6 +115,7 @@ function build(options: ControllerOptions = {}) {
   const media = new FakeMedia()
   const slots: FakeSlot[] = []
   const onItemIds: string[] = []
+  const plays: PlaybackRecord[] = []
   const errors: { error: unknown; item?: Renderable }[] = []
   const root = {
     append: () => undefined,
@@ -125,6 +127,7 @@ function build(options: ControllerOptions = {}) {
     root,
     {
       onItem: (item) => onItemIds.push(item.id),
+      onPlay: (record) => plays.push(record),
       onError: (error, item) => errors.push({ error, item }),
     },
     () => {
@@ -137,7 +140,7 @@ function build(options: ControllerOptions = {}) {
     { requiresNetwork: (item) => item.kind === 'app', ...options },
   )
 
-  return { controller, media, slots, onItemIds, errors }
+  return { controller, media, slots, onItemIds, plays, errors }
 }
 
 /** Drains pending prepare microtasks (no timer advance). */
@@ -610,6 +613,118 @@ describe('PlaybackController', () => {
 
       expect(slots.every((slot) => slot.replays === 0)).toBe(true)
       expect(onItemIds).toEqual(['V', 'B'])
+      controller.destroy()
+    })
+  })
+
+  // Proof-of-play is measured here, at the only place that knows when an item
+  // actually reached the screen and when it left. Every exit is covered: the next
+  // transition, a natural loop, and the teardown that standby, an emergency
+  // takeover and leaving the page all share.
+  describe('playback records', () => {
+    function withContent(id: string, contentId: string, durationMs = 2000): Renderable {
+      return { id, contentId, kind: 'image', url: `https://cdn.test/${id}.webp`, durationMs }
+    }
+
+    it('closes a play when the next item takes the screen', async () => {
+      const { controller, plays } = build()
+      controller.load(snapshot([withContent('A', 'media-1'), withContent('B', 'media-2')]))
+      await flush()
+
+      // Nothing is reported while it is still up — the length is not known yet.
+      expect(plays).toEqual([])
+
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(plays).toHaveLength(1)
+      expect(plays[0]).toMatchObject({ contentId: 'media-1', kind: 'image' })
+      expect(plays[0]!.endedAt - plays[0]!.startedAt).toBe(2000)
+      controller.destroy()
+    })
+
+    it('reports the content id, not the slot id', async () => {
+      const { controller, plays } = build()
+      controller.load(snapshot([withContent('slot-1', 'media-1'), withContent('slot-2', 'media-2')]))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000)
+
+      // The slot id changes whenever an operator reorders a playlist; the report
+      // has to survive that.
+      expect(plays[0]?.contentId).toBe('media-1')
+      controller.destroy()
+    })
+
+    it('falls back to the slot id on a snapshot without contentId', async () => {
+      const { controller, plays } = build()
+      controller.load(snapshot([img('A'), img('B')]))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000)
+
+      // An older backend: less stable, but the play is not lost.
+      expect(plays[0]?.contentId).toBe('A')
+      controller.destroy()
+    })
+
+    it('counts a looping clip once per pass', async () => {
+      const { controller, slots, plays } = build()
+      controller.load(snapshot([video('V')]))
+      await flush()
+
+      const active = slots.find((slot) => slot.active)
+      await vi.advanceTimersByTimeAsync(5000)
+      active?.onEnded?.()
+      await flush()
+      await vi.advanceTimersByTimeAsync(5000)
+      active?.onEnded?.()
+      await flush()
+
+      // Two passes, two plays — not one play a day long.
+      expect(plays).toHaveLength(2)
+      expect(plays.every((p) => p.contentId === 'V')).toBe(true)
+      expect(plays[0]!.endedAt - plays[0]!.startedAt).toBe(5000)
+      controller.destroy()
+    })
+
+    it('closes the open play on teardown — standby, emergency, leaving the page', async () => {
+      const { controller, plays } = build()
+      controller.load(snapshot([withContent('A', 'media-1')]))
+      await flush()
+      await vi.advanceTimersByTimeAsync(1500)
+
+      expect(plays).toEqual([])
+      // All three of those unmount the stage, which destroys the controller.
+      controller.destroy()
+
+      expect(plays).toHaveLength(1)
+      expect(plays[0]!.endedAt - plays[0]!.startedAt).toBe(1500)
+    })
+
+    it('never reports an item that failed to load', async () => {
+      const { controller, media, plays, onItemIds } = build()
+      media.failIds.add('B')
+      controller.load(snapshot([img('A'), img('B'), img('C')]))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000) // A -> B, which fails
+      await vi.advanceTimersByTimeAsync(2000) // skip on to C
+      await flush()
+
+      expect(onItemIds).not.toContain('B')
+      // B never reached the screen, so it was never played.
+      expect(plays.map((p) => p.contentId)).not.toContain('B')
+      controller.destroy()
+    })
+
+    it('carries the slug for an app so the report can name it', async () => {
+      const { controller, plays } = build({ requiresNetwork: () => false })
+      controller.load(
+        snapshot([
+          { id: 's1', contentId: 'inst-1', kind: 'app', slug: 'weather', config: {}, durationMs: 2000 },
+          img('B'),
+        ]),
+      )
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000)
+
+      expect(plays[0]).toMatchObject({ contentId: 'inst-1', kind: 'app', slug: 'weather' })
       controller.destroy()
     })
   })

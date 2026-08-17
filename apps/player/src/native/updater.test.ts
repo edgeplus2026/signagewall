@@ -1,5 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+// `@sentry/browser` is a large graph, and these suites re-import their whole
+// module tree on every case (`vi.resetModules()` + a dynamic import) to isolate
+// module state. That transform was the slowest thing in the suite by an order of
+// magnitude — around 200 ms per case on an idle machine, and past the timeout
+// when `turbo run type-check lint test` has every package compiling at once. The
+// suite then failed on a stopwatch while asserting nothing that involves Sentry
+// at all.
+//
+// Nothing here touches error reporting, so stub it: the tests get faster AND
+// stop depending on how loaded the machine is.
+vi.mock('../sentry', () => ({
+  reportError: vi.fn(),
+  initSentry: vi.fn(),
+}))
+
 /**
  * Covers the web side of the OTA updater: boot detection, the guarded apply path
  * shared by both triggers, the health handshake, and the standby catch-up. Each

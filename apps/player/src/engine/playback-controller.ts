@@ -77,9 +77,39 @@ const SKIP_DELAY_MS = 250
  */
 const VIDEO_SETTLE_MS = 3_000
 
+/**
+ * One completed appearance of a content item on the screen — the unit
+ * proof-of-play is built from.
+ *
+ * Emitted when the item LEAVES, never when it arrives, because the thing being
+ * reported is how long it was up and that is not known until it is over. An item
+ * that fails to load never produces one: it was never on screen, so it was never
+ * played, and counting it would be the report claiming something that did not
+ * happen.
+ */
+export interface PlaybackRecord {
+  /**
+   * What played, stable across playlist edits. Falls back to the slot id when
+   * the snapshot predates `contentId` — the report is then less stable, which is
+   * better than losing the play.
+   */
+  contentId: string
+  kind: Renderable['kind']
+  /** App slug, for an app item. Absent for media. */
+  slug?: string
+  /** Device clock, ms. Corrected server-side against the reported skew. */
+  startedAt: number
+  endedAt: number
+}
+
 export interface ControllerCallbacks {
   onItem?: (item: Renderable) => void
   onError?: (error: unknown, item?: Renderable) => void
+  /**
+   * A play finished. Fires once per appearance — a clip that loops on a one-item
+   * playlist produces one of these per pass, not one for the whole night.
+   */
+  onPlay?: (record: PlaybackRecord) => void
 }
 
 export interface ControllerOptions {
@@ -158,6 +188,13 @@ export class PlaybackController {
   private destroyed = false
   /** Guards against the watchdog re-reporting the same stall episode each tick. */
   private stallReported = false
+
+  /**
+   * The appearance currently on screen, if any. Held rather than derived because
+   * closing it needs the moment it STARTED, and by the time an item leaves the
+   * cursor has usually already moved on.
+   */
+  private openPlay: { item: Renderable; startedAt: number } | null = null
 
   /** Direction of travel (1 = forward, -1 = back); steers skip-on-failure. */
   private direction: 1 | -1 = 1
@@ -446,6 +483,10 @@ export class PlaybackController {
   }
 
   destroy(): void {
+    // Close the open appearance BEFORE anything else: standby, an emergency
+    // takeover and leaving the page all unmount the stage, and without this the
+    // last item of every session would simply never be reported.
+    this.endPlay()
     this.destroyed = true
     this.epoch += 1
     // Release a transition parked on a load, so teardown never waits out a
@@ -645,11 +686,54 @@ export class PlaybackController {
       !this.transitioning &&
       this.slots[this.activeIndex].replay?.()
     ) {
+      // A second pass of the same clip is a second play: the loop counted it,
+      // and so must the report. Closing and reopening is what makes a one-item
+      // screen report "played 240 times" rather than "played once, for a day".
+      this.beginPlay(this.items[this.cursor]!)
       this.lastAdvanceAt = Date.now()
       this.stallReported = false
       return
     }
     this.requestTransition(target)
+  }
+
+  /**
+   * Opens a new appearance, closing whatever was on screen first.
+   *
+   * Called at the moment the item is actually REVEALED — not when its load
+   * starts — so the measured time is time a viewer could see it.
+   */
+  private beginPlay(item: Renderable): void {
+    this.endPlay()
+    this.openPlay = { item, startedAt: Date.now() }
+  }
+
+  /**
+   * Closes the open appearance and reports it.
+   *
+   * A zero-or-negative span is dropped: the device clock can step backwards under
+   * NTP, and a play of "-3 seconds" is not a measurement, it is a clock event.
+   * Losing one appearance is the right trade against poisoning a report that gets
+   * shown to somebody's customer.
+   */
+  private endPlay(): void {
+    const open = this.openPlay
+    this.openPlay = null
+    if (!open) {
+      return
+    }
+    const endedAt = Date.now()
+    if (endedAt <= open.startedAt) {
+      return
+    }
+    const { item } = open
+    this.callbacks.onPlay?.({
+      contentId: item.contentId ?? item.id,
+      kind: item.kind,
+      ...(item.kind === 'app' ? { slug: item.slug } : {}),
+      startedAt: open.startedAt,
+      endedAt,
+    })
   }
 
   private wrap(index: number): number {
@@ -742,6 +826,8 @@ export class PlaybackController {
       item.kind === 'video'
         ? (activeSlot.mediaDurationMs() ?? item.durationMs)
         : item.durationMs
+    // The item is on screen from here: the swap is done and the slot is active.
+    this.beginPlay(item)
     this.callbacks.onItem?.(item)
     // Video advances on its natural `ended` event (wired in activate); we never
     // arm a wallclock cap, which would truncate a rebuffering or wrong-metadata

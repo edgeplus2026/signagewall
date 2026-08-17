@@ -31,6 +31,22 @@
   --info: #2563eb;
 
   --radius: 0.5rem;
+
+  /* Coverage ramp — the proof-of-play matrix.
+
+     One hue, light to dark, because the cell encodes a QUANTITY (how much of
+     that hour had content). Colouring cells by which item played would encode
+     identity over the same surface and the matrix stops being readable at the
+     fourth item. Steps are checked for monotonic lightness in both themes.
+
+     States that are not a quantity — closed, unreachable, stuck — deliberately
+     get no step on this ramp. They get a texture, so they stay distinguishable
+     in print, in greyscale, and to colourblind readers. */
+  --coverage-1: #cde2fb;
+  --coverage-2: #9ec5f4;
+  --coverage-3: #5598e7;
+  --coverage-4: #2a78d6;
+  --coverage-idle: #ebedf0;
 }
 
 .dark {
@@ -51,4 +67,12 @@
   --success: #1f8a65;
   --warning: #c08532;
   --info: #60a5fa;
+
+  /* Re-stepped rather than inverted: an automatic flip puts the darkest step on
+     the darkest surface and the fullest hour becomes the least visible one. */
+  --coverage-1: #0d366b;
+  --coverage-2: #184f95;
+  --coverage-3: #256abf;
+  --coverage-4: #3987e5;
+  --coverage-idle: #202020;
 }

@@ -20,6 +20,7 @@ import MediaPage from '@/features/media/pages/MediaPage'
 import CreateOrganizationPage from '@/features/organizations/pages/CreateOrganizationPage'
 import PlaylistPage from '@/features/playlists/pages/PlaylistPage'
 import PlaylistsPage from '@/features/playlists/pages/PlaylistsPage'
+import ReportsPage from '@/features/reports/pages/ReportsPage'
 import ScreenPage from '@/features/screens/pages/ScreenPage'
 import ScreensPage from '@/features/screens/pages/ScreensPage'
 import { PresenceProvider } from '@/features/screens/providers/PresenceProvider'
@@ -162,6 +163,11 @@ export const router = createBrowserRouter([
               {
                 path: '/apps/:appId/instances/:instanceId',
                 element: <AppInstanceConfigPage />,
+              },
+              {
+                path: '/reports',
+                element: <ReportsPage />,
+                handle: { breadcrumb: { labelKey: 'layout.reports' } },
               },
               {
                 path: '/settings',
