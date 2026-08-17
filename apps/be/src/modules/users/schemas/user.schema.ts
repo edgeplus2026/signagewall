@@ -64,13 +64,19 @@ export class User {
   @Prop({ default: false })
   isEmailVerified: boolean;
 
-  @Prop({ select: false })
+  /**
+   * Looked up BY VALUE on every verification click, so it needs an index —
+   * without one each redemption is a full collection scan. Sparse: only a
+   * handful of users hold one at any moment.
+   */
+  @Prop({ select: false, index: true, sparse: true })
   emailVerificationToken?: string;
 
   @Prop({ select: false })
   emailVerificationExpiresAt?: Date;
 
-  @Prop({ select: false })
+  /** Looked up by value on every reset click — see `emailVerificationToken`. */
+  @Prop({ select: false, index: true, sparse: true })
   passwordResetToken?: string;
 
   @Prop({ select: false })
@@ -78,6 +84,25 @@ export class User {
 
   @Prop({ select: false })
   refreshTokenHash?: string;
+
+  /**
+   * Hash of the single-use code minted by the Google OAuth redirect. Claimed by
+   * value in a `findOneAndUpdate`, so it is indexed for the same reason as the
+   * tokens above — this one is on the critical path of every Google login.
+   */
+  @Prop({ select: false, index: true, sparse: true })
+  googleLoginCode?: string;
+
+  @Prop({ select: false })
+  googleLoginCodeExpiresAt?: Date;
+
+  /** Consecutive failed password attempts since the last successful login. */
+  @Prop({ select: false })
+  failedLoginAttempts?: number;
+
+  /** Login is refused until this instant after too many consecutive failures. */
+  @Prop({ select: false })
+  loginLockedUntil?: Date;
 
   /**
    * Billing tier. There is no payment integration — a plan only ever changes

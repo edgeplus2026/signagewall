@@ -17,6 +17,7 @@ import { MediaThumbnailService } from './storage/media-thumbnail.service';
 import { MediaVideoService } from './storage/media-video.service';
 import { AssetMirrorService } from './storage/asset-mirror.service';
 import { PptxRenderService } from './storage/pptx-render.service';
+import { PrivateR2StorageService } from './storage/private-r2-storage.service';
 import { R2StorageService } from './storage/r2-storage.service';
 
 @Module({
@@ -34,6 +35,7 @@ import { R2StorageService } from './storage/r2-storage.service';
     MediaService,
     MediaRepository,
     R2StorageService,
+    PrivateR2StorageService,
     MediaThumbnailService,
     MediaVideoService,
     PptxRenderService,
@@ -43,6 +45,6 @@ import { R2StorageService } from './storage/r2-storage.service';
     CloudMediaFetcher,
     OrgMembershipGuard,
   ],
-  exports: [MediaService, MediaRepository],
+  exports: [MediaService, MediaRepository, PrivateR2StorageService],
 })
 export class MediaModule {}

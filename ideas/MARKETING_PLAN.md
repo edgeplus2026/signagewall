@@ -1,5 +1,9 @@
 # SignageWall marketing i prodajni plan
 
+> **Strategic update — 5 August 2026:** The primary Zero-to-One direction is **SignageWall Ops** for factories, warehouses and logistics. Its founding offer is a 750 EUR paid pilot, followed by site pricing and onboarding from 900 EUR only when real consulting/integration work is included. The menu/QSR work below is retained as a separate secondary experiment, now standardized as **Menu Starter** for bakeries, cafés and other small firms: no setup fee, one location/one to three screens, standard templates and a sustainable subscription. Custom design, unstructured migration, field work and hardware are outside the standard subscription. See [`OPS_PRODUCT_IMPLEMENTATION_PLAN.md`](./OPS_PRODUCT_IMPLEMENTATION_PLAN.md) for product scope and release gates.
+>
+> The concrete 17–23 August sales sprint targets the first **paid factory/logistics Ops pilot**. Menu Starter has its own lightly staffed funnel and must not distract from that sprint: [`ZERO_TO_ONE_SALES_SPRINT_2026-08-17.md`](./ZERO_TO_ONE_SALES_SPRINT_2026-08-17.md).
+
 **Verzija:** 1.0  
 **Datum:** 2. avgust 2026.  
 **Period plana:** narednih 90 dana, sa smernicama za narednih 12 meseci  
@@ -11,9 +15,9 @@
 
 SignageWall ne treba u početnoj fazi prodavati kao „digital signage softver za svaki ekran i svaku industriju“. To ga stavlja u direktno poređenje sa znatno većim platformama koje imaju više funkcija, više šablona, besplatne planove i razvijene prodajne kanale.
 
-Početna tržišna pozicija treba da bude:
+Primarna tržišna pozicija je SignageWall Ops za fabrike, skladišta i logistiku: postojeći Sheet/Excel workflow postaje pouzdana tabla jedne smene ili zone. Sekundarna, jasno odvojena ponuda je:
 
-> **SignageWall postavlja digitalni meni ili cenovnik na postojeće televizore kafića, pekara i manjih restoranskih lanaca, a vlasnik ga kasnije održava iz browsera, Google Sheets-a ili Excel-a — bez USB-a i obilaska svakog ekrana.**
+> **Menu Starter postavlja standardizovan digitalni meni ili cenovnik na postojeći kompatibilan ekran/player pekare, kafića ili drugog malog lokala, a vlasnik ga održava iz browsera ili podržane tabele — bez USB-a i bez setup naknade.**
 
 Primarni cilj narednih 90 dana nije broj pratilaca niti veliki saobraćaj na sajtu. Cilj je dokazati ponovljiv sistem kojim SignageWall:
 
@@ -23,15 +27,23 @@ Primarni cilj narednih 90 dana nije broj pratilaca niti veliki saobraćaj na saj
 4. pretvara pilot u plaćenu pretplatu;
 5. dobija preporuku ili dodatne ekrane.
 
-Preporučeni početni model:
+Preporučeni početni model za sekundarni SMB eksperiment:
 
-- **Jedan ekran:** self-service prodaja ili prodaja preko partnera.
-- **Dva do pet menijskih ekrana:** primarna direktna founder-led prodaja uz plaćeni setup paket.
-- **Šest do deset ekrana:** sekundarna founder-led prodaja posle tehničke kvalifikacije.
-- **Više od deset ekrana:** individualna procena tek kada kupac ne zahteva funkcije koje proizvod još nema.
-- **Primarno tržište:** Srbija, zatim Bosna i Hercegovina, Crna Gora, Hrvatska i Severna Makedonija.
-- **Primarna vertikala:** counter-service kafići, pekare, poslastičarnice, fast-food i mali restoranski lanci.
-- **Glavni CTA:** „Pošaljite meni i fotografiju prostora — dobićete besplatan prikaz kako bi izgledao na vašem ekranu.“
+- **Jedan do tri menijska ekrana na jednoj lokaciji:** Menu Starter bez setup naknade, uz standardizovan self-service ili concierge-light onboarding.
+- **Više od tri ekrana ili više lokacija:** individualna kvalifikacija; ne širiti standardni paket dok economics i support nisu dokazani.
+- **Custom dizajn, nestrukturisana migracija, POS integracija ili terenski rad:** samo uz posebnu ponudu ili partnera.
+- **Početno SMB tržište:** Srbija, zatim Bosna i Hercegovina, Crna Gora, Hrvatska i Severna Makedonija.
+- **SMB vertikala:** counter-service kafići, pekare, poslastičarnice, fast-food i mali restoranski lanci.
+- **SMB CTA:** „Pošaljite strukturisan meni i podatke o ekranu — proverićemo da li Menu Starter odgovara.“
+
+Funneli se ne sabiraju:
+
+| Track | Primarni signal uspeha | Prodajni model | Ograničenje fokusa |
+| --- | --- | --- | --- |
+| Ops | plaćen pilot od 750 EUR za jednu fabričku/logističku zonu | founder-led discovery, demo i merena isporuka | jedini cilj sprinta 17–23. avgusta |
+| Menu Starter | aktivirana SMB lokacija koja prelazi u pretplatu | self-service/concierge-light, bez setup naknade | najviše dva termina ili lista čekanja dok Ops sprint traje |
+
+Ops onboarding od 900+ EUR nudi se samo kada postoje stvarni consulting/integration zadaci. Menu Starter ima sopstvene metrike: conversion u pretplatu, activation vreme, support minuti i churn; njegov lead se ne računa kao Ops opportunity.
 
 Hormozi princip koji vodi plan: prvo napraviti ponudu koja povećava verovatnoću uspeha i smanjuje vreme i trud kupca; zatim sistematski povećavati broj leadova; potom ubrzati naplatu, kontinuitet i ekspanziju. Zero to One princip: osvojiti mali, precizno definisan segment pre širenja na široko tržište.
 
@@ -83,7 +95,7 @@ Na sajtu trenutno postoje formulacije koje ulaze u ovu zabranjenu grupu, posebno
 ### 2.3. Poslovne rupe koje treba zatvoriti
 
 - Ne postoji kompletan subscription/trial/billing lifecycle u aplikaciji.
-- Mesečna faktura od 8 € za jednog kupca stvara nesrazmeran administrativni trošak.
+- Ručno fakturisanje malih SMB pretplata stvara nesrazmeran administrativni trošak; mesečna naplata mora biti automatizovana ili zamenjena godišnjom.
 - Quote i contact forme šalju email, ali ne grade CRM zapis niti čuvaju izvor, kampanju i status leada.
 - Postoji GA/Vercel analitika, ali nema kompletnih funnel događaja od marketinškog klika do prvog aktivnog ekrana i plaćanja.
 - Brojevi „200+ ekrana“, „40+ organizacija“ i „6+ zemalja“ na sajtu moraju biti potvrđeni iz stvarnih podataka i precizno definisani.
@@ -93,13 +105,13 @@ Na sajtu trenutno postoje formulacije koje ulaze u ovu zabranjenu grupu, posebno
 
 ## 3. Strateški izbor tržišta — Zero to One pristup
 
-### 3.1. Primarni ICP za direktnu prodaju
+### 3.1. Sekundarni ICP za Menu Starter eksperiment
 
 **Vrsta firme**
 
 - Kafić, pekara, poslastičarnica, fast-food ili casual restoran.
-- Jedna do tri lokacije.
-- Dva do pet menijskih ekrana ukupno.
+- Jedna lokacija.
+- Jedan do tri menijska ekrana ukupno.
 - Postojeći TV/displeji ili konkretan plan da ih postave u narednih 30 dana.
 
 **Operativna situacija**
@@ -124,7 +136,7 @@ Na sajtu trenutno postoje formulacije koje ulaze u ovu zabranjenu grupu, posebno
 
 ### 3.2. Segmenti koje ne treba aktivno juriti u prvih 90 dana
 
-- Kupci sa samo jednim ekranom kojima treba višesatna pomoć, osim ako plaćaju setup.
+- Kupci sa jednim ekranom kojima treba custom dizajn, nestrukturisana migracija ili višesatna pomoć koju ne žele posebno da plate.
 - Jedan statičan ekran čiji se sadržaj menja jednom ili dva puta godišnje.
 - Veliki enterprise sistemi sa zahtevima za SSO, audit log, approval, granularne dozvole i formalni SLA.
 - Digitalne advertising mreže koje zahtevaju proof-of-play i impressions.
@@ -161,18 +173,18 @@ Da:
 
 ### 4.3. Kratki pitch
 
-> Pošaljete nam postojeći meni i fotografiju prostora. Mi proverimo hardver, pripremimo vizuelno prilagođen prikaz u granicama postojećih šablona, pomognemo da povežete prvi ekran i obučimo vas da kasnije sami menjate cene. Počinjemo jednom lokacijom, bez dugog ugovora i bez kupovine zatvorenog hardverskog sistema.
+> Izaberete postojeći šablon, unesete strukturisan meni ili povežete podržanu tabelu i uparite svoj kompatibilan ekran/player. Dajemo vodič i jedan kratak activation poziv; posle toga sami menjate cene. Počinjemo jednom lokacijom, bez setup naknade i bez kupovine zatvorenog hardverskog sistema.
 
 ### 4.4. Glavne poruke po problemu
 
-| Problem kupca | Poruka | Dokaz u demou |
-|---|---|---|
-| Svaka promena traži USB ili odlazak u lokal | Menjajte sadržaj iz browsera | Izmeniti cenu i poslati novu verziju ekranu |
-| Meni već postoji u tabeli | Ne prepisujte ga u još jedan sistem | Povezati/importovati Google Sheets, Excel ili CSV |
-| Ne zna koji hardver treba | Dobija tačnu listu, bez obaveze da hardver kupi od nas | Pokazati preporučeni player i način povezivanja |
-| Plaši se crnog ekrana kada padne internet | Podržani preuzeti sadržaj ostaje dostupan iz lokalnog keša | Kontrolisani offline demo sa statičkim sadržajem |
-| Ima više ekrana | Isti postojeći sadržaj može se dodeliti konkretnim odabranim ekranima | Objaviti na dva test ekrana |
-| Ne želi tuđi watermark | Prikaz nema SignageWall watermark | Pokazati podržane boje, font i čist gotov ekran |
+| Problem kupca                               | Poruka                                                                | Dokaz u demou                                     |
+| ------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------- |
+| Svaka promena traži USB ili odlazak u lokal | Menjajte sadržaj iz browsera                                          | Izmeniti cenu i poslati novu verziju ekranu       |
+| Meni već postoji u tabeli                   | Ne prepisujte ga u još jedan sistem                                   | Povezati/importovati Google Sheets, Excel ili CSV |
+| Ne zna koji hardver treba                   | Dobija tačnu listu, bez obaveze da hardver kupi od nas                | Pokazati preporučeni player i način povezivanja   |
+| Plaši se crnog ekrana kada padne internet   | Podržani preuzeti sadržaj ostaje dostupan iz lokalnog keša            | Kontrolisani offline demo sa statičkim sadržajem  |
+| Ima više ekrana                             | Isti postojeći sadržaj može se dodeliti konkretnim odabranim ekranima | Objaviti na dva test ekrana                       |
+| Ne želi tuđi watermark                      | Prikaz nema SignageWall watermark                                     | Pokazati podržane boje, font i čist gotov ekran   |
 
 ### 4.5. Poruke koje treba izbegavati
 
@@ -206,50 +218,38 @@ SignageWall vraća:
 
 **Ograničenje:** preview se radi samo za kvalifikovane firme sa stvarnim ekranom ili planom nabavke u narednih 30 dana. Ne nuditi neograničen besplatan dizajn svima.
 
-### 5.2. Osnovna ponuda: SignageWall Menu Launch
+### 5.2. Osnovna SMB ponuda: SignageWall Menu Starter
 
 **Ishod**
 
 Prvi digitalni meni radi na jednoj lokaciji, a kupac zna samostalno da promeni bar jednu cenu ili stavku.
 
-**Šta ulazi u paket**
+**Šta ulazi u pretplatu bez setup naknade**
 
-- 30-minutni discovery i pregled prostora/hardvera.
-- Tačna shopping lista ili provera postojećeg player-a i televizora.
-- Daljinska pomoć pri instalaciji i uparivanju.
-- Uvoz postojećeg menija/cenovnika.
-- Jedan prilagođeni vizuelni pravac u okviru mogućnosti postojećeg Menu board-a.
-- Podešavanje do tri ekrana na jednoj lokaciji.
-- Obuka jedne ili dve osobe.
-- 21-dnevni pilot softvera.
-- 30 dana prioritetne onboarding podrške.
+- Jedna lokacija i jedan do tri ekrana.
+- Jedan od postojećih Menu Board šablona, sa podržanim bojama, fontom i logotipom.
+- Standardni obrazac/CSV unos ili podržano povezivanje Google Sheets/Excel izvora.
+- Vodič za povezivanje sopstvenog kompatibilnog ekrana/player-a.
+- Najviše jedan kratak remote activation poziv.
+- Kupac zatim sam održava meni i cene.
 
-**Garancija procesa**
+**Granice standardnog paketa**
 
-> Setup se ne plaća dok prvi ekran nije pušten u rad, pod uslovom da je kupac obezbedio kompatibilan hardver, pristupe i kompletan sadržaj.
-
-Ovo nije garancija rasta prodaje. Garantuje se isporučiv korak koji SignageWall kontroliše.
+Bez dodatne ponude nisu uključeni custom dizajn, nestrukturisana migracija menija, obrada fotografija, POS integracija, nova funkcionalnost, hardver, dolazak na lokaciju, montaža ni kabliranje. Eventualni hardver ili terenski rad je pass-through ili posebna partnerska ponuda. Ovo nije garancija rasta prodaje.
 
 ### 5.3. Cena koju treba testirati
 
-| Ponuda | Cena | Kome je namenjena |
-|---|---:|---|
-| Self-service | 8 € po ekranu mesečno | Kupac koji sam postavlja i održava sistem |
-| Design Partner — prva 3 | 149 € setup + 8 €/ekran mesečno | Kupac daje strukturisan feedback i dozvolu za testimonial/case study |
-| Menu Launch — standard | 299 € setup + 8 €/ekran mesečno | Dva do tri ekrana i vođeno postavljanje |
-| Multi-location pilot | Individualno | Četiri do deset ekrana, posle tehničke kvalifikacije |
+| Ponuda                         | Hipoteza cene                                  | Kome je namenjena                                           |
+| ------------------------------ | ----------------------------------------------: | ----------------------------------------------------------- |
+| Menu Starter mesečno           | 29 €/lokacija za prvi ekran + 8 €/dodatni ekran | Jedna lokacija i najviše tri ekrana                         |
+| Menu Starter godišnje          | 290 €/lokacija za prvi ekran unapred             | Kupac koji želi jednostavniju godišnju naplatu              |
+| Dodatna usluga ili više lokacija | Individualno                                   | Samo posle jasnog obima; ne menja standardni paket          |
 
-Hardver nije uključen i mora biti jasno naveden kao odvojena stavka.
-
-„Prva tri“ je stvarno ograničenje zbog kapaciteta osnivača za lični onboarding. Sledeća tri kvalifikovana kupca služe za test standardne setup cene od 299 €. Kada se design partner mesta popune, ponuda se zatvara; scarcity ne sme biti izmišljena.
+Nema setup naknade za standardni Menu Starter. Hardver i terenski rad nisu uključeni. Sve cene su hipoteze za razgovore i prve aktivacije, ne javni konačni cenovnik.
 
 ### 5.4. Predlog naplate za male naloge
 
-Mesečna ručna faktura od 8 € je administrativno neefikasna. Testirati jedan od modela:
-
-1. **Godišnje:** 96 € po ekranu unapred.
-2. **Kvartalno:** 24 € po ekranu, uz minimalan iznos fakture.
-3. **Fleksibilno mesečno:** viša mesečna cena za kupce koji ne žele godišnje plaćanje.
+Ručna faktura za veoma mali iznos je administrativno neefikasna. Testirati godišnju naplatu od 290 EUR za prvi ekran/lokaciju ili automatizovanu mesečnu naplatu od 29 EUR. Dodatni ekrani ostaju 8 EUR mesečno po ekranu u okviru limita standardnog paketa.
 
 Tačnu poresku i fakturacionu primenu potvrditi sa računovođom. Marketinška cena i stvarni proces naplate moraju govoriti isto.
 
@@ -260,7 +260,7 @@ Tačnu poresku i fakturacionu primenu potvrditi sa računovođom. Marketinška c
 Hormozi logika za SignageWall treba da bude sekvenca, ne jedna pretplata:
 
 1. **Acquisition offer:** besplatan Screen Preview ili kratak audit postojećeg ekrana.
-2. **Core offer:** Menu Launch setup.
+2. **Core offer:** Menu Starter pretplata bez setup naknade.
 3. **Continuity:** godišnja ili kvartalna licenca po aktivnom ekranu.
 4. **Expansion:** dodatni ekran, nova lokacija ili dodatni sadržaj/app workflow.
 5. **Service upsell:** dodatni dizajn/import, samo ako je standardizovan ili isporučuje partner.
@@ -269,19 +269,13 @@ Hormozi logika za SignageWall treba da bude sekvenca, ne jedna pretplata:
 
 ### 6.1. Osnovna ekonomija
 
-Pri trenutnoj ceni:
+Pri početnoj hipotezi:
 
-- jedan ekran = 96 € godišnjeg softverskog prihoda;
-- tri ekrana = 288 € godišnjeg softverskog prihoda;
-- pet ekrana = 480 € godišnjeg softverskog prihoda;
-- 5.000 € MRR zahteva 625 plaćenih ekrana;
-- 10.000 € MRR zahteva 1.250 plaćenih ekrana.
+- jedna lokacija/jedan ekran = 348 EUR godišnje uz mesečno plaćanje ili 290 EUR unapred;
+- jedna lokacija/tri ekrana = 540 EUR godišnje uz mesečno plaćanje;
+- 5.000 EUR MRR zahteva približno 173 lokacije sa jednim ekranom ili oko 112 lokacija sa tri ekrana.
 
-Zato direktna prodaja sa nekoliko sati rada nema smisla za jedan ekran bez setup prihoda. Standardni Menu Launch sa tri ekrana daje ilustrativno:
-
-- 299 € setup;
-- 288 € softver u prvoj godini;
-- ukupno 587 € prihoda prve godine, bez hardvera i dodatnih usluga.
+Pošto nema setup prihoda, direktna prodaja i onboarding moraju biti strogo standardizovani. Jedna lokacija ne sme zahtevati višesatni custom rad; takav zahtev se posebno nudi, predaje partneru ili diskvalifikuje.
 
 Za svaki posao beležiti:
 
@@ -292,7 +286,7 @@ Prihod prve godine
 = doprinos poslu
 ```
 
-Setup treba da pokrije trošak prodaje i onboardinga. Pretplata treba da finansira proizvod, infrastrukturu, podršku i profit.
+Pretplata mora da pokrije prodaju, standardni activation, infrastrukturu, podršku i profit. Posebno ponuđene usluge moraju same pokriti svoj rad i direktne troškove.
 
 Dodatne formule za praćenje:
 
@@ -307,12 +301,12 @@ CAC payback u mesecima = CAC / bruto mesečni doprinos novog kupca
 
 Početni ekonomski pragovi koje treba validirati:
 
-- founder-led kupac u proseku ima najmanje tri ekrana;
-- setup pokriva prodajne i onboarding sate;
+- prosečan prihod po lokaciji i support minuti daju održivu maržu;
+- standardni activation ne prelazi 30–45 minuta founder vremena;
 - CAC payback nije duži od šest meseci;
-- standardizovani onboarding ne prelazi tri founder sata;
+- nijedan standardni Menu Starter activation ne preraste u custom onboarding;
 - podrška ne prelazi dva sata po kupcu tokom prvih 30 dana;
-- setup prihod i MRR se u izveštajima vode odvojeno;
+- pretplata i posebno ugovorene usluge se u izveštajima vode odvojeno;
 - LTV/CAC se ne proglašava pouzdanim dok ne postoje dovoljno stare kohorte i stvarni churn podaci.
 
 ### 6.2. Referral model
@@ -331,14 +325,14 @@ Ne davati velike trajne popuste koji smanjuju recurring prihod.
 
 Kanale uvoditi redosledom kojim daju najbrže učenje i najniži rizik.
 
-| Prioritet | Kanal | Uloga u prvih 90 dana | Udeo GTM vremena |
-|---:|---|---|---:|
-| 1 | Postojeći nalozi i poznanstva | Intervjui, aktivacija, prvi proof i preporuke | 20% |
-| 2 | Personalizovani outbound | Glavni izvor novih razgovora i demoa | 40% |
-| 3 | Partneri i preporuke | Distribucija bez proporcionalnog founder vremena | 15% |
-| 4 | Founder content + Instagram/LinkedIn | Poverenje i podrška outbound-u | 15% |
-| 5 | Bottom-of-funnel SEO | Hvatanje aktivne tražnje | 10% |
-| 6 | Plaćeni oglasi | Tek kada je funnel dokazan | 0% na početku |
+| Prioritet | Kanal                                | Uloga u prvih 90 dana                            | Udeo GTM vremena |
+| --------: | ------------------------------------ | ------------------------------------------------ | ---------------: |
+|         1 | Postojeći nalozi i poznanstva        | Intervjui, aktivacija, prvi proof i preporuke    |              20% |
+|         2 | Personalizovani outbound             | Glavni izvor novih razgovora i demoa             |              40% |
+|         3 | Partneri i preporuke                 | Distribucija bez proporcionalnog founder vremena |              15% |
+|         4 | Founder content + Instagram/LinkedIn | Poverenje i podrška outbound-u                   |              15% |
+|         5 | Bottom-of-funnel SEO                 | Hvatanje aktivne tražnje                         |              10% |
+|         6 | Plaćeni oglasi                       | Tek kada je funnel dokazan                       |    0% na početku |
 
 Ne pokušavati da se svi kanali vode istim intenzitetom.
 
@@ -348,13 +342,13 @@ Ne pokušavati da se svi kanali vode istim intenzitetom.
 
 Sajt navodi 40+ organizacija i 200+ ekrana. Pre nove kampanje napraviti stvarni segmentirani izveštaj:
 
-| Segment | Definicija | Akcija |
-|---|---|---|
-| Aktivni | Player viđen u poslednjih 7 dana i ima sadržaj | Intervju, ponuda, testimonial, referral |
-| Aktivirani | Upario ekran i objavio sadržaj, ali nije skoro aktivan | Razgovor o razlogu zastoja i reaktivacija |
-| Stalled trial | Registrovan, nije upario prvi ekran | Concierge onboarding i pomoć oko hardvera |
-| Neaktivan | Nema značajnu aktivnost 30+ dana | Kratka anketa sa jednim pitanjem zašto je odustao |
-| Interni/test | Demo i razvojni nalozi | Isključiti iz marketinških brojki |
+| Segment       | Definicija                                             | Akcija                                            |
+| ------------- | ------------------------------------------------------ | ------------------------------------------------- |
+| Aktivni       | Player viđen u poslednjih 7 dana i ima sadržaj         | Intervju, ponuda, testimonial, referral           |
+| Aktivirani    | Upario ekran i objavio sadržaj, ali nije skoro aktivan | Razgovor o razlogu zastoja i reaktivacija         |
+| Stalled trial | Registrovan, nije upario prvi ekran                    | Concierge onboarding i pomoć oko hardvera         |
+| Neaktivan     | Nema značajnu aktivnost 30+ dana                       | Kratka anketa sa jednim pitanjem zašto je odustao |
+| Interni/test  | Demo i razvojni nalozi                                 | Isključiti iz marketinških brojki                 |
 
 ### Intervju sa postojećim korisnikom
 
@@ -485,13 +479,13 @@ Diskvalifikovati ili jasno odložiti kupca ako mu je obavezna funkcija koju Sign
 
 ### 10.2. Demo od 15 minuta
 
-| Minut | Sadržaj |
-|---:|---|
-| 0–3 | Ponoviti problem kupca njegovim rečima |
-| 3–7 | Pokazati meni ili najbliži relevantni primer |
-| 7–10 | Izmeniti jednu stavku/cenu i objaviti novu verziju |
+| Minut | Sadržaj                                                                       |
+| ----: | ----------------------------------------------------------------------------- |
+|   0–3 | Ponoviti problem kupca njegovim rečima                                        |
+|   3–7 | Pokazati meni ili najbliži relevantni primer                                  |
+|  7–10 | Izmeniti jednu stavku/cenu i objaviti novu verziju                            |
 | 10–12 | Pokazati status uređaja i kontrolisano offline ponašanje relevantnog sadržaja |
-| 12–15 | Predložiti pilot sa konkretnim datumom, ekranima i cenom |
+| 12–15 | Predložiti pilot sa konkretnim datumom, ekranima i cenom                      |
 
 Ne pokazivati ceo katalog aplikacija osim ako kupac pita. Demo treba da potvrdi ishod, ne da bude obilazak proizvoda.
 
@@ -534,7 +528,7 @@ Review zakazati sedmog dana, a komercijalnu odluku između 14. i 18. dana. Ne č
 
 ### 11.6. Zatvaranje demoa
 
-> Na osnovu onoga što ste rekli, predlažem jednu lokaciju i **[broj]** ekrana. Menu Launch je **[cena]** za setup plus 8 € mesečno po ekranu. Setup plaćate kada prvi ekran proradi, pod uslovom da su hardver i sadržaj spremni. Ako krenemo **[datum]**, prvi korak je da nam pošaljete **[materijal]**. Da li da rezervišemo taj termin?
+> Na osnovu onoga što ste rekli, predlažem Menu Starter za jednu lokaciju i **[broj]** ekrana. Standardni paket nema setup naknadu; hipoteza je 29 € mesečno za lokaciju/prvi ekran i 8 € za svaki dodatni ekran do ukupno tri. Koristite svoj kompatibilan ekran/player, a custom dizajn, migracija, hardver i terenski rad nisu u toj ceni. Ako krenemo **[datum]**, prvi korak je da nam pošaljete strukturisan meni i podatke o uređaju. Da li da rezervišemo activation termin?
 
 ### 11.7. Poruka partneru
 
@@ -580,7 +574,7 @@ Instagram nije primarni izvor volumena na početku. Njegov posao je da potencija
 3. **Proof:** instalacija, kupac, testimonial, pre/posle.
 4. **Edukacija:** izbor televizora/player-a, font i kontrast, priprema tabele.
 5. **Founder journey:** šta ste naučili iz realnog onboardinga i zašto ste nešto napravili.
-6. **Ponuda:** Screen Preview, design partner mesta i jasan CTA.
+6. **Ponuda:** Screen Preview, ograničena mesta za rane Menu Starter korisnike i jasan CTA.
 
 ### 12.4. Održiv ritam
 
@@ -605,7 +599,7 @@ Ne meriti uspeh prvenstveno followerima. Meriti kvalifikovane DM razgovore, prev
 9. Koliko košta softver i šta hardver nije uključen.
 10. Kako pripremiti Excel/CSV za uvoz.
 11. Jedan dan rada na onboarding-u stvarnog klijenta.
-12. Poziv za jedno od pet design partner mesta.
+12. Poziv za jedno od pet mesta za rane Menu Starter korisnike.
 
 ---
 
@@ -657,7 +651,7 @@ Iskrenost oko ograničenja može biti prednost brenda, ali objava uvek treba da 
 5. Dodati stvarni video demoa iz proizvoda.
 6. Dodati najmanje tri stvarne fotografije ekrana/instalacija.
 7. Dodati imenovani testimonial samo uz dozvolu kupca.
-8. Odvojiti self-service trial CTA od concierge Menu Launch CTA-a.
+8. Jasno označiti granicu između standardnog Menu Starter activation-a i dodatnih usluga.
 
 ### 14.2. Landing stranica za outbound
 
@@ -668,9 +662,9 @@ Predložena struktura `/sr/digitalni-meni` ili postojeće odgovarajuće solution
 3. **Primarni CTA:** „Pošaljite meni — dobijte besplatan preview.“
 4. **Video:** 45–60 sekundi, promena jedne cene do prikaza na ekranu.
 5. **Kako radi:** pošaljete sadržaj → povežemo ekran → sami održavate.
-6. **Šta je uključeno:** tačan Menu Launch stack.
+6. **Šta je uključeno:** tačan Menu Starter stack i limit pomoći.
 7. **Šta nije:** hardver, POS, automatski dayparting ako još ne postoji.
-8. **Cena:** softver + setup, bez skrivenog „kontaktirajte nas“ za standardni slučaj.
+8. **Cena:** pretplata bez setup naknade, uz jasno odvojene dodatne usluge; objaviti je tek kada hipoteza bude potvrđena.
 9. **Proof:** fotografije, testimonial, proces i merljivi podaci.
 10. **FAQ:** hardver, internet, izvor podataka, rok, podrška.
 11. **Finalni CTA:** isti Screen Preview, bez novog poziva na akciju.
@@ -919,13 +913,13 @@ Obojica razumeju prodaju, ali jedna osoba je odgovorna za to da pipeline ne stan
 
 ### 19.2. Primer nedelje
 
-| Dan | GTM owner | Product/Onboarding owner |
-|---|---|---|
-| Ponedeljak | 15 novih kontakata, pipeline plan | P0 product/website rad |
-| Utorak | Follow-up i demoi | Demo podrška i onboarding |
-| Sreda | 15 novih kontakata, intervju | Product rad i jedan sadržaj/demo snimak |
-| Četvrtak | Follow-up, demoi, partneri | Pilot aktivacije |
-| Petak | Ponude, zatvaranje i KPI review | Funnel/bug analiza i prioriteti |
+| Dan        | GTM owner                         | Product/Onboarding owner                |
+| ---------- | --------------------------------- | --------------------------------------- |
+| Ponedeljak | 15 novih kontakata, pipeline plan | P0 product/website rad                  |
+| Utorak     | Follow-up i demoi                 | Demo podrška i onboarding               |
+| Sreda      | 15 novih kontakata, intervju      | Product rad i jedan sadržaj/demo snimak |
+| Četvrtak   | Follow-up, demoi, partneri        | Pilot aktivacije                        |
+| Petak      | Ponude, zatvaranje i KPI review   | Funnel/bug analiza i prioriteti         |
 
 Minimalan zaštićeni sales blok: dva sata svakog radnog dana. Ne pomerati ga zbog rada na novoj funkciji osim za incident koji pogađa aktivne korisnike.
 
@@ -940,7 +934,7 @@ Minimalan zaštićeni sales blok: dva sata svakog radnog dana. Ne pomerati ga zb
 - [ ] Odabrati jednog GTM owner-a.
 - [ ] Uskladiti sajt sa `CONTENT-CLAIMS.md`.
 - [ ] Potvrditi ili ukloniti 200+/40+/6+ trust brojke.
-- [ ] Definisati tačan Menu Launch scope, cenu i uslove.
+- [ ] Definisati tačan Menu Starter scope, hipotezu pretplate i granice pomoći.
 - [ ] Napraviti Screen Preview formu/proces.
 - [ ] Napraviti jednu vertikalnu landing stranicu.
 - [ ] Snimiti demo od 45–60 sekundi.
@@ -948,7 +942,7 @@ Minimalan zaštićeni sales blok: dva sata svakog radnog dana. Ne pomerati ga zb
 - [ ] Uvesti minimalne CTA, lead i activation događaje.
 - [ ] Segmentirati postojeće naloge.
 - [ ] Obaviti najmanje 10 intervjua.
-- [ ] Pozvati tri kvalifikovana design partnera.
+- [ ] Pozvati tri kvalifikovana rana Menu Starter korisnika.
 
 **Gate za sledeću fazu:** najmanje tri kvalifikovana kupca prihvataju da vide demo ili preview iste ponude.
 
@@ -972,7 +966,7 @@ Minimalan zaštićeni sales blok: dva sata svakog radnog dana. Ne pomerati ga zb
 **Cilj:** smanjiti zavisnost od tvrdnji osnivača i otvoriti kanal preko drugih ljudi.
 
 - [ ] Napraviti najmanje jedan kompletan case study i dva kratka testimonial/proof asset-a.
-- [ ] Preći sa design partner na standardni setup fee.
+- [ ] Potvrditi ili korigovati pretplatu na osnovu aktivacije, support vremena i retention signala; ne uvoditi standardni setup fee.
 - [ ] Kontaktirati 20–30 potencijalnih partnera.
 - [ ] Održati najmanje tri partner demoa.
 - [ ] Aktivirati najmanje jednog partnera sa stvarnim leadom.
@@ -1020,16 +1014,16 @@ Ako postojeći nalozi zaista uključuju veliki broj aktivnih i neplaćenih ekran
 
 Brojevi služe da se prepozna ograničenje sistema:
 
-| Signal posle dovoljnog uzorka | Verovatan problem | Sledeća akcija |
-|---|---|---|
-| Manje od 5 odgovora na 100 kvalitetnih kontakata | ICP, lista ili prva poruka | Uži segment, jača personalizacija, drugačiji problem |
-| Odgovori postoje, ali nema demoa | CTA ili kvalifikacija | Ponuditi Screen Preview ili kraći konkretan razgovor |
-| Demo postoji, ali nema pilota | Ponuda, poverenje ili pogrešan demo | Prikaz kupčevog sadržaja, jasniji setup i garancija procesa |
-| Pilot postoji, ali nema plaćanja | Vrednost, aktivacija ili success criteria | Intervju, ukloniti onboarding trenje, precizirati problem |
-| Kupci plaćaju, ali podrška je velika | Delivery model | Standardizovati, povećati setup ili prebaciti deo partneru |
-| Kupci ostaju, ali ne dodaju ekrane | Pogrešan segment ili nema expansion trigger-a | Fokus na firme sa više lokacija i planom širenja |
-| Isti feature blokira 3+ kvalifikovana posla | Mogući product prioritet | Izmeriti prihod, složenost i alternativu pre razvoja |
-| Različiti kupci traže potpuno različite stvari | ICP je preširok | Vratiti se na uži beachhead |
+| Signal posle dovoljnog uzorka                    | Verovatan problem                             | Sledeća akcija                                              |
+| ------------------------------------------------ | --------------------------------------------- | ----------------------------------------------------------- |
+| Manje od 5 odgovora na 100 kvalitetnih kontakata | ICP, lista ili prva poruka                    | Uži segment, jača personalizacija, drugačiji problem        |
+| Odgovori postoje, ali nema demoa                 | CTA ili kvalifikacija                         | Ponuditi Screen Preview ili kraći konkretan razgovor        |
+| Demo postoji, ali nema pilota                    | Ponuda, poverenje ili pogrešan demo           | Prikaz kupčevog sadržaja i jasniji activation proces        |
+| Pilot postoji, ali nema plaćanja                 | Vrednost, aktivacija ili success criteria     | Intervju, ukloniti onboarding trenje, precizirati problem   |
+| Kupci plaćaju, ali podrška je velika             | Delivery model                                | Smanjiti standardni obim, dodatni rad posebno ponuditi ili prebaciti partneru |
+| Kupci ostaju, ali ne dodaju ekrane               | Pogrešan segment ili nema expansion trigger-a | Fokus na firme sa više lokacija i planom širenja            |
+| Isti feature blokira 3+ kvalifikovana posla      | Mogući product prioritet                      | Izmeriti prihod, složenost i alternativu pre razvoja        |
+| Različiti kupci traže potpuno različite stvari   | ICP je preširok                               | Vratiti se na uži beachhead                                 |
 
 Ne menjati ICP, cenu, landing, CTA i demo u isto vreme. Menjati jednu veću hipotezu po ciklusu da bi rezultat bio razumljiv.
 
@@ -1110,18 +1104,18 @@ Najskuplji resurs su sati osnivača. Njih pratiti kao trošak, čak i kada nema 
 
 ## 26. Prvih deset konkretnih akcija
 
-| # | Akcija | Vlasnik | Rok | Status |
-|---:|---|---|---|---|
-| 1 | Imenovati GTM owner-a za narednih osam nedelja |  |  |  |
-| 2 | Izvući stvarne podatke o aktivnim organizacijama i ekranima |  |  |  |
-| 3 | Ispraviti sve claim konflikte na srpskom i engleskom sajtu |  |  |  |
-| 4 | Zaključati Menu Launch scope, cenu i uslove garancije |  |  |  |
-| 5 | Napraviti Screen Preview formu i proces odgovora |  |  |  |
-| 6 | Snimiti jedan 60-sekundni realan demo |  |  |  |
-| 7 | Pozvati deset postojećih korisnika na intervju |  |  |  |
-| 8 | Napraviti listu prvih 100 kvalifikovanih lokala |  |  |  |
-| 9 | Poslati prvih 25 personalizovanih poruka |  |  |  |
-| 10 | Zakazati petkom prvi 30-minutni pipeline/KPI review |  |  |  |
+|   # | Akcija                                                      | Vlasnik | Rok | Status |
+| --: | ----------------------------------------------------------- | ------- | --- | ------ |
+|   1 | Imenovati GTM owner-a za narednih osam nedelja              |         |     |        |
+|   2 | Izvući stvarne podatke o aktivnim organizacijama i ekranima |         |     |        |
+|   3 | Ispraviti sve claim konflikte na srpskom i engleskom sajtu  |         |     |        |
+|   4 | Zaključati Menu Starter scope, hipotezu pretplate i granice |         |     |        |
+|   5 | Napraviti Screen Preview formu i proces odgovora            |         |     |        |
+|   6 | Snimiti jedan 60-sekundni realan demo                       |         |     |        |
+|   7 | Pozvati deset postojećih korisnika na intervju              |         |     |        |
+|   8 | Napraviti listu prvih 100 kvalifikovanih lokala             |         |     |        |
+|   9 | Poslati prvih 25 personalizovanih poruka                    |         |     |        |
+|  10 | Zakazati petkom prvi 30-minutni pipeline/KPI review         |         |     |        |
 
 ---
 
@@ -1174,7 +1168,7 @@ Spoljni kontekst pregledan prilikom izrade strategije:
 - [PosterBooking pricing](https://posterbooking.com/digital-signage-price)
 - [Acquisition.com — $100M Offers](https://shop.acquisition.com/products/100m-offers-hardcover)
 - [Acquisition.com — $100M Leads](https://shop.acquisition.com/products/single-hardback)
-- Alex Hormozi, *$100M Money Models*
-- Peter Thiel i Blake Masters, *Zero to One*
+- Alex Hormozi, _$100M Money Models_
+- Peter Thiel i Blake Masters, _Zero to One_
 
 Konkurentske cene i funkcije su vremenski promenljive i treba ih proveriti pre javnog poređenja. Interni ciljevi, conversion pragovi i finansijski primeri u ovom dokumentu predstavljaju radne hipoteze i ilustracije, ne garantovane rezultate.

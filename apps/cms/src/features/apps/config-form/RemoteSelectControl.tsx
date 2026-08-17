@@ -20,6 +20,12 @@ function asValue(value: unknown): RemoteSelectValue | null {
   return typeof value === 'string' && value ? { id: value } : null
 }
 
+function remoteParamValue(value: unknown): string | undefined {
+  const selected = asValue(value)
+  if (selected?.id) return selected.id
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
 /**
  * The `remote-select` field control: an async, searchable dropdown backed by a
  * connected account. Reads the sibling `connectionId` (from the form context) to
@@ -39,9 +45,16 @@ export function RemoteSelectControl({
 }: FieldControlProps) {
   const { t } = useTranslation()
   const values = useConfigValues()
-  const connectionId =
-    typeof values.connectionId === 'string' ? values.connectionId : undefined
+  const connectionId = typeof values.connectionId === 'string' ? values.connectionId : undefined
   const source = field.remoteSource ?? ''
+  const remoteParams = Object.fromEntries(
+    Object.entries(field.remoteParams ?? {}).flatMap(([parameter, siblingKey]) => {
+      const resolved = remoteParamValue(values[siblingKey])
+      return resolved ? [[parameter, resolved]] : []
+    }),
+  )
+  const parentsReady =
+    Object.keys(remoteParams).length === Object.keys(field.remoteParams ?? {}).length
 
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebouncedValue(query, 300)
@@ -50,6 +63,8 @@ export function RemoteSelectControl({
     connectionId,
     source,
     debouncedQuery,
+    remoteParams,
+    parentsReady,
   )
 
   const selected = asValue(value)
@@ -59,6 +74,7 @@ export function RemoteSelectControl({
   }))
 
   const noConnection = !connectionId
+  const unavailable = noConnection || !parentsReady
 
   return (
     <Combobox
@@ -73,11 +89,13 @@ export function RemoteSelectControl({
         onChange({ id: nextId, label: picked?.title ?? selected?.label })
       }}
       onBlur={onBlur}
-      disabled={(disabled ?? false) || noConnection}
+      disabled={(disabled ?? false) || unavailable}
       placeholder={
         noConnection
           ? t('apps.connections.selectAccountFirst')
-          : (field.placeholder ?? t('apps.remoteSelect.placeholder'))
+          : !parentsReady
+            ? t('apps.remoteSelect.selectParentFirst')
+            : (field.placeholder ?? t('apps.remoteSelect.placeholder'))
       }
       searchPlaceholder={t('apps.remoteSelect.search')}
       emptyLabel={t('apps.remoteSelect.empty')}

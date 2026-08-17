@@ -5,15 +5,21 @@ import { APP_MANIFESTS } from '@signagewall/apps';
 import type {
   AppConnector,
   AppDataMeta,
+  ConnectorErrorCode,
   ConnectorLogger,
   ResolvedConnection,
 } from '@signagewall/apps-contract';
+import { isConnectorErrorCode } from '@signagewall/apps-contract';
 
 import { ConnectionsService } from '../connections/connections.service';
 import { AppDataChangedEvent, PlayerEvents } from '../player/player.events';
 import { AppDataCacheRepository } from './app-data-cache.repository';
 import { AppInstancesRepository } from './app-instances.repository';
 import { cacheKeyForInstance } from './connectors/cache-key.util';
+import {
+  classifyConnectorError,
+  classifyConnectorMessage,
+} from './connectors/_shared/classify-connector-error';
 import { connectorSlugs, getConnector } from './connectors/connector-registry';
 import { AppDataCacheDocument } from './schemas/app-data-cache.schema';
 
@@ -24,6 +30,9 @@ interface DueCandidate {
   /** A representative instance config (all instances of a key share output). */
   config: Record<string, unknown>;
   refreshSeconds: number;
+  /** Persisted owner expected for scheduler-driven connected fetches. */
+  organizationId?: string;
+  appInstanceId?: string;
 }
 
 /** Live-preview connector payload + freshness for a `server` app instance. */
@@ -122,6 +131,8 @@ export class AppDataService {
           payload: entry.payload,
           version: entry.version,
           secrets: entry.secrets,
+          pending: Boolean(entry.pending),
+          stale: Boolean(entry.lastError),
         },
       ]),
     );
@@ -233,7 +244,10 @@ export class AppDataService {
     const groups = await this.appInstancesRepository.distinctCacheKeys(slugs);
     const candidates: DueCandidate[] = [];
     for (const group of groups) {
-      const refreshSeconds = this.refreshSecondsFor(group.appSlug);
+      const refreshSeconds = this.refreshSecondsFor(
+        group.appSlug,
+        group.config,
+      );
       if (refreshSeconds === undefined) {
         continue;
       }
@@ -250,6 +264,8 @@ export class AppDataService {
         slug: group.appSlug,
         config: group.config,
         refreshSeconds,
+        organizationId: group.organizationId,
+        appInstanceId: group.appInstanceId,
       });
     }
     return candidates;
@@ -274,7 +290,17 @@ export class AppDataService {
     return repaired;
   }
 
-  private refreshSecondsFor(slug: string): number | undefined {
+  private refreshSecondsFor(
+    slug: string,
+    config: Record<string, unknown> = {},
+  ): number | undefined {
+    const configured = getConnector(slug)?.refreshSeconds?.(config);
+    if (configured !== undefined) {
+      if (!Number.isFinite(configured) || configured < 1) {
+        throw new Error(`Invalid connector refresh cadence for ${slug}`);
+      }
+      return Math.floor(configured);
+    }
     return APP_MANIFESTS.find((manifest) => manifest.slug === slug)
       ?.refreshSeconds;
   }
@@ -328,12 +354,24 @@ export class AppDataService {
       payload: unknown;
       version?: string;
       secrets?: Record<string, unknown>;
+      pending?: boolean;
+      stale?: boolean;
     },
   ): Promise<boolean> {
     try {
-      const { changed, pending } = await this.performFetch(candidate, previous);
-      // A pending result kept the last-known payload; nothing changed to fan out.
-      return pending ? false : changed;
+      const { saved, changed, pending } = await this.performFetch(
+        candidate,
+        previous,
+      );
+      // A pending result kept the last-known payload; fan out only when the
+      // pending/stale state itself flipped, so screens update their status.
+      if (pending) {
+        return (
+          previous.pending !== Boolean(saved.pending) ||
+          previous.stale !== Boolean(saved.lastError)
+        );
+      }
+      return changed;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(
@@ -344,6 +382,7 @@ export class AppDataService {
         candidate.slug,
         candidate.refreshSeconds,
         message,
+        classifyConnectorError(error),
       );
       return false;
     }
@@ -429,6 +468,10 @@ export class AppDataService {
           candidate.slug,
           candidate.refreshSeconds,
           result.secrets,
+          result.error,
+          result.error
+            ? (result.errorCode ?? classifyConnectorMessage(result.error))
+            : undefined,
         );
         return { saved, pending: true, changed: false };
       }
@@ -489,7 +532,7 @@ export class AppDataService {
       return { data: null, meta: null };
     }
 
-    const refreshSeconds = this.refreshSecondsFor(slug) ?? 900;
+    const refreshSeconds = this.refreshSecondsFor(slug, config) ?? 900;
     const candidate: DueCandidate = { cacheKey, slug, config, refreshSeconds };
 
     const [existing] = await this.cacheRepository.findByCacheKeys([cacheKey]);
@@ -515,11 +558,21 @@ export class AppDataService {
       // An async job is still running: keep the last-known payload (if any) and
       // flag `pending` so the preview polls until the export finishes.
       if (pending) {
+        if (
+          Boolean(existing?.pending) !== Boolean(saved.pending) ||
+          Boolean(existing?.lastError) !== Boolean(saved.lastError)
+        ) {
+          this.eventEmitter.emit(PlayerEvents.AppDataChanged, {
+            cacheKey,
+            slug,
+          } satisfies AppDataChangedEvent);
+        }
         return this.toPreviewResult(
           saved.payload,
           saved.fetchedAt,
-          false,
+          Boolean(saved.lastError),
           true,
+          this.savedErrorCode(saved),
         );
       }
       // The preview writes into the SAME global connector cache the players read
@@ -540,12 +593,33 @@ export class AppDataService {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(`Preview fetch failed for ${cacheKey}: ${message}`);
-      // Fall back to the last-known-good payload, flagged stale; null otherwise.
+      const errorCode = classifyConnectorError(error);
+      // Fall back to the last-known-good payload, flagged stale — and even with
+      // nothing cached, the operator still gets the failure code: a broken
+      // first-time setup must say WHY, not render an empty screen.
       if (existing?.payload !== undefined) {
-        return this.toPreviewResult(existing.payload, existing.fetchedAt, true);
+        return this.toPreviewResult(
+          existing.payload,
+          existing.fetchedAt,
+          true,
+          false,
+          errorCode,
+        );
       }
-      return { data: null, meta: null };
+      return { data: null, meta: { stale: true, errorCode } };
     }
+  }
+
+  /** The persisted error classification, revalidated against the allowlist. */
+  private savedErrorCode(
+    saved: AppDataCacheDocument,
+  ): ConnectorErrorCode | undefined {
+    if (!saved.lastError) {
+      return undefined;
+    }
+    return isConnectorErrorCode(saved.lastErrorCode)
+      ? saved.lastErrorCode
+      : classifyConnectorMessage(saved.lastError);
   }
 
   private toPreviewResult(
@@ -553,6 +627,7 @@ export class AppDataService {
     fetchedAt: Date | undefined,
     stale: boolean,
     pending = false,
+    errorCode?: ConnectorErrorCode,
   ): PreviewDataResult {
     return {
       data: payload ?? null,
@@ -560,6 +635,7 @@ export class AppDataService {
         ...(fetchedAt ? { fetchedAt: fetchedAt.toISOString() } : {}),
         stale,
         ...(pending ? { pending: true } : {}),
+        ...(errorCode ? { errorCode } : {}),
       },
     };
   }
@@ -583,7 +659,17 @@ export class AppDataService {
     if (typeof connectionId !== 'string' || !connectionId) {
       throw new Error('connected app has no connectionId');
     }
-    return this.connectionsService.resolveConnection(connectionId);
+    const connection =
+      await this.connectionsService.resolveConnection(connectionId);
+    if (
+      (candidate.organizationId &&
+        connection.organizationId !== candidate.organizationId) ||
+      (candidate.appInstanceId &&
+        connection.appInstanceId !== candidate.appInstanceId)
+    ) {
+      throw new Error('connected app ownership mismatch');
+    }
+    return connection;
   }
 
   /** Structured logger handed to connectors (bridges to the Nest logger). */

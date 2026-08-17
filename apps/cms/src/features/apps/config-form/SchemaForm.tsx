@@ -17,6 +17,61 @@ import { friendlyMessage } from '@/features/apps/config-form/validationMessages'
 
 type ConfigValues = Record<string, unknown>
 
+function valueIdentity(value: unknown): unknown {
+  if (value && typeof value === 'object' && 'id' in value) {
+    return (value as { id?: unknown }).id
+  }
+  return value
+}
+
+/**
+ * Every value that only makes sense for the previously connected account.
+ *
+ * `remote-select` and `column-mapping` values are ids and header names read out
+ * of one specific tenant's Drive/Power BI/Excel. They do NOT declare the
+ * connection field in `remoteParams` (they hang off each other, not off the
+ * account), so {@link clearRemoteDependents} alone leaves them behind when the
+ * operator reconnects as somebody else — and the config then points at a file
+ * in an organization the new account cannot see.
+ */
+function clearConnectionScopedValues(
+  schema: ConfigSchema,
+  values: ConfigValues,
+): ConfigValues {
+  const next = { ...values }
+  for (const field of schema) {
+    if (field.type === 'remote-select' || field.type === 'column-mapping') {
+      Reflect.deleteProperty(next, field.key)
+    }
+  }
+  return next
+}
+
+/** Clear every cascading remote picker downstream of a changed parent. */
+function clearRemoteDependents(
+  schema: ConfigSchema,
+  values: ConfigValues,
+  changedKey: string,
+): ConfigValues {
+  const next = { ...values }
+  const queue = [changedKey]
+  const visited = new Set<string>()
+
+  while (queue.length > 0) {
+    const parent = queue.shift()
+    if (!parent || visited.has(parent)) continue
+    visited.add(parent)
+
+    for (const candidate of schema) {
+      if (!Object.values(candidate.remoteParams ?? {}).includes(parent)) continue
+      Reflect.deleteProperty(next, candidate.key)
+      queue.push(candidate.key)
+    }
+  }
+
+  return next
+}
+
 interface SchemaFormProps {
   schema: ConfigSchema
   /** Current config values (controlled). */
@@ -97,6 +152,22 @@ export function SchemaForm({
     return map
   }, [schema])
 
+  /**
+   * Fields that identify the connected account: the `oauth` controls plus
+   * whatever a `column-mapping` names as its connection sibling. Changing one
+   * invalidates every id picked out of the old tenant.
+   */
+  const connectionFieldKeys = useMemo(() => {
+    const keys = new Set<string>()
+    for (const field of schema) {
+      if (field.type === 'oauth') keys.add(field.key)
+      if (field.columnMapping?.connectionKey) {
+        keys.add(field.columnMapping.connectionKey)
+      }
+    }
+    return keys
+  }, [schema])
+
   const errors = useMemo(() => {
     const map: Record<string, string> = {}
     // Pass `value` so conditionally-hidden (visibleWhen) fields aren't enforced.
@@ -139,7 +210,9 @@ export function SchemaForm({
             field.type === 'select'
               ? field.options?.find((option) => option.value === next)?.set
               : undefined
-          onChange({ ...value, [field.key]: next, ...preset })
+          const merged = { ...value, [field.key]: next, ...preset }
+          const parentsChanged = valueIdentity(value[field.key]) !== valueIdentity(next)
+          onChange(parentsChanged ? clearRemoteDependents(schema, merged, field.key) : merged)
         }}
         onBlur={() => {
           markTouched(field.key)
@@ -151,32 +224,44 @@ export function SchemaForm({
   return (
     <AppSlugProvider value={appSlug ?? null}>
       <InstanceIdProvider value={instanceId ?? null}>
-      <ConfigValuesProvider value={value}>
-      <ConfigPatchProvider value={(patch) => { onChange({ ...value, ...patch }); }}>
-      <div className="flex flex-col gap-4">
-        {sections.map((section, index) => {
-          // First (untitled, always-open) section — the primary config fields.
-          if (index === 0) {
-            return (
-              <FieldGroup key="primary">
-                {section.fields.map(renderField)}
-              </FieldGroup>
-            )
-          }
+        <ConfigValuesProvider value={value}>
+          <ConfigPatchProvider
+            value={(patch) => {
+              let next = { ...value, ...patch }
+              for (const [key, patched] of Object.entries(patch)) {
+                if (valueIdentity(value[key]) === valueIdentity(patched)) {
+                  continue
+                }
+                // The `oauth` control patches the connection field. Anything
+                // picked out of the old account has to go with it.
+                if (connectionFieldKeys.has(key)) {
+                  next = clearConnectionScopedValues(schema, next)
+                }
+                next = clearRemoteDependents(schema, next, key)
+              }
+              onChange(next)
+            }}
+          >
+            <div className="flex flex-col gap-4">
+              {sections.map((section, index) => {
+                // First (untitled, always-open) section — the primary config fields.
+                if (index === 0) {
+                  return <FieldGroup key="primary">{section.fields.map(renderField)}</FieldGroup>
+                }
 
-          return (
-            <CollapsibleSection
-              key={section.title ?? index}
-              title={section.title ?? ''}
-              defaultOpen={section.defaultOpen}
-            >
-              <FieldGroup>{section.fields.map(renderField)}</FieldGroup>
-            </CollapsibleSection>
-          )
-        })}
-      </div>
-      </ConfigPatchProvider>
-      </ConfigValuesProvider>
+                return (
+                  <CollapsibleSection
+                    key={section.title ?? index}
+                    title={section.title ?? ''}
+                    defaultOpen={section.defaultOpen}
+                  >
+                    <FieldGroup>{section.fields.map(renderField)}</FieldGroup>
+                  </CollapsibleSection>
+                )
+              })}
+            </div>
+          </ConfigPatchProvider>
+        </ConfigValuesProvider>
       </InstanceIdProvider>
     </AppSlugProvider>
   )

@@ -36,3 +36,6 @@ allowBuilds:
   "@swc/core": true
   "@scarf/scarf": false
   msgpackr-extract: false
+  # Test-only. Its postinstall merely pre-downloads a mongod binary; denied, the
+  # download happens lazily on the first e2e run and is cached per machine.
+  mongodb-memory-server: false

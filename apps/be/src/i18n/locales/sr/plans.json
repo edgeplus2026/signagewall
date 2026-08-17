@@ -2,5 +2,6 @@
   "screenLimitFree": "Besplatan probni period uključuje {limit} ekran. Nadogradite plan da biste dodali još.",
   "screenLimitEnterprise": "Vaš plan pokriva {limit} ekran(a). Zatražite još licenci da biste dodali novi.",
   "organizationLimitFree": "Besplatan probni period uključuje {limit} organizaciju. Nadogradite plan da biste kreirali još jednu.",
-  "upgradeRequestNotFound": "Zahtev za nadogradnju nije pronađen."
+  "upgradeRequestNotFound": "Zahtev za nadogradnju nije pronađen.",
+  "ownerUnresolved": "Ovaj radni prostor nema vlasnika, pa novi ekrani ne mogu da se dodaju. Kontaktirajte podršku da se vlasništvo obnovi."
 }

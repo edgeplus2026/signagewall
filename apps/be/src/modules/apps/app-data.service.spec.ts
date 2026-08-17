@@ -18,6 +18,7 @@ interface Built {
   fetchData: jest.Mock;
   upsertPayload: jest.Mock;
   upsertPending: jest.Mock;
+  recordError: jest.Mock;
   emit: jest.Mock;
   cacheByKey: Map<string, { payload: unknown; fetchedAt?: Date }>;
 }
@@ -43,6 +44,13 @@ function buildService(options: {
   version?: string;
   /** When true, the connector reports an in-flight async job (pending). */
   pending?: boolean;
+  /** Sanitized connector failure accompanying resumable pending state. */
+  pendingError?: string;
+  /** Optional connector-owned cadence derived from instance config. */
+  refreshSeconds?: (config: Record<string, unknown>) => number;
+  /** Exercise scheduler ownership checks for a connected connector. */
+  connected?: boolean;
+  resolvedConnection?: Record<string, unknown>;
 }): Built {
   const cacheByKey = new Map(
     Object.entries(options.cache ?? {}).map(([key, value]) => [key, value]),
@@ -50,7 +58,11 @@ function buildService(options: {
 
   const fetchData = jest.fn().mockResolvedValue(
     options.pending
-      ? { pending: true, secrets: { job: { id: 'job-x' } } }
+      ? {
+          pending: true,
+          secrets: { job: { id: 'job-x' } },
+          ...(options.pendingError ? { error: options.pendingError } : {}),
+        }
       : {
           playerPayload: options.payload ?? { value: 1 },
           ...(options.version ? { version: options.version } : {}),
@@ -61,6 +73,19 @@ function buildService(options: {
   jest.spyOn(registry, 'getConnector').mockReturnValue({
     cacheKey: (config: Record<string, unknown>) =>
       `weather:${String(config.location)}`,
+    ...(options.refreshSeconds
+      ? { refreshSeconds: options.refreshSeconds }
+      : {}),
+    ...(options.connected
+      ? {
+          oauth: {
+            provider: 'google',
+            authorizationUrl: 'https://accounts.example/authorize',
+            tokenUrl: 'https://accounts.example/token',
+            scopes: [],
+          },
+        }
+      : {}),
     fetchData,
   });
   jest.spyOn(registry, 'connectorSlugs').mockReturnValue(['weather']);
@@ -73,9 +98,17 @@ function buildService(options: {
     distinctCacheKeys: jest.fn(() => {
       const byKey = new Map<
         string,
-        { cacheKey: string; appSlug: string; config: Record<string, unknown> }
+        {
+          cacheKey: string;
+          appSlug: string;
+          config: Record<string, unknown>;
+          organizationId: string;
+          appInstanceId: string;
+        }
       >();
       for (const instance of options.instances as {
+        _id: Types.ObjectId;
+        organizationId: Types.ObjectId;
         appSlug: string;
         config: Record<string, unknown>;
       }[]) {
@@ -87,6 +120,10 @@ function buildService(options: {
             cacheKey,
             appSlug: instance.appSlug,
             config: instance.config,
+            // The real aggregation denormalizes the representative instance's
+            // owner onto the group; the ownership check depends on it.
+            organizationId: instance.organizationId.toString(),
+            appInstanceId: instance._id.toString(),
           });
         }
       }
@@ -103,6 +140,7 @@ function buildService(options: {
       _slug: string,
       _refreshSeconds: number,
       secrets: Record<string, unknown> | undefined,
+      error?: string,
     ) =>
       // Preserve the last-known payload (like the real repo does).
       Promise.resolve({
@@ -110,8 +148,10 @@ function buildService(options: {
         ...(cacheByKey.get(cacheKey) ?? {}),
         pending: true,
         secrets,
+        ...(error ? { lastError: error } : {}),
       }),
   );
+  const recordError = jest.fn().mockResolvedValue(undefined);
   const cacheRepository = {
     findByCacheKeys: jest.fn((keys: string[]) =>
       Promise.resolve(
@@ -126,14 +166,14 @@ function buildService(options: {
     ),
     upsertPayload,
     upsertPending,
-    recordError: jest.fn().mockResolvedValue(undefined),
+    recordError,
   };
   const emit = jest.fn();
   const eventEmitter = { emit };
   // The mocked connector (weather) has no oauth descriptor, so the service
   // never calls resolveConnection here; a stub keeps the constructor happy.
   const connectionsService = {
-    resolveConnection: jest.fn(),
+    resolveConnection: jest.fn().mockResolvedValue(options.resolvedConnection),
   };
   // No `publicApiUrl`: these tests are the poll path, and with no public address the
   // service passes no `webhookUrl` and connectors don't subscribe — which is exactly
@@ -148,7 +188,15 @@ function buildService(options: {
     connectionsService as never,
   );
 
-  return { service, fetchData, upsertPayload, upsertPending, emit, cacheByKey };
+  return {
+    service,
+    fetchData,
+    upsertPayload,
+    upsertPending,
+    recordError,
+    emit,
+    cacheByKey,
+  };
 }
 
 // The service reads `refreshSeconds` from APP_MANIFESTS; weather is 900s.
@@ -231,6 +279,64 @@ describe('AppDataService.getPreviewData', () => {
 });
 
 describe('AppDataService.refreshDue', () => {
+  it('rejects a resolved connection whose persisted owner differs from its instance', async () => {
+    const owned = instance('weather', {
+      location: 'belgrade',
+      connectionId: new Types.ObjectId().toString(),
+    });
+    const { service, fetchData, recordError } = buildService({
+      instances: [owned],
+      connected: true,
+      resolvedConnection: {
+        id: owned.config.connectionId,
+        organizationId: new Types.ObjectId().toString(),
+        appInstanceId: owned._id.toString(),
+        provider: 'google',
+        accountLabel: 'foreign',
+        accessToken: 'token',
+        scopes: [],
+      },
+    });
+
+    await expect(service.refreshDue(NOW)).resolves.toBe(1);
+    expect(fetchData).not.toHaveBeenCalled();
+    expect(recordError).toHaveBeenCalledWith(
+      'weather:belgrade',
+      'weather',
+      900,
+      'connected app ownership mismatch',
+      'upstream_error',
+    );
+  });
+
+  it('uses a validated connector cadence derived from instance config', async () => {
+    const { service, fetchData } = buildService({
+      instances: [
+        instance('weather', { location: 'belgrade', cadenceSeconds: 300 }),
+      ],
+      cache: {
+        'weather:belgrade': {
+          payload: { temp: 20 },
+          lastAttemptAt: new Date(NOW.getTime() - 6 * 60_000),
+        },
+      },
+      refreshSeconds: (config) => Number(config.cadenceSeconds),
+    });
+
+    await expect(service.refreshDue(NOW)).resolves.toBe(1);
+    expect(fetchData).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects an invalid connector cadence instead of creating a hot loop', async () => {
+    const { service, fetchData } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      refreshSeconds: () => 0,
+    });
+
+    await expect(service.refreshDue(NOW)).rejects.toThrow(/invalid connector/i);
+    expect(fetchData).not.toHaveBeenCalled();
+  });
+
   it('de-dupes: many instances sharing a cache key cost ONE fetch', async () => {
     const { service, fetchData, emit } = buildService({
       instances: [
@@ -398,7 +504,7 @@ describe('AppDataService.refreshDue', () => {
 });
 
 describe('AppDataService async export jobs (pending)', () => {
-  it('persists the job (upsertPending) and does not fan out while pending', async () => {
+  it('persists the job and fans out the first transition into pending', async () => {
     const { service, upsertPending, upsertPayload, emit } = buildService({
       instances: [instance('weather', { location: 'belgrade' })],
       pending: true,
@@ -410,8 +516,12 @@ describe('AppDataService async export jobs (pending)', () => {
     expect(upsertPending).toHaveBeenCalledTimes(1);
     // Pending preserves the last-known payload — never writes a new one…
     expect(upsertPayload).not.toHaveBeenCalled();
-    // …and there's nothing new to fan out.
-    expect(emit).not.toHaveBeenCalled();
+    // …but the player needs one push so the first export says "Preparing".
+    expect(emit).toHaveBeenCalledTimes(1);
+    expect(emit).toHaveBeenCalledWith('player.app.data-changed', {
+      cacheKey: 'weather:belgrade',
+      slug: 'weather',
+    });
   });
 
   it('re-checks a pending entry every tick (due even within cadence)', async () => {
@@ -454,6 +564,37 @@ describe('AppDataService async export jobs (pending)', () => {
 
     expect(result.meta?.pending).toBe(true);
     expect(result.data).toEqual({ url: 'old' });
+  });
+
+  it('marks the last-known preview stale when pending carries a sanitized error', async () => {
+    const { service, upsertPending, emit } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      pending: true,
+      pendingError: 'Upstream export is temporarily unavailable',
+      cache: {
+        'weather:belgrade': {
+          payload: { url: 'old' },
+          fetchedAt: new Date(NOW.getTime() - 20 * 60_000),
+          pending: true,
+        },
+      },
+    });
+
+    const result = await service.getPreviewData('weather', {
+      location: 'belgrade',
+    });
+
+    expect(result.data).toEqual({ url: 'old' });
+    expect(result.meta).toMatchObject({ pending: true, stale: true });
+    expect(upsertPending).toHaveBeenCalledWith(
+      'weather:belgrade',
+      'weather',
+      900,
+      { job: { id: 'job-x' } },
+      'Upstream export is temporarily unavailable',
+      'upstream_error',
+    );
+    expect(emit).toHaveBeenCalledTimes(1);
   });
 
   // The preview shares the global connector cache with real screens, so an async
@@ -509,6 +650,7 @@ describe('AppDataService async export jobs (pending)', () => {
         'weather:belgrade': {
           payload: { url: 'old' },
           fetchedAt: new Date(NOW.getTime() - 20 * 60_000),
+          pending: true,
         },
       },
     });

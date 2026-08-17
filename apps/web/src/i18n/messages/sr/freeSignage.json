@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "title": "Besplatan digital signage softver — iskreno",
+    "description": "Šta besplatan digital signage zaista košta, kada je besplatan alat pravi izbor i šta SignageWall daje besplatno {trialDays} dana — bez kartice."
+  },
+  "hero": {
+    "eyebrow": "Besplatan digital signage",
+    "title": "Besplatan digital signage softver, iskreno.",
+    "subtitle": "Besplatne opcije postoje i ponekad su pravi izbor. Evo gde rade, gde tiho postaju skupe i šta tačno mi dajemo besplatno — pišu ljudi sa očiglednim interesom, zato proverite naše obrazloženje, ne našu reč."
+  },
+  "sections": [
+    {
+      "heading": "Kratak odgovor",
+      "body": "SignageWall nije zauvek besplatan: ceo proizvod je besplatan {trialDays} dana bez kartice, a posle toga košta {price} po ekranu mesečno. Ako vaše potrebe zaista pokriva besplatan alat, koristite besplatan alat — ova stranica služi da to utvrdite."
+    },
+    {
+      "heading": "Šta „besplatno“ znači u signage-u",
+      "body": "Besplatan digital signage dolazi u tri oblika. Besplatni paketi komercijalnih proizvoda: stvarni, ali ograničeni brojem ekrana, funkcijama ili brendiranjem, i osmišljeni tako da je upotrebljiva verzija ona koja se plaća. Open-source softver koji sami hostujete: licenca je zaista besplatna, rad nikada — neko ga postavlja, ažurira i popravlja u devet uveče. I USB u zadnjem delu televizora: besplatan, trenutan, i razlog zašto toliko ekrana prikazuje prošlomesečni meni."
+    },
+    {
+      "heading": "Gde je besplatno zaista pravi izbor",
+      "body": "Jedan ekran, sadržaj koji se menja nekoliko puta godišnje i tehnička osoba koja uživa u održavanju — samostalno hostovan open-source plejer na tom ekranu je sasvim dobro rešenje i pretplata bi bila bacanje novca. Isto važi za privremeni ekran na jednokratnom događaju. Radije ćemo vam ovo reći nego da to otkrijete posle pretplate."
+    },
+    {
+      "heading": "Gde besplatno postaje skupo",
+      "body": "Cena besplatnih alata je vreme, i stiže kasnije. Ekran kome trebaju merdevine i USB za svaku promenu cene. Samostalno hostovan server koji niko ne sme da ažurira jer je osoba koja ga je postavila otišla. Besplatni paket kome su trebala tri zaobilazna rešenja, svako u glavi jednog jedinog kolege. Ništa od toga se ne vidi u prvom mesecu; sve se vidi u prvoj godini. Pošteno poređenje je vaša cena sata puta broj sati — a ne nula naspram {price}."
+    },
+    {
+      "heading": "Šta SignageWall daje besplatno",
+      "body": "Kompletan proizvod {trialDays} dana: uparite pravi ekran, napravite plejliste, povežite aplikacije i proverite da li izmene stižu do ekrana dovoljno brzo za vaš način rada. Bez kartice u bilo kom trenutku i bez funkcije zadržane da bi vas naterala na plaćanje — proba je proizvod. Ako za tri nedelje stvarne upotrebe ne zasluži pretplatu, ne treba ni da je dobije."
+    },
+    {
+      "heading": "Šta se dešava kada proba istekne",
+      "body": "Proba se jednostavno završi. Vaš sadržaj i podešavanja ostaju na nalogu, a ekran nastavlja da prikazuje poslednji preuzeti sadržaj — ne postaje crn i ne prikazuje naš logo. Ako se pretplatite kasnije, sve je tamo gde ste stali. Ako ne, izgubili ste {trialDays} dana zakupa jednog ekrana i ništa više."
+    },
+    {
+      "heading": "Kako da procenite bilo koji signage softver za jedno popodne",
+      "body": "Postavite pravi ekran na zid na kome će zaista visiti. Promenite cenu sa telefona i izmerite za koliko stigne na ekran. Izvucite mrežni kabl na deset minuta i posmatrajte šta ekran radi. Zamolite netehničkog kolegu da zameni sliku bez pomoći. Alat koji prođe te četiri provere — besplatan ili plaćen — pravi je za vas."
+    }
+  ],
+  "faq": {
+    "title": "Pitanja o besplatnom signage-u",
+    "items": [
+      {
+        "q": "Da li je SignageWall besplatan?",
+        "a": "Ceo proizvod je besplatan {trialDays} dana, bez kartice i bez isključenih funkcija. Posle toga je {price} po ekranu mesečno. Trajni besplatni paket ne postoji — radije smo jasni oko toga nego da vas iznenadimo {trialDays}. dana."
+      },
+      {
+        "q": "Da li mi treba kartica za probu?",
+        "a": "Ne. Napravite nalog, uparite ekran i koristite sve {trialDays} dana. Kartica se ne unosi ni u jednom trenutku — ako nastavite, prva faktura stiže posle probe."
+      },
+      {
+        "q": "Šta se dešava posle probe?",
+        "a": "Proba se jednostavno završi. Sadržaj i podešavanja ostaju na nalogu, pa ako se vratite mesec dana kasnije, sve je tamo gde ste stali. Ekrani prestaju da povlače nov sadržaj dok se ne pretplatite."
+      },
+      {
+        "q": "Da li je open-source digital signage zaista besplatan?",
+        "a": "Licenca jeste besplatna; rad nije. Vi ga hostujete, ažurirate, obezbeđujete i popravljate — što je dobra računica ako imate osobu i vreme, a skupa ako ste ta osoba vi, u jedanaest uveče pred otvaranje."
+      },
+      {
+        "q": "Koji je najjeftiniji način da vodim jedan ekran?",
+        "a": "Televizor koji već imate, Android box od oko 30–60 € i softver. Kod nas je softver {price} mesečno posle probe; besplatan alat štedi taj iznos, a naplaćuje vaše vreme. Naš vodič za hardver pokriva ostalo — ne prodajemo ni ekrane ni box-ove, pa nema razloga da ulepšava."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Isprobajte ceo proizvod na pravom ekranu.",
+    "body": "{trialDays} dana, svaka funkcija, bez kartice. Ako vam posle toga besplatan alat služi bolje, koristite besplatan alat.",
+    "primary": "Započni besplatnu probu",
+    "secondary": "Pogledaj cene"
+  }
+}

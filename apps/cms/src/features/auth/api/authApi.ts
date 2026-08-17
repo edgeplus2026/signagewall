@@ -25,6 +25,11 @@ export const authApi = {
     return data
   },
 
+  exchangeGoogleCode: async (code: string): Promise<AuthResponse> => {
+    const { data } = await api.post<AuthResponse>(`${AUTH_BASE}/google/exchange`, { code })
+    return data
+  },
+
   register: async (payload: RegisterRequest): Promise<RegisterResponse> => {
     const { data } = await api.post<RegisterResponse>(`${AUTH_BASE}/register`, payload)
     return data

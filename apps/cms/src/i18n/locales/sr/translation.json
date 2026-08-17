@@ -28,6 +28,10 @@
     "cancel": "Otkaži",
     "decrease": "Smanji",
     "increase": "Povećaj",
+    "loadError": "Nešto je pošlo naopako",
+    "loadErrorDescription": "Nismo uspeli da učitamo podatke. Proverite konekciju i pokušajte ponovo.",
+    "retry": "Pokušaj ponovo",
+    "unsavedChangesPrompt": "Imate nesačuvane izmene. Da li želite da napustite stranicu bez čuvanja?",
     "preview": {
       "title": "Pregled",
       "description": "Prikazuje ovaj sadržaj onako kako bi ga prikazao ekran.",
@@ -216,6 +220,18 @@
       "files": "fajlova",
       "stored": "sačuvano",
       "empty": "Još nema medija."
+    },
+    "fleet": {
+      "title": "Zdravlje ekrana",
+      "subtitle": "Problemi prvi — ekrani van mreže, zatim neupareni.",
+      "viewAll": "Svi ekrani",
+      "online": "Na mreži",
+      "offline": "Van mreže",
+      "offlineFor": "Van mreže · {{duration}}",
+      "notPaired": "Nije uparen",
+      "emptyTitle": "Još nema ekrana",
+      "empty": "Uparite prvi ekran da biste ovde pratili njegovo stanje.",
+      "setup": "Podesi ekran"
     }
   },
   "organizations": {
@@ -413,11 +429,13 @@
     },
     "roles": {
       "admin": "Administrator",
-      "member": "Član"
+      "member": "Član",
+      "viewer": "Pregledač"
     },
     "roleDescriptions": {
       "admin": "Može da poziva i upravlja korisnicima, podešavanjima organizacije i svim sadržajem.",
-      "member": "Može da koristi ekrane, plejliste i medije, ali ne može da upravlja korisnicima ili podešavanjima."
+      "member": "Može da koristi ekrane, plejliste i medije, ali ne može da upravlja korisnicima ili podešavanjima.",
+      "viewer": "Vidi ekrane, plejliste i medije, ali ne može ništa da menja."
     },
     "actions": {
       "edit": "Izmeni korisnika",
@@ -720,7 +738,7 @@
       "saveChanges": "Sačuvaj izmene",
       "saveSuccess": "Plejlista je uspešno sačuvana",
       "saveError": "Čuvanje plejliste nije uspelo. Pokušajte ponovo.",
-      "conflict": "Ova plejlista je izmenjena na drugom mestu. Vaše nesačuvane izmene su odbačene i učitana je najnovija verzija.",
+      "conflict": "Ova plejlista je izmenjena na drugom mestu. Učitana je najnovija verzija, a vaše nesačuvane izmene su zadržane — proverite ih pre čuvanja, jer će čuvanje pregaziti tuđe izmene.",
       "mediaUnavailable": "Medij nije dostupan",
       "unknownMedia": "Nepoznat medij"
     },
@@ -846,7 +864,12 @@
         "frameTitle": "Pregled sadržaja ekrana uživo",
         "previous": "Prethodna stavka",
         "next": "Sledeća stavka",
-        "openWebPlayer": "Otvori web plejer"
+        "openWebPlayer": "Otvori web plejer",
+        "openWebPlayerError": "Nije uspelo otvaranje web plejera. Pokušajte ponovo.",
+        "takeoverTitle": "Preuzeti ovaj ekran?",
+        "takeoverDescription": "Ovaj ekran je trenutno na mreži. Otvaranje web plejera odjavljuje trenutni prikaz — prestaće da pušta sadržaj i prikazaće kod za uparivanje dok ga neko ponovo ne upari na licu mesta. Koristite ovo samo da povratite ekran do kog ne možete da dođete.",
+        "takeoverCancel": "Otkaži",
+        "takeoverConfirm": "Ipak preuzmi"
       },
       "pair": {
         "submit": "Upari uređaj",
@@ -1051,7 +1074,7 @@
       "addApp": {
         "add": "Dodaj"
       },
-      "conflict": "Ovaj ekran je izmenjen na drugom mestu. Vaše nesačuvane izmene su odbačene i učitana je najnovija verzija."
+      "conflict": "Ovaj ekran je izmenjen na drugom mestu. Učitana je najnovija verzija, a vaše nesačuvane izmene su zadržane — proverite ih pre čuvanja, jer će čuvanje pregaziti tuđe izmene."
     },
     "layout": {
       "fullscreen": "Ceo ekran",
@@ -2046,8 +2069,8 @@
       "disconnect": "Prekini vezu",
       "connect": "Poveži nalog",
       "switch": "Promeni nalog",
-      "selectAccountFirst": "Prvo povežite nalog",
-      "providerMismatch": "Ovaj nalog ne odgovara izabranom izvoru. Promeni nalog da se povežeš sa pravim servisom."
+      "providerMismatch": "Ovaj nalog ne odgovara izabranom izvoru. Promeni nalog da se povežeš sa pravim servisom.",
+      "selectAccountFirst": "Prvo povežite nalog da biste izabrali fajl."
     },
     "screensField": {
       "placeholder": "Izaberite ekrane…",
@@ -2055,6 +2078,7 @@
     },
     "remoteSelect": {
       "placeholder": "Pretražite i izaberite…",
+      "selectParentFirst": "Prvo izaberite prethodnu Power BI stavku…",
       "search": "Pretraga…",
       "empty": "Nema rezultata"
     },
@@ -2388,6 +2412,16 @@
         "description": "Ugradite Power BI izveštaj objavljen na webu i osvežavajte ga po rasporedu da brojke ostanu aktuelne.",
         "about": "Prikažite Power BI izveštaj na velikom ekranu da ga svi prate. U alatu Power BI izaberite File, Embed report, Publish to web da napravite javni link, nalepite ga ovde i po želji podesite da se ceo izveštaj povremeno ponovo učita. Pošto koristi javni publish-to-web link, a ne prijavljivanje, jednostavan je izbor za operativne centre, timske zidove i prikaze pokazatelja."
       },
+      "powerbi-secure": {
+        "tagline": "Privatni Power BI snapshot-i za ekrane bez korisnika",
+        "description": "Izvezite stranice privatnog Power BI izveštaja na autorizovani ekran bez javnog linka ili Microsoft prijave na displeju.",
+        "about": "Povežite Microsoft nalog sa read-only dozvolama, izaberite workspace i izveštaj koji podržavaju export i prikažite privatno sačuvane snapshot-e stranica na ekranima bez korisnika. Player zadržava poslednji uspešan export dok je novo osvežavanje u toku ili konekcija nije dostupna. Aplikacija zahteva podržan Premium, Embedded ili Fabric capacity i dozvoljen tenant export; PPU nije podržan."
+      },
+      "opsboard": {
+        "tagline": "Smene, otprema, KPI i bezbednost uživo",
+        "description": "Pretvorite ručnu tabelu, Google Sheet ili Excel radnu svesku u jasan operativni ekran koji čuva poslednje poznate podatke i bez mreže.",
+        "about": "Postavite deo svakodnevnih operacija koji obično živi u tabeli na ekran koji ljudi mogu da razumeju jednim pogledom. Počnite od šablona za smene, otpremu, KPI ili bezbednost, unesite redove ručno ili povežite Google Sheets ili Excel i jednom mapirajte kolone. Statusi su označeni bojama, duge table automatski menjaju stranice, podaci se osvežavaju u pozadini, a plejer zadržava poslednju uspešnu verziju kada izvor ili mreža privremeno nisu dostupni."
+      },
       "gsheets": {
         "tagline": "Postavite Google Sheet na zid",
         "description": "Prikažite opseg iz nekog Google Sheets dokumenta kao tabelu uživo ili jednu KPI vrednost — sam se osvežava.",
@@ -2517,6 +2551,46 @@
         "tagline": "Prikažite meni ili cenovnik",
         "description": "Uredna tabla stavki i cena — za kafiće, kantine i radnje. Dodajte red po stavci.",
         "about": "Predstavite doteran meni ili cenovnik, sa dizajnom koji odgovara prostoru: Classic, Chalkboard, Gallery kartice sa fotografijama, upadljiva Counter tabla ili suzdržani Noir. Dodajte naslov, izaberite valutu, pa unosite stavke red po red — ili ih uživo sinhronizujte iz Google Sheets ili Excel datoteke da se cene same ažuriraju. Napravljeno za kafiće, kantine, pekare i radnje."
+      }
+    },
+    "preview": {
+      "errors": {
+        "auth_expired": {
+          "title": "Veza sa nalogom je istekla",
+          "hint": "Ponovo povežite nalog u podešavanjima aplikacije da bi se ažuriranja nastavila."
+        },
+        "consent_required": {
+          "title": "Potrebna je saglasnost",
+          "hint": "Provajder traži saglasnost ili odobrenje administratora za ovaj nalog. Ponovite povezivanje i prihvatite tražene dozvole."
+        },
+        "permission_denied": {
+          "title": "Nema pristupa ovom resursu",
+          "hint": "Povezani nalog ne može da otvori izabranu stavku. Izaberite drugu ili zatražite pristup od vlasnika."
+        },
+        "not_found": {
+          "title": "Izvor nije pronađen",
+          "hint": "Izabrani fajl, izveštaj ili feed više ne postoji. Izaberite ga ponovo u podešavanjima."
+        },
+        "capacity_required": {
+          "title": "Potreban je kapacitet provajdera",
+          "hint": "Plan provajdera ne dozvoljava ovu operaciju (npr. izvoz izveštaja zahteva kapacitet). Proverite licenciranje radnog prostora."
+        },
+        "throttled": {
+          "title": "Provajder ograničava broj zahteva",
+          "hint": "Trenutno ima previše zahteva. Rešava se samo od sebe — ažuriranja se automatski nastavljaju."
+        },
+        "timeout": {
+          "title": "Provajder ne odgovara",
+          "hint": "Spoljni servis je spor. Obično je privremeno; sledeće osvežavanje pokušava ponovo automatski."
+        },
+        "config_invalid": {
+          "title": "Podešavanja više ne važe",
+          "hint": "Proverite podešavanja aplikacije — nešto na šta pokazuju se promenilo."
+        },
+        "upstream_error": {
+          "title": "Provajder je vratio grešku",
+          "hint": "Obično je privremeno; sledeće osvežavanje pokušava ponovo. Ako se ponavlja, ponovo povežite nalog ili proverite podešavanja."
+        }
       }
     }
   },

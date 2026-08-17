@@ -16,7 +16,7 @@ export default function PlaylistsPage() {
   // ai-generator:hidden
   // const openAiGenerator = useAiGeneratorStore((state) => state.openList)
 
-  const { data: playlists = [], isLoading } = usePlaylists()
+  const { data: playlists = [], isLoading, isError, refetch } = usePlaylists()
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-7 lg:px-10">
@@ -58,6 +58,8 @@ export default function PlaylistsPage() {
       <PlaylistsBrowser
         playlists={playlists}
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => void refetch()}
         onCreateClick={() => {
           setCreateOpen(true)
         }}

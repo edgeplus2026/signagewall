@@ -7,6 +7,8 @@ import { menuConnector } from './menu.connector';
 
 const connection: ResolvedConnection = {
   id: 'conn-1',
+  organizationId: 'org-1',
+  appInstanceId: 'instance-1',
   provider: 'google',
   accountLabel: 'menu@example.com',
   accessToken: 'token',

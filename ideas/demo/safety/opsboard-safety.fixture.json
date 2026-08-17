@@ -1,0 +1,87 @@
+{
+  "fixtureVersion": 1,
+  "fixtureKind": "opsboard-manual-config",
+  "name": "Digital Safety Board — pilot",
+  "description": "Manual-source pilot fixture covering PPE, current risk, next training and incident status through the normalized OpsBoard row contract.",
+  "config": {
+    "preset": "safety",
+    "heading": "Digital Safety Board",
+    "source": "manual",
+    "rows": [
+      {
+        "label": "PPE for current shift",
+        "primary": "Target: 100%",
+        "secondary": "Glasses + hearing protection",
+        "status": "active",
+        "note": "Supervisor verifies before entry",
+        "group": "Production",
+        "sortOrder": 10
+      },
+      {
+        "label": "Current risk",
+        "primary": "Forklift crossing",
+        "secondary": "Zone B",
+        "status": "warning",
+        "note": "Use the marked pedestrian route",
+        "group": "Logistics",
+        "sortOrder": 20
+      },
+      {
+        "label": "Next training",
+        "primary": "18 Aug · 14:00",
+        "secondary": "Lockout / tagout",
+        "status": "planned",
+        "note": "Training room 1 · shift leads attend",
+        "group": "HSE",
+        "sortOrder": 30
+      },
+      {
+        "label": "Incident status",
+        "primary": "Target: 0 recordables",
+        "secondary": "No open incident",
+        "status": "done",
+        "note": "Last HSE review: 17 Aug · 06:00",
+        "group": "Site",
+        "sortOrder": 40
+      }
+    ],
+    "layout": "cards",
+    "showHeader": true,
+    "pageSeconds": 12,
+    "theme": "dark"
+  },
+  "expectedNormalizedRows": [
+    {
+      "label": "PPE for current shift",
+      "primary": "Target: 100%",
+      "secondary": "Glasses + hearing protection",
+      "status": "active",
+      "note": "Supervisor verifies before entry",
+      "group": "Production"
+    },
+    {
+      "label": "Current risk",
+      "primary": "Forklift crossing",
+      "secondary": "Zone B",
+      "status": "warning",
+      "note": "Use the marked pedestrian route",
+      "group": "Logistics"
+    },
+    {
+      "label": "Next training",
+      "primary": "18 Aug · 14:00",
+      "secondary": "Lockout / tagout",
+      "status": "planned",
+      "note": "Training room 1 · shift leads attend",
+      "group": "HSE"
+    },
+    {
+      "label": "Incident status",
+      "primary": "Target: 0 recordables",
+      "secondary": "No open incident",
+      "status": "done",
+      "note": "Last HSE review: 17 Aug · 06:00",
+      "group": "Site"
+    }
+  ]
+}

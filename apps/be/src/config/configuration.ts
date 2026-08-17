@@ -1,6 +1,14 @@
 export default () => ({
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: parseInt(process.env.PORT ?? '3000', 10),
+  // Reverse-proxy hops in front of this API (Railway = 1). Express needs it to
+  // resolve req.ip from X-Forwarded-For; otherwise every client shares the
+  // proxy's IP and per-client throttling collapses into one global bucket.
+  trustProxyHops: parseInt(
+    process.env.TRUST_PROXY_HOPS ??
+      ((process.env.NODE_ENV ?? 'development') === 'production' ? '1' : '0'),
+    10,
+  ),
   apiPrefix: process.env.API_PREFIX ?? 'api',
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
   playerUrl: process.env.PLAYER_URL ?? 'http://localhost:5174',
@@ -74,6 +82,16 @@ export default () => ({
       process.env.INVITE_EXPIRES_IN_DAYS ?? '7',
       10,
     ),
+    // Consecutive failed password attempts before a temporary lock. Per-account
+    // complement to the per-IP AuthThrottle, which a distributed attacker evades.
+    maxFailedLoginAttempts: parseInt(
+      process.env.AUTH_MAX_FAILED_LOGIN_ATTEMPTS ?? '5',
+      10,
+    ),
+    loginLockoutMinutes: parseInt(
+      process.env.AUTH_LOGIN_LOCKOUT_MINUTES ?? '15',
+      10,
+    ),
   },
   throttle: {
     // Global default window (seconds) and max requests per window per client.
@@ -102,6 +120,18 @@ export default () => ({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
     bucket: process.env.R2_BUCKET,
     publicUrl: process.env.R2_PUBLIC_URL?.replace(/\/$/, ''),
+  },
+  // Tenant-private app assets. This must be a separate, non-public R2 bucket;
+  // it deliberately has no public URL and never falls back to `r2.*`.
+  privateR2: {
+    accountId: process.env.PRIVATE_R2_ACCOUNT_ID,
+    accessKeyId: process.env.PRIVATE_R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.PRIVATE_R2_SECRET_ACCESS_KEY,
+    bucket: process.env.PRIVATE_R2_BUCKET,
+    signedUrlTtlSeconds: parseInt(
+      process.env.PRIVATE_R2_SIGNED_URL_TTL_SECONDS ?? '900',
+      10,
+    ),
   },
   media: {
     maxFileSizeBytes: parseInt(
@@ -132,6 +162,25 @@ export default () => ({
     // A device is considered offline if no heartbeat arrives within this window.
     offlineAfterSeconds: parseInt(
       process.env.PLAYER_OFFLINE_AFTER_SECONDS ?? '90',
+      10,
+    ),
+    // Email org members after a paired screen has been offline this long.
+    // 0 disables the alert entirely.
+    offlineAlertMinutes: parseInt(
+      process.env.SCREEN_OFFLINE_ALERT_MINUTES ?? '10',
+      10,
+    ),
+    // How far back an outage still counts as "new". A screen that went dark
+    // days ago is not news, and without this bound the first sweep after any
+    // deploy alerts on the entire historical backlog at once.
+    offlineAlertLookbackHours: parseInt(
+      process.env.SCREEN_OFFLINE_ALERT_LOOKBACK_HOURS ?? '24',
+      10,
+    ),
+    // Hard ceiling on one sweep, so a mass outage cannot turn into an
+    // unbounded find() plus a mail burst.
+    offlineAlertMaxPerSweep: parseInt(
+      process.env.SCREEN_OFFLINE_ALERT_MAX_PER_SWEEP ?? '200',
       10,
     ),
   },

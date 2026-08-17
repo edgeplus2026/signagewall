@@ -68,7 +68,31 @@ export type ConnectResult =
       settings: DeviceSettingsPayload;
       /** Present only when a token was (re)issued and must be persisted client-side. */
       token?: string;
+      /**
+       * A recovery code was redeemed against a device that already held a
+       * valid token, so whoever held that token (typically the physical
+       * display) has just been displaced. The gateway must revoke the other
+       * sockets on this device id — silently invalidating them leaves the TV
+       * looking fine until its next reconnect, when it hard-resets.
+       */
+      displacedPreviousHolder?: boolean;
+    }
+  | {
+      /**
+       * A known paired `deviceId` connected without its token and without a
+       * valid recovery code. The bare id must not act as a bearer credential,
+       * so the connection is refused: the client discards its identity and
+       * re-enters the pairing flow with a fresh one.
+       */
+      kind: 'recovery-required';
     };
+
+export interface RecoveryLinkDto {
+  deviceId: string;
+  /** Single-use, short-lived; only ever returned here, stored as a hash. */
+  recoveryCode: string;
+  expiresAt: string;
+}
 
 /** A stored report, plus when the backend received it. */
 export type StoredDiagnosticsReport = DiagnosticsReport & {
@@ -95,6 +119,13 @@ export interface DeviceStatusDto {
 const MAX_CODE_ATTEMPTS = 5;
 const DUPLICATE_KEY_ERROR = 11000;
 
+/**
+ * Lifetime of a single-use recovery code. Long enough for the operator to
+ * click through to the opened tab (or paste the link on the kiosk), short
+ * enough that a leaked link goes stale before it travels far.
+ */
+const RECOVERY_CODE_TTL_MS = 10 * 60_000;
+
 @Injectable()
 export class PlayerService {
   private readonly logger = new Logger(PlayerService.name);
@@ -111,21 +142,28 @@ export class PlayerService {
   ) {}
 
   /**
-   * Resolves what to send a freshly connected device: either a pairing code
-   * (unpaired) or its content snapshot (paired). A known paired device that
-   * reconnects without a valid token gets one re-issued — `deviceId` is the
-   * stable identity in this 1:1 model, so we avoid stranding the screen.
+   * Resolves what to send a freshly connected device: a pairing code
+   * (unpaired), its content snapshot (paired), or a recovery refusal. A paired
+   * device is admitted only on proof of possession — its device token — or a
+   * single-use operator-minted recovery code; a bare known `deviceId` is NOT
+   * a credential (it travels in URLs, history and access logs).
    */
   async handleConnect(
     deviceId: string,
     token: string | undefined,
     profile: ReportedProfile | undefined,
+    recoveryCode?: string,
   ): Promise<ConnectResult> {
     const deviceProfile = this.toDeviceProfile(profile);
     const device = await this.devicesRepository.findByDeviceId(deviceId);
 
     if (device?.status === DeviceStatus.PAIRED && device.screenId) {
-      return this.resolvePairedConnect(device, token, deviceProfile);
+      return this.resolvePairedConnect(
+        device,
+        token,
+        deviceProfile,
+        recoveryCode,
+      );
     }
 
     return this.issueUnpaired(deviceId, deviceProfile, Boolean(token));
@@ -135,12 +173,35 @@ export class PlayerService {
     device: DeviceDocument,
     token: string | undefined,
     profile: DeviceProfile | undefined,
+    recoveryCode: string | undefined,
   ): Promise<ConnectResult> {
     const organizationId = device.organizationId?.toString();
     const screenId = device.screenId?.toString();
 
     if (!organizationId || !screenId) {
       return this.issueUnpaired(device.deviceId, profile, Boolean(token));
+    }
+
+    let issuedToken: string | undefined;
+    // True when the device already had a token that someone else may still be
+    // holding — i.e. this admission displaces a live player.
+    let displacedPreviousHolder = false;
+    const providedHash = token
+      ? this.tokensService.hashToken(token)
+      : undefined;
+    const tokenValid = Boolean(
+      device.tokenHash && providedHash === device.tokenHash,
+    );
+
+    if (!tokenValid) {
+      displacedPreviousHolder = Boolean(device.tokenHash);
+      issuedToken = await this.recoverWithoutToken(device, recoveryCode);
+      if (issuedToken === undefined) {
+        this.logger.warn(
+          `Refused bare-id reconnect for paired device ${device.deviceId} (no token, no valid recovery code)`,
+        );
+        return { kind: 'recovery-required' };
+      }
     }
 
     const snapshot = await this.contentService.resolveByScreenId(
@@ -153,20 +214,6 @@ export class PlayerService {
       await this.devicesRepository.unpair(device.deviceId);
       this.emitRevoked(device.deviceId);
       return this.issueUnpaired(device.deviceId, profile, Boolean(token));
-    }
-
-    let issuedToken: string | undefined;
-    const providedHash = token
-      ? this.tokensService.hashToken(token)
-      : undefined;
-
-    if (!device.tokenHash || providedHash !== device.tokenHash) {
-      const generated = this.tokensService.generateToken();
-      await this.devicesRepository.setTokenHash(
-        device.deviceId,
-        generated.tokenHash,
-      );
-      issuedToken = generated.token;
     }
 
     const updated = await this.devicesRepository.setPresence(
@@ -184,6 +231,80 @@ export class PlayerService {
       volume: device.volume ?? 100,
       settings: this.toSettingsPayload(device.settings),
       ...(issuedToken ? { token: issuedToken } : {}),
+      ...(displacedPreviousHolder ? { displacedPreviousHolder: true } : {}),
+    };
+  }
+
+  /**
+   * Tokenless admission paths for a paired device, in order of legitimacy:
+   * a record that never had a token (legacy) gets one issued, and a valid
+   * single-use recovery code is redeemed atomically for a fresh token.
+   * Everything else returns undefined — refuse.
+   */
+  private async recoverWithoutToken(
+    device: DeviceDocument,
+    recoveryCode: string | undefined,
+  ): Promise<string | undefined> {
+    if (device.tokenHash && !recoveryCode) {
+      return undefined;
+    }
+
+    if (device.tokenHash && recoveryCode) {
+      const claimed = await this.devicesRepository.claimRecoveryCode(
+        device.deviceId,
+        this.tokensService.hashToken(recoveryCode),
+      );
+      if (!claimed) {
+        return undefined;
+      }
+    }
+
+    const generated = this.tokensService.generateToken();
+    await this.devicesRepository.setTokenHash(
+      device.deviceId,
+      generated.tokenHash,
+    );
+    return generated.token;
+  }
+
+  /**
+   * Operator action behind "Open web player": arms a short-lived single-use
+   * recovery code for the screen's paired device. The resulting URL admits
+   * exactly one fresh browser as that device; the previous device token is
+   * rotated on redemption, and the code itself is stored only as a hash.
+   */
+  async createRecoveryLink(
+    organizationId: string,
+    screenId: string,
+  ): Promise<RecoveryLinkDto> {
+    const screen = await this.screensRepository.findById(
+      organizationId,
+      screenId,
+    );
+
+    if (!screen) {
+      throw BusinessException.notFound(this.i18n.t('player.screenNotFound'));
+    }
+
+    const device = await this.devicesRepository.findByScreenId(screenId);
+
+    if (!device || device.organizationId?.toString() !== organizationId) {
+      throw BusinessException.notFound(this.i18n.t('player.deviceNotFound'));
+    }
+
+    const { token: recoveryCode, tokenHash } =
+      this.tokensService.generateToken();
+    const expiresAt = new Date(Date.now() + RECOVERY_CODE_TTL_MS);
+    await this.devicesRepository.setRecoveryCode(
+      device.deviceId,
+      tokenHash,
+      expiresAt,
+    );
+
+    return {
+      deviceId: device.deviceId,
+      recoveryCode,
+      expiresAt: expiresAt.toISOString(),
     };
   }
 

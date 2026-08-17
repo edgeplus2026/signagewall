@@ -4,6 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { ConnectionsModule } from '../connections/connections.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { MediaModule } from '../media/media.module';
+import { PrivateR2StorageService } from '../media/storage/private-r2-storage.service';
 import { PlaylistsModule } from '../playlists/playlists.module';
 import { ScreensModule } from '../screens/screens.module';
 import { UsersModule } from '../users/users.module';
@@ -18,6 +20,8 @@ import { AppsController } from './apps.controller';
 import { AppsRepository } from './apps.repository';
 import { AppsService } from './apps.service';
 import { OrgAppsRepository } from './org-apps.repository';
+import { PrivateAssetsPreviewService } from './private-assets-preview.service';
+import { registerPowerBiPrivateStorage } from './connectors/powerbi-secure/storage.registry';
 import { WebhooksController } from './webhooks.controller';
 import { SuperAdminGuard } from '../admin/guards/super-admin.guard';
 import { App, AppSchema } from './schemas/app.schema';
@@ -38,6 +42,7 @@ import { OrgApp, OrgAppSchema } from './schemas/org-app.schema';
     ]),
     UsersModule,
     OrganizationsModule,
+    forwardRef(() => MediaModule),
     forwardRef(() => ConnectionsModule),
     // Cascade: deleting an app instance purges its references from playlists and
     // screens. forwardRef because both modules import AppsModule.
@@ -59,6 +64,7 @@ import { OrgApp, OrgAppSchema } from './schemas/org-app.schema';
     AppDataCacheRepository,
     AppDataService,
     AppDataScheduler,
+    PrivateAssetsPreviewService,
     SuperAdminGuard,
     OrgMembershipGuard,
   ],
@@ -71,4 +77,8 @@ import { OrgApp, OrgAppSchema } from './schemas/org-app.schema';
     AppDataService,
   ],
 })
-export class AppsModule {}
+export class AppsModule {
+  constructor(private readonly privateStorage: PrivateR2StorageService) {
+    registerPowerBiPrivateStorage(privateStorage);
+  }
+}

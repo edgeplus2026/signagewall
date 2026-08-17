@@ -72,6 +72,14 @@ export class AppDataCache {
   lastError?: string;
 
   /**
+   * Operator-safe classification of {@link lastError} — one of the fixed
+   * allowlisted `ConnectorErrorCode`s. The ONLY error signal that may reach
+   * the CMS; the raw message stays server-side.
+   */
+  @Prop()
+  lastErrorCode?: string;
+
+  /**
    * Private connector state (e.g. an in-flight async export job id), persisted
    * server-side and fed back to the connector on the next fetch. NEVER sent to
    * the player (the player resolver reads {@link payload} only).

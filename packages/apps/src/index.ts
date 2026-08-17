@@ -16,9 +16,11 @@ import { instagramManifest } from './instagram/manifest.js'
 import { linkedinManifest } from './linkedin/manifest.js'
 import { menuManifest } from './menu/manifest.js'
 import { onthisdayManifest } from './onthisday/manifest.js'
+import { opsboardManifest } from './opsboard/manifest.js'
 import { outlookManifest } from './outlook/manifest.js'
 import { pdfManifest } from './pdf/manifest.js'
 import { powerbiManifest } from './powerbi/manifest.js'
+import { powerbiSecureManifest } from './powerbi-secure/manifest.js'
 import { powerPricesManifest } from './power-prices/manifest.js'
 import { powerpointManifest } from './powerpoint/manifest.js'
 import { qrManifest } from './qr/manifest.js'
@@ -48,7 +50,9 @@ export const APP_MANIFESTS: AppManifest[] = [
   menuManifest,
   alertManifest,
   webManifest,
+  opsboardManifest,
   powerbiManifest,
+  powerbiSecureManifest,
   youtubeManifest,
   streamManifest,
   weatherManifest,
@@ -85,7 +89,9 @@ export {
   menuManifest,
   alertManifest,
   webManifest,
+  opsboardManifest,
   powerbiManifest,
+  powerbiSecureManifest,
   youtubeManifest,
   streamManifest,
   weatherManifest,
@@ -115,6 +121,12 @@ export {
   newsFeedManifest,
 } from './rss/news.js'
 export type { NewsPreset } from './rss/news.js'
+export { POWERBI_SECURE_REMOTE_SOURCES } from './powerbi-secure/manifest.js'
+export {
+  POWERBI_SECURE_DEFAULTS,
+  type SecurePowerBiConfig,
+} from './powerbi-secure/config.js'
+export type { SecurePowerBiPayload } from './powerbi-secure/payload.js'
 
 export { APP_CATEGORIES, APP_CATEGORY_MEMBERSHIP } from './categories.js'
 export type { AppCategoryDef } from './categories.js'
@@ -226,3 +238,21 @@ export type { OnThisDayPayload, OnThisDayEvent } from './onthisday/payload.js'
 export type { GsheetsPayload } from './gsheets/payload.js'
 export type { GslidesPayload } from './gslides/payload.js'
 export type { SocialPayload, SocialPost } from './social/payload.js'
+export type {
+  OpsBoardConfig,
+  OpsBoardLayout,
+  OpsBoardManualRow,
+  OpsBoardPreset,
+  OpsBoardSource,
+  OpsBoardTheme,
+} from './opsboard/config.js'
+export { OPSBOARD_PRESETS, opsBoardPreset } from './opsboard/presets.js'
+export type {
+  OpsBoardLabels,
+  OpsBoardPresetDefinition,
+} from './opsboard/presets.js'
+export type {
+  OpsBoardPayload,
+  OpsBoardRow,
+  OpsBoardStatus,
+} from './opsboard/payload.js'

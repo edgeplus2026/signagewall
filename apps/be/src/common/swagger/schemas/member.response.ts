@@ -10,8 +10,8 @@ export class MemberResponseSchema {
   @ApiProperty()
   email: string;
 
-  @ApiProperty({ enum: ['admin', 'member'] })
-  role: 'admin' | 'member';
+  @ApiProperty({ enum: ['admin', 'member', 'viewer'] })
+  role: 'admin' | 'member' | 'viewer';
 
   @ApiProperty({ enum: ['approved', 'pending'] })
   status: 'approved' | 'pending';
@@ -30,8 +30,8 @@ export class InvitationPreviewSchema {
   @ApiProperty()
   organizationId: string;
 
-  @ApiProperty({ enum: ['admin', 'member'] })
-  role: 'admin' | 'member';
+  @ApiProperty({ enum: ['admin', 'member', 'viewer'] })
+  role: 'admin' | 'member' | 'viewer';
 
   @ApiProperty()
   accountExists: boolean;

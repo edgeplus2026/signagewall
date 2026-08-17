@@ -68,6 +68,15 @@ export class OrgAppsRepository {
       .exec();
   }
 
+  /** Every organization's install record for one app — the admin grant list. */
+  async findInstallsForApp(appId: string): Promise<OrgAppDocument[]> {
+    if (!Types.ObjectId.isValid(appId)) return [];
+    return this.model
+      .find({ appId: new Types.ObjectId(appId) })
+      .sort({ createdAt: 1, _id: 1 })
+      .exec();
+  }
+
   async uninstall(organizationId: string, appId: string): Promise<void> {
     if (!Types.ObjectId.isValid(appId)) return;
     await this.model

@@ -188,5 +188,15 @@
     "tagline": "Prikažite meni ili cenovnik",
     "description": "Uredna tabla stavki i cena: za kafiće, kantine i radnje. Dodajte red po stavci.",
     "about": "Predstavite doteran meni ili cenovnik, sa dizajnom koji odgovara prostoru: Classic, Chalkboard, Gallery kartice sa fotografijama, upadljiva Counter tabla ili suzdržani Noir. Dodajte naslov, izaberite valutu, pa unosite stavke red po red, ili ih uživo sinhronizujte iz Google Sheets ili Excel datoteke da se cene same ažuriraju. Napravljeno za kafiće, kantine, pekare i radnje."
+  },
+  "opsboard": {
+    "tagline": "Table smene, otpreme, KPI i bezbednosti uživo",
+    "description": "Pretvorite ručnu tabelu, Google Sheet ili Excel u pregledan operativni ekran za jednu smenu ili zonu.",
+    "about": "OpsBoard pretvara tabelu koju vaš planer već održava u čitljiv ekran za pogon. Unesite redove ručno ili povežite Google Sheet ili Excel i jednom mapirajte kolone; izaberite šablon za smenu, otpremu, KPI ili bezbednost, ili složite sopstveni raspored. Tabla se osvežava sama, a kada izvor ili mreža privremeno nisu dostupni, ekran nastavlja da prikazuje poslednje sinhronizovano stanje umesto da ostane prazan."
+  },
+  "powerbi-secure": {
+    "tagline": "Privatni Power BI snimci za ekrane bez nadzora",
+    "description": "Prikažite stranice privatnog Power BI izveštaja kao bezbedno izvezene snimke, bez javnog linka.",
+    "about": "Povežite Microsoft nalog koji ima pristup vašem radnom prostoru, izaberite izveštaj i njegove stranice, i aplikacija prikazuje bezbedno izvezene snimke tih stranica na ekranu. Sam izveštaj se nikada ne objavljuje javno i nikakvi kredencijali ne stižu do displeja. Snimci se osvežavaju po rasporedu koji izaberete, a ako izvor ili internet nisu dostupni, ekran nastavlja da prikazuje poslednji uspešan izvoz."
   }
 }

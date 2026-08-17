@@ -25,11 +25,21 @@ export const api = axios.create({
   timeout: 10_000,
 })
 
+interface RefreshWaiter {
+  onToken: (token: string) => void
+  onFail: (error: unknown) => void
+}
+
 let isRefreshing = false
-let refreshQueue: ((token: string) => void)[] = []
+let refreshQueue: RefreshWaiter[] = []
 
 const processRefreshQueue = (token: string) => {
-  refreshQueue.forEach((callback) => { callback(token); })
+  refreshQueue.forEach((waiter) => { waiter.onToken(token); })
+  refreshQueue = []
+}
+
+const failRefreshQueue = (error: unknown) => {
+  refreshQueue.forEach((waiter) => { waiter.onFail(error); })
   refreshQueue = []
 }
 
@@ -83,7 +93,12 @@ api.interceptors.response.use(
       !originalRequest._retry &&
       !originalRequest.url?.includes('/auth/refresh') &&
       !originalRequest.url?.includes('/auth/login') &&
-      !originalRequest.url?.includes('/auth/register')
+      !originalRequest.url?.includes('/auth/register') &&
+      // Redeeming a Google login code is itself an authentication attempt: a
+      // 401 here means the code was spent or expired, and refreshing a token
+      // the user does not have yet cannot help. Retrying would also burn the
+      // single-use code.
+      !originalRequest.url?.includes('/auth/google/exchange')
     ) {
       const { refreshToken } = useAuthStore.getState()
 
@@ -95,11 +110,31 @@ api.interceptors.response.use(
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
-          refreshQueue.push((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-            resolve(api(originalRequest))
-          })
-          setTimeout(() => { reject(toApiError(axiosError)); }, 10_000)
+          // The timeout is only a backstop against a refresh that never
+          // settles; a failed refresh rejects the whole queue immediately.
+          const timer = setTimeout(() => {
+            // Drop the waiter as well as rejecting it. Left in the queue it
+            // would still be called by processRefreshQueue/failRefreshQueue
+            // later — replaying a request whose caller already gave up, and
+            // holding its closure (and originalRequest) alive until then.
+            const index = refreshQueue.indexOf(waiter)
+            if (index !== -1) {
+              refreshQueue.splice(index, 1)
+            }
+            reject(toApiError(axiosError))
+          }, 10_000)
+          const waiter: RefreshWaiter = {
+            onToken: (token) => {
+              clearTimeout(timer)
+              originalRequest.headers.Authorization = `Bearer ${token}`
+              resolve(api(originalRequest))
+            },
+            onFail: (refreshError) => {
+              clearTimeout(timer)
+              reject(toApiError(refreshError))
+            },
+          }
+          refreshQueue.push(waiter)
         })
       }
 
@@ -116,7 +151,13 @@ api.interceptors.response.use(
         const { data } = await axios.post<ApiEnvelope<AuthTokens>>(
           `${baseURL}/auth/refresh`,
           { refreshToken },
-          { headers: { 'Content-Type': 'application/json' } },
+          {
+            headers: { 'Content-Type': 'application/json' },
+            // Bare `axios`, not the configured instance, so it does not inherit
+            // the 10s timeout. Without this a hung refresh keeps `isRefreshing`
+            // true forever and every later 401 queues behind it.
+            timeout: 10_000,
+          },
         )
 
         const tokens = data.data
@@ -124,7 +165,7 @@ api.interceptors.response.use(
         processRefreshQueue(tokens.accessToken)
         refreshedToken = tokens.accessToken
       } catch (refreshError) {
-        refreshQueue = []
+        failRefreshQueue(refreshError)
         useAuthStore.getState().logout()
         window.location.href = '/login'
         throw toApiError(refreshError)

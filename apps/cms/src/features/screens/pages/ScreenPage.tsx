@@ -118,7 +118,11 @@ export default function ScreenPage() {
             </TabsList>
 
             <div className="flex items-center gap-2 sm:ml-auto">
-              <OpenWebPlayerButton deviceId={deviceSnapshot?.deviceId} />
+              <OpenWebPlayerButton
+                screenId={screenId}
+                paired={Boolean(deviceSnapshot?.deviceId)}
+                deviceOnline={Boolean(presence?.online)}
+              />
               <ScreenAvailabilityBadge status={availabilityStatus ?? undefined} />
               <ScreenPresenceBadge device={presence} />
             </div>

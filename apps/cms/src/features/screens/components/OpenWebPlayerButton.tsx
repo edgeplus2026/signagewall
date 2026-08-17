@@ -1,47 +1,147 @@
 import { ScreenShare } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
-  buildPlayerDeviceUrl,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { screensApi } from '@/features/screens/api/screensApi'
+import {
+  buildPlayerRecoveryUrl,
   PLAYER_URL,
 } from '@/features/screens/lib/playerPreviewUrl'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 interface OpenWebPlayerButtonProps {
   className?: string
+  /** Screen whose paired device the opened player should recover into. */
+  screenId: string
   /**
-   * `deviceId` of the paired device, when the screen is paired. Passed so the
-   * opened player carries `?device=<uuid>` and can recover this exact device if
-   * its localStorage was wiped. Omitted for an unpaired screen, which opens the
-   * bare player and pairs through the normal code flow.
+   * Whether the screen currently has a paired device. Paired screens get a
+   * one-time recovery grant minted server-side; unpaired screens open the bare
+   * player, which pairs through the normal code flow.
    */
-  deviceId?: string | undefined
+  paired: boolean
+  /**
+   * Whether that paired device is currently reporting in. Redeeming a recovery
+   * grant rotates the device token, so opening the web player TAKES OVER the
+   * identity — a live display is signed out and drops to a pairing code. That
+   * is fine for a dead screen (it is the recovery path) and destructive for a
+   * healthy one, so the healthy case asks first.
+   */
+  deviceOnline?: boolean
 }
 
 /**
- * Opens the regular web player in a new tab. For a paired screen it carries the
- * device's `deviceId` (`?device=<uuid>`) so the player re-adopts that identity
- * and slides back into this screen even if its storage was cleared. For an
- * unpaired screen it opens the bare player, which shows a fresh pairing code.
+ * Opens the regular web player in a new tab. For a paired screen it first
+ * mints a single-use recovery grant (`?device=<uuid>&recovery=<code>`) so the
+ * opened player is admitted as that device — a bare `deviceId` is deliberately
+ * not a credential, so the link is safe even if it later leaks from history.
  */
 export function OpenWebPlayerButton({
   className,
-  deviceId,
+  screenId,
+  paired,
+  deviceOnline = false,
 }: OpenWebPlayerButtonProps) {
   const { t } = useTranslation()
+  const [isMinting, setIsMinting] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const openWebPlayer = async () => {
+    if (!paired) {
+      window.open(PLAYER_URL, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    // Open the tab synchronously inside the click gesture — popup blockers
+    // refuse a window.open that happens only after the awaited API call — and
+    // navigate it once the grant arrives. `noopener` would return null, so the
+    // opener is severed by hand instead.
+    const tab = window.open('about:blank', '_blank')
+    if (tab) {
+      tab.opener = null
+    }
+
+    setIsMinting(true)
+    try {
+      const link = await screensApi.createDeviceRecoveryLink(screenId)
+      const url = buildPlayerRecoveryUrl(link)
+      if (tab) {
+        tab.location.replace(url)
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      }
+    } catch (error) {
+      tab?.close()
+      toast.error(
+        getApiErrorMessage(error, t('screens.device.preview.openWebPlayerError')),
+      )
+    } finally {
+      setIsMinting(false)
+    }
+  }
+
+  const handleClick = () => {
+    if (paired && deviceOnline) {
+      setConfirmOpen(true)
+      return
+    }
+    void openWebPlayer()
+  }
 
   return (
-    <Button
-      variant="secondary"
-      size="sm"
-      className={className}
-      onClick={() => {
-        const url = deviceId ? buildPlayerDeviceUrl(deviceId) : PLAYER_URL
-        window.open(url, '_blank', 'noopener,noreferrer')
-      }}
-    >
-      <ScreenShare className="size-4" />
-      {t('screens.device.preview.openWebPlayer')}
-    </Button>
+    <>
+      <Button
+        variant="secondary"
+        size="sm"
+        className={className}
+        disabled={isMinting}
+        onClick={handleClick}
+      >
+        <ScreenShare className="size-4" />
+        {t('screens.device.preview.openWebPlayer')}
+      </Button>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>
+              {t('screens.device.preview.takeoverTitle')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('screens.device.preview.takeoverDescription')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setConfirmOpen(false)
+              }}
+            >
+              {t('screens.device.preview.takeoverCancel')}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={isMinting}
+              onClick={() => {
+                setConfirmOpen(false)
+                void openWebPlayer()
+              }}
+            >
+              {t('screens.device.preview.takeoverConfirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

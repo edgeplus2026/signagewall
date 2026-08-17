@@ -172,6 +172,13 @@ export class ScreensService {
       ...(dto.description ? { description: dto.description } : {}),
     });
 
+    // Closes the pre-check's race window: concurrent creates that all passed
+    // assertCanCreateScreen roll back their own over-cap insert here.
+    await this.plansService.assertCreatedScreenWithinLimit(
+      organizationId,
+      screen._id.toString(),
+    );
+
     await this.recordForOrganization(organizationId, {
       eventName: FunnelEventName.SCREEN_CREATED,
       organizationId,

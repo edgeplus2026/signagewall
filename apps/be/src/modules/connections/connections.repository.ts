@@ -87,10 +87,12 @@ export class ConnectionsRepository {
     data: CreateConnectionData,
   ): Promise<AppConnectionDocument> {
     return this.model.findOneAndUpdate(
-      { instanceId: new Types.ObjectId(data.instanceId) },
+      {
+        organizationId: new Types.ObjectId(data.organizationId),
+        instanceId: new Types.ObjectId(data.instanceId),
+      },
       {
         $set: {
-          organizationId: new Types.ObjectId(data.organizationId),
           provider: data.provider,
           accountLabel: data.accountLabel,
           scopes: data.scopes,
@@ -103,6 +105,21 @@ export class ConnectionsRepository {
             ? { createdBy: new Types.ObjectId(data.createdBy) }
             : {}),
         },
+        $setOnInsert: {
+          organizationId: new Types.ObjectId(data.organizationId),
+          instanceId: new Types.ObjectId(data.instanceId),
+        },
+        // A reconnect replaces the account credential set. Do not retain a
+        // refresh token or expiry belonging to the previously connected
+        // account when the new OAuth response omits either field.
+        ...(!data.refreshTokenEnc || !data.expiresAt
+          ? {
+              $unset: {
+                ...(!data.refreshTokenEnc ? { refreshTokenEnc: 1 } : {}),
+                ...(!data.expiresAt ? { expiresAt: 1 } : {}),
+              },
+            }
+          : {}),
       },
       { returnDocument: 'after', upsert: true },
     );

@@ -47,6 +47,10 @@ export const envValidationSchema = Joi.object({
   MAIL_BILLING_ALERTS_TO: Joi.string().email().optional().allow(''),
   PASSWORD_RESET_EXPIRES_IN_HOURS: Joi.number().default(1),
   EMAIL_VERIFICATION_EXPIRES_IN_HOURS: Joi.number().default(24),
+  // Reverse-proxy hops for Express `trust proxy` (Railway = 1, local dev = 0).
+  TRUST_PROXY_HOPS: Joi.number().integer().min(0).optional(),
+  AUTH_MAX_FAILED_LOGIN_ATTEMPTS: Joi.number().integer().min(1).default(5),
+  AUTH_LOGIN_LOCKOUT_MINUTES: Joi.number().integer().min(1).default(15),
   THROTTLE_TTL_SECONDS: Joi.number().default(60),
   THROTTLE_LIMIT: Joi.number().default(120),
   THROTTLE_AUTH_TTL_SECONDS: Joi.number().default(60),
@@ -59,6 +63,15 @@ export const envValidationSchema = Joi.object({
   R2_SECRET_ACCESS_KEY: Joi.string().optional().allow(''),
   R2_BUCKET: Joi.string().optional().allow(''),
   R2_PUBLIC_URL: Joi.string().uri().optional().allow(''),
+  PRIVATE_R2_ACCOUNT_ID: Joi.string().optional().allow(''),
+  PRIVATE_R2_ACCESS_KEY_ID: Joi.string().optional().allow(''),
+  PRIVATE_R2_SECRET_ACCESS_KEY: Joi.string().optional().allow(''),
+  PRIVATE_R2_BUCKET: Joi.string().optional().allow(''),
+  PRIVATE_R2_SIGNED_URL_TTL_SECONDS: Joi.number()
+    .integer()
+    .min(1)
+    .max(7 * 24 * 60 * 60)
+    .default(900),
   MEDIA_MAX_FILE_SIZE_BYTES: Joi.number().default(10 * 1024 * 1024),
   MEDIA_MAX_FILES_PER_UPLOAD: Joi.number().default(10),
   PEXELS_API_KEY: Joi.string().optional().allow(''),
@@ -66,6 +79,9 @@ export const envValidationSchema = Joi.object({
   STOCK_MEDIA_MAX_IMPORT_BYTES: Joi.number().default(50 * 1024 * 1024),
   PLAYER_PAIRING_CODE_TTL_MINUTES: Joi.number().default(15),
   PLAYER_OFFLINE_AFTER_SECONDS: Joi.number().default(90),
+  // Minutes a paired screen must be offline before org members are emailed;
+  // 0 disables the alert.
+  SCREEN_OFFLINE_ALERT_MINUTES: Joi.number().integer().min(0).default(10),
   // Redis (BullMQ). REDIS_URL takes precedence over host/port when provided.
   REDIS_URL: Joi.string().optional().allow(''),
   REDIS_HOST: Joi.string().default('localhost'),

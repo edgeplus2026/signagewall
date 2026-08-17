@@ -75,10 +75,11 @@ export const appsApi = {
   previewAppData: async (
     slug: string,
     config: AppInstanceConfig,
+    appInstanceId?: string,
   ): Promise<AppPreviewDataResponse> => {
     const { data } = await api.post<AppPreviewDataResponse>(
       `${APPS_BASE}/${encodeURIComponent(slug)}/preview-data`,
-      { config },
+      { config, ...(appInstanceId ? { appInstanceId } : {}) },
       // Each call returns quickly now — a slow export runs as an async job that
       // the connector polls across ticks — so a small margin over the default is
       // plenty (create + a brief inline poll on the first call).
@@ -113,10 +114,7 @@ export const appsApi = {
     return data
   },
 
-  updateInstanceConfig: async (
-    id: string,
-    config: AppInstanceConfig,
-  ): Promise<AppInstance> => {
+  updateInstanceConfig: async (id: string, config: AppInstanceConfig): Promise<AppInstance> => {
     const { data } = await api.put<AppInstance>(`${INSTANCES_BASE}/${id}/config`, {
       config,
     })
@@ -129,9 +127,7 @@ export const appsApi = {
 
   /** Disconnect the instance's OAuth account (deletes connection, clears config). */
   disconnectInstance: async (id: string): Promise<AppInstance> => {
-    const { data } = await api.delete<AppInstance>(
-      `${INSTANCES_BASE}/${id}/connection`,
-    )
+    const { data } = await api.delete<AppInstance>(`${INSTANCES_BASE}/${id}/connection`)
     return data
   },
 

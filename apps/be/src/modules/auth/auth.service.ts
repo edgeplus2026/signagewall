@@ -3,6 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
+
+/**
+ * Lifetime of the single-use code the Google callback puts in the redirect
+ * URL. The CMS redeems it immediately, so one minute is generous headroom.
+ */
+const GOOGLE_LOGIN_CODE_TTL_MS = 60_000;
 import { Model, Types } from 'mongoose';
 import { I18nService } from 'nestjs-i18n';
 
@@ -214,7 +220,7 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.usersRepository.findByEmail(dto.email, {
-      select: ['password'],
+      select: ['password', 'failedLoginAttempts', 'loginLockedUntil'],
     });
 
     if (!user || !user.password) {
@@ -223,13 +229,44 @@ export class AuthService {
       );
     }
 
+    // Per-account lockout: the per-IP AuthThrottle alone cannot stop a
+    // distributed credential-stuffing run against one account. Checked before
+    // bcrypt so a locked account costs no hash work.
+    if (user.loginLockedUntil && user.loginLockedUntil > new Date()) {
+      throw BusinessException.tooManyRequests(
+        this.i18n.t('auth.accountTemporarilyLocked'),
+      );
+    }
+
     // Verify the password before the active-check so an account in its
     // self-deletion grace period can reactivate by simply logging in.
     const isValid = await bcrypt.compare(dto.password, user.password);
     if (!isValid) {
+      const maxAttempts = this.configService.get<number>(
+        'auth.maxFailedLoginAttempts',
+        5,
+      );
+      const lockoutMinutes = this.configService.get<number>(
+        'auth.loginLockoutMinutes',
+        15,
+      );
+      const { locked } = await this.usersRepository.recordFailedLogin(
+        user._id.toString(),
+        maxAttempts,
+        lockoutMinutes * 60 * 1000,
+      );
+      if (locked) {
+        this.logger.warn(
+          `Account ${user._id.toString()} locked for ${lockoutMinutes}m after ${maxAttempts} failed login attempts`,
+        );
+      }
       throw BusinessException.unauthorized(
         this.i18n.t('auth.invalidCredentials'),
       );
+    }
+
+    if (user.failedLoginAttempts || user.loginLockedUntil) {
+      await this.usersRepository.clearLoginLock(user._id.toString());
     }
 
     if (!user.isActive) {
@@ -394,12 +431,21 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, this.bcryptRounds);
 
+    // `null`, never `undefined`: Mongoose drops undefined keys from updates,
+    // which would leave the reset token redeemable again and every issued
+    // refresh token alive — a stolen session surviving the victim's reset.
     await this.usersRepository.updateById(user._id.toString(), {
       password: hashedPassword,
-      passwordResetToken: undefined,
-      passwordResetExpiresAt: undefined,
-      refreshTokenHash: undefined,
+      passwordResetToken: null,
+      passwordResetExpiresAt: null,
+      refreshTokenHash: null,
     });
+
+    // Proving control of the mailbox ends the lockout. The lock check runs
+    // before the password comparison, so without this the user follows the
+    // "reset your password" advice in the lockout message and still gets a
+    // 429 with their brand-new password.
+    await this.usersRepository.clearLoginLock(user._id.toString());
   }
 
   async refreshTokens(refreshToken: string): Promise<AuthTokens> {
@@ -519,10 +565,17 @@ export class AuthService {
     return this.buildAuthResponse(impersonator);
   }
 
-  async loginWithGoogle(
+  /**
+   * Completes the Google redirect: upserts or links the account and returns a
+   * short-lived single-use code for the browser redirect. The real tokens are
+   * only issued when the CMS redeems the code via POST /auth/google/exchange —
+   * JWTs in a redirect URL would leak into proxy logs, browser history and
+   * Referer headers.
+   */
+  async createGoogleLoginCode(
     profile: GoogleProfile,
     acquisitionToken?: string,
-  ): Promise<AuthResponseDto> {
+  ): Promise<string> {
     let isNewUser = false;
     let user =
       (await this.usersRepository.findByGoogleId(profile.googleId)) ??
@@ -582,6 +635,26 @@ export class AuthService {
       properties: { authProvider: AuthProvider.GOOGLE },
     });
 
+    const rawCode = randomBytes(32).toString('hex');
+    await this.usersRepository.updateById(user._id.toString(), {
+      googleLoginCode: this.hashToken(rawCode),
+      googleLoginCodeExpiresAt: new Date(Date.now() + GOOGLE_LOGIN_CODE_TTL_MS),
+    });
+    return rawCode;
+  }
+
+  /** Redeems a single-use Google login code for the real token pair. */
+  async exchangeGoogleLoginCode(code: string): Promise<AuthResponseDto> {
+    const user = await this.usersRepository.claimGoogleLoginCode(
+      this.hashToken(code),
+    );
+
+    if (!user) {
+      throw BusinessException.unauthorized(
+        this.i18n.t('auth.googleAuthFailed'),
+      );
+    }
+
     return this.buildAuthResponse(user);
   }
 
@@ -611,9 +684,11 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(newPassword, this.bcryptRounds);
 
+    // Revoke every outstanding session: a password change must strand a stolen
+    // refresh token. `null` (-> $unset), because `undefined` is dropped.
     await this.usersRepository.updateById(userId, {
       password: hashedPassword,
-      refreshTokenHash: undefined,
+      refreshTokenHash: null,
     });
   }
 
@@ -636,8 +711,10 @@ export class AuthService {
 
     await this.usersRepository.updateById(userId, {
       password: hashedPassword,
-      refreshTokenHash: undefined,
+      refreshTokenHash: null,
     });
+
+    await this.usersRepository.clearLoginLock(userId);
   }
 
   private async mapUserResponse(user: UserDocument): Promise<UserResponseDto> {

@@ -14,8 +14,10 @@ import { instagramConnector } from './instagram.connector';
 import { linkedinConnector } from './linkedin.connector';
 import { menuConnector } from './menu.connector';
 import { onthisdayConnector } from './onthisday.connector';
+import { opsboardConnector } from './opsboard.connector';
 import { outlookConnector } from './outlook.connector';
 import { powerPricesConnector } from './power-prices.connector';
+import { powerbiSecureConnector } from './powerbi-secure.connector';
 import { powerpointConnector } from './powerpoint.connector';
 import { rssConnector } from './rss.connector';
 import { teamsConnector } from './teams.connector';
@@ -38,6 +40,8 @@ const CONNECTORS: Record<string, AppConnector> = {
   'power-prices': powerPricesConnector,
   gcal: gcalConnector,
   gsheets: gsheetsConnector,
+  opsboard: opsboardConnector,
+  'powerbi-secure': powerbiSecureConnector,
   // Menu board: inert (cacheKey '') in manual mode; syncs items from Google
   // Sheets or Excel when the operator picks a tabular source.
   menu: menuConnector,

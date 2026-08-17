@@ -7,6 +7,6 @@ export class OrganizationResponseSchema {
   @ApiProperty()
   name: string;
 
-  @ApiProperty({ enum: ['admin', 'member'] })
-  role: 'admin' | 'member';
+  @ApiProperty({ enum: ['admin', 'member', 'viewer'] })
+  role: 'admin' | 'member' | 'viewer';
 }

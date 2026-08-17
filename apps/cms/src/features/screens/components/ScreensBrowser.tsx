@@ -11,6 +11,10 @@ import { useCallback, useContext, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
+import {
+  QueryErrorBanner,
+  QueryErrorState,
+} from '@/components/common/QueryErrorState'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -32,6 +36,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { ContentPreviewDialog } from '@/features/content/components/ContentPreviewDialog'
 import { mediaGridClassName } from '@/features/media/lib/mediaActionCardStyles'
+import { useCanEditOrgContent } from '@/features/organizations/hooks/useIsOrgAdmin'
 import { DeleteScreenDialog } from '@/features/screens/components/DeleteScreenDialog'
 import { ScreensBulkActionsBar } from '@/features/screens/components/ScreensBulkActionsBar'
 import { ScreensGrid } from '@/features/screens/components/ScreensGrid'
@@ -63,10 +68,18 @@ function ScreensTableSkeleton() {
 interface ScreensBrowserProps {
   screens: ScreenSummary[]
   isLoading: boolean
+  isError?: boolean
+  onRetry?: () => void
   onCreateClick: () => void
 }
 
-export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBrowserProps) {
+export function ScreensBrowser({
+  screens,
+  isLoading,
+  isError,
+  onRetry,
+  onCreateClick,
+}: ScreensBrowserProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
@@ -74,6 +87,8 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
   const [sortDirection, setSortDirection] = useState<ScreenSortDirection>('asc')
   const [statusFilter, setStatusFilter] = useState<ScreenStatusFilter>('all')
   const [viewMode, setViewMode] = useViewMode('screens')
+  // Server-enforced; hiding the buttons just stops a viewer walking into a 403.
+  const canEdit = useCanEditOrgContent()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteIds, setDeleteIds] = useState<string[]>([])
   const [previewScreen, setPreviewScreen] = useState<ScreenSummary | null>(null)
@@ -271,6 +286,7 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
           </TooltipProvider>
         </div>
 
+        {canEdit && (
         <ScreensBulkActionsBar
           selectedCount={selectedIds.size}
           onDelete={() => {
@@ -278,6 +294,9 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
           }}
           onClear={clearSelection}
         />
+        )}
+
+        {isError && screens.length > 0 && <QueryErrorBanner onRetry={onRetry} />}
 
         {isLoading ? (
           viewMode === 'grid' ? (
@@ -285,6 +304,8 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
           ) : (
             <ScreensTableSkeleton />
           )
+        ) : isError && screens.length === 0 ? (
+          <QueryErrorState onRetry={onRetry} />
         ) : filteredScreens.length === 0 ? (
           <Empty className="min-h-48 py-12">
             <EmptyHeader>
@@ -312,12 +333,12 @@ export function ScreensBrowser({ screens, isLoading, onCreateClick }: ScreensBro
                 >
                   {t('screens.emptyClearSearch')}
                 </Button>
-              ) : (
+              ) : canEdit ? (
                 <Button type="button" variant="outline" size="sm" onClick={onCreateClick}>
                   <MonitorIcon data-icon="inline-start" />
                   {t('screens.create.button')}
                 </Button>
-              )}
+              ) : null}
             </EmptyContent>
           </Empty>
         ) : viewMode === 'grid' ? (

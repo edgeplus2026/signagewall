@@ -247,11 +247,40 @@ export class Device {
   @Prop({ index: true, sparse: true })
   tokenHash?: string;
 
+  /**
+   * SHA-256 of a single-use recovery code minted by an operator ("Open web
+   * player"). Lets a device whose storage was wiped re-adopt its identity
+   * without the bare `deviceId` acting as a bearer credential. Consumed
+   * atomically on first use.
+   */
+  @Prop()
+  recoveryCodeHash?: string;
+
+  @Prop()
+  recoveryCodeExpiresAt?: Date;
+
   @Prop()
   lastSeenAt?: Date;
 
   @Prop({ default: false })
   online!: boolean;
+
+  /**
+   * When the offline alert email for the CURRENT offline episode was sent.
+   * Cleared once the device has been back online continuously for the
+   * re-arm window, so the next episode alerts again — one alert per outage,
+   * not one per sweep, and not one per reconnect on a flapping screen.
+   */
+  @Prop()
+  offlineAlertedAt?: Date;
+
+  /**
+   * Start of the device's current uninterrupted online streak. Unset while
+   * offline. Only used to decide when an alerted device has recovered for
+   * real rather than momentarily.
+   */
+  @Prop()
+  onlineSince?: Date;
 
   /**
    * When this device first put real content on a screen — the funnel's

@@ -137,6 +137,19 @@ export class OrganizationsRepository {
       .exec();
   }
 
+  /** Bulk lookup (live orgs only) — e.g. resolving names for a grant list. */
+  findManyByIds(organizationIds: string[]): Promise<OrganizationDocument[]> {
+    if (organizationIds.length === 0) {
+      return Promise.resolve([]);
+    }
+    return this.organizationModel
+      .find({
+        _id: { $in: organizationIds.map((id) => new Types.ObjectId(id)) },
+        deletedAt: null,
+      })
+      .exec();
+  }
+
   /** Includes soft-deleted orgs — for the deletion sweep / cancel-deletion. */
   findByIdIncludingDeleted(
     organizationId: string,

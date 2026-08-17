@@ -279,19 +279,26 @@ export class AppInstancesRepository {
    * compute keys it had just thrown away. `$group` does the deduplication in the
    * database and returns one document per distinct key.
    */
-  async distinctCacheKeys(
-    slugs: string[],
-  ): Promise<
-    { cacheKey: string; appSlug: string; config: Record<string, unknown> }[]
+  async distinctCacheKeys(slugs: string[]): Promise<
+    {
+      cacheKey: string;
+      appSlug: string;
+      config: Record<string, unknown>;
+      /** Owner of the representative instance, for connection ownership checks. */
+      organizationId: string;
+      appInstanceId: string;
+    }[]
   > {
     const uniqueSlugs = [...new Set(slugs)];
     if (uniqueSlugs.length === 0) {
       return [];
     }
-    return this.model.aggregate<{
+    const groups = await this.model.aggregate<{
       cacheKey: string;
       appSlug: string;
       config: Record<string, unknown>;
+      organizationId: Types.ObjectId;
+      appInstanceId: Types.ObjectId;
     }>([
       { $match: { appSlug: { $in: uniqueSlugs }, cacheKey: { $ne: null } } },
       {
@@ -299,10 +306,26 @@ export class AppInstancesRepository {
           _id: '$cacheKey',
           appSlug: { $first: '$appSlug' },
           config: { $first: '$config' },
+          organizationId: { $first: '$organizationId' },
+          appInstanceId: { $first: '$_id' },
         },
       },
-      { $project: { _id: 0, cacheKey: '$_id', appSlug: 1, config: 1 } },
+      {
+        $project: {
+          _id: 0,
+          cacheKey: '$_id',
+          appSlug: 1,
+          config: 1,
+          organizationId: 1,
+          appInstanceId: 1,
+        },
+      },
     ]);
+    return groups.map((group) => ({
+      ...group,
+      organizationId: group.organizationId.toString(),
+      appInstanceId: group.appInstanceId.toString(),
+    }));
   }
 
   async deleteById(

@@ -26,6 +26,13 @@ export interface TabularSourceOptions {
   /** Optional form section for the sync fields. */
   section?: string
   /**
+   * Key under which the app's connector returns the synced rows in its
+   * `playerPayload`. Defaults to `items`; OpsBoard's connector emits `rows`.
+   * The `tabular-preview` control reads this, so getting it wrong shows an
+   * empty "Synced rows" panel for a sync that is actually working.
+   */
+  payloadItemsKey?: string
+  /**
    * Render that section expanded. Worth setting when the section holds the
    * app's content rather than optional trimming — see {@link Field.sectionOpen}.
    */
@@ -46,6 +53,9 @@ export function tabularSourceFields(options: TabularSourceOptions): Field[] {
     fileKeyBySource: { gsheets: 'spreadsheet', excel: 'workbook' },
     worksheetKey: 'worksheet',
     itemsKey,
+    ...(options.payloadItemsKey !== undefined
+      ? { payloadItemsKey: options.payloadItemsKey }
+      : {}),
   }
   const syncVisible = { field: 'source', equalsAny: ['gsheets', 'excel'] }
   return [

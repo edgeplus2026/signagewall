@@ -7,28 +7,38 @@
  * new identity and strand its paired screen on the old, orphaned `deviceId`.
  *
  * To make that recoverable we mirror the `deviceId` into the URL as
- * `?device=<uuid>`. Because the backend re-issues a token for a known `deviceId`
- * that reconnects over the `/player` socket without a valid one, simply restoring
- * the old `deviceId` is enough to slide straight back into the paired screen — no
- * operator action, no new endpoint. So reopening the same URL (or the CMS
- * "Open web player" link, which carries the paired screen's `deviceId`) fully
- * recovers a device whose localStorage was cleared.
+ * `?device=<uuid>`, and the operator's "Open web player" link additionally
+ * carries a single-use grant as `?recovery=<code>`. Restoring the `deviceId`
+ * alone is NOT enough to re-enter the paired screen — it only names which
+ * device is being claimed. Admission needs one of:
+ *
+ *   - the device token this browser still holds (the ordinary case, where
+ *     nothing was actually lost), or
+ *   - a `?recovery=<code>` grant an operator just minted in the CMS.
+ *
+ * Anything else is refused, so recovering a genuinely wiped screen is an
+ * explicit operator action rather than something a stale URL does silently.
  *
  * We deliberately carry the `deviceId`, not the pairing code: the code is
  * ephemeral (expires and is cleared once paired) and short enough to guess, which
  * would make a code-based recovery both unreliable and a screen-hijack risk.
  *
- * SECURITY: the flip side of that re-issue behavior is that the `deviceId` acts as
- * a recovery credential — any browser that presents a known paired `deviceId` is
- * admitted as that device (the backend does not prove prior token ownership). So
- * this value, once mirrored into the URL, must be treated as sensitive (it leaks
- * through history, `Referer`, and server logs). It is a 122-bit UUID, so the risk
- * is disclosure of the URL, not guessing. `localStorage` winning over the URL only
- * protects a machine that is ALREADY paired locally; it does not protect a fresh
- * browser opened with someone else's link.
+ * SECURITY: the `deviceId` alone is identity, NOT a credential. The backend
+ * admits a paired device only on proof of possession (its device token) or a
+ * single-use, short-lived recovery code minted by an operator in the CMS
+ * (`?recovery=<code>`, carried by the "Open web player" link). A bare known
+ * `deviceId` without either is refused with `recovery:required`, and the
+ * player resets to a fresh identity and the normal pairing flow — so a leaked
+ * URL cannot hijack a screen. `localStorage` winning over the URL additionally
+ * means a machine that is already paired locally never adopts someone else's
+ * link.
  */
 
 const DEVICE_PARAM = 'device'
+const RECOVERY_PARAM = 'recovery'
+
+/** base64url token shape (the backend mints 32 bytes → 43 chars). */
+const RECOVERY_CODE_RE = /^[A-Za-z0-9_-]{16,256}$/
 
 /** RFC-4122 UUID shape; guards against adopting a garbage `?device=` value. */
 const UUID_RE =
@@ -72,5 +82,54 @@ export function reflectDeviceIdInUrl(deviceId: string): void {
     window.history.replaceState(null, '', url)
   } catch {
     // Non-fatal: recovery still works when the CMS link carries ?device=.
+  }
+}
+
+/**
+ * Reads the single-use recovery code from the URL (`?recovery=<code>`), minted
+ * by the CMS "Open web player" action. Sent once on connect; the server
+ * consumes it atomically, and {@link clearUrlRecoveryCode} strips it after a
+ * successful pairing so it never lingers in the address bar.
+ */
+export function getUrlRecoveryCode(): string | undefined {
+  if (typeof window === 'undefined') {
+    return undefined
+  }
+
+  const raw = new URLSearchParams(window.location.search).get(RECOVERY_PARAM)
+  if (!raw || !RECOVERY_CODE_RE.test(raw)) {
+    return undefined
+  }
+  return raw
+}
+
+/** Strips the consumed (or refused) recovery code from the URL. Best effort. */
+export function clearUrlRecoveryCode(): void {
+  removeUrlParam(RECOVERY_PARAM)
+}
+
+/**
+ * Strips the `?device=` identity anchor. Called when the server refuses this
+ * identity (`recovery:required`) — leaving it in place would make the fresh
+ * boot re-adopt the very id that was just refused, looping forever.
+ */
+export function clearUrlDeviceId(): void {
+  removeUrlParam(DEVICE_PARAM)
+}
+
+function removeUrlParam(name: string): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    const url = new URL(window.location.href)
+    if (!url.searchParams.has(name)) {
+      return
+    }
+    url.searchParams.delete(name)
+    window.history.replaceState(null, '', url)
+  } catch {
+    // Non-fatal.
   }
 }

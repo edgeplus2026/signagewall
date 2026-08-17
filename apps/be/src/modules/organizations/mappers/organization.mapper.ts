@@ -6,7 +6,8 @@ import {
 
 export type OrganizationRoleDto =
   | OrganizationRole.ADMIN
-  | OrganizationRole.MEMBER;
+  | OrganizationRole.MEMBER
+  | OrganizationRole.VIEWER;
 
 export interface OrganizationResponseDto {
   id: string;

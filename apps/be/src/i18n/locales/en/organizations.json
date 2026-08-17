@@ -3,5 +3,6 @@
   "notMember": "You do not have access to this organization.",
   "cannotDeleteLast": "You must keep at least one organization.",
   "adminOnly": "Only organization admins can perform this action.",
-  "organizationRequired": "Organization context is required."
+  "organizationRequired": "Organization context is required.",
+  "readOnly": "Your role in this workspace is view-only."
 }

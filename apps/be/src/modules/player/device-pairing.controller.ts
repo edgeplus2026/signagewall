@@ -80,6 +80,18 @@ export class DevicePairingController {
     return this.playerService.getScreenDevice(organizationId, screenId);
   }
 
+  @Post(':screenId/device/recovery-link')
+  @RequireOrgRole()
+  @AuthThrottle()
+  @HttpCode(HttpStatus.OK)
+  @ApiSuccessResponse(Object)
+  createRecoveryLink(
+    @RequiredOrganizationId() organizationId: string,
+    @Param('screenId', ParseObjectIdPipe) screenId: string,
+  ) {
+    return this.playerService.createRecoveryLink(organizationId, screenId);
+  }
+
   @Patch(':screenId/device/volume')
   @RequireOrgRole()
   @ApiSuccessResponse(Object)

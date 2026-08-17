@@ -25,10 +25,9 @@ export const connectionsApi = {
     appSlug: string,
     instanceId: string,
   ): Promise<string> => {
-    const { data } = await api.get<{ url: string }>(
-      `${BASE}/oauth/${provider}/start`,
-      { params: { appSlug, instanceId } },
-    )
+    const { data } = await api.get<{ url: string }>(`${BASE}/oauth/${provider}/start`, {
+      params: { appSlug, instanceId },
+    })
     return data.url
   },
 
@@ -42,11 +41,11 @@ export const connectionsApi = {
     connectionId: string,
     source: string,
     query: string,
+    context: Record<string, string> = {},
   ): Promise<RemoteOption[]> => {
-    const { data } = await api.get<RemoteOption[]>(
-      `${BASE}/${connectionId}/browse/${source}`,
-      { params: query ? { query } : {} },
-    )
+    const { data } = await api.get<RemoteOption[]>(`${BASE}/${connectionId}/browse/${source}`, {
+      params: { ...(query ? { query } : {}), ...context },
+    })
     return data
   },
 

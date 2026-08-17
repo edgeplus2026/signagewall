@@ -165,7 +165,43 @@ export class DevicesRepository {
       .exec();
   }
 
-  /** Marks presence and returns the updated device (for downstream events). */
+  /** Arms a fresh single-use recovery code, replacing any previous one. */
+  async setRecoveryCode(
+    deviceId: string,
+    recoveryCodeHash: string,
+    recoveryCodeExpiresAt: Date,
+  ): Promise<DeviceDocument | null> {
+    return this.deviceModel
+      .findOneAndUpdate(
+        { deviceId },
+        { $set: { recoveryCodeHash, recoveryCodeExpiresAt } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+  }
+
+  /**
+   * Atomically redeems a recovery code: the matching, unexpired code is unset
+   * in the same operation, so it can never be redeemed twice — even by
+   * concurrent connections racing with the same URL.
+   */
+  async claimRecoveryCode(
+    deviceId: string,
+    recoveryCodeHash: string,
+  ): Promise<DeviceDocument | null> {
+    return this.deviceModel
+      .findOneAndUpdate(
+        {
+          deviceId,
+          recoveryCodeHash,
+          recoveryCodeExpiresAt: { $gt: new Date() },
+        },
+        { $unset: { recoveryCodeHash: '', recoveryCodeExpiresAt: '' } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+  }
+
   /**
    * Stores the device's latest on-demand report, replacing any previous one.
    * Only the newest is kept: a history would grow without bound on a device
@@ -234,22 +270,130 @@ export class DevicesRepository {
       .exec();
   }
 
+  /** Marks presence and returns the updated device (for downstream events). */
   async setPresence(
     deviceId: string,
     online: boolean,
     profile?: DeviceProfile,
   ): Promise<DeviceDocument | null> {
+    const now = new Date();
+
+    if (!online) {
+      return this.deviceModel
+        .findOneAndUpdate(
+          { deviceId },
+          {
+            $set: {
+              online,
+              lastSeenAt: now,
+              ...(profile ? { profile } : {}),
+            },
+            $unset: { onlineSince: '' },
+          },
+          { returnDocument: 'after' },
+        )
+        .exec();
+    }
+
+    // Coming back online closes the offline episode and re-arms the alert —
+    // but only once the device has PROVEN it is back. A flapping screen
+    // (reconnecting for seconds at a time, then dropping) would otherwise
+    // clear the stamp on every blip and re-alert on every sweep, turning one
+    // bad display into a stream of emails. `onlineSince` records when the
+    // current healthy streak began; the sweep's re-arm reads it.
     return this.deviceModel
       .findOneAndUpdate(
         { deviceId },
-        {
-          $set: {
-            online,
-            lastSeenAt: new Date(),
-            ...(profile ? { profile } : {}),
+        [
+          {
+            $set: {
+              online: true,
+              lastSeenAt: now,
+              ...(profile ? { profile } : {}),
+              // Preserve an existing streak start; only stamp a new one when
+              // the device was previously offline.
+              onlineSince: {
+                $cond: [
+                  { $eq: ['$online', true] },
+                  { $ifNull: ['$onlineSince', now] },
+                  now,
+                ],
+              },
+            },
           },
-        },
+        ],
         { returnDocument: 'after' },
+      )
+      .exec();
+  }
+
+  /**
+   * Re-arms the offline alert for devices that have now been continuously
+   * online for at least `stableFor`. Separating this from {@link setPresence}
+   * is what makes the debounce hold: a device that flaps never accumulates a
+   * long enough streak, so its `offlineAlertedAt` stamp survives and it is not
+   * alerted again.
+   */
+  async rearmRecoveredDevices(stableSince: Date): Promise<number> {
+    const result = await this.deviceModel
+      .updateMany(
+        {
+          online: true,
+          onlineSince: { $lte: stableSince },
+          offlineAlertedAt: { $exists: true },
+        },
+        { $unset: { offlineAlertedAt: '' } },
+      )
+      .exec();
+    return result.modifiedCount;
+  }
+
+  /**
+   * Paired devices whose outage started between `notBefore` and `cutoff` and
+   * that have not yet been alerted for this episode. Drives the offline-alert
+   * sweep.
+   *
+   * `notBefore` is what keeps the FIRST sweep after a deploy sane: without it,
+   * `offlineAlertedAt` being a new field means every device that has been dark
+   * for weeks matches at once and the org gets one email listing screens it
+   * retired months ago. `limit` bounds a genuine mass outage.
+   */
+  findOfflineForAlert(
+    cutoff: Date,
+    notBefore: Date,
+    limit: number,
+  ): Promise<DeviceDocument[]> {
+    return (
+      this.deviceModel
+        .find({
+          status: DeviceStatus.PAIRED,
+          online: false,
+          lastSeenAt: { $gt: notBefore, $lte: cutoff },
+          offlineAlertedAt: { $exists: false },
+          screenId: { $exists: true },
+          organizationId: { $exists: true },
+        })
+        // Most recently lost first: if the limit truncates, it keeps the
+        // outages an operator can still act on.
+        .sort({ lastSeenAt: -1 })
+        .limit(limit)
+        .exec()
+    );
+  }
+
+  /**
+   * Stamps the alert BEFORE the email goes out (at-most-once): a crash between
+   * stamp and send loses one email, while stamping after a send could double-
+   * alert every screen on a retry — the worse failure for an inbox.
+   */
+  async markOfflineAlerted(deviceIds: string[]): Promise<void> {
+    if (deviceIds.length === 0) {
+      return;
+    }
+    await this.deviceModel
+      .updateMany(
+        { deviceId: { $in: deviceIds } },
+        { $set: { offlineAlertedAt: new Date() } },
       )
       .exec();
   }

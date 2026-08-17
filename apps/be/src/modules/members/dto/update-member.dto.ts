@@ -9,6 +9,13 @@ export class UpdateMemberDto {
   name?: string;
 
   @IsOptional()
-  @IsEnum([OrganizationRole.ADMIN, OrganizationRole.MEMBER])
-  role?: OrganizationRole.ADMIN | OrganizationRole.MEMBER;
+  @IsEnum([
+    OrganizationRole.ADMIN,
+    OrganizationRole.MEMBER,
+    OrganizationRole.VIEWER,
+  ])
+  role?:
+    | OrganizationRole.ADMIN
+    | OrganizationRole.MEMBER
+    | OrganizationRole.VIEWER;
 }

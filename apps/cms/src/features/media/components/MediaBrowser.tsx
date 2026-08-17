@@ -12,6 +12,10 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useSt
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import {
+  QueryErrorBanner,
+  QueryErrorState,
+} from '@/components/common/QueryErrorState'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -65,6 +69,7 @@ import type {
   MediaSortField,
   MediaTypeFilter,
 } from '@/features/media/types/media.types'
+import { useCanEditOrgContent } from '@/features/organizations/hooks/useIsOrgAdmin'
 import { AddToPlaylistSheet } from '@/features/playlists/components/AddToPlaylistSheet'
 import { AddToScreenSheet } from '@/features/screens/components/AddToScreenSheet'
 import { useViewMode } from '@/hooks/useViewMode'
@@ -110,6 +115,8 @@ export const MediaBrowser = forwardRef<MediaBrowserHandle, MediaBrowserProps>(fu
 ) {
   const { t } = useTranslation()
   const [uploadSheetOpen, setUploadSheetOpen] = useState(false)
+  // Server-enforced; hiding the buttons just stops a viewer walking into a 403.
+  const canEdit = useCanEditOrgContent()
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<MediaTypeFilter>('all')
@@ -130,11 +137,21 @@ export const MediaBrowser = forwardRef<MediaBrowserHandle, MediaBrowserProps>(fu
   const moveMedia = useMoveMedia()
   const enqueueFiles = useUploadStore((state) => state.enqueueFiles)
 
-  const { data: folders = [], isPending: foldersPending, isFetching: foldersFetching } =
-    useFolders(currentFolderId)
+  const {
+    data: folders = [],
+    isPending: foldersPending,
+    isFetching: foldersFetching,
+    isError: foldersError,
+    refetch: refetchFolders,
+  } = useFolders(currentFolderId)
 
-  const { data: rawMediaItems = [], isPending: mediaPending, isFetching: mediaFetching } =
-    useMediaFiles(currentFolderId)
+  const {
+    data: rawMediaItems = [],
+    isPending: mediaPending,
+    isFetching: mediaFetching,
+    isError: mediaError,
+    refetch: refetchMedia,
+  } = useMediaFiles(currentFolderId)
 
   const mediaItems = useMemo(
     () =>
@@ -146,6 +163,12 @@ export const MediaBrowser = forwardRef<MediaBrowserHandle, MediaBrowserProps>(fu
       }),
     [rawMediaItems, search, typeFilter, sortBy, sortDirection],
   )
+
+  const hasLoadError = mediaError || foldersError
+  const retryFailedQueries = useCallback(() => {
+    if (foldersError) void refetchFolders()
+    if (mediaError) void refetchMedia()
+  }, [foldersError, mediaError, refetchFolders, refetchMedia])
 
   useEffect(() => {
     onItemCountChange?.(rawMediaItems.length)
@@ -405,6 +428,7 @@ export const MediaBrowser = forwardRef<MediaBrowserHandle, MediaBrowserProps>(fu
             </TooltipProvider>
           </div>
 
+          {canEdit && (
           <BulkActionsBar
             selectedCount={selectedIds.size}
             onMove={() => {
@@ -421,9 +445,16 @@ export const MediaBrowser = forwardRef<MediaBrowserHandle, MediaBrowserProps>(fu
             }}
             onClear={clearSelection}
           />
+          )}
+
+          {hasLoadError && mediaItems.length > 0 && (
+            <QueryErrorBanner onRetry={retryFailedQueries} />
+          )}
 
           {showMediaSkeleton ? (
             viewMode === 'grid' ? <MediaGridSkeleton /> : <MediaTableSkeleton />
+          ) : hasLoadError && mediaItems.length === 0 ? (
+            <QueryErrorState onRetry={retryFailedQueries} />
           ) : mediaItems.length === 0 ? (
             <Empty className="min-h-48 py-12">
               <EmptyHeader>

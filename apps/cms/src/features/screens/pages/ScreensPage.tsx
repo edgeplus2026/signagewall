@@ -15,7 +15,7 @@ export default function ScreensPage() {
   const { data: plan } = usePlan()
   const openPlanDialog = usePlanDialogStore((state) => state.openDialog)
 
-  const { data: screens = [], isLoading } = useScreens()
+  const { data: screens = [], isLoading, isError, refetch } = useScreens()
 
   // Known to be out of licences: skip the create form entirely. The API would
   // refuse the submit anyway, and a form that cannot succeed wastes the user's
@@ -66,6 +66,8 @@ export default function ScreensPage() {
       <ScreensBrowser
         screens={screens}
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => void refetch()}
         onCreateClick={handleCreateClick}
       />
 

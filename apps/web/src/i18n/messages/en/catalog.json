@@ -188,5 +188,15 @@
     "tagline": "Show a menu or price list",
     "description": "A clean board of items and prices: for cafés, canteens and shops. Add a row per item.",
     "about": "Present a polished menu or price list, with a design to match the room: Classic, Chalkboard, Gallery cards with photos, a bold Counter board, or understated Noir. Add a heading, pick a currency, then type items row by row, or sync them live from a Google Sheets or Excel file so prices update themselves. It is built for cafés, canteens, bakeries and shops."
+  },
+  "opsboard": {
+    "tagline": "Live shift, dispatch, KPI and safety boards",
+    "description": "Turn a manual table, Google Sheet or Excel workbook into a clear operational board for one shift or zone.",
+    "about": "OpsBoard turns the table your planner already maintains into a readable screen for the floor. Enter rows manually, or connect a Google Sheet or Excel workbook and map its columns once; choose a shift, dispatch, KPI or safety preset, or build a custom layout. The board refreshes on its own, and when the source or the network is temporarily unavailable the screen keeps showing the last synced state instead of going blank."
+  },
+  "powerbi-secure": {
+    "tagline": "Private Power BI snapshots for unattended screens",
+    "description": "Show pages from a private Power BI report as securely exported snapshots, no public link required.",
+    "about": "Connect a Microsoft account with access to your workspace, pick a report and its pages, and the app shows securely exported snapshots of those pages on the screen. The report itself is never made public and no credentials reach the display. Snapshots refresh on a schedule you choose, and if the source or the internet is unavailable the screen keeps playing the last successful export."
   }
 }

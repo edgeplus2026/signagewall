@@ -56,4 +56,16 @@ export class BusinessException extends HttpException {
       details,
     );
   }
+
+  static tooManyRequests(
+    message: string,
+    details?: unknown,
+  ): BusinessException {
+    return new BusinessException(
+      ErrorCodes.TOO_MANY_REQUESTS,
+      message,
+      HttpStatus.TOO_MANY_REQUESTS,
+      details,
+    );
+  }
 }

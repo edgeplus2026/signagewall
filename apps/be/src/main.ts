@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
+import { requestIdMiddleware } from './common/middleware/request-id.middleware';
 import { RedisIoAdapter } from './common/redis/redis-io.adapter';
 import { setupSwagger } from './common/swagger';
 
@@ -23,6 +24,13 @@ async function bootstrap() {
   // `file` field `maxSizeMb` across the app catalog.
   app.useBodyParser('json', { limit: '15mb' });
   app.useBodyParser('urlencoded', { extended: true, limit: '15mb' });
+
+  // Behind Railway's proxy req.ip is the proxy address unless Express is told
+  // how many hops to trust; per-IP throttling is meaningless without this.
+  const trustProxyHops = configService.getOrThrow<number>('trustProxyHops');
+  if (trustProxyHops > 0) {
+    app.set('trust proxy', trustProxyHops);
+  }
 
   const apiPrefix = configService.getOrThrow<string>('apiPrefix');
   const frontendUrl = configService.getOrThrow<string>('frontendUrl');
@@ -42,6 +50,7 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
+  app.use(requestIdMiddleware);
   app.use(
     helmet({
       contentSecurityPolicy: swaggerEnabled ? false : undefined,

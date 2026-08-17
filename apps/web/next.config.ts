@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
 
-import { INDEXING_ENABLED } from './src/lib/site-url'
+import { CANONICAL_ORIGIN, INDEXING_ENABLED } from './src/lib/site-url'
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 const appDir = dirname(fileURLToPath(import.meta.url))
@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: resolve(appDir, '../..'),
   },
+  /* Evaluated once when the build starts and inlined, so it is stable across
+     ISR regenerations. Static marketing pages can only change with a deploy,
+     which makes the build moment their honest sitemap `lastmod` — a module-
+     scope timestamp in sitemap.ts would instead slide on every regeneration
+     and claim changes that never happened. */
+  env: {
+    NEXT_PUBLIC_BUILD_TIME: new Date().toISOString(),
+  },
   // Shared workspace packages: the app catalog registry consumed by /apps.
   transpilePackages: ['@signagewall/apps', '@signagewall/apps-contract'],
   images: {
@@ -49,6 +57,26 @@ const nextConfig: NextConfig = {
   /* Next announces itself in `X-Powered-By` by default. It tells an attacker
      which stack to look up known issues for and tells a visitor nothing. */
   poweredByHeader: false,
+  /* Indexing is hard-gated to the exact canonical origin: served from the bare
+     apex, every page would carry noindex and robots.txt would disallow all.
+     Redirecting apex → www here (permanent, 308) makes host canonicalization a
+     property of the code base instead of a hosting-panel setting that has to be
+     remembered — and re-remembered after every DNS or platform migration. */
+  async redirects() {
+    const canonicalHost = new URL(CANONICAL_ORIGIN).host
+    if (!canonicalHost.startsWith('www.')) {
+      return []
+    }
+    const apexHost = canonicalHost.slice('www.'.length)
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host' as const, value: apexHost }],
+        destination: `${CANONICAL_ORIGIN}/:path*`,
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     const noIndex = {
       key: 'X-Robots-Tag',

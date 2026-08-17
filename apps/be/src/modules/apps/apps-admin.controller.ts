@@ -8,8 +8,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { ApiTags } from '@nestjs/swagger';
 
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { RequestUser } from '../../common/interfaces/request-user.interface';
 import {
   ApiBearerAuthRequired,
   ApiCommonErrorResponses,
@@ -19,6 +22,7 @@ import {
 import { SuperAdminGuard } from '../admin/guards/super-admin.guard';
 import { AppsService } from './apps.service';
 import { CreateAppDto } from './dto/create-app.dto';
+import { GrantAppDto } from './dto/grant-app.dto';
 import { SetAppVisibilityDto } from './dto/set-app-visibility.dto';
 import { UpdateAppDto } from './dto/update-app.dto';
 
@@ -72,5 +76,36 @@ export class AppsAdminController {
   async remove(@Param('id') id: string): Promise<null> {
     await this.appsService.remove(id);
     return null;
+  }
+
+  // ----- Beta entitlements: grant a non-public app to a named organization -----
+
+  @Get(':id/grants')
+  @ApiSuccessResponse(Object, { isArray: true })
+  listGrants(@Param('id') id: string) {
+    return this.appsService.listGrants(id);
+  }
+
+  @Post(':id/grants')
+  @ApiSuccessResponse(Object, { isArray: true })
+  grant(
+    @Param('id') id: string,
+    @Body() dto: GrantAppDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.appsService.grantToOrganization(
+      id,
+      dto.organizationId,
+      user.id,
+    );
+  }
+
+  @Delete(':id/grants/:organizationId')
+  @ApiSuccessResponse(Object, { isArray: true })
+  revoke(
+    @Param('id') id: string,
+    @Param('organizationId', ParseObjectIdPipe) organizationId: string,
+  ) {
+    return this.appsService.revokeFromOrganization(id, organizationId);
   }
 }

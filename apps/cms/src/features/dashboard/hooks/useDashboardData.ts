@@ -21,8 +21,26 @@ export interface GrowthPoint {
   total: number
 }
 
+/** One screen's health row for the fleet panel, problem-first ordered. */
+export interface FleetScreen {
+  id: string
+  name: string
+  /** False when the screen has no bound device at all (setup incomplete). */
+  paired: boolean
+  online: boolean
+  lastSeenAt?: string
+  platform?: string
+  appVersion?: string
+}
+
 export interface DashboardData {
   isLoading: boolean
+  /** True only when EVERY underlying list query failed — nothing to render. */
+  isError: boolean
+  /** Some data loaded, some didn't: render the panels, warn about the rest. */
+  hasPartialError: boolean
+  /** Re-runs the failed queries. */
+  retry: () => void
   counts: {
     screens: number
     playlists: number
@@ -45,6 +63,8 @@ export interface DashboardData {
   }
   growth: GrowthPoint[]
   recentPlaylists: PlaylistSummary[]
+  /** Per-screen health, offline-longest first, then unpaired, then online. */
+  fleet: FleetScreen[]
 }
 
 function toTime(iso: string): number {
@@ -61,9 +81,24 @@ function countCreatedUpTo(times: number[], cutoff: number): number {
 }
 
 export function useDashboardData(): DashboardData {
-  const { data: playlists = [], isLoading: playlistsLoading } = usePlaylists()
-  const { data: screens = [], isLoading: screensLoading } = useScreens()
-  const { data: media = [], isLoading: mediaLoading } = useAllMediaFiles()
+  const {
+    data: playlists = [],
+    isLoading: playlistsLoading,
+    isError: playlistsError,
+    refetch: refetchPlaylists,
+  } = usePlaylists()
+  const {
+    data: screens = [],
+    isLoading: screensLoading,
+    isError: screensError,
+    refetch: refetchScreens,
+  } = useScreens()
+  const {
+    data: media = [],
+    isLoading: mediaLoading,
+    isError: mediaError,
+    refetch: refetchMedia,
+  } = useAllMediaFiles()
   const presenceMap = useContext(PresenceContext)
 
   return useMemo(() => {
@@ -109,8 +144,46 @@ export function useDashboardData(): DashboardData {
       .sort((a, b) => toTime(b.updatedAt) - toTime(a.updatedAt))
       .slice(0, 5)
 
+    // Problem-first: a dead paired display (longest down first) outranks a
+    // never-paired screen, which outranks everything healthy.
+    const fleetRank = (s: FleetScreen) => (s.paired && !s.online ? 0 : s.paired ? 2 : 1)
+    const fleet: FleetScreen[] = screens
+      .map((screen) => {
+        const presence = presenceMap[screen.id]
+        return {
+          id: screen.id,
+          name: screen.name,
+          paired: Boolean(presence?.paired),
+          online: presence?.online === true,
+          ...(presence?.lastSeenAt ? { lastSeenAt: presence.lastSeenAt } : {}),
+          ...(presence?.profile?.platform ? { platform: presence.profile.platform } : {}),
+          ...(presence?.profile?.appVersion ? { appVersion: presence.profile.appVersion } : {}),
+        }
+      })
+      .sort((a, b) => {
+        const rank = fleetRank(a) - fleetRank(b)
+        if (rank !== 0) return rank
+        if (fleetRank(a) === 0) {
+          return toTime(a.lastSeenAt ?? '') - toTime(b.lastSeenAt ?? '')
+        }
+        return a.name.localeCompare(b.name)
+      })
+
     return {
       isLoading: playlistsLoading || screensLoading || mediaLoading,
+      // Only a total outage blanks the dashboard. If media is down but screens
+      // and playlists loaded, the fleet panel is exactly what the operator
+      // opened the page for — replacing it with one error card throws away
+      // working data.
+      isError: playlistsError && screensError && mediaError,
+      hasPartialError:
+        (playlistsError || screensError || mediaError) &&
+        !(playlistsError && screensError && mediaError),
+      retry: () => {
+        if (playlistsError) void refetchPlaylists()
+        if (screensError) void refetchScreens()
+        if (mediaError) void refetchMedia()
+      },
       counts: {
         screens: total,
         playlists: playlists.length,
@@ -127,6 +200,21 @@ export function useDashboardData(): DashboardData {
       },
       growth,
       recentPlaylists,
+      fleet,
     }
-  }, [playlists, screens, media, presenceMap, playlistsLoading, screensLoading, mediaLoading])
+  }, [
+    playlists,
+    screens,
+    media,
+    presenceMap,
+    playlistsLoading,
+    screensLoading,
+    mediaLoading,
+    playlistsError,
+    screensError,
+    mediaError,
+    refetchPlaylists,
+    refetchScreens,
+    refetchMedia,
+  ])
 }

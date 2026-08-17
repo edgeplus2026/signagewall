@@ -352,7 +352,7 @@ export class MembersService {
     if (dto.role !== undefined) {
       const isDemotingAdmin =
         normalizeOrganizationRole(membership.role) === OrganizationRole.ADMIN &&
-        dto.role === OrganizationRole.MEMBER;
+        dto.role !== OrganizationRole.ADMIN;
 
       if (isDemotingAdmin) {
         const adminCount =

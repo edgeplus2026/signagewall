@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 
@@ -43,6 +43,10 @@ import {
   ScreenItemDocument,
   ScreenItemType,
 } from '../screens/schemas/screen.schema';
+import {
+  containsPrivateAssetRef,
+  PrivateAssetsHydrationService,
+} from './private-assets-hydration.service';
 
 const DEFAULT_DURATION_SECONDS = 15;
 
@@ -82,6 +86,8 @@ interface CachedAppData {
    */
   contentAt?: Date;
   stale: boolean;
+  /** True while an async connector job is still producing this payload. */
+  pending: boolean;
 }
 
 /** Connector payloads for a set of app instances, keyed both ways. */
@@ -108,6 +114,8 @@ export class PlayerContentService {
     private readonly appDataCacheRepository: AppDataCacheRepository,
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly configService: ConfigService,
+    @Optional()
+    private readonly privateAssets?: PrivateAssetsHydrationService,
   ) {}
 
   /**
@@ -176,14 +184,64 @@ export class PlayerContentService {
     const availability = this.toAvailabilityRule(screen.availability);
     revisionParts.push(`availability:${JSON.stringify(availability ?? null)}`);
 
+    // The logical revision is complete before any short-lived signed URL is
+    // added. Renewing a signature therefore never looks like new content.
+    const revision = this.hashRevision(revisionParts);
+    const hydratedItems = await this.hydratePrivateAppPayloads(
+      organizationId,
+      screenId,
+      pending,
+      items,
+    );
+    if (overlays.some((overlay) => containsPrivateAssetRef(overlay.data))) {
+      // Overlay assignment uses a different authorization model. Fail closed
+      // until a private overlay has an explicit ownership policy.
+      throw new Error('Private asset overlays are not supported');
+    }
+
     return {
       screenId: screen._id.toString(),
       name: screen.name,
-      revision: this.hashRevision(revisionParts),
-      items,
+      revision,
+      items: hydratedItems,
       ...(availability ? { availability } : {}),
       ...(overlays.length > 0 ? { overlays } : {}),
     };
+  }
+
+  private async hydratePrivateAppPayloads(
+    organizationId: string,
+    screenId: string,
+    pending: PendingEntry[],
+    items: PlayerRenderable[],
+  ): Promise<PlayerRenderable[]> {
+    const appInstanceByRenderableId = new Map(
+      pending.flatMap((entry) =>
+        entry.kind === 'app' ? [[entry.id, entry.appInstanceId] as const] : [],
+      ),
+    );
+
+    return Promise.all(
+      items.map(async (item) => {
+        if (item.kind !== 'app' || !containsPrivateAssetRef(item.data)) {
+          return item;
+        }
+        if (!this.privateAssets) {
+          throw new Error('Private asset hydration is not configured');
+        }
+        const appInstanceId = appInstanceByRenderableId.get(item.id);
+        if (!appInstanceId) {
+          throw new Error('Private asset app instance could not be resolved');
+        }
+        const data = await this.privateAssets.hydrateForPlayer({
+          organizationId,
+          screenId,
+          appInstanceId,
+          payload: item.data,
+        });
+        return { ...item, data };
+      }),
+    );
   }
 
   /**
@@ -299,6 +357,7 @@ export class PlayerContentService {
         // A present `lastError` means the newest fetch failed and we're
         // serving last-known-good data.
         stale: Boolean(entry.lastError),
+        pending: Boolean(entry.pending),
       });
     }
 
@@ -368,12 +427,13 @@ export class PlayerContentService {
                   ? { fetchedAt: cached.fetchedAt.toISOString() }
                   : {}),
                 stale: cached?.stale ?? false,
+                pending: cached?.pending ?? false,
               },
             }
           : {}),
       });
       revisionParts.push(
-        `overlay:${id}:${instance.appSlug}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
+        `overlay:${id}:${instance.appSlug}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}:${cached?.pending ? 1 : 0}`,
       );
     }
     return overlays;
@@ -432,6 +492,7 @@ export class PlayerContentService {
                   ? { fetchedAt: cached.fetchedAt.toISOString() }
                   : {}),
                 stale: cached?.stale ?? false,
+                pending: cached?.pending ?? false,
               },
             }
           : {}),
@@ -439,7 +500,7 @@ export class PlayerContentService {
       context.revisionParts.push(
         // Include the payload's fetch time AND staleness so both a refresh and a
         // healthy↔stale transition change the revision and re-push the snapshot.
-        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
+        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}:${cached?.pending ? 1 : 0}`,
       );
     }
     return items;

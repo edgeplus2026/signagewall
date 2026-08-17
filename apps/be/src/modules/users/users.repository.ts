@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ClientSession, Model } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 
 import { User, UserDocument, UserPlan, UserRole } from './schemas/user.schema';
 
@@ -28,7 +28,9 @@ export type UserSelectField =
   | 'passwordResetToken'
   | 'passwordResetExpiresAt'
   | 'emailVerificationToken'
-  | 'emailVerificationExpiresAt';
+  | 'emailVerificationExpiresAt'
+  | 'failedLoginAttempts'
+  | 'loginLockedUntil';
 
 export interface FindUserOptions {
   select?: UserSelectField[];
@@ -226,6 +228,16 @@ export class UsersRepository {
     return this.userModel.findOne({ googleId }).exec();
   }
 
+  /** Bulk lookup for notification fan-out (e.g. org-wide alert emails). */
+  findManyByIds(ids: string[]): Promise<UserDocument[]> {
+    if (ids.length === 0) {
+      return Promise.resolve([]);
+    }
+    return this.userModel
+      .find({ _id: { $in: ids.map((id) => new Types.ObjectId(id)) } })
+      .exec();
+  }
+
   /** Legacy paid projections that should have a corresponding billing record. */
   findActiveEnterpriseUsers(): Promise<UserDocument[]> {
     return this.userModel
@@ -250,6 +262,24 @@ export class UsersRepository {
       .exec();
   }
 
+  /**
+   * Atomically redeems a one-time Google login code: the matching, unexpired
+   * code is unset in the same operation, so a code can never be exchanged
+   * twice even by concurrent requests.
+   */
+  claimGoogleLoginCode(codeHash: string): Promise<UserDocument | null> {
+    return this.userModel
+      .findOneAndUpdate(
+        {
+          googleLoginCode: codeHash,
+          googleLoginCodeExpiresAt: { $gt: new Date() },
+        },
+        { $unset: { googleLoginCode: 1, googleLoginCodeExpiresAt: 1 } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+  }
+
   findByEmailVerificationTokenHash(
     tokenHash: string,
   ): Promise<UserDocument | null> {
@@ -262,9 +292,81 @@ export class UsersRepository {
       .exec();
   }
 
-  updateById(id: string, data: Partial<User>): Promise<UserDocument | null> {
+  /**
+   * `null` means "remove the field" and becomes a `$unset`. This is explicit
+   * because the intuitive spelling — `field: undefined` — is silently DROPPED
+   * from the update by Mongoose, which once left refresh tokens and reset
+   * tokens alive after a password change claimed to have cleared them.
+   * `$unset` rather than storing null so the sparse token indexes stay lean.
+   */
+  updateById(
+    id: string,
+    data: { [K in keyof Partial<User>]: Partial<User>[K] | null },
+  ): Promise<UserDocument | null> {
+    const set: Record<string, unknown> = {};
+    const unset: Record<string, 1> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value === null) {
+        unset[key] = 1;
+      } else if (value !== undefined) {
+        set[key] = value;
+      }
+    }
     return this.userModel
-      .findByIdAndUpdate(id, data, { returnDocument: 'after' })
+      .findByIdAndUpdate(
+        id,
+        {
+          ...(Object.keys(set).length > 0 ? { $set: set } : {}),
+          ...(Object.keys(unset).length > 0 ? { $unset: unset } : {}),
+        },
+        { returnDocument: 'after' },
+      )
+      .exec();
+  }
+
+  /**
+   * Counts a failed password attempt atomically and locks the account once
+   * `maxAttempts` consecutive failures accumulate. Concurrent failures can at
+   * worst re-apply the same lock, never skip it. Returns whether the account
+   * is now locked.
+   */
+  async recordFailedLogin(
+    id: string,
+    maxAttempts: number,
+    lockoutMs: number,
+  ): Promise<{ locked: boolean }> {
+    const user = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        { $inc: { failedLoginAttempts: 1 } },
+        { returnDocument: 'after' },
+      )
+      .select('+failedLoginAttempts')
+      .exec();
+
+    if (!user || (user.failedLoginAttempts ?? 0) < maxAttempts) {
+      return { locked: false };
+    }
+
+    await this.userModel
+      .updateOne(
+        { _id: user._id },
+        {
+          $set: { loginLockedUntil: new Date(Date.now() + lockoutMs) },
+          $unset: { failedLoginAttempts: 1 },
+        },
+      )
+      .exec();
+    return { locked: true };
+  }
+
+  /** Clears the failure counter and any lock after a successful login. */
+  async clearLoginLock(id: string): Promise<void> {
+    await this.userModel
+      .updateOne(
+        { _id: id },
+        { $unset: { failedLoginAttempts: 1, loginLockedUntil: 1 } },
+      )
       .exec();
   }
 

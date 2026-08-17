@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -11,12 +11,23 @@ export default function GoogleCallbackPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const setAuth = useAuthStore((state) => state.setAuth)
+  // React 18 StrictMode mounts effects twice in dev; the exchange code is
+  // single-use, so the second run must not fire another redeem.
+  const hasExchanged = useRef(false)
 
   useEffect(() => {
-    const accessToken = searchParams.get('accessToken')
-    const refreshToken = searchParams.get('refreshToken')
+    if (hasExchanged.current) {
+      return
+    }
+    hasExchanged.current = true
+    // The backend redirects with a single-use code the page redeems via POST,
+    // so the JWTs never appear in the URL. `code` is the ONLY accepted shape:
+    // accepting tokens straight from the query string would let anyone hand a
+    // signed-in user a link that silently swaps their session for someone
+    // else's, which is exactly what the exchange flow exists to prevent.
+    const code = searchParams.get('code')
 
-    if (!accessToken || !refreshToken) {
+    if (!code) {
       void navigate('/login', {
         replace: true,
         state: { formError: t('auth.google.error') },
@@ -26,9 +37,8 @@ export default function GoogleCallbackPage() {
 
     void (async () => {
       try {
-        useAuthStore.getState().setTokens(accessToken, refreshToken)
-        const user = await authApi.getUser()
-        setAuth(user, accessToken, refreshToken)
+        const { user, tokens } = await authApi.exchangeGoogleCode(code)
+        setAuth(user, tokens.accessToken, tokens.refreshToken)
         toast.success(t('auth.google.success'))
         void navigate('/dashboard', { replace: true })
       } catch {

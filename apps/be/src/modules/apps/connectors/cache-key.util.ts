@@ -1,3 +1,5 @@
+import type { AppInstanceConfig } from '@signagewall/apps-contract';
+
 import type { AppInstanceDocument } from '../schemas/app-instance.schema';
 import { getConnector } from './connector-registry';
 
@@ -8,14 +10,24 @@ export interface InstanceCacheKey {
 }
 
 /**
+ * The minimum shape a cache key derives from. Deliberately NOT the Mongoose
+ * document: spreading a hydrated document (`{ ...instance, config: next }`)
+ * yields only `$__`/`_doc`, so `appSlug` would silently be undefined and every
+ * key would resolve to null. Callers building a hypothetical "next" config must
+ * name the fields explicitly.
+ */
+export interface CacheKeyInput {
+  appSlug: string;
+  config: AppInstanceConfig;
+}
+
+/**
  * Compute the connector cache key for a single instance, or null when the slug
  * has no connector (static app) or the connector defines no `cacheKey`.
  * Swallows connector errors (e.g. malformed config) by returning null so one
  * bad instance never breaks scheduling/fan-out for the rest.
  */
-export function cacheKeyForInstance(
-  instance: AppInstanceDocument,
-): string | null {
+export function cacheKeyForInstance(instance: CacheKeyInput): string | null {
   return cacheKeyFor(instance.appSlug, instance.config);
 }
 

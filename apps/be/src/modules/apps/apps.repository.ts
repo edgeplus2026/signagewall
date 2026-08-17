@@ -36,6 +36,15 @@ export class AppsRepository {
       .exec();
   }
 
+  /** Bulk lookup regardless of visibility (granted non-public catalog rows). */
+  async findManyByIds(ids: string[]): Promise<AppDocument[]> {
+    const valid = ids.filter((id) => Types.ObjectId.isValid(id));
+    if (valid.length === 0) return [];
+    return this.appModel
+      .find({ _id: { $in: valid.map((id) => new Types.ObjectId(id)) } })
+      .exec();
+  }
+
   async findById(id: string): Promise<AppDocument | null> {
     if (!Types.ObjectId.isValid(id)) return null;
     return this.appModel.findById(new Types.ObjectId(id)).exec();

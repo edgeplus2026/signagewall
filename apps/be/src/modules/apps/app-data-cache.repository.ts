@@ -79,7 +79,7 @@ export class AppDataCacheRepository {
           secrets: data.secrets ?? null,
           pending: false,
         },
-        $unset: { lastError: '' },
+        $unset: { lastError: '', lastErrorCode: '' },
       },
       { returnDocument: 'after', upsert: true },
     );
@@ -97,6 +97,8 @@ export class AppDataCacheRepository {
     slug: string,
     refreshSeconds: number,
     secrets: Record<string, unknown> | undefined,
+    error?: string,
+    errorCode?: string,
   ): Promise<AppDataCacheDocument> {
     return this.model.findOneAndUpdate(
       { cacheKey },
@@ -107,8 +109,10 @@ export class AppDataCacheRepository {
           lastAttemptAt: new Date(),
           pending: true,
           secrets: secrets ?? null,
+          ...(error ? { lastError: error } : {}),
+          ...(error && errorCode ? { lastErrorCode: errorCode } : {}),
         },
-        $unset: { lastError: '' },
+        ...(!error ? { $unset: { lastError: '', lastErrorCode: '' } } : {}),
       },
       { returnDocument: 'after', upsert: true },
     );
@@ -125,6 +129,7 @@ export class AppDataCacheRepository {
     slug: string,
     refreshSeconds: number,
     message: string,
+    errorCode?: string,
   ): Promise<void> {
     await this.model.updateOne(
       { cacheKey },
@@ -133,11 +138,19 @@ export class AppDataCacheRepository {
           slug,
           refreshSeconds,
           lastError: message,
+          ...(errorCode ? { lastErrorCode: errorCode } : {}),
           lastAttemptAt: new Date(),
           // A failed attempt ends any in-flight job so a retry re-creates it.
           pending: false,
         },
-        $unset: { secrets: '' },
+        // `secrets` is deliberately PRESERVED. For powerbi-secure it is the
+        // only record of which private R2 objects this key owns, so clearing
+        // it on a transient fetch error orphans every exported PNG: the next
+        // export cannot diff against the previous set, and instance deletion
+        // later finds nothing to clean while reporting success. Connectors
+        // already guard their own staleness (see the JOB_MAX_AGE_MS / same-
+        // selection checks in powerbi-secure), and `pending: false` above is
+        // what actually lets a retry start a fresh job.
       },
       { upsert: true },
     );
@@ -165,5 +178,10 @@ export class AppDataCacheRepository {
   async deleteStale(cutoff: Date): Promise<number> {
     const result = await this.model.deleteMany({ updatedAt: { $lt: cutoff } });
     return result.deletedCount;
+  }
+
+  /** Delete one connector state after its instance-owned private assets are gone. */
+  async deleteByCacheKey(cacheKey: string): Promise<void> {
+    await this.model.deleteOne({ cacheKey });
   }
 }

@@ -49,6 +49,11 @@ interface PageProps {
   params: Promise<{ locale: string; slug: string }>
 }
 
+/* Same ISR window as blog and solutions. Payload hooks revalidate on publish;
+   this is the backstop for drift those hooks can't see (e.g. a manifest change
+   in packages/apps), which otherwise persisted until the next deploy. */
+export const revalidate = 172_800
+
 export async function generateStaticParams({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'sr' ? 'sr' : 'en'
   const refs = await listAppPageRefs()

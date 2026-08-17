@@ -13,38 +13,67 @@ import { screensQueryKey } from "@/features/screens/lib/screenQueryKeys"
 
 const MEDIA_QUERY_KEY = ["media"] as const
 
+function useActiveOrganizationId() {
+  return useOrganizationStore((state) => state.activeOrganizationId)
+}
+
+/**
+ * Media queries are organization-scoped like their screens/playlists siblings:
+ * the org id is part of the key so switching orgs cannot serve the previous
+ * org's library from cache, and `enabled` keeps the request from firing before
+ * an org is selected (which would 400 and cache a failure).
+ *
+ * The org id sits after the `"media"` root on purpose — every
+ * `invalidateQueries({ queryKey: MEDIA_QUERY_KEY })` below is a prefix match
+ * and keeps working unchanged.
+ */
 export function useMediaItems(params: MediaListParams) {
+  const organizationId = useActiveOrganizationId()
+
   return useQuery({
-    queryKey: [...MEDIA_QUERY_KEY, "list", params],
+    queryKey: [...MEDIA_QUERY_KEY, organizationId, "list", params],
     queryFn: () => mediaApi.list(params),
+    enabled: Boolean(organizationId),
   })
 }
 
 export function useMediaFiles(parentId: string | null) {
+  const organizationId = useActiveOrganizationId()
+
   return useQuery({
-    queryKey: [...MEDIA_QUERY_KEY, "media", parentId],
+    queryKey: [...MEDIA_QUERY_KEY, organizationId, "media", parentId],
     queryFn: () => mediaApi.listMedia({ parentId }),
+    enabled: Boolean(organizationId),
   })
 }
 
 export function useFolders(parentId: string | null) {
+  const organizationId = useActiveOrganizationId()
+
   return useQuery({
-    queryKey: [...MEDIA_QUERY_KEY, "folders", parentId],
+    queryKey: [...MEDIA_QUERY_KEY, organizationId, "folders", parentId],
     queryFn: () => mediaApi.listFolders(parentId),
+    enabled: Boolean(organizationId),
   })
 }
 
 export function useAllFolders() {
+  const organizationId = useActiveOrganizationId()
+
   return useQuery({
-    queryKey: [...MEDIA_QUERY_KEY, "all-folders"],
+    queryKey: [...MEDIA_QUERY_KEY, organizationId, "all-folders"],
     queryFn: () => mediaApi.listAllFolders(),
+    enabled: Boolean(organizationId),
   })
 }
 
 export function useAllMediaFiles() {
+  const organizationId = useActiveOrganizationId()
+
   return useQuery({
-    queryKey: [...MEDIA_QUERY_KEY, "all-files"],
+    queryKey: [...MEDIA_QUERY_KEY, organizationId, "all-files"],
     queryFn: () => mediaApi.listAllMediaFiles(),
+    enabled: Boolean(organizationId),
   })
 }
 

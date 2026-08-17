@@ -28,6 +28,10 @@
     "cancel": "Cancel",
     "decrease": "Decrease",
     "increase": "Increase",
+    "loadError": "Something went wrong",
+    "loadErrorDescription": "We couldn't load this data. Check your connection and try again.",
+    "retry": "Try again",
+    "unsavedChangesPrompt": "You have unsaved changes. Leave without saving?",
     "preview": {
       "title": "Preview",
       "description": "Plays this content the way a display would.",
@@ -239,6 +243,18 @@
       "files": "files",
       "stored": "stored",
       "empty": "No media yet."
+    },
+    "fleet": {
+      "title": "Fleet health",
+      "subtitle": "Problem screens first — offline displays, then unpaired screens.",
+      "viewAll": "View all screens",
+      "online": "Online",
+      "offline": "Offline",
+      "offlineFor": "Offline · {{duration}}",
+      "notPaired": "Not paired",
+      "emptyTitle": "No screens yet",
+      "empty": "Pair your first display to see its health here.",
+      "setup": "Set up a screen"
     }
   },
   "organizations": {
@@ -436,11 +452,13 @@
     },
     "roles": {
       "admin": "Admin",
-      "member": "Member"
+      "member": "Member",
+      "viewer": "Viewer"
     },
     "roleDescriptions": {
       "admin": "Can invite and manage users, organization settings, and all content.",
-      "member": "Can use screens, playlists, and media but cannot manage users or settings."
+      "member": "Can use screens, playlists, and media but cannot manage users or settings.",
+      "viewer": "Can see screens, playlists and media but cannot change anything."
     },
     "actions": {
       "edit": "Update user",
@@ -742,7 +760,7 @@
       "saveChanges": "Save changes",
       "saveSuccess": "Playlist saved successfully",
       "saveError": "Could not save playlist. Please try again.",
-      "conflict": "This playlist was changed elsewhere. Your unsaved changes were discarded and the latest version was loaded.",
+      "conflict": "This playlist was changed elsewhere. The latest version was loaded and your unsaved edits were kept — review them before saving, since saving will overwrite the other changes.",
       "mediaUnavailable": "Media unavailable",
       "unknownMedia": "Unknown media"
     },
@@ -868,7 +886,12 @@
         "frameTitle": "Live preview of the screen's content",
         "previous": "Previous item",
         "next": "Next item",
-        "openWebPlayer": "Open web player"
+        "openWebPlayer": "Open web player",
+        "openWebPlayerError": "Couldn't open the web player. Please try again.",
+        "takeoverTitle": "Take over this display?",
+        "takeoverDescription": "This screen is online right now. Opening the web player signs the current display out — it will stop playing and show a pairing code until someone re-pairs it on site. Use this only to recover a screen you cannot reach.",
+        "takeoverCancel": "Cancel",
+        "takeoverConfirm": "Take over anyway"
       },
       "pair": {
         "submit": "Pair device",
@@ -1072,7 +1095,7 @@
       "addApp": {
         "add": "Add"
       },
-      "conflict": "This screen was changed elsewhere. Your unsaved changes were discarded and the latest version was loaded."
+      "conflict": "This screen was changed elsewhere. The latest version was loaded and your unsaved edits were kept — review them before saving, since saving will overwrite the other changes."
     },
     "layout": {
       "fullscreen": "Fullscreen",
@@ -2062,8 +2085,8 @@
       "disconnect": "Disconnect",
       "connect": "Connect account",
       "switch": "Switch account",
-      "selectAccountFirst": "Connect an account first",
-      "providerMismatch": "This account doesn't match the selected source. Switch to reconnect with the right provider."
+      "providerMismatch": "This account doesn't match the selected source. Switch to reconnect with the right provider.",
+      "selectAccountFirst": "Connect an account first to choose a file."
     },
     "screensField": {
       "placeholder": "Choose screens…",
@@ -2071,6 +2094,7 @@
     },
     "remoteSelect": {
       "placeholder": "Search and pick…",
+      "selectParentFirst": "Choose the preceding Power BI item first…",
       "search": "Search…",
       "empty": "No results"
     },
@@ -2403,6 +2427,16 @@
         "description": "Embed a Power BI report you have published to the web, and reload it on a schedule so the numbers stay current.",
         "about": "Show a Power BI report on the big screen for everyone to follow. In Power BI use File, Embed report, Publish to web to create a public link, paste it here, and optionally set the whole report to reload every so often. Since it relies on a public publish-to-web link rather than a login, it is a straightforward choice for operations rooms, team walls and KPI displays."
       },
+      "powerbi-secure": {
+        "tagline": "Private Power BI snapshots for unattended screens",
+        "description": "Export private Power BI report pages to an authorized screen without a public report link or a Microsoft login on the display.",
+        "about": "Connect a read-only Microsoft account, select an export-compatible workspace and report, and show privately stored page snapshots on unattended screens. The player keeps the last successful export while a refresh is pending or the connection is unavailable. This app requires supported Premium, Embedded or Fabric capacity and tenant export permissions; PPU is not supported."
+      },
+      "opsboard": {
+        "tagline": "Live shift, dispatch, KPI and safety boards",
+        "description": "Turn a manual table, Google Sheet or Excel workbook into a clear operational screen that keeps its last known data offline.",
+        "about": "Put the part of daily operations that usually lives in a spreadsheet onto a screen people can read at a glance. Start with a live shift, dispatch, KPI or safety preset, enter rows manually or connect Google Sheets or Excel, and map the columns once. Statuses are colour-coded, long boards paginate automatically, updates sync in the background, and the player keeps the last successful snapshot when the source or network is temporarily unavailable."
+      },
       "gsheets": {
         "tagline": "Put a Google Sheet on the wall",
         "description": "Show a range from one of your Google Sheets as a live table or a single KPI — it refreshes on its own.",
@@ -2532,6 +2566,46 @@
         "tagline": "Show a menu or price list",
         "description": "A clean board of items and prices — for cafés, canteens and shops. Add a row per item.",
         "about": "Present a polished menu or price list, with a design to match the room: Classic, Chalkboard, Gallery cards with photos, a bold Counter board, or understated Noir. Add a heading, pick a currency, then type items row by row — or sync them live from a Google Sheets or Excel file so prices update themselves. It is built for cafés, canteens, bakeries and shops."
+      }
+    },
+    "preview": {
+      "errors": {
+        "auth_expired": {
+          "title": "Account connection expired",
+          "hint": "Reconnect the account in this app's settings to resume updates."
+        },
+        "consent_required": {
+          "title": "Consent required",
+          "hint": "The provider needs consent or an admin grant for this account. Re-run the connection and accept the requested permissions."
+        },
+        "permission_denied": {
+          "title": "No access to this resource",
+          "hint": "The connected account can't open the selected item. Pick another item or ask its owner for access."
+        },
+        "not_found": {
+          "title": "Source not found",
+          "hint": "The selected file, report or feed no longer exists upstream. Pick it again in the settings."
+        },
+        "capacity_required": {
+          "title": "Provider capacity required",
+          "hint": "The provider plan doesn't allow this operation (e.g. report export needs capacity). Check the workspace's licensing."
+        },
+        "throttled": {
+          "title": "Rate limited by the provider",
+          "hint": "Too many requests right now. This resolves by itself — updates resume automatically."
+        },
+        "timeout": {
+          "title": "The provider timed out",
+          "hint": "The upstream service was slow to respond. Usually temporary; the next refresh retries automatically."
+        },
+        "config_invalid": {
+          "title": "Settings no longer valid",
+          "hint": "Review this app's settings — something they point to has changed."
+        },
+        "upstream_error": {
+          "title": "The provider returned an error",
+          "hint": "Usually temporary; the next refresh retries automatically. If it persists, reconnect the account or review the settings."
+        }
       }
     }
   },

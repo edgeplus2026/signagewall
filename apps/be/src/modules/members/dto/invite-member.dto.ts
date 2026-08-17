@@ -12,6 +12,13 @@ export class InviteMemberDto {
   @IsEmail()
   email: string;
 
-  @IsEnum([OrganizationRole.ADMIN, OrganizationRole.MEMBER])
-  role: OrganizationRole.ADMIN | OrganizationRole.MEMBER;
+  @IsEnum([
+    OrganizationRole.ADMIN,
+    OrganizationRole.MEMBER,
+    OrganizationRole.VIEWER,
+  ])
+  role:
+    | OrganizationRole.ADMIN
+    | OrganizationRole.MEMBER
+    | OrganizationRole.VIEWER;
 }

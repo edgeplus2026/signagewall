@@ -11,6 +11,7 @@ import type {
   ScreenDetail,
   ScreenDevice,
   ScreenDeviceOrientation,
+  ScreenDeviceRecoveryLink,
   ScreenDeviceScale,
   ScreenItem,
   ShellCommand,
@@ -123,6 +124,18 @@ export const screensApi = {
 
   unpairDevice: async (id: string): Promise<void> => {
     await api.delete(`${SCREENS_BASE}/${id}/device`)
+  },
+
+  /**
+   * Mints a single-use, short-lived recovery grant for the screen's paired
+   * device — the credential behind "Open web player". The bare deviceId no
+   * longer re-admits a browser on its own.
+   */
+  createDeviceRecoveryLink: async (id: string): Promise<ScreenDeviceRecoveryLink> => {
+    const { data } = await api.post<ScreenDeviceRecoveryLink>(
+      `${SCREENS_BASE}/${id}/device/recovery-link`,
+    )
+    return data
   },
 
   setDeviceVolume: async (id: string, volume: number): Promise<ScreenDevice> => {

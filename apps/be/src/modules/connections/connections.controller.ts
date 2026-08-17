@@ -71,12 +71,18 @@ export class ConnectionsController {
     @Param('id') id: string,
     @Param('source') source: string,
     @Query('query') query?: string,
+    @Query('workspaceId') workspaceId?: string,
+    @Query('reportId') reportId?: string,
   ) {
     return this.connectionsService.browseRemoteOptions(
       organizationId,
       id,
       source,
       query ?? '',
+      {
+        ...(workspaceId ? { workspaceId } : {}),
+        ...(reportId ? { reportId } : {}),
+      },
     );
   }
 
@@ -108,23 +114,25 @@ export class ConnectionsController {
   @Get('oauth/:provider/start')
   @ApiOrgScoped()
   @UseGuards(OrgMembershipGuard)
-  @RequireOrgRole()
+  // Write-intent despite the GET: completing this flow rebinds the instance's
+  // connection credentials, so a read-only viewer must not be able to start it.
+  @RequireOrgRole({ write: true })
   @ApiSuccessResponse(Object)
   @ApiOperation({
     summary:
       'Build the provider authorization URL for an instance connection OAuth flow.',
   })
-  start(
+  async start(
     @RequiredOrganizationId() organizationId: string,
     @CurrentUser() user: RequestUser,
     @Param('provider') provider: ConnectionProvider,
     @Query('appSlug') appSlug: string,
     @Query('instanceId') instanceId: string,
-  ): { url: string } {
+  ): Promise<{ url: string }> {
     // Returns the URL (rather than redirecting) so the authenticated XHR carries
     // the org/user identity; the CMS then navigates the browser to it. The
     // resulting connection is bound to `instanceId` on callback.
-    const url = this.connectionsService.buildAuthorizationUrl({
+    const url = await this.connectionsService.buildAuthorizationUrl({
       organizationId,
       userId: user.id,
       provider,

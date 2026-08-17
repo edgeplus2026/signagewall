@@ -11,6 +11,10 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import {
+  QueryErrorBanner,
+  QueryErrorState,
+} from '@/components/common/QueryErrorState'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -32,6 +36,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { ContentPreviewDialog } from '@/features/content/components/ContentPreviewDialog'
 import { mediaGridClassName } from '@/features/media/lib/mediaActionCardStyles'
+import { useCanEditOrgContent } from '@/features/organizations/hooks/useIsOrgAdmin'
 import { DeletePlaylistDialog } from '@/features/playlists/components/DeletePlaylistDialog'
 import { PlaylistsBulkActionsBar } from '@/features/playlists/components/PlaylistsBulkActionsBar'
 import { PlaylistsGrid } from '@/features/playlists/components/PlaylistsGrid'
@@ -65,10 +70,18 @@ function PlaylistsTableSkeleton() {
 interface PlaylistsBrowserProps {
   playlists: PlaylistSummary[]
   isLoading: boolean
+  isError?: boolean
+  onRetry?: () => void
   onCreateClick: () => void
 }
 
-export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: PlaylistsBrowserProps) {
+export function PlaylistsBrowser({
+  playlists,
+  isLoading,
+  isError,
+  onRetry,
+  onCreateClick,
+}: PlaylistsBrowserProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const duplicatePlaylist = useDuplicatePlaylist()
@@ -76,6 +89,8 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
   const [sortBy, setSortBy] = useState<PlaylistSortField>('name')
   const [sortDirection, setSortDirection] = useState<PlaylistSortDirection>('asc')
   const [viewMode, setViewMode] = useViewMode('playlists')
+  // Server-enforced; hiding the buttons just stops a viewer walking into a 403.
+  const canEdit = useCanEditOrgContent()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteIds, setDeleteIds] = useState<string[]>([])
   const [addToScreenIds, setAddToScreenIds] = useState<string[]>([])
@@ -252,6 +267,7 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
           </TooltipProvider>
         </div>
 
+        {canEdit && (
         <PlaylistsBulkActionsBar
           selectedCount={selectedIds.size}
           onAddToScreen={() => {
@@ -262,6 +278,11 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
           }}
           onClear={clearSelection}
         />
+        )}
+
+        {isError && playlists.length > 0 && (
+          <QueryErrorBanner onRetry={onRetry} />
+        )}
 
         {isLoading ? (
           viewMode === 'grid' ? (
@@ -269,6 +290,8 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
           ) : (
             <PlaylistsTableSkeleton />
           )
+        ) : isError && playlists.length === 0 ? (
+          <QueryErrorState onRetry={onRetry} />
         ) : filteredPlaylists.length === 0 ? (
           <Empty className="min-h-48 py-12">
             <EmptyHeader>
@@ -296,12 +319,12 @@ export function PlaylistsBrowser({ playlists, isLoading, onCreateClick }: Playli
                 >
                   {t('playlists.emptyClearSearch')}
                 </Button>
-              ) : (
+              ) : canEdit ? (
                 <Button type="button" variant="outline" size="sm" onClick={onCreateClick}>
                   <ListVideoIcon data-icon="inline-start" />
                   {t('playlists.create.button')}
                 </Button>
-              )}
+              ) : null}
             </EmptyContent>
           </Empty>
         ) : viewMode === 'grid' ? (

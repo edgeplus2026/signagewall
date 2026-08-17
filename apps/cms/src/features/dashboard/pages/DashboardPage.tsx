@@ -2,12 +2,17 @@ import { ImageIcon, ListVideoIcon, MonitorIcon, WifiIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import {
+  QueryErrorBanner,
+  QueryErrorState,
+} from '@/components/common/QueryErrorState'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { ContentGrowthChart } from '@/features/dashboard/components/ContentGrowthChart'
 import { DashboardHero } from '@/features/dashboard/components/DashboardHero'
 import { DashboardPanel } from '@/features/dashboard/components/DashboardPanel'
 import { DashboardStatCard } from '@/features/dashboard/components/DashboardStatCard'
+import { FleetHealth } from '@/features/dashboard/components/FleetHealth'
 import { MediaBreakdownChart } from '@/features/dashboard/components/MediaBreakdownChart'
 import { RecentPlaylists } from '@/features/dashboard/components/RecentPlaylists'
 import { ScreenStatusChart } from '@/features/dashboard/components/ScreenStatusChart'
@@ -43,8 +48,18 @@ export default function DashboardPage() {
     return <DashboardSkeleton />
   }
 
+  if (data.isError) {
+    return (
+      <div className="flex w-full min-w-0 flex-col gap-6 lg:px-10">
+        <QueryErrorState className="min-h-96 py-12" onRetry={data.retry} />
+      </div>
+    )
+  }
+
   return (
     <div className="flex w-full min-w-0 flex-col gap-6 lg:px-10">
+      {data.hasPartialError && <QueryErrorBanner onRetry={data.retry} />}
+
       <DashboardHero
         userName={firstName}
         online={data.presence.online}
@@ -88,10 +103,18 @@ export default function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <DashboardPanel
           className="lg:col-span-2"
-          title={t('dashboard.charts.growth.title')}
-          description={t('dashboard.charts.growth.subtitle')}
+          title={t('dashboard.fleet.title')}
+          description={t('dashboard.fleet.subtitle')}
+          action={
+            <Link
+              to="/screens"
+              className="text-secondary hover:text-primary text-xs font-medium transition-colors"
+            >
+              {t('dashboard.fleet.viewAll')}
+            </Link>
+          }
         >
-          <ContentGrowthChart data={data.growth} />
+          <FleetHealth fleet={data.fleet} />
         </DashboardPanel>
         <DashboardPanel
           title={t('dashboard.screens.title')}
@@ -104,6 +127,13 @@ export default function DashboardPage() {
           />
         </DashboardPanel>
       </div>
+
+      <DashboardPanel
+        title={t('dashboard.charts.growth.title')}
+        description={t('dashboard.charts.growth.subtitle')}
+      >
+        <ContentGrowthChart data={data.growth} />
+      </DashboardPanel>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <DashboardPanel

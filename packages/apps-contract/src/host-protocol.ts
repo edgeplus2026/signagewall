@@ -31,6 +31,8 @@
  * (a preview is never audible). Apps default to *muted* when the flag is absent.
  */
 
+import type { ConnectorErrorCode } from './connector-error.js'
+
 export const APP_READY_TYPE = 'app-ready'
 export const APP_CONFIG_TYPE = 'app-config'
 export const APP_ACTIVE_TYPE = 'app-active'
@@ -47,6 +49,13 @@ export interface AppDataMeta {
    * clears; the bundle may show a "generating…" state.
    */
   pending?: boolean
+  /**
+   * Why the latest fetch failed, as one of the fixed operator-safe codes —
+   * populated on the CMS preview surface so the operator gets remediation
+   * guidance (reconnect, grant consent, capacity, throttling) without ever
+   * seeing raw upstream errors. Absent on success.
+   */
+  errorCode?: ConnectorErrorCode
 }
 
 /** app → host: the bundle announces it is listening. Carries no data. */

@@ -1,7 +1,8 @@
+import { createHash, timingSafeEqual } from 'crypto';
+
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
 
 export interface AuthTokens {
   accessToken: string;
@@ -57,15 +58,35 @@ export class AuthTokensService {
     return { accessToken, refreshToken };
   }
 
+  /**
+   * SHA-256, deliberately not bcrypt. bcrypt silently truncates its input at
+   * 72 bytes, and every refresh JWT for one user shares its first 72 bytes
+   * (fixed header + `{"sub":"<same id>"…`) — so under bcrypt ANY of a user's
+   * past refresh tokens compared "valid" against the stored hash of the
+   * newest one, and rotation revoked nothing. The token is a high-entropy
+   * HMAC-signed JWT, not a password: there is nothing to slow-brute-force,
+   * so an unsalted digest is the right primitive.
+   *
+   * Kept async so callers are agnostic to the primitive.
+   */
   hashRefreshToken(refreshToken: string): Promise<string> {
-    return bcrypt.hash(refreshToken, 10);
+    return Promise.resolve(
+      createHash('sha256').update(refreshToken).digest('hex'),
+    );
   }
 
   compareRefreshToken(
     refreshToken: string,
     refreshTokenHash: string,
   ): Promise<boolean> {
-    return bcrypt.compare(refreshToken, refreshTokenHash);
+    const computed = createHash('sha256').update(refreshToken).digest();
+    const stored = Buffer.from(refreshTokenHash, 'hex');
+    // Length mismatch covers legacy bcrypt hashes still in the database:
+    // they fail closed here, which just sends that session back to login.
+    if (stored.length !== computed.length) {
+      return Promise.resolve(false);
+    }
+    return Promise.resolve(timingSafeEqual(computed, stored));
   }
 
   verifyRefreshToken(refreshToken: string): Promise<TokenPayload> {

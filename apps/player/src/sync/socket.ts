@@ -12,11 +12,16 @@ import {
   setCachedPairingCode,
   setToken,
 } from '../device'
+import { deactivateDevice, setShellChannel } from '../native/service'
 import { clearMediaCaches, clearSnapshot, saveSnapshot } from '../persistence/idb'
 import type { PreviewMode, PreviewTarget } from '../preview'
+import {
+  clearUrlDeviceId,
+  clearUrlRecoveryCode,
+  getUrlRecoveryCode,
+} from '../recovery'
 import { applyCommand, applySettings, applyVolume } from './commands'
 import { registerDiagnosticsSender } from './diagnostics-report'
-import { setShellChannel } from '../native/service'
 import { playbackShowItem } from './playback-bus'
 import { reportPreviewStatus } from './preview-handshake'
 import {
@@ -41,6 +46,10 @@ let socket: Socket | null = null
 let heartbeatTimer: number | undefined
 /** Disposes the effect that streams now-playing to the server (real device). */
 let stopNowPlaying: (() => void) | undefined
+/** Pending manual reconnect after a server-initiated disconnect. */
+let serverReconnectTimer: number | undefined
+/** Consecutive server-initiated disconnects since the last successful connect. */
+let serverDisconnects = 0
 
 /**
  * Opens the realtime channel. The auth payload is a function so the freshest
@@ -60,6 +69,9 @@ export function connectPlayer(): void {
       cb({
         deviceId,
         token: getToken(),
+        // Single-use CMS-minted code (?recovery=); the server consumes it on
+        // first redemption, so re-sending a spent one on reconnect is inert.
+        recoveryCode: getUrlRecoveryCode(),
         revision: snapshot.value?.revision,
         profile: getProfile(),
       }),
@@ -78,6 +90,7 @@ export function connectPlayer(): void {
 
   socket.on('connect', () => {
     connection.value = 'online'
+    serverDisconnects = 0
   })
   socket.io.on('reconnect_attempt', () => {
     connection.value = 'reconnecting'
@@ -88,9 +101,18 @@ export function connectPlayer(): void {
     // 'io server disconnect', and socket.io does NOT auto-reconnect in that
     // case. Reconnect manually so the player immediately re-handshakes
     // token-less and gets a fresh pairing code — no page refresh required.
+    // The first retry is near-instant to keep re-pairing snappy, but repeats
+    // back off exponentially so a server that keeps force-disconnecting (bad
+    // deploy, incident) isn't hammered by the whole fleet in a tight loop.
     if (reason === 'io server disconnect') {
       connection.value = 'reconnecting'
-      socket?.connect()
+      const delay =
+        serverDisconnects === 0
+          ? 250
+          : Math.min(1000 * 2 ** (serverDisconnects - 1), 30_000)
+      serverDisconnects += 1
+      clearTimeout(serverReconnectTimer)
+      serverReconnectTimer = window.setTimeout(() => socket?.connect(), delay)
     }
   })
 
@@ -103,6 +125,9 @@ export function connectPlayer(): void {
   socket.on('paired', (payload: PairedPayload) => {
     if (payload.token) {
       setToken(payload.token)
+      // Any recovery code in the URL is now consumed (or moot) — strip it so
+      // the address bar never shows a spent credential.
+      clearUrlRecoveryCode()
     }
     if (payload.volume !== undefined) {
       applyVolume(payload.volume)
@@ -129,6 +154,16 @@ export function connectPlayer(): void {
 
   socket.on('command', (command: PlayerCommand) => {
     applyCommand(command)
+  })
+
+  // The server refused this known paired deviceId: no device token, no valid
+  // recovery code. The identity is unusable — wipe it and boot fresh into the
+  // pairing flow. URL params go first, otherwise the clean boot would re-adopt
+  // the exact id that was just refused and loop forever.
+  socket.on('recovery:required', () => {
+    clearUrlDeviceId()
+    clearUrlRecoveryCode()
+    void deactivateDevice()
   })
 
   socket.on('paired:revoked', () => {
@@ -159,10 +194,14 @@ export function connectPlayer(): void {
   // Stream the on-screen item to the server as it changes, so CMS preview
   // spectators mirror this device 1:1. The signal updates once per transition,
   // so this fires exactly on each item change (and once for the first item).
+  // Volatile: while disconnected socket.io would otherwise buffer every emit
+  // and replay a stale burst on reconnect (unbounded memory on a screen that
+  // is offline for days). A dropped transition self-heals via
+  // 'now-playing:request' when a preview attaches.
   stopNowPlaying = effect(() => {
     const itemId = playingItemId.value
     if (itemId) {
-      socket?.emit('now-playing', { itemId })
+      socket?.volatile.emit('now-playing', { itemId })
     }
   })
 }
@@ -171,6 +210,9 @@ export function disconnectPlayer(): void {
   stopHeartbeat()
   stopNowPlaying?.()
   stopNowPlaying = undefined
+  clearTimeout(serverReconnectTimer)
+  serverReconnectTimer = undefined
+  serverDisconnects = 0
   socket?.disconnect()
   socket = null
 }
@@ -302,7 +344,10 @@ function startHeartbeat(): void {
     void collectDiagnostics()
       .catch(() => undefined)
       .then((diagnostics) => {
-        socket?.emit('heartbeat', {
+        // Volatile: a heartbeat is only meaningful now. Buffered emits would pile
+        // up for the whole offline period and flood the server as a stale burst on
+        // reconnect.
+        socket?.volatile.emit('heartbeat', {
           profile: { ...getProfile(), ...(diagnostics ? { diagnostics } : {}) },
           revision: snapshot.value?.revision,
           playingItemId: playingItemId.value,
