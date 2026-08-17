@@ -276,18 +276,44 @@ export function useRequestDeviceDiagnostics() {
   return useMutation({
     mutationFn: (id: string) => screensApi.requestDeviceDiagnostics(id),
     onSuccess: (_data, id) => {
-      // Two seconds is generous for a round trip the device answers immediately;
-      // if it is slower than that the operator presses again, which is far better
-      // than polling every screen in the fleet on the chance one was asked.
+      // The device has to receive the command, cross the native bridge twice
+      // (free disk, shell health), read its event log and send the lot back. A
+      // single refetch two seconds later assumed all of that fit in two seconds;
+      // on a modest TV it does not, so the refetch caught the PREVIOUS report,
+      // nothing on screen changed, and the button looked broken.
+      //
+      // So: ask again a few times, and stop the moment the stored report is a
+      // newer one. Bounded and scoped to the one screen that was asked — the
+      // thing the old comment was right to avoid was polling the whole fleet.
       const organizationId = useOrganizationStore.getState().activeOrganizationId
-      setTimeout(() => {
-        void queryClient.invalidateQueries({
-          queryKey: screenDeviceQueryKey(organizationId, id),
-        })
-      }, 2000)
+      const key = screenDeviceQueryKey(organizationId, id)
+      const reportedAt = (): string | undefined =>
+        queryClient.getQueryData<ScreenDevice | null>(key)?.diagnostics?.at
+
+      const before = reportedAt()
+      let attempts = 0
+
+      const poll = (): void => {
+        window.setTimeout(() => {
+          attempts += 1
+          void queryClient
+            .invalidateQueries({ queryKey: key })
+            .then(() => {
+              if (reportedAt() === before && attempts < DIAGNOSTICS_POLL_TRIES) {
+                poll()
+              }
+            })
+        }, DIAGNOSTICS_POLL_MS)
+      }
+
+      poll()
     },
   })
 }
+
+/** How long to keep asking whether the answer has landed, and how often. */
+const DIAGNOSTICS_POLL_MS = 1_500
+const DIAGNOSTICS_POLL_TRIES = 10
 
 /**
  * Makes this screen install a pending player update now, rather than waiting for
