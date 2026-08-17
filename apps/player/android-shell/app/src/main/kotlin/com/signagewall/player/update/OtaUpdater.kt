@@ -13,6 +13,7 @@ import java.net.URL
 import java.security.MessageDigest
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import com.signagewall.player.runtime.ShellLog
 
 /**
  * The Android-channel self-updater.
@@ -278,9 +279,25 @@ class OtaUpdater(
                     lastInstallAttemptAt = now(),
                 ),
             )
+            // Recorded at the ATTEMPT, not only at the outcome. The system can
+            // refuse an install before the session is ever committed — a box that
+            // may not install without a person answering a dialog does exactly
+            // that — and then `InstallReceiver`, which is the only other thing
+            // that writes here, never hears about it. That is how the one event
+            // this log exists for disappeared: the screen sat on the old build
+            // and its "recent events" showed nothing at all.
+            ShellLog.of(context)?.record(
+                "update",
+                "requesting install of ${m.versionName}" +
+                    (if (installer.canInstallSilently()) "" else " (needs a person)"),
+            )
             installer.install(apk, m.versionCode)
         } catch (t: Throwable) {
             Log.w(TAG, "update to ${m.versionName} failed", t)
+            ShellLog.of(context)?.record(
+                "update",
+                "install of ${m.versionName} failed: ${t.javaClass.simpleName}: ${t.message}",
+            )
             part.delete()
             apk.delete()
             // A full disk says nothing about the build. Counting it against the

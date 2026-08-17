@@ -32,6 +32,14 @@ class InstallReceiver : BroadcastReceiver() {
                 // Off Device Owner Android insists a human confirms. Hold the
                 // keep-alive off first: it would otherwise drag the player back over
                 // the dialog within seconds and the update could never complete.
+                // The moment the box says it needs a person. Nothing else writes
+                // this: if nobody ever answers the dialog, no further status
+                // arrives and the whole episode would leave no trace — which is
+                // exactly what happened on the first box we watched.
+                ShellLog.of(context)?.record(
+                    "update",
+                    "waiting for someone to confirm the install",
+                )
                 KioskPresence.suppressReclaim(CONFIRM_GRACE_MILLIS)
                 @Suppress("DEPRECATION")
                 val confirm = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
