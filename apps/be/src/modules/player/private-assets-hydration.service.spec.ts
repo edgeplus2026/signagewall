@@ -110,7 +110,9 @@ describe('private asset contract and hydration', () => {
 
     expect(signer).toHaveBeenCalledTimes(1);
     expect(hydrated.pages[0]).toHaveProperty('url');
-    expect(hydrated.pages[1].nested).toHaveProperty('url');
+    expect(
+      (hydrated.pages[1] as { nested: PrivateAssetRef }).nested,
+    ).toHaveProperty('url');
     expect(payload.pages[0]).not.toHaveProperty('url');
   });
 
@@ -155,7 +157,7 @@ describe('private asset contract and hydration', () => {
     );
   });
 
-  it.each([
+  it.each<[string, { organizationId: string; assigned?: boolean }]>([
     ['cross-organization request', { organizationId: 'org-b' }],
     ['unassigned instance', { organizationId: 'org-a', assigned: false }],
   ])('denies %s before signing', async (_label, scenario) => {

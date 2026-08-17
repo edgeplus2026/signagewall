@@ -11,7 +11,13 @@ function response(
   status = 200,
   headers: Record<string, string> = {},
 ): Response {
-  return new Response(Buffer.isBuffer(body) ? body : JSON.stringify(body), {
+  // A Buffer is a Uint8Array at runtime, but its type is `Uint8Array<ArrayBufferLike>`
+  // and `BodyInit` wants a view onto a plain `ArrayBuffer`. Copying the bytes
+  // produces exactly that, and these fixtures are a few hundred bytes.
+  const payload = Buffer.isBuffer(body)
+    ? new Uint8Array(body)
+    : JSON.stringify(body);
+  return new Response(payload, {
     status,
     headers: {
       ...(Buffer.isBuffer(body)
