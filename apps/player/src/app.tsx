@@ -33,6 +33,7 @@ import { requestPreviewToken } from './sync/preview-handshake'
 import { startWakeLock } from './sync/wake-lock'
 import { connectPlayer, connectPreview, disconnectPlayer } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
+import { EmergencyLayer } from './ui/EmergencyLayer'
 import { ErrorBoundary, clearCrashBackoff } from './ui/ErrorBoundary'
 import { PairingScreen } from './ui/PairingScreen'
 import { ServiceMenu } from './ui/ServiceMenu'
@@ -209,6 +210,10 @@ export function App() {
       <ErrorBoundary>
         <div class="player-root">
           {current === 'standby' ? <Standby /> : <Stage />}
+          {/* An operator previewing a screen must see the alert their colleague
+              just switched on — otherwise the preview says "playing normally"
+              about a screen that is showing an evacuation notice. */}
+          {current === 'emergency' && <EmergencyLayer />}
         </div>
       </ErrorBoundary>
     )
@@ -220,9 +225,13 @@ export function App() {
         {current === 'pairing' && <PairingScreen />}
         {current === 'playing' && <Stage />}
         {current === 'standby' && <Standby />}
-        {/* Above every view, including pairing and standby: the moment a
-            technician most needs the menu is when the screen is showing a
-            pairing code or is dark, not when content is happily looping. */}
+        {/* Nothing else is mounted while this is: the stage is gone, so the
+            rotation is not decoding or making noise underneath the notice. */}
+        {current === 'emergency' && <EmergencyLayer />}
+        {/* Above every view, including pairing, standby and an emergency: the
+            moment a technician most needs the menu is when the screen is showing
+            a pairing code, is dark, or has been taken over — not when content is
+            happily looping. */}
         <ServiceMenu />
         <Diagnostics />
       </div>

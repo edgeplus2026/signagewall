@@ -8,6 +8,7 @@ import {
   getStoredScale,
   getStoredVolume,
 } from './device'
+import { activeTakeover } from './apps/takeover-apps'
 import { itemRequiresNetwork } from './engine/network-apps'
 import type {
   ConnectionState,
@@ -89,7 +90,7 @@ export const lastError = signal<string | null>(null)
  */
 export const availabilityOn = signal<boolean>(true)
 
-export type View = 'pairing' | 'playing' | 'standby'
+export type View = 'emergency' | 'pairing' | 'playing' | 'standby'
 
 /**
  * What the shell should render. Standby (pure black, engine unmounted) wins
@@ -106,6 +107,13 @@ export type View = 'pairing' | 'playing' | 'standby'
  * the instant we reconnect.
  */
 export const view = computed<View>(() => {
+  // An emergency beats everything, and beating STANDBY is the point: a screen
+  // that is dark because the shop is shut is exactly the screen an evacuation
+  // notice needs to light up. It also unmounts the stage, which stops the
+  // rotation's audio — nobody should be hearing an advert under a fire notice.
+  if (activeTakeover(snapshot.value)) {
+    return 'emergency'
+  }
   if (!availabilityOn.value) {
     return 'standby'
   }

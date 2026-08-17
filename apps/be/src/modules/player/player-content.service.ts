@@ -23,7 +23,11 @@ import {
 import { AppDataCacheRepository } from '../apps/app-data-cache.repository';
 import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
-import { OVERLAY_SLUGS, overlayScreenIds } from '../apps/overlay.util';
+import {
+  isOverlayLive,
+  OVERLAY_SLUGS,
+  overlayScreenIds,
+} from '../apps/overlay.util';
 import { AppInstanceDocument } from '../apps/schemas/app-instance.schema';
 import { MediaRepository } from '../media/media.repository';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
@@ -328,8 +332,15 @@ export class PlayerContentService {
     // The query matches an array element, but it would also match a config whose
     // `screens` is a bare string. Re-applying the reader keeps the assignment
     // rule in exactly one place and the semantics unchanged.
-    const assigned = matched.filter((instance) =>
-      overlayScreenIds(instance.config).includes(screenId),
+    //
+    // `isOverlayLive` then drops a takeover whose switch is off. It has to happen
+    // HERE rather than in the bundle: an alert that reaches the snapshot changes
+    // the revision every time it is edited and mounts a full-screen iframe on
+    // every screen it names. Switched off, it should be as if it did not exist.
+    const assigned = matched.filter(
+      (instance) =>
+        overlayScreenIds(instance.config).includes(screenId) &&
+        isOverlayLive(instance.appSlug, instance.config),
     );
     if (assigned.length === 0) {
       return [];

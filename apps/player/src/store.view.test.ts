@@ -1,10 +1,28 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { availabilityOn, online, snapshot, view } from './store'
-import type { PlayerSnapshot, Renderable } from './types'
+import type { AppRenderable, PlayerSnapshot, Renderable } from './types'
 
 function snap(items: Renderable[]): PlayerSnapshot {
   return { screenId: 's', name: 'screen', revision: 'r1', items }
+}
+
+/** A live emergency alert, as the backend puts it in the snapshot's overlays. */
+const alertOverlay: AppRenderable = {
+  id: 'alert-1',
+  kind: 'app',
+  slug: 'alert',
+  config: { headline: 'Evacuate the building' },
+  durationMs: 0,
+}
+
+/** The ticker band — an overlay, but NOT a takeover. */
+const tickerOverlay: AppRenderable = {
+  id: 'ticker-1',
+  kind: 'app',
+  slug: 'ticker',
+  config: {},
+  durationMs: 0,
 }
 
 const image: Renderable = {
@@ -57,6 +75,31 @@ describe('view (connectivity-aware content gating)', () => {
     availabilityOn.value = false
     expect(view.value).toBe('standby')
     online.value = false
+    expect(view.value).toBe('standby')
+  })
+
+  it('an emergency takeover beats content', () => {
+    snapshot.value = { ...snap([image]), overlays: [alertOverlay] }
+    expect(view.value).toBe('emergency')
+  })
+
+  it('an emergency takeover beats STANDBY — a dark screen must light up', () => {
+    // The whole point: a shop that is shut is exactly the screen an evacuation
+    // notice needs to reach.
+    snapshot.value = { ...snap([image]), overlays: [alertOverlay] }
+    availabilityOn.value = false
+    expect(view.value).toBe('emergency')
+  })
+
+  it('an emergency takeover shows even with nothing playable', () => {
+    snapshot.value = { ...snap([]), overlays: [alertOverlay] }
+    expect(view.value).toBe('emergency')
+  })
+
+  it('the ticker band is an overlay but never a takeover', () => {
+    snapshot.value = { ...snap([image]), overlays: [tickerOverlay] }
+    expect(view.value).toBe('playing')
+    availabilityOn.value = false
     expect(view.value).toBe('standby')
   })
 })

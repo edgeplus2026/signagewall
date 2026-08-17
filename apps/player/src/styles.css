@@ -172,6 +172,98 @@ body {
   transform: translate(-50%, -50%) rotate(270deg);
 }
 
+/* ── Emergency takeover ────────────────────────────────────────────────────
+   The full-screen alert. A sibling of every view rather than a child of the
+   stage, so it survives a dead playback engine and covers standby — see
+   EmergencyLayer.tsx. It sits above the content and the ticker band, and BELOW
+   the service panel: a technician must always be able to reach the menu, not
+   least to find out why the screen has been taken over.
+
+   Input is NOT disabled here (unlike .player-overlays): the alert is the only
+   thing on screen, so there is nothing behind it to shield. */
+.player-emergency {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  background: #000;
+  overflow: hidden;
+}
+
+.player-emergency__host,
+.player-emergency__fallback {
+  position: absolute;
+  inset: 0;
+}
+
+/* Hidden until the bundle announces itself, so the screen never shows a blank
+   frame mid-incident. The fallback below is what covers that gap if it never
+   does. No transition: an emergency does not fade in. */
+.player-emergency__host[data-ready='false'] {
+  visibility: hidden;
+}
+
+.player-emergency__host .player-media {
+  background: transparent;
+}
+
+/* Painted by the player itself when the bundle could not be mounted. Sized in
+   viewport units rather than em so it needs no inherited type scale, and kept
+   deliberately plain: this path exists to put words on a screen when the nice
+   version is unavailable. */
+.player-emergency__fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  padding: 6vmin;
+  color: #fff;
+  text-align: center;
+}
+
+.player-emergency__headline {
+  margin: 0;
+  font-size: min(11vw, 16vh);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.player-emergency__message {
+  margin: 0;
+  font-size: min(4.5vw, 7vh);
+  font-weight: 500;
+  line-height: 1.3;
+  max-width: 40ch;
+}
+
+/* Orientation, mirroring the stage's rules: a portrait screen has to show the
+   notice the right way up, and this layer is not inside the stage. */
+.player-emergency[data-orientation='landscape-flipped'] {
+  transform: rotate(180deg);
+}
+
+.player-emergency[data-orientation='portrait'],
+.player-emergency[data-orientation='portrait-flipped'] {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform-origin: center center;
+}
+
+.player-emergency[data-orientation='portrait'] {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.player-emergency[data-orientation='portrait-flipped'] {
+  transform: translate(-50%, -50%) rotate(270deg);
+}
+
 /* Scale: how media fills the slot. `fit` (default) = contain; `stretch` = fill;
    `zoom` = cover (crop to fill); `none` = native pixels, centered. Driven by
    data-scale on the stage root. */

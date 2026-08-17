@@ -2,6 +2,7 @@ import { effect } from '@preact/signals'
 import { useEffect, useRef } from 'preact/hooks'
 
 import { type AppHostHandle, mountAppHost } from '../apps/host-bridge'
+import { isTakeoverOverlay } from '../apps/takeover-apps'
 import { config } from '../config'
 import { reportError } from '../sentry'
 import { snapshot } from '../store'
@@ -69,7 +70,12 @@ export function OverlayLayer() {
     }
 
     const stop = effect(() => {
-      const overlays = snapshot.value?.overlays ?? []
+      // Takeovers are overlays too, but they cover the whole screen and must
+      // outlive the playback engine — so they are drawn by `EmergencyLayer`, a
+      // sibling of every view, not as a band inside the stage.
+      const overlays = (snapshot.value?.overlays ?? []).filter(
+        (overlay) => !isTakeoverOverlay(overlay),
+      )
       const seen = new Set<string>()
       for (const overlay of overlays) {
         seen.add(overlay.id)

@@ -242,6 +242,83 @@ describe('PlayerContentService', () => {
     expect(withOverlay?.revision).not.toBe(without?.revision);
   });
 
+  // The emergency alert is an overlay too, but a `takeover`: it must be absent
+  // entirely while switched off, because an alert that reaches the snapshot
+  // changes the revision on every edit and covers every screen it names.
+  describe('emergency takeover gating', () => {
+    const alertInstance = (active: boolean) => ({
+      _id: new Types.ObjectId(),
+      appSlug: 'alert',
+      config: {
+        screens: ['screen'],
+        active,
+        headline: 'Evacuate the building',
+        severity: 'critical',
+      },
+      updatedAt: new Date(),
+    });
+
+    const base = () => ({ mediaById: {}, screenItems: [] });
+
+    it('omits an alert that is switched off', async () => {
+      const snapshot = await buildService({
+        ...base(),
+        orgInstances: [alertInstance(false)],
+      }).resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.overlays).toBeUndefined();
+    });
+
+    it('carries an alert that is switched on', async () => {
+      const snapshot = await buildService({
+        ...base(),
+        orgInstances: [alertInstance(true)],
+      }).resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.overlays).toHaveLength(1);
+      expect(snapshot?.overlays?.[0]).toMatchObject({
+        kind: 'app',
+        slug: 'alert',
+        durationMs: 0,
+      });
+      expect(snapshot?.overlays?.[0]?.config).toMatchObject({
+        headline: 'Evacuate the building',
+      });
+    });
+
+    it('switching it on changes the revision, so the screen is re-pushed', async () => {
+      const off = await buildService({
+        ...base(),
+        orgInstances: [alertInstance(false)],
+      }).resolveByScreenId('org', 'screen');
+      const on = await buildService({
+        ...base(),
+        orgInstances: [alertInstance(true)],
+      }).resolveByScreenId('org', 'screen');
+
+      expect(on?.revision).not.toBe(off?.revision);
+    });
+
+    it('leaves a band overlay alone — only takeovers need the switch', async () => {
+      // The ticker has no `active` field at all; gating every overlay on one
+      // would silently switch off every band in the fleet.
+      const snapshot = await buildService({
+        ...base(),
+        orgInstances: [
+          {
+            _id: new Types.ObjectId(),
+            appSlug: 'ticker',
+            config: { screens: ['screen'], messages: [{ message: 'Hi' }] },
+            updatedAt: new Date(),
+          },
+        ],
+      }).resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.overlays).toHaveLength(1);
+      expect(snapshot?.overlays?.[0]?.slug).toBe('ticker');
+    });
+  });
+
   it('serves the 1280px image variant, falling back to the original', async () => {
     const withThumb = media({
       id: 'withThumb',
