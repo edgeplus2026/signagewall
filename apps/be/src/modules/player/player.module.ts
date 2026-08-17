@@ -6,7 +6,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { AnalyticsModule } from '../analytics/analytics.module';
 import { AppsModule } from '../apps/apps.module';
-import { CampaignsModule } from '../campaigns/campaigns.module';
 import { MailModule } from '../mail/mail.module';
 import { MediaModule } from '../media/media.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
@@ -57,7 +56,6 @@ import {
       { name: ReportSchedule.name, schema: ReportScheduleSchema },
     ]),
     AnalyticsModule,
-    CampaignsModule,
     MailModule,
     OrganizationsModule,
     ScreensModule,

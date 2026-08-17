@@ -41,13 +41,10 @@ export class ReportSchedule {
   @Prop({ type: [String], default: [] })
   recipients!: string[];
 
-  /** Local hour of day to send, 0–23, in the organization's own timezone. */
-  @Prop({ default: 7, min: 0, max: 23 })
-  hour!: number;
-
   /**
-   * IANA timezone the hour is read in. Without it a "Monday 07:00" report from
-   * a server in UTC lands at 08:00 or 09:00 depending on the season.
+   * IANA timezone the send hour is read in. Without it a report timed for the
+   * afternoon lands at a different hour depending on the season, and at the
+   * wrong end of the day for a customer in another country.
    */
   @Prop({ trim: true, default: 'Europe/Belgrade' })
   timezone!: string;

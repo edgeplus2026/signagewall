@@ -5,11 +5,8 @@ import {
   IsBoolean,
   IsEmail,
   IsIn,
-  IsInt,
   IsOptional,
   IsString,
-  Max,
-  Min,
 } from 'class-validator';
 
 import { ReportFrequency } from '../schemas/report-schedule.schema';
@@ -33,13 +30,6 @@ export class ReportScheduleDto {
   @ArrayMaxSize(20)
   @IsEmail({}, { each: true })
   recipients!: string[];
-
-  @ApiPropertyOptional({ minimum: 0, maximum: 23 })
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(23)
-  hour?: number;
 
   @ApiPropertyOptional({ example: 'Europe/Belgrade' })
   @IsOptional()

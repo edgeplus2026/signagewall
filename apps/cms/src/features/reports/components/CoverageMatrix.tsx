@@ -21,7 +21,7 @@ export function CoverageMatrix({
   focused = false,
 }: {
   screens: CoverageRow[]
-  /** True when the matrix is drawn for one item or campaign. */
+  /** True when the matrix is drawn for a single item. */
   focused?: boolean
 }) {
   const { t } = useTranslation()

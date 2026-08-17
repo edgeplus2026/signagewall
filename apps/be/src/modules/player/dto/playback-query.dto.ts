@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsArray, IsIn, IsOptional, IsString, Matches } from 'class-validator';
+import { IsArray, IsOptional, IsString, Matches } from 'class-validator';
 
 /** Local calendar day, as the device stamps it. */
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -15,12 +15,6 @@ export class CoverageQueryDto {
   @IsOptional()
   @IsString()
   contentId?: string;
-
-  /** Same, for everything sold under one campaign. */
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  campaignId?: string;
 }
 
 export class PlanQueryDto {
@@ -55,12 +49,6 @@ export class PlaybackItemsQueryDto {
   @IsArray()
   @IsString({ each: true })
   screenIds?: string[];
-
-  /** Adds a second view of the same rows, grouped the way they were sold. */
-  @ApiPropertyOptional({ example: 'campaign' })
-  @IsOptional()
-  @IsIn(['item', 'campaign'])
-  groupBy?: 'item' | 'campaign';
 }
 
 export class DaypartingQueryDto extends PlaybackItemsQueryDto {
@@ -68,9 +56,4 @@ export class DaypartingQueryDto extends PlaybackItemsQueryDto {
   @IsOptional()
   @IsString()
   contentId?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  campaignId?: string;
 }

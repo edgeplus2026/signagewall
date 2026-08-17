@@ -1,11 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { campaignsApi, reportsApi } from '@/features/reports/api/reportsApi'
+import { reportsApi } from '@/features/reports/api/reportsApi'
 import type { ReportSchedule } from '@/features/reports/types/reports.types'
 
 export interface ReportFocus {
   contentId?: string
-  campaignId?: string
 }
 
 /**
@@ -37,53 +36,6 @@ export function usePlan(day: string) {
     queryFn: () => reportsApi.plan(day),
     staleTime: 60_000,
   })
-}
-
-export function useCampaigns() {
-  return useQuery({
-    queryKey: ['campaigns'],
-    queryFn: () => campaignsApi.list(),
-    staleTime: 300_000,
-  })
-}
-
-/**
- * Creating, deleting and assigning all invalidate the item table as well as the
- * campaign list: the report carries each row's campaign, so leaving it cached
- * would show an item as unassigned seconds after somebody assigned it.
- */
-export function useCampaignMutations() {
-  const client = useQueryClient()
-  const settle = async (): Promise<void> => {
-    await Promise.all([
-      client.invalidateQueries({ queryKey: ['campaigns'] }),
-      client.invalidateQueries({ queryKey: ['playback'] }),
-    ])
-  }
-
-  return {
-    create: useMutation({
-      mutationFn: (name: string) => campaignsApi.create(name),
-      onSuccess: settle,
-    }),
-    remove: useMutation({
-      mutationFn: (id: string) => campaignsApi.remove(id),
-      onSuccess: settle,
-    }),
-    assign: useMutation({
-      mutationFn: (input: {
-        campaignId: string
-        contentId: string
-        member: boolean
-      }) =>
-        campaignsApi.setMembership(
-          input.campaignId,
-          input.contentId,
-          input.member,
-        ),
-      onSuccess: settle,
-    }),
-  }
 }
 
 export function useReportSchedule() {

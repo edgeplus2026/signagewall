@@ -57,7 +57,6 @@ function ScheduleForm({ schedule }: { schedule: ReportSchedule }) {
   const [enabled, setEnabled] = useState(schedule.enabled)
   const [frequency, setFrequency] = useState<ReportFrequency>(schedule.frequency)
   const [recipients, setRecipients] = useState(schedule.recipients.join(', '))
-  const [hour, setHour] = useState(String(schedule.hour))
 
   const submit = (): void => {
     const addresses = recipients
@@ -75,7 +74,6 @@ function ScheduleForm({ schedule }: { schedule: ReportSchedule }) {
         enabled,
         frequency,
         recipients: addresses,
-        hour: Number(hour) || 0,
         timezone: data.timezone,
       },
       {
@@ -98,6 +96,10 @@ function ScheduleForm({ schedule }: { schedule: ReportSchedule }) {
           </span>
           <span className="text-secondary text-xs">
             {t('reports.schedule.description')}
+          </span>
+          {/* The send time is fixed, so it is stated rather than asked for. */}
+          <span className="text-secondary text-xs">
+            {t('reports.schedule.sendTime')}
           </span>
         </div>
         <Switch checked={enabled} onCheckedChange={setEnabled} />
@@ -138,22 +140,6 @@ function ScheduleForm({ schedule }: { schedule: ReportSchedule }) {
               ))}
             </SelectContent>
           </Select>
-        </label>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-secondary text-xs">
-            {t('reports.schedule.hour')}
-          </span>
-          <Input
-            type="number"
-            min={0}
-            max={23}
-            value={hour}
-            onChange={(event) => {
-              setHour(event.target.value)
-            }}
-            className="w-24"
-          />
         </label>
 
         <Button onClick={submit} disabled={save.isPending}>

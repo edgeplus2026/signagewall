@@ -1,17 +1,12 @@
-import { Download, FileText, Plus, Trash2, X } from 'lucide-react'
+import { Download, FileText, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useIsSuperAdmin } from '@/features/auth/hooks/useIsSuperAdmin'
 import { reportsApi } from '@/features/reports/api/reportsApi'
 import { CoverageMatrix } from '@/features/reports/components/CoverageMatrix'
 import { CoverageSummary } from '@/features/reports/components/CoverageSummary'
@@ -20,8 +15,6 @@ import { PlanTable } from '@/features/reports/components/PlanTable'
 import { PlaybackItemsTable } from '@/features/reports/components/PlaybackItemsTable'
 import { ReportScheduleCard } from '@/features/reports/components/ReportScheduleCard'
 import {
-  useCampaignMutations,
-  useCampaigns,
   useCoverage,
   useDayparting,
   usePlan,
@@ -51,16 +44,13 @@ export default function ReportsPage() {
   const [from, setFrom] = useState(() => daysBefore(today(), 29))
   const [to, setTo] = useState(today)
   const [exporting, setExporting] = useState(false)
-  const [grouped, setGrouped] = useState(false)
   const [focus, setFocus] = useState<(ReportFocus & { name: string }) | null>(
     null,
   )
+  const isSuperAdmin = useIsSuperAdmin()
 
-  const lens: ReportFocus | undefined = focus
-    ? {
-        ...(focus.contentId ? { contentId: focus.contentId } : {}),
-        ...(focus.campaignId ? { campaignId: focus.campaignId } : {}),
-      }
+  const lens: ReportFocus | undefined = focus?.contentId
+    ? { contentId: focus.contentId }
     : undefined
 
   const coverage = useCoverage(day, lens)
@@ -181,7 +171,6 @@ export default function ReportsPage() {
               className="w-auto"
               aria-label={t('reports.table.to')}
             />
-            <CampaignsMenu />
             <Button
               variant="outline"
               size="sm"
@@ -210,12 +199,7 @@ export default function ReportsPage() {
         {items.isLoading ? (
           <Skeleton className="h-64 w-full rounded-lg" />
         ) : items.data ? (
-          <PlaybackItemsTable
-            report={items.data}
-            grouped={grouped}
-            onGroupedChange={setGrouped}
-            onFocus={setFocus}
-          />
+          <PlaybackItemsTable report={items.data} onFocus={setFocus} />
         ) : (
           <p className="text-secondary text-sm">{t('reports.error')}</p>
         )}
@@ -223,108 +207,26 @@ export default function ReportsPage() {
         {dayparting.data && <DaypartingStrip report={dayparting.data} />}
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-primary text-sm font-medium">
-          {t('reports.plan.heading')}
-        </h2>
-        {plan.isLoading ? (
-          <Skeleton className="h-48 w-full rounded-lg" />
-        ) : plan.data ? (
-          <PlanTable report={plan.data} />
-        ) : (
-          <p className="text-secondary text-sm">{t('reports.error')}</p>
-        )}
-      </section>
+      {isSuperAdmin && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-primary text-sm font-medium">
+            {t('reports.plan.heading')}
+          </h2>
+          {plan.isLoading ? (
+            <Skeleton className="h-48 w-full rounded-lg" />
+          ) : plan.data ? (
+            <PlanTable report={plan.data} />
+          ) : (
+            <p className="text-secondary text-sm">{t('reports.error')}</p>
+          )}
+        </section>
+      )}
 
       <ReportScheduleCard />
 
       {/* Said plainly rather than left to be discovered: an operator who needs a
-          campaign kept beyond the window can export it while it still exists. */}
+          period kept beyond the window can export it while it still exists. */}
       <p className="text-secondary text-xs">{t('reports.retention')}</p>
     </div>
-  )
-}
-
-/**
- * Creating and deleting campaigns.
- *
- * Kept next to the table rather than given a page of its own: a campaign only
- * ever matters while looking at a report, and the assignment itself happens on
- * the rows, where the operator can see what they are assigning.
- */
-function CampaignsMenu() {
-  const { t } = useTranslation()
-  const { data: campaigns = [] } = useCampaigns()
-  const { create, remove } = useCampaignMutations()
-  const [name, setName] = useState('')
-
-  const add = (): void => {
-    const trimmed = name.trim()
-    if (!trimmed) return
-    create.mutate(trimmed, {
-      onSuccess: () => {
-        setName('')
-      },
-      onError: () => {
-        toast.error(t('reports.campaigns.failed'))
-      },
-    })
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
-          {t('reports.campaigns.heading')}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
-        <div className="flex items-center gap-1.5 p-2">
-          <Input
-            value={name}
-            placeholder={t('reports.campaigns.newPlaceholder')}
-            onChange={(event) => {
-              setName(event.target.value)
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                add()
-              }
-            }}
-            className="h-8"
-          />
-          <Button size="sm" className="h-8" onClick={add} disabled={create.isPending}>
-            <Plus className="size-3.5" />
-          </Button>
-        </div>
-        {campaigns.length === 0 ? (
-          <DropdownMenuItem disabled>
-            {t('reports.campaigns.none')}
-          </DropdownMenuItem>
-        ) : (
-          campaigns.map((campaign) => (
-            <DropdownMenuItem
-              key={campaign.id}
-              onSelect={(event) => {
-                event.preventDefault()
-              }}
-              className="justify-between"
-            >
-              <span className="truncate">{campaign.name}</span>
-              <button
-                type="button"
-                className="text-secondary hover:text-danger"
-                title={t('common.delete')}
-                onClick={() => {
-                  remove.mutate(campaign.id)
-                }}
-              >
-                <Trash2 className="size-3.5" />
-              </button>
-            </DropdownMenuItem>
-          ))
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }

@@ -63,7 +63,6 @@ export class PlaybackController {
       enabled: schedule?.enabled ?? false,
       frequency: schedule?.frequency ?? 'weekly',
       recipients: schedule?.recipients ?? [],
-      hour: schedule?.hour ?? 7,
       timezone: schedule?.timezone ?? 'Europe/Belgrade',
       lastSentAt: schedule?.lastSentAt?.toISOString(),
       lastError: schedule?.lastError,
@@ -82,7 +81,6 @@ export class PlaybackController {
       enabled: saved?.enabled ?? false,
       frequency: saved?.frequency ?? 'weekly',
       recipients: saved?.recipients ?? [],
-      hour: saved?.hour ?? 7,
       timezone: saved?.timezone ?? 'Europe/Belgrade',
     };
   }
@@ -97,7 +95,6 @@ export class PlaybackController {
   ) {
     return this.reports.coverage(organizationId, query.day, {
       ...(query.contentId ? { contentId: query.contentId } : {}),
-      ...(query.campaignId ? { campaignId: query.campaignId } : {}),
     });
   }
 
@@ -118,7 +115,6 @@ export class PlaybackController {
   ) {
     return this.reports.dayparting(organizationId, query.from, query.to, {
       ...(query.contentId ? { contentId: query.contentId } : {}),
-      ...(query.campaignId ? { campaignId: query.campaignId } : {}),
       ...(query.screenIds ? { screenIds: query.screenIds } : {}),
     });
   }
@@ -147,7 +143,6 @@ export class PlaybackController {
       query.from,
       query.to,
       query.screenIds,
-      query.groupBy === 'campaign',
     );
   }
 
@@ -196,13 +191,7 @@ export class PlaybackController {
     @Res() response: Response,
   ): Promise<void> {
     const [items, coverage, organization] = await Promise.all([
-      this.reports.items(
-        organizationId,
-        query.from,
-        query.to,
-        query.screenIds,
-        true,
-      ),
+      this.reports.items(organizationId, query.from, query.to, query.screenIds),
       // The coverage headline belongs to a single day; on a range the document
       // carries the last day's, which is the one an operator is asking about
       // when they export at the end of a campaign.

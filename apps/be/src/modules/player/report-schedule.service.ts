@@ -29,6 +29,17 @@ const TICK_MS = 15 * 60 * 1000;
 const LOCK_TTL_MS = 5 * 60 * 1000;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+/**
+ * Local hour the report goes out.
+ *
+ * Fixed rather than configurable: the only thing the choice ever decided was
+ * which part of somebody's day the mail landed in, and every extra field on a
+ * settings card is one more thing an operator has to have an opinion about.
+ * Mid-afternoon is deliberate — the previous day is long closed, and a report
+ * that arrives then still leaves the working day to act on what it says.
+ */
+const SEND_HOUR = 15;
+
 @Injectable()
 export class ReportScheduleService {
   private readonly logger = new Logger(ReportScheduleService.name);
@@ -103,7 +114,7 @@ export class ReportScheduleService {
     }
 
     const local = localParts(new Date(), schedule.timezone);
-    if (local.hour < schedule.hour) {
+    if (local.hour < SEND_HOUR) {
       return;
     }
 
@@ -114,13 +125,7 @@ export class ReportScheduleService {
 
     const organizationId = schedule.organizationId.toString();
     const [items, coverage, organization] = await Promise.all([
-      this.reports.items(
-        organizationId,
-        period.from,
-        period.to,
-        undefined,
-        true,
-      ),
+      this.reports.items(organizationId, period.from, period.to),
       this.reports.coverage(organizationId, period.to),
       this.organizations.findById(organizationId),
     ]);

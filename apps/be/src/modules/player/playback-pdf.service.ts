@@ -172,14 +172,7 @@ export class PlaybackPdfService {
         y = PAGE.height - MARGIN;
       }
       const cells = [
-        text(
-          truncate(
-            item.campaignName
-              ? `${item.campaignName} · ${item.name}`
-              : item.name,
-            46,
-          ),
-        ),
+        text(truncate(item.name, 46)),
         item.plays.toLocaleString('en-US'),
         hms(item.airtimeMs),
         `${item.share.toFixed(1)}%`,

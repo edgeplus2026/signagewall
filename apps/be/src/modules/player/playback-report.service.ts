@@ -3,7 +3,6 @@ import { APP_MANIFESTS } from '@signagewall/apps';
 import { Types } from 'mongoose';
 
 import { AppInstancesRepository } from '../apps/app-instances.repository';
-import { CampaignsRepository } from '../campaigns/campaigns.repository';
 import { MediaRepository } from '../media/media.repository';
 import { ScreensRepository } from '../screens/screens.repository';
 import { PlayerContentService } from './player-content.service';
@@ -127,7 +126,7 @@ export interface CoverageException {
 export interface CoverageReport {
   day: string;
   /** Set when the matrix shows ONE item rather than everything on the screen. */
-  focus?: { kind: 'item' | 'campaign'; id: string; name: string };
+  focus?: { kind: 'item'; id: string; name: string };
   coverage: number | null;
   screens: CoverageRow[];
   exceptions: CoverageException[];
@@ -139,9 +138,6 @@ export interface CoverageReport {
 export interface PlaybackItemRow {
   contentId: string;
   name: string;
-  /** The campaign this item was sold as part of, when it has one. */
-  campaignId?: string;
-  campaignName?: string;
   kind?: string;
   plays: number;
   airtimeMs: number;
@@ -158,27 +154,8 @@ export interface PlaybackItemsReport {
   from: string;
   to: string;
   items: PlaybackItemRow[];
-  /**
-   * The same playback grouped the way it was sold — one row per campaign, plus
-   * an unassigned bucket. Present only when asked for, because grouping is a
-   * choice the operator makes, not a default the report imposes.
-   */
-  campaigns?: PlaybackCampaignRow[];
   totals: { plays: number; airtimeMs: number };
   truncated: boolean;
-}
-
-export interface PlaybackCampaignRow {
-  /** Null for the bucket of everything that belongs to no campaign. */
-  campaignId: string | null;
-  name: string;
-  plays: number;
-  airtimeMs: number;
-  share: number;
-  /** Distinct screens across every item in the campaign. */
-  screens: number;
-  items: number;
-  contentIds: string[];
 }
 
 /** Plays and measured airtime by hour of day, summed over a range. */
@@ -242,9 +219,6 @@ interface AvailabilityLike {
   };
 }
 
-/** A fresh 24-slot array of zeros. */
-const EMPTY_HOURS = (): number[] => new Array<number>(24).fill(0);
-
 const WEEKDAYS = [
   'sunday',
   'monday',
@@ -262,7 +236,6 @@ export class PlaybackReportService {
     private readonly screens: ScreensRepository,
     private readonly media: MediaRepository,
     private readonly appInstances: AppInstancesRepository,
-    private readonly campaigns: CampaignsRepository,
     private readonly content: PlayerContentService,
   ) {}
 
@@ -272,7 +245,7 @@ export class PlaybackReportService {
   async coverage(
     organizationId: string,
     day: string,
-    focus?: { contentId?: string; campaignId?: string },
+    focus?: { contentId?: string },
   ): Promise<CoverageReport> {
     const [allRows, allScreens] = await Promise.all([
       this.playback.findDay(organizationId, day),
@@ -393,7 +366,6 @@ export class PlaybackReportService {
     from: string,
     to: string,
     screenIds?: string[],
-    groupByCampaign = false,
   ): Promise<PlaybackItemsReport> {
     const { items, totals } = await this.playback.aggregateItems(
       organizationId,
@@ -415,19 +387,10 @@ export class PlaybackReportService {
       items.flatMap((item) => item.screenIds.map((id) => id.toString())),
     );
 
-    const membership = await this.campaigns.membershipMap(organizationId);
-
     const rows = items.map((item) => {
-      const campaign = membership.get(item._id);
       return {
         contentId: item._id,
         name: names.get(item._id) ?? item.slug ?? item._id,
-        ...(campaign
-          ? {
-              campaignId: campaign._id.toString(),
-              campaignName: campaign.name,
-            }
-          : {}),
         ...(item.kind ? { kind: item.kind } : {}),
         plays: item.plays,
         airtimeMs: item.airtimeMs,
@@ -445,9 +408,6 @@ export class PlaybackReportService {
       from,
       to,
       items: rows,
-      ...(groupByCampaign
-        ? { campaigns: groupByCampaigns(rows, items, totals.airtimeMs) }
-        : {}),
       totals,
       truncated: items.length >= PLAYBACK_ITEM_LIMIT,
     };
@@ -458,20 +418,9 @@ export class PlaybackReportService {
     organizationId: string,
     from: string,
     to: string,
-    filter: {
-      contentId?: string;
-      campaignId?: string;
-      screenIds?: string[];
-    } = {},
+    filter: { contentId?: string; screenIds?: string[] } = {},
   ): Promise<DaypartingReport> {
     const lens = await this.resolveFocus(organizationId, filter);
-    if (lens && lens.contentIds.size === 0) {
-      // A campaign with nothing assigned yet. Passing an empty filter down would
-      // read as "no filter" and answer with the whole organization's playback
-      // under that campaign's name — a wrong number that looks authoritative.
-      return { from, to, plays: EMPTY_HOURS(), airtimeMs: EMPTY_HOURS() };
-    }
-
     const hours = await this.playback.aggregateHours(organizationId, from, to, {
       ...(lens ? { contentIds: [...lens.contentIds] } : {}),
       ...(filter.screenIds ? { screenIds: filter.screenIds } : {}),
@@ -581,49 +530,30 @@ export class PlaybackReportService {
   /**
    * Turns a requested focus into the set of content ids it covers.
    *
-   * A campaign is several files; an item is one. Both end up as a set, so
-   * everything downstream is written once.
+   * A set rather than a single id, so the filtering downstream is written once
+   * and does not have to change if a focus ever spans more than one item.
    */
   private async resolveFocus(
     organizationId: string,
-    focus?: { contentId?: string; campaignId?: string },
+    focus?: { contentId?: string },
   ): Promise<{
     contentIds: Set<string>;
-    focus: { kind: 'item' | 'campaign'; id: string; name: string };
+    focus: { kind: 'item'; id: string; name: string };
   } | null> {
-    if (focus?.campaignId) {
-      const campaign = await this.campaigns.findById(
-        organizationId,
-        focus.campaignId,
-      );
-      if (!campaign) {
-        return null;
-      }
-      return {
-        contentIds: new Set(campaign.contentIds),
-        focus: {
-          kind: 'campaign',
-          id: campaign._id.toString(),
-          name: campaign.name,
-        },
-      };
+    if (!focus?.contentId) {
+      return null;
     }
-
-    if (focus?.contentId) {
-      const names = await this.resolveNames(organizationId, [
-        { contentId: focus.contentId },
-      ]);
-      return {
-        contentIds: new Set([focus.contentId]),
-        focus: {
-          kind: 'item',
-          id: focus.contentId,
-          name: names.get(focus.contentId) ?? focus.contentId,
-        },
-      };
-    }
-
-    return null;
+    const names = await this.resolveNames(organizationId, [
+      { contentId: focus.contentId },
+    ]);
+    return {
+      contentIds: new Set([focus.contentId]),
+      focus: {
+        kind: 'item',
+        id: focus.contentId,
+        name: names.get(focus.contentId) ?? focus.contentId,
+      },
+    };
   }
 
   /**
@@ -727,61 +657,6 @@ function cell(
     expectedMs,
     plays,
   };
-}
-
-/**
- * The same rows, added up the way they were sold.
- *
- * Everything with no campaign lands in one honest bucket rather than being
- * dropped: an operator looking at a campaign report needs to see what is NOT yet
- * assigned, or the first month's numbers quietly under-report.
- */
-function groupByCampaigns(
-  rows: PlaybackItemRow[],
-  totals: { _id: string; screenIds: { toString(): string }[] }[],
-  totalAirtimeMs: number,
-): PlaybackCampaignRow[] {
-  const screensByItem = new Map(
-    totals.map((item) => [item._id, item.screenIds.map((id) => id.toString())]),
-  );
-  const groups = new Map<
-    string,
-    PlaybackCampaignRow & { screenSet: Set<string> }
-  >();
-
-  for (const row of rows) {
-    const key = row.campaignId ?? '';
-    let group = groups.get(key);
-    if (!group) {
-      group = {
-        campaignId: row.campaignId ?? null,
-        name: row.campaignName ?? '',
-        plays: 0,
-        airtimeMs: 0,
-        share: 0,
-        screens: 0,
-        items: 0,
-        contentIds: [],
-        screenSet: new Set<string>(),
-      };
-      groups.set(key, group);
-    }
-    group.plays += row.plays;
-    group.airtimeMs += row.airtimeMs;
-    group.items += 1;
-    group.contentIds.push(row.contentId);
-    for (const screenId of screensByItem.get(row.contentId) ?? []) {
-      group.screenSet.add(screenId);
-    }
-  }
-
-  return [...groups.values()]
-    .map(({ screenSet, ...group }) => ({
-      ...group,
-      screens: screenSet.size,
-      share: percentage(group.airtimeMs, totalAirtimeMs) ?? 0,
-    }))
-    .sort((a, b) => b.airtimeMs - a.airtimeMs);
 }
 
 /** A renderable's own label, when the content itself has since been deleted. */

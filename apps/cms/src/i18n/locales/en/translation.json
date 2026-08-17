@@ -2732,7 +2732,7 @@
     "title": "Proof of play",
     "description": "What each screen actually showed — measured on the device, not calculated from settings.",
     "error": "The report could not be loaded.",
-    "retention": "Daily detail is kept for 90 days; monthly totals are kept indefinitely. Export a campaign before it ages out.",
+    "retention": "Daily detail is kept for 90 days; monthly totals are kept indefinitely. Export a period before it ages out.",
     "coverage": {
       "heading": "Coverage by hour",
       "label": "Coverage",
@@ -2778,12 +2778,6 @@
       "totalAirtime": "Total airtime",
       "truncated": "Showing the top 500 items; totals cover everything.",
       "empty": "Nothing was reported for this range.",
-      "campaign": "Campaign",
-      "unassigned": "Not assigned",
-      "assign": "Assign",
-      "byCampaign": "Group by campaign",
-      "byItem": "Show items",
-      "items": "Items",
       "focus": "Show where and when this ran"
     },
     "export": {
@@ -2815,18 +2809,11 @@
       "empty": "No screen had expected on-air time on this day.",
       "truncated": "Showing the first 50 screens."
     },
-    "campaigns": {
-      "heading": "Campaigns",
-      "newPlaceholder": "New campaign",
-      "none": "No campaigns yet",
-      "failed": "The campaign could not be saved."
-    },
     "schedule": {
       "heading": "Email this report",
       "description": "An empty report is invisible until somebody goes looking.",
       "recipients": "Recipients",
       "frequency": "Frequency",
-      "hour": "Hour",
       "frequencies": {
         "daily": "Daily",
         "weekly": "Weekly",
@@ -2836,7 +2823,8 @@
       "saved": "Schedule saved.",
       "failed": "The schedule could not be saved.",
       "lastSent": "Last sent {{date}}.",
-      "lastError": "Last attempt failed: {{error}}"
+      "lastError": "Last attempt failed: {{error}}",
+      "sendTime": "Sent at 15:00 local time."
     }
   }
 }

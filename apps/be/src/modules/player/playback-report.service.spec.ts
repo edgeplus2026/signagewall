@@ -1,7 +1,6 @@
 import { Types } from 'mongoose';
 
 import type { AppInstancesRepository } from '../apps/app-instances.repository';
-import type { CampaignsRepository } from '../campaigns/campaigns.repository';
 import type { MediaRepository } from '../media/media.repository';
 import type { ScreensRepository } from '../screens/screens.repository';
 import { PlaybackReportService } from './playback-report.service';
@@ -88,11 +87,9 @@ function buildService(options: {
     .fn()
     .mockResolvedValue([{ _id: SCREEN, name: 'Lobby' }]);
   const findByIds = jest.fn().mockResolvedValue([]);
-  const membershipMap = jest.fn().mockResolvedValue(new Map());
   const aggregateHours = jest
     .fn()
     .mockResolvedValue({ plays: [], airtimeMs: [] });
-  const findCampaign = jest.fn().mockResolvedValue(null);
   const resolveByScreenId = jest
     .fn()
     .mockResolvedValue(options.snapshot ?? null);
@@ -110,18 +107,12 @@ function buildService(options: {
       } as unknown as ScreensRepository,
       { findByIds } as unknown as MediaRepository,
       { findByIds } as unknown as AppInstancesRepository,
-      {
-        membershipMap,
-        findById: findCampaign,
-      } as unknown as CampaignsRepository,
       { resolveByScreenId } as unknown as PlayerContentService,
     ),
     findDay,
     aggregateItems,
     aggregateHours,
     findByIds,
-    membershipMap,
-    findCampaign,
     resolveByScreenId,
   };
 }
@@ -353,75 +344,7 @@ describe('PlaybackReportService: items', () => {
   });
 });
 
-describe('PlaybackReportService: campaigns and focus', () => {
-  const CAMPAIGN = new Types.ObjectId();
-
-  it('adds up the files a campaign was sold as, plus what is unassigned', async () => {
-    const { service, membershipMap } = buildService({
-      items: {
-        items: [
-          { _id: 'a', plays: 10, airtimeMs: 600_000, screenIds: [SCREEN] },
-          { _id: 'b', plays: 10, airtimeMs: 300_000, screenIds: [SCREEN] },
-          { _id: 'c', plays: 5, airtimeMs: 100_000, screenIds: [] },
-        ],
-        totals: { plays: 25, airtimeMs: 1_000_000 },
-      },
-    });
-    membershipMap.mockResolvedValue(
-      new Map([
-        ['a', { _id: CAMPAIGN, name: 'Letnja akcija' }],
-        ['b', { _id: CAMPAIGN, name: 'Letnja akcija' }],
-      ]),
-    );
-
-    const report = await service.items(
-      ORG,
-      '2026-08-01',
-      '2026-08-17',
-      undefined,
-      true,
-    );
-
-    // Two files, one campaign: reported separately the operator has to add them
-    // up by hand every time, and a wrong addition is a billing error.
-    expect(report.campaigns?.[0]).toMatchObject({
-      name: 'Letnja akcija',
-      plays: 20,
-      airtimeMs: 900_000,
-      items: 2,
-      screens: 1,
-    });
-    // What is not assigned yet is shown, not dropped.
-    expect(report.campaigns?.[1]).toMatchObject({ campaignId: null, plays: 5 });
-  });
-
-  it('counts a screen once even when several of a campaign’s files ran on it', async () => {
-    const { service, membershipMap } = buildService({
-      items: {
-        items: [
-          { _id: 'a', plays: 1, airtimeMs: 1, screenIds: [SCREEN] },
-          { _id: 'b', plays: 1, airtimeMs: 1, screenIds: [SCREEN] },
-        ],
-        totals: { plays: 2, airtimeMs: 2 },
-      },
-    });
-    membershipMap.mockResolvedValue(
-      new Map([
-        ['a', { _id: CAMPAIGN, name: 'C' }],
-        ['b', { _id: CAMPAIGN, name: 'C' }],
-      ]),
-    );
-
-    const report = await service.items(
-      ORG,
-      '2026-08-01',
-      '2026-08-17',
-      undefined,
-      true,
-    );
-    expect(report.campaigns?.[0]?.screens).toBe(1);
-  });
-
+describe('PlaybackReportService: focusing on one item', () => {
   it('draws only the focused item, and calls a quiet hour quiet — not an outage', async () => {
     const { service } = buildService({
       availability: NINE_TO_FIVE,
@@ -440,34 +363,6 @@ describe('PlaybackReportService: campaigns and focus', () => {
     expect(report.screens[0]?.cells[10]?.state).toBe('quiet');
     expect(report.screens[0]?.cells[3]?.state).toBe('idle');
     expect(report.exceptions).toHaveLength(0);
-  });
-
-  it('focuses a whole campaign at once', async () => {
-    const { service, findCampaign } = buildService({
-      availability: NINE_TO_FIVE,
-      rows: [
-        row('landscape', { 9: { ms: 1_800_000, plays: 30 } }),
-        row('portrait', { 10: { ms: 1_800_000, plays: 30 } }),
-        row('other', { 11: { ms: 3_600_000, plays: 60 } }),
-      ],
-    });
-    findCampaign.mockResolvedValue({
-      _id: CAMPAIGN,
-      name: 'Letnja akcija',
-      contentIds: ['landscape', 'portrait'],
-    });
-
-    const report = await service.coverage(ORG, DAY, {
-      campaignId: CAMPAIGN.toString(),
-    });
-
-    expect(report.focus).toMatchObject({
-      kind: 'campaign',
-      name: 'Letnja akcija',
-    });
-    expect(report.screens[0]?.cells[9]?.state).toBe('covered');
-    expect(report.screens[0]?.cells[10]?.state).toBe('covered');
-    expect(report.screens[0]?.cells[11]?.state).toBe('quiet');
   });
 });
 
@@ -608,43 +503,20 @@ describe('PlaybackReportService: emergency takeover', () => {
 });
 
 describe('PlaybackReportService: dayparting', () => {
-  it('answers with nothing for a campaign that has nothing assigned', async () => {
-    const { service, findCampaign, aggregateHours } = buildService({});
-    findCampaign.mockResolvedValue({
-      _id: new Types.ObjectId(),
-      name: 'Empty',
-      contentIds: [],
-    });
-
-    const report = await service.dayparting(ORG, '2026-08-01', '2026-08-17', {
-      campaignId: new Types.ObjectId().toString(),
-    });
-
-    // An empty id list passed down would read as "no filter" and answer with the
-    // whole organization's playback under that campaign's name — a wrong number
-    // that looks authoritative.
-    expect(aggregateHours).not.toHaveBeenCalled();
-    expect(report.plays).toHaveLength(24);
-    expect(report.plays.every((value) => value === 0)).toBe(true);
-  });
-
-  it('narrows to the campaign’s files when it has some', async () => {
-    const { service, findCampaign, aggregateHours } = buildService({});
-    findCampaign.mockResolvedValue({
-      _id: new Types.ObjectId(),
-      name: 'Letnja akcija',
-      contentIds: ['a', 'b'],
-    });
+  it('narrows to the focused item', async () => {
+    const { service, aggregateHours } = buildService({});
 
     await service.dayparting(ORG, '2026-08-01', '2026-08-17', {
-      campaignId: new Types.ObjectId().toString(),
+      contentId: 'media-1',
     });
 
     expect(aggregateHours).toHaveBeenCalledWith(
       ORG,
       '2026-08-01',
       '2026-08-17',
-      { contentIds: ['a', 'b'] },
+      {
+        contentIds: ['media-1'],
+      },
     );
   });
 });

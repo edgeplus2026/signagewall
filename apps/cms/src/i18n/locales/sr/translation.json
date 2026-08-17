@@ -2718,7 +2718,7 @@
     "title": "Dokaz o puštanju",
     "description": "Šta je svaki ekran zaista prikazao — mereno na uređaju, ne izračunato iz podešavanja.",
     "error": "Izveštaj nije mogao da se učita.",
-    "retention": "Dnevni detalji se čuvaju 90 dana; mesečni zbirovi trajno. Izvezite kampanju pre nego što istekne.",
+    "retention": "Dnevni detalji se čuvaju 90 dana; mesečni zbirovi trajno. Izvezite period pre nego što istekne.",
     "coverage": {
       "heading": "Pokrivenost po satu",
       "label": "Pokrivenost",
@@ -2767,12 +2767,6 @@
       "totalAirtime": "Ukupno vreme",
       "truncated": "Prikazano je 500 najvećih stavki; zbirovi obuhvataju sve.",
       "empty": "Za ovaj period nema prijavljenog puštanja.",
-      "campaign": "Kampanja",
-      "unassigned": "Nije dodeljeno",
-      "assign": "Dodeli",
-      "byCampaign": "Grupiši po kampanji",
-      "byItem": "Prikaži stavke",
-      "items": "Stavke",
       "focus": "Prikaži gde je i kada išlo"
     },
     "export": {
@@ -2805,18 +2799,11 @@
       "empty": "Nijedan ekran nije imao očekivano vreme emitovanja ovog dana.",
       "truncated": "Prikazano je prvih 50 ekrana."
     },
-    "campaigns": {
-      "heading": "Kampanje",
-      "newPlaceholder": "Nova kampanja",
-      "none": "Još nema kampanja",
-      "failed": "Kampanja nije mogla da se sačuva."
-    },
     "schedule": {
       "heading": "Šalji izveštaj na mejl",
       "description": "Prazan izveštaj se ne primeti dok ga neko ne potraži.",
       "recipients": "Primaoci",
       "frequency": "Učestalost",
-      "hour": "Sat",
       "frequencies": {
         "daily": "Dnevno",
         "weekly": "Nedeljno",
@@ -2826,7 +2813,8 @@
       "saved": "Raspored je sačuvan.",
       "failed": "Raspored nije mogao da se sačuva.",
       "lastSent": "Poslednji put poslato {{date}}.",
-      "lastError": "Poslednji pokušaj nije uspeo: {{error}}"
+      "lastError": "Poslednji pokušaj nije uspeo: {{error}}",
+      "sendTime": "Šalje se u 15:00 po lokalnom vremenu."
     }
   }
 }

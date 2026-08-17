@@ -37,8 +37,8 @@ export interface CoverageException {
 
 export interface CoverageReport {
   day: string
-  /** Present when the matrix is drawn for one item or campaign, not everything. */
-  focus?: { kind: 'item' | 'campaign'; id: string; name: string }
+  /** Present when the matrix is drawn for one item, not everything. */
+  focus?: { kind: 'item'; id: string; name: string }
   coverage: number | null
   screens: CoverageRow[]
   exceptions: CoverageException[]
@@ -49,8 +49,6 @@ export interface CoverageReport {
 export interface PlaybackItemRow {
   contentId: string
   name: string
-  campaignId?: string
-  campaignName?: string
   kind?: string
   plays: number
   airtimeMs: number
@@ -66,29 +64,8 @@ export interface PlaybackItemsReport {
   from: string
   to: string
   items: PlaybackItemRow[]
-  campaigns?: PlaybackCampaignRow[]
   totals: { plays: number; airtimeMs: number }
   truncated: boolean
-}
-
-export interface PlaybackCampaignRow {
-  /** Null for everything that belongs to no campaign yet. */
-  campaignId: string | null
-  name: string
-  plays: number
-  airtimeMs: number
-  share: number
-  screens: number
-  items: number
-  contentIds: string[]
-}
-
-export interface Campaign {
-  id: string
-  name: string
-  startDate?: string
-  endDate?: string
-  contentIds: string[]
 }
 
 /** Plays and measured airtime by hour of day, summed over a range. */
@@ -124,7 +101,6 @@ export interface ReportSchedule {
   enabled: boolean
   frequency: ReportFrequency
   recipients: string[]
-  hour: number
   timezone: string
   lastSentAt?: string
   lastError?: string

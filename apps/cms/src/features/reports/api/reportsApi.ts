@@ -1,5 +1,4 @@
 import type {
-  Campaign,
   CoverageReport,
   DaypartingReport,
   PlanReport,
@@ -11,7 +10,7 @@ import { api } from '@/lib/axios'
 export const reportsApi = {
   coverage: async (
     day: string,
-    focus?: { contentId?: string; campaignId?: string },
+    focus?: { contentId?: string },
   ): Promise<CoverageReport> => {
     const { data } = await api.get<CoverageReport>('/playback/coverage', {
       params: { day, ...focus },
@@ -22,7 +21,7 @@ export const reportsApi = {
   dayparting: async (
     from: string,
     to: string,
-    focus?: { contentId?: string; campaignId?: string },
+    focus?: { contentId?: string },
   ): Promise<DaypartingReport> => {
     const { data } = await api.get<DaypartingReport>('/playback/dayparting', {
       params: { from, to, ...focus },
@@ -58,9 +57,6 @@ export const reportsApi = {
       params: {
         from,
         to,
-        // Always asked for: the grouped view costs one extra pass over rows the
-        // request already loaded, and having it ready makes the toggle instant.
-        groupBy: 'campaign',
         ...(screenIds?.length ? { screenIds: screenIds.join(',') } : {}),
       },
     })
@@ -104,35 +100,6 @@ export const reportsApi = {
       responseType: 'blob',
     })
     save(data, `playback-${from}_${to}.pdf`)
-  },
-}
-
-export const campaignsApi = {
-  list: async (): Promise<Campaign[]> => {
-    const { data } = await api.get<Campaign[]>('/campaigns')
-    return data
-  },
-
-  create: async (name: string): Promise<Campaign> => {
-    const { data } = await api.post<Campaign>('/campaigns', { name })
-    return data
-  },
-
-  remove: async (id: string): Promise<void> => {
-    await api.delete(`/campaigns/${id}`)
-  },
-
-  /** Assigns or unassigns one item, straight from the report table. */
-  setMembership: async (
-    id: string,
-    contentId: string,
-    member: boolean,
-  ): Promise<Campaign> => {
-    const { data } = await api.patch<Campaign>(`/campaigns/${id}/content`, {
-      contentId,
-      member,
-    })
-    return data
   },
 }
 
