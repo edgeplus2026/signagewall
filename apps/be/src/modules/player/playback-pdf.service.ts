@@ -227,9 +227,12 @@ export class PlaybackPdfService {
    * document backing an invoice.
    */
   private secret(): string {
-    const configured =
-      this.config.get<string>('REPORT_SIGNING_KEY') ??
-      this.config.get<string>('JWT_SECRET');
+    // Only this key. An earlier version fell back to `JWT_SECRET`, which does
+    // not exist in this configuration (the auth secrets are `jwt.accessSecret`
+    // and `jwt.refreshSecret`) — a fallback that silently never fired. Reusing
+    // an auth secret here would be worse anyway: a key that signs sessions and
+    // a key that signs documents should not have to be rotated together.
+    const configured = this.config.get<string>('REPORT_SIGNING_KEY');
     if (!configured) {
       this.logger.warn(
         'REPORT_SIGNING_KEY is not set; report signatures are not trustworthy',
