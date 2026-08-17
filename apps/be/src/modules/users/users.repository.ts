@@ -292,9 +292,35 @@ export class UsersRepository {
       .exec();
   }
 
-  updateById(id: string, data: Partial<User>): Promise<UserDocument | null> {
+  /**
+   * `null` means "remove the field" and becomes a `$unset`. This is explicit
+   * because the intuitive spelling — `field: undefined` — is silently DROPPED
+   * from the update by Mongoose, which once left refresh tokens and reset
+   * tokens alive after a password change claimed to have cleared them.
+   * `$unset` rather than storing null so the sparse token indexes stay lean.
+   */
+  updateById(
+    id: string,
+    data: { [K in keyof Partial<User>]: Partial<User>[K] | null },
+  ): Promise<UserDocument | null> {
+    const set: Record<string, unknown> = {};
+    const unset: Record<string, 1> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value === null) {
+        unset[key] = 1;
+      } else if (value !== undefined) {
+        set[key] = value;
+      }
+    }
     return this.userModel
-      .findByIdAndUpdate(id, data, { returnDocument: 'after' })
+      .findByIdAndUpdate(
+        id,
+        {
+          ...(Object.keys(set).length > 0 ? { $set: set } : {}),
+          ...(Object.keys(unset).length > 0 ? { $unset: unset } : {}),
+        },
+        { returnDocument: 'after' },
+      )
       .exec();
   }
 

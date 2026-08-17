@@ -12,6 +12,12 @@ merges. Code-side work stays in [TODO.md](TODO.md).
       token-in-URL branch was removed — it was unreachable from any backend
       path and doubled as a session-fixation vector). Wrong order = broken
       Google login until the CMS deploy lands.
+- [ ] **Every signed-in CMS session re-authenticates once after the backend
+      deploy.** Refresh-token hashes moved from bcrypt (whose 72-byte input
+      truncation made every one of a user's refresh tokens match every other —
+      rotation revoked nothing) to SHA-256. Stored bcrypt hashes fail closed,
+      so the first refresh after the deploy returns 401 and the CMS routes the
+      user to login. One-time, self-healing, and the reason the change exists.
 - [ ] **Google logins in flight across the backend deploy fail once.** The
       callback now verifies a CSRF `state` against an HttpOnly cookie minted
       when the flow started, so a user sitting on Google's account chooser

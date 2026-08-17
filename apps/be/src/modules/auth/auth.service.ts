@@ -431,11 +431,14 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, this.bcryptRounds);
 
+    // `null`, never `undefined`: Mongoose drops undefined keys from updates,
+    // which would leave the reset token redeemable again and every issued
+    // refresh token alive — a stolen session surviving the victim's reset.
     await this.usersRepository.updateById(user._id.toString(), {
       password: hashedPassword,
-      passwordResetToken: undefined,
-      passwordResetExpiresAt: undefined,
-      refreshTokenHash: undefined,
+      passwordResetToken: null,
+      passwordResetExpiresAt: null,
+      refreshTokenHash: null,
     });
 
     // Proving control of the mailbox ends the lockout. The lock check runs
@@ -681,9 +684,11 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(newPassword, this.bcryptRounds);
 
+    // Revoke every outstanding session: a password change must strand a stolen
+    // refresh token. `null` (-> $unset), because `undefined` is dropped.
     await this.usersRepository.updateById(userId, {
       password: hashedPassword,
-      refreshTokenHash: undefined,
+      refreshTokenHash: null,
     });
   }
 
@@ -706,7 +711,7 @@ export class AuthService {
 
     await this.usersRepository.updateById(userId, {
       password: hashedPassword,
-      refreshTokenHash: undefined,
+      refreshTokenHash: null,
     });
 
     await this.usersRepository.clearLoginLock(userId);
