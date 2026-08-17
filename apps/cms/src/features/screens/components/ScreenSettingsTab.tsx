@@ -94,7 +94,7 @@ export function ScreenSettingsTab({ screen }: ScreenSettingsTabProps) {
           <SettingsRow
             label={t("screens.form.description")}
             field
-            className="items-start"
+            className="sm:items-start"
             error={errors.description?.message}
           >
             <Textarea

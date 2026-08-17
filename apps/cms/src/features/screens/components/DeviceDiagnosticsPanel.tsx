@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { useIsSuperAdmin } from '@/features/auth/hooks/useIsSuperAdmin'
 import { useRequestDeviceDiagnostics } from '@/features/screens/hooks/useScreens'
 import type { StoredDiagnosticsReport } from '@/features/screens/types/screen.types'
 import {
@@ -29,6 +30,7 @@ export function DeviceDiagnosticsPanel({
   report,
 }: DeviceDiagnosticsPanelProps) {
   const { t } = useTranslation()
+  const isSuperAdmin = useIsSuperAdmin()
   const request = useRequestDeviceDiagnostics()
 
   const onRequest = async () => {
@@ -40,6 +42,14 @@ export function DeviceDiagnosticsPanel({
         getApiErrorMessage(error, t('screens.device.diagnostics.error')),
       )
     }
+  }
+
+  // Support instrument, not a customer control. A cache count and a shell log
+  // read as "something is wrong with my screen" to the person who owns it, and
+  // the request itself does nothing they can act on. Gated here rather than at
+  // the call site so a new one cannot forget it.
+  if (!isSuperAdmin) {
+    return null
   }
 
   return (
@@ -60,7 +70,11 @@ export function DeviceDiagnosticsPanel({
       </SettingsRow>
 
       {report ? (
-        <div className="flex flex-col gap-2 px-4 pb-4">
+        // `py-3`, not `pb-4`: this block sits under a divider, and with bottom
+        // padding only the first line hugged the rule above it. The vertical
+        // rhythm matches SettingsRow so the report reads as another row of the
+        // same panel rather than a slab bolted underneath.
+        <div className="flex flex-col gap-2 px-4 py-3">
           <p className="text-muted-foreground text-xs">
             {t('screens.device.diagnostics.capturedAt', {
               at: report.at

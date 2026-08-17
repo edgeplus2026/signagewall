@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useIsSuperAdmin } from '@/features/auth/hooks/useIsSuperAdmin'
 import { useQueueShellCommand } from '@/features/screens/hooks/useScreens'
 import type { ShellStatusReport } from '@/features/screens/types/screen.types'
 import {
@@ -44,6 +45,7 @@ export function ShellChannelPanel({
   pageOnline,
 }: ShellChannelPanelProps) {
   const { t } = useTranslation()
+  const isSuperAdmin = useIsSuperAdmin()
   const queue = useQueueShellCommand()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -58,6 +60,13 @@ export function ShellChannelPanel({
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('screens.device.shell.error')))
     }
+  }
+
+  // The shell channel is our line to a screen whose page has broken — a concept
+  // that only means something to somebody who maintains players. To a customer it
+  // is a second, contradictory "is it online?" answer next to the first.
+  if (!isSuperAdmin) {
+    return null
   }
 
   return (

@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { useIsSuperAdmin } from '@/features/auth/hooks/useIsSuperAdmin'
 import { ApplyDeviceUpdateDialog } from '@/features/screens/components/ApplyDeviceUpdateDialog'
 import { DeviceVolumeControl } from '@/features/screens/components/DeviceVolumeControl'
 import {
@@ -240,6 +241,7 @@ function MaintenanceSettings({
   savedReloadTime,
 }: MaintenanceSettingsProps) {
   const { t } = useTranslation()
+  const isSuperAdmin = useIsSuperAdmin()
   const setDailyReload = useSetDeviceDailyReload()
   const restart = useRestartDevice()
   const applyUpdate = useApplyDeviceUpdate()
@@ -284,6 +286,14 @@ function MaintenanceSettings({
         getApiErrorMessage(error, t('screens.device.applyUpdate.error')),
       )
     }
+  }
+
+  // Restarting a display, forcing a shell update and setting the nightly reload
+  // are maintenance, not configuration: three ways to make a working screen go
+  // blank for a few seconds, offered to somebody with no way to tell whether they
+  // are needed. Display settings above stay — those are the customer's to set.
+  if (!isSuperAdmin) {
+    return null
   }
 
   return (

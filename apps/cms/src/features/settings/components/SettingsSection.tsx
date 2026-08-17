@@ -36,25 +36,41 @@ export function SettingsRow({
   field = false,
 }: SettingsRowProps) {
   return (
+    // Stacked on a phone, side by side from `sm` up.
+    //
+    // The row used to be a single flex line at every width, with the control side
+    // `shrink-0`. On a narrow screen that combination is unsurvivable: the control
+    // refuses to give up a pixel, so the label column absorbs the whole shortfall
+    // and collapses to about one word wide — "Kiosk lock" became a vertical column
+    // of single letters while a long status string ran off the right edge. Nothing
+    // was clipped, so it never looked like an overflow; it just looked broken.
+    //
+    // Every `shrink-0`/width below is therefore `sm:`-scoped, leaving the desktop
+    // layout byte-for-byte what it was.
     <div
       className={cn(
-        'flex justify-between gap-8 px-4 py-3 items-center',
+        'flex flex-col items-start gap-2 px-4 py-3',
+        'sm:flex-row sm:items-center sm:justify-between sm:gap-8',
         className,
       )}
     >
-      <div className="min-w-0 flex-1">
+      <div className="w-full min-w-0 sm:flex-1">
         <div className="text-primary flex min-w-0 items-center gap-2 text-sm">{label}</div>
         {description ? (
           <p className="text-secondary mt-1 text-[13px] leading-snug">{description}</p>
         ) : null}
       </div>
       {field ? (
-        <div className="flex w-56 shrink-0 flex-col gap-1">
+        <div className="flex w-full flex-col gap-1 sm:w-56 sm:shrink-0">
           {children}
           {error ? <p className="text-danger text-xs">{error}</p> : null}
         </div>
       ) : children ? (
-        <div className="flex shrink-0 items-center gap-2">{children}</div>
+        // `flex-wrap` so a long status string wraps onto its own lines instead of
+        // pushing the row wider than the panel.
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0">
+          {children}
+        </div>
       ) : null}
     </div>
   )
