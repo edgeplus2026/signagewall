@@ -334,7 +334,12 @@ export class DevicesRepository {
             },
           },
         ],
-        { returnDocument: 'after' },
+        // Mongoose 9 refuses an aggregation-pipeline update unless it is asked
+        // for explicitly — without this it throws before reaching the database,
+        // and the throw lands inside the gateway's connect handler, which
+        // answers a failed connect by disconnecting the socket. Every player in
+        // the fleet then reconnects, fails again, and reports offline forever.
+        { returnDocument: 'after', updatePipeline: true },
       )
       .exec();
   }
