@@ -27,6 +27,18 @@ export const PlayerSocketEvents = {
    * heartbeat, because it is kilobytes and is worth sending only when asked.
    */
   Diagnostics: 'diagnostics',
+  /**
+   * Device → server: what this screen has played since the last confirmed batch,
+   * as per-item totals rather than a stream of events.
+   *
+   * The only device message that is ACKNOWLEDGED. Everything else here is a
+   * courtesy — a heartbeat or a diagnostic that is worth re-sending later if it
+   * is lost. This one is evidence somebody bills against, so the device keeps a
+   * batch until the server confirms it, and the server ignores a batch number it
+   * has already seen. Losing one costs a customer's report; counting one twice
+   * costs their trust.
+   */
+  Playback: 'playback',
 } as const
 
 export type PlayerSocketEvent =

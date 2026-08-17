@@ -28,6 +28,10 @@ import { startAvailability } from './sync/availability'
 import { startDailyReload } from './sync/daily-reload'
 import { startKioskLock, startScreenNameBridge } from './sync/kiosk'
 import { startOnline } from './sync/online'
+import {
+  restorePlayback,
+  startPlaybackReporting,
+} from './sync/playback-report'
 import { startPrefetch } from './sync/prefetch'
 import { requestPreviewToken } from './sync/preview-handshake'
 import { startWakeLock } from './sync/wake-lock'
@@ -118,6 +122,7 @@ export function App() {
     let stopStandbyUpdate: (() => void) | undefined
     let stopMaintenanceUpdates: (() => void) | undefined
     let stopLiveness: (() => void) | undefined
+    let stopPlayback: (() => void) | undefined
 
     void (async () => {
       await bootstrapNativeIdentity()
@@ -141,6 +146,14 @@ export function App() {
           snapshot.value = persisted
         }
       })
+
+      // Read back what the last session was still holding, BEFORE the stage can
+      // record anything — otherwise restoring would wipe the plays that happened
+      // between boot and the read. The nightly reload passes through here every
+      // day, so this is the difference between a continuous record and one with
+      // a hole in it every 24 hours.
+      await restorePlayback()
+      if (disposed) return
 
       connectPlayer()
 
@@ -172,6 +185,9 @@ export function App() {
       // Backstop on a fixed cadence, independent of daily-reload/standby, so a
       // 24/7 always-on screen still applies shell updates rather than never.
       stopMaintenanceUpdates = startMaintenanceUpdates()
+      // Proof-of-play delivery: on a timer, on reconnect, and persisted on the
+      // way out. Started after connect so the first flush has a socket to use.
+      stopPlayback = startPlaybackReporting()
       // Prefetch starts last because it alone has to wait: media cached in a
       // format this build can no longer serve is dropped first, or the warm-up
       // would see those entries as already cached and leave them in place for
@@ -188,6 +204,7 @@ export function App() {
     return () => {
       disposed = true
       stopOnline()
+      stopPlayback?.()
       stopMaintenanceUpdates?.()
       stopStandbyUpdate?.()
       stopPrefetch?.()

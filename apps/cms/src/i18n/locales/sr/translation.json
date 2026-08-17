@@ -35,7 +35,9 @@
       "empty": "Još uvek nema sadržaja za pregled.",
       "nothingPlayable": "Nema šta da se pusti — stavke su možda isključene ili se mediji još obrađuju.",
       "unavailable": "Pregled nije moguće učitati. Player nije uspeo da dođe do sadržaja."
-    }
+    },
+    "save": "Sačuvaj",
+    "delete": "Obriši"
   },
   "dataTable": {
     "search": "Pretraga...",
@@ -140,7 +142,8 @@
       "confirm": "Odjavi se"
     },
     "welcome": "Dobrodošli u SignageWall.",
-    "dashboardPlaceholder": "Sadržaj kontrolne table ide ovde."
+    "dashboardPlaceholder": "Sadržaj kontrolne table ide ovde.",
+    "reports": "Izveštaji"
   },
   "dashboard": {
     "title": "Kontrolna tabla",
@@ -2635,6 +2638,121 @@
         ],
         "cta": "Dodeli sadržaj"
       }
+    }
+  },
+  "reports": {
+    "title": "Dokaz o puštanju",
+    "description": "Šta je svaki ekran zaista prikazao — mereno na uređaju, ne izračunato iz podešavanja.",
+    "error": "Izveštaj nije mogao da se učita.",
+    "retention": "Dnevni detalji se čuvaju 90 dana; mesečni zbirovi trajno. Izvezite kampanju pre nego što istekne.",
+    "coverage": {
+      "heading": "Pokrivenost po satu",
+      "label": "Pokrivenost",
+      "day": "Dan",
+      "screens_one": "{{count}} ekran",
+      "screens_few": "{{count}} ekrana",
+      "screens_other": "{{count}} ekrana",
+      "truncated": "Prikazano je prvih 200 ekrana."
+    },
+    "legend": {
+      "scale": "manje → više sadržaja",
+      "idle": "van radnog vremena",
+      "off": "ekran nedostupan",
+      "stuck": "zaglavljen na jednoj stavci",
+      "quiet": "nije išlo ovog sata",
+      "takeover": "hitno obaveštenje"
+    },
+    "cell": {
+      "covered": "{{percent}}% pokriveno · {{plays}} puštanja"
+    },
+    "exceptions": {
+      "none": "Sve ostalo je išlo po planu.",
+      "off": "nedostupan {{duration}}",
+      "stuck": "zaglavljen na „{{item}}“ {{duration}}",
+      "takeover": "prikazivao hitno obaveštenje {{duration}}"
+    },
+    "duration": {
+      "minutes_one": "{{count}} min",
+      "minutes_few": "{{count}} min",
+      "minutes_other": "{{count}} min",
+      "hours_one": "{{count}} h",
+      "hours_few": "{{count}} h",
+      "hours_other": "{{count}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min"
+    },
+    "table": {
+      "heading": "Po stavci",
+      "item": "Stavka",
+      "plays": "Puštanja",
+      "airtime": "Vreme",
+      "share": "Udeo",
+      "screens": "Ekrani",
+      "from": "Od",
+      "to": "Do",
+      "totalPlays": "Ukupno puštanja",
+      "totalAirtime": "Ukupno vreme",
+      "truncated": "Prikazano je 500 najvećih stavki; zbirovi obuhvataju sve.",
+      "empty": "Za ovaj period nema prijavljenog puštanja.",
+      "campaign": "Kampanja",
+      "unassigned": "Nije dodeljeno",
+      "assign": "Dodeli",
+      "byCampaign": "Grupiši po kampanji",
+      "byItem": "Prikaži stavke",
+      "items": "Stavke",
+      "focus": "Prikaži gde je i kada išlo"
+    },
+    "export": {
+      "csv": "Izvezi CSV",
+      "failed": "Izvoz nije mogao da se preuzme.",
+      "pdf": "Izvezi PDF"
+    },
+    "focus": {
+      "showing": "Prikazano samo",
+      "clear": "Prikaži sve",
+      "shareTitle": "Udeo dana koji je ova stavka popunila"
+    },
+    "dayparting": {
+      "heading": "Po satu u danu",
+      "total": "{{count}} puštanja u periodu",
+      "cell": "{{hour}} · {{plays}} puštanja · {{minutes}} min"
+    },
+    "plan": {
+      "heading": "Planirano naspram puštenog",
+      "screen": "Ekran",
+      "item": "Stavka",
+      "planned": "Planirano",
+      "actual": "Pušteno",
+      "delta": "Razlika",
+      "basis": "Planirano je izvedeno iz rotacije kakva je sada.",
+      "allOnPlan": "Svaka stavka je išla onoliko puta koliko je rotacija dozvolila.",
+      "shortfalls_one": "{{count}} stavka je zaostala",
+      "shortfalls_few": "{{count}} stavke su zaostale",
+      "shortfalls_other": "{{count}} stavki je zaostalo",
+      "empty": "Nijedan ekran nije imao očekivano vreme emitovanja ovog dana.",
+      "truncated": "Prikazano je prvih 50 ekrana."
+    },
+    "campaigns": {
+      "heading": "Kampanje",
+      "newPlaceholder": "Nova kampanja",
+      "none": "Još nema kampanja",
+      "failed": "Kampanja nije mogla da se sačuva."
+    },
+    "schedule": {
+      "heading": "Šalji izveštaj na mejl",
+      "description": "Prazan izveštaj se ne primeti dok ga neko ne potraži.",
+      "recipients": "Primaoci",
+      "frequency": "Učestalost",
+      "hour": "Sat",
+      "frequencies": {
+        "daily": "Dnevno",
+        "weekly": "Nedeljno",
+        "monthly": "Mesečno"
+      },
+      "needsRecipient": "Prvo dodajte bar jednog primaoca.",
+      "saved": "Raspored je sačuvan.",
+      "failed": "Raspored nije mogao da se sačuva.",
+      "lastSent": "Poslednji put poslato {{date}}.",
+      "lastError": "Poslednji pokušaj nije uspeo: {{error}}"
     }
   }
 }

@@ -10,6 +10,18 @@ import {
   DeviceStatus,
 } from './schemas/device.schema';
 
+/** The batch marker a device carried before the current claim. */
+export interface PlaybackMarker {
+  origin?: string;
+  seq: number;
+}
+
+export interface PlaybackClaim {
+  /** True only for the caller that may write this batch's rows. */
+  accepted: boolean;
+  previous: PlaybackMarker | null;
+}
+
 export interface PairDeviceData {
   screenId: string;
   organizationId: string;
@@ -271,6 +283,80 @@ export class DevicesRepository {
       .updateOne(
         { deviceId },
         { $set: { online: true, lastSeenAt: new Date() } },
+      )
+      .exec();
+  }
+
+  /**
+   * Claims a proof-of-play batch for recording, at most once.
+   *
+   * One conditional update decides it, so two backend instances handling the same
+   * device cannot both conclude they were first. A batch is new when its number
+   * is higher than the last one accepted, OR when it comes from a different
+   * counter than the one on file — see `playbackOrigin` on the device schema for
+   * why the second clause is not paranoia.
+   *
+   * Returns the previous marker as well, so a write that then fails outright can
+   * put it back and let the device retry (see {@link releasePlaybackBatch}).
+   */
+  async claimPlaybackBatch(
+    deviceId: string,
+    origin: string,
+    seq: number,
+  ): Promise<PlaybackClaim> {
+    const before = await this.deviceModel
+      .findOneAndUpdate(
+        {
+          deviceId,
+          $or: [
+            { playbackOrigin: { $ne: origin } },
+            { playbackSeq: { $exists: false } },
+            { playbackSeq: { $lt: seq } },
+          ],
+        },
+        { $set: { playbackOrigin: origin, playbackSeq: seq } },
+        { returnDocument: 'before' },
+      )
+      .exec();
+
+    if (!before) {
+      return { accepted: false, previous: null };
+    }
+
+    return {
+      accepted: true,
+      previous:
+        typeof before.playbackSeq === 'number'
+          ? { origin: before.playbackOrigin, seq: before.playbackSeq }
+          : null,
+    };
+  }
+
+  /**
+   * Puts the previous batch marker back after a write that recorded nothing.
+   *
+   * Conditional on the marker still being the one we set: a later batch may have
+   * overtaken this one, and restoring over it would invite that newer batch to be
+   * recorded a second time.
+   */
+  async releasePlaybackBatch(
+    deviceId: string,
+    origin: string,
+    seq: number,
+    previous: PlaybackMarker | null,
+  ): Promise<void> {
+    await this.deviceModel
+      .updateOne(
+        { deviceId, playbackOrigin: origin, playbackSeq: seq },
+        previous
+          ? {
+              $set: {
+                playbackSeq: previous.seq,
+                ...(previous.origin ? { playbackOrigin: previous.origin } : {}),
+              },
+              ...(previous.origin ? {} : { $unset: { playbackOrigin: '' } }),
+            }
+          : { $unset: { playbackOrigin: '', playbackSeq: '' } },
       )
       .exec();
   }

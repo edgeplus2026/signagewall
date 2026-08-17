@@ -16,6 +16,10 @@ import { clearMediaCaches, clearSnapshot, saveSnapshot } from '../persistence/id
 import type { PreviewMode, PreviewTarget } from '../preview'
 import { applyCommand, applySettings, applyVolume } from './commands'
 import { registerDiagnosticsSender } from './diagnostics-report'
+import {
+  PLAYBACK_ACK_TIMEOUT_MS,
+  registerPlaybackSender,
+} from './playback-report'
 import { setShellChannel } from '../native/service'
 import { playbackShowItem } from './playback-bus'
 import { reportPreviewStatus } from './preview-handshake'
@@ -75,6 +79,26 @@ export function connectPlayer(): void {
   registerDiagnosticsSender((report) => {
     socket?.emit('diagnostics', report)
   })
+
+  // Playback is the opposite: it is evidence, so it is the one message that is
+  // acknowledged. The device keeps the batch until this resolves true.
+  registerPlaybackSender(
+    (batch) =>
+      new Promise<boolean>((resolve) => {
+        const active = socket
+        if (!active?.connected) {
+          resolve(false)
+          return
+        }
+        active
+          .timeout(PLAYBACK_ACK_TIMEOUT_MS)
+          .emit('playback', batch, (error: unknown, ack?: { ok?: boolean }) => {
+            // A timeout arrives as an error here. Either way the batch is kept
+            // and re-sent under the same number, which the server dedupes.
+            resolve(!error && ack?.ok === true)
+          })
+      }),
+  )
 
   socket.on('connect', () => {
     connection.value = 'online'

@@ -722,6 +722,39 @@ export class PlayerService {
   }
 
   /**
+   * Where a device's reports belong, read back from the device row.
+   *
+   * The socket normally carries this from the handshake. It does not when the
+   * device was paired while ALREADY connected: the pairing event moves the socket
+   * into the screen room and hands it a token, but the socket's own data was
+   * filled in at connect, when there was no screen yet. Until it reconnects —
+   * which may be hours later — anything needing attribution has nowhere to file
+   * it, and proof of play would be dropped for exactly the screens somebody just
+   * finished setting up.
+   *
+   * Reading it back on demand costs one indexed lookup, paid only by a socket
+   * that is actually missing it, and it works across backend instances — which
+   * writing to a remote socket's data would not.
+   */
+  async resolveAttribution(
+    deviceId: string,
+  ): Promise<{ screenId: string; organizationId: string } | null> {
+    const device = await this.devicesRepository.findByDeviceId(deviceId);
+    if (
+      !device ||
+      device.status !== DeviceStatus.PAIRED ||
+      !device.screenId ||
+      !device.organizationId
+    ) {
+      return null;
+    }
+    return {
+      screenId: device.screenId.toString(),
+      organizationId: device.organizationId.toString(),
+    };
+  }
+
+  /**
    * Claims the one-time activation marker for a device, returning true only for
    * the caller that actually set it. See
    * {@link DevicesRepository.claimActivationReport}.

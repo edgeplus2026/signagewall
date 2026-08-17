@@ -8,6 +8,21 @@ import type { AvailabilityRule } from './availability.js'
 
 export interface ImageRenderable {
   id: string
+/**
+ * WHAT is playing, as opposed to where it sits in a playlist.
+ *
+ * `id` identifies the SLOT — the screen item or playlist entry — and it changes
+ * whenever an operator removes and re-adds a piece of content, or moves it
+ * between playlists. That makes it useless for reporting: the same advert would
+ * split into several rows and every one of them would show a fraction of its real
+ * play count.
+ *
+ * `contentId` is the media item or app instance itself, and survives all of that.
+ * Proof-of-play aggregates on it. Optional because a player older than the field
+ * simply reports the slot id instead: the report still works, it is only less
+ * stable across playlist edits.
+ */
+  contentId?: string
   kind: 'image'
   url: string
   durationMs: number
@@ -17,6 +32,8 @@ export interface ImageRenderable {
 
 export interface VideoRenderable {
   id: string
+  /** The media item itself, not the slot. See {@link ImageRenderable.contentId}. */
+  contentId?: string
   kind: 'video'
   url: string
   durationMs: number
@@ -27,6 +44,8 @@ export interface VideoRenderable {
 
 export interface AppRenderable {
   id: string
+  /** The app instance itself, not the slot. See {@link ImageRenderable.contentId}. */
+  contentId?: string
   kind: 'app'
   slug: string
   config: Record<string, unknown>

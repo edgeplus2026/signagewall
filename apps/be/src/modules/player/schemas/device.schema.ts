@@ -268,6 +268,24 @@ export class Device {
   @Prop()
   activationReportedAt?: Date;
 
+  /**
+   * The last proof-of-play batch this device delivered — which counter it came
+   * from, and its number within that counter.
+   *
+   * This pair is what makes an at-least-once channel count exactly once. A device
+   * whose acknowledgement was lost re-sends the same batch, and the number is how
+   * the backend recognises it rather than adding it again. The origin is there
+   * because the number alone is not enough: web storage can be evicted on a cheap
+   * box while the native shell keeps the device id, restarting the count at 1 on a
+   * screen the backend already knows — without the origin, that screen's playback
+   * would look permanently stale and never be recorded again.
+   */
+  @Prop({ trim: true, maxlength: 100 })
+  playbackOrigin?: string;
+
+  @Prop()
+  playbackSeq?: number;
+
   /** Playback volume 0–100, applied by the player to its video audio. */
   @Prop({ default: 100, min: 0, max: 100 })
   volume!: number;
