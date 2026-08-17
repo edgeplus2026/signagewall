@@ -11,19 +11,16 @@ interface ScreenPresenceBadgeProps {
 }
 
 /**
- * OTA states an operator must act on. A device that failed or rolled back an
- * update keeps serving the old shell — so it still reports a perfectly green
- * "online" dot. Without a second signal here, a bad rollout is invisible from
- * the screens list and only findable by opening all 500 device tabs.
- */
-const ATTENTION_RESULTS = new Set(['error', 'unhealthy'])
-
-/**
  * Live online/offline indicator for a screen's bound display. A pulsing dot
  * (icon) plus a label, driven by realtime presence. Always renders — a screen
  * with no paired/connected device reads as "offline", which is itself a useful
- * signal at a glance. When the device's last OTA outcome needs attention, a
- * second amber dot rides along so a failed rollout is visible fleet-wide.
+ * signal at a glance.
+ *
+ * It says one thing and only that: is this display connected. A failed OTA used
+ * to ride along here as a second amber dot, which asked the reader to decode two
+ * unrelated questions from one control — and put a fault about *updates* on the
+ * badge that answers *is it running*. That outcome now sits in Device details,
+ * next to the rest of the device's state, where it can be read in words.
  */
 export function ScreenPresenceBadge({
   device,
@@ -34,16 +31,6 @@ export function ScreenPresenceBadge({
 
   const online = device?.online === true
   const label = online ? t('screens.device.online') : t('screens.device.offline')
-
-  const updateResult = device?.profile?.updateStatus?.lastResult
-  const needsAttention = updateResult
-    ? ATTENTION_RESULTS.has(updateResult)
-    : false
-  const updateLabel = updateResult
-    ? t(`screens.device.updateResult.${updateResult}`, {
-        defaultValue: updateResult,
-      })
-    : undefined
 
   const dot = (
     <span className="relative flex size-2 shrink-0">
@@ -59,24 +46,14 @@ export function ScreenPresenceBadge({
     </span>
   )
 
-  const updateDot = needsAttention ? (
-    <span
-      className="inline-flex size-2 shrink-0 rounded-full bg-warning"
-      title={updateLabel}
-    >
-      <span className="sr-only">{updateLabel}</span>
-    </span>
-  ) : null
-
   if (compact) {
     return (
       <span
         className={cn('inline-flex items-center gap-1', className)}
-        title={updateLabel ? `${label} · ${updateLabel}` : label}
+        title={label}
       >
         {dot}
         <span className="sr-only">{label}</span>
-        {updateDot}
       </span>
     )
   }
@@ -91,7 +68,6 @@ export function ScreenPresenceBadge({
     >
       {dot}
       {label}
-      {updateDot}
     </span>
   )
 }

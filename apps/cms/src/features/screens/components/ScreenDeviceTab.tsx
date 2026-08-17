@@ -25,10 +25,14 @@ import {
   SettingsSection,
 } from '@/features/settings/components/SettingsSection'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { cn } from '@/lib/utils'
 
 interface ScreenDeviceTabProps {
   screenId: string
 }
+
+/** OTA outcomes an operator has to act on — see the update row below. */
+const UPDATE_NEEDS_ATTENTION = new Set(['error', 'unhealthy'])
 
 /**
  * Pairs / inspects / unpairs the physical display bound 1:1 to this screen.
@@ -263,7 +267,20 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
                 label={t('screens.device.updateStatus')}
                 description={t('screens.device.updateStatusDescription')}
               >
-                <span className="text-secondary text-sm">
+                <span
+                  className={cn(
+                    'text-sm',
+                    // An outcome that needs a person is coloured like every
+                    // other row here that does. It used to ride along as a
+                    // second dot on the online badge, which put a fault about
+                    // updates on the one control that answers "is it running".
+                    UPDATE_NEEDS_ATTENTION.has(
+                      device.profile.updateStatus.lastResult,
+                    )
+                      ? 'text-warning'
+                      : 'text-secondary',
+                  )}
+                >
                   {t(
                     `screens.device.updateResult.${device.profile.updateStatus.lastResult}`,
                     { defaultValue: device.profile.updateStatus.lastResult },
