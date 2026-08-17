@@ -61,7 +61,7 @@ export function LibraryMediaCardView({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="bg-panel/80 absolute top-1.5 left-1.5 z-10 size-7 opacity-0 group-hover:opacity-100"
+          className="bg-panel/80 absolute top-1.5 left-1.5 z-10 size-7 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
           aria-label={t("playlists.manage.sidebar.addToContent")}
           onPointerDown={(event) => {
             event.stopPropagation()
@@ -82,7 +82,7 @@ export function LibraryMediaCardView({
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="bg-panel/80 absolute top-1.5 right-1.5 z-10 size-7 opacity-0 group-hover:opacity-100"
+              className="bg-panel/80 absolute top-1.5 right-1.5 z-10 size-7 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
               onPointerDown={(event) => {
                 event.stopPropagation()
               }}
@@ -273,7 +273,7 @@ export function LibraryPlaylistCardView({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="bg-panel/80 absolute top-1.5 left-1.5 z-10 size-7 opacity-0 group-hover:opacity-100"
+          className="bg-panel/80 absolute top-1.5 left-1.5 z-10 size-7 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
           aria-label={t("screens.content.addPlaylistToContent")}
           onPointerDown={(event) => {
             event.stopPropagation()
@@ -294,7 +294,7 @@ export function LibraryPlaylistCardView({
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="bg-panel/80 absolute top-1.5 right-1.5 z-10 size-7 opacity-0 group-hover:opacity-100"
+              className="bg-panel/80 absolute top-1.5 right-1.5 z-10 size-7 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
               onPointerDown={(event) => {
                 event.stopPropagation()
               }}
@@ -415,7 +415,7 @@ export function LibraryAppCardView({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="bg-panel/80 absolute top-1.5 left-1.5 z-10 size-7 opacity-0 group-hover:opacity-100"
+          className="bg-panel/80 absolute top-1.5 left-1.5 z-10 size-7 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
           aria-label={t("screens.content.addApp.add")}
           onPointerDown={(event) => {
             event.stopPropagation()
@@ -436,7 +436,7 @@ export function LibraryAppCardView({
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="bg-panel/80 absolute top-1.5 right-1.5 z-10 size-7 opacity-0 group-hover:opacity-100"
+              className="bg-panel/80 absolute top-1.5 right-1.5 z-10 size-7 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
               onPointerDown={(event) => {
                 event.stopPropagation()
               }}

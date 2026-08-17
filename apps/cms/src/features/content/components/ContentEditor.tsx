@@ -2,10 +2,20 @@ import { DndContext, DragOverlay, useDroppable } from '@dnd-kit/core'
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { LibraryIcon, ListVideoIcon, Trash2Icon } from 'lucide-react'
-import { memo, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  memo,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
+import { useClaimBottomSlot } from '@/components/layout/store/bottomSlotStore'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { useAllAppInstances, useApps } from '@/features/apps/hooks/useApps'
@@ -156,6 +166,36 @@ export function ContentEditor({
   const navigate = useNavigate()
   const isBelowLg = useIsBelowLg()
   const [libraryOpen, setLibraryOpen] = useState(false)
+
+  // Tell the floating layer how much of the bottom this editor is using, so the
+  // onboarding launcher lifts itself clear instead of sitting on Save.
+  //
+  // Measured rather than guessed: the footer is one row on a desktop and two on a
+  // phone, and a hardcoded offset would be wrong on one of them. The round
+  // library button stacks above the footer when it is showing, so it is added on
+  // top — 56px for the button plus 16px of gap.
+  const footerRef = useRef<HTMLDivElement | null>(null)
+  const [footerHeight, setFooterHeight] = useState(0)
+
+  useLayoutEffect(() => {
+    const el = footerRef.current
+    if (!el) {
+      return undefined
+    }
+    const observer = new ResizeObserver(([entry]) => {
+      setFooterHeight(entry?.contentRect.height ?? 0)
+    })
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
+
+  const fabVisible = isBelowLg && !libraryOpen
+  useClaimBottomSlot(
+    'content-editor',
+    footerHeight > 0 ? footerHeight + (fabVisible ? 72 : 0) : 0,
+  )
   const isDirty = isDraftDirty(draftItems, baseline)
 
   const handleUpdatePlaylist = useCallback(
@@ -372,7 +412,10 @@ export function ContentEditor({
             </div>
           </div>
 
-          <div className="border-secondary flex shrink-0 flex-col gap-3 border-t pt-3 max-lg:pr-16 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            ref={footerRef}
+            className="border-secondary flex shrink-0 flex-col gap-3 border-t pt-3 max-lg:pr-16 sm:flex-row sm:items-center sm:justify-between"
+          >
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               <span className="text-secondary">
                 {labels.totalDuration}:{' '}

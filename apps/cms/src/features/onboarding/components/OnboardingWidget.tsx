@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { useBottomClearance } from '@/components/layout/store/bottomSlotStore'
 import { Button } from '@/components/ui/button'
 import { useUploadStore } from '@/features/media/store/uploadStore'
 import { OnboardingRing } from '@/features/onboarding/components/OnboardingRing'
@@ -144,6 +145,12 @@ export function OnboardingWidget() {
   // The upload manager owns the bottom-right corner while a transfer is running,
   // and step one *is* uploading — so step aside rather than sit on top of it.
   const uploadsVisible = useUploadStore((state) => state.jobs.length > 0)
+  // …and so does a page that put its own controls down there. The content editor
+  // has a Save bar across the bottom and a round library button in this exact
+  // corner, at this exact z-index; without this the launcher covered the Save
+  // button on a phone. The page reports how much room it needs — see
+  // `bottomSlotStore` for why it is a measurement and not a flag.
+  const bottomClearance = useBottomClearance()
 
   const visible =
     data !== undefined &&
@@ -161,13 +168,22 @@ export function OnboardingWidget() {
     uploadsVisible && 'sm:right-[23.5rem] max-sm:bottom-[4.75rem]',
   )
 
+  // An inline style, deliberately: the clearance is a measured pixel value, and
+  // Tailwind cannot express a number it only learns at runtime. It wins over the
+  // `bottom-4` above, which stays as the resting position for every page that
+  // claims nothing.
+  const positionStyle =
+    bottomClearance > 0
+      ? { bottom: `${String(bottomClearance + 16)}px` }
+      : undefined
+
   const dismiss = () => {
     update.mutate({ dismissed: true })
   }
 
   if (!open) {
     return (
-      <div className={position}>
+      <div className={position} style={positionStyle}>
         <Button
           variant="outline"
           onClick={() => {
@@ -198,6 +214,7 @@ export function OnboardingWidget() {
 
   return (
     <section
+      style={positionStyle}
       className={cn(
         position,
         'border-secondary bg-panel flex w-[min(100vw-2rem,23rem)] flex-col overflow-hidden rounded-2xl border shadow-xl',

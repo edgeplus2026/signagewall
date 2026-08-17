@@ -71,7 +71,7 @@ export function ScreenCard({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="absolute top-2 right-2 z-10 bg-panel opacity-0 group-hover:opacity-100"
+            className="absolute top-2 right-2 z-10 bg-panel max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
             onClick={(event) => {
               event.stopPropagation()
             }}

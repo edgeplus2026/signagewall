@@ -79,7 +79,7 @@ export function PlaylistCard({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="bg-panel absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100"
+            className="bg-panel absolute top-2 right-2 z-10 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
             onClick={(event) => {
               event.stopPropagation()
             }}
