@@ -370,14 +370,50 @@ export class PlaybackController {
       this.inFlight = null
       return
     }
+    // The rotation genuinely changed. Before re-basing, check whether the item
+    // on screen right now survived the edit — adding a poster to a playlist, or
+    // removing one further down it, leaves everything else exactly where it was.
+    //
+    // Re-basing regardless is what an operator sees as "the screen jumps back to
+    // the beginning every time I touch the playlist", and on a long rotation it
+    // means the items near the end never get shown at all: each edit sends the
+    // loop back to the head before it ever reaches them.
+    // Matched on the whole fingerprint, not the id: a slot whose media was
+    // replaced in the CMS keeps its id, and resuming on it would leave the old
+    // bytes on the wall. Identical fingerprint means the thing on screen is
+    // genuinely still the same thing, so there is nothing to reload.
+    const showing = this.items[this.cursor]
+    const showingPrint = showing
+      ? PlaybackController.fingerprint(showing)
+      : null
+    const resumeAt =
+      showingPrint !== null && !this.follow
+        ? snapshot.items.findIndex(
+            (item) => PlaybackController.fingerprint(item) === showingPrint,
+          )
+        : -1
+
     this.revision = snapshot.revision
     this.items = snapshot.items
-    this.cursor = 0
-    this.navIndex = 0
-    this.direction = 1
     this.preload = null
     this.inFlight = null
     this.clearPreloadTimer()
+
+    if (resumeAt !== -1) {
+      // Carry on from where the screen already is. No transition: the item is
+      // already up, its dwell timer is still running, and its play record stays
+      // open — interrupting all three to show the same frame again would be the
+      // very jump this avoids. The next advance walks into the new list.
+      this.cursor = resumeAt
+      this.navIndex = resumeAt
+      this.direction = 1
+      this.schedulePreload()
+      return
+    }
+
+    this.cursor = 0
+    this.navIndex = 0
+    this.direction = 1
 
     // Follow mode mirrors the device 1:1 and starts at the head; otherwise begin
     // at the first *playable* item, so an offline boot skips a leading network

@@ -547,6 +547,71 @@ describe('PlaybackController', () => {
       controller.destroy()
     })
 
+    it('carries on where it is when an item is ADDED to the rotation', async () => {
+      const { controller, onItemIds } = build({ requiresNetwork: () => false })
+      controller.load(snapshot([img('A'), img('B')], 'r1'))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(onItemIds).toEqual(['A', 'B'])
+
+      // The operator drops a third poster into the playlist while B is up.
+      // Nothing about B changed, so B stays on the wall.
+      controller.load(snapshot([img('A'), img('B'), img('C')], 'r2'))
+      await flush()
+      expect(onItemIds).toEqual(['A', 'B'])
+
+      // ...and the loop continues INTO the new list rather than from the head.
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(onItemIds).toEqual(['A', 'B', 'C'])
+      controller.destroy()
+    })
+
+    it('carries on when an item further down the list is removed', async () => {
+      const { controller, onItemIds } = build({ requiresNetwork: () => false })
+      controller.load(snapshot([img('A'), img('B'), img('C')], 'r1'))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(onItemIds).toEqual(['A', 'B'])
+
+      controller.load(snapshot([img('A'), img('B')], 'r2'))
+      await flush()
+      expect(onItemIds).toEqual(['A', 'B'])
+      controller.destroy()
+    })
+
+    it('keeps its place even when the edit moved it up the list', async () => {
+      const { controller, onItemIds } = build({ requiresNetwork: () => false })
+      controller.load(snapshot([img('A'), img('B'), img('C')], 'r1'))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000)
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(onItemIds).toEqual(['A', 'B', 'C'])
+
+      // A is deleted, so C is now index 1. The screen must not jump.
+      controller.load(snapshot([img('B'), img('C')], 'r2'))
+      await flush()
+      expect(onItemIds).toEqual(['A', 'B', 'C'])
+
+      // The next advance wraps from C's NEW position, not its old one.
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(onItemIds).toEqual(['A', 'B', 'C', 'B'])
+      controller.destroy()
+    })
+
+    it('goes back to the head when the item on screen is deleted', async () => {
+      const { controller, onItemIds } = build({ requiresNetwork: () => false })
+      controller.load(snapshot([img('A'), img('B')], 'r1'))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(onItemIds).toEqual(['A', 'B'])
+
+      // B is gone; there is nothing to carry on from.
+      controller.load(snapshot([img('A'), img('C')], 'r2'))
+      await flush()
+      expect(onItemIds).toEqual(['A', 'B', 'A'])
+      controller.destroy()
+    })
+
     it('re-bases when an item url changed under the same id', async () => {
       const { controller, onItemIds } = build({ requiresNetwork: () => false })
       controller.load(snapshot([img('A'), img('B')], 'r1'))
