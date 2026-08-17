@@ -32,6 +32,19 @@ export interface PlaybackSlot {
   setVolume(volume: number): void
   tryUnmute(): void
   /**
+   * Absorbs a refreshed version of the item already loaded here (a new connector
+   * payload) without reloading. Returns false when it does not apply — an image,
+   * a video, or a different item — which tells the loop nothing needed doing.
+   * Optional so a test fake can ignore it.
+   */
+  applyUpdate?(item: Renderable): boolean
+  /**
+   * Restarts the on-screen video in place, keeping its decode session. Returns
+   * false when that isn't possible, which tells the loop to do a real
+   * transition. Optional so a test fake can ignore it.
+   */
+  replay?(): boolean
+  /**
    * The real decoded duration (ms) of the loaded video, or null when unknown or
    * the slot isn't showing a video. Lets the loop key its dwell/watchdog on the
    * actual length instead of trusting (possibly stale) snapshot metadata.
@@ -42,13 +55,21 @@ export interface PlaybackSlot {
 const WATCHDOG_INTERVAL_MS = 5_000
 const WATCHDOG_GRACE_MS = 15_000
 const MIN_DWELL_MS = 1_000
-const SKIP_DELAY_MS = 250
 /**
  * Slide duration; must match the `.player-slot` transform transition in CSS.
  * The engine waits it out before recycling the outgoing slot, so a mismatch
  * either cuts the exit short or leaves the buffers held longer than needed.
  */
 const TRANSITION_MS = 600
+/**
+ * Pause before stepping over an item that failed to load.
+ *
+ * Deliberately shorter than the slide: a failed prepare never swapped, so the
+ * outgoing slot is not mid-transition and the skip's `release()` has no animation
+ * to cut short. The only thing this delay buys is not hammering a broken source
+ * in a tight loop, and a broken item should leave the screen quickly.
+ */
+const SKIP_DELAY_MS = 250
 /**
  * Extra grace before the back buffer is touched while a video plays — see
  * {@link PlaybackController.schedulePreload}. Long enough for a fresh decode
@@ -202,10 +223,10 @@ export class PlaybackController {
 
   /**
    * Sets playback volume (0–1) on both slots so a live change is immediate.
-   * Audio is governed entirely by volume (muted iff 0); there is no separate
-   * gesture-driven unmute, so a 24/7 signage screen never tries to un-mute an
-   * already-playing video — which the browser's autoplay policy would punish by
-   * pausing it.
+   * Audio is governed by volume (muted iff 0); a slot the autoplay policy forced
+   * to start muted remembers that it owes sound, and the gesture listeners in the
+   * constructor replay it through {@link PlaybackSlot.tryUnmute}. On a kiosk
+   * (autoplay-with-sound allowed) nothing ever falls back, so that path never runs.
    */
   setVolume(volume: number): void {
     const clamped = Math.min(1, Math.max(0, volume))
@@ -217,9 +238,99 @@ export class PlaybackController {
     this.slots[1].setVolume(clamped)
   }
 
-  /** Loads a snapshot. Ignored if the revision is unchanged (dedupe). */
+  /**
+   * The part of an item that decides whether the ROTATION changed, as opposed to
+   * the data an item happens to be carrying right now.
+   *
+   * Kind, url and dwell are what the loop schedules on; an app's `config` is what
+   * it renders. `data` is deliberately absent — see {@link sameSequence}.
+   */
+  private static fingerprint(item: Renderable): string {
+    const media = item.kind === 'app' ? JSON.stringify(item.config) : item.url
+    return `${item.id} ${item.kind} ${media} ${String(item.durationMs)}`
+  }
+
+  /**
+   * Whether `next` is the same rotation as what is loaded — same items, same
+   * order, differing only in the connector payload an app carries.
+   *
+   * This exists because the snapshot revision moves for reasons that have nothing
+   * to do with the rotation. The backend folds every app's `fetchedAt` into it, so
+   * a crypto ticker refreshing its prices, an RSS feed gaining a headline, or a
+   * calendar syncing produces a brand-new revision for an identical playlist —
+   * and treating that as new content restarted the loop at item one. On a
+   * twenty-item playlist with a five-minute app in it, the back half of the
+   * playlist was never reached at all.
+   */
+  /**
+   * Whether the connector payload on this item changed between two snapshots of
+   * the same rotation. Only apps carry one; anything else answers false.
+   */
+  private static dataMoved(
+    previous: Renderable | undefined,
+    next: Renderable,
+  ): boolean {
+    if (next.kind !== 'app') {
+      return false
+    }
+    if (previous?.kind !== 'app') {
+      return true
+    }
+    return (
+      JSON.stringify(previous.data ?? null) !==
+        JSON.stringify(next.data ?? null) ||
+      JSON.stringify(previous.dataMeta ?? null) !==
+        JSON.stringify(next.dataMeta ?? null)
+    )
+  }
+
+  private sameSequence(next: Renderable[]): boolean {
+    if (next.length !== this.items.length || next.length === 0) {
+      return false
+    }
+    return next.every(
+      (item, index) =>
+        PlaybackController.fingerprint(item) ===
+        PlaybackController.fingerprint(this.items[index]!),
+    )
+  }
+
+  /**
+   * Loads a snapshot. Ignored if the revision is unchanged (dedupe).
+   *
+   * A revision change whose rotation is identical (only app payloads moved) swaps
+   * the items in place and KEEPS the current position — the loop carries on from
+   * where it was, and the fresher payload is picked up the next time each app is
+   * prepared. Only a genuinely different rotation re-bases to the head.
+   */
   load(snapshot: PlayerSnapshot): void {
     if (snapshot.revision === this.revision && this.items.length > 0) {
+      return
+    }
+    if (this.items.length > 0 && this.sameSequence(snapshot.items)) {
+      this.revision = snapshot.revision
+      const previous = this.items[this.cursor]
+      this.items = snapshot.items
+      // The item on screen has to SEE the refresh, or a single-app screen — a
+      // menu board, a weather display, the most common signage setup there is —
+      // would keep the position and never update, which trades one bug for a
+      // worse one. An app absorbs it over the handshake; an image or video has
+      // nothing to absorb and answers false, which is fine: its bytes are
+      // identical (the url is part of the sequence fingerprint).
+      //
+      // Only when THIS item's payload actually moved, though. One snapshot
+      // carries every app on the screen, so a weather refresh re-pushes the
+      // calendar's config too — and a bundle that re-renders on config (most of
+      // them do) would restart its scroll for a change that was not its own.
+      const current = this.items[this.cursor]
+      if (current && PlaybackController.dataMoved(previous, current)) {
+        this.slots[this.activeIndex].applyUpdate?.(current)
+      }
+      // A warmed back buffer holds the PREVIOUS payload for its item. Dropping
+      // the bookkeeping (not the load) means the next swap re-prepares it with
+      // the new data instead of revealing a stale screenful.
+      this.preload = null
+      this.inFlight = null
       return
     }
     this.revision = snapshot.revision
@@ -508,15 +619,37 @@ export class PlaybackController {
     }
   }
 
-  private advance(): void {
+  /**
+   * Steps forward to the next playable item.
+   *
+   * `naturalEnd` marks the one caller that a video reaching its own end — as
+   * opposed to the watchdog forcing a move, or a failure being skipped. It is the
+   * only case where repeating the SAME item may reuse the decode session rather
+   * than tearing it down and building it again; every other path needs the
+   * reload, because the reason it got here is that the current state is suspect.
+   */
+  private advance(naturalEnd = false): void {
     if (this.items.length === 0) {
       return
     }
     this.direction = 1
     const target = this.nextPlayable(this.navIndex, 1)
-    if (target !== -1) {
-      this.requestTransition(target)
+    if (target === -1) {
+      return
     }
+    // A one-item (or lone-survivor) playlist loops onto itself. Replaying in
+    // place keeps the decoder open; see Slot.replay for why that matters.
+    if (
+      naturalEnd &&
+      target === this.cursor &&
+      !this.transitioning &&
+      this.slots[this.activeIndex].replay?.()
+    ) {
+      this.lastAdvanceAt = Date.now()
+      this.stallReported = false
+      return
+    }
+    this.requestTransition(target)
   }
 
   private wrap(index: number): number {
@@ -584,7 +717,7 @@ export class PlaybackController {
         // In follow mode the device drives advancement; a video ending here must
         // not move us — we wait for the device's next now-playing report.
         if (!this.follow) {
-          this.advance()
+          this.advance(true)
         }
       },
       this.direction,

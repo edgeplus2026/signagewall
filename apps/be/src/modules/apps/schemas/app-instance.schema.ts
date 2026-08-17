@@ -31,6 +31,25 @@ export class AppInstance {
   @Prop({ required: true, default: 1 })
   configVersion!: number;
 
+  /**
+   * The connector cache key this instance's config resolves to, denormalized on
+   * write. Absent for `static` apps (no connector) and for a config the connector
+   * refuses to key.
+   *
+   * Stored rather than computed because two of the hottest paths in the system
+   * ask "which instances share this key?": the refresh scheduler, once a minute,
+   * and the fan-out that follows every payload change. Computing it meant loading
+   * every instance of the app — across all organizations — and running the
+   * connector's key function over each, in memory, just to select a handful. As a
+   * field it is one indexed lookup.
+   *
+   * Kept in sync by {@link AppInstancesRepository} on every write. A document
+   * written before this field existed simply has none; the backfill on read
+   * (see `syncCacheKey`) repairs it the first time the scheduler touches it.
+   */
+  @Prop({ index: true, sparse: true })
+  cacheKey?: string;
+
   createdAt!: Date;
   updatedAt!: Date;
 }

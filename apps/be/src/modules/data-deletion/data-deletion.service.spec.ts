@@ -57,6 +57,8 @@ function build(deps: Deps) {
     {} as never, // transactionService
     eventEmitter as never,
     { t: (key: string) => key } as never,
+    // Always the leader in a test: there is one process and no Redis.
+    { isLeader: jest.fn().mockResolvedValue(true) } as never,
   );
 
   return {

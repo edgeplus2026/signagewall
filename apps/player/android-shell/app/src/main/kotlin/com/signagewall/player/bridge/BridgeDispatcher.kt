@@ -3,6 +3,7 @@ package com.signagewall.player.bridge
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -87,14 +88,15 @@ class BridgeDispatcher(
         "read_log" -> JsonArray(readLog().map { JsonPrimitive(it) })
         "health" -> json.parseToJsonElement(readHealth())
         "set_channel" -> {
+            val args = parseArgs(argsJson)
             onChannelCredentials(
-                parseStringArg(argsJson, "apiUrl"),
-                parseStringArg(argsJson, "token"),
+                args.string("apiUrl"),
+                args.string("token"),
             )
             JsonNull
         }
         "set_web_debugging" -> {
-            onSetWebDebugging(parseBooleanFlag(argsJson, "enabled"))
+            onSetWebDebugging(parseArgs(argsJson).flag("enabled"))
             JsonNull
         }
         "deactivate" -> {
@@ -110,7 +112,11 @@ class BridgeDispatcher(
         // that would prompt is refused rather than left hanging over the content.
         "run_update" -> {
             val u = updater
-            if (u is OtaUpdater) u.runUpdate(parseOperatorFlag(argsJson)) else u.runUpdate()
+            if (u is OtaUpdater) {
+                u.runUpdate(parseArgs(argsJson).flag("operator"))
+            } else {
+                u.runUpdate()
+            }
         }
         "get_update_state" -> updater.stateReport()
         // The page beats every 5s from its own event loop, specifically so a
@@ -118,7 +124,8 @@ class BridgeDispatcher(
         // for it here, so ~17k beats a day were answered with "unknown command"
         // and discarded — the shell had the heartbeat it needed all along.
         "report_liveness" -> {
-            PlayerLiveness.beat(parseItemId(argsJson), parseMultiItem(argsJson))
+            val args = parseArgs(argsJson)
+            PlayerLiveness.beat(args.stringOrNull("itemId"), args.flag("multiItem"))
             JsonNull
         }
         "report_alive" -> {
@@ -132,62 +139,53 @@ class BridgeDispatcher(
         else -> throw IllegalArgumentException("unknown command: $cmd")
     }
 
-    private fun parseOperatorFlag(argsJson: String): Boolean =
-        parseBooleanFlag(argsJson, "operator")
-
     /**
-     * One named flag out of the args object. Compares the CONTENT, so a real JSON
-     * boolean and the string "true" both read the same — the web layer has sent
-     * both shapes over the years and neither should silently mean `false`.
-     * Anything unparseable is false: a command that cannot be read must not be
-     * taken as permission.
+     * The command's arguments, parsed ONCE.
+     *
+     * Each field used to re-parse the whole string, so `report_liveness` — which
+     * arrives every five seconds, on the WebView's JavaScript thread, with that
+     * thread blocked for the duration — parsed its payload twice per beat, and
+     * `set_channel` three times. Small individually; the point is that a
+     * `@JavascriptInterface` handler is a stall in the page's event loop, and the
+     * work should be exactly what the command needs.
+     *
+     * An unparseable payload yields an empty bag rather than throwing: every reader
+     * below already has a safe default, and a malformed argument must not turn a
+     * fire-and-forget beat into an error envelope.
      */
-    private fun parseBooleanFlag(argsJson: String, name: String): Boolean =
+    private fun parseArgs(argsJson: String): Args =
         try {
-            json.parseToJsonElement(argsJson)
-                .jsonObject[name]
-                ?.jsonPrimitive
-                ?.content == "true"
+            Args(json.parseToJsonElement(argsJson).jsonObject)
         } catch (_: Throwable) {
-            false
+            Args(null)
         }
 
-    /** Whether the playlist has more than one item, so "content has not changed"
-     *  means something. Absent on an older bundle, which reads as false — the safe
-     *  direction, since it only disables a check. */
-    private fun parseMultiItem(argsJson: String): Boolean =
-        try {
-            json.parseToJsonElement(argsJson)
-                .jsonObject["multiItem"]
-                ?.jsonPrimitive
-                ?.content == "true"
-        } catch (_: Throwable) {
-            false
-        }
+    @JvmInline
+    private value class Args(private val obj: JsonObject?) {
+        /**
+         * One named flag. Compares the CONTENT, so a real JSON boolean and the
+         * string "true" both read the same — the web layer has sent both shapes
+         * over the years and neither should silently mean `false`. Anything else is
+         * false: an argument that cannot be read must not be taken as permission.
+         */
+        fun flag(name: String): Boolean =
+            try {
+                obj?.get(name)?.jsonPrimitive?.content == "true"
+            } catch (_: Throwable) {
+                false
+            }
 
-    /** One named string out of the args object; empty when absent or unreadable. */
-    private fun parseStringArg(argsJson: String, name: String): String =
-        try {
-            json.parseToJsonElement(argsJson)
-                .jsonObject[name]
-                ?.jsonPrimitive
-                ?.contentOrNull
-                ?: ""
-        } catch (_: Throwable) {
-            ""
-        }
+        /** One named string, or empty when absent or unreadable. */
+        fun string(name: String): String = stringOrNull(name) ?: ""
 
-    /** The renderable currently on screen, if the page sent one. Absent on older
-     *  web bundles, which still prove the event loop is alive. */
-    private fun parseItemId(argsJson: String): String? =
-        try {
-            json.parseToJsonElement(argsJson)
-                .jsonObject["itemId"]
-                ?.jsonPrimitive
-                ?.contentOrNull
-        } catch (_: Throwable) {
-            null
-        }
+        /** One named string, or null — for values whose ABSENCE is meaningful. */
+        fun stringOrNull(name: String): String? =
+            try {
+                obj?.get(name)?.jsonPrimitive?.contentOrNull
+            } catch (_: Throwable) {
+                null
+            }
+    }
 
     private fun getDeviceId(): JsonElement =
         when (val r = deviceIdStore.read()) {

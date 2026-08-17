@@ -279,8 +279,21 @@ export function connectPreview(params: {
   }
 }
 
+/**
+ * Spread, in either direction, applied once per device to the heartbeat period.
+ *
+ * Screens on one site share a power feed: after a cut they boot together, connect
+ * together, and then beat together — a fleet-sized write spike every thirty
+ * seconds, forever, all landing in the same instant. The offset is drawn once and
+ * held for the session, so the cadence stays exactly 30 s per device; only the
+ * phase differs between them.
+ */
+const HEARTBEAT_JITTER_MS = 6_000
+
 function startHeartbeat(): void {
   stopHeartbeat()
+  const period =
+    HEARTBEAT_MS + Math.round((Math.random() * 2 - 1) * HEARTBEAT_JITTER_MS)
   heartbeatTimer = window.setInterval(() => {
     // Async only because the disk reading crosses the native bridge. Everything
     // else is already in memory, and a beat that cannot gather its diagnostics
@@ -296,7 +309,7 @@ function startHeartbeat(): void {
           lastError: lastError.value,
         })
       })
-  }, HEARTBEAT_MS)
+  }, period)
 }
 
 function stopHeartbeat(): void {

@@ -172,7 +172,10 @@ export class DevicePairingController {
     @RequiredOrganizationId() organizationId: string,
     @Param('screenId', ParseObjectIdPipe) screenId: string,
   ): Promise<null> {
-    await this.playerService.applyUpdateOnScreenDevice(organizationId, screenId);
+    await this.playerService.applyUpdateOnScreenDevice(
+      organizationId,
+      screenId,
+    );
     return null;
   }
 

@@ -11,6 +11,7 @@ import {
   UserPlan,
   UserRole,
 } from '../users/schemas/user.schema';
+import { SchedulerLockService } from '../../common/redis/scheduler-lock.service';
 import { PlansService } from './plans.service';
 
 /** How long before expiry the "your trial ends tomorrow" email goes out. */
@@ -25,6 +26,7 @@ export class TrialService {
     private readonly plansService: PlansService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
+    private readonly lock: SchedulerLockService,
   ) {}
 
   /**
@@ -33,6 +35,11 @@ export class TrialService {
    */
   @Cron('0 2 * * *')
   async runTrialSweep(): Promise<{ warned: number; expired: number }> {
+    // Email goes out here, so a duplicated run is a customer receiving the same
+    // warning once per API instance. One holder per deployment.
+    if (!(await this.lock.isLeader('trial-sweep', 30 * 60_000))) {
+      return { warned: 0, expired: 0 };
+    }
     const warned = await this.sendExpiryWarnings();
     const expired = await this.markExpiredTrials();
 

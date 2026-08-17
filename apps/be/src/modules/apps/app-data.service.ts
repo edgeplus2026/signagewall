@@ -227,14 +227,13 @@ export class AppDataService {
   private async collectDistinctCandidates(
     slugs: string[] = connectorSlugs(),
   ): Promise<DueCandidate[]> {
-    const instances = await this.appInstancesRepository.findBySlugs(slugs);
-    const byKey = new Map<string, DueCandidate>();
-    for (const instance of instances) {
-      const cacheKey = cacheKeyForInstance(instance);
-      if (!cacheKey || byKey.has(cacheKey)) {
-        continue;
-      }
-      const refreshSeconds = this.refreshSecondsFor(instance.appSlug);
+    // Deduplicated in the database. This used to load every connector app's
+    // instances — across all organizations — once a minute, purely to compute
+    // keys that were then reduced to a handful of distinct values.
+    const groups = await this.appInstancesRepository.distinctCacheKeys(slugs);
+    const candidates: DueCandidate[] = [];
+    for (const group of groups) {
+      const refreshSeconds = this.refreshSecondsFor(group.appSlug);
       if (refreshSeconds === undefined) {
         continue;
       }
@@ -243,20 +242,36 @@ export class AppDataService {
       // {@link resolveConnection}) every cycle, forever, for an instance the
       // operator simply hasn't finished configuring. Skipping it here keeps the
       // scheduler (and the logs) about things that can actually succeed.
-      if (
-        this.needsConnection(instance.appSlug) &&
-        !instance.config.connectionId
-      ) {
+      if (this.needsConnection(group.appSlug) && !group.config.connectionId) {
         continue;
       }
-      byKey.set(cacheKey, {
-        cacheKey,
-        slug: instance.appSlug,
-        config: instance.config,
+      candidates.push({
+        cacheKey: group.cacheKey,
+        slug: group.appSlug,
+        config: group.config,
         refreshSeconds,
       });
     }
-    return [...byKey.values()];
+    return candidates;
+  }
+
+  /**
+   * Repairs instances written before `cacheKey` was denormalized onto the
+   * document. Called once at startup by the scheduler.
+   *
+   * This is the migration that must not be skipped: selection now happens on
+   * that field, so an instance without it would simply never be refreshed again —
+   * no error, no log, just screens quietly showing month-old data.
+   */
+  async backfillCacheKeys(): Promise<number> {
+    const repaired =
+      await this.appInstancesRepository.backfillCacheKeys(connectorSlugs());
+    if (repaired > 0) {
+      this.logger.log(
+        `Backfilled cacheKey on ${String(repaired)} app instances`,
+      );
+    }
+    return repaired;
   }
 
   private refreshSecondsFor(slug: string): number | undefined {
@@ -316,21 +331,9 @@ export class AppDataService {
     },
   ): Promise<boolean> {
     try {
-      const { saved, version, pending } = await this.performFetch(
-        candidate,
-        previous.secrets,
-      );
+      const { changed, pending } = await this.performFetch(candidate, previous);
       // A pending result kept the last-known payload; nothing changed to fan out.
-      if (pending) {
-        return false;
-      }
-      // Prefer the connector's stable version (ETag) when it provides one — so a
-      // payload with volatile fields (rotating URLs) doesn't look "changed" every
-      // refresh. Fall back to a deep payload compare otherwise.
-      if (version !== undefined && previous.version !== undefined) {
-        return version !== previous.version;
-      }
-      return !this.payloadsEqual(previous.payload, saved.payload);
+      return pending ? false : changed;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(
@@ -352,14 +355,39 @@ export class AppDataService {
    * ({@link getPreviewData}); the timeout + connection resolution live here, the
    * callers own change-detection / error handling. Throws on connector failure.
    */
+  /**
+   * Whether a fetch produced different content from what was stored.
+   *
+   * A connector's stable `version` (an ETag) wins when both sides have one, so a
+   * payload with volatile fields — rotating signed URLs, a re-stamped generation
+   * time — is not read as "changed" on every refresh. Otherwise the payloads are
+   * compared canonically.
+   */
+  private hasChanged(
+    previous: { payload?: unknown; version?: string },
+    next: { payload: unknown; version?: string },
+  ): boolean {
+    if (next.version !== undefined && previous.version !== undefined) {
+      return next.version !== previous.version;
+    }
+    return !this.payloadsEqual(previous.payload, next.payload);
+  }
+
   private async performFetch(
     candidate: DueCandidate,
-    previousSecrets?: Record<string, unknown>,
+    previous: {
+      payload?: unknown;
+      version?: string;
+      secrets?: Record<string, unknown>;
+    } = {},
   ): Promise<{
     saved: AppDataCacheDocument;
     version?: string;
     pending: boolean;
+    /** True when the stored content actually moved (drives fan-out + revision). */
+    changed: boolean;
   }> {
+    const previousSecrets = previous.secrets;
     const connector = getConnector(candidate.slug);
     if (!connector) {
       throw new Error(`no connector for slug ${candidate.slug}`);
@@ -402,8 +430,15 @@ export class AppDataService {
           candidate.refreshSeconds,
           result.secrets,
         );
-        return { saved, pending: true };
+        return { saved, pending: true, changed: false };
       }
+
+      // Decided BEFORE the write, against what was loaded for this cycle — the
+      // upsert overwrites the very values the comparison needs.
+      const changed = this.hasChanged(previous, {
+        payload: result.playerPayload,
+        ...(result.version !== undefined ? { version: result.version } : {}),
+      });
 
       const saved = await this.cacheRepository.upsertPayload({
         cacheKey: candidate.cacheKey,
@@ -411,6 +446,7 @@ export class AppDataService {
         payload: result.playerPayload,
         fetchedAt: new Date(),
         refreshSeconds: candidate.refreshSeconds,
+        contentChanged: changed,
         ...(result.version ? { version: result.version } : {}),
         ...(result.secrets ? { secrets: result.secrets } : {}),
       });
@@ -418,6 +454,7 @@ export class AppDataService {
       return {
         saved,
         pending: false,
+        changed,
         ...(result.version !== undefined ? { version: result.version } : {}),
       };
     } finally {
@@ -468,10 +505,13 @@ export class AppDataService {
     }
 
     try {
-      const { saved, pending } = await this.performFetch(
-        candidate,
-        existing?.secrets,
-      );
+      const { saved, pending, changed } = await this.performFetch(candidate, {
+        payload: existing?.payload,
+        ...(existing?.version !== undefined
+          ? { version: existing.version }
+          : {}),
+        ...(existing?.secrets ? { secrets: existing.secrets } : {}),
+      });
       // An async job is still running: keep the last-known payload (if any) and
       // flag `pending` so the preview polls until the export finishes.
       if (pending) {
@@ -490,7 +530,7 @@ export class AppDataService {
       // freshly fetched, so the scheduler skips it for a full cadence and then
       // sees an unchanged `version` and stays quiet. The screen would sit on the
       // old design — or the app's "Loading design…" state — until it reconnected.
-      if (!this.payloadsEqual(existing?.payload, saved.payload)) {
+      if (changed) {
         this.eventEmitter.emit(PlayerEvents.AppDataChanged, {
           cacheKey,
           slug,

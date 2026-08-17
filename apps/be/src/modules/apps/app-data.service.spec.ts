@@ -67,6 +67,31 @@ function buildService(options: {
 
   const appInstancesRepository = {
     findBySlugs: jest.fn().mockResolvedValue(options.instances),
+    // The scheduler now asks the database for the DISTINCT keys rather than
+    // reducing a full instance list itself. The fake does that reduction here so
+    // the tests keep declaring instances, which is what they are actually about.
+    distinctCacheKeys: jest.fn(() => {
+      const byKey = new Map<
+        string,
+        { cacheKey: string; appSlug: string; config: Record<string, unknown> }
+      >();
+      for (const instance of options.instances as {
+        appSlug: string;
+        config: Record<string, unknown>;
+      }[]) {
+        const cacheKey = registry
+          .getConnector(instance.appSlug)
+          ?.cacheKey?.(instance.config);
+        if (cacheKey && !byKey.has(cacheKey)) {
+          byKey.set(cacheKey, {
+            cacheKey,
+            appSlug: instance.appSlug,
+            config: instance.config,
+          });
+        }
+      }
+      return Promise.resolve([...byKey.values()]);
+    }),
   };
   const upsertPayload = jest.fn(
     (data: { cacheKey: string; payload: unknown; fetchedAt?: Date }) =>

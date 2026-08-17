@@ -14,6 +14,16 @@
  * cost is latency — a command waits up to one interval — which is the right
  * trade for "the screen is dark and I need it back", and the wrong one for
  * anything the page can already do faster.
+ *
+ * PLATFORM SUPPORT: implemented by the ANDROID shell only. The desktop (Tauri)
+ * shell answers neither `set_channel` nor the commands this channel dispatches,
+ * so a desktop screen whose page will not load stays silent — the failure this
+ * exists to reveal. Stated here rather than left to be discovered, because the
+ * shapes below read as cross-platform and nothing else says otherwise. The same
+ * gap covers `device_info`, `free_disk`, `health`, `read_log`,
+ * `set_web_debugging`, `deactivate`, `device_owner` and
+ * `request_recovery_permission`: all Android-only today, all silently resolving
+ * `undefined` on desktop.
  */
 
 /** What the shell tells the backend about itself, on its own schedule. */

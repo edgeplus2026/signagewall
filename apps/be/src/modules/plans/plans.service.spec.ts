@@ -89,8 +89,11 @@ function build(deps: Deps) {
   };
 
   const usersRepository = {
-    findById: jest.fn((id: string) =>
-      Promise.resolve(deps.users?.[id] ?? user()),
+    // `UserStub | null`, because the missing-owner case is one of the behaviours
+    // under test: a row that has gone away must fail open, not 404.
+    findById: jest.fn(
+      (id: string): Promise<UserStub | null> =>
+        Promise.resolve(deps.users?.[id] ?? user()),
     ),
   };
 

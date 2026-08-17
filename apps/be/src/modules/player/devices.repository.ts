@@ -253,4 +253,43 @@ export class DevicesRepository {
       )
       .exec();
   }
+
+  /**
+   * Bumps only the liveness stamp, leaving the reported profile untouched.
+   *
+   * The heartbeat is the highest-frequency write in the system — one per device
+   * every thirty seconds, forever — and it used to rewrite the whole `profile`
+   * subdocument each time: the user agent, the update status, the diagnostics
+   * block, all of it, for values that change perhaps once a week. At a thousand
+   * screens that is a full-document rewrite plus index maintenance a hundred and
+   * fifty times a second to record that nothing happened. The caller compares the
+   * incoming profile against the stored one and only reaches for
+   * {@link setPresence} when it actually differs.
+   */
+  async touchPresence(deviceId: string): Promise<void> {
+    await this.deviceModel
+      .updateOne(
+        { deviceId },
+        { $set: { online: true, lastSeenAt: new Date() } },
+      )
+      .exec();
+  }
+
+  /**
+   * Claims the one-time "this screen went live" marker.
+   *
+   * Returns true only for the caller that actually set it — the conditional
+   * filter makes that atomic, so concurrent gateway instances cannot both decide
+   * they were first. A device that already carries the marker costs one indexed
+   * update that matches nothing, which is the cheapest honest answer available.
+   */
+  async claimActivationReport(deviceId: string): Promise<boolean> {
+    const result = await this.deviceModel
+      .updateOne(
+        { deviceId, activationReportedAt: { $exists: false } },
+        { $set: { activationReportedAt: new Date() } },
+      )
+      .exec();
+    return result.modifiedCount > 0;
+  }
 }

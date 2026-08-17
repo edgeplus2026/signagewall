@@ -363,6 +363,22 @@ export class CacheWarmer {
     return this.pass
   }
 
+  /**
+   * Publishes a pass's running count, but only while that pass is still the
+   * current one.
+   *
+   * An aborted pass does not stop instantly — it is parked on a fetch or a cache
+   * lookup and resumes once. Writing its counter straight to `this.warmed` let it
+   * land AFTER a newer pass had already reset the number, so a screen that had
+   * just been given fresh content reported the old pass's progress against the
+   * new pass's total. The heartbeat then showed "18 / 4".
+   */
+  private publish(ctrl: AbortController, cached: number): void {
+    if (this.abort === ctrl) {
+      this.warmed = cached
+    }
+  }
+
   private restart(urls: string[]): void {
     this.abort?.abort()
     if (urls.length === 0) {
@@ -395,7 +411,8 @@ export class CacheWarmer {
           // Skip what the cache already holds so a reconnect resumes at the
           // first un-warmed item instead of redoing the head every time.
           if (await this.deps.isCached(url)) {
-            this.warmed = ++cached
+            cached += 1
+            this.publish(ctrl, cached)
             continue
           }
           if (ctrl.signal.aborted) {
@@ -416,7 +433,8 @@ export class CacheWarmer {
             // that then blocks every reconnect retry, so a single bad pass
             // left the device permanently uncached.
             if (await this.deps.isCached(url)) {
-              this.warmed = ++cached
+              cached += 1
+              this.publish(ctrl, cached)
             } else {
               allWarmed = false
             }

@@ -49,6 +49,7 @@ import com.signagewall.player.util.json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
+import java.security.SecureRandom
 
 /**
  * The fullscreen kiosk WebView that wraps the remote player. Mirrors the Tauri
@@ -123,6 +124,18 @@ class KioskActivity : AppCompatActivity() {
     /** Pushed by the web layer once paired; shown in the on-device service dialog. */
     @Volatile
     private var screenName: String? = null
+
+    /**
+     * The secret that separates the player's own document from every other page the
+     * WebView renders. Generated once per process and never persisted — it only has
+     * to outlive the WebViews of this run, and a value on disk is a value somebody
+     * can read off the device. See [BridgeInjection] for what it defends.
+     */
+    private val bridgeNonce: String by lazy {
+        val bytes = ByteArray(32)
+        SecureRandom().nextBytes(bytes)
+        bytes.joinToString("") { "%02x".format(it) }
+    }
 
     // Longer-lived than any single WebView (survive a recreate on render-gone).
     private val deviceIdStore by lazy { DeviceIdStore(File(filesDir, "device.json")) }
@@ -215,6 +228,7 @@ class KioskActivity : AppCompatActivity() {
         }
 
         val bridge = AndroidBridge(
+            nonce = bridgeNonce,
             dispatcher = BridgeDispatcher(
                 shellVersion = BuildConfig.VERSION_NAME,
                 deviceIdStore = deviceIdStore,
@@ -239,17 +253,39 @@ class KioskActivity : AppCompatActivity() {
         )
         view.addJavascriptInterface(bridge, BridgeInjection.HOST_NAME)
 
-        val documentStartSupported =
+        // The origin the wrapper — and with it the nonce — may be handed to.
+        // Null means the configured player URL could not be parsed, in which case
+        // we inject NOWHERE: `"*"` would give the secret to every third-party page
+        // the apps embed, which is the exact hole the nonce closes.
+        val playerOrigin = BridgeInjection.originRule(BuildConfig.SIGNAGEWALL_PLAYER_URL)
+        if (playerOrigin == null) {
+            Log.e(TAG, "player URL is unparseable; the native bridge stays unreachable")
+        }
+        // Tracks whether the document-start injection actually took, not merely
+        // whether the feature exists: `addDocumentStartJavaScript` throws on an
+        // origin rule it will not accept, and this runs inside onCreate — an
+        // uncaught throw here is a player that never opens. On any failure we fall
+        // through to the onPageStarted path, which checks the origin itself.
+        var documentStartInstalled = false
+        if (
+            playerOrigin != null &&
             WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)
-        if (documentStartSupported) {
-            WebViewCompat.addDocumentStartJavaScript(
-                view,
-                BridgeInjection.SCRIPT,
-                setOf("*"),
-            )
+        ) {
+            try {
+                WebViewCompat.addDocumentStartJavaScript(
+                    view,
+                    BridgeInjection.script(bridgeNonce),
+                    setOf(playerOrigin),
+                )
+                documentStartInstalled = true
+            } catch (t: Throwable) {
+                Log.w(TAG, "document-start injection refused for $playerOrigin", t)
+            }
         }
         view.webViewClient = KioskWebViewClient(
-            documentStartSupported = documentStartSupported,
+            documentStartSupported = documentStartInstalled,
+            playerUrl = BuildConfig.SIGNAGEWALL_PLAYER_URL,
+            bridgeScript = { BridgeInjection.script(bridgeNonce) },
             onRenderGone = { didCrash -> onRendererGone(didCrash) },
             onMainFrameError = { description -> onMainFrameError(description) },
             onMainFrameLoaded = { pageLoading = false; pageRecovery.onPageLoaded() },

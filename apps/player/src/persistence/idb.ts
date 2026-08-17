@@ -75,11 +75,12 @@ const MEDIA_CACHE_NAMES = ['signagewall-media', 'signagewall-video']
  * that cached one keep failing every prefetch pass for that image until the
  * entry is gone, and nothing else would remove it.
  *
- * v4 — video is no longer cached at all (see `vite.config.ts`). Entries written
- * by v3 are byte-perfect and still unusable: served back through range slicing
- * they decode to nothing, and a device holding one skips every video it owns.
- * They are inert once the route stops reading them, but they are also tens of
- * megabytes of storage bought for nothing.
+ * v4 — the video cache dropped Workbox's `rangeRequests` plugin (see
+ * `vite.config.ts`). Video IS still cached; what changed is how it is served
+ * back. Entries written by v3 are byte-perfect and were still unusable: sliced
+ * into a synthetic 206 they decoded to nothing, and a device holding one skipped
+ * every video it owned. They are inert once the plugin is gone, but they are also
+ * tens of megabytes of storage bought for nothing, so v4 clears them once.
  */
 const MEDIA_CACHE_GENERATION = '4'
 const MEDIA_CACHE_GENERATION_KEY = 'signagewall.player.mediaCacheGeneration'

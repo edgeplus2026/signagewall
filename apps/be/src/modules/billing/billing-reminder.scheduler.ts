@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 
+import { SchedulerLockService } from '../../common/redis/scheduler-lock.service';
 import { MailService } from '../mail/mail.service';
 import { BillingService } from './billing.service';
 import { BillingExceptionType } from './mappers/billing.mapper';
@@ -25,11 +26,16 @@ export class BillingReminderScheduler {
     private readonly billingService: BillingService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
+    private readonly lock: SchedulerLockService,
   ) {}
 
   /** 08:00 Belgrade time; overdue state is alert-only and never blocks players. */
   @Cron('0 8 * * *', { timeZone: 'Europe/Belgrade' })
   async sendDailyDigest(): Promise<number> {
+    // One digest per day for the deployment, not one per API instance.
+    if (!(await this.lock.isLeader('billing-digest', 30 * 60_000))) {
+      return 0;
+    }
     const exceptions = await this.billingService.listExceptions();
     if (exceptions.length === 0) return 0;
 

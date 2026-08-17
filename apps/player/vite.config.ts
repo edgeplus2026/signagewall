@@ -8,12 +8,39 @@ const pkg = JSON.parse(
   readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'),
 ) as { version: string }
 
+/**
+ * The WEB bundle's version, as reported to the CMS and used as the Sentry release.
+ * Deliberately distinct from the native shell's version — the web auto-updates in
+ * seconds while the shell updates slowly and can roll back, so the two are never
+ * the same number and must never be conflated.
+ *
+ * The base is `package.json`; the commit is what makes it USEFUL. Without it every
+ * screen in the fleet reported the same constant forever, so "which build is this
+ * screen running?" had no answer and every crash from every deploy landed in one
+ * Sentry release. `PLAYER_VERSION` overrides both, for a release pipeline that
+ * wants to stamp its own.
+ */
+function resolveAppVersion(): string {
+  const explicit = process.env.PLAYER_VERSION?.trim()
+  if (explicit) {
+    return explicit
+  }
+  // Vercel and GitHub Actions each expose the commit under their own name; a
+  // local build has neither and simply reports the base version.
+  const sha = (
+    process.env.VERCEL_GIT_COMMIT_SHA ??
+    process.env.GITHUB_SHA ??
+    ''
+  ).slice(0, 7)
+  return sha ? `${pkg.version}+${sha}` : pkg.version
+}
+
 // Preact is wired through esbuild's automatic JSX runtime (no preset plugin
 // needed), keeping the toolchain minimal. `react`→`preact/compat` aliases let
 // us pull the odd React-typed dependency if ever required.
 export default defineConfig({
   define: {
-    __APP_VERSION__: JSON.stringify(pkg.version),
+    __APP_VERSION__: JSON.stringify(resolveAppVersion()),
   },
   resolve: {
     alias: {

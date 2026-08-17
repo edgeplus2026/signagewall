@@ -33,7 +33,7 @@ import { requestPreviewToken } from './sync/preview-handshake'
 import { startWakeLock } from './sync/wake-lock'
 import { connectPlayer, connectPreview, disconnectPlayer } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
-import { ErrorBoundary } from './ui/ErrorBoundary'
+import { ErrorBoundary, clearCrashBackoff } from './ui/ErrorBoundary'
 import { PairingScreen } from './ui/PairingScreen'
 import { ServiceMenu } from './ui/ServiceMenu'
 import { Stage } from './ui/Stage'
@@ -61,6 +61,10 @@ export function App() {
       if (!reported && (contentOnScreen || connectedAndIdle)) {
         reported = true
         void reportHealthy()
+        // The same evidence settles the crash-reload backoff: this build got a
+        // working player onto the screen, so the next crash is a fresh incident
+        // and deserves the fast first retry rather than an inherited long one.
+        clearCrashBackoff()
       }
     })
     return stop

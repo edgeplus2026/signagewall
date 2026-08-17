@@ -26,7 +26,17 @@ export const teamsManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 1,
-  refreshSeconds: 120,
+  /**
+   * Ten minutes, not two.
+   *
+   * A page posts a handful of times a week; polling it every two minutes asked the
+   * provider thirty times more often than the content could possibly change, and
+   * every screen on that account shared the answer anyway (one cache key, one
+   * fetch). What the short cadence actually bought was rate-limit exposure — the
+   * social payload note warns that these tokens 403 within hours if leaned on — for
+   * a feed nobody would notice arriving eight minutes later on a wall.
+   */
+  refreshSeconds: 600,
   icon: TEAMS_ICON,
   color: '#6264A7',
   configSchema: [

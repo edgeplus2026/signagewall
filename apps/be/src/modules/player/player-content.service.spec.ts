@@ -96,8 +96,13 @@ function buildService(options: {
     findByIds: jest.fn((_org: string, ids: string[]) =>
       Promise.resolve(ids.map((id) => options.appsById?.[id]).filter(Boolean)),
     ),
-    // Overlay resolution scans the org's instances; none by default.
-    findByOrganization: jest.fn().mockResolvedValue(options.orgInstances ?? []),
+    // Overlay resolution asks for the overlay instances bound to this screen.
+    // The fake keeps the old shape — every instance the test declared for the org
+    // — and lets the service's own `overlayScreenIds` filter decide, so the test
+    // still exercises the assignment rule rather than trusting a stubbed query.
+    findOverlaysForScreen: jest
+      .fn()
+      .mockResolvedValue(options.orgInstances ?? []),
   };
   const appDataCacheRepository = {
     findByCacheKeys: jest.fn((keys: string[]) =>

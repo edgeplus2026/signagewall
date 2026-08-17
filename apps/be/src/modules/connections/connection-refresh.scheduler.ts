@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 
+import { SchedulerLockService } from '../../common/redis/scheduler-lock.service';
 import { ConnectionsService } from './connections.service';
 
 /**
@@ -19,11 +20,19 @@ export class ConnectionRefreshScheduler {
   private readonly logger = new Logger(ConnectionRefreshScheduler.name);
   private running = false;
 
-  constructor(private readonly connectionsService: ConnectionsService) {}
+  constructor(
+    private readonly connectionsService: ConnectionsService,
+    private readonly lock: SchedulerLockService,
+  ) {}
 
   @Interval('connection-token-refresh', 6 * 60 * 60 * 1000)
   async tick(): Promise<void> {
     if (this.running) {
+      return;
+    }
+
+    // One instance per deployment runs this; see SchedulerLockService.
+    if (!(await this.lock.isLeader('connection-token-refresh', 10 * 60_000))) {
       return;
     }
     this.running = true;

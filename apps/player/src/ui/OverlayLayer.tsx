@@ -12,8 +12,10 @@ const LOAD_TIMEOUT_MS = 12_000
 interface MountedOverlay {
   handle: AppHostHandle
   el: HTMLDivElement
-  /** Fingerprint of what was mounted; a change remounts the band. */
+  /** Fingerprint of what was MOUNTED; a change rebuilds the band. */
   signature: string
+  /** Fingerprint of the payload last handed over; a change re-configures it. */
+  dataSignature: string
 }
 
 /** The band pins to the edge the operator chose in the app's config. */
@@ -21,8 +23,22 @@ function positionOf(overlay: AppRenderable): 'top' | 'bottom' {
   return overlay.config.position === 'top' ? 'top' : 'bottom'
 }
 
+/**
+ * What forces a REBUILD: a different app, or a config edit (which can move the
+ * band to the other edge, so the element itself has to change).
+ *
+ * `data` is deliberately not here. It used to be, which meant every RSS refresh
+ * disposed the iframe and built a new one: the band disappeared and its scroll
+ * restarted, every five minutes, for the whole life of the screen. A payload
+ * change now travels over the handshake instead — see {@link dataSignatureOf}.
+ */
 function signatureOf(overlay: AppRenderable): string {
-  return JSON.stringify([overlay.slug, overlay.config, overlay.data ?? null])
+  return JSON.stringify([overlay.slug, overlay.config])
+}
+
+/** What forces a re-CONFIG: the connector payload, and its freshness. */
+function dataSignatureOf(overlay: AppRenderable): string {
+  return JSON.stringify([overlay.data ?? null, overlay.dataMeta ?? null])
 }
 
 /**
@@ -58,8 +74,16 @@ export function OverlayLayer() {
       for (const overlay of overlays) {
         seen.add(overlay.id)
         const signature = signatureOf(overlay)
+        const dataSignature = dataSignatureOf(overlay)
         const existing = mounted.get(overlay.id)
         if (existing && existing.signature === signature) {
+          // Same band, fresher payload: hand it over in place. The bundle is
+          // required to re-render idempotently on a repeated `app-config`, so
+          // the scroll and the animation carry on undisturbed.
+          if (existing.dataSignature !== dataSignature) {
+            existing.dataSignature = dataSignature
+            existing.handle.setConfig(overlay)
+          }
           continue
         }
         unmount(overlay.id)
@@ -89,7 +113,7 @@ export function OverlayLayer() {
           })
         // Overlays are permanently active (their animations run) and muted.
         handle.setActive(true, true)
-        mounted.set(overlay.id, { handle, el, signature })
+        mounted.set(overlay.id, { handle, el, signature, dataSignature })
       }
       for (const id of [...mounted.keys()]) {
         if (!seen.has(id)) {

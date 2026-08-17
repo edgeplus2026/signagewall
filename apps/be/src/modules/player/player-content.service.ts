@@ -71,6 +71,12 @@ type PendingEntry = PendingMediaEntry | PendingAppEntry;
 interface CachedAppData {
   payload: unknown;
   fetchedAt?: Date;
+  /**
+   * When the payload last actually CHANGED. What the revision is built from —
+   * `fetchedAt` moves on every successful re-fetch, so keying the revision on it
+   * made an unchanged feed look like new content to every screen showing it.
+   */
+  contentAt?: Date;
   stale: boolean;
 }
 
@@ -279,6 +285,13 @@ export class PlayerContentService {
       cacheByKey.set(entry.cacheKey, {
         payload: entry.payload,
         ...(entry.fetchedAt ? { fetchedAt: entry.fetchedAt } : {}),
+        // Entries written before this field existed have none. Falling back to
+        // `fetchedAt` keeps their revision where it was; without the fallback
+        // every such app would drop to 0 on the deploy that adds the field, and
+        // the whole fleet would take one gratuitous re-push.
+        ...((entry.contentAt ?? entry.fetchedAt)
+          ? { contentAt: entry.contentAt ?? entry.fetchedAt }
+          : {}),
         // A present `lastError` means the newest fetch failed and we're
         // serving last-known-good data.
         stale: Boolean(entry.lastError),
@@ -303,12 +316,20 @@ export class PlayerContentService {
     if (OVERLAY_SLUGS.size === 0) {
       return [];
     }
-    const instances =
-      await this.appInstancesRepository.findByOrganization(organizationId);
-    const assigned = instances.filter(
-      (instance) =>
-        OVERLAY_SLUGS.has(instance.appSlug) &&
-        overlayScreenIds(instance.config).includes(screenId),
+    // Asked of the database, not filtered in memory: this runs on every content
+    // push AND every device connect, and loading the organization's whole
+    // instance collection each time meant a reconnecting fleet did it once per
+    // screen.
+    const matched = await this.appInstancesRepository.findOverlaysForScreen(
+      organizationId,
+      [...OVERLAY_SLUGS],
+      screenId,
+    );
+    // The query matches an array element, but it would also match a config whose
+    // `screens` is a bare string. Re-applying the reader keeps the assignment
+    // rule in exactly one place and the semantics unchanged.
+    const assigned = matched.filter((instance) =>
+      overlayScreenIds(instance.config).includes(screenId),
     );
     if (assigned.length === 0) {
       return [];
@@ -341,7 +362,7 @@ export class PlayerContentService {
           : {}),
       });
       revisionParts.push(
-        `overlay:${id}:${instance.appSlug}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
+        `overlay:${id}:${instance.appSlug}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
       );
     }
     return overlays;
@@ -407,7 +428,7 @@ export class PlayerContentService {
       context.revisionParts.push(
         // Include the payload's fetch time AND staleness so both a refresh and a
         // healthy↔stale transition change the revision and re-push the snapshot.
-        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
+        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}`,
       );
     }
     return items;

@@ -605,15 +605,39 @@ export class PlayerService {
    */
   private readonly lastPresenceSignature = new Map<string, string>();
 
+  /**
+   * Fingerprint of the profile last WRITTEN for a device, so an unchanged beat
+   * can skip the write entirely. Same reasoning as
+   * {@link lastPresenceSignature}, one layer lower: that one avoids waking every
+   * operator's browser, this one avoids rewriting the document.
+   */
+  private readonly lastProfileSignature = new Map<string, string>();
+
   async recordHeartbeat(
     deviceId: string,
     profile?: ReportedProfile,
   ): Promise<void> {
+    const deviceProfile = this.toDeviceProfile(profile);
+    const signature = deviceProfile ? JSON.stringify(deviceProfile) : '';
+    const unchanged =
+      this.lastProfileSignature.get(deviceId) === signature && signature !== '';
+
+    if (unchanged) {
+      // Nothing about this screen changed except the clock. Stamp liveness and
+      // stop: rewriting the whole profile subdocument every thirty seconds, per
+      // device, was the heaviest write in the system and recorded nothing.
+      await this.devicesRepository.touchPresence(deviceId);
+      return;
+    }
+
     const updated = await this.devicesRepository.setPresence(
       deviceId,
       true,
-      this.toDeviceProfile(profile),
+      deviceProfile,
     );
+    if (signature) {
+      this.lastProfileSignature.set(deviceId, signature);
+    }
     this.emitPresence(updated, true);
   }
 
@@ -689,9 +713,21 @@ export class PlayerService {
   async markOffline(deviceId: string): Promise<void> {
     const updated = await this.devicesRepository.setPresence(deviceId, false);
     // An offline flip is always a real change — never let a stale signature
-    // suppress it.
+    // suppress it. Both caches are dropped together: they are keyed by deviceId
+    // and would otherwise grow for every device that ever connected, which on a
+    // long-lived process is a slow leak proportional to fleet churn.
     this.lastPresenceSignature.delete(deviceId);
+    this.lastProfileSignature.delete(deviceId);
     this.emitPresence(updated, false);
+  }
+
+  /**
+   * Claims the one-time activation marker for a device, returning true only for
+   * the caller that actually set it. See
+   * {@link DevicesRepository.claimActivationReport}.
+   */
+  claimScreenActivation(deviceId: string): Promise<boolean> {
+    return this.devicesRepository.claimActivationReport(deviceId);
   }
 
   /**
@@ -795,13 +831,11 @@ export class PlayerService {
         ? { profile: this.toReportedProfile(device.profile) }
         : {}),
       ...(device.diagnosticsReport
-        ? { diagnostics: device.diagnosticsReport as StoredDiagnosticsReport }
+        ? { diagnostics: device.diagnosticsReport }
         : {}),
       // Deliberately alongside `profile`, never merged into it: the whole value
       // of this one is that it can disagree with what the page says.
-      ...(device.shellStatus
-        ? { shellStatus: device.shellStatus as ShellStatusReport }
-        : {}),
+      ...(device.shellStatus ? { shellStatus: device.shellStatus } : {}),
       ...(device.shellStatusAt ? { shellStatusAt: device.shellStatusAt } : {}),
     };
   }

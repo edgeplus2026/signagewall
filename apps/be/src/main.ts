@@ -1,6 +1,6 @@
 import './load-env';
 
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
+import { RedisIoAdapter } from './common/redis/redis-io.adapter';
 import { setupSwagger } from './common/swagger';
 
 async function bootstrap() {
@@ -69,6 +70,24 @@ async function bootstrap() {
 
   if (swaggerEnabled) {
     setupSwagger(app);
+  }
+
+  // The realtime player channel is room-based, and rooms are process-local
+  // unless the adapter says otherwise. Wire Redis in when it is configured, so
+  // several API instances behave as one; fall back silently when it is not,
+  // which is the correct single-instance/laptop setup.
+  const logger = new Logger('Bootstrap');
+  const redisAdapter = new RedisIoAdapter(app, configService);
+  if (await redisAdapter.connect()) {
+    app.useWebSocketAdapter(redisAdapter);
+    app.enableShutdownHooks();
+    logger.log('Socket.IO running on the Redis adapter (multi-instance ready)');
+  } else {
+    logger.warn(
+      'No Redis configured — Socket.IO is using the in-memory adapter. ' +
+        'This deployment MUST run a single API instance, or content pushes, ' +
+        'presence and revokes will only reach the instance that handled them.',
+    );
   }
 
   await app.listen(port);

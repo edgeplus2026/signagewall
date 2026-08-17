@@ -56,16 +56,20 @@ class FakeSlot implements PlaybackSlot {
     return Promise.resolve()
   }
 
-  activate(): void {
-    // Crossfade reveal is a no-op for the loop logic under test.
+  activate(onEnded: () => void): void {
+    this.active = true
+    // Kept so a test can end a clip the way the element would.
+    this.onEnded = onEnded
   }
 
+  onEnded: (() => void) | null = null
+
   deactivate(): void {
-    // Fade-out is purely visual.
+    this.active = false
   }
 
   release(): void {
-    // Buffer reclaim is irrelevant to the fake.
+    this.active = false
   }
 
   setVolume(volume: number): void {
@@ -74,6 +78,30 @@ class FakeSlot implements PlaybackSlot {
 
   tryUnmute(): void {
     // Audio recovery is exercised at the Slot level, not the loop logic.
+  }
+
+  /** Refreshed payloads handed to this slot in place (no reload). */
+  readonly updates: Renderable[] = []
+  /** How many times this slot replayed its video without reloading it. */
+  replays = 0
+  /** Whether this slot is the on-screen one (the real Slot reads a CSS class). */
+  active = false
+
+  replay(): boolean {
+    if (this.current?.kind !== 'video' || !this.active) {
+      return false
+    }
+    this.replays += 1
+    return true
+  }
+
+  applyUpdate(item: Renderable): boolean {
+    if (item.kind !== 'app' || this.current?.id !== item.id) {
+      return false
+    }
+    this.current = item
+    this.updates.push(item)
+    return true
   }
 
   mediaDurationMs(): number | null {
@@ -412,6 +440,178 @@ describe('PlaybackController', () => {
     // Nothing is playable; the engine stays idle (the shell shows the splash).
     expect(onItemIds).toEqual([])
     controller.destroy()
+  })
+
+  // A snapshot revision moves for reasons unrelated to the rotation: the backend
+  // folds every app's `fetchedAt` into it, so a crypto ticker refreshing its
+  // prices re-pushes an identical playlist under a new revision. Restarting on
+  // that meant a 20-item playlist with a 5-minute app in it never reached its
+  // back half.
+  describe('data-only snapshot pushes', () => {
+    /** The same playlist, with a fresh payload on the app item. */
+    function withData(data: unknown, revision: string): PlayerSnapshot {
+      return snapshot(
+        [
+          img('A'),
+          img('B'),
+          { id: 'W', kind: 'app', slug: 'weather', config: {}, durationMs: 2000, data },
+        ],
+        revision,
+      )
+    }
+
+    it('keeps its place when only an app payload changed', async () => {
+      const { controller, onItemIds } = build({
+        requiresNetwork: () => false,
+      })
+      controller.load(withData({ t: 1 }, 'r1'))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000) // A -> B
+      expect(onItemIds).toEqual(['A', 'B'])
+
+      controller.load(withData({ t: 2 }, 'r2'))
+      await flush()
+      // No jump back to the head…
+      expect(onItemIds).toEqual(['A', 'B'])
+      // …and the loop carries on from where it was.
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(onItemIds).toEqual(['A', 'B', 'W'])
+      controller.destroy()
+    })
+
+    it('hands the refreshed payload to the item currently on screen', async () => {
+      const { controller, slots, onItemIds } = build({
+        requiresNetwork: () => false,
+      })
+      // A single-app playlist — a menu board or a weather screen — never changes
+      // item, so an in-place update is the ONLY way it ever sees fresh data.
+      const only = (data: unknown, revision: string): PlayerSnapshot =>
+        snapshot(
+          [{ id: 'W', kind: 'app', slug: 'weather', config: {}, durationMs: 2000, data }],
+          revision,
+        )
+
+      controller.load(only({ t: 1 }, 'r1'))
+      await flush()
+      expect(onItemIds).toEqual(['W'])
+
+      controller.load(only({ t: 2 }, 'r2'))
+      await flush()
+      const updated = slots.flatMap((slot) => slot.updates)
+      expect(updated).toHaveLength(1)
+      expect(updated[0]).toMatchObject({ id: 'W', data: { t: 2 } })
+      controller.destroy()
+    })
+
+    it('leaves an app alone when it was somebody else\'s payload that moved', async () => {
+      const { controller, slots, onItemIds } = build({
+        requiresNetwork: () => false,
+      })
+      // Two apps on one screen. One snapshot carries both, so a weather refresh
+      // also re-delivers the calendar's config — and a bundle that re-renders on
+      // config would restart its scroll for a change that was not its own.
+      const pair = (weather: unknown, revision: string): PlayerSnapshot =>
+        snapshot(
+          [
+            { id: 'C', kind: 'app', slug: 'gcal', config: {}, durationMs: 2000, data: { e: 1 } },
+            { id: 'W', kind: 'app', slug: 'weather', config: {}, durationMs: 2000, data: weather },
+          ],
+          revision,
+        )
+
+      controller.load(pair({ t: 1 }, 'r1'))
+      await flush()
+      expect(onItemIds).toEqual(['C'])
+
+      controller.load(pair({ t: 2 }, 'r2'))
+      await flush()
+      // The calendar is on screen and its own data is unchanged: untouched.
+      expect(slots.flatMap((slot) => slot.updates)).toEqual([])
+      controller.destroy()
+    })
+
+    it('still re-bases when the rotation itself changed', async () => {
+      const { controller, onItemIds } = build({ requiresNetwork: () => false })
+      controller.load(snapshot([img('A'), img('B'), img('C')], 'r1'))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000) // A -> B
+      expect(onItemIds).toEqual(['A', 'B'])
+
+      // An item was removed: a genuinely different playlist.
+      controller.load(snapshot([img('A'), img('C')], 'r2'))
+      await flush()
+      expect(onItemIds).toEqual(['A', 'B', 'A'])
+      controller.destroy()
+    })
+
+    it('re-bases when an item url changed under the same id', async () => {
+      const { controller, onItemIds } = build({ requiresNetwork: () => false })
+      controller.load(snapshot([img('A'), img('B')], 'r1'))
+      await flush()
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(onItemIds).toEqual(['A', 'B'])
+
+      // Same ids and order, but B now points at different bytes — the media was
+      // replaced in the CMS. That has to reload, not carry on.
+      controller.load(
+        snapshot(
+          [img('A'), { id: 'B', kind: 'image', url: 'https://cdn.test/B2.webp', durationMs: 2000 }],
+          'r2',
+        ),
+      )
+      await flush()
+      expect(onItemIds).toEqual(['A', 'B', 'A'])
+      controller.destroy()
+    })
+  })
+
+  // A one-item playlist loops onto itself. Doing that through a full transition
+  // tears the decode session down and builds it again on every pass — roughly
+  // 2 900 times a day for a 30-second clip, which is what costs a two-instance
+  // hardware decoder its second slot.
+  describe('single-video playlists', () => {
+    it('replays in place when the clip ends naturally', async () => {
+      const { controller, slots, onItemIds } = build()
+      controller.load(snapshot([video('V')]))
+      await flush()
+      expect(onItemIds).toEqual(['V'])
+
+      const active = slots.find((slot) => slot.active)
+      expect(active).toBeDefined()
+      active?.onEnded?.()
+      await flush()
+
+      expect(active?.replays).toBe(1)
+      // No second transition: the item never left the screen.
+      expect(onItemIds).toEqual(['V'])
+      controller.destroy()
+    })
+
+    it('does a real transition when the watchdog forces the move', async () => {
+      const { controller, slots, onItemIds } = build()
+      controller.load(snapshot([video('V', 1000)]))
+      await flush()
+
+      // A forced advance means the current state is suspect — reloading is the
+      // whole point, so replaying in place would defeat it.
+      await vi.advanceTimersByTimeAsync(40_000)
+      expect(slots.every((slot) => slot.replays === 0)).toBe(true)
+      expect(onItemIds.length).toBeGreaterThan(1)
+      controller.destroy()
+    })
+
+    it('still transitions normally with more than one item', async () => {
+      const { controller, slots, onItemIds } = build()
+      controller.load(snapshot([video('V'), img('B')]))
+      await flush()
+
+      slots.find((slot) => slot.active)?.onEnded?.()
+      await flush()
+
+      expect(slots.every((slot) => slot.replays === 0)).toBe(true)
+      expect(onItemIds).toEqual(['V', 'B'])
+      controller.destroy()
+    })
   })
 
   it('does not auto-advance on connectivity changes in follow mode', async () => {

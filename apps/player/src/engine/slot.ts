@@ -216,6 +216,68 @@ export class Slot {
   }
 
   /**
+   * Plays the loaded video again from the start, without touching its source.
+   *
+   * The loop's normal way to repeat a one-item playlist is a full transition back
+   * to the same index, and that begins with `prepare()` → `release()`: the `src`
+   * is dropped, the decode session is torn down, and the whole clip is decoded
+   * again. On a screen showing one 30-second video that is roughly 2 900 decoder
+   * create/destroy cycles a day — the exact load pattern that costs a two-instance
+   * MediaTek decoder its second slot and falls back to the software codec.
+   *
+   * Returns false when there is nothing to replay (an image, an app, or a video
+   * that is not on screen), which tells the loop to do a real transition.
+   */
+  replay(): boolean {
+    if (this.current?.kind !== 'video' || !this.el.classList.contains('is-active')) {
+      return false
+    }
+    try {
+      this.video.currentTime = 0
+    } catch {
+      // A source that refuses the seek cannot be replayed in place; the caller
+      // falls back to a full transition.
+      return false
+    }
+    this.stalledSamples = 0
+    this.lastProgressTime = 0
+    void this.video.play().catch(() => {
+      // Autoplay was granted for the first pass, so a rejection here is a real
+      // fault. Hand it to the same reporter a decode error uses so the loop
+      // moves on instead of holding a frozen frame.
+      this.reportFailure('replay refused')
+    })
+    return true
+  }
+
+  /**
+   * Takes a refreshed version of the item this slot already holds, without
+   * reloading anything.
+   *
+   * Only apps can be refreshed this way, and only in place: an image or a video
+   * with the same id is byte-identical (the url is part of the engine's identity
+   * fingerprint), so there is nothing to update. An app carries a connector
+   * payload that moves under it — prices, headlines, calendar entries — and the
+   * handshake is built to receive it again.
+   *
+   * Returns false when the update does not belong to what is loaded here, which
+   * is the caller's cue that a real prepare is needed.
+   */
+  applyUpdate(item: Renderable): boolean {
+    if (
+      item.kind !== 'app' ||
+      this.current?.kind !== 'app' ||
+      this.current.id !== item.id ||
+      this.current.slug !== item.slug
+    ) {
+      return false
+    }
+    this.current = item
+    this.appHostHandle?.setConfig(item)
+    return true
+  }
+
+  /**
    * Live volume change applied to the on-screen video. `volume` is always safe;
    * the mute state tracks `volume === 0`. Unmuting a playing element without
    * prior user activation makes the browser pause it — so when that happens we
@@ -305,13 +367,17 @@ export class Slot {
         }
       }
       this.video.addEventListener('error', this.onPlaybackError)
-      this.startProgressWatchdog()
       this.wantsAudioButMuted = false
       try {
         this.video.currentTime = 0
       } catch {
         // Some sources disallow seeking before play; safe to ignore.
       }
+      // AFTER the seek, so the watchdog's baseline is where playback actually
+      // starts. Sampling before it meant a slot re-activated from a non-zero
+      // position recorded that position as the baseline and then saw the rewind
+      // to 0 as "no forward progress" for its first samples.
+      this.startProgressWatchdog()
       // Set the audio state *before* play() — never unmute a playing element.
       this.video.volume = this.volume
       this.video.muted = this.volume === 0
@@ -475,6 +541,10 @@ export class Slot {
     // snaps instead of sliding the slot back across the screen.
     this.el.classList.remove('is-active')
     this.el.classList.remove('is-leaving')
+    // Also drop the travel direction: the resting style is direction-dependent,
+    // so a slot recycled while still stamped `back` parks on the wrong side and
+    // its next entrance starts from there.
+    delete this.el.dataset.direction
     this.endedHandler = null
     this.failedHandler = null
     this.video.onended = null
@@ -617,6 +687,15 @@ export class Slot {
       if (this.appHostHandle === handle) {
         handle.dispose()
         this.appHostHandle = null
+      }
+      // A newer prepare took this slot while we were loading — that is what
+      // rejected us (release() disposes the handle, which settles `ready`), and
+      // it is not a failure of the app. Resolve quietly, exactly as the image
+      // and video paths do on supersession. Rethrowing here surfaced
+      // "app disposed: <slug>" through onError, so every step past a loading app
+      // wrote a phantom fault into the diagnostics and into Sentry.
+      if (this.prepareSeq !== seq) {
+        return
       }
       throw error
     }

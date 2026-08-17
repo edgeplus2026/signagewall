@@ -253,6 +253,21 @@ export class Device {
   @Prop({ default: false })
   online!: boolean;
 
+  /**
+   * When this device first put real content on a screen — the funnel's
+   * "activated" moment, recorded once and never again.
+   *
+   * It lives here rather than being re-derived because the alternative is what it
+   * replaced: every `now-playing` message (one per slide, per device, forever)
+   * ran two lookups and an insert that the dedupe index then rejected. At a
+   * thousand screens that was several hundred wasted database operations a
+   * second, for an event that can only ever happen once per screen. This flag is
+   * the cheap way to ask "already done?" — one indexed conditional update, and
+   * after the first hit not even that (the gateway remembers it in-process).
+   */
+  @Prop()
+  activationReportedAt?: Date;
+
   /** Playback volume 0–100, applied by the player to its video audio. */
   @Prop({ default: 100, min: 0, max: 100 })
   volume!: number;

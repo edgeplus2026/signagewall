@@ -66,7 +66,9 @@ export class AdminService {
    * backstop), so this shortens the worst case rather than removing it.
    */
   applyPlayerUpdateToFleet(actorId: string): void {
-    this.logger.warn(`Super-admin ${actorId} pushed a fleet-wide player update`);
+    this.logger.warn(
+      `Super-admin ${actorId} pushed a fleet-wide player update`,
+    );
     this.eventEmitter.emit(PlayerEvents.FleetCommand, {
       command: { type: 'applyUpdate' },
     } satisfies FleetCommandEvent);

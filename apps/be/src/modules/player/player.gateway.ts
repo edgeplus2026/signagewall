@@ -14,7 +14,6 @@ import { Server, Socket } from 'socket.io';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import { AppInstancesRepository } from '../apps/app-instances.repository';
-import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
 import { isOverlaySlug, overlayScreenIds } from '../apps/overlay.util';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
@@ -97,7 +96,49 @@ const screenRoom = (screenId: string): string => `screen:${screenId}`;
  * this class — they emit in-process events that the `@OnEvent` handlers fan out
  * to the affected `screen:<id>` / `device:<id>` rooms.
  */
-@WebSocketGateway({ namespace: '/player', cors: { origin: true } })
+/**
+ * Origins allowed to open a player socket.
+ *
+ * Same list the REST API enforces. `cors: { origin: true }` reflected whatever
+ * origin asked, so any page on the internet could open a `/player` socket — and
+ * since a known `deviceId` is enough to be admitted as that device (the backend
+ * re-issues its token, deliberately, so a wiped screen recovers), that was a
+ * wider door than the REST side left open.
+ *
+ * A native shell sends the player origin; a device with no `Origin` header at all
+ * — some WebView and Node clients — is allowed through, because there is nothing
+ * for CORS to protect against when no browser is enforcing it.
+ */
+function isAllowedPlayerOrigin(
+  origin: string | undefined,
+  callback: (error: Error | null, allow?: boolean) => void,
+): void {
+  // No Origin header: a native WebView, a CLI, a server-side client. CORS exists
+  // to stop one site reading another's response in a browser; where no browser is
+  // enforcing anything there is nothing to withhold, and the device token still
+  // governs what the connection may do.
+  if (!origin) {
+    callback(null, true);
+    return;
+  }
+  // Read per connection rather than at class-decoration time, so the answer can
+  // never depend on module import order relative to dotenv.
+  //
+  // Trailing slashes are stripped on both sides. An `Origin` header never carries
+  // one, but a configured URL easily might — and the cost of that mismatch here is
+  // not a broken page, it is every screen in the fleet refused at the handshake.
+  const allowed = [
+    process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    process.env.PLAYER_URL ?? 'http://localhost:5174',
+    process.env.MARKETING_URL ?? 'http://localhost:3002',
+  ].map((url) => url.trim().replace(/\/+$/, ''));
+  callback(null, allowed.includes(origin.replace(/\/+$/, '')));
+}
+
+@WebSocketGateway({
+  namespace: '/player',
+  cors: { origin: isAllowedPlayerOrigin, credentials: true },
+})
 export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(PlayerGateway.name);
 
@@ -388,6 +429,18 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Screens whose activation has already been accounted for, in this process.
+   *
+   * `now-playing` arrives once per slide, per device — several hundred times a
+   * second across a fleet — and every one of them used to run two lookups and an
+   * insert that the dedupe index then threw away. This set answers the same
+   * question for free after the first time. It is bounded by the number of
+   * screens connected to this instance and is dropped on restart, where the
+   * durable device marker takes over (see {@link recordFirstScreenActivation}).
+   */
+  private readonly activationRecorded = new Set<string>();
+
   @SubscribeMessage(PlayerSocketEvents.NowPlaying)
   handleNowPlaying(client: Socket, payload: NowPlayingMessage): void {
     const { deviceId, screenId, preview } = client.data as SocketData;
@@ -402,25 +455,57 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .to(screenRoom(screenId))
       .emit(PlayerSocketEvents.NowPlaying, { itemId });
 
-    // The first actual item shown by a real paired device is activation. A
-    // dedupe key makes reconnects/replays harmless and previews are excluded.
-    void this.recordFirstScreenActivation(screenId);
+    // The first actual item shown by a real paired device is activation — once
+    // per screen, ever. Everything after the first is a set lookup.
+    if (!this.activationRecorded.has(screenId)) {
+      this.activationRecorded.add(screenId);
+      void this.recordFirstScreenActivation(screenId, deviceId);
+    }
   }
 
-  private async recordFirstScreenActivation(screenId: string): Promise<void> {
-    const organizationId =
-      await this.screensRepository.findOrganizationIdById(screenId);
-    if (!organizationId) return;
-    const organization =
-      await this.organizationsRepository.findById(organizationId);
-    await this.analytics.record({
-      eventName: FunnelEventName.FIRST_SCREEN_ACTIVATED,
-      userId: organization?.ownerUserId?.toString(),
-      organizationId,
-      dedupeKey: organization?.ownerUserId
-        ? `first_screen_activated:user:${organization.ownerUserId.toString()}`
-        : `first_screen_activated:screen:${screenId}`,
-    });
+  /**
+   * Records the funnel's "screen went live" event, at most once per screen.
+   *
+   * Two gates, and both matter. The device marker is durable, so a restarted
+   * backend does not re-walk the whole fleet's org lookups; it is claimed
+   * atomically, so two instances cannot both believe they were first. Only the
+   * claimant pays for the org read and the analytics write — which is what makes
+   * the ordinary case (a screen that has been running for months) cost one
+   * conditional update that matches nothing, instead of three reads and a
+   * rejected insert.
+   */
+  private async recordFirstScreenActivation(
+    screenId: string,
+    deviceId: string,
+  ): Promise<void> {
+    try {
+      const claimed = await this.playerService.claimScreenActivation(deviceId);
+      if (!claimed) {
+        return;
+      }
+      const organizationId =
+        await this.screensRepository.findOrganizationIdById(screenId);
+      if (!organizationId) return;
+      const organization =
+        await this.organizationsRepository.findById(organizationId);
+      await this.analytics.record({
+        eventName: FunnelEventName.FIRST_SCREEN_ACTIVATED,
+        userId: organization?.ownerUserId?.toString(),
+        organizationId,
+        dedupeKey: organization?.ownerUserId
+          ? `first_screen_activated:user:${organization.ownerUserId.toString()}`
+          : `first_screen_activated:screen:${screenId}`,
+      });
+    } catch (error) {
+      // Analytics must never cost a screen its playback. Forget the in-process
+      // marker so a later beat retries rather than silently losing the event.
+      this.activationRecorded.delete(screenId);
+      this.logger.warn(
+        `Could not record activation for screen ${screenId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
   }
 
   /**
@@ -546,17 +631,15 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @OnEvent(PlayerEvents.AppDataChanged)
   async onAppDataChanged(event: AppDataChangedEvent): Promise<void> {
-    // The connector cache is global, so find every instance of this app (across
-    // all orgs) that resolves to the changed cache key, then re-push the screens
-    // that use those instances — grouped by org so each push stays org-correct.
-    const instances = await this.appInstancesRepository.findBySlugs([
-      event.slug,
-    ]);
+    // The connector cache is global, so the instances on this key can belong to
+    // any organization. The key is denormalized onto the document, so this is an
+    // indexed lookup — it used to load every instance of the app and compare keys
+    // in memory, on every payload refresh.
+    const instances = await this.appInstancesRepository.findByCacheKey(
+      event.cacheKey,
+    );
     const byOrg = new Map<string, string[]>();
     for (const instance of instances) {
-      if (cacheKeyForInstance(instance) !== event.cacheKey) {
-        continue;
-      }
       const orgId = instance.organizationId.toString();
       const ids = byOrg.get(orgId) ?? [];
       ids.push(instance._id.toString());
@@ -636,13 +719,46 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * How many screen snapshots are resolved at once during a fan-out.
+   *
+   * One data refresh can touch every screen on a shared feed — hundreds of them —
+   * and each resolution is several queries. Serially that is a fan-out measured
+   * in minutes, during which the last screen shows stale content; unbounded it is
+   * a self-inflicted burst against the database at the exact moment it is already
+   * serving the fleet. Ten keeps the tail short without becoming the spike.
+   */
+  private static readonly PUSH_CONCURRENCY = 10;
+
   private async pushManyScreens(
     organizationId: string,
     screenIds: string[],
   ): Promise<void> {
-    for (const screenId of screenIds) {
-      await this.pushScreenContent(organizationId, screenId);
-    }
+    let cursor = 0;
+    const workers = Array.from(
+      { length: Math.min(PlayerGateway.PUSH_CONCURRENCY, screenIds.length) },
+      async () => {
+        while (cursor < screenIds.length) {
+          const screenId = screenIds[cursor];
+          cursor += 1;
+          if (!screenId) {
+            continue;
+          }
+          try {
+            await this.pushScreenContent(organizationId, screenId);
+          } catch (error) {
+            // One screen that cannot be resolved — a deleted playlist, a broken
+            // reference — must not stop the rest of the fan-out.
+            this.logger.warn(
+              `Failed to push content to screen ${screenId}: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+          }
+        }
+      },
+    );
+    await Promise.all(workers);
   }
 
   private async pushScreenContent(

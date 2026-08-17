@@ -42,6 +42,20 @@ export class AppDataCache {
   lastAttemptAt?: Date;
 
   /**
+   * When the payload last actually CHANGED, as opposed to when it was last
+   * re-fetched.
+   *
+   * The player's snapshot revision is built from this. Using `fetchedAt` meant a
+   * feed that answers identically every fifteen minutes still produced a fresh
+   * revision each time — so any unrelated push, and every reconnect, handed the
+   * device a "new" snapshot for content that had not moved. Every one of those
+   * was a full re-resolve on the server and, on the device, a rotation the engine
+   * had to decide was the same one.
+   */
+  @Prop()
+  contentAt?: Date;
+
+  /**
    * Optional stable content signature (ETag) from the connector. When set, it —
    * not the payload — decides whether the data changed (for payloads with
    * volatile fields like rotating URLs).

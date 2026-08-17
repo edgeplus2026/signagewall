@@ -27,6 +27,7 @@ import { OrgApp } from '../apps/schemas/org-app.schema';
 import { Device } from '../player/schemas/device.schema';
 import { Playlist } from '../playlists/schemas/playlist.schema';
 import { Screen } from '../screens/schemas/screen.schema';
+import { SchedulerLockService } from '../../common/redis/scheduler-lock.service';
 import { TransactionService } from '../../common/services/transaction.service';
 import { UsersRepository } from '../users/users.repository';
 import {
@@ -72,6 +73,7 @@ export class DataDeletionService {
     private readonly transactionService: TransactionService,
     private readonly eventEmitter: EventEmitter2,
     private readonly i18n: I18nService,
+    private readonly lock: SchedulerLockService,
   ) {}
 
   // --- Requests (start the grace period) -------------------------------------
@@ -185,6 +187,11 @@ export class DataDeletionService {
    */
   @Cron('0 3 * * *')
   async runSweep(): Promise<number> {
+    // This one ERASES data. Two instances racing the same pending row is the
+    // worst possible place to discover the scheduler runs everywhere.
+    if (!(await this.lock.isLeader('data-deletion-sweep', 30 * 60_000))) {
+      return 0;
+    }
     const due = await this.pendingModel
       .find({ status: 'pending', scheduledFor: { $lte: new Date() } })
       .exec();

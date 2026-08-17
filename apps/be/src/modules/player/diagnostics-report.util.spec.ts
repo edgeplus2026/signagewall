@@ -30,7 +30,10 @@ describe('boundDiagnosticsReport', () => {
   it('keeps the NEWEST log entries and trims each one', () => {
     // Marker FIRST: truncation cuts the tail, so a marker at the end would be
     // invisible to the assertion and the test would prove nothing.
-    const log = Array.from({ length: 500 }, (_, i) => `${i} ${'x'.repeat(900)}`);
+    const log = Array.from(
+      { length: 500 },
+      (_, i) => `${i} ${'x'.repeat(900)}`,
+    );
 
     const bounded = boundDiagnosticsReport({ log }) as { log: string[] };
 

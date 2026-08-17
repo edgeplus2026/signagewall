@@ -36,7 +36,6 @@ export interface DeviceUpdateStatus {
    * report is a lie the CMS tells the operator.
    */
   lastResult?:
-    | 'idle'
     | 'checking'
     /** A newer signed build exists on the channel but hasn't been applied yet. */
     | 'available'

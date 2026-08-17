@@ -13,9 +13,13 @@ CMS and player contain **zero per-app code**. Adding an app is done almost entir
 (`packages/apps/`) plus an optional backend connector.
 
 **37 apps ship today** (all `runtimeKind: 'embed'`):
-- `static` (config only, no server): `clock`, `worldclock`, `text`, `ticker`, `qr`, `countdown`,
-  `menu`, `alert` (Emergency Alert), `web`, `dashboard`, `powerbi`, `youtube`, `vimeo`, `stream`,
+- `static` (config only, no server): `clock`, `worldclock`, `text`, `qr`, `countdown`,
+  `alert` (Emergency Alert), `web`, `dashboard`, `powerbi`, `youtube`, `vimeo`, `stream`,
   `livechannel` (Twitch/Kick)
+- `overlay` (drawn above the rotation rather than occupying a slot): `ticker` — and it is
+  `server`, not `static`: RSS mode resolves headlines through a connector on a 300 s cadence,
+  and messages mode resolves the operator's rows through the same path so the bundle renders
+  one shape either way.
 - `server` (backend connector): `weather`, `airquality`, `sunmoon` (all Open-Meteo), `currency`
   (ECB/Frankfurter), `crypto` (CoinGecko), `power-prices` (Energinet), `holidays` (Nager.Date),
   `onthisday` (Wikipedia), `wisdom` (quotes), `sports` (TheSportsDB, free-key default), `rss`, `news`
@@ -165,7 +169,7 @@ Effort: **S** ≈ ≤1 day · **M** ≈ 1–3 days · **L** ≈ 1–2 wks (often
 | 2 | Vimeo ✅ | `vimeo` | static | Media | S | — |
 | 4 | Dashboard embed (public) ✅ | `dashboard` | static | Data & Dashboards | S | — |
 | 5 | Live stream (HLS) ✅ | `stream` | static | Media | S–M | — |
-| 6 | Menu board / price list ✅ | `menu` | static | Utilities | M | E4b ✅ |
+| 6 | Menu board / price list ✅ | `menu` | connected (Sheets sync) | Utilities | M | E4b ✅ |
 | 7 | Announcement ticker ✅ | `ticker` | static | Information | S–M | E4b ✅ |
 | 8 | World clocks ✅ | `worldclock` | static | Utilities | S–M | E4b ✅ |
 | **Tier 2 — server connectors, public/keyless APIs** ||||||
@@ -221,7 +225,7 @@ public dashboards**. **Config:** `url` (url), `refreshMinutes` (number, reload c
 Lobby/live camera/event streams. **Config:** `streamUrl` (url, `.m3u8`), `muted` (switch), `fit`
 (select). **Render:** native HLS where supported, else bundle `hls.js`; gate audio on `onActive`.
 
-**6. Menu board / price list** (`menu`, static)
+**6. Menu board / price list** (`menu`, connected — Google Sheets sync, 900 s)
 High value for retail/hospitality/cafeteria. **Config:** `heading` (text), `items` (repeater:
 name/price/description/tag — **MVP:** `textarea`, one `Name | Price | Note` per line), `columns`
 (select), theme. **Render:** styled columns. Needs E4b for the nice editor.

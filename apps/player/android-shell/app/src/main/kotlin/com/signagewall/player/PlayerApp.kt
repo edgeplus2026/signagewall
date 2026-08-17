@@ -302,5 +302,17 @@ class PlayerApp : Application() {
         /** Long enough that a crash loop backs off a little, short enough that a
          *  one-off crash is invisible to anyone watching the screen. */
         const val RESTART_DELAY_MILLIS = 5_000L
+
+        /**
+         * How stale the page's heartbeat may be before the shell reports it as not
+         * running on its own channel.
+         *
+         * The page beats every five seconds, so a minute is twelve missed beats —
+         * the same threshold the recovery ladder uses, and for the same reason: it
+         * has to be unambiguous. This channel exists to say "the shell is fine and
+         * the page is not", and a window short enough to trip on a GC pause would
+         * make that claim untrustworthy.
+         */
+        const val PAGE_ALIVE_WINDOW_MILLIS = 60_000L
     }
 }
