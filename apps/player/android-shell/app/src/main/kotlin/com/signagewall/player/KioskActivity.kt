@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.os.Build
 import android.net.Uri
 import android.os.Bundle
+import android.os.StatFs
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -48,6 +49,7 @@ import com.signagewall.player.util.json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
+import java.security.SecureRandom
 
 /**
  * The fullscreen kiosk WebView that wraps the remote player. Mirrors the Tauri
@@ -71,6 +73,14 @@ class KioskActivity : AppCompatActivity() {
 
     /** Set while the operator is away in the overlay-permission settings screen. */
     private var awaitingOverlayGrant: Boolean = false
+
+    /**
+     * Whether Chrome DevTools may inspect the page. Written from the JS bridge
+     * thread and read when assembling `device_info`, hence @Volatile. Starts false
+     * on every process start — see [setWebDebugging] for why it is never persisted.
+     */
+    @Volatile
+    private var webDebugging: Boolean = false
 
     /** True between a load starting and it finishing or failing — a slow network on a
      *  cold TV must not be mistaken for a hang. */
@@ -114,6 +124,18 @@ class KioskActivity : AppCompatActivity() {
     /** Pushed by the web layer once paired; shown in the on-device service dialog. */
     @Volatile
     private var screenName: String? = null
+
+    /**
+     * The secret that separates the player's own document from every other page the
+     * WebView renders. Generated once per process and never persisted — it only has
+     * to outlive the WebViews of this run, and a value on disk is a value somebody
+     * can read off the device. See [BridgeInjection] for what it defends.
+     */
+    private val bridgeNonce: String by lazy {
+        val bytes = ByteArray(32)
+        SecureRandom().nextBytes(bytes)
+        bytes.joinToString("") { "%02x".format(it) }
+    }
 
     // Longer-lived than any single WebView (survive a recreate on render-gone).
     private val deviceIdStore by lazy { DeviceIdStore(File(filesDir, "device.json")) }
@@ -206,12 +228,20 @@ class KioskActivity : AppCompatActivity() {
         }
 
         val bridge = AndroidBridge(
+            nonce = bridgeNonce,
             dispatcher = BridgeDispatcher(
                 shellVersion = BuildConfig.VERSION_NAME,
                 deviceIdStore = deviceIdStore,
                 updater = updater,
                 deviceOwner = { kioskController.isDeviceOwner() },
                 deviceInfo = { deviceInfoJson() },
+                freeDiskBytes = { freeDiskBytes() },
+                onSetWebDebugging = { enabled -> runOnUiThread { setWebDebugging(enabled) } },
+                readLog = { (application as? PlayerApp)?.shellLog?.tail() ?: emptyList() },
+                readHealth = { healthJson() },
+                onChannelCredentials = { apiUrl, token ->
+                    (application as? PlayerApp)?.shellChannel?.setCredentials(apiUrl, token)
+                },
                 onDeactivate = { runOnUiThread { deactivatePlayer() } },
                 onRequestRecovery = { requestOverlayPermission() },
             ),
@@ -223,17 +253,39 @@ class KioskActivity : AppCompatActivity() {
         )
         view.addJavascriptInterface(bridge, BridgeInjection.HOST_NAME)
 
-        val documentStartSupported =
+        // The origin the wrapper — and with it the nonce — may be handed to.
+        // Null means the configured player URL could not be parsed, in which case
+        // we inject NOWHERE: `"*"` would give the secret to every third-party page
+        // the apps embed, which is the exact hole the nonce closes.
+        val playerOrigin = BridgeInjection.originRule(BuildConfig.SIGNAGEWALL_PLAYER_URL)
+        if (playerOrigin == null) {
+            Log.e(TAG, "player URL is unparseable; the native bridge stays unreachable")
+        }
+        // Tracks whether the document-start injection actually took, not merely
+        // whether the feature exists: `addDocumentStartJavaScript` throws on an
+        // origin rule it will not accept, and this runs inside onCreate — an
+        // uncaught throw here is a player that never opens. On any failure we fall
+        // through to the onPageStarted path, which checks the origin itself.
+        var documentStartInstalled = false
+        if (
+            playerOrigin != null &&
             WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)
-        if (documentStartSupported) {
-            WebViewCompat.addDocumentStartJavaScript(
-                view,
-                BridgeInjection.SCRIPT,
-                setOf("*"),
-            )
+        ) {
+            try {
+                WebViewCompat.addDocumentStartJavaScript(
+                    view,
+                    BridgeInjection.script(bridgeNonce),
+                    setOf(playerOrigin),
+                )
+                documentStartInstalled = true
+            } catch (t: Throwable) {
+                Log.w(TAG, "document-start injection refused for $playerOrigin", t)
+            }
         }
         view.webViewClient = KioskWebViewClient(
-            documentStartSupported = documentStartSupported,
+            documentStartSupported = documentStartInstalled,
+            playerUrl = BuildConfig.SIGNAGEWALL_PLAYER_URL,
+            bridgeScript = { BridgeInjection.script(bridgeNonce) },
             onRenderGone = { didCrash -> onRendererGone(didCrash) },
             onMainFrameError = { description -> onMainFrameError(description) },
             onMainFrameLoaded = { pageLoading = false; pageRecovery.onPageLoaded() },
@@ -325,6 +377,66 @@ class KioskActivity : AppCompatActivity() {
     }
 
     /**
+     * Opens or closes Chrome DevTools inspection of the player page.
+     *
+     * Deliberately NOT persisted. A screen left inspectable is a screen anyone who
+     * reaches it can read and rewrite, and the one person who would remember to
+     * close it is the technician who has already driven away. So it dies with the
+     * process — every restart, update and power cut closes it — and the operator
+     * who needs it is present to switch it on again.
+     *
+     * The WebView API is static and has no getter, so the flag is mirrored here to
+     * answer `device_info`.
+     */
+    private fun setWebDebugging(enabled: Boolean) {
+        WebView.setWebContentsDebuggingEnabled(enabled)
+        webDebugging = enabled
+        Log.i(TAG, "web contents debugging ${if (enabled) "enabled" else "disabled"}")
+    }
+
+    /**
+     * How hard this screen has been struggling, for the heartbeat.
+     *
+     * Only counters and a breadcrumb — no DevicePolicyManager, no Settings lookup,
+     * nothing that `device_info` does for the service menu. It is read every thirty
+     * seconds on hardware that is already short of everything.
+     *
+     * `lastCrash` is trimmed here rather than on the way out: it is the message of
+     * an arbitrary exception, and the one place that knows it should be short is
+     * the one place that knows why it is being sent.
+     */
+    private fun healthJson(): String {
+        val state = (application as? PlayerApp)?.runtimeStore?.read()
+        return json.encodeToString(
+            JsonObject.serializer(),
+            JsonObject(
+                mapOf(
+                    "recoveries" to JsonPrimitive(state?.recoveries ?: 0),
+                    "lastCrash" to JsonPrimitive(state?.lastCrash?.take(MAX_CRASH_REPORT_CHARS)),
+                    "lastCrashAt" to JsonPrimitive(state?.lastCrashAt ?: 0L),
+                ),
+            ),
+        )
+    }
+
+    /**
+     * Free bytes where the app keeps its data — the WebView's caches included, since
+     * they live under this same partition. -1 when the device will not say, which the
+     * caller reads as "unknown" rather than as "full".
+     *
+     * `filesDir`, not the external/primary volume: a signage box often has a large SD
+     * card the browser cannot use, and answering with that would invite the cache to
+     * grow into space it can never reach.
+     */
+    private fun freeDiskBytes(): Long =
+        try {
+            StatFs(filesDir.absolutePath).availableBytes
+        } catch (t: Throwable) {
+            Log.w(TAG, "could not read free disk space", t)
+            -1L
+        }
+
+    /**
      * The facts the web service menu shows. Assembled here because only the shell
      * knows them — the page cannot read the Android build or the provisioning state.
      */
@@ -348,6 +460,16 @@ class KioskActivity : AppCompatActivity() {
                 // intervention, which from the outside is indistinguishable from a
                 // screen that is simply fine.
                 "recoveryRung" to JsonPrimitive(pageRecovery.currentRung()),
+                // Free bytes on the app's partition. Shown to the technician
+                // because it is the one resource that fails silently: the cache
+                // grows, updates stop landing, and the screen looks fine until
+                // the day the box has nothing left. -1 means the OS refused to
+                // measure, which the menu shows as unknown rather than as zero.
+                "freeDiskBytes" to JsonPrimitive(freeDiskBytes()),
+                // Present only on a shell that can actually do it, so the menu can
+                // hide the switch entirely rather than offer one that does nothing
+                // on a browser, the desktop shell, or an older APK.
+                "webDebugging" to JsonPrimitive(webDebugging),
             ),
         ),
     )
@@ -632,6 +754,9 @@ class KioskActivity : AppCompatActivity() {
         private val RENDERER_BACKOFF_MILLIS = listOf(0L, 2_000L, 8_000L)
 
         private const val OFFLINE_PAGE_URL = "file:///android_asset/offline.html"
+
+        /** Enough of a crash message to recognise it; short of shipping a stack. */
+        private const val MAX_CRASH_REPORT_CHARS = 200
 
     }
 

@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -38,6 +40,20 @@ import { SuperAdminGuard } from './guards/super-admin.guard';
 @UseGuards(SuperAdminGuard)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
+
+  /**
+   * Pushes a pending player update to the whole fleet at once. POST because it
+   * acts, and under `admin` because it crosses every tenant — no organization
+   * owns it, and no org admin should be able to restart another customer's
+   * screens.
+   */
+  @Post('player/apply-update')
+  @HttpCode(HttpStatus.OK)
+  @ApiSuccessNullResponse()
+  applyPlayerUpdate(@CurrentUser() user: RequestUser): null {
+    this.adminService.applyPlayerUpdateToFleet(user.id);
+    return null;
+  }
 
   @Get('users')
   @ApiSuccessResponse(PaginatedAdminUsersSchema)

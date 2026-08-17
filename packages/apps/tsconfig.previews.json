@@ -1,0 +1,17 @@
+{
+  "//": "The thumbnail generator and its fixtures. A separate project because the main tsconfig pins `rootDir: src` for the published build, and these are dev tooling that emits nothing — but they still have to be type-checked, or a fixture naming a config key that no longer exists would only surface as a wrong-looking screenshot.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": ["previews", "scripts"]
+}

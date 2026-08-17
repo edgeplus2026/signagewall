@@ -4,10 +4,24 @@ import { ClientSession, Model, Types } from 'mongoose';
 
 import type { AppInstanceConfig } from '@signagewall/apps-contract';
 
+import { cacheKeyFor } from './connectors/cache-key.util';
 import {
   AppInstance,
   AppInstanceDocument,
 } from './schemas/app-instance.schema';
+
+/**
+ * The `cacheKey` field for a new document, or nothing at all for a `static` app.
+ * Spread rather than assigned so a keyless app never stores an explicit `null`
+ * that the sparse index would then have to carry.
+ */
+function cacheKeyField(
+  appSlug: string,
+  config: AppInstanceConfig,
+): { cacheKey?: string } {
+  const key = cacheKeyFor(appSlug, config);
+  return key ? { cacheKey: key } : {};
+}
 
 export interface CreateInstanceData {
   organizationId: string;
@@ -86,6 +100,47 @@ export class AppInstancesRepository {
     return this.model.find({ appSlug: { $in: uniqueSlugs } }).exec();
   }
 
+  /**
+   * The overlay instances (ticker and friends) assigned to one screen.
+   *
+   * Narrow on purpose. This runs on every snapshot resolution — every content
+   * push AND every device connect — and it used to load the organization's
+   * ENTIRE instance collection and filter it in JavaScript. After a deploy, when
+   * a whole fleet reconnects at once, that was one full-collection read per
+   * screen. `config.screens` is an array of screen ids, and Mongo matches an
+   * array element with plain equality, so the filter does the work here.
+   */
+  async findOverlaysForScreen(
+    organizationId: string,
+    slugs: string[],
+    screenId: string,
+  ): Promise<AppInstanceDocument[]> {
+    const uniqueSlugs = [...new Set(slugs)];
+    if (uniqueSlugs.length === 0) {
+      return [];
+    }
+    return this.model
+      .find({
+        organizationId: new Types.ObjectId(organizationId),
+        appSlug: { $in: uniqueSlugs },
+        'config.screens': screenId,
+      })
+      .exec();
+  }
+
+  /**
+   * Instances of one app whose resolved connector cache key matches, across every
+   * organization — the fan-out set for a refreshed payload.
+   *
+   * The key is stored on the document (see `cacheKey` in the schema) precisely so
+   * this can be an indexed lookup. Before it was, a single weather refresh read
+   * every weather instance in the database and compared keys in memory, for each
+   * of the dozens of refreshes a minute.
+   */
+  async findByCacheKey(cacheKey: string): Promise<AppInstanceDocument[]> {
+    return this.model.find({ cacheKey }).exec();
+  }
+
   async countForApp(organizationId: string, appId: string): Promise<number> {
     return this.model
       .countDocuments({
@@ -104,6 +159,7 @@ export class AppInstancesRepository {
         name: data.name,
         config: data.config,
         configVersion: data.configVersion,
+        ...cacheKeyField(data.appSlug, data.config),
       },
     ]);
     return instance;
@@ -128,6 +184,7 @@ export class AppInstancesRepository {
       name: d.name,
       config: d.config,
       configVersion: d.configVersion,
+      ...cacheKeyField(d.appSlug, d.config),
     }));
     // Mongoose requires `ordered: true` when creating multiple docs in a session.
     return this.model.create(docs, session ? { session, ordered: true } : {});
@@ -139,7 +196,7 @@ export class AppInstancesRepository {
     data: Partial<Pick<AppInstance, 'name' | 'config' | 'configVersion'>>,
   ): Promise<AppInstanceDocument | null> {
     if (!Types.ObjectId.isValid(id)) return null;
-    return this.model
+    const updated = await this.model
       .findOneAndUpdate(
         {
           _id: new Types.ObjectId(id),
@@ -149,6 +206,126 @@ export class AppInstancesRepository {
         { returnDocument: 'after' },
       )
       .exec();
+    // An edited config resolves to a different cache key, and the fan-out reads
+    // that key from the document. Leaving it stale would send the refreshed
+    // payload to the screens showing the OLD config and nothing to the new one.
+    if (updated && data.config !== undefined) {
+      await this.syncCacheKey(updated);
+    }
+    return updated;
+  }
+
+  /**
+   * Brings a document's stored `cacheKey` in line with what its config resolves
+   * to now. Writes only on a real difference, and mutates the in-memory document
+   * so the caller does not need to re-read.
+   */
+  private async syncCacheKey(doc: AppInstanceDocument): Promise<void> {
+    const next = cacheKeyFor(doc.appSlug, doc.config);
+    if ((doc.cacheKey ?? null) === next) {
+      return;
+    }
+    await this.model
+      .updateOne(
+        { _id: doc._id },
+        next ? { $set: { cacheKey: next } } : { $unset: { cacheKey: '' } },
+      )
+      .exec();
+    if (next) {
+      doc.cacheKey = next;
+    } else {
+      doc.set('cacheKey', undefined);
+    }
+  }
+
+  /**
+   * Fills in `cacheKey` for instances written before the field existed.
+   *
+   * The scheduler and the fan-out select on that field now, so a document
+   * missing it would silently never refresh again — the worst possible migration
+   * outcome, because nothing errors and screens simply go stale. Runs once at
+   * startup, streams rather than loading the collection, and is a no-op on every
+   * boot after the first. Returns how many it repaired.
+   */
+  async backfillCacheKeys(slugs: string[]): Promise<number> {
+    const uniqueSlugs = [...new Set(slugs)];
+    if (uniqueSlugs.length === 0) {
+      return 0;
+    }
+    const cursor = this.model
+      .find({ appSlug: { $in: uniqueSlugs }, cacheKey: { $exists: false } })
+      .cursor();
+
+    let repaired = 0;
+    for await (const doc of cursor) {
+      const key = cacheKeyFor(doc.appSlug, doc.config);
+      if (!key) {
+        continue;
+      }
+      await this.model
+        .updateOne({ _id: doc._id }, { $set: { cacheKey: key } })
+        .exec();
+      repaired += 1;
+    }
+    return repaired;
+  }
+
+  /**
+   * The distinct cache keys in active use, with one representative config each.
+   *
+   * An aggregation rather than a fetch-and-reduce: the scheduler asks this every
+   * sixty seconds, and the previous version answered it by loading every instance
+   * of every connector app — across all organizations — into the API process to
+   * compute keys it had just thrown away. `$group` does the deduplication in the
+   * database and returns one document per distinct key.
+   */
+  async distinctCacheKeys(slugs: string[]): Promise<
+    {
+      cacheKey: string;
+      appSlug: string;
+      config: Record<string, unknown>;
+      /** Owner of the representative instance, for connection ownership checks. */
+      organizationId: string;
+      appInstanceId: string;
+    }[]
+  > {
+    const uniqueSlugs = [...new Set(slugs)];
+    if (uniqueSlugs.length === 0) {
+      return [];
+    }
+    const groups = await this.model.aggregate<{
+      cacheKey: string;
+      appSlug: string;
+      config: Record<string, unknown>;
+      organizationId: Types.ObjectId;
+      appInstanceId: Types.ObjectId;
+    }>([
+      { $match: { appSlug: { $in: uniqueSlugs }, cacheKey: { $ne: null } } },
+      {
+        $group: {
+          _id: '$cacheKey',
+          appSlug: { $first: '$appSlug' },
+          config: { $first: '$config' },
+          organizationId: { $first: '$organizationId' },
+          appInstanceId: { $first: '$_id' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          cacheKey: '$_id',
+          appSlug: 1,
+          config: 1,
+          organizationId: 1,
+          appInstanceId: 1,
+        },
+      },
+    ]);
+    return groups.map((group) => ({
+      ...group,
+      organizationId: group.organizationId.toString(),
+      appInstanceId: group.appInstanceId.toString(),
+    }));
   }
 
   async deleteById(

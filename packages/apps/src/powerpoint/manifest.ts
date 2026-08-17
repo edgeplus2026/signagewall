@@ -86,7 +86,7 @@ export const powerpointManifest: AppManifest = {
       // answered before handing over a Microsoft account. It is true — the OAuth
       // scopes are read-only (Files.Read.All / Sites.Read.All; see
       // powerpoint.connector.ts). Keep the two in step if the scopes ever widen.
-      help: 'Sign in once. SignageWall only reads your files — it never changes or deletes anything.',
+      help: 'Sign in once. SignageWall only reads your files. It never changes or deletes anything.',
     },
     {
       key: 'presentation',

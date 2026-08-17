@@ -1,4 +1,4 @@
-import { cpSync, rmSync } from 'node:fs'
+import { cpSync, existsSync, rmSync } from 'node:fs'
 import { readdirSync, statSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
@@ -8,6 +8,8 @@ import { defineConfig, type Plugin } from 'vite'
 
 const dir = path.dirname(fileURLToPath(import.meta.url))
 const embedsRoot = path.resolve(dir, 'embeds')
+/** Committed template thumbnails (see `scripts/build-previews.mts`). */
+const previewsRoot = path.resolve(dir, 'previews')
 
 /** Primary build output (served same-origin by the player under `/apps`). */
 const playerOutDir = path.resolve(dir, '../../apps/player/public/apps')
@@ -51,6 +53,36 @@ function copyPdfjsAssets(): Plugin {
 }
 
 /**
+ * Copy the committed template thumbnails into the bundle output as `_previews/`,
+ * so the CMS config form can show `_previews/<namespace>/<value>.webp` from the
+ * same `appsBase` it already loads the bundles from — no second asset host, and
+ * no second copy to keep in sync.
+ *
+ * They cannot simply live in `apps/cms/public/apps/`: that directory is
+ * gitignored build output which {@link mirrorToCms} deletes wholesale. Being a
+ * build step instead means the images survive `emptyOutDir` and land in both the
+ * player and the CMS. Must run before {@link mirrorToCms}, like
+ * {@link copyPdfjsAssets}, so the mirror carries them across.
+ *
+ * The directory is absent until the first `pnpm previews` run, so this is a
+ * no-op rather than an error when there is nothing to copy.
+ */
+function copyPreviewThumbs(): Plugin {
+  return {
+    name: 'copy-preview-thumbs',
+    closeBundle() {
+      if (!existsSync(previewsRoot)) return
+      cpSync(previewsRoot, path.join(playerOutDir, '_previews'), {
+        recursive: true,
+        // `previews/` also holds the fixtures module the generator script reads;
+        // only the rendered images belong in the shipped bundle.
+        filter: (src) => statSync(src).isDirectory() || src.endsWith('.webp'),
+      })
+    },
+  }
+}
+
+/**
  * Discover every embed app: a folder under `embeds/` (excluding `_shared`) that
  * has an `index.html`. Each becomes a Rollup HTML input, so adding an app is
  * just dropping a new `embeds/<slug>/index.html` — no build-config edit.
@@ -80,7 +112,7 @@ function discoverInputs(): Record<string, string> {
 export default defineConfig({
   root: embedsRoot,
   base: './',
-  plugins: [copyPdfjsAssets(), mirrorToCms()],
+  plugins: [copyPdfjsAssets(), copyPreviewThumbs(), mirrorToCms()],
   build: {
     outDir: playerOutDir,
     emptyOutDir: true,

@@ -6,12 +6,12 @@
   "hero": {
     "eyebrow": "Guide",
     "title": "What is digital signage?",
-    "subtitle": "A screen that shows what you tell it to, and changes the moment you change your mind. This guide explains the whole thing from scratch — no jargon, no sales pitch."
+    "subtitle": "A screen that shows what you tell it to, and changes the moment you change your mind. This guide explains the whole thing from scratch: no jargon, no sales pitch."
   },
   "sections": [
     {
       "heading": "The short answer",
-      "body": "Digital signage is a screen in a physical space that displays content you control remotely — a menu, a price list, an offer, a waiting-room notice, a departures board. The difference from a poster is that you change it from your phone in seconds instead of printing a new one. The difference from a television is that nobody has to touch it: it plays what you scheduled, on its own, all day."
+      "body": "Digital signage is a screen in a physical space that displays content you control remotely: a menu, a price list, an offer, a waiting-room notice, a departures board. The difference between a digital signage screen and a poster is that you change it from your phone in seconds instead of printing a new one. The difference from a television is that nobody has to touch it: it plays what you scheduled, on its own, all day."
     },
     {
       "heading": "Where you have already seen it",
@@ -19,23 +19,23 @@
     },
     {
       "heading": "The three things you need",
-      "body": "A screen, a player and software. The screen is usually a television you already own — any display with an HDMI input works. The player is a small device that plugs into it: an Android box the size of your hand, a mini-PC, or a computer already sitting nearby. The software is what you use to decide what plays and when, from a browser, anywhere. That is the entire shopping list."
+      "body": "A screen, a player and software. The screen is usually a television you already own: any digital display with an HDMI input works. The player is a small device that plugs into it: an Android box the size of your hand, a mini-PC, or a computer already sitting nearby. The software is what you use to decide what plays and when, from a browser, anywhere. That is the entire shopping list."
     },
     {
       "heading": "What the player actually does",
-      "body": "It downloads your content, stores it locally and plays it in a loop. Storing it locally is the part that matters: when the internet drops, a player with a copy keeps going, while a player that streams shows a blank screen or an error to everyone walking past. Ask about this before you buy anything — it is the single most common way a signage setup embarrasses its owner."
+      "body": "It downloads your content, stores it locally and plays it in a loop. Storing it locally is the part that matters: when the internet drops, a player with a copy keeps going, while a player that streams shows a blank screen or an error to everyone walking past. Ask about this before you buy anything, because it is the single most common way a signage setup embarrasses its owner. If you are choosing the box itself, <hardware>which digital signage player to buy</hardware> is its own question."
     },
     {
       "heading": "What it costs",
-      "body": "Three separate numbers, and vendors tend to blur them. The screen you probably own. The player is a one-off purchase, typically between €50 and €200 depending on whether you need a cheap Android box or a mini-PC that runs sixteen hours a day. The software is a monthly subscription per screen — the market sits between €8 and €45, and the range mostly reflects how much a vendor holds back for higher plans. SignageWall is {price} per screen with everything included."
+      "body": "Three separate numbers, and vendors tend to blur them. The screen you probably own. The player is a one-off purchase, typically between €50 and €200 depending on whether you need a cheap Android box or a mini-PC that runs sixteen hours a day. The software is a monthly subscription per screen: the market sits between €8 and €45, and the range mostly reflects how much a vendor holds back for higher plans. SignageWall is {price} per screen with everything included."
     },
     {
       "heading": "How long it takes to set up",
-      "body": "The first screen takes minutes, not days. Plug the player into the screen and the mains, install the app, scan the code that appears, and it is paired to your account. Building the first piece of content — a menu, a price list, a welcome message — usually takes longer than the pairing does. Every screen after the first is faster, because the content already exists and you are just pointing it at a new device."
+      "body": "The first screen takes minutes, not days. Plug the player into the screen and the mains, install the app, scan the code that appears, and it is paired to your account. Building the first piece of content (a menu, a price list, a welcome message) usually takes longer than the pairing does. Every screen after the first is faster, because the content already exists and you are just pointing it at a new device."
     },
     {
       "heading": "What to put on the screen",
-      "body": "Less than you think. A screen that tries to say six things says none of them: a passer-by gives it a second or two. Pick one message per slide, make the text large enough to read from where people actually stand, and let the schedule do the work — breakfast in the morning, lunch at noon, the evening list at six. The most effective screens are the ones that change with the day rather than the ones with the most on them."
+      "body": "Less than you think. Good signage content says one thing: a screen that tries to say six says none of them, because a passer-by gives it a second or two. Pick one message per slide, make the text large enough to read from where people actually stand, and let the schedule do the work: breakfast in the morning, lunch at noon, the evening list at six. The most effective screens are the ones that change with the day rather than the ones with the most on them."
     },
     {
       "heading": "How to tell whether it is working",
@@ -43,11 +43,11 @@
     },
     {
       "heading": "Common mistakes",
-      "body": "Pushing the same content to every screen in a building, when the customer at the window and the customer in the queue are thinking about different things. Text sized for a designer's monitor rather than for four meters away. A static logo burnt into the corner of a panel after a year. Buying a professional display when an ordinary television would have lasted years, or the reverse — an ordinary television in a sunlit window, where it will never be bright enough."
+      "body": "Pushing the same content to every screen in a building, when the customer at the window and the customer in the queue are thinking about different things. Text sized for a designer's monitor rather than for four meters away. A static logo burnt into the corner of a panel after a year. Buying a professional display when an ordinary television would have lasted years, or the reverse. An ordinary television in a sunlit window, where it will never be bright enough."
     },
     {
       "heading": "Where to go next",
-      "body": "If you want to see what it looks like for your kind of business, the solutions pages walk through specific setups by industry. If you want the numbers, the pricing page has them without a sales call. If you would rather just try it, a trial takes a few minutes and needs no card."
+      "body": "If you want to see what it looks like for your kind of business, <solutions>digital signage solutions by industry</solutions> walk through specific setups. If you want to know what the software itself does, the <features>digital signage CMS</features> is described feature by feature, and <howItWorks>how digital signage works in three steps</howItWorks> covers getting a first screen running. If your question is narrower than any of that, such as how long a slide should stay up or where a screen belongs in a shop, the <blog>digital signage guides</blog> take one at a time. If you want the numbers, <pricing>digital signage software pricing</pricing> is published without a sales call. If you would rather just try it, a trial takes a few minutes and needs no card."
     }
   ],
   "faq": {
@@ -59,7 +59,7 @@
       },
       {
         "q": "Do I need a special screen?",
-        "a": "Usually not. An ordinary television is fine for normal hours indoors. Purpose-built displays are brighter, built for sixteen-hour days, and often come in portrait — worth it for a sunlit window or a screen that never turns off, unnecessary for a café wall."
+        "a": "Usually not. An ordinary television is fine for normal hours indoors. Purpose-built displays are brighter, built for sixteen-hour days, and often come in portrait, worth it for a sunlit window or a screen that never turns off, unnecessary for a café wall."
       },
       {
         "q": "Does it need to be connected all the time?",
@@ -75,7 +75,7 @@
       },
       {
         "q": "What if I have no designer?",
-        "a": "Most platforms, including ours, ship ready-made layouts you fill in with your own text and prices. For a menu or a price list you do not need a designer at all — you need consistent type and enough contrast."
+        "a": "Most platforms, including ours, ship ready-made layouts you fill in with your own text and prices. For a menu or a price list you do not need a designer at all. You need consistent type and enough contrast."
       }
     ]
   },

@@ -38,6 +38,19 @@ export interface AppHostHandle {
    * readiness, and repeatedly.
    */
   setActive(active: boolean, muted: boolean): void
+  /**
+   * Hands the app a fresh `app-config` for the SAME mounted bundle — a new
+   * connector payload, or an edited instance config.
+   *
+   * The alternative is tearing the iframe down and building a new one, which is
+   * what the ticker band used to do on every RSS refresh: the band vanished and
+   * its scroll jumped back to the start every five minutes. The protocol already
+   * requires bundles to treat a repeated `app-config` as the latest state and
+   * re-render idempotently, so this is the cheaper and less visible path.
+   *
+   * Buffered until the app is ready, exactly like {@link setActive}.
+   */
+  setConfig(item: AppRenderable): void
   /** Detaches the listener, clears the timeout and removes the iframe. */
   dispose(): void
 }
@@ -128,10 +141,29 @@ export function mountAppHost(
   let onMessage: ((event: MessageEvent) => void) | undefined
   let onError: (() => void) | undefined
   let rejectReady: ((error: Error) => void) | undefined
+  /**
+   * What this host currently renders. Starts as the item it was mounted for and
+   * is replaced by {@link AppHostHandle.setConfig}, so the readiness handler
+   * always sends the LATEST state — an update that lands mid-handshake would
+   * otherwise be overwritten by the config the mount was created with.
+   */
+  let current: AppRenderable = item
 
   const sendActive = (active: boolean, muted: boolean): void => {
     iframe.contentWindow?.postMessage(
       { type: APP_ACTIVE_TYPE, active, muted },
+      targetOrigin,
+    )
+  }
+
+  const sendConfig = (): void => {
+    iframe.contentWindow?.postMessage(
+      {
+        type: APP_CONFIG_TYPE,
+        config: current.config,
+        data: current.data ?? null,
+        meta: current.dataMeta ?? null,
+      },
       targetOrigin,
     )
   }
@@ -165,15 +197,7 @@ export function mountAppHost(
       appReady = true
       cleanupListeners()
       // Hand over config + payload, addressed to the app's origin only.
-      iframe.contentWindow?.postMessage(
-        {
-          type: APP_CONFIG_TYPE,
-          config: item.config,
-          data: item.data ?? null,
-          meta: item.dataMeta ?? null,
-        },
-        targetOrigin,
-      )
+      sendConfig()
       // Flush an active/mute directive requested while the app was still
       // loading, so a slot that activated mid-handshake isn't left inactive.
       if (pendingActive !== null) {
@@ -213,6 +237,14 @@ export function mountAppHost(
         sendActive(active, muted)
       } else {
         pendingActive = { active, muted }
+      }
+    },
+    setConfig(next: AppRenderable): void {
+      current = next
+      // Before readiness there is nothing to post to — but `current` is now the
+      // latest, and the ready handler sends that, so the update is not lost.
+      if (appReady) {
+        sendConfig()
       }
     },
     dispose(): void {

@@ -90,6 +90,21 @@ describe('loadShellDeviceInfo', () => {
     })
   })
 
+  it('carries free disk space through', async () => {
+    stubAndroid({ device_info: { freeDiskBytes: 1_812_912_000 } })
+    await expect(loadShellDeviceInfo()).resolves.toMatchObject({
+      freeDiskBytes: 1_812_912_000,
+    })
+  })
+
+  // The shell answers -1 when the OS refused to measure. One spelling of
+  // "unknown" downstream, so the menu shows an em dash instead of "-1 B".
+  it('normalises the shell\'s -1 to unknown', async () => {
+    stubAndroid({ device_info: { freeDiskBytes: -1 } })
+    const info = await loadShellDeviceInfo()
+    expect(info?.freeDiskBytes).toBeUndefined()
+  })
+
   // An older APK in the field doesn't know the command. The menu must still open
   // and simply show "—", rather than the whole thing failing to render.
   it('resolves undefined when the shell does not answer', async () => {

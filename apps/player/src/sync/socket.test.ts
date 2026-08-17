@@ -45,7 +45,15 @@ vi.mock('../persistence/idb', () => ({
 }))
 vi.mock('./commands', () => ({ applyCommand, applySettings, applyVolume }))
 vi.mock('./playback-bus', () => ({ playbackShowItem }))
-vi.mock('../native/service', () => ({ deactivateDevice }))
+vi.mock('../native/service', () => ({
+  deactivateDevice,
+  setShellChannel: vi.fn(() => Promise.resolve()),
+}))
+// Deterministic: the heartbeat awaits this before emitting, and the real module
+// reaches for the native bridge.
+vi.mock('../diagnostics', () => ({
+  collectDiagnostics: () => Promise.resolve(undefined),
+}))
 vi.mock('../recovery', () => ({
   getUrlRecoveryCode: () => urlRecoveryCode,
   clearUrlDeviceId,
@@ -220,10 +228,13 @@ describe('content and commands', () => {
 })
 
 describe('heartbeat and now-playing are volatile', () => {
-  it('emits heartbeats on the volatile channel only', () => {
+  it('emits heartbeats on the volatile channel only', async () => {
     connectPlayer()
 
-    vi.advanceTimersByTime(30_000)
+    // The period carries ±6s of per-device jitter, and the emit happens after
+    // the (mocked) diagnostics promise resolves — advance far enough for one
+    // beat and flush the microtasks it queues.
+    await vi.advanceTimersByTimeAsync(36_000)
 
     expect(socket.volatile.emit).toHaveBeenCalledTimes(1)
     const [event, payload] = socket.volatile.emit.mock.calls[0] as [

@@ -6,14 +6,26 @@
   "hero": {
     "eyebrow": "Contact",
     "title": "Let's bring your screens to life.",
-    "subtitle": "Write to us — we reply within one business day, with no strings attached."
+    "subtitle": "Write to us. We reply within one business day, with no strings attached."
   },
   "info": {
     "title": "Get in touch",
     "body": "Tell us a little about your space and screens, and we'll suggest the best way to get started.",
     "emailLabel": "Email",
-    "email": "office@signagewall.com",
-    "responseTime": "We reply within one business day."
+    "email": "signagewall@gmail.com",
+    "responseTime": "We reply within one business day.",
+    "checklist": {
+      "title": "What helps us answer in one go",
+      "items": [
+        "How many screens, and whether they sit in one place or several",
+        "What goes on them: a menu, prices, offers, notices, a live dashboard",
+        "What the screens are, and whether there is already a player behind them",
+        "When you would like the first one running"
+      ]
+    },
+    "enterprise": "Above five screens the price is quoted for the size of the network. Send the number and we will send one back, rather than pointing you at a page that cannot know it.",
+    "selfServe": "You do not have to write to us to start. The trial runs for 21 days with every feature switched on and no card, and pairing a first screen takes a few minutes. This page is for the questions a page cannot answer: a network across several sites, a screen in an awkward place, or a procurement process that needs a person on the other end.",
+    "answered": "Before you write: what it costs and what is included are on the <pricing>pricing page</pricing>, and if the term itself is new, <whatIs>what digital signage is</whatIs> explains the whole thing from scratch. Those two answer most of what arrives in this inbox, and they answer it faster than we can."
   },
   "form": {
     "name": "Full name",

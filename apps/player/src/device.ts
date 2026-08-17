@@ -190,8 +190,9 @@ export function setStoredScale(scale: DeviceScale): void {
 }
 
 /**
- * Persisted kiosk lockdown mode. Cached locally so an offline reboot re-applies
- * the lock immediately, before the socket re-delivers it. Defaults to off.
+ * Persisted kiosk lockdown mode. Device-local — nothing else knows it, so this
+ * storage IS the setting, and it is what re-applies the lock after a reboot.
+ * Defaults to off.
  */
 export function getStoredKioskMode(): KioskMode {
   const raw = safeGet(KIOSK_MODE_KEY)

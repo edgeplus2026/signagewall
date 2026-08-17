@@ -16,14 +16,14 @@ import type { FieldOption } from '@signagewall/apps-contract'
  * preview and "Bento" means nothing to them.
  */
 export const WEATHER_DISPLAY_MODES = [
-  { value: 'glance', label: 'At a glance — the temperature and the week' },
-  { value: 'panel', label: 'Panel — every reading, laid out' },
-  { value: 'hourly', label: 'Hour by hour — how today unfolds' },
-  { value: 'week', label: 'The week — seven days, warmest to coldest' },
-  { value: 'solar', label: 'Daylight — sunrise, now, sunset' },
-  { value: 'minimal', label: 'Minimal — the temperature, and nothing else' },
-  { value: 'agency', label: 'Agency — a weather desk on the news' },
-  { value: 'tiles', label: 'Tiles — a board of cards' },
+  { value: 'glance', label: 'At a glance. The temperature and the week' },
+  { value: 'panel', label: 'Panel: every reading, laid out' },
+  { value: 'hourly', label: 'Hour by hour, how today unfolds' },
+  { value: 'week', label: 'The week: seven days, warmest to coldest' },
+  { value: 'solar', label: 'Daylight: sunrise, now, sunset' },
+  { value: 'minimal', label: 'Minimal: the temperature, and nothing else' },
+  { value: 'agency', label: 'Agency. A weather desk on the news' },
+  { value: 'tiles', label: 'Tiles. A board of cards' },
 ] as const
 
 /** The `displayMode` config values, narrowed to the modes we actually ship. */

@@ -58,4 +58,13 @@ export class GraphSubscriptionsRepository {
   async deleteBySubscriptionId(subscriptionId: string): Promise<void> {
     await this.model.deleteOne({ subscriptionId });
   }
+
+  /**
+   * Every stored subscription. Used by the orphan sweep, which has to compare
+   * the whole table against the set of cache keys instances still produce —
+   * there is no query that expresses "no longer referenced".
+   */
+  async findAll(): Promise<GraphSubscriptionDocument[]> {
+    return this.model.find().exec();
+  }
 }

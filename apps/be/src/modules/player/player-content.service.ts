@@ -23,12 +23,19 @@ import {
 import { AppDataCacheRepository } from '../apps/app-data-cache.repository';
 import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
-import { OVERLAY_SLUGS, overlayScreenIds } from '../apps/overlay.util';
+import {
+  isOverlayLive,
+  OVERLAY_SLUGS,
+  overlayScreenIds,
+} from '../apps/overlay.util';
 import { AppInstanceDocument } from '../apps/schemas/app-instance.schema';
 import { MediaRepository } from '../media/media.repository';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
-import { PlaylistItemType } from '../playlists/schemas/playlist.schema';
+import {
+  PlaylistDocument,
+  PlaylistItemType,
+} from '../playlists/schemas/playlist.schema';
 import { ScreensRepository } from '../screens/screens.repository';
 import {
   ScreenAvailability,
@@ -68,15 +75,31 @@ interface PendingAppEntry {
 
 type PendingEntry = PendingMediaEntry | PendingAppEntry;
 
+/** Latest connector payload for one coarse cache key, with its freshness. */
+interface CachedAppData {
+  payload: unknown;
+  fetchedAt?: Date;
+  /**
+   * When the payload last actually CHANGED. What the revision is built from —
+   * `fetchedAt` moves on every successful re-fetch, so keying the revision on it
+   * made an unchanged feed look like new content to every screen showing it.
+   */
+  contentAt?: Date;
+  stale: boolean;
+  /** True while an async connector job is still producing this payload. */
+  pending: boolean;
+}
+
+/** Connector payloads for a set of app instances, keyed both ways. */
+interface AppDataLookup {
+  cacheKeyByInstanceId: Map<string, string>;
+  cacheByKey: Map<string, CachedAppData>;
+}
+
 /** Everything {@link PlayerContentService.buildRenderables} needs, batched once. */
-interface RenderableContext {
+interface RenderableContext extends AppDataLookup {
   mediaById: Map<string, MediaItemDocument>;
   appById: Map<string, AppInstanceDocument>;
-  cacheKeyByInstanceId: Map<string, string>;
-  cacheByKey: Map<
-    string,
-    { payload: unknown; fetchedAt?: Date; stale: boolean; pending: boolean }
-  >;
   publicBaseUrl: string | undefined;
   revisionParts: string[];
 }
@@ -138,62 +161,12 @@ export class PlayerContentService {
       screen.items,
     );
 
-    const [mediaById, appById] = await Promise.all([
-      this.loadMediaMap(
-        organizationId,
-        pending.flatMap((entry) =>
-          entry.kind === 'media' ? [entry.mediaId] : [],
-        ),
-      ),
-      this.loadAppMap(
-        organizationId,
-        pending.flatMap((entry) =>
-          entry.kind === 'app' ? [entry.appInstanceId] : [],
-        ),
-      ),
-    ]);
-
-    // Load connector payloads for the `server` app instances on this screen.
-    // Instances sharing a coarse cacheKey share one cache entry (global cache).
-    const cacheKeyByInstanceId = new Map<string, string>();
-    for (const instance of appById.values()) {
-      const cacheKey = cacheKeyForInstance(instance);
-      if (cacheKey) {
-        cacheKeyByInstanceId.set(instance._id.toString(), cacheKey);
-      }
-    }
-    const cacheByKey = new Map<
-      string,
-      { payload: unknown; fetchedAt?: Date; stale: boolean; pending: boolean }
-    >();
-    if (cacheKeyByInstanceId.size > 0) {
-      const entries = await this.appDataCacheRepository.findByCacheKeys([
-        ...new Set(cacheKeyByInstanceId.values()),
-      ]);
-      for (const entry of entries) {
-        cacheByKey.set(entry.cacheKey, {
-          payload: entry.payload,
-          ...(entry.fetchedAt ? { fetchedAt: entry.fetchedAt } : {}),
-          // A present `lastError` means the newest fetch failed and we're
-          // serving last-known-good data.
-          stale: Boolean(entry.lastError),
-          pending: Boolean(entry.pending),
-        });
-      }
-    }
-
-    const publicBaseUrl = getPublicBaseUrl(this.configService);
     const revisionParts: string[] = [];
-    const context: RenderableContext = {
-      mediaById,
-      appById,
-      cacheKeyByInstanceId,
-      cacheByKey,
-      publicBaseUrl,
+    const items = await this.buildSnapshotItems(
+      organizationId,
+      pending,
       revisionParts,
-    };
-
-    const items = this.buildRenderables(pending, context);
+    );
 
     // Persistent overlay apps assigned to this screen (via their `screens`
     // config), resolved AFTER the rotation so their fingerprint lands in the
@@ -272,6 +245,126 @@ export class PlayerContentService {
   }
 
   /**
+   * Resolves a playlist's own items into a flat playable snapshot, standing on
+   * its own rather than through a screen. This is what the CMS content preview
+   * plays: the operator sees a picture produced by the very same resolver the
+   * devices consume, instead of a re-implemented approximation of it.
+   *
+   * No availability rule and no overlays — both belong to a screen, not to a
+   * playlist. `screenId` carries the playlist id: the field is only an identity
+   * label on the wire, and a preview never reads it back.
+   */
+  async resolveByPlaylistId(
+    organizationId: string,
+    playlistId: string,
+  ): Promise<PlayerSnapshot | null> {
+    const playlist = await this.playlistsRepository.findById(
+      organizationId,
+      playlistId,
+    );
+
+    if (!playlist) {
+      return null;
+    }
+
+    const revisionParts: string[] = [];
+    const items = await this.buildSnapshotItems(
+      organizationId,
+      this.collectPlaylistEntries(playlist),
+      revisionParts,
+    );
+
+    return {
+      screenId: playlist._id.toString(),
+      name: playlist.name,
+      revision: this.hashRevision(revisionParts),
+      items,
+    };
+  }
+
+  /**
+   * Batch-loads everything the ordered `pending` entries reference — media docs,
+   * app instances and their connector payloads — then renders them in order,
+   * appending each item's fingerprint to `revisionParts`.
+   */
+  private async buildSnapshotItems(
+    organizationId: string,
+    pending: PendingEntry[],
+    revisionParts: string[],
+  ): Promise<PlayerRenderable[]> {
+    const [mediaById, appById] = await Promise.all([
+      this.loadMediaMap(
+        organizationId,
+        pending.flatMap((entry) =>
+          entry.kind === 'media' ? [entry.mediaId] : [],
+        ),
+      ),
+      this.loadAppMap(
+        organizationId,
+        pending.flatMap((entry) =>
+          entry.kind === 'app' ? [entry.appInstanceId] : [],
+        ),
+      ),
+    ]);
+
+    const appData = await this.loadAppData([...appById.values()]);
+
+    return this.buildRenderables(pending, {
+      mediaById,
+      appById,
+      ...appData,
+      publicBaseUrl: getPublicBaseUrl(this.configService),
+      revisionParts,
+    });
+  }
+
+  /**
+   * Loads the latest connector payload for every `server` app instance in
+   * `instances`. Instances sharing a coarse cacheKey share one cache entry (the
+   * cache is global), so the lookup is keyed by instance id → cacheKey → entry.
+   * `static` apps have no cacheKey and are simply absent from both maps.
+   */
+  private async loadAppData(
+    instances: AppInstanceDocument[],
+  ): Promise<AppDataLookup> {
+    const cacheKeyByInstanceId = new Map<string, string>();
+    for (const instance of instances) {
+      const cacheKey = cacheKeyForInstance(instance);
+      if (cacheKey) {
+        cacheKeyByInstanceId.set(instance._id.toString(), cacheKey);
+      }
+    }
+
+    const cacheByKey = new Map<string, CachedAppData>();
+    if (cacheKeyByInstanceId.size === 0) {
+      return { cacheKeyByInstanceId, cacheByKey };
+    }
+
+    const entries = await this.appDataCacheRepository.findByCacheKeys([
+      ...new Set(cacheKeyByInstanceId.values()),
+    ]);
+    for (const entry of entries) {
+      cacheByKey.set(entry.cacheKey, {
+        payload: entry.payload,
+        ...(entry.fetchedAt ? { fetchedAt: entry.fetchedAt } : {}),
+        // Entries written before this field existed have none. Falling back to
+        // `fetchedAt` keeps their revision where it was; without the fallback
+        // every such app would drop to 0 on the deploy that adds the field, and
+        // the whole fleet would take one gratuitous re-push.
+        ...((entry.contentAt ?? entry.fetchedAt)
+          ? { contentAt: entry.contentAt ?? entry.fetchedAt }
+          : {}),
+        // A present `lastError` means the newest fetch failed and we're
+        // serving last-known-good data.
+        stale: Boolean(entry.lastError),
+        pending: Boolean(entry.pending),
+      });
+    }
+
+    return { cacheKeyByInstanceId, cacheByKey };
+  }
+
+  /**
    * Resolve the overlay app instances (manifest `overlay: true`) assigned to
    * `screenId` through their `screens` config field, with their latest
    * connector payloads. Each contributes to the revision (config edits, data
@@ -286,41 +379,34 @@ export class PlayerContentService {
     if (OVERLAY_SLUGS.size === 0) {
       return [];
     }
-    const instances =
-      await this.appInstancesRepository.findByOrganization(organizationId);
-    const assigned = instances.filter(
+    // Asked of the database, not filtered in memory: this runs on every content
+    // push AND every device connect, and loading the organization's whole
+    // instance collection each time meant a reconnecting fleet did it once per
+    // screen.
+    const matched = await this.appInstancesRepository.findOverlaysForScreen(
+      organizationId,
+      [...OVERLAY_SLUGS],
+      screenId,
+    );
+    // The query matches an array element, but it would also match a config whose
+    // `screens` is a bare string. Re-applying the reader keeps the assignment
+    // rule in exactly one place and the semantics unchanged.
+    //
+    // `isOverlayLive` then drops a takeover whose switch is off. It has to happen
+    // HERE rather than in the bundle: an alert that reaches the snapshot changes
+    // the revision every time it is edited and mounts a full-screen iframe on
+    // every screen it names. Switched off, it should be as if it did not exist.
+    const assigned = matched.filter(
       (instance) =>
-        OVERLAY_SLUGS.has(instance.appSlug) &&
-        overlayScreenIds(instance.config).includes(screenId),
+        overlayScreenIds(instance.config).includes(screenId) &&
+        isOverlayLive(instance.appSlug, instance.config),
     );
     if (assigned.length === 0) {
       return [];
     }
 
-    const cacheKeyByInstanceId = new Map<string, string>();
-    for (const instance of assigned) {
-      const cacheKey = cacheKeyForInstance(instance);
-      if (cacheKey) {
-        cacheKeyByInstanceId.set(instance._id.toString(), cacheKey);
-      }
-    }
-    const cacheByKey = new Map<
-      string,
-      { payload: unknown; fetchedAt?: Date; stale: boolean; pending: boolean }
-    >();
-    if (cacheKeyByInstanceId.size > 0) {
-      const entries = await this.appDataCacheRepository.findByCacheKeys([
-        ...new Set(cacheKeyByInstanceId.values()),
-      ]);
-      for (const entry of entries) {
-        cacheByKey.set(entry.cacheKey, {
-          payload: entry.payload,
-          ...(entry.fetchedAt ? { fetchedAt: entry.fetchedAt } : {}),
-          stale: Boolean(entry.lastError),
-          pending: Boolean(entry.pending),
-        });
-      }
-    }
+    const { cacheKeyByInstanceId, cacheByKey } =
+      await this.loadAppData(assigned);
 
     const overlays: AppRenderable[] = [];
     for (const instance of assigned) {
@@ -347,7 +433,7 @@ export class PlayerContentService {
           : {}),
       });
       revisionParts.push(
-        `overlay:${id}:${instance.appSlug}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}:${cached?.pending ? 1 : 0}`,
+        `overlay:${id}:${instance.appSlug}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}:${cached?.pending ? 1 : 0}`,
       );
     }
     return overlays;
@@ -414,7 +500,7 @@ export class PlayerContentService {
       context.revisionParts.push(
         // Include the payload's fetch time AND staleness so both a refresh and a
         // healthy↔stale transition change the revision and re-push the snapshot.
-        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.fetchedAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}:${cached?.pending ? 1 : 0}`,
+        `${entry.id}:app:${instance.appSlug}:${durationMs}:${instance.updatedAt.getTime()}:${cached?.contentAt?.getTime() ?? 0}:${cached?.stale ? 1 : 0}:${cached?.pending ? 1 : 0}`,
       );
     }
     return items;
@@ -514,34 +600,46 @@ export class PlayerContentService {
           item.playlistId.toString(),
         );
 
-        if (!playlist) {
-          continue;
+        if (playlist) {
+          pending.push(...this.collectPlaylistEntries(playlist));
         }
+      }
+    }
 
-        const playlistItems = [...playlist.items]
-          .filter((entry) => !entry.disabled)
-          .sort((a, b) => a.order - b.order);
+    return pending;
+  }
 
-        for (const entry of playlistItems) {
-          if (entry.type === PlaylistItemType.APP && entry.appInstanceId) {
-            pending.push({
-              kind: 'app',
-              id: entry._id.toString(),
-              appInstanceId: entry.appInstanceId.toString(),
-              durationSeconds: entry.duration,
-            });
-            continue;
-          }
-          // Media item (also the default for legacy entries without a `type`).
-          if (entry.mediaId) {
-            pending.push({
-              kind: 'media',
-              id: entry._id.toString(),
-              mediaId: entry.mediaId.toString(),
-              durationSeconds: entry.duration,
-            });
-          }
-        }
+  /**
+   * Flattens one playlist's own items into ordered pending entries, using their
+   * per-item durations. Shared by the screen path (which expands playlists
+   * inline) and the standalone playlist snapshot, so a previewed playlist plays
+   * in exactly the order and timing a screen would give it.
+   */
+  private collectPlaylistEntries(playlist: PlaylistDocument): PendingEntry[] {
+    const ordered = [...playlist.items]
+      .filter((entry) => !entry.disabled)
+      .sort((a, b) => a.order - b.order);
+
+    const pending: PendingEntry[] = [];
+
+    for (const entry of ordered) {
+      if (entry.type === PlaylistItemType.APP && entry.appInstanceId) {
+        pending.push({
+          kind: 'app',
+          id: entry._id.toString(),
+          appInstanceId: entry.appInstanceId.toString(),
+          durationSeconds: entry.duration,
+        });
+        continue;
+      }
+      // Media item (also the default for legacy entries without a `type`).
+      if (entry.mediaId) {
+        pending.push({
+          kind: 'media',
+          id: entry._id.toString(),
+          mediaId: entry.mediaId.toString(),
+          durationSeconds: entry.duration,
+        });
       }
     }
 

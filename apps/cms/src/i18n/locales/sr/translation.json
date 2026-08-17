@@ -31,7 +31,15 @@
     "loadError": "Nešto je pošlo naopako",
     "loadErrorDescription": "Nismo uspeli da učitamo podatke. Proverite konekciju i pokušajte ponovo.",
     "retry": "Pokušaj ponovo",
-    "unsavedChangesPrompt": "Imate nesačuvane izmene. Da li želite da napustite stranicu bez čuvanja?"
+    "unsavedChangesPrompt": "Imate nesačuvane izmene. Da li želite da napustite stranicu bez čuvanja?",
+    "preview": {
+      "title": "Pregled",
+      "description": "Prikazuje ovaj sadržaj onako kako bi ga prikazao ekran.",
+      "frameTitle": "Pregled sadržaja",
+      "empty": "Još uvek nema sadržaja za pregled.",
+      "nothingPlayable": "Nema šta da se pusti — stavke su možda isključene ili se mediji još obrađuju.",
+      "unavailable": "Pregled nije moguće učitati. Player nije uspeo da dođe do sadržaja."
+    }
   },
   "dataTable": {
     "search": "Pretraga...",
@@ -212,25 +220,6 @@
       "files": "fajlova",
       "stored": "sačuvano",
       "empty": "Još nema medija."
-    },
-    "gettingStarted": {
-      "title": "Počnite sa SignageWall-om",
-      "subtitle": "Tri brza koraka da sadržaj stigne na vaše ekrane.",
-      "dismiss": "Sakrij",
-      "steps": {
-        "media": {
-          "title": "Otpremi medije",
-          "description": "Dodaj slike i video u biblioteku."
-        },
-        "playlists": {
-          "title": "Napravi plejlistu",
-          "description": "Rasporedi medije u plejlistu."
-        },
-        "screens": {
-          "title": "Dodaj ekran",
-          "description": "Upari displej i pusti sadržaj."
-        }
-      }
     },
     "fleet": {
       "title": "Zdravlje ekrana",
@@ -714,24 +703,12 @@
         "edit": "Izmeni"
       },
       "actions": {
-        "playlistPreview": "Pregled plejliste",
         "addToScreen": "Dodaj na ekran",
         "clearAllContent": "Obriši sav sadržaj",
         "moveToTrash": "Premesti u otpad",
         "addComingSoon": "Dodavanje medija još nije dostupno.",
         "editComingSoon": "Izmena još nije dostupna."
       }
-    },
-    "preview": {
-      "title": "Pregled: {{name}}",
-      "description": "Pregled sadržaja plejliste u vidu slajdšoua.",
-      "empty": "Dodajte sadržaj u ovu plejlistu da biste je pregledali.",
-      "previous": "Prethodna stavka",
-      "next": "Sledeća stavka",
-      "play": "Pusti",
-      "pause": "Pauziraj",
-      "close": "Zatvori pregled",
-      "counter": "{{current}} / {{total}}"
     },
     "content": {
       "totalDuration": "Ukupno trajanje",
@@ -918,6 +895,9 @@
       "unknown": "Nepoznato",
       "shellVersion": "Verzija ljuske",
       "shellVersionDescription": "Verzija native ljuske (Tauri) instalirane na uređaju.",
+      "kioskCapability": "Kiosk zaključavanje",
+      "kioskCapabilityDescription": "Da li se ovaj uređaj može zaključati tako da gledalac ne može da izađe iz plejera. Podešava se na uređaju, u servisnom meniju plejera.",
+      "kioskCapabilityLimited": "Na ovom uređaju se može izaći — nije registrovan kao Device Owner",
       "updateStatus": "Status ažuriranja",
       "updateStatusDescription": "Stanje automatskog ažuriranja ljuske uređaja.",
       "updateResult": {
@@ -937,11 +917,6 @@
       },
       "maintenance": {
         "title": "Održavanje"
-      },
-      "kiosk": {
-        "title": "Kiosk",
-        "success": "Kiosk režim ažuriran.",
-        "error": "Nije moguće ažurirati kiosk režim. Pokušajte ponovo."
       },
       "details": {
         "title": "Detalji uređaja"
@@ -973,16 +948,6 @@
           "zoom": "Zumiraj (popuni, iseci)"
         }
       },
-      "kioskMode": {
-        "title": "Kiosk zaključavanje",
-        "description": "Koliko je uređaj zaključan (samo Android ekrani).",
-        "options": {
-          "hard": "Tvrdo (potpuno zaključano)",
-          "soft": "Meko (korisnik može da izađe)",
-          "off": "Isključeno (bez zaključavanja)"
-        },
-        "notDeviceOwner": "Nije potpuno zaključano: uređaj nije registrovan kao Device Owner, pa aplikacija pada na screen pinning iz kog se može izaći. Pokreni Device Owner registraciju na uređaju za pravo zaključavanje."
-      },
       "dailyReload": {
         "title": "Dnevni restart",
         "description": "Automatski restartuj plejer jednom dnevno, po lokalnom vremenu ekrana.",
@@ -1000,6 +965,66 @@
       },
       "dangerZone": {
         "title": "Opasna zona"
+      },
+      "applyUpdate": {
+        "title": "Instaliraj ažuriranje odmah",
+        "rowDescription": "Odmah instalira ažuriranje plejera koje čeka, umesto da se sačeka termin samog ekrana. Ekran se restartuje.",
+        "button": "Instaliraj odmah",
+        "description": "Ekran će instalirati ažuriranje plejera koje čeka i restartovati se. Nakratko će biti crn. Ako ništa ne čeka, ništa se neće desiti.",
+        "cancel": "Otkaži",
+        "submit": "Instaliraj odmah",
+        "success": "Ažuriranje zatraženo.",
+        "error": "Nije moguće zatražiti ažuriranje. Pokušajte ponovo."
+      },
+      "cache": {
+        "title": "Offline kopija",
+        "description": "Koliko je sadržaja ovog ekrana sačuvano na uređaju. Potpuna kopija je ono što mu omogućava da radi i bez mreže.",
+        "value": "{{cached}} od {{total}} stavki keširano"
+      },
+      "worker": {
+        "title": "Offline keš",
+        "description": "Komponenta koja čuva sadržaj na uređaju.",
+        "uncontrolled": "Nije aktivan — ovaj ekran ne čuva ništa i ostaće prazan ako izgubi mrežu"
+      },
+      "storage": {
+        "title": "Slobodan prostor",
+        "description": "Preostali prostor na uređaju. Keširanje sadržaja staje pre nego što se popuni, da ažuriranja uvek imaju gde da slete."
+      },
+      "diagnostics": {
+        "title": "Dijagnostika",
+        "rowTitle": "Zatraži izveštaj sa ekrana",
+        "rowDescription": "Traži stanje keša, prostora i skorašnjih događaja. Ekran odgovara preko svoje žive veze, pa offline ekran i dalje prikazuje prethodni izveštaj.",
+        "button": "Zatraži",
+        "requested": "Zatraženo. Izveštaj će se pojaviti ovde čim ekran odgovori.",
+        "error": "Ekran nije dostupan. Pokušajte ponovo.",
+        "capturedAt": "Uređaj je izvestio u {{at}}",
+        "noLog": "Nema zabeleženih događaja — ili plejer nema šta da prijavi, ili mu je ljuska starija od ove funkcije."
+      },
+      "recoveries": {
+        "title": "Oporavci",
+        "description": "Koliko puta je plejer morao da bude vraćen na ekran. Ako broj raste, ovaj ekran stalno ispada i sam se vraća.",
+        "value": "{{count}} puta od instalacije"
+      },
+      "lastCrash": {
+        "title": "Poslednji pad",
+        "description": "Poslednja neuhvaćena greška na ovom uređaju."
+      },
+      "shell": {
+        "title": "Native ljuska",
+        "statusTitle": "Javljanje ljuske",
+        "statusDescription": "Ljuska se javlja svojom linijom, odvojeno od stranice plejera — pa se ekran čija je stranica pukla i dalje vidi i može da se popravi.",
+        "pageAlive": "Javila se {{at}} — plejer radi",
+        "pageDead": "Javila se {{at}} — ljuska radi, ali stranica plejera ne",
+        "neverReported": "Nikad se nije javila. Ljuska nauči kako da nas dohvati prvi put kad se stranica učita.",
+        "restartTitle": "Restart preko ljuske",
+        "restartDescription": "Radi i kad stranica ne odgovara, jer ne ide kroz nju. Ljuska ga preuzme pri sledećem javljanju, za oko pet minuta.",
+        "restartButton": "Zakaži restart",
+        "confirmTitle": "Restartovati ovaj ekran preko ljuske?",
+        "confirmDescription": "Uređaj će restartovati celu aplikaciju pri sledećem javljanju — za oko pet minuta, ne odmah. Nakratko će biti crn.",
+        "cancel": "Otkaži",
+        "submit": "Zakaži restart",
+        "queued": "Zakazano. Ekran će ga preuzeti pri sledećem javljanju.",
+        "error": "Zakazivanje nije uspelo. Pokušajte ponovo."
       }
     },
     "update": {
@@ -1529,7 +1554,8 @@
       "upgradeRequests": "Zahtevi za nadogradnju",
       "billing": "Naplata",
       "crm": "CRM",
-      "analytics": "Analitika"
+      "analytics": "Analitika",
+      "player": "Plejer"
     },
     "crm": {
       "title": "CRM leadovi",
@@ -1871,6 +1897,20 @@
           "renewal_invoice_missing": "Period ističe bez fakture za obnovu"
         }
       }
+    },
+    "player": {
+      "title": "Plejer",
+      "applyUpdate": {
+        "title": "Pošalji ažuriranje svim ekranima",
+        "rowDescription": "Nalaže svakom povezanom plejeru da odmah instalira ažuriranje koje čeka. Ugašeni i offline ekrani ažuriraju se po svom rasporedu.",
+        "button": "Pošalji floti",
+        "confirmTitle": "Ažurirati sve povezane ekrane?",
+        "confirmDescription": "Svaki povezan ekran instaliraće ažuriranje plejera i restartovati se, pa će nakratko biti crn — uključujući i ekrane koji su upravo sada pred mušterijama. Ovo se ne može poništiti; jedini put nazad je objavljivanje više verzije.",
+        "cancel": "Otkaži",
+        "submit": "Ažuriraj flotu",
+        "success": "Ažuriranje poslato svim povezanim ekranima.",
+        "error": "Slanje ažuriranja nije uspelo. Pokušajte ponovo."
+      }
     }
   },
   "faq": {
@@ -2048,6 +2088,19 @@
     },
     "carousel": {
       "goTo": "Idi na sliku {{index}}"
+    },
+    "templateGallery": {
+      "previous": "Prethodni dizajni",
+      "next": "Više dizajna",
+      "noPreview": "Nema pregleda"
+    },
+    "itemsEditor": {
+      "edit": "Uredi",
+      "done": "Gotovo",
+      "empty": "Još nema stavki",
+      "count_one": "{{count}} stavka",
+      "count_few": "{{count}} stavke",
+      "count_other": "{{count}} stavki"
     },
     "empty": {
       "store": {
@@ -2583,6 +2636,79 @@
     "licences": {
       "cta": "Zatraži još licenci",
       "title": "Zatražite još licenci"
+    }
+  },
+  "onboarding": {
+    "title": "Kako da počnete",
+    "launcher": "Kako da počnete",
+    "progress": "Završeno {{completed}} od {{total}} koraka",
+    "minimize": "Umanji",
+    "dismiss": "Zatvori vodič",
+    "dismissHint": "Zatvori — možete ga vratiti preko „Kako da počnete“ u zaglavlju",
+    "header": {
+      "label": "Kako da počnete",
+      "tooltip": "Vaš napredak u podešavanju"
+    },
+    "help": {
+      "prefix": "Treba vam pomoć?",
+      "link": "Pogledajte česta pitanja"
+    },
+    "complete": {
+      "title": "Sve je spremno",
+      "description": "Vaš sadržaj je na ekranu. Ovaj vodič se više neće pojavljivati.",
+      "cta": "Završi"
+    },
+    "steps": {
+      "media": {
+        "title": "Dodaj medije",
+        "description": "Sve počinje ovde — slike i video žive u vašoj biblioteci.",
+        "bullets": [
+          "Prevucite fajlove ili uvezite iz Google Drive-a, OneDrive-a ili Dropbox-a",
+          "Rade i slike i video; folderi drže biblioteku urednom",
+          "Sadržaj možete i generisati pomoću AI-ja ili uzeti besplatnu stok fotografiju"
+        ],
+        "cta": "Otvori Medije"
+      },
+      "playlist": {
+        "title": "Napravi plejlistu",
+        "description": "Plejlista je petlja koju ekran pušta — vaši mediji, redom koji vi odredite.",
+        "bullets": [
+          "Dodajte medije i odredite koliko svaka stavka stoji na ekranu",
+          "Prevlačenjem menjate redosled; stavku možete isključiti bez brisanja",
+          "Jedna plejlista može da radi na koliko god ekrana želite"
+        ],
+        "cta": "Otvori Plejliste"
+      },
+      "screen": {
+        "title": "Dodaj ekran",
+        "description": "Ekran ovde predstavlja jedan fizički displej u vašem prostoru.",
+        "bullets": [
+          "Dajte mu ime koje ćete prepoznati, na primer „TV na recepciji“",
+          "Radno vreme podesite kasnije, da pušta samo dok radite",
+          "Vaš paket određuje koliko ekrana možete da napravite"
+        ],
+        "cta": "Otvori Ekrane"
+      },
+      "pair": {
+        "title": "Instaliraj plejer i upari ga",
+        "description": "Plejer aplikacija pretvara bilo koji displej u SignageWall ekran.",
+        "bullets": [
+          "Instalirajte SignageWall plejer na TV, Android box ili računar",
+          "Plejer pri pokretanju prikaže šestocifreni kod za uparivanje",
+          "Unesite taj kod u kartici Uređaj na ekranu"
+        ],
+        "cta": "Upari ekran"
+      },
+      "assign": {
+        "title": "Pošalji sadržaj na ekran",
+        "description": "Poslednji korak — recite ekranu šta da pušta.",
+        "bullets": [
+          "Dodajte ekranu plejlistu, pojedinačni fajl ili aplikaciju",
+          "Izmene stižu do uparenog displeja za nekoliko sekundi",
+          "Ekran nastavlja da pušta iz keša i kada internet padne"
+        ],
+        "cta": "Dodeli sadržaj"
+      }
     }
   }
 }

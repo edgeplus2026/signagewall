@@ -33,6 +33,10 @@ import com.signagewall.player.bridge.BridgeInjection
  */
 class KioskWebViewClient(
     private val documentStartSupported: Boolean,
+    /** Configured player URL, so the legacy injection can check the origin itself. */
+    private val playerUrl: String,
+    /** Built lazily so the per-process nonce is never held as a field here. */
+    private val bridgeScript: () -> String,
     private val onRenderGone: (didCrash: Boolean) -> Unit,
     private val onMainFrameError: (description: String) -> Unit,
     private val onMainFrameLoaded: () -> Unit,
@@ -43,8 +47,14 @@ class KioskWebViewClient(
         // Fallback for WebViews without DOCUMENT_START_SCRIPT: inject as early as we
         // can. It races main.tsx's pre-render reportAlive(); a missed early signal is
         // the safe direction (the watchdog treats it as "offline", never a bad build).
-        if (!documentStartSupported) {
-            view?.evaluateJavascript(BridgeInjection.SCRIPT, null)
+        //
+        // Origin-checked, because this path has no `allowedOriginRules` of its own.
+        // `onPageStarted` is main-frame only, so a third-party page can only reach it
+        // by becoming the main document — which happens if the shell ever shows the
+        // offline page, or if a load is redirected somewhere unexpected. Handing the
+        // bridge nonce to whatever loaded is not a risk worth the convenience.
+        if (!documentStartSupported && BridgeInjection.isPlayerOrigin(url, playerUrl)) {
+            view?.evaluateJavascript(bridgeScript(), null)
         }
     }
 

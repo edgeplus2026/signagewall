@@ -19,10 +19,10 @@ export const gsheetsManifest: AppManifest = {
   name: 'Google Sheets',
   tagline: 'Put a Google Sheet on the wall',
   description:
-    'Show a range from one of your Google Sheets as a live table or a single KPI — it refreshes on its own.',
+    'Show a range from one of your Google Sheets as a live table or a single KPI. It refreshes on its own.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 3,
+  version: 4,
   refreshSeconds: 300,
   icon: GSHEETS_ICON,
   color: '#0F9D58',
@@ -33,7 +33,7 @@ export const gsheetsManifest: AppManifest = {
       label: 'Google account',
       required: true,
       provider: 'google',
-      help: 'Sign in once — SignageWall then lists your spreadsheets to choose from.',
+      help: 'Sign in once. SignageWall then lists your spreadsheets to choose from.',
     },
     {
       key: 'spreadsheet',
@@ -48,17 +48,6 @@ export const gsheetsManifest: AppManifest = {
        on screen at all, which is the wrong first question for someone who has
        just picked a spreadsheet — and the answer was almost always "the sheet".
        The connector reads a generous default instead. */
-    {
-      key: 'layout',
-      type: 'select',
-      label: 'Layout',
-      default: 'modern',
-      options: [
-        { label: 'Modern', value: 'modern' },
-        { label: 'Table', value: 'table' },
-      ],
-      help: 'Both show every column. Modern marks each row with a colour bar; Table bands alternate rows instead.',
-    },
     {
       key: 'showHeader',
       type: 'switch',

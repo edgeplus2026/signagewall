@@ -1,5 +1,13 @@
 /* "Counter" — fast-food board: condensed caps, price chips, category rail. */
 
+/* The design owns its palette — see the note in `classic.css`. Flat black
+   rather than the navy the other designs use: the price chips are punched out
+   of it in `#101010`, so the board and the chip text have to be the same ink. */
+.menu.mb-counter {
+  background: #101010;
+  color: #fff;
+}
+
 .co {
   width: 100%;
   height: 100%;

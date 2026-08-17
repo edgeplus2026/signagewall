@@ -79,7 +79,7 @@ export const qrManifest: AppManifest = {
       type: 'text',
       label: 'Message',
       placeholder: 'Optional',
-      help: 'Written into the message for them — they can still edit it before sending.',
+      help: 'Written into the message for them. They can still edit it before sending.',
       visibleWhen: { field: 'qrType', equals: 'sms' },
     },
 
@@ -98,7 +98,7 @@ export const qrManifest: AppManifest = {
       type: 'text',
       label: 'Subject',
       placeholder: 'Optional',
-      help: 'Filled in for them — they can still change it before sending.',
+      help: 'Filled in for them. They can still change it before sending.',
       visibleWhen: { field: 'qrType', equals: 'email' },
     },
     {
@@ -106,7 +106,7 @@ export const qrManifest: AppManifest = {
       type: 'textarea',
       label: 'Message',
       placeholder: 'Optional',
-      help: 'Filled in for them — they can still edit it before sending.',
+      help: 'Filled in for them. They can still edit it before sending.',
       visibleWhen: { field: 'qrType', equals: 'email' },
     },
 
@@ -168,7 +168,7 @@ export const qrManifest: AppManifest = {
       type: 'textarea',
       label: 'Caption',
       placeholder: 'Scan me',
-      help: 'Optional text beside the code — tell people why they should scan it.',
+      help: 'Optional text beside the code. Tell people why they should scan it.',
     },
 
     // Typography for the caption (shared across apps). The caption has always

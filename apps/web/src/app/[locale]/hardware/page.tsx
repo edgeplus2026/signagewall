@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
+import { copyLinks } from '@/components/content/copy-links'
 import { PageHero } from '@/components/marketing/page-hero'
 import { BreadcrumbJsonLd, FaqJsonLd } from '@/components/seo/json-ld'
 import { buttonVariants } from '@/components/ui/button'
@@ -68,7 +69,7 @@ export default async function HardwarePage({ params }: PageProps) {
         />
 
         <Section innerClassName="max-w-3xl">
-          <Lead>{t('intro')}</Lead>
+          <Lead>{t.rich('intro', copyLinks)}</Lead>
           <div className="mt-14 flex flex-col gap-14">
             {sections.map((s) => (
               <article key={s.title}>

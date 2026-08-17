@@ -27,6 +27,10 @@ import {
   OrganizationSchema,
 } from '../organizations/schemas/organization.schema';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import {
+  OnboardingProgress,
+  OnboardingProgressSchema,
+} from '../onboarding/schemas/onboarding-progress.schema';
 import { Playlist, PlaylistSchema } from '../playlists/schemas/playlist.schema';
 import { Screen, ScreenSchema } from '../screens/schemas/screen.schema';
 import { UsersModule } from '../users/users.module';
@@ -62,6 +66,7 @@ import {
       { name: AppInstance.name, schema: AppInstanceSchema },
       { name: OrgApp.name, schema: OrgAppSchema },
       { name: AppConnection.name, schema: AppConnectionSchema },
+      { name: OnboardingProgress.name, schema: OnboardingProgressSchema },
     ]),
     MediaModule,
     UsersModule,

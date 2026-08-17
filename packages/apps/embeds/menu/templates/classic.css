@@ -1,5 +1,14 @@
 /* "Classic" — refined price list. Serif display over a dotted-leader list. */
 
+/* The design owns its palette. `main.ts` sets only `--menu-accent`; background
+   and text used to come from config, which meant every design had to survive
+   whatever colours an operator had left behind. Keyed on the root so the whole
+   board — including the empty state — is painted. */
+.menu.mb-classic {
+  background: #0b1220;
+  color: #e2e8f0;
+}
+
 .cl {
   width: 100%;
   height: 100%;

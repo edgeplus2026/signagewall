@@ -13,6 +13,7 @@ import com.signagewall.player.KioskActivity
 import com.signagewall.player.R
 import com.signagewall.player.kiosk.KioskPresence
 import com.signagewall.player.runtime.RuntimeStateStore
+import com.signagewall.player.runtime.ShellLog
 import java.io.File
 
 /**
@@ -109,7 +110,11 @@ class LaunchLadder(
     fun settled() {
         if (attempts != 0 || rung != 0) {
             Log.i(TAG, "player back on screen after $attempts attempt(s) at rung $rung")
-            store.update { it.copy(launchRung = 0) }
+            ShellLog.of(context)?.record(
+                "recovery",
+                "back on screen after $attempts attempt(s) at rung $rung",
+            )
+            store.update { it.copy(launchRung = 0, recoveries = it.recoveries + 1) }
         }
         attempts = 0
         rung = 0
@@ -183,7 +188,7 @@ class LaunchLadder(
                 Notification.Builder(context, CHANNEL_ID)
                     .setContentTitle("SignageWall Player")
                     .setContentText("Reopening the player…")
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setSmallIcon(R.drawable.ic_notification)
                     .setFullScreenIntent(pending, true)
                     .setAutoCancel(true)
                     .build(),
@@ -215,6 +220,10 @@ class LaunchLadder(
      */
     private fun restartProcess() {
         Log.w(TAG, "no rung worked after $attempts attempts; restarting the process")
+        ShellLog.of(context)?.record(
+            "recovery",
+            "every rung refused after $attempts attempts; restarting the process",
+        )
         try {
             context.startActivity(
                 Intent(context, KioskActivity::class.java)

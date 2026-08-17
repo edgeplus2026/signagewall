@@ -1,7 +1,9 @@
 package com.signagewall.player.bridge
 
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -14,9 +16,13 @@ import com.signagewall.player.util.json
 
 /**
  * Routes a bridge command to its handler and produces the `value` JsonElement — or
- * throws, which the caller turns into an `{ok:false}` envelope. The eight commands
- * mirror the Tauri Rust commands 1:1 (lib.rs + updater.rs) with the same JSON
- * shapes. Quick commands do sub-millisecond work synchronously; `run_update` returns
+ * throws, which the caller turns into an `{ok:false}` envelope. Most commands mirror
+ * the Tauri Rust commands (lib.rs + updater.rs) with the same JSON shapes; the
+ * exception is `free_disk`, which is Android-only. An unknown command throws, and
+ * the web layer reads that as "this host cannot answer" — which is what lets a
+ * caller ask for something only one shell provides.
+ *
+ * Quick commands do sub-millisecond work synchronously; `run_update` returns
  * immediately (Level 3 runs the actual download/install on a background thread).
  */
 class BridgeDispatcher(
@@ -26,13 +32,47 @@ class BridgeDispatcher(
     /**
      * Whether this install is provisioned as Device Owner. Only then can a HARD
      * kiosk actually lock the box; without it the request silently degrades to
-     * escapable screen-pinning (see KioskController), and the CMS would keep
-     * telling the operator the screen was "fully locked" when it was not.
+     * escapable screen-pinning (see KioskController), which is why the service menu
+     * says so next to the switch instead of promising a lock it cannot hold.
      * A lambda so the dispatcher stays testable without a DevicePolicyManager.
      */
     private val deviceOwner: () -> Boolean = { false },
     /** Pre-serialised device facts for the web service menu. */
     private val deviceInfo: () -> String = { "{}" },
+    /**
+     * Free bytes on the partition the app stores data in, or -1 when the device
+     * would not say. The web layer's cache warming needs this because the browser
+     * cannot: a storage quota is a share of the disk's TOTAL size, so on a box that
+     * is already mostly full the quota exceeds what is actually left, and a guard
+     * written against it only trips after the disk is gone.
+     */
+    private val freeDiskBytes: () -> Long = { -1L },
+    /**
+     * Opens or closes Chrome DevTools inspection of the page, from the service
+     * menu. A lambda so the dispatcher never touches a WebView — and so a host
+     * that has no such notion simply does not supply one.
+     */
+    private val onSetWebDebugging: (Boolean) -> Unit = {},
+    /**
+     * The shell's rolling event log, newest last. Supplied as a lambda so the
+     * dispatcher neither owns the file nor knows where it lives — and so a host
+     * that keeps no such log simply answers with nothing.
+     */
+    private val readLog: () -> List<String> = { emptyList() },
+    /**
+     * A few numbers about how hard this screen has been struggling, for the
+     * heartbeat. Deliberately separate from `device_info`, which assembles the
+     * whole service-menu payload: this one is called every thirty seconds and
+     * must stay cheap enough that nobody has to think about it.
+     */
+    private val readHealth: () -> String = { "{}" },
+    /**
+     * Hands the shell the API address and device token so it can reach the
+     * backend on its own. It comes from the page rather than from the build
+     * because the page is the only thing that knows both — and the shell keeps
+     * them, which is what makes the channel outlive the page that supplied it.
+     */
+    private val onChannelCredentials: (String, String) -> Unit = { _, _ -> },
     /** Unpairs this display locally: drops the device id and restarts. */
     private val onDeactivate: () -> Unit = {},
     /** Opens the overlay-permission settings screen; false if the device has none. */
@@ -44,6 +84,21 @@ class BridgeDispatcher(
         "shell_version" -> JsonPrimitive(shellVersion)
         "device_owner" -> JsonPrimitive(deviceOwner())
         "device_info" -> json.parseToJsonElement(deviceInfo())
+        "free_disk" -> JsonPrimitive(freeDiskBytes())
+        "read_log" -> JsonArray(readLog().map { JsonPrimitive(it) })
+        "health" -> json.parseToJsonElement(readHealth())
+        "set_channel" -> {
+            val args = parseArgs(argsJson)
+            onChannelCredentials(
+                args.string("apiUrl"),
+                args.string("token"),
+            )
+            JsonNull
+        }
+        "set_web_debugging" -> {
+            onSetWebDebugging(parseArgs(argsJson).flag("enabled"))
+            JsonNull
+        }
         "deactivate" -> {
             onDeactivate()
             JsonNull
@@ -57,7 +112,11 @@ class BridgeDispatcher(
         // that would prompt is refused rather than left hanging over the content.
         "run_update" -> {
             val u = updater
-            if (u is OtaUpdater) u.runUpdate(parseOperatorFlag(argsJson)) else u.runUpdate()
+            if (u is OtaUpdater) {
+                u.runUpdate(parseArgs(argsJson).flag("operator"))
+            } else {
+                u.runUpdate()
+            }
         }
         "get_update_state" -> updater.stateReport()
         // The page beats every 5s from its own event loop, specifically so a
@@ -65,7 +124,8 @@ class BridgeDispatcher(
         // for it here, so ~17k beats a day were answered with "unknown command"
         // and discarded — the shell had the heartbeat it needed all along.
         "report_liveness" -> {
-            PlayerLiveness.beat(parseItemId(argsJson), parseMultiItem(argsJson))
+            val args = parseArgs(argsJson)
+            PlayerLiveness.beat(args.stringOrNull("itemId"), args.flag("multiItem"))
             JsonNull
         }
         "report_alive" -> {
@@ -79,40 +139,53 @@ class BridgeDispatcher(
         else -> throw IllegalArgumentException("unknown command: $cmd")
     }
 
-    private fun parseOperatorFlag(argsJson: String): Boolean =
+    /**
+     * The command's arguments, parsed ONCE.
+     *
+     * Each field used to re-parse the whole string, so `report_liveness` — which
+     * arrives every five seconds, on the WebView's JavaScript thread, with that
+     * thread blocked for the duration — parsed its payload twice per beat, and
+     * `set_channel` three times. Small individually; the point is that a
+     * `@JavascriptInterface` handler is a stall in the page's event loop, and the
+     * work should be exactly what the command needs.
+     *
+     * An unparseable payload yields an empty bag rather than throwing: every reader
+     * below already has a safe default, and a malformed argument must not turn a
+     * fire-and-forget beat into an error envelope.
+     */
+    private fun parseArgs(argsJson: String): Args =
         try {
-            json.parseToJsonElement(argsJson)
-                .jsonObject["operator"]
-                ?.jsonPrimitive
-                ?.content == "true"
+            Args(json.parseToJsonElement(argsJson).jsonObject)
         } catch (_: Throwable) {
-            false
+            Args(null)
         }
 
-    /** Whether the playlist has more than one item, so "content has not changed"
-     *  means something. Absent on an older bundle, which reads as false — the safe
-     *  direction, since it only disables a check. */
-    private fun parseMultiItem(argsJson: String): Boolean =
-        try {
-            json.parseToJsonElement(argsJson)
-                .jsonObject["multiItem"]
-                ?.jsonPrimitive
-                ?.content == "true"
-        } catch (_: Throwable) {
-            false
-        }
+    @JvmInline
+    private value class Args(private val obj: JsonObject?) {
+        /**
+         * One named flag. Compares the CONTENT, so a real JSON boolean and the
+         * string "true" both read the same — the web layer has sent both shapes
+         * over the years and neither should silently mean `false`. Anything else is
+         * false: an argument that cannot be read must not be taken as permission.
+         */
+        fun flag(name: String): Boolean =
+            try {
+                obj?.get(name)?.jsonPrimitive?.content == "true"
+            } catch (_: Throwable) {
+                false
+            }
 
-    /** The renderable currently on screen, if the page sent one. Absent on older
-     *  web bundles, which still prove the event loop is alive. */
-    private fun parseItemId(argsJson: String): String? =
-        try {
-            json.parseToJsonElement(argsJson)
-                .jsonObject["itemId"]
-                ?.jsonPrimitive
-                ?.contentOrNull
-        } catch (_: Throwable) {
-            null
-        }
+        /** One named string, or empty when absent or unreadable. */
+        fun string(name: String): String = stringOrNull(name) ?: ""
+
+        /** One named string, or null — for values whose ABSENCE is meaningful. */
+        fun stringOrNull(name: String): String? =
+            try {
+                obj?.get(name)?.jsonPrimitive?.contentOrNull
+            } catch (_: Throwable) {
+                null
+            }
+    }
 
     private fun getDeviceId(): JsonElement =
         when (val r = deviceIdStore.read()) {

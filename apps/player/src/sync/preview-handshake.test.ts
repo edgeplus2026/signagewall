@@ -4,7 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // frame relationship (the path exercised when VITE_CMS_ORIGIN is unset).
 vi.mock('../config', () => ({ config: { cmsOrigin: '' } }))
 
-const { requestPreviewToken } = await import('./preview-handshake')
+const { requestPreviewToken, reportPreviewStatus } = await import(
+  './preview-handshake'
+)
 
 interface FakeWindow {
   parent: unknown
@@ -122,5 +124,34 @@ describe('requestPreviewToken', () => {
       dispose()
     }).not.toThrow()
     expect(onToken).not.toHaveBeenCalled()
+  })
+})
+
+describe('reportPreviewStatus', () => {
+  it('posts the status to the embedding parent', () => {
+    const { parent } = embed()
+
+    reportPreviewStatus('unavailable')
+
+    expect(parent.postMessage).toHaveBeenCalledWith(
+      { type: 'preview-status', status: 'unavailable' },
+      // No CMS origin configured in this suite, so a wildcard target — the
+      // message carries no secret.
+      '*',
+    )
+  })
+
+  it('is a no-op when the player is not embedded (parent === self)', () => {
+    const postMessage = vi.fn()
+    const win: { parent?: unknown; postMessage: typeof postMessage } = {
+      postMessage,
+    }
+    win.parent = win
+    vi.stubGlobal('window', win)
+
+    expect(() => {
+      reportPreviewStatus('playing')
+    }).not.toThrow()
+    expect(postMessage).not.toHaveBeenCalled()
   })
 })

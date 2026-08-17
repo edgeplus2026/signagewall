@@ -76,6 +76,24 @@ export interface AppManifest {
    * that carries them.
    */
   overlay?: boolean
+  /**
+   * True for the subset of overlay apps that take over the WHOLE screen rather
+   * than pinning a band to one edge — the emergency alert.
+   *
+   * The distinction is not cosmetic, and it is why this is a separate flag
+   * instead of a layout option inside the app. A takeover:
+   *  - covers everything, so the rotation is stopped rather than played behind it;
+   *  - shows even OUTSIDE working hours, because an evacuation notice that waits
+   *    for opening time is not a notice;
+   *  - is drawn outside the playback engine's subtree, so it survives an engine
+   *    that has crashed — which is exactly when a screen is least trustworthy and
+   *    a message most needs to be on it.
+   *
+   * A takeover is live only while its instance config says `active`. An alert
+   * that is configured but switched off is absent from the snapshot entirely, so
+   * it costs a screen nothing until somebody needs it.
+   */
+  takeover?: boolean
   /** Default icon as inline SVG markup. Super-admin can override in the catalog. */
   icon?: string
   /** Default brand colour (hex). Super-admin can override in the catalog. */

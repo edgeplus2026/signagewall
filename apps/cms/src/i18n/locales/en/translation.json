@@ -31,7 +31,15 @@
     "loadError": "Something went wrong",
     "loadErrorDescription": "We couldn't load this data. Check your connection and try again.",
     "retry": "Try again",
-    "unsavedChangesPrompt": "You have unsaved changes. Leave without saving?"
+    "unsavedChangesPrompt": "You have unsaved changes. Leave without saving?",
+    "preview": {
+      "title": "Preview",
+      "description": "Plays this content the way a display would.",
+      "frameTitle": "Content preview",
+      "empty": "There is no content to preview yet.",
+      "nothingPlayable": "Nothing to play — items may be disabled, or their media is still processing.",
+      "unavailable": "Preview could not be loaded. The player could not reach the content."
+    }
   },
   "dataTable": {
     "search": "Search...",
@@ -235,25 +243,6 @@
       "files": "files",
       "stored": "stored",
       "empty": "No media yet."
-    },
-    "gettingStarted": {
-      "title": "Get started with SignageWall",
-      "subtitle": "Three quick steps to put content on your screens.",
-      "dismiss": "Dismiss",
-      "steps": {
-        "media": {
-          "title": "Upload media",
-          "description": "Add images and videos to your library."
-        },
-        "playlists": {
-          "title": "Create a playlist",
-          "description": "Arrange your media into a playlist."
-        },
-        "screens": {
-          "title": "Add a screen",
-          "description": "Pair a display and play your content."
-        }
-      }
     },
     "fleet": {
       "title": "Fleet health",
@@ -737,24 +726,12 @@
         "edit": "Update"
       },
       "actions": {
-        "playlistPreview": "Playlist preview",
         "addToScreen": "Add to screen",
         "clearAllContent": "Clear all content",
         "moveToTrash": "Delete playlist",
         "addComingSoon": "Adding media is not available yet.",
         "editComingSoon": "Edit is not available yet."
       }
-    },
-    "preview": {
-      "title": "Preview: {{name}}",
-      "description": "A slideshow preview of this playlist's content.",
-      "empty": "Add content to this playlist to preview it.",
-      "previous": "Previous item",
-      "next": "Next item",
-      "play": "Play",
-      "pause": "Pause",
-      "close": "Close preview",
-      "counter": "{{current}} / {{total}}"
     },
     "content": {
       "totalDuration": "Total duration",
@@ -940,6 +917,9 @@
       "unknown": "Unknown",
       "shellVersion": "Shell version",
       "shellVersionDescription": "The native shell (Tauri) version installed on the device.",
+      "kioskCapability": "Kiosk lock",
+      "kioskCapabilityDescription": "Whether this device can be locked down so a viewer cannot leave the player. Set on the device, in the player's service menu.",
+      "kioskCapabilityLimited": "Escapable on this device — not provisioned as Device Owner",
       "updateStatus": "Update status",
       "updateStatusDescription": "State of the device's automatic shell updates.",
       "updateResult": {
@@ -959,11 +939,6 @@
       },
       "maintenance": {
         "title": "Maintenance"
-      },
-      "kiosk": {
-        "title": "Kiosk",
-        "success": "Kiosk mode updated.",
-        "error": "Could not update the kiosk mode. Please try again."
       },
       "details": {
         "title": "Device details"
@@ -995,16 +970,6 @@
           "zoom": "Zoom (fill, crop)"
         }
       },
-      "kioskMode": {
-        "title": "Kiosk lock",
-        "description": "How locked-down the device is (Android displays only).",
-        "options": {
-          "hard": "Hard (fully locked)",
-          "soft": "Soft (user can exit)",
-          "off": "Off (no lock)"
-        },
-        "notDeviceOwner": "Not fully locked: this device is not provisioned as Device Owner, so the shell falls back to screen pinning, which a viewer can exit. Run the Device Owner provisioning step on the device to enforce a hard lock."
-      },
       "dailyReload": {
         "title": "Daily reload",
         "description": "Automatically reload the player once a day, in the display's local time.",
@@ -1022,6 +987,66 @@
       },
       "dangerZone": {
         "title": "Danger zone"
+      },
+      "applyUpdate": {
+        "title": "Install update now",
+        "rowDescription": "Installs a pending player update immediately instead of waiting for the screen's own window. The display restarts.",
+        "button": "Install now",
+        "description": "The screen will install any pending player update and restart. It goes dark for a few seconds. If nothing is pending, nothing happens.",
+        "cancel": "Cancel",
+        "submit": "Install now",
+        "success": "Update requested.",
+        "error": "Could not request the update. Please try again."
+      },
+      "cache": {
+        "title": "Offline copy",
+        "description": "How much of this screen's content is stored on the device. A complete copy is what lets it keep playing without a network.",
+        "value": "{{cached}} of {{total}} items cached"
+      },
+      "worker": {
+        "title": "Offline cache",
+        "description": "The component that stores content on the device.",
+        "uncontrolled": "Not active — this screen is storing nothing and will go blank if it loses its network"
+      },
+      "storage": {
+        "title": "Free storage",
+        "description": "Space left on the device. Content caching stops before it runs out, so updates always have room to land."
+      },
+      "diagnostics": {
+        "title": "Diagnostics",
+        "rowTitle": "Ask this screen to report",
+        "rowDescription": "Requests the screen's cache state, storage and recent events. It answers over its live connection, so an offline screen keeps showing its previous report.",
+        "button": "Request",
+        "requested": "Requested. The report appears here once the screen answers.",
+        "error": "Could not reach the screen. Please try again.",
+        "capturedAt": "Reported by the device at {{at}}",
+        "noLog": "No events recorded — this player has nothing to report yet, or its shell is too old to keep a log."
+      },
+      "recoveries": {
+        "title": "Recoveries",
+        "description": "How many times the player had to be put back on screen. Climbing means this screen keeps falling off and restoring itself.",
+        "value": "{{count}} times since install"
+      },
+      "lastCrash": {
+        "title": "Last crash",
+        "description": "The most recent uncaught error on this device."
+      },
+      "shell": {
+        "title": "Native shell",
+        "statusTitle": "Shell check-in",
+        "statusDescription": "The shell reports on its own line, separately from the player page — so a screen whose page has broken can still be seen and acted on.",
+        "pageAlive": "Reported {{at}} — player running",
+        "pageDead": "Reported {{at}} — the shell is up but the player page is not",
+        "neverReported": "Never reported. The shell learns how to reach us the first time a page loads.",
+        "restartTitle": "Restart via shell",
+        "restartDescription": "Works when the page is unresponsive, because it does not go through the page. The shell collects it on its next check-in, within about five minutes.",
+        "restartButton": "Queue restart",
+        "confirmTitle": "Restart this screen through its shell?",
+        "confirmDescription": "The device restarts the whole player app on its next check-in — within about five minutes, not instantly. It goes dark for a few seconds.",
+        "cancel": "Cancel",
+        "submit": "Queue restart",
+        "queued": "Queued. The screen will pick it up on its next check-in.",
+        "error": "Could not queue the command. Please try again."
       }
     },
     "update": {
@@ -1547,7 +1572,8 @@
       "upgradeRequests": "Upgrade Requests",
       "billing": "Billing",
       "crm": "CRM",
-      "analytics": "Analytics"
+      "analytics": "Analytics",
+      "player": "Player"
     },
     "crm": {
       "title": "Leads CRM",
@@ -1887,6 +1913,20 @@
           "renewal_invoice_missing": "Billing period ends without a renewal invoice"
         }
       }
+    },
+    "player": {
+      "title": "Player",
+      "applyUpdate": {
+        "title": "Push update to all screens",
+        "rowDescription": "Tells every connected player to install a pending update now. Screens that are off or offline update on their own schedule.",
+        "button": "Push to fleet",
+        "confirmTitle": "Update every connected screen?",
+        "confirmDescription": "Every connected display installs the pending player update and restarts, going dark for a few seconds — including screens in front of customers right now. This cannot be undone; the only way back is publishing a higher version.",
+        "cancel": "Cancel",
+        "submit": "Update the fleet",
+        "success": "Update pushed to all connected screens.",
+        "error": "Could not push the update. Please try again."
+      }
     }
   },
   "faq": {
@@ -2064,6 +2104,18 @@
     },
     "carousel": {
       "goTo": "Go to image {{index}}"
+    },
+    "templateGallery": {
+      "previous": "Previous designs",
+      "next": "More designs",
+      "noPreview": "No preview"
+    },
+    "itemsEditor": {
+      "edit": "Edit",
+      "done": "Done",
+      "empty": "Nothing added yet",
+      "count_one": "{{count}} item",
+      "count_other": "{{count}} items"
     },
     "empty": {
       "store": {
@@ -2598,6 +2650,79 @@
     "licences": {
       "cta": "Request more licences",
       "title": "Request more licences"
+    }
+  },
+  "onboarding": {
+    "title": "Get started",
+    "launcher": "Get started",
+    "progress": "{{completed}} of {{total}} steps done",
+    "minimize": "Minimize",
+    "dismiss": "Close setup guide",
+    "dismissHint": "Close — reopen it any time from Get started in the header",
+    "header": {
+      "label": "Get started",
+      "tooltip": "Your setup progress"
+    },
+    "help": {
+      "prefix": "Need help?",
+      "link": "Read the FAQ"
+    },
+    "complete": {
+      "title": "You're all set",
+      "description": "Your content is on screen. This guide won't come back.",
+      "cta": "Finish"
+    },
+    "steps": {
+      "media": {
+        "title": "Add your media",
+        "description": "Everything you play starts here — images and videos live in your library.",
+        "bullets": [
+          "Drag files in, or import from Google Drive, OneDrive or Dropbox",
+          "Images and videos both work; folders keep the library tidy",
+          "You can also generate content with AI or pick a free stock photo"
+        ],
+        "cta": "Go to Media"
+      },
+      "playlist": {
+        "title": "Create a playlist",
+        "description": "A playlist is the loop your screen plays — your media, in the order you want it.",
+        "bullets": [
+          "Add media and set how long each item stays on screen",
+          "Drag to reorder; disable an item to skip it without deleting it",
+          "One playlist can run on as many screens as you like"
+        ],
+        "cta": "Go to Playlists"
+      },
+      "screen": {
+        "title": "Add a screen",
+        "description": "A screen here stands for one physical display in your space.",
+        "bullets": [
+          "Give it a name you will recognise, like “Reception TV”",
+          "Set working hours later so it only plays while you are open",
+          "Your plan decides how many screens you can create"
+        ],
+        "cta": "Go to Screens"
+      },
+      "pair": {
+        "title": "Install the player and pair it",
+        "description": "The player app turns any display into a SignageWall screen.",
+        "bullets": [
+          "Install the SignageWall player on your TV, Android box or PC",
+          "The player shows a 6-digit pairing code when it starts",
+          "Enter that code on the screen’s Device tab"
+        ],
+        "cta": "Pair a screen"
+      },
+      "assign": {
+        "title": "Send content to the screen",
+        "description": "Last step — tell the screen what to play.",
+        "bullets": [
+          "Add a playlist, a single media file or an app to the screen",
+          "Changes reach a paired display within seconds",
+          "The screen keeps playing from its cache even if the internet drops"
+        ],
+        "cta": "Assign content"
+      }
     }
   }
 }

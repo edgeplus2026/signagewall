@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
+import { copyLinks } from '@/components/content/copy-links'
 import { PageHero } from '@/components/marketing/page-hero'
 import { BreadcrumbJsonLd, FaqJsonLd } from '@/components/seo/json-ld'
 import { buttonVariants } from '@/components/ui/button'
@@ -46,9 +47,12 @@ export default async function WhatIsSignagePage({ params }: PageProps) {
   const t = await getTranslations('whatIsSignage')
   const values = { price: formattedPrice(locale), trialDays: TRIAL_DAYS }
 
+  /* `t.rich` rather than `t`: the guide is where a reader decides what to read
+     next, and the sections that hand them somewhere carry the link inside the
+     sentence that earned it. Sections without a tag are unaffected. */
   const sections = (t.raw('sections') as { heading: string; body: string }[]).map((_, i) => ({
     heading: t(`sections.${i.toString()}.heading`, values),
-    body: t(`sections.${i.toString()}.body`, values),
+    body: t.rich(`sections.${i.toString()}.body`, { ...values, ...copyLinks }),
   }))
   const faq = (t.raw('faq.items') as { q: string; a: string }[]).map((_, i) => ({
     q: t(`faq.items.${i.toString()}.q`, values),

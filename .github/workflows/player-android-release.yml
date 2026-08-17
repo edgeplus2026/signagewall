@@ -129,6 +129,26 @@ jobs:
             echo "::error::SIGNAGEWALL_PLAYER_URL variable is not set — the APK would bake the dev default."
             exit 1
           fi
+          # The update-channel URL is COMPILED INTO the APK, and a device that
+          # ships with a bad one is unreachable forever: the app runs, passes its
+          # health check, plays content — and never sees another release, because
+          # the only channel that could tell it otherwise is the broken one. There
+          # is no remote fix for that, only a visit to every screen.
+          #
+          # `set -u` does not catch this: Actions substitutes an EMPTY STRING for a
+          # variable that isn't defined, so R2_PUBLIC is set-but-empty and the
+          # expansion below would quietly produce a root-relative path.
+          case "${R2_PUBLIC:-}" in
+            https://*) ;;
+            '')
+              echo "::error::R2_RELEASES_PUBLIC_URL is not set — the APK would bake a root-relative update URL and could never be updated again."
+              exit 1
+              ;;
+            *)
+              echo "::error::R2_RELEASES_PUBLIC_URL must be an absolute https:// URL, got '${R2_PUBLIC}'."
+              exit 1
+              ;;
+          esac
           manifest="${R2_PUBLIC%/}/signagewall-player/android/latest.json"
           gradle :app:testDebugUnitTest :app:assembleRelease \
             -PsignagewallPlayerUrl="$SIGNAGEWALL_PLAYER_URL" \

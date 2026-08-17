@@ -27,7 +27,7 @@ export const rssManifest: AppManifest = {
   name: 'RSS feed',
   tagline: 'Show the latest stories from any feed',
   description:
-    'Point it at a news site or blog and the screen shows its latest stories — refreshed on its own.',
+    'Point it at a news site or blog and the screen shows its latest stories, refreshed on its own.',
   runtimeKind: 'embed',
   dataSource: 'server',
   version: 1,
@@ -43,7 +43,7 @@ export const rssManifest: AppManifest = {
       placeholder: 'https://example.com/feed.xml',
       // Almost nobody knows where their feed lives, and the failure ("I pasted
       // the homepage and got nothing") is silent. Say where to look.
-      help: 'The site\'s RSS or Atom feed — usually the homepage address with "/feed" or "/rss" on the end.',
+      help: 'The site\'s RSS or Atom feed, usually the homepage address with "/feed" or "/rss" on the end.',
     },
     {
       key: 'displayMode',
@@ -51,6 +51,9 @@ export const rssManifest: AppManifest = {
       label: 'Layout',
       help: 'How the stories are arranged on the screen.',
       default: DEFAULT_DISPLAY_MODE,
+      // Inherited by the seven branded presets built from this schema in
+      // `news.ts` — they render through this bundle, so they share its images.
+      previewGallery: 'rss',
       options: displayModeOptions(),
     },
     {

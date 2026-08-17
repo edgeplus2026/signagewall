@@ -5,10 +5,10 @@
   },
   "hero": {
     "eyebrow": "Hardware",
-    "title": "What you actually need to buy.",
-    "subtitle": "Three things, and you probably own one of them. We do not sell hardware, which means we have no reason to tell you that you need more of it than you do."
+    "title": "Which digital signage player to buy.",
+    "subtitle": "Three things, and you probably own one of them: a screen, a media player and an account. A commercial display earns its price if it runs sixteen hours a day; an ordinary television does the rest. We do not sell hardware, which means we have no reason to tell you that you need more of it than you do."
   },
-  "intro": "Every signage setup is a screen, a player and software. The software is us; the other two you buy wherever it is cheapest. This page is what we would tell a friend who asked, including the parts that cost us a sale.",
+  "intro": "Every signage setup is a screen, a player and software. The software is us; the other two you buy wherever it is cheapest. This page is what we would tell a friend who asked, including the parts that cost us a sale. If the terms are new, start with <whatIs>what digital signage is</whatIs>.",
   "sections": [
     {
       "title": "The screen",
@@ -37,7 +37,7 @@
     },
     {
       "title": "What you do not need",
-      "body": "You do not need a server, a dedicated internet line, a signage-branded player, or a three-year hardware contract. If a supplier tells you their software only runs on their box, that is a hardware business with software attached — a valid model, but price it as one: their margin, their replacement cycle, their timeline.",
+      "body": "You do not need a server, a dedicated internet line, a signage-branded player, or a three-year hardware contract. If a supplier tells you their software only runs on their box, that is a hardware business with software attached. A valid model, but price it as one: their margin, their replacement cycle, their timeline.",
       "rows": []
     }
   ],
@@ -50,7 +50,7 @@
       },
       {
         "q": "Will it run on the TV I already have?",
-        "a": "Almost certainly, if it has an HDMI input. The television does not need to be smart — the player behind it does the work, and a plain screen is arguably better because there is no interface trying to take over."
+        "a": "Almost certainly, if it has an HDMI input. The television does not need to be smart. The player behind it does the work, and a plain screen is arguably better because there is no interface trying to take over."
       },
       {
         "q": "Android box or mini PC?",
@@ -66,11 +66,11 @@
       },
       {
         "q": "How long does the hardware last?",
-        "a": "A commercial panel is typically rated for 50,000 hours or more; a consumer television is not rated for continuous use at all but commonly lasts several years at normal hours. Players vary more — a cheap Android box under constant load is a two-to-three year part."
+        "a": "A commercial panel is typically rated for 50,000 hours or more; a consumer television is not rated for continuous use at all but commonly lasts several years at normal hours. Players vary more. A cheap Android box under constant load is a two-to-three year part."
       },
       {
         "q": "What happens after a power cut?",
-        "a": "The player should boot straight back into the content without anybody touching a remote. Check this on the device you buy, because not every box does it by default — some wake to a home screen and wait."
+        "a": "The player should boot straight back into the content without anybody touching a remote. Check this on the device you buy, because not every box does it by default. Some wake to a home screen and wait."
       },
       {
         "q": "Do I need a different player per screen?",

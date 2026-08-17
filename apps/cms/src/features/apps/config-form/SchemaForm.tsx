@@ -89,6 +89,8 @@ interface SchemaFormProps {
 interface Section {
   title: string | null
   fields: Field[]
+  /** Named sections collapse by default unless a field opted out. */
+  defaultOpen: boolean
 }
 
 /**
@@ -110,11 +112,17 @@ function groupSections(schema: ConfigSchema): Section[] {
     }
     group.push(field)
   }
-  return order.map((key, index) => ({
-    // The first group never shows a title (it holds the name + primary fields).
-    title: index === 0 ? null : key || null,
-    fields: byKey.get(key) ?? [],
-  }))
+  return order.map((key, index) => {
+    const fields = byKey.get(key) ?? []
+    return {
+      // The first group never shows a title (it holds the name + primary fields).
+      title: index === 0 ? null : key || null,
+      fields,
+      // Any field in the group may ask for it; a section holding the app's own
+      // content should not start hidden behind a disclosure triangle.
+      defaultOpen: fields.some((field) => field.sectionOpen === true),
+    }
+  })
 }
 
 /**
@@ -242,7 +250,11 @@ export function SchemaForm({
                 }
 
                 return (
-                  <CollapsibleSection key={section.title ?? index} title={section.title ?? ''}>
+                  <CollapsibleSection
+                    key={section.title ?? index}
+                    title={section.title ?? ''}
+                    defaultOpen={section.defaultOpen}
+                  >
                     <FieldGroup>{section.fields.map(renderField)}</FieldGroup>
                   </CollapsibleSection>
                 )

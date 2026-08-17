@@ -285,6 +285,37 @@ export interface WorkbookTable {
 }
 
 /**
+ * A drive item's content tag — Graph's change signature for the file's CONTENT
+ * (`cTag`; `eTag` also moves on metadata-only edits, so it is only the fallback).
+ * Empty when Graph returns neither, which callers must read as "cannot tell" and
+ * fetch anyway rather than as "unchanged".
+ *
+ * One cheap call that lets a connector skip an expensive read. It earns its keep
+ * because Graph will not subscribe to a single file — only to a drive ROOT — so
+ * every change anywhere in the operator's OneDrive notifies every connector
+ * watching that drive.
+ */
+export async function fetchDriveItemTag(
+  accessToken: string,
+  driveId: string,
+  itemId: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const url = `${GRAPH_BASE_URL}/drives/${encodeURIComponent(
+    driveId,
+  )}/items/${encodeURIComponent(itemId)}?$select=cTag,eTag`;
+  const response = await fetch(url, {
+    headers: { authorization: `Bearer ${accessToken}` },
+    ...(signal ? { signal } : {}),
+  });
+  if (!response.ok) {
+    throw new Error(`graph item meta ${response.status}`);
+  }
+  const body = (await response.json()) as { cTag?: string; eTag?: string };
+  return body.cTag ?? body.eTag ?? '';
+}
+
+/**
  * Read a worksheet's used range as displayed text via the Graph Workbook API —
  * the Excel analog of the Sheets values API; no file download, no xlsx parser.
  * `worksheet` may be blank for the workbook's first sheet. `usedRange` on a

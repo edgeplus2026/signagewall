@@ -36,7 +36,6 @@ export interface DeviceUpdateStatus {
    * report is a lie the CMS tells the operator.
    */
   lastResult?:
-    | 'idle'
     | 'checking'
     /** A newer signed build exists on the channel but hasn't been applied yet. */
     | 'available'
@@ -54,6 +53,62 @@ export interface DeviceUpdateStatus {
      * green tick on screens that are quietly stuck a version behind.
      */
     | 'needs-operator'
+}
+
+/**
+ * What a screen is doing right now, as opposed to what it IS.
+ *
+ * Exists so a fault can be read from the dashboard instead of reconstructed from
+ * the outside. Every field here was, at some point, something someone had to
+ * infer: whether a clip was cached had to be guessed from free-disk deltas over
+ * adb, and whether the service worker had taken over was invisible entirely —
+ * while an uncontrolled page caches nothing at all and looks perfectly healthy.
+ *
+ * Every field is optional. A player too old to report one, or a browser with no
+ * shell to ask, simply omits it, and the CMS shows nothing rather than a zero
+ * that reads as a fault.
+ */
+export interface PlayerDiagnostics {
+  /** Media URLs the worker's cache holds, out of {@link totalMedia}. */
+  cachedMedia?: number
+  /** Media URLs in the current snapshot. */
+  totalMedia?: number
+  /**
+   * Whether the last warm-up pass reached the end with everything stored. False
+   * with a full `cachedMedia` means a pass is still running or was interrupted —
+   * the distinction that decides whether this screen would survive going offline.
+   */
+  cacheComplete?: boolean
+  /** Free bytes on the device's data partition. Absent off a native shell. */
+  freeDiskBytes?: number
+  /**
+   * Whether a service worker actually CONTROLS the page. False means nothing is
+   * being cached no matter what else looks right — the failure that once left a
+   * field device with an empty video cache after a full rotation.
+   */
+  serviceWorkerControlled?: boolean
+  /**
+   * How many times the shell has had to put the player back on screen since
+   * install. Counted rather than sampled: the recovery ladder resets when it
+   * settles, so a screen that struggled all night looks identical to a healthy
+   * one by morning. A number that only climbs is the only way that shows up.
+   */
+  recoveries?: number
+  /** Breadcrumb from the last uncaught crash, if there has ever been one. */
+  lastCrash?: string
+  /** When that crash happened (epoch ms, by the device's clock). */
+  lastCrashAt?: number
+}
+
+/**
+ * The on-demand report a device sends when the CMS asks — everything in
+ * {@link PlayerDiagnostics}, plus the shell's recent events.
+ */
+export interface DiagnosticsReport extends PlayerDiagnostics {
+  /** The shell's rolling event log, oldest first. Absent off a native shell. */
+  log?: string[]
+  /** When the device assembled the report, by its own clock (ISO 8601). */
+  at?: string
 }
 
 /**
@@ -76,11 +131,19 @@ export interface ReportedProfile {
   /** Native-shell OTA update status. Absent in a browser. */
   updateStatus?: DeviceUpdateStatus
   /**
-   * Android only: whether the shell is provisioned as Device Owner. A `hard`
-   * kiosk lock can only actually hold when this is true — otherwise the shell
-   * degrades the request to escapable screen-pinning, so the CMS must not keep
-   * calling that screen "fully locked". Absent where the question does not apply
-   * (a browser, the desktop shell) or on a shell too old to answer it.
+   * Live health of this screen. Grouped rather than flattened into the profile
+   * because the fields around it are stable facts about the box, while these
+   * change on every beat — and something that reads "model" and "cached 4 of 20"
+   * as the same kind of thing invites treating a stale one as current.
+   */
+  diagnostics?: PlayerDiagnostics
+  /**
+   * Android only: whether the shell is provisioned as Device Owner. A kiosk lock
+   * can only actually hold when this is true — otherwise the shell degrades the
+   * request to escapable screen-pinning. Reported for fleet visibility; the
+   * technician-facing warning lives in the player's own service menu, next to the
+   * switch it qualifies. Absent where the question does not apply (a browser, the
+   * desktop shell) or on a shell too old to answer it.
    */
   deviceOwner?: boolean
 }

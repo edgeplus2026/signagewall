@@ -6,6 +6,7 @@ export * from './error.response';
 export * from './health.response';
 export * from './member.response';
 export * from './notification.response';
+export * from './onboarding.response';
 export * from './organization.response';
 export * from './plan.response';
 export * from './settings.response';

@@ -13,7 +13,7 @@ import {
   startStandbyUpdate,
 } from './native/updater'
 import { loadSnapshot, purgeOutdatedMediaCaches } from './persistence/idb'
-import { isPreview, previewParams } from './preview'
+import { isFollowPreview, isPreview, previewParams } from './preview'
 import { reflectDeviceIdInUrl } from './recovery'
 import {
   connection,
@@ -33,7 +33,8 @@ import { requestPreviewToken } from './sync/preview-handshake'
 import { startWakeLock } from './sync/wake-lock'
 import { connectPlayer, connectPreview, disconnectPlayer } from './sync/socket'
 import { Diagnostics } from './ui/Diagnostics'
-import { ErrorBoundary } from './ui/ErrorBoundary'
+import { EmergencyLayer } from './ui/EmergencyLayer'
+import { ErrorBoundary, clearCrashBackoff } from './ui/ErrorBoundary'
 import { PairingScreen } from './ui/PairingScreen'
 import { ServiceMenu } from './ui/ServiceMenu'
 import { Stage } from './ui/Stage'
@@ -61,6 +62,10 @@ export function App() {
       if (!reported && (contentOnScreen || connectedAndIdle)) {
         reported = true
         void reportHealthy()
+        // The same evidence settles the crash-reload backoff: this build got a
+        // working player onto the screen, so the next crash is a fresh incident
+        // and deserves the fast first retry rather than an inherited long one.
+        clearCrashBackoff()
       }
     })
     return stop
@@ -69,8 +74,8 @@ export function App() {
   useEffect(() => {
     // Preview mode (CMS iframe): a read-only spectator. Skip the whole device
     // boot — no token, no persisted snapshot, no heartbeat, no daily-reload —
-    // and just mirror the screen's live content. Orientation/scale come from
-    // the URL so the rendered output matches the real device.
+    // and just render the previewed content. Orientation/scale come from the
+    // URL so the rendered output matches the real device.
     if (isPreview && previewParams) {
       const params = previewParams
       orientation.value = params.orientation
@@ -80,14 +85,17 @@ export function App() {
       // idempotent (guards on an existing socket), so a repeated token message
       // is harmless.
       const stopHandshake = requestPreviewToken((token) => {
-        connectPreview({ screenId: params.screenId, token })
+        connectPreview({ target: params.target, mode: params.mode, token })
       })
-      // Mirror standby too: the preview must go dark outside working hours
-      // exactly as the device will, evaluating the same rule from the snapshot.
-      const stopAvailability = startAvailability()
+      // A device mirror also mirrors standby: it must go dark outside working
+      // hours exactly as the device does, evaluating the same rule from the
+      // snapshot. A standalone content preview deliberately does NOT — the
+      // operator asked to see the content, and answering that with the black
+      // rectangle the screen happens to be showing right now reads as broken.
+      const stopAvailability = isFollowPreview ? startAvailability() : undefined
       return () => {
         stopHandshake()
-        stopAvailability()
+        stopAvailability?.()
       }
     }
 
@@ -202,6 +210,10 @@ export function App() {
       <ErrorBoundary>
         <div class="player-root">
           {current === 'standby' ? <Standby /> : <Stage />}
+          {/* An operator previewing a screen must see the alert their colleague
+              just switched on — otherwise the preview says "playing normally"
+              about a screen that is showing an evacuation notice. */}
+          {current === 'emergency' && <EmergencyLayer />}
         </div>
       </ErrorBoundary>
     )
@@ -213,9 +225,13 @@ export function App() {
         {current === 'pairing' && <PairingScreen />}
         {current === 'playing' && <Stage />}
         {current === 'standby' && <Standby />}
-        {/* Above every view, including pairing and standby: the moment a
-            technician most needs the menu is when the screen is showing a
-            pairing code or is dark, not when content is happily looping. */}
+        {/* Nothing else is mounted while this is: the stage is gone, so the
+            rotation is not decoding or making noise underneath the notice. */}
+        {current === 'emergency' && <EmergencyLayer />}
+        {/* Above every view, including pairing, standby and an emergency: the
+            moment a technician most needs the menu is when the screen is showing
+            a pairing code, is dark, or has been taken over — not when content is
+            happily looping. */}
         <ServiceMenu />
         <Diagnostics />
       </div>

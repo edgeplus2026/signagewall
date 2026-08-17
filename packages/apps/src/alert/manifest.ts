@@ -11,6 +11,17 @@ const ALERT_ICON =
  * `requiresNetwork`: an alert that only shows when the internet is up is the
  * opposite of what it's for — this keeps working on a screen that's been offline.
  *
+ * It is an OVERLAY, and specifically a `takeover`: it does not wait its turn in
+ * the rotation. That was the whole problem with the first version — an alert
+ * queued behind a twenty-item playlist reaches the screen four minutes after the
+ * fire alarm, which is the same as not reaching it. Now the operator flips one
+ * switch and every screen they picked shows it within a second, including screens
+ * that are dark because they are outside working hours.
+ *
+ * `active` is deliberately its own field rather than something derived from the
+ * text being filled in. An alert is written and assigned in calm conditions and
+ * left switched off; the emergency is one toggle, not a form.
+ *
  * `severity` picks a whole look (colour + icon) rather than exposing loose
  * colour fields; the layout (huge headline, optional slow pulsing edge) is the
  * app's job to get right so it reads across a room at a glance. The pulse is a
@@ -22,20 +33,35 @@ export const alertManifest: AppManifest = {
   name: 'Emergency Alert',
   tagline: 'Full-screen urgent message',
   description:
-    'Show a high-visibility alert full-screen — a headline, optional details and a severity colour. Works offline.',
+    'Show a high-visibility alert full-screen: a headline, optional details and a severity colour. Works offline.',
   runtimeKind: 'embed',
   dataSource: 'static',
-  version: 2,
+  version: 3,
+  overlay: true,
+  takeover: true,
   icon: ALERT_ICON,
   color: '#DC2626',
   configSchema: [
+    {
+      key: 'active',
+      type: 'switch',
+      label: 'Show this alert now',
+      default: false,
+      help: 'Off, this costs the screens nothing. On, it covers them within a second — including screens that are currently outside their working hours.',
+    },
+    {
+      key: 'screens',
+      type: 'screens',
+      label: 'Show on screens',
+      help: 'Every screen picked here is taken over while the alert is on.',
+    },
     {
       key: 'headline',
       type: 'text',
       label: 'Headline',
       required: true,
       placeholder: 'Evacuate the building',
-      help: 'The main message — keep it short so it reads from across the room.',
+      help: 'The main message. Keep it short so it reads from across the room.',
     },
     {
       key: 'message',

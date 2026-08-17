@@ -10,11 +10,11 @@ import type {
   ScreenAvailabilityStatus,
   ScreenDetail,
   ScreenDevice,
-  ScreenDeviceKioskMode,
   ScreenDeviceOrientation,
   ScreenDeviceRecoveryLink,
   ScreenDeviceScale,
   ScreenItem,
+  ShellCommand,
   ScreenSummary,
   SetDeviceDailyReloadRequest,
   UpdateScreenAvailabilityRequest,
@@ -168,15 +168,31 @@ export const screensApi = {
     return data
   },
 
-  setDeviceKioskMode: async (
-    id: string,
-    kioskMode: ScreenDeviceKioskMode,
-  ): Promise<ScreenDevice> => {
-    const { data } = await api.patch<ScreenDevice>(
-      `${SCREENS_BASE}/${id}/device/kiosk-mode`,
-      { kioskMode },
-    )
-    return data
+  /**
+   * Asks the screen to report its state back. The answer arrives over the socket
+   * and lands on the device record, so the caller refetches rather than reading a
+   * response body — there is nothing to return yet when this resolves.
+   */
+  requestDeviceDiagnostics: async (id: string): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/diagnostics`)
+  },
+
+  /**
+   * Queues a command for the native shell — the path that still works when the
+   * player page is the broken part. Slower than everything else here by design.
+   */
+  queueShellCommand: async (id: string, command: ShellCommand): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/shell/${command}`)
+  },
+
+  /** Asks the shell to bring its event log along on its next check-in. */
+  requestShellLog: async (id: string): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/shell-log`)
+  },
+
+  /** Makes this one screen install a pending player update immediately. */
+  applyDeviceUpdate: async (id: string): Promise<void> => {
+    await api.post(`${SCREENS_BASE}/${id}/device/apply-update`)
   },
 
   setDeviceDailyReload: async (

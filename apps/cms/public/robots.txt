@@ -1,0 +1,11 @@
+# app.signagewall.com is the SignageWall dashboard, not public content.
+#
+# Crawling is deliberately allowed. Every page carries `noindex` in its head,
+# and a crawler has to fetch a page to read that; a blanket Disallow here would
+# hide the tag and leave bare URLs listed from whatever links to them.
+#
+# The marketing site is a separate host and has its own robots.txt and sitemap:
+# https://www.signagewall.com/robots.txt
+
+User-agent: *
+Allow: /

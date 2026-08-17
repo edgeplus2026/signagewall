@@ -20,12 +20,14 @@ import {
   OrganizationRole,
   normalizeOrganizationRole,
 } from '../organizations/schemas/organization-membership.schema';
+import { OnboardingProgress } from '../onboarding/schemas/onboarding-progress.schema';
 import { Organization } from '../organizations/schemas/organization.schema';
 import { AppInstance } from '../apps/schemas/app-instance.schema';
 import { OrgApp } from '../apps/schemas/org-app.schema';
 import { Device } from '../player/schemas/device.schema';
 import { Playlist } from '../playlists/schemas/playlist.schema';
 import { Screen } from '../screens/schemas/screen.schema';
+import { SchedulerLockService } from '../../common/redis/scheduler-lock.service';
 import { TransactionService } from '../../common/services/transaction.service';
 import { UsersRepository } from '../users/users.repository';
 import {
@@ -63,12 +65,15 @@ export class DataDeletionService {
     @InjectModel(OrgApp.name) private readonly orgAppModel: Model<OrgApp>,
     @InjectModel(AppConnection.name)
     private readonly appConnectionModel: Model<AppConnection>,
+    @InjectModel(OnboardingProgress.name)
+    private readonly onboardingModel: Model<OnboardingProgress>,
     private readonly mediaService: MediaService,
     private readonly usersRepository: UsersRepository,
     private readonly legalRepository: LegalRepository,
     private readonly transactionService: TransactionService,
     private readonly eventEmitter: EventEmitter2,
     private readonly i18n: I18nService,
+    private readonly lock: SchedulerLockService,
   ) {}
 
   // --- Requests (start the grace period) -------------------------------------
@@ -182,6 +187,11 @@ export class DataDeletionService {
    */
   @Cron('0 3 * * *')
   async runSweep(): Promise<number> {
+    // This one ERASES data. Two instances racing the same pending row is the
+    // worst possible place to discover the scheduler runs everywhere.
+    if (!(await this.lock.isLeader('data-deletion-sweep', 30 * 60_000))) {
+      return 0;
+    }
     const due = await this.pendingModel
       .find({ status: 'pending', scheduledFor: { $lte: new Date() } })
       .exec();
@@ -225,6 +235,7 @@ export class DataDeletionService {
       await this.appConnectionModel.deleteMany(filter, opts).exec();
       await this.membershipModel.deleteMany(filter, opts).exec();
       await this.invitationModel.deleteMany(filter, opts).exec();
+      await this.onboardingModel.deleteMany(filter, opts).exec();
       await this.organizationModel.deleteOne({ _id: orgId }, opts).exec();
     });
 
@@ -268,6 +279,12 @@ export class DataDeletionService {
         await this.transferOwnership(orgId, userId);
       }
     }
+
+    // Onboarding rows in organizations that outlived the account still carry
+    // this user id, so they go with them.
+    await this.onboardingModel
+      .deleteMany({ userId: new Types.ObjectId(userId) })
+      .exec();
 
     // Erase the user's legal-acceptance records too — they carry the user id +
     // IP (personal data). Proof-of-consent is discarded on erasure by design.

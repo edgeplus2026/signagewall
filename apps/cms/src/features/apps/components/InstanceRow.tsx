@@ -116,7 +116,7 @@ export function InstanceRow({ app, instance, onRequestDelete }: InstanceRowProps
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="text-secondary size-7 shrink-0 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+                className="text-secondary size-7 shrink-0 transition-opacity max-sm:opacity-100 sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
               >
                 <MoreHorizontalIcon />
                 <span className="sr-only">{t('common.actions')}</span>

@@ -710,20 +710,38 @@ function startAutoScroll(): void {
   let holdUntil = last + PAUSE_MS // hold at the top before the first pass
   let scrolling = false
 
+  /**
+   * How often the overflow is re-measured while NOT scrolling.
+   *
+   * Reading `scrollHeight`/`clientHeight` forces a layout, and doing it on every
+   * animation frame is sixty forced reflows a second — permanently, on a box whose
+   * CPU is also decoding video. It has to be re-measured (the iframe often renders
+   * before it has its final size, and fonts land late), but four times a second is
+   * plenty to notice that the layout started overflowing.
+   */
+  const IDLE_PROBE_MS = 250
+  let nextProbe = 0
+
   const step = (nowTs: number): void => {
     const dt = Math.min(nowTs - last, 64) // clamp after tab-switch stalls
     last = nowTs
-    const overflow = el.scrollHeight - el.clientHeight
-    if (overflow > 2) {
-      if (!scrolling) {
-        if (nowTs >= holdUntil) scrolling = true
-      } else {
+    if (scrolling) {
+      const overflow = el.scrollHeight - el.clientHeight
+      if (overflow > 2) {
         el.scrollTop += (SPEED * dt) / 1000
         if (el.scrollTop >= overflow - 0.5) {
           el.scrollTop = 0
           scrolling = false
           holdUntil = nowTs + PAUSE_MS
         }
+      } else {
+        // It stopped overflowing under us (a resize, a shorter render).
+        scrolling = false
+      }
+    } else if (nowTs >= nextProbe) {
+      nextProbe = nowTs + IDLE_PROBE_MS
+      if (el.scrollHeight - el.clientHeight > 2 && nowTs >= holdUntil) {
+        scrolling = true
       }
     }
     scrollRaf = requestAnimationFrame(step)

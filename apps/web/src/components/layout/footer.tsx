@@ -1,9 +1,11 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 
 import { Logo } from '@/components/brand/logo'
+import { SocialIcon } from '@/components/brand/social-icons'
 import { Block } from '@/components/ui/block'
 import { Container } from '@/components/ui/container'
 import { Link } from '@/i18n/navigation'
+import { SOCIAL_PROFILES } from '@/lib/social'
 import { listTopSolutions } from '@/lib/solutions'
 
 /* Exactly the routes this footer links to. Wider than that and Link can no
@@ -121,13 +123,32 @@ export async function Footer() {
       </Container>
 
       <Container>
-        {/* The notice is the whole bottom rule now — the social icons that used
-            to balance it on the right are gone, so the three-track grid that
-            existed only to centre it against them went with them. */}
-        <div className="border-t border-secondary py-5">
-          <p className="text-center text-xs text-secondary">
+        {/* Notice and profiles share the bottom rule: side by side once there
+            is room, stacked below that rather than squeezed, because four
+            icons and a copyright line do not survive the same row on a phone. */}
+        <div className="flex flex-col items-center gap-4 border-t border-secondary py-5 sm:flex-row sm:justify-between">
+          <p className="text-xs text-secondary">
             © {year} SignageWall. {t('rights')}
           </p>
+          <nav aria-label={t('social')} className="flex items-center gap-5">
+            {SOCIAL_PROFILES.map((profile) => (
+              /* `rel="me"` is the link's half of the identity claim that
+                 `Organization.sameAs` makes from the other direction: the site
+                 vouches for the profile, and the profile links back to the
+                 site. The platform name is the accessible name — the glyph
+                 alone leaves a screen reader with nothing to announce. */
+              <a
+                key={profile.name}
+                href={profile.url}
+                target="_blank"
+                rel="me noopener noreferrer"
+                className="text-secondary transition-colors hover:text-primary"
+              >
+                <SocialIcon platform={profile.name} className="size-5" />
+                <span className="sr-only">{profile.name}</span>
+              </a>
+            ))}
+          </nav>
         </div>
       </Container>
     </Block>

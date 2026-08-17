@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
+import { copyLinks } from '@/components/content/copy-links'
 import { CtaBand } from '@/components/marketing/cta-band'
 import { PageHero } from '@/components/marketing/page-hero'
 import { SectionHeader } from '@/components/marketing/section-header'
@@ -41,7 +42,10 @@ export default async function HowItWorksPage({ params }: PageProps) {
   /* See features: one step body names the app count. */
   const steps = (t.raw('steps.items') as { title: string; body: string }[]).map((_, i) => ({
     title: t(`steps.items.${i.toString()}.title`, { count: catalogApps.length }),
-    body: t(`steps.items.${i.toString()}.body`, { count: catalogApps.length }),
+    body: t.rich(`steps.items.${i.toString()}.body`, {
+      count: catalogApps.length,
+      ...copyLinks,
+    }),
   }))
   const caps = t.raw('capabilities.items') as { title: string; body: string }[]
   const faq = t.raw('faq.items') as { q: string; a: string }[]

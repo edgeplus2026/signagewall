@@ -20,10 +20,10 @@ import {
   type ScreenAvailability,
   type ScreenAvailabilityStatus,
   type ScreenDevice,
-  type ScreenDeviceKioskMode,
   type ScreenDeviceOrientation,
   type ScreenDeviceScale,
   type ScreenDeviceSettings,
+  type ShellCommand,
   type SetDeviceDailyReloadRequest,
   type UpdateScreenAvailabilityRequest,
   type UpdateScreenRequest,
@@ -228,25 +228,6 @@ export function useSetDeviceScale() {
   })
 }
 
-export function useSetDeviceKioskMode() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({
-      id,
-      kioskMode,
-    }: {
-      id: string
-      kioskMode: ScreenDeviceKioskMode
-    }) => screensApi.setDeviceKioskMode(id, kioskMode),
-    onSuccess: (_data, variables) => {
-      patchDevice(queryClient, variables.id, {
-        settings: { kioskMode: variables.kioskMode },
-      })
-    },
-  })
-}
-
 export function useSetDeviceDailyReload() {
   const queryClient = useQueryClient()
 
@@ -270,6 +251,52 @@ export function useSetDeviceDailyReload() {
 export function useRestartDevice() {
   return useMutation({
     mutationFn: (id: string) => screensApi.restartDevice(id),
+  })
+}
+
+/**
+ * Queues a command for the native shell. Nothing to invalidate and nothing to
+ * await: the device collects it on its next check-in, which is minutes away.
+ */
+export function useQueueShellCommand() {
+  return useMutation({
+    mutationFn: ({ id, command }: { id: string; command: ShellCommand }) =>
+      screensApi.queueShellCommand(id, command),
+  })
+}
+
+/**
+ * Asks the screen to report its state. The device answers asynchronously over the
+ * socket, so this invalidates the device query on a delay rather than on success —
+ * resolving only means the request left the building.
+ */
+export function useRequestDeviceDiagnostics() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => screensApi.requestDeviceDiagnostics(id),
+    onSuccess: (_data, id) => {
+      // Two seconds is generous for a round trip the device answers immediately;
+      // if it is slower than that the operator presses again, which is far better
+      // than polling every screen in the fleet on the chance one was asked.
+      const organizationId = useOrganizationStore.getState().activeOrganizationId
+      setTimeout(() => {
+        void queryClient.invalidateQueries({
+          queryKey: screenDeviceQueryKey(organizationId, id),
+        })
+      }, 2000)
+    },
+  })
+}
+
+/**
+ * Makes this screen install a pending player update now, rather than waiting for
+ * its own windows. Fire-and-forget: the device answers by restarting into the new
+ * version, and nothing in the cache describes that.
+ */
+export function useApplyDeviceUpdate() {
+  return useMutation({
+    mutationFn: (id: string) => screensApi.applyDeviceUpdate(id),
   })
 }
 

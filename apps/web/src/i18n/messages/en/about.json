@@ -11,14 +11,14 @@
   "story": {
     "title": "Why we built it.",
     "paragraphs": [
-      "We kept walking into the same room. A screen switched off, or frozen on an image from last spring, or showing an error nobody had noticed for a week. Not because the business did not care — because changing it meant remembering a password, opening a tool built for someone else, and finding that the thing you wanted was in a plan you had not bought.",
+      "We kept walking into the same room. A screen switched off, or frozen on an image from last spring, or showing an error nobody had noticed for a week. Not because the business did not care, but because changing it meant remembering a password, opening a tool built for someone else, and finding that the thing you wanted was in a plan you had not bought.",
       "So the product is shaped around two ideas. The price is one number with everything switched on, because a feature matrix is just a way of charging you twice. And the player assumes the network will fail, because it will: it keeps a local copy, plays through the outage, and restarts itself if it ever stalls."
     ]
   },
   "build": {
     "eyebrow": "How it is built",
     "title": "The parts we spent the most time on.",
-    "subtitle": "Not the parts that demo well — the parts that decide whether a screen is still right in six months.",
+    "subtitle": "Not the parts that demo well. The parts that decide whether a screen is still right in six months.",
     "items": [
       {
         "title": "Offline first, not offline-tolerant",
@@ -26,7 +26,7 @@
       },
       {
         "title": "A watchdog that does not wait for you",
-        "body": "A separate process checks that the player is not just running but actually drawing frames, and restarts it if it stalls. Most signage outages are not crashes — they are a frozen picture nobody reports for days."
+        "body": "A separate process checks that the player is not just running but actually drawing frames, and restarts it if it stalls. Most signage outages are not crashes. They are a frozen picture nobody reports for days."
       },
       {
         "title": "Updates that cannot brick a screen",
@@ -61,7 +61,7 @@
   },
   "contact": {
     "title": "Talk to us.",
-    "body": "Questions about how it works, whether it fits, or what it would cost for your network — we answer within one business day.",
+    "body": "Questions about how it works, whether it fits, or what it would cost for your network. We answer within one business day.",
     "cta": "Get in touch",
     "ctaSecondary": "Start free trial"
   }

@@ -3,8 +3,9 @@
   "identifier": "default",
   "description": "Kiosk shell capabilities for the main window (incl. the remote player origin).",
   "windows": ["main"],
+  "//remote": "Dev origins only. CI REPLACES this array wholesale with the single production origin (see player-release.yml) — it is not merged, so nothing here reaches a released build. Do not add a LAN address: a committed one is a machine on somebody's network granted the identity and updater commands.",
   "remote": {
-    "urls": ["http://localhost:5174", "http://192.168.100.160:5174", "https://REPLACE_PROD_ORIGIN"]
+    "urls": ["http://localhost:5174", "https://REPLACE_PROD_ORIGIN"]
   },
   "permissions": [
     "core:default",

@@ -19,6 +19,23 @@ import { config } from '../config'
 
 const READY_MESSAGE = { type: 'preview-ready' } as const
 const TOKEN_TYPE = 'preview-token'
+const STATUS_TYPE = 'preview-status'
+
+/**
+ * What the embedding CMS is told about the preview, so it can say something
+ * useful instead of leaving an unexplained black rectangle on screen:
+ *  - `playing`     — content resolved and is on screen.
+ *  - `empty`       — we are connected, but the snapshot has nothing playable
+ *                    (every item disabled, or media still processing).
+ *  - `unavailable` — the server closed our socket: unknown target, no
+ *                    membership, a rejected token, or a backend that does not
+ *                    understand this preview. Terminal; nothing will arrive.
+ *
+ * The CMS covers the remaining case (nothing reported at all — e.g. the token
+ * never reached us) with its own timeout; a player that cannot start has, by
+ * definition, no way to say so.
+ */
+export type PreviewStatus = 'playing' | 'empty' | 'unavailable'
 
 interface PreviewTokenMessage {
   type: typeof TOKEN_TYPE
@@ -72,4 +89,20 @@ export function requestPreviewToken(
   return () => {
     window.removeEventListener('message', onMessage)
   }
+}
+
+/**
+ * Tells the embedding CMS how the preview is faring. No-op when not embedded.
+ *
+ * Carries no secret — only a status word — so a wildcard target origin is safe
+ * where no CMS origin is configured; where one is, we address it.
+ */
+export function reportPreviewStatus(status: PreviewStatus): void {
+  if (typeof window === 'undefined' || window.parent === window) {
+    return
+  }
+  window.parent.postMessage(
+    { type: STATUS_TYPE, status },
+    config.cmsOrigin || '*',
+  )
 }

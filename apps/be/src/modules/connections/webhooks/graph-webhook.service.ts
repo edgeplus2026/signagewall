@@ -4,6 +4,7 @@ import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { AppDataService } from '../../apps/app-data.service';
+import type { GraphSubscriptionDocument } from '../schemas/graph-subscription.schema';
 import { ConnectionsService } from '../connections.service';
 import { GraphSubscriptionsRepository } from './graph-subscriptions.repository';
 
@@ -181,6 +182,71 @@ export class GraphWebhookService {
     });
   }
 
+  /**
+   * Delete subscriptions nothing references any more.
+   *
+   * A subscription is created per cache key on config save and was, until this
+   * existed, never deleted by anything: not by removing the instance, not by an
+   * edit that changes the cache key (a new mapping or workbook mints a new
+   * subscription and abandons the old one), not by uninstalling the app, not by
+   * disconnecting the account. {@link renewExpiring} then renewed every
+   * abandoned row hourly, forever — and once the connection was gone, failed to
+   * renew it hourly, forever.
+   *
+   * Swept rather than deleted at each of those call sites on purpose: a cache
+   * key is SHARED by every instance that resolves to it, so "this instance is
+   * gone" does not imply "this subscription is unused". Comparing the whole
+   * table against the live key set is the only check that gets that right, and
+   * it cannot be defeated by a new deletion path someone forgets to hook up.
+   */
+  async pruneOrphaned(): Promise<number> {
+    const stored = await this.subscriptionsRepository.findAll();
+    if (stored.length === 0) {
+      return 0;
+    }
+    const live = await this.appDataService.liveCacheKeys();
+
+    let removed = 0;
+    for (const sub of stored) {
+      if (live.has(sub.cacheKey)) {
+        continue;
+      }
+      await this.deleteSubscription(sub);
+      removed += 1;
+    }
+    if (removed > 0) {
+      this.logger.log(`Pruned ${String(removed)} orphaned Graph subscriptions`);
+    }
+    return removed;
+  }
+
+  /**
+   * Tell Graph to stop sending, then forget the row. The remote DELETE is
+   * best-effort — a subscription we can no longer authenticate for (the account
+   * was disconnected) still has to leave our table, or the sweep retries it
+   * every hour for the lifetime of the deployment.
+   */
+  private async deleteSubscription(
+    sub: GraphSubscriptionDocument,
+  ): Promise<void> {
+    try {
+      const connection = await this.connectionsService.resolveConnection(
+        sub.connectionId.toString(),
+      );
+      await fetch(`${GRAPH_SUBSCRIPTIONS_URL}/${sub.subscriptionId}`, {
+        method: 'DELETE',
+        headers: { authorization: `Bearer ${connection.accessToken}` },
+      });
+    } catch (error) {
+      this.logger.debug(
+        `Graph subscription delete skipped for ${sub.subscriptionId}: ${String(error)}`,
+      );
+    }
+    await this.subscriptionsRepository.deleteBySubscriptionId(
+      sub.subscriptionId,
+    );
+  }
+
   /** Renew subscriptions nearing expiry (called by the cron). */
   async renewExpiring(now: Date = new Date()): Promise<number> {
     if (!this.isEnabled()) {
@@ -222,6 +288,20 @@ export class GraphWebhookService {
           );
         }
       } catch (error) {
+        // A disconnected account leaves the instance (and so its cache key)
+        // alive, so the orphan sweep will never claim this row — but it can
+        // never be renewed again either. Distinguish "gone for good" from a
+        // transient resolve failure and drop only the former.
+        if (
+          !(await this.connectionsService.connectionExists(
+            sub.connectionId.toString(),
+          ))
+        ) {
+          await this.subscriptionsRepository.deleteBySubscriptionId(
+            sub.subscriptionId,
+          );
+          continue;
+        }
         this.logger.warn(
           `Subscription renewal failed for ${sub.subscriptionId}: ${String(error)}`,
         );

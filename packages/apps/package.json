@@ -18,7 +18,8 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --clean --sourcemap && tsc -p tsconfig.json --emitDeclarationOnly && pnpm run build:embeds",
     "build:embeds": "vite build --config vite.embeds.config.ts",
-    "type-check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.embeds.json"
+    "previews": "tsx scripts/build-previews.mts",
+    "type-check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.embeds.json && tsc -p tsconfig.previews.json"
   },
   "dependencies": {
     "@signagewall/apps-contract": "workspace:*"
@@ -36,7 +37,9 @@
     "hls.js": "^1.6.16",
     "pdfjs-dist": "^6.1.200",
     "qrcode": "^1.5.4",
+    "sharp": "^0.35.1",
     "tsup": "^8.3.5",
+    "tsx": "^4.22.4",
     "typescript": "~6.0.2",
     "vite": "^8.0.12"
   }

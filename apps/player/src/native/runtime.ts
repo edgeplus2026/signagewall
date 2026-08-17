@@ -69,6 +69,40 @@ export function isDeviceOwner(): boolean | undefined {
 }
 
 /**
+ * Free bytes on the device's data partition, or undefined where nothing can say —
+ * a browser, the desktop shell, or an Android shell too old for the command.
+ *
+ * Deliberately NOT cached like the two above: free space is the one device fact
+ * that changes while the player runs, and a value read at boot would be the exact
+ * value that stops being true as the cache fills.
+ *
+ * The shell answers -1 when the OS refused to measure. That is "unknown", not
+ * "nothing left" — treating it as zero would stop caching on a healthy device.
+ */
+export async function freeDiskBytes(): Promise<number | undefined> {
+  const bytes = await nativeInvoke<number>('free_disk')
+  return typeof bytes === 'number' && bytes >= 0 ? bytes : undefined
+}
+
+/** What the shell reports about how hard it has been working. */
+export interface ShellHealth {
+  recoveries?: number
+  lastCrash?: string
+  lastCrashAt?: number
+}
+
+/**
+ * How hard this screen has been struggling, or undefined off a native shell.
+ *
+ * Read fresh on every heartbeat rather than cached: a recovery count that only
+ * updated at boot would be zero on exactly the device that had been recovering
+ * all night.
+ */
+export async function shellHealth(): Promise<ShellHealth | undefined> {
+  return nativeInvoke<ShellHealth>('health')
+}
+
+/**
  * Composed OTA status for the heartbeat. An unresolved apply outcome (a rollback
  * awaiting operator action) wins over routine detection, so a rolled-back device
  * surfaces `unhealthy` in the CMS instead of a misleading `available`.

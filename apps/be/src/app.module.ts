@@ -15,6 +15,7 @@ import { CommonModule } from './common/common.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
+import { RedisModule } from './common/redis/redis.module';
 import configuration from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
@@ -34,6 +35,7 @@ import { DataDeletionModule } from './modules/data-deletion/data-deletion.module
 import { MembersModule } from './modules/members/members.module';
 import { MediaModule } from './modules/media/media.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { TrialModule } from './modules/plans/trial.module';
@@ -75,6 +77,9 @@ import { UsersModule } from './modules/users/users.module';
     }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
+    // Global: supplies the scheduler lease that keeps periodic jobs from running
+    // once per API instance. No-op without Redis.
+    RedisModule,
     DatabaseModule,
     CommonModule,
     AnalyticsModule,
@@ -100,6 +105,7 @@ import { UsersModule } from './modules/users/users.module';
     DataDeletionModule,
     PlansModule,
     TrialModule,
+    OnboardingModule,
     HealthModule,
   ],
   providers: [

@@ -154,6 +154,7 @@ export {
   DEFAULT_MENU_TEMPLATE,
   MENU_TEMPLATES,
   menuTemplateOptions,
+  RETIRED_MENU_TEMPLATES,
 } from './menu/templates.js'
 export type { MenuTemplate } from './menu/templates.js'
 export type { MenuItem, MenuSyncPayload } from './menu/payload.js'

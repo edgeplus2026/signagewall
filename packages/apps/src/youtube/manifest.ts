@@ -20,7 +20,7 @@ export const youtubeManifest: AppManifest = {
   name: 'YouTube',
   tagline: 'Play a YouTube video on your screens',
   description:
-    'Paste a YouTube link and play the video across your displays — no downloads, no fuss.',
+    'Paste a YouTube link and play the video across your displays: no downloads, no fuss.',
   runtimeKind: 'embed',
   dataSource: 'static',
   version: 1,
@@ -43,7 +43,7 @@ export const youtubeManifest: AppManifest = {
       // one says where to get the link, and names the limit up front — a playlist
       // link fails the pattern, and the operator deserves to know why before the
       // form rejects it.
-      help: "Copy it from YouTube's address bar, or from its Share button. One video per app — playlists aren't supported.",
+      help: "Copy it from YouTube's address bar, or from its Share button. One video per app, playlists aren't supported.",
       required: true,
       placeholder: 'https://www.youtube.com/watch?v=…',
       validation: { pattern: YOUTUBE_URL_PATTERN },

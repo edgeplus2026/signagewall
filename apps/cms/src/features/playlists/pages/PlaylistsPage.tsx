@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next'
 
 import { usePlaylists } from '../hooks/usePlaylists'
 
-import { AiGeneratorButton } from '@/features/ai-generator/components/AiGeneratorButton'
-import { useAiGeneratorStore } from '@/features/ai-generator/store/aiGeneratorStore'
+// ai-generator:hidden — restore together with the button block in the JSX below.
+// import { AiGeneratorButton } from '@/features/ai-generator/components/AiGeneratorButton'
+// import { useAiGeneratorStore } from '@/features/ai-generator/store/aiGeneratorStore'
 import { PlaylistFormSheet } from '@/features/playlists/components/PlaylistFormSheet'
 import { PlaylistsBrowser } from '@/features/playlists/components/PlaylistsBrowser'
 import { cn } from '@/lib/utils'
@@ -12,7 +13,8 @@ import { cn } from '@/lib/utils'
 export default function PlaylistsPage() {
   const { t } = useTranslation()
   const [createOpen, setCreateOpen] = useState(false)
-  const openAiGenerator = useAiGeneratorStore((state) => state.openList)
+  // ai-generator:hidden
+  // const openAiGenerator = useAiGeneratorStore((state) => state.openList)
 
   const { data: playlists = [], isLoading, isError, refetch } = usePlaylists()
 
@@ -36,6 +38,12 @@ export default function PlaylistsPage() {
           <p className="text-secondary text-sm">{t('playlists.description')}</p>
         </div>
 
+        {/* AI GENERATOR — HIDDEN. Not ready to put in front of customers yet.
+            Commented out rather than deleted: everything behind it (the button,
+            the store, the sheet, the backend queue) is still built and still
+            works. Restoring is uncommenting this block and the two imports +
+            the store line at the top of the file, all marked `ai-generator:hidden`. */}
+        {/*
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
           <AiGeneratorButton
             className="w-full sm:w-auto"
@@ -44,6 +52,7 @@ export default function PlaylistsPage() {
             }}
           />
         </div>
+        */}
       </div>
 
       <PlaylistsBrowser

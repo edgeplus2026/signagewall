@@ -42,6 +42,20 @@ export class AppDataCache {
   lastAttemptAt?: Date;
 
   /**
+   * When the payload last actually CHANGED, as opposed to when it was last
+   * re-fetched.
+   *
+   * The player's snapshot revision is built from this. Using `fetchedAt` meant a
+   * feed that answers identically every fifteen minutes still produced a fresh
+   * revision each time — so any unrelated push, and every reconnect, handed the
+   * device a "new" snapshot for content that had not moved. Every one of those
+   * was a full re-resolve on the server and, on the device, a rotation the engine
+   * had to decide was the same one.
+   */
+  @Prop()
+  contentAt?: Date;
+
+  /**
    * Optional stable content signature (ETag) from the connector. When set, it —
    * not the payload — decides whether the data changed (for payloads with
    * volatile fields like rotating URLs).
@@ -89,3 +103,15 @@ export class AppDataCache {
 export type AppDataCacheDocument = HydratedDocument<AppDataCache>;
 
 export const AppDataCacheSchema = SchemaFactory.createForClass(AppDataCache);
+
+/**
+ * Resolve a Google push ping to its cache key. `AppDataCacheRepository
+ * .findByChannelId` queries this exact path, and it runs once per Drive/Calendar
+ * notification — which arrive in bursts while someone is editing a sheet. Without
+ * the index that is a collection scan over every cached entry in the deployment,
+ * across all orgs and all connectors, per ping.
+ *
+ * Sparse because only the handful of file/calendar-backed entries ever register a
+ * channel; the rest (weather, RSS, crypto…) carry no `secrets.channel` at all.
+ */
+AppDataCacheSchema.index({ 'secrets.channel.id': 1 }, { sparse: true });

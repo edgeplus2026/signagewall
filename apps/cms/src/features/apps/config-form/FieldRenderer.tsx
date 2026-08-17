@@ -1,7 +1,11 @@
 import type { Field } from '@signagewall/apps-contract'
 
 import { Field as FieldRow, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
-import { FIELD_CONTROLS, INLINE_FIELD_TYPES } from '@/features/apps/config-form/fieldRegistry'
+import {
+  controlKeyFor,
+  FIELD_CONTROLS,
+  INLINE_FIELD_TYPES,
+} from '@/features/apps/config-form/fieldRegistry'
 
 interface FieldRendererProps {
   field: Field
@@ -13,7 +17,7 @@ interface FieldRendererProps {
 }
 
 export function FieldRenderer({ field, value, error, onChange, onBlur, disabled }: FieldRendererProps) {
-  const Control = FIELD_CONTROLS[field.type]
+  const Control = FIELD_CONTROLS[controlKeyFor(field)]
   const inline = INLINE_FIELD_TYPES.has(field.type)
   const id = `cfg-${field.key}`
   const invalid = Boolean(error)

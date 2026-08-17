@@ -1,14 +1,14 @@
 {
   "meta": {
-    "title": "{count} aplikacija za digitalne ekrane",
-    "description": "{count} aplikacija spremnih za ekran — meni, vreme, kursna lista, vesti, kalendari, društvene mreže i još mnogo toga.",
+    "title": "{count} aplikacija za digital signage",
+    "description": "{count} aplikacija za digital signage, spremnih za ekran: meni, vreme, kursna lista, vesti, kalendari, društvene mreže i još mnogo toga.",
     "detailTitle": "{name} za digital signage",
     "detailDescription": "{description} Uključeno u SignageWall po ceni od {price} po ekranu mesečno."
   },
   "hero": {
     "eyebrow": "Aplikacije",
-    "title": "{count} aplikacija, spremnih za ekran.",
-    "subtitle": "Sve što ekranu treba — bez pisanja koda. Pretražite, izaberite i objavite."
+    "title": "{count} aplikacija za digital signage, spremnih za ekran.",
+    "subtitle": "Sadržaj za ekrane bez pisanja koda: aplikacija za meni na šanku, tabla sa brojkama uživo, prognoza u uglu. Pretražite, izaberite i objavite."
   },
   "browser": {
     "placeholder": "Pretražite aplikacije…",
@@ -22,7 +22,7 @@
     "categoriesLabel": "Kategorije",
     "back": "Sve aplikacije",
     "dataSource": {
-      "static": "Radi bez naloga — samo podesite i objavite.",
+      "static": "Radi bez naloga. Samo podesite i objavite.",
       "server": "Automatski povlači žive podatke.",
       "connected": "Poveže se sa vašim nalogom (npr. Google ili Microsoft)."
     },

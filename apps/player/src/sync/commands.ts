@@ -1,30 +1,19 @@
 import {
   setStoredDailyReload,
-  setStoredKioskMode,
   setStoredOrientation,
   setStoredScale,
   setStoredVolume,
 } from '../device'
-import {
-  isKioskMode,
-  isOrientation,
-  isScale,
-  normalizeDailyReload,
-} from '../device-settings'
+import { isOrientation, isScale, normalizeDailyReload } from '../device-settings'
+import { applyUpdateIfAvailable } from '../native/updater'
+import { reportDiagnostics } from './diagnostics-report'
 import { restartPlayer } from '../restart'
-import {
-  dailyReload,
-  kioskMode,
-  orientation,
-  scale,
-  volume,
-} from '../store'
+import { dailyReload, orientation, scale, volume } from '../store'
 import type {
   DailyReloadSetting,
   DeviceOrientation,
   DeviceScale,
   DeviceSettings,
-  KioskMode,
   PlayerCommand,
 } from '../types'
 import { playbackNext, playbackPrevious } from './playback-bus'
@@ -58,21 +47,6 @@ export function applyScale(next: DeviceScale): void {
 }
 
 /**
- * Applies + persists the kiosk lockdown mode, ignoring unknown values. Only the
- * signal + storage are touched here; the native lock is driven reactively off the
- * `kioskMode` signal by `startKioskLock` (sync/kiosk.ts), mirroring how
- * `dailyReload` drives its scheduler — so an offline reboot re-locks from the
- * persisted value without waiting for the socket.
- */
-export function applyKioskMode(next: KioskMode): void {
-  if (!isKioskMode(next)) {
-    return
-  }
-  kioskMode.value = next
-  setStoredKioskMode(next)
-}
-
-/**
  * Applies + persists the daily-reload setting. Normalizes first so a malformed
  * time falls back to the default without dropping the `enabled` flag (a disable
  * with a bad time still disables). The scheduler reacts to the `dailyReload`
@@ -84,11 +58,14 @@ export function applyDailyReload(next: DailyReloadSetting): void {
   setStoredDailyReload(normalized)
 }
 
-/** Applies all display + power settings delivered on (re)connect / pair. */
+/**
+ * Applies all display + power settings delivered on (re)connect / pair. Kiosk
+ * lockdown is deliberately not among them: it is owned by the device (sync/kiosk.ts),
+ * so a reconnect can never undo the switch a technician just flipped on site.
+ */
 export function applySettings(settings: DeviceSettings): void {
   applyOrientation(settings.orientation)
   applyScale(settings.scale)
-  applyKioskMode(settings.kioskMode)
   applyDailyReload(settings.dailyReload)
 }
 
@@ -134,9 +111,18 @@ export function applyCommand(
         applyDailyReload(command.value)
       }
       break
-    case 'kioskMode':
+    // Same reason as applyUpdate: a preview tab is not the screen anyone is asking
+    // about, and letting it answer would put a laptop's state in the CMS.
+    case 'sendDiagnostics':
       if (!options.preview) {
-        applyKioskMode(command.value)
+        void reportDiagnostics()
+      }
+      break
+    // Never mirrored into a CMS preview: the preview is a browser tab, it has no
+    // shell to update, and running it there would only report "no update".
+    case 'applyUpdate':
+      if (!options.preview) {
+        void applyUpdateIfAvailable()
       }
       break
     case 'restart':

@@ -152,4 +152,15 @@ export function useResolveUpgradeRequest() {
   })
 }
 
+/**
+ * Pushes a pending player update to every connected device. Nothing to
+ * invalidate — the fleet answers by restarting into the new build, which no
+ * query here describes.
+ */
+export function useApplyPlayerUpdate() {
+  return useMutation({
+    mutationFn: () => adminApi.applyPlayerUpdate(),
+  })
+}
+
 export { DEFAULT_PAGE_SIZE }

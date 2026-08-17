@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { ContentPreviewDialog } from '@/features/content/components/ContentPreviewDialog'
 import { mediaGridClassName } from '@/features/media/lib/mediaActionCardStyles'
 import { useCanEditOrgContent } from '@/features/organizations/hooks/useIsOrgAdmin'
 import { DeleteScreenDialog } from '@/features/screens/components/DeleteScreenDialog'
@@ -90,6 +91,7 @@ export function ScreensBrowser({
   const canEdit = useCanEditOrgContent()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteIds, setDeleteIds] = useState<string[]>([])
+  const [previewScreen, setPreviewScreen] = useState<ScreenSummary | null>(null)
 
   const presence = useContext(PresenceContext)
   const isOnline = useCallback(
@@ -346,6 +348,7 @@ export function ScreensBrowser({
             onSelect={handleSelect}
             onSelectAll={handleSelectAll}
             onOpen={openScreen}
+            onPreview={setPreviewScreen}
             onDelete={setDeleteIds}
             onCreate={onCreateClick}
           />
@@ -356,6 +359,7 @@ export function ScreensBrowser({
             onSelect={handleSelect}
             onSelectAll={handleSelectAll}
             onOpen={openScreen}
+            onPreview={setPreviewScreen}
             onDelete={setDeleteIds}
           />
         )}
@@ -368,6 +372,17 @@ export function ScreensBrowser({
         }}
         screenIds={deleteIds}
         onSuccess={clearSelection}
+      />
+
+      <ContentPreviewDialog
+        open={previewScreen !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewScreen(null)
+        }}
+        target={previewScreen ? { kind: 'screen', screenId: previewScreen.id } : null}
+        {...(previewScreen
+          ? { name: previewScreen.name, itemCount: previewScreen.itemCount }
+          : {})}
       />
     </>
   )

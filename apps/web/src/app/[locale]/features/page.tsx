@@ -18,7 +18,7 @@ import { CtaBand } from '@/components/marketing/cta-band'
 import { PageHero } from '@/components/marketing/page-hero'
 import { SectionHeader } from '@/components/marketing/section-header'
 import { Reveal } from '@/components/motion/reveal'
-import { BreadcrumbJsonLd, FaqJsonLd } from '@/components/seo/json-ld'
+import { BreadcrumbJsonLd, FaqJsonLd, SoftwareProductJsonLd } from '@/components/seo/json-ld'
 import { Card } from '@/components/ui/card'
 import { Faq } from '@/components/ui/faq'
 import { IconBadge } from '@/components/ui/icon-badge'
@@ -88,6 +88,8 @@ export default async function FeaturesPage({ params }: PageProps) {
       />
       {/* Only emitted because the same questions render below. */}
       <FaqJsonLd items={faq} />
+      {/* A page-by-page inventory of what the product does is about the product. */}
+      <SoftwareProductJsonLd />
       <SectionStack>
         <PageHero
           eyebrow={t('hero.eyebrow')}

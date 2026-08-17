@@ -13,6 +13,7 @@ interface PlaylistsGridProps {
   onSelect: (id: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
   onOpen: (playlist: PlaylistSummary, tab: PlaylistDetailTab) => void
+  onPreview: (playlist: PlaylistSummary) => void
   onDuplicate: (playlist: PlaylistSummary) => Promise<void>
   onAddToScreen: (ids: string[]) => void
   onDelete: (ids: string[]) => void
@@ -25,6 +26,7 @@ export function PlaylistsGrid({
   onSelect,
   onSelectAll,
   onOpen,
+  onPreview,
   onDuplicate,
   onAddToScreen,
   onDelete,
@@ -64,6 +66,7 @@ export function PlaylistsGrid({
             isSelected={selectedIds.has(playlist.id)}
             onSelect={onSelect}
             onOpen={onOpen}
+            onPreview={onPreview}
             onDuplicate={onDuplicate}
             onAddToScreen={(id) => {
               onAddToScreen([id])

@@ -56,6 +56,8 @@ function build(deps: Deps) {
     plansService as never,
     mailService as never,
     configService as never,
+    // Always the leader in a test: there is one process and no Redis.
+    { isLeader: jest.fn().mockResolvedValue(true) } as never,
   );
 
   return { service, userModel, mailService };

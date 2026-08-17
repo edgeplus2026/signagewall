@@ -28,6 +28,7 @@ interface ScreenCardProps {
   isSelected: boolean
   onSelect: (id: string, selected: boolean) => void
   onOpen: (screen: ScreenSummary, tab: ScreenManageTab) => void
+  onPreview: (screen: ScreenSummary) => void
   onDelete: (id: string) => void
 }
 
@@ -36,6 +37,7 @@ export function ScreenCard({
   isSelected,
   onSelect,
   onOpen,
+  onPreview,
   onDelete,
 }: ScreenCardProps) {
   const { t } = useTranslation()
@@ -69,7 +71,7 @@ export function ScreenCard({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="absolute top-2 right-2 z-10 bg-panel opacity-0 group-hover:opacity-100"
+            className="absolute top-2 right-2 z-10 bg-panel max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
             onClick={(event) => {
               event.stopPropagation()
             }}
@@ -81,7 +83,7 @@ export function ScreenCard({
         <DropdownMenuContent align="end" className="w-auto min-w-44">
           <DropdownMenuItem
             onClick={() => {
-              onOpen(screen, "content")
+              onPreview(screen)
             }}
           >
             <EyeIcon />

@@ -33,9 +33,11 @@ export function buildPlayerRecoveryUrl(link: ScreenDeviceRecoveryLink): string {
 }
 
 /**
- * Builds the player URL that renders a screen in read-only preview mode, used by
- * the embedded preview iframe. Orientation/scale seed the initial render; live
- * changes then arrive over the socket.
+ * Builds the player URL that mirrors a paired display in read-only preview
+ * mode, used by the embedded live-preview iframe on the screen's device tab.
+ * The player runs no clock of its own here: it shows whatever item the device
+ * reports. Orientation/scale seed the initial render; live changes then arrive
+ * over the socket.
  *
  * The operator token is deliberately NOT in the URL — it would leak through
  * browser history and the player server's access logs. It is delivered over a
@@ -52,4 +54,47 @@ export function buildPlayerPreviewUrl({
     `&orientation=${orientation}` +
     `&scale=${scale}`
   )
+}
+
+/** What a content preview plays — a whole screen, or a playlist on its own. */
+export type PlayerPreviewTarget =
+  | { kind: 'screen'; screenId: string }
+  | { kind: 'playlist'; playlistId: string }
+
+/** How the previewed content is laid out, when the target has a display. */
+interface PreviewDisplayParams {
+  orientation?: ScreenDeviceOrientation | undefined
+  scale?: ScreenDeviceScale | undefined
+}
+
+/**
+ * Builds the player URL for a *standalone* content preview: the player plays
+ * the target itself, exactly as a display would, instead of mirroring a device.
+ * That is what lets a screen with nothing paired to it — or a playlist, which
+ * has no device at all — still be previewed.
+ *
+ * `display` carries the screen's own orientation/scale so a portrait screen
+ * previews rotated the way it actually plays; omitted (playlists, or a screen
+ * with no device settings yet) the player falls back to its defaults.
+ *
+ * Same token rule as {@link buildPlayerPreviewUrl}: the operator token stays
+ * out of the URL and arrives over the postMessage handshake.
+ */
+export function buildContentPreviewUrl(
+  target: PlayerPreviewTarget,
+  display: PreviewDisplayParams = {},
+): string {
+  const params = new URLSearchParams({ preview: '1', mode: 'standalone' })
+  if (target.kind === 'screen') {
+    params.set('screenId', target.screenId)
+  } else {
+    params.set('playlistId', target.playlistId)
+  }
+  if (display.orientation) {
+    params.set('orientation', display.orientation)
+  }
+  if (display.scale) {
+    params.set('scale', display.scale)
+  }
+  return `${PLAYER_URL}/?${params.toString()}`
 }

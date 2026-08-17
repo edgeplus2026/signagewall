@@ -4,8 +4,6 @@ import type { MenuGroup } from '../format.js'
 import { chalkboardTemplate } from './chalkboard.js'
 import { classicTemplate } from './classic.js'
 import { counterTemplate } from './counter.js'
-import { galleryTemplate } from './gallery.js'
-import { noirTemplate } from './noir.js'
 
 /**
  * The design registry. One entry per value in `MENU_TEMPLATES`
@@ -58,9 +56,7 @@ export interface MenuTemplateImpl {
 const TEMPLATES: Record<MenuTemplate, MenuTemplateImpl> = {
   classic: classicTemplate,
   chalkboard: chalkboardTemplate,
-  gallery: galleryTemplate,
   counter: counterTemplate,
-  noir: noirTemplate,
 }
 
 /** The design used when the config names none, or names one we don't ship. */

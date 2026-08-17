@@ -85,7 +85,11 @@ function buildService(options: {
     findById: jest.fn((_org: string, id: string) =>
       Promise.resolve(
         options.playlists?.[id]
-          ? { _id: new Types.ObjectId(), items: options.playlists[id] }
+          ? {
+              _id: new Types.ObjectId(),
+              name: 'Store loop',
+              items: options.playlists[id],
+            }
           : null,
       ),
     ),
@@ -99,8 +103,13 @@ function buildService(options: {
     findByIds: jest.fn((_org: string, ids: string[]) =>
       Promise.resolve(ids.map((id) => options.appsById?.[id]).filter(Boolean)),
     ),
-    // Overlay resolution scans the org's instances; none by default.
-    findByOrganization: jest.fn().mockResolvedValue(options.orgInstances ?? []),
+    // Overlay resolution asks for the overlay instances bound to this screen.
+    // The fake keeps the old shape — every instance the test declared for the org
+    // — and lets the service's own `overlayScreenIds` filter decide, so the test
+    // still exercises the assignment rule rather than trusting a stubbed query.
+    findOverlaysForScreen: jest
+      .fn()
+      .mockResolvedValue(options.orgInstances ?? []),
   };
   const appDataCacheRepository = {
     findByCacheKeys: jest.fn((keys: string[]) =>
@@ -241,6 +250,83 @@ describe('PlayerContentService', () => {
     expect(withOverlay?.revision).not.toBe(without?.revision);
   });
 
+  // The emergency alert is an overlay too, but a `takeover`: it must be absent
+  // entirely while switched off, because an alert that reaches the snapshot
+  // changes the revision on every edit and covers every screen it names.
+  describe('emergency takeover gating', () => {
+    const alertInstance = (active: boolean) => ({
+      _id: new Types.ObjectId(),
+      appSlug: 'alert',
+      config: {
+        screens: ['screen'],
+        active,
+        headline: 'Evacuate the building',
+        severity: 'critical',
+      },
+      updatedAt: new Date(),
+    });
+
+    const base = () => ({ mediaById: {}, screenItems: [] });
+
+    it('omits an alert that is switched off', async () => {
+      const snapshot = await buildService({
+        ...base(),
+        orgInstances: [alertInstance(false)],
+      }).resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.overlays).toBeUndefined();
+    });
+
+    it('carries an alert that is switched on', async () => {
+      const snapshot = await buildService({
+        ...base(),
+        orgInstances: [alertInstance(true)],
+      }).resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.overlays).toHaveLength(1);
+      expect(snapshot?.overlays?.[0]).toMatchObject({
+        kind: 'app',
+        slug: 'alert',
+        durationMs: 0,
+      });
+      expect(snapshot?.overlays?.[0]?.config).toMatchObject({
+        headline: 'Evacuate the building',
+      });
+    });
+
+    it('switching it on changes the revision, so the screen is re-pushed', async () => {
+      const off = await buildService({
+        ...base(),
+        orgInstances: [alertInstance(false)],
+      }).resolveByScreenId('org', 'screen');
+      const on = await buildService({
+        ...base(),
+        orgInstances: [alertInstance(true)],
+      }).resolveByScreenId('org', 'screen');
+
+      expect(on?.revision).not.toBe(off?.revision);
+    });
+
+    it('leaves a band overlay alone — only takeovers need the switch', async () => {
+      // The ticker has no `active` field at all; gating every overlay on one
+      // would silently switch off every band in the fleet.
+      const snapshot = await buildService({
+        ...base(),
+        orgInstances: [
+          {
+            _id: new Types.ObjectId(),
+            appSlug: 'ticker',
+            config: { screens: ['screen'], messages: [{ message: 'Hi' }] },
+            updatedAt: new Date(),
+          },
+        ],
+      }).resolveByScreenId('org', 'screen');
+
+      expect(snapshot?.overlays).toHaveLength(1);
+      expect(snapshot?.overlays?.[0]?.slug).toBe('ticker');
+    });
+  });
+
   it('serves the 1280px image variant, falling back to the original', async () => {
     const withThumb = media({
       id: 'withThumb',
@@ -372,6 +458,86 @@ describe('PlayerContentService', () => {
       slug: 'clock',
       config: { format: '24h' },
       durationMs: 12_000,
+    });
+  });
+
+  describe('standalone playlist snapshot (CMS preview)', () => {
+    it('resolves a playlist on its own, in order and with its own durations', async () => {
+      const first = media({ id: 'first' });
+      const second = media({ id: 'second' });
+      const appInstanceId = new Types.ObjectId();
+
+      const service = buildService({
+        screenItems: [],
+        mediaById: {
+          [first._id.toString()]: first,
+          [second._id.toString()]: second,
+        },
+        appsById: {
+          [appInstanceId.toString()]: {
+            _id: appInstanceId,
+            appSlug: 'clock',
+            config: { format: '24h' },
+            updatedAt: new Date('2024-03-01T00:00:00Z'),
+          },
+        },
+        playlists: {
+          aaaaaaaaaaaaaaaaaaaaaaaa: [
+            // Out of array order on purpose: `order` is what decides playback.
+            {
+              _id: new Types.ObjectId(),
+              type: PlaylistItemType.APP,
+              appInstanceId,
+              order: 1,
+              duration: 12,
+              disabled: false,
+            },
+            {
+              _id: new Types.ObjectId(),
+              mediaId: first._id,
+              order: 0,
+              duration: 4,
+              disabled: false,
+            },
+            {
+              _id: new Types.ObjectId(),
+              mediaId: second._id,
+              order: 2,
+              duration: 9,
+              disabled: true,
+            },
+          ],
+        },
+      });
+
+      const snapshot = await service.resolveByPlaylistId(
+        'org',
+        'aaaaaaaaaaaaaaaaaaaaaaaa',
+      );
+
+      expect(snapshot).toMatchObject({ name: 'Store loop' });
+      // Disabled item dropped, the rest ordered by `order`.
+      expect(snapshot?.items).toHaveLength(2);
+      expect(snapshot?.items[0]).toMatchObject({
+        kind: 'image',
+        durationMs: 4_000,
+      });
+      expect(snapshot?.items[1]).toMatchObject({
+        kind: 'app',
+        slug: 'clock',
+        durationMs: 12_000,
+      });
+      // A playlist has no working hours and no overlay layer of its own.
+      expect(snapshot?.availability).toBeUndefined();
+      expect(snapshot?.overlays).toBeUndefined();
+    });
+
+    it('returns null for a playlist outside the organization', async () => {
+      const service = buildService({ screenItems: [], mediaById: {} });
+
+      await expect(
+        service.resolveByPlaylistId('org', 'bbbbbbbbbbbbbbbbbbbbbbbb'),
+      ).resolves.toBeNull();
     });
   });
 

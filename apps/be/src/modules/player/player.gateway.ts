@@ -14,18 +14,18 @@ import { Server, Socket } from 'socket.io';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { FunnelEventName } from '../analytics/schemas/funnel-event.schema';
 import { AppInstancesRepository } from '../apps/app-instances.repository';
-import { cacheKeyForInstance } from '../apps/connectors/cache-key.util';
 import { isOverlaySlug, overlayScreenIds } from '../apps/overlay.util';
 import { OrganizationsRepository } from '../organizations/organizations.repository';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensRepository } from '../screens/screens.repository';
 import { PlayerService } from './player.service';
-import type { ReportedProfile } from './player.service';
+import type { DiagnosticsReport, ReportedProfile } from './player.service';
 import { PlayerEvents, PlayerSocketEvents } from './player.events';
 import type {
   AppDataChangedEvent,
   AppInstanceChangedEvent,
   DeviceCommandEvent,
+  FleetCommandEvent,
   DevicePairedEvent,
   DeviceRevokedEvent,
   MediaReadyEvent,
@@ -42,15 +42,21 @@ interface HandshakeAuth {
   revision?: string;
   profile?: ReportedProfile;
   /**
-   * Present only for the CMS live-preview iframe. The operator's access token
-   * authorizes a read-only spectator on a single screen — no device is created,
-   * no presence/heartbeat is recorded.
+   * Present only for the CMS preview iframe. The operator's access token
+   * authorizes a read-only spectator on a single screen or playlist — no device
+   * is created, no presence/heartbeat is recorded.
    */
   preview?: PreviewAuth;
 }
 
+/**
+ * Exactly one of `screenId` / `playlistId` identifies what to preview. A screen
+ * preview joins that screen's room (live content updates + device mirroring); a
+ * playlist preview is a standalone content preview and joins nothing.
+ */
 interface PreviewAuth {
   screenId?: string;
+  playlistId?: string;
   token?: string;
 }
 
@@ -70,6 +76,14 @@ interface HeartbeatMessage {
   profile?: ReportedProfile;
 }
 
+/**
+ * The device's answer to a `sendDiagnostics` command. Loosely typed on purpose:
+ * it arrives from a player that may be several versions behind this backend, and
+ * a strict shape would reject the report of exactly the device most worth hearing
+ * from. The service caps and normalises it.
+ */
+type DiagnosticsMessage = DiagnosticsReport;
+
 interface NowPlayingMessage {
   itemId?: string;
 }
@@ -84,7 +98,49 @@ const screenRoom = (screenId: string): string => `screen:${screenId}`;
  * this class — they emit in-process events that the `@OnEvent` handlers fan out
  * to the affected `screen:<id>` / `device:<id>` rooms.
  */
-@WebSocketGateway({ namespace: '/player', cors: { origin: true } })
+/**
+ * Origins allowed to open a player socket.
+ *
+ * Same list the REST API enforces. `cors: { origin: true }` reflected whatever
+ * origin asked, so any page on the internet could open a `/player` socket — and
+ * since a known `deviceId` is enough to be admitted as that device (the backend
+ * re-issues its token, deliberately, so a wiped screen recovers), that was a
+ * wider door than the REST side left open.
+ *
+ * A native shell sends the player origin; a device with no `Origin` header at all
+ * — some WebView and Node clients — is allowed through, because there is nothing
+ * for CORS to protect against when no browser is enforcing it.
+ */
+function isAllowedPlayerOrigin(
+  origin: string | undefined,
+  callback: (error: Error | null, allow?: boolean) => void,
+): void {
+  // No Origin header: a native WebView, a CLI, a server-side client. CORS exists
+  // to stop one site reading another's response in a browser; where no browser is
+  // enforcing anything there is nothing to withhold, and the device token still
+  // governs what the connection may do.
+  if (!origin) {
+    callback(null, true);
+    return;
+  }
+  // Read per connection rather than at class-decoration time, so the answer can
+  // never depend on module import order relative to dotenv.
+  //
+  // Trailing slashes are stripped on both sides. An `Origin` header never carries
+  // one, but a configured URL easily might — and the cost of that mismatch here is
+  // not a broken page, it is every screen in the fleet refused at the handshake.
+  const allowed = [
+    process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    process.env.PLAYER_URL ?? 'http://localhost:5174',
+    process.env.MARKETING_URL ?? 'http://localhost:3002',
+  ].map((url) => url.trim().replace(/\/+$/, ''));
+  callback(null, allowed.includes(origin.replace(/\/+$/, '')));
+}
+
+@WebSocketGateway({
+  namespace: '/player',
+  cors: { origin: isAllowedPlayerOrigin, credentials: true },
+})
 export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(PlayerGateway.name);
 
@@ -203,21 +259,35 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Admits a CMS live-preview spectator. Verifies the operator's access token,
-   * confirms they belong to the screen's organization, then joins the
-   * `screen:<id>` room read-only and pushes the current snapshot. Live content
-   * updates arrive for free via the same room the device path uses. Crucially
-   * it never creates a device, records presence, or starts a heartbeat — so an
-   * open preview tab is invisible to the real device's online/offline state.
+   * Admits a CMS preview spectator. Verifies the operator's access token,
+   * confirms they belong to the previewed content's organization, then pushes
+   * the current snapshot. Crucially it never creates a device, records
+   * presence, or starts a heartbeat — so an open preview tab is invisible to
+   * the real device's online/offline state.
+   *
+   * A screen preview additionally joins the `screen:<id>` room, which is what
+   * gets it live content updates and the device's now-playing for free, via the
+   * same room the device path uses.
    */
   private async handlePreviewConnection(
     client: Socket,
     preview: PreviewAuth,
   ): Promise<void> {
-    const screenId = preview.screenId;
     const userId = this.verifyCmsToken(preview.token);
 
-    if (!screenId || !userId) {
+    if (!userId) {
+      client.disconnect(true);
+      return;
+    }
+
+    if (preview.playlistId) {
+      await this.handlePlaylistPreview(client, preview.playlistId, userId);
+      return;
+    }
+
+    const screenId = preview.screenId;
+
+    if (!screenId) {
       client.disconnect(true);
       return;
     }
@@ -257,6 +327,59 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (error) {
       this.logger.error(
         `Failed to handle preview connection for screen ${screenId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      client.disconnect(true);
+    }
+  }
+
+  /**
+   * Admits a preview spectator for a playlist that stands on its own — the CMS
+   * content preview, which plays a playlist through the real player without it
+   * being assigned to any screen.
+   *
+   * It joins no room: a playlist has no device to mirror and no screen room to
+   * receive pushes on, so the snapshot handed over on connect is the whole
+   * conversation. Marked `preview` all the same, so the now-playing relay keeps
+   * ignoring it.
+   */
+  private async handlePlaylistPreview(
+    client: Socket,
+    playlistId: string,
+    userId: string,
+  ): Promise<void> {
+    try {
+      const organizationId =
+        await this.playlistsRepository.findOrganizationIdById(playlistId);
+
+      if (!organizationId) {
+        client.disconnect(true);
+        return;
+      }
+
+      const membership = await this.organizationsRepository.findMembership(
+        userId,
+        organizationId,
+      );
+
+      if (!membership) {
+        client.disconnect(true);
+        return;
+      }
+
+      (client.data as SocketData).preview = true;
+
+      const snapshot = await this.playerService.resolvePlaylistSnapshot(
+        organizationId,
+        playlistId,
+      );
+
+      if (snapshot) {
+        client.emit(PlayerSocketEvents.ContentUpdate, snapshot);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to handle preview connection for playlist ${playlistId}`,
         error instanceof Error ? error.stack : String(error),
       );
       client.disconnect(true);
@@ -330,6 +453,35 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * device 1:1 (the preview runs no clock of its own). Only honored from a real
    * device socket — a preview spectator must never drive this.
    */
+  /**
+   * Stores the report the device just assembled. Only from a real device socket:
+   * a CMS preview spectator has no device row, and its browser's state is not
+   * what anyone asked about.
+   */
+  @SubscribeMessage(PlayerSocketEvents.Diagnostics)
+  async handleDiagnostics(
+    client: Socket,
+    payload: DiagnosticsMessage,
+  ): Promise<void> {
+    const { deviceId, preview } = client.data as SocketData;
+
+    if (deviceId && !preview) {
+      await this.playerService.recordDiagnostics(deviceId, payload);
+    }
+  }
+
+  /**
+   * Screens whose activation has already been accounted for, in this process.
+   *
+   * `now-playing` arrives once per slide, per device — several hundred times a
+   * second across a fleet — and every one of them used to run two lookups and an
+   * insert that the dedupe index then threw away. This set answers the same
+   * question for free after the first time. It is bounded by the number of
+   * screens connected to this instance and is dropped on restart, where the
+   * durable device marker takes over (see {@link recordFirstScreenActivation}).
+   */
+  private readonly activationRecorded = new Set<string>();
+
   @SubscribeMessage(PlayerSocketEvents.NowPlaying)
   handleNowPlaying(client: Socket, payload: NowPlayingMessage): void {
     const { deviceId, screenId, preview } = client.data as SocketData;
@@ -344,25 +496,57 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .to(screenRoom(screenId))
       .emit(PlayerSocketEvents.NowPlaying, { itemId });
 
-    // The first actual item shown by a real paired device is activation. A
-    // dedupe key makes reconnects/replays harmless and previews are excluded.
-    void this.recordFirstScreenActivation(screenId);
+    // The first actual item shown by a real paired device is activation — once
+    // per screen, ever. Everything after the first is a set lookup.
+    if (!this.activationRecorded.has(screenId)) {
+      this.activationRecorded.add(screenId);
+      void this.recordFirstScreenActivation(screenId, deviceId);
+    }
   }
 
-  private async recordFirstScreenActivation(screenId: string): Promise<void> {
-    const organizationId =
-      await this.screensRepository.findOrganizationIdById(screenId);
-    if (!organizationId) return;
-    const organization =
-      await this.organizationsRepository.findById(organizationId);
-    await this.analytics.record({
-      eventName: FunnelEventName.FIRST_SCREEN_ACTIVATED,
-      userId: organization?.ownerUserId?.toString(),
-      organizationId,
-      dedupeKey: organization?.ownerUserId
-        ? `first_screen_activated:user:${organization.ownerUserId.toString()}`
-        : `first_screen_activated:screen:${screenId}`,
-    });
+  /**
+   * Records the funnel's "screen went live" event, at most once per screen.
+   *
+   * Two gates, and both matter. The device marker is durable, so a restarted
+   * backend does not re-walk the whole fleet's org lookups; it is claimed
+   * atomically, so two instances cannot both believe they were first. Only the
+   * claimant pays for the org read and the analytics write — which is what makes
+   * the ordinary case (a screen that has been running for months) cost one
+   * conditional update that matches nothing, instead of three reads and a
+   * rejected insert.
+   */
+  private async recordFirstScreenActivation(
+    screenId: string,
+    deviceId: string,
+  ): Promise<void> {
+    try {
+      const claimed = await this.playerService.claimScreenActivation(deviceId);
+      if (!claimed) {
+        return;
+      }
+      const organizationId =
+        await this.screensRepository.findOrganizationIdById(screenId);
+      if (!organizationId) return;
+      const organization =
+        await this.organizationsRepository.findById(organizationId);
+      await this.analytics.record({
+        eventName: FunnelEventName.FIRST_SCREEN_ACTIVATED,
+        userId: organization?.ownerUserId?.toString(),
+        organizationId,
+        dedupeKey: organization?.ownerUserId
+          ? `first_screen_activated:user:${organization.ownerUserId.toString()}`
+          : `first_screen_activated:screen:${screenId}`,
+      });
+    } catch (error) {
+      // Analytics must never cost a screen its playback. Forget the in-process
+      // marker so a later beat retries rather than silently losing the event.
+      this.activationRecorded.delete(screenId);
+      this.logger.warn(
+        `Could not record activation for screen ${screenId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
   }
 
   /**
@@ -421,6 +605,24 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .emit(PlayerSocketEvents.Command, event.command);
   }
 
+  /**
+   * Fleet-wide command: emitted to the whole namespace rather than to rooms.
+   *
+   * That deliberately includes CMS preview spectators, who are connected here too
+   * — but every command routed this way is one the player itself drops in preview
+   * mode (see `applyCommand`), so a spectator receiving it does nothing. Filtering
+   * them out here would mean tracking which sockets are previews, for no gain.
+   *
+   * Reaches only what is CONNECTED right now. A screen that is off, offline or
+   * asleep updates on its own schedule instead; there is no queue, and callers
+   * must not present this as a guarantee.
+   */
+  @OnEvent(PlayerEvents.FleetCommand)
+  onFleetCommand(event: FleetCommandEvent): void {
+    this.logger.log(`Fleet command broadcast: ${event.command.type}`);
+    this.server.emit(PlayerSocketEvents.Command, event.command);
+  }
+
   @OnEvent(PlayerEvents.ScreenContentChanged)
   async onScreenContentChanged(
     event: ScreenContentChangedEvent,
@@ -470,17 +672,15 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @OnEvent(PlayerEvents.AppDataChanged)
   async onAppDataChanged(event: AppDataChangedEvent): Promise<void> {
-    // The connector cache is global, so find every instance of this app (across
-    // all orgs) that resolves to the changed cache key, then re-push the screens
-    // that use those instances — grouped by org so each push stays org-correct.
-    const instances = await this.appInstancesRepository.findBySlugs([
-      event.slug,
-    ]);
+    // The connector cache is global, so the instances on this key can belong to
+    // any organization. The key is denormalized onto the document, so this is an
+    // indexed lookup — it used to load every instance of the app and compare keys
+    // in memory, on every payload refresh.
+    const instances = await this.appInstancesRepository.findByCacheKey(
+      event.cacheKey,
+    );
     const byOrg = new Map<string, string[]>();
     for (const instance of instances) {
-      if (cacheKeyForInstance(instance) !== event.cacheKey) {
-        continue;
-      }
       const orgId = instance.organizationId.toString();
       const ids = byOrg.get(orgId) ?? [];
       ids.push(instance._id.toString());
@@ -560,13 +760,46 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * How many screen snapshots are resolved at once during a fan-out.
+   *
+   * One data refresh can touch every screen on a shared feed — hundreds of them —
+   * and each resolution is several queries. Serially that is a fan-out measured
+   * in minutes, during which the last screen shows stale content; unbounded it is
+   * a self-inflicted burst against the database at the exact moment it is already
+   * serving the fleet. Ten keeps the tail short without becoming the spike.
+   */
+  private static readonly PUSH_CONCURRENCY = 10;
+
   private async pushManyScreens(
     organizationId: string,
     screenIds: string[],
   ): Promise<void> {
-    for (const screenId of screenIds) {
-      await this.pushScreenContent(organizationId, screenId);
-    }
+    let cursor = 0;
+    const workers = Array.from(
+      { length: Math.min(PlayerGateway.PUSH_CONCURRENCY, screenIds.length) },
+      async () => {
+        while (cursor < screenIds.length) {
+          const screenId = screenIds[cursor];
+          cursor += 1;
+          if (!screenId) {
+            continue;
+          }
+          try {
+            await this.pushScreenContent(organizationId, screenId);
+          } catch (error) {
+            // One screen that cannot be resolved — a deleted playlist, a broken
+            // reference — must not stop the rest of the fan-out.
+            this.logger.warn(
+              `Failed to push content to screen ${screenId}: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+          }
+        }
+      },
+    );
+    await Promise.all(workers);
   }
 
   private async pushScreenContent(

@@ -29,7 +29,7 @@ data class RuntimeState(
      * ago is indistinguishable from a broken one.
      */
     @SerialName("desiredState") val desiredState: String = RUNNING,
-    /** Last kiosk mode the CMS asked for — `off` / `soft` / `hard`. */
+    /** Last kiosk mode set on the device, from the service menu — `off` / `soft` / `hard`. */
     @SerialName("kioskMode") val kioskMode: String = "off",
     /** Rung of the launch ladder currently in use; persisted so an escalation
      *  survives the process restart that is itself one of the rungs. */
@@ -68,6 +68,17 @@ data class RuntimeState(
      * asynchronous — so it cannot be done on the way out, only on the way in.
      */
     @SerialName("deactivatePending") val deactivatePending: Boolean = false,
+    /**
+     * How many times the launch ladder has had to put the player back on screen,
+     * counted since install rather than since boot.
+     *
+     * A screen that recovers repeatedly overnight looks identical to a healthy one
+     * by morning: the ladder resets when it settles, so every trace of the struggle
+     * is gone by the time anyone looks. This number is the trace. It never resets —
+     * a rate is what matters, and the heartbeat carries it often enough for the CMS
+     * to see it climbing.
+     */
+    @SerialName("recoveries") val recoveries: Int = 0,
     /** Short breadcrumb from the last uncaught exception, for the CMS. */
     @SerialName("lastCrash") val lastCrash: String? = null,
     @SerialName("lastCrashAt") val lastCrashAt: Long = 0L,

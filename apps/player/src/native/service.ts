@@ -13,6 +13,7 @@
  * the full web-side wipe, so a browser-based display unpairs correctly even
  * though there is no native identity store to drop.
  */
+import { config } from '../config'
 import { clearCachedPairingCode, clearLocalDeviceId, clearToken } from '../device'
 import { clearMediaCaches, clearSnapshot } from '../persistence/idb'
 import { hasNativeBridge, nativeInvoke } from './host'
@@ -46,6 +47,21 @@ export interface ShellDeviceInfo {
   kioskMode?: string
   deviceOwner?: boolean
   /**
+   * Free bytes on the partition the app stores data in — the same reading the
+   * cache warming's budget guard runs on, surfaced so a technician can see it
+   * without a debugger attached. `-1` from the shell means "would not measure";
+   * {@link loadShellDeviceInfo} normalises that away, so undefined here always
+   * means unknown. Absent on a browser and on shells too old to report it.
+   */
+  freeDiskBytes?: number
+  /**
+   * Whether Chrome DevTools may currently inspect this page. Its ABSENCE is
+   * meaningful: it marks a host that cannot do this at all (a browser, the desktop
+   * shell, an older APK), which is how the service menu knows to hide the switch
+   * instead of offering one that does nothing.
+   */
+  webDebugging?: boolean
+  /**
    * Whether Android will let the shell put the player back on screen after
    * something knocks it off. False means the display is one firmware hiccup away
    * from sitting on the TV's menu until a person walks over — measured in the
@@ -68,7 +84,58 @@ export interface ShellDeviceInfo {
  * bridge is wedged, so the caller renders first and fills these in when they land.
  */
 export async function loadShellDeviceInfo(): Promise<ShellDeviceInfo | undefined> {
-  return nativeInvoke<ShellDeviceInfo>('device_info', undefined, 2_000)
+  const info = await nativeInvoke<ShellDeviceInfo>('device_info', undefined, 2_000)
+  if (!info) {
+    return undefined
+  }
+  // The shell says -1 when the OS would not measure free space. Collapsed to
+  // undefined here so every reader downstream has one way to spell "unknown" —
+  // a menu that printed "-1 B" would be worse than one that printed nothing.
+  const { freeDiskBytes } = info
+  return freeDiskBytes !== undefined && freeDiskBytes < 0
+    ? { ...info, freeDiskBytes: undefined }
+    : info
+}
+
+/**
+ * Hands the native shell what it needs to reach the backend by itself: the API
+ * address and this device's token.
+ *
+ * Called after every successful pair/reconnect, because the token can be
+ * re-issued and a shell holding a stale one is a shell with no channel at exactly
+ * the moment it matters. The shell stores them, which is the whole point — the
+ * channel has to outlive the page that supplied it.
+ *
+ * Guarded and a no-op off a native shell.
+ */
+export async function setShellChannel(token: string): Promise<void> {
+  await nativeInvoke('set_channel', { apiUrl: config.apiUrl, token })
+}
+
+/**
+ * The shell's rolling event log, oldest first, or an empty list where there is
+ * none (a browser, the desktop shell, an APK older than this).
+ *
+ * This is the only record of what a screen did overnight. logcat cannot serve the
+ * purpose: on the Android TV measured here the vendor's video driver writes a line
+ * per decoded frame and rolls the ring buffer past our entries within the hour.
+ */
+export async function readShellLog(): Promise<string[]> {
+  const lines = await nativeInvoke<string[]>('read_log')
+  return Array.isArray(lines) ? lines : []
+}
+
+/**
+ * Opens or closes Chrome DevTools inspection of this page, for a technician who
+ * is at the screen (or reached it over the fleet VPN) and needs to see inside the
+ * player rather than infer its state from the outside.
+ *
+ * The shell forgets this on every process start, so it cannot be left on by
+ * accident — the switch is a session, not a setting. Guarded and a no-op wherever
+ * the command does not exist.
+ */
+export async function setWebDebugging(enabled: boolean): Promise<void> {
+  await nativeInvoke('set_web_debugging', { enabled })
 }
 
 /**

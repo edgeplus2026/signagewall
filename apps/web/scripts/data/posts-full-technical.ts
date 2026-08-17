@@ -13,6 +13,7 @@ export const POSTS_FULL_TECHNICAL = {
         'tipografija-za-ekrane',
         'vertikalni-ili-horizontalni-ekran',
         'sta-pitati-dobavljaca',
+        'zaglavljena-slika-burn-in',
       ],
       solutions: ['retail'],
       apps: ['text', 'canva'],
@@ -216,7 +217,7 @@ export const POSTS_FULL_TECHNICAL = {
         ],
         [
           'p',
-          'Ne postoji poštena formula tipa „manje sati jednako tačno toliko duži vek”, jer svetlina, temperatura, sadržaj, panel i zaštitni algoritmi rade zajedno. Ako se trag ne povuče postupkom koji proizvođač propisuje, prijavite problem ovlašćenom servisu. Za SEO savet je dovoljno obećati dobru praksu: manje trajno statičnih elemenata, tačan format sadržaja i poštovanje panel-care smernica — ne kućni lek.',
+          'Ne postoji poštena formula tipa „manje sati jednako tačno toliko duži vek”, jer svetlina, temperatura, sadržaj, panel i zaštitni algoritmi rade zajedno. Ako se trag ne povuče postupkom koji proizvođač propisuje, prijavite problem ovlašćenom servisu. Za SEO savet je dovoljno obećati dobru praksu: manje trajno statičnih elemenata, tačan format sadržaja i poštovanje panel-care smernica, ne kućni lek.',
         ],
       ],
     },

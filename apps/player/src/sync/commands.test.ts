@@ -3,10 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PlayerCommand } from '../types'
 
 const restartPlayer = vi.fn()
+const applyUpdateIfAvailable = vi.fn()
+const reportDiagnostics = vi.fn()
 const playbackNext = vi.fn()
 const playbackPrevious = vi.fn()
 
 vi.mock('../restart', () => ({ restartPlayer }))
+vi.mock('../native/updater', () => ({ applyUpdateIfAvailable }))
+vi.mock('./diagnostics-report', () => ({ reportDiagnostics }))
 vi.mock('./playback-bus', () => ({
   playbackNext,
   playbackPrevious,
@@ -16,15 +20,13 @@ vi.mock('./playback-bus', () => ({
 
 // Imported after the mocks so commands.ts binds to the stubbed leaf modules.
 const { applyCommand } = await import('./commands')
-const { dailyReload, kioskMode, orientation, scale, volume } =
-  await import('../store')
+const { dailyReload, orientation, scale, volume } = await import('../store')
 
 beforeEach(() => {
   vi.clearAllMocks()
   volume.value = 100
   orientation.value = 'landscape'
   scale.value = 'fit'
-  kioskMode.value = 'off'
   dailyReload.value = { enabled: true, time: '03:00' }
 })
 
@@ -60,16 +62,6 @@ describe('applyCommand — real device', () => {
     expect(scale.value).toBe('zoom')
   })
 
-  it('applies a known kiosk mode and ignores an unknown one', () => {
-    applyCommand({ type: 'kioskMode', value: 'hard' })
-    expect(kioskMode.value).toBe('hard')
-    applyCommand({
-      type: 'kioskMode',
-      value: 'locked' as never,
-    } as PlayerCommand)
-    expect(kioskMode.value).toBe('hard')
-  })
-
   it('normalizes a malformed daily-reload time', () => {
     applyCommand({
       type: 'dailyReload',
@@ -81,6 +73,19 @@ describe('applyCommand — real device', () => {
   it('restarts on a restart command', () => {
     applyCommand({ type: 'restart' })
     expect(restartPlayer).toHaveBeenCalledOnce()
+  })
+
+  it('reports back on a sendDiagnostics command', () => {
+    applyCommand({ type: 'sendDiagnostics' })
+    expect(reportDiagnostics).toHaveBeenCalledOnce()
+  })
+
+  it('applies a pending shell update on an applyUpdate command', () => {
+    applyCommand({ type: 'applyUpdate' })
+    expect(applyUpdateIfAvailable).toHaveBeenCalledOnce()
+    // Distinct from restart: this must NOT reload a device with nothing pending,
+    // which would blank a working screen for no reason.
+    expect(restartPlayer).not.toHaveBeenCalled()
   })
 
   it('drives next/prev through the playback bus', () => {
@@ -105,17 +110,23 @@ describe('applyCommand — preview spectator', () => {
     expect(playbackPrevious).toHaveBeenCalledOnce()
   })
 
-  it('ignores device-only commands (volume, restart, dailyReload, kioskMode)', () => {
+  it('ignores device-only commands (volume, restart, dailyReload, applyUpdate)', () => {
     applyCommand({ type: 'volume', value: 50 }, preview)
     applyCommand({ type: 'restart' }, preview)
     applyCommand(
       { type: 'dailyReload', value: { enabled: false, time: '04:00' } },
       preview,
     )
-    applyCommand({ type: 'kioskMode', value: 'hard' }, preview)
+    // A preview is a browser tab with no shell to update — running it there would
+    // only ever report "no update", and the fleet broadcast reaches previews too.
+    applyCommand({ type: 'applyUpdate' }, preview)
+    // A preview would answer with the operator's laptop state, under the device's
+    // name — worse than not answering at all.
+    applyCommand({ type: 'sendDiagnostics' }, preview)
     expect(volume.value).toBe(100)
     expect(restartPlayer).not.toHaveBeenCalled()
     expect(dailyReload.value).toEqual({ enabled: true, time: '03:00' })
-    expect(kioskMode.value).toBe('off')
+    expect(applyUpdateIfAvailable).not.toHaveBeenCalled()
+    expect(reportDiagnostics).not.toHaveBeenCalled()
   })
 })

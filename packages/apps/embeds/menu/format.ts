@@ -70,43 +70,6 @@ export function groupItems(items: MenuItem[]): MenuGroup[] {
 }
 
 /**
- * Split groups into pages of at most `maxItems` items, keeping category
- * headings with their items (a group larger than a page is split and repeats
- * its heading on the next page). For templates that rotate instead of shrink.
- */
-export function paginateGroups(groups: MenuGroup[], maxItems: number): MenuGroup[][] {
-  const pages: MenuGroup[][] = []
-  let page: MenuGroup[] = []
-  let count = 0
-  const push = (group: MenuGroup): void => {
-    page.push(group)
-    count += group.items.length
-  }
-  const flush = (): void => {
-    if (page.length > 0) {
-      pages.push(page)
-      page = []
-      count = 0
-    }
-  }
-  for (const group of groups) {
-    let rest = group.items
-    while (rest.length > 0) {
-      const room = maxItems - count
-      if (room <= 0) {
-        flush()
-        continue
-      }
-      push({ title: group.title, items: rest.slice(0, room) })
-      rest = rest.slice(room)
-      if (rest.length > 0) flush()
-    }
-  }
-  flush()
-  return pages.length > 0 ? pages : [[]]
-}
-
-/**
  * A density scale for templates that shrink instead of rotate: 1 at or under
  * the comfortable item count, easing down to 0.6 as the board fills. Applied
  * as a multiplier inside `calc(...)` font sizes.
@@ -132,12 +95,3 @@ export function mediaHtml(item: MenuItem, className: string): string {
     </div>`
 }
 
-/** Rotation-page indicator dots; empty string when there is a single page. */
-export function pageDotsHtml(pageCount: number, page: number): string {
-  if (pageCount < 2) return ''
-  const dots = Array.from(
-    { length: pageCount },
-    (_, i) => `<span class="mb-dot${i === page ? ' is-on' : ''}"></span>`,
-  )
-  return `<div class="mb-dots">${dots.join('')}</div>`
-}

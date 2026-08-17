@@ -94,7 +94,12 @@ export class StockMediaService {
       source: MediaItemSource.PEXELS,
       parentId: dto.parentId ?? null,
       maxSizeBytes: this.maxImportBytes,
-      awaitProcessing: true,
+      // Deliberately NOT awaiting processing. A stock video is transcoded on
+      // import, and holding the HTTP request open for that measured 48 SECONDS
+      // on one clip — long past any sane proxy or load-balancer timeout, with
+      // the browser's connection pinned the whole time. The item is returned
+      // immediately in PROCESSING and flips to READY over the realtime channel,
+      // exactly as a device upload already does.
       ...(asset.durationSeconds !== undefined
         ? { durationSeconds: asset.durationSeconds }
         : {}),

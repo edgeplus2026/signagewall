@@ -13,7 +13,6 @@ import { DashboardHero } from '@/features/dashboard/components/DashboardHero'
 import { DashboardPanel } from '@/features/dashboard/components/DashboardPanel'
 import { DashboardStatCard } from '@/features/dashboard/components/DashboardStatCard'
 import { FleetHealth } from '@/features/dashboard/components/FleetHealth'
-import { GettingStarted } from '@/features/dashboard/components/GettingStarted'
 import { MediaBreakdownChart } from '@/features/dashboard/components/MediaBreakdownChart'
 import { RecentPlaylists } from '@/features/dashboard/components/RecentPlaylists'
 import { ScreenStatusChart } from '@/features/dashboard/components/ScreenStatusChart'
@@ -65,12 +64,6 @@ export default function DashboardPage() {
         userName={firstName}
         online={data.presence.online}
         total={data.presence.total}
-      />
-
-      <GettingStarted
-        screens={data.counts.screens}
-        playlists={data.counts.playlists}
-        media={data.counts.media}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

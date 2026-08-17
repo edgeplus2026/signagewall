@@ -1,11 +1,11 @@
 {
   "meta": {
-    "title": "Download the player for Android and desktop",
-    "description": "Download the SignageWall player for Android or desktop and pair a screen in seconds."
+    "title": "Digital signage player download — Android, desktop",
+    "description": "Digital signage player download for Android or desktop. Install the SignageWall player and pair a screen in seconds."
   },
   "hero": {
     "eyebrow": "Download",
-    "title": "Download the SignageWall player.",
+    "title": "Download the digital signage player.",
     "subtitle": "A lightweight app that turns any TV or computer into a smart screen. Install it, enter the pairing code, and the screen is ready."
   },
   "platforms": {
@@ -23,24 +23,24 @@
       "cta": "Download for desktop"
     },
     "ctaUnavailable": "Request access",
-    "unavailableNote": "The build is not public yet — get in touch and we will send it to you."
+    "unavailableNote": "The build is not public yet. Get in touch and we will send it to you."
   },
   "steps": {
     "title": "Install in three steps.",
     "items": [
       {
         "title": "Install",
-        "body": "Download and run the SignageWall player on the device connected to your screen."
+        "body": "Download and run the SignageWall player on the device connected to your screen — an Android box, a mini PC, or a computer already sitting nearby. Nothing else has to be installed, and no server is involved."
       },
       {
         "title": "Pair",
-        "body": "The player shows a six-character code — enter it in your dashboard to link the screen to your account."
+        "body": "The player shows a short pairing code on the screen. Enter it in the Screens section of your dashboard and the device is linked to one logical screen in your account. No cables are moved and nobody has to visit the site again."
       },
       {
         "title": "Publish",
-        "body": "Send content from the panel — and the screen comes to life instantly."
+        "body": "Send content from the dashboard and the screen picks it up within seconds. From then on the player stores what it downloaded and keeps playing it through a dropped connection, syncing again the moment the network returns."
       }
     ]
   },
-  "note": "No account yet? Get in touch and we will help you set up your first screen."
+  "note": "No account yet? Get in touch and we will help you set up your first screen. The trial runs for 21 days with every feature switched on and needs no card, so a first screen can be running before you decide anything."
 }

@@ -170,6 +170,16 @@ export class ConnectionsService {
     await this.repository.deleteByInstances(organizationId, instanceIds);
   }
 
+  /**
+   * Whether a connection still exists, without throwing and without needing an
+   * org scope. For background jobs that must tell "this connection is gone for
+   * good" (drop the work) from "resolving it failed this time" (retry later) —
+   * {@link resolveConnection} throws for both.
+   */
+  async connectionExists(id: string): Promise<boolean> {
+    return (await this.repository.findByIdUnscoped(id)) !== null;
+  }
+
   async delete(organizationId: string, id: string): Promise<void> {
     const ok = await this.repository.deleteById(organizationId, id);
     if (!ok) {

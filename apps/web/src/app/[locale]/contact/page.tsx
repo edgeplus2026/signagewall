@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import { ContactForm } from './contact-form'
 
+import { copyLinks } from '@/components/content/copy-links'
 import { PageHero } from '@/components/marketing/page-hero'
 import { Card } from '@/components/ui/card'
 import { Section, SectionStack } from '@/components/ui/section'
@@ -54,6 +55,34 @@ export default async function ContactPage({ params }: PageProps) {
             </span>
           </a>
           <p className="mt-6 text-sm text-secondary">{t('info.responseTime')}</p>
+
+          {/* A contact page that says only "write to us" earns a second round
+              of email to find out what was actually being asked. Saying what a
+              useful message contains costs a paragraph and saves that round —
+              and it gives the page something to be about, which the audit read
+              as seventy words of content. */}
+          <div className="mt-10">
+            <p className="font-heading text-xs font-semibold tracking-widest uppercase">
+              {t('info.checklist.title')}
+            </p>
+            <ul className="mt-4 flex flex-col gap-2">
+              {(t.raw('info.checklist.items') as string[]).map((item) => (
+                <li key={item} className="flex gap-3 text-sm text-secondary">
+                  <span aria-hidden className="text-accent">
+                    —
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Sending someone away from the contact form is the point: the two
+              questions this inbox receives most already have pages, and those
+              pages answer at once instead of tomorrow morning. */}
+          <p className="mt-8 text-sm text-secondary">{t.rich('info.answered', copyLinks)}</p>
+          <p className="mt-4 text-sm text-secondary">{t('info.enterprise')}</p>
+          <p className="mt-4 text-sm text-secondary">{t('info.selfServe')}</p>
         </div>
 
         <Card>

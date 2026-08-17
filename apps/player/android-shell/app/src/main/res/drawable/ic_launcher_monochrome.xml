@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Themed-icon layer (Android 13+): the same mark as a flat silhouette, which the
+  launcher re-tints to the user's wallpaper palette. Colours here are placeholders
+  and are thrown away — only the shapes and their alpha survive, which is why the
+  playing screen is drawn filled and the other three stay outlines: that contrast is
+  the whole mark, and it has to survive being reduced to one colour.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:scaleX="0.95"
+        android:scaleY="0.95"
+        android:translateX="25.5"
+        android:translateY="25.5">
+
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M5.5,12 H20.5 A1.5,1.5 0 0 1 22,13.5 V24.5 A1.5,1.5 0 0 1 20.5,26 H5.5 A1.5,1.5 0 0 1 4,24.5 V13.5 A1.5,1.5 0 0 1 5.5,12 Z"
+            android:strokeColor="#000000"
+            android:strokeWidth="4" />
+
+        <path
+            android:fillColor="#000000"
+            android:pathData="M31.5,10 H54.5 A3.5,3.5 0 0 1 58,13.5 V24.5 A3.5,3.5 0 0 1 54.5,28 H31.5 A3.5,3.5 0 0 1 28,24.5 V13.5 A3.5,3.5 0 0 1 31.5,10 Z" />
+
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M5.5,34 H28.5 A1.5,1.5 0 0 1 30,35.5 V46.5 A1.5,1.5 0 0 1 28.5,48 H5.5 A1.5,1.5 0 0 1 4,46.5 V35.5 A1.5,1.5 0 0 1 5.5,34 Z"
+            android:strokeColor="#000000"
+            android:strokeWidth="4" />
+
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M39.5,34 H54.5 A1.5,1.5 0 0 1 56,35.5 V46.5 A1.5,1.5 0 0 1 54.5,48 H39.5 A1.5,1.5 0 0 1 38,46.5 V35.5 A1.5,1.5 0 0 1 39.5,34 Z"
+            android:strokeColor="#000000"
+            android:strokeWidth="4" />
+    </group>
+</vector>

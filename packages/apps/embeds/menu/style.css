@@ -1,12 +1,13 @@
 /* Menu board chrome shared by every design; each design ships its own CSS next
    to its template under `templates/`. */
 
+/* Geometry only. Type and colour are the design's, set under `.mb-<template>`
+   in each template's CSS — the board no longer takes a font or a palette from
+   config, so there is nothing generic left to apply here. */
 .menu {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: var(--app-font, inherit);
-  letter-spacing: var(--app-letter-spacing, 0);
 }
 
 .menu-empty {

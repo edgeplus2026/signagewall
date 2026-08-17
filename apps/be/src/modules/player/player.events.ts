@@ -37,6 +37,14 @@ export const PlayerEvents = {
   /** A device setting changed (e.g. volume) — push live to the player. */
   DeviceCommand: 'player.device.command',
   /**
+   * A command for EVERY connected device at once, regardless of organization.
+   * Deliberately separate from {@link DeviceCommand}: that one is addressed to a
+   * device and belongs to an org, while this one has no owner and no target, and
+   * exists so a super-admin can push a fix across the whole fleet in one action
+   * instead of iterating tenants. Emitted rarely and on purpose.
+   */
+  FleetCommand: 'player.fleet.command',
+  /**
    * A `server` app's connector data changed for a cache key — every screen whose
    * instances resolve to that key must re-resolve so the new payload reaches the
    * player. The cache is global (shared across orgs), so this event carries no
@@ -120,6 +128,11 @@ export interface DevicePresenceChangedEvent {
 export interface DeviceCommandEvent {
   deviceId: string;
   screenId: string;
+  command: PlayerCommand;
+}
+
+/** A command for every connected device. Carries no device or screen by design. */
+export interface FleetCommandEvent {
   command: PlayerCommand;
 }
 

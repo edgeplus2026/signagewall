@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { DeviceDiagnosticsPanel } from '@/features/screens/components/DeviceDiagnosticsPanel'
 import { DeviceSettingsForm } from '@/features/screens/components/DeviceSettingsForm'
 import { PairingCodeFrame } from '@/features/screens/components/PairingCodeFrame'
 import { PlayerPreviewFrame } from '@/features/screens/components/PlayerPreviewFrame'
 import { ScreenPresenceBadge } from '@/features/screens/components/ScreenPresenceBadge'
+import { ShellChannelPanel } from '@/features/screens/components/ShellChannelPanel'
 import { UnpairDeviceDialog } from '@/features/screens/components/UnpairDeviceDialog'
 import {
   usePairScreenDevice,
@@ -103,7 +105,18 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
             screenId={screenId}
             savedVolume={savedVolume}
             savedSettings={savedSettings}
-            deviceOwner={device?.profile?.deviceOwner}
+          />
+
+          <ShellChannelPanel
+            screenId={screenId}
+            status={device?.shellStatus}
+            statusAt={device?.shellStatusAt}
+            pageOnline={device?.online ?? false}
+          />
+
+          <DeviceDiagnosticsPanel
+            screenId={screenId}
+            report={device?.diagnostics}
           />
 
           <SettingsSection title={t('screens.device.details.title')}>
@@ -141,6 +154,106 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
               >
                 <span className="text-secondary text-sm">
                   {device.profile.shellVersion}
+                </span>
+              </SettingsRow>
+            ) : null}
+
+            {/* Cache state, from the last heartbeat. This is the row that answers
+                "would this screen survive losing its network?" — and until it
+                existed the only way to know was to measure free disk over adb
+                while adding content and watching what moved. */}
+            {device?.profile?.diagnostics?.totalMedia !== undefined ? (
+              <SettingsRow
+                label={t('screens.device.cache.title')}
+                description={t('screens.device.cache.description')}
+              >
+                <span
+                  className={
+                    device.profile.diagnostics.cacheComplete
+                      ? 'text-secondary text-sm'
+                      : 'text-warning text-sm'
+                  }
+                >
+                  {t('screens.device.cache.value', {
+                    cached: device.profile.diagnostics.cachedMedia ?? 0,
+                    total: device.profile.diagnostics.totalMedia,
+                  })}
+                </span>
+              </SettingsRow>
+            ) : null}
+
+            {/* Only when the screen has actually struggled. A zero is the normal
+                state and needs no row — but a count that keeps climbing is the
+                only trace an overnight recovery loop leaves behind, since the
+                ladder resets itself once the player is back. */}
+            {(device?.profile?.diagnostics?.recoveries ?? 0) > 0 ? (
+              <SettingsRow
+                label={t('screens.device.recoveries.title')}
+                description={t('screens.device.recoveries.description')}
+              >
+                <span className="text-warning text-sm">
+                  {t('screens.device.recoveries.value', {
+                    count: device?.profile?.diagnostics?.recoveries ?? 0,
+                  })}
+                </span>
+              </SettingsRow>
+            ) : null}
+
+            {device?.profile?.diagnostics?.lastCrash ? (
+              <SettingsRow
+                label={t('screens.device.lastCrash.title')}
+                description={t('screens.device.lastCrash.description')}
+              >
+                <span className="text-warning max-w-80 text-right text-sm">
+                  {device.profile.diagnostics.lastCrash}
+                  {device.profile.diagnostics.lastCrashAt ? (
+                    <span className="text-muted-foreground block text-xs">
+                      {new Date(
+                        device.profile.diagnostics.lastCrashAt,
+                      ).toLocaleString()}
+                    </span>
+                  ) : null}
+                </span>
+              </SettingsRow>
+            ) : null}
+
+            {/* Only when it is FALSE. A controlled worker is the normal state and
+                needs no row; an uncontrolled one caches nothing at all while the
+                screen looks perfectly healthy, which is the whole point of
+                surfacing it. */}
+            {device?.profile?.diagnostics?.serviceWorkerControlled === false ? (
+              <SettingsRow
+                label={t('screens.device.worker.title')}
+                description={t('screens.device.worker.description')}
+              >
+                <span className="text-warning text-sm">
+                  {t('screens.device.worker.uncontrolled')}
+                </span>
+              </SettingsRow>
+            ) : null}
+
+            {device?.profile?.diagnostics?.freeDiskBytes !== undefined ? (
+              <SettingsRow
+                label={t('screens.device.storage.title')}
+                description={t('screens.device.storage.description')}
+              >
+                <span className="text-secondary text-sm">
+                  {formatFreeSpace(device.profile.diagnostics.freeDiskBytes)}
+                </span>
+              </SettingsRow>
+            ) : null}
+
+            {/* Only on a confirmed `false`. A shell too old to report it says
+                nothing, and guessing there would put a warning on screens that
+                may well be fine — across a whole fleet that is how an operator
+                learns to ignore the column. */}
+            {device?.profile?.deviceOwner === false ? (
+              <SettingsRow
+                label={t('screens.device.kioskCapability')}
+                description={t('screens.device.kioskCapabilityDescription')}
+              >
+                <span className="text-warning text-sm">
+                  {t('screens.device.kioskCapabilityLimited')}
                 </span>
               </SettingsRow>
             ) : null}
@@ -212,4 +325,17 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
       />
     </div>
   )
+}
+
+/**
+ * "1.8 GB free" — gigabytes above a gigabyte, megabytes below it. A signage box
+ * down to its last few hundred megabytes is exactly when the difference between
+ * 0.4 and 0.04 GB decides whether someone drives out, and a rounded "0.4 GB"
+ * hides it.
+ */
+function formatFreeSpace(bytes: number): string {
+  const gb = bytes / 1024 ** 3
+  return gb >= 1
+    ? `${gb.toFixed(1)} GB`
+    : `${String(Math.round(bytes / 1024 ** 2))} MB`
 }

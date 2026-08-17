@@ -50,12 +50,15 @@ function build(deps: Deps) {
     noop as never, // appInstance
     noop as never, // orgApp
     noop as never, // appConnection
+    noop as never, // onboardingProgress
     {} as never, // mediaService
     usersRepository as never,
     { deleteByUser: jest.fn() } as never, // legalRepository
     {} as never, // transactionService
     eventEmitter as never,
     { t: (key: string) => key } as never,
+    // Always the leader in a test: there is one process and no Redis.
+    { isLeader: jest.fn().mockResolvedValue(true) } as never,
   );
 
   return {

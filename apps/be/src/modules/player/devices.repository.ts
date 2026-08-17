@@ -202,6 +202,74 @@ export class DevicesRepository {
       .exec();
   }
 
+  /**
+   * Stores the device's latest on-demand report, replacing any previous one.
+   * Only the newest is kept: a history would grow without bound on a device
+   * nobody is investigating, and the question this answers is always "what is
+   * wrong with it now".
+   */
+  async setDiagnosticsReport(
+    deviceId: string,
+    report: Record<string, unknown>,
+  ): Promise<void> {
+    await this.deviceModel
+      .updateOne({ deviceId }, { $set: { diagnosticsReport: report } })
+      .exec();
+  }
+
+  /**
+   * Records the shell's report and atomically takes whatever was queued for it.
+   *
+   * One findOneAndUpdate, not a read then a write: two operators clicking at the
+   * same moment, or a device polling while one clicks, would otherwise let a
+   * command be handed out twice or dropped between the read and the clear.
+   * `returnDocument: 'before'` is what makes the take atomic — the caller gets
+   * the queue as it was, and the same operation empties it.
+   */
+  async recordShellStatusAndTakeCommands(
+    deviceId: string,
+    status: Record<string, unknown>,
+  ): Promise<{ commands: string[]; wantsLog: boolean }> {
+    const previous = await this.deviceModel
+      .findOneAndUpdate(
+        { deviceId },
+        {
+          $set: {
+            shellStatus: status,
+            shellStatusAt: new Date().toISOString(),
+            shellCommands: [],
+            shellWantsLog: false,
+          },
+        },
+        { returnDocument: 'before' },
+      )
+      .exec();
+
+    return {
+      commands: previous?.shellCommands ?? [],
+      wantsLog: previous?.shellWantsLog ?? false,
+    };
+  }
+
+  /** Queues one command for the shell to collect on its next poll. */
+  async queueShellCommand(deviceId: string, command: string): Promise<void> {
+    await this.deviceModel
+      .updateOne(
+        { deviceId },
+        // addToSet, not push: an impatient operator clicking restart four times
+        // must not make the screen restart four times.
+        { $addToSet: { shellCommands: command } },
+      )
+      .exec();
+  }
+
+  /** Asks the shell to include its event log in the next report. */
+  async requestShellLog(deviceId: string): Promise<void> {
+    await this.deviceModel
+      .updateOne({ deviceId }, { $set: { shellWantsLog: true } })
+      .exec();
+  }
+
   /** Marks presence and returns the updated device (for downstream events). */
   async setPresence(
     deviceId: string,
@@ -328,5 +396,44 @@ export class DevicesRepository {
         { $set: { offlineAlertedAt: new Date() } },
       )
       .exec();
+  }
+
+  /**
+   * Bumps only the liveness stamp, leaving the reported profile untouched.
+   *
+   * The heartbeat is the highest-frequency write in the system — one per device
+   * every thirty seconds, forever — and it used to rewrite the whole `profile`
+   * subdocument each time: the user agent, the update status, the diagnostics
+   * block, all of it, for values that change perhaps once a week. At a thousand
+   * screens that is a full-document rewrite plus index maintenance a hundred and
+   * fifty times a second to record that nothing happened. The caller compares the
+   * incoming profile against the stored one and only reaches for
+   * {@link setPresence} when it actually differs.
+   */
+  async touchPresence(deviceId: string): Promise<void> {
+    await this.deviceModel
+      .updateOne(
+        { deviceId },
+        { $set: { online: true, lastSeenAt: new Date() } },
+      )
+      .exec();
+  }
+
+  /**
+   * Claims the one-time "this screen went live" marker.
+   *
+   * Returns true only for the caller that actually set it — the conditional
+   * filter makes that atomic, so concurrent gateway instances cannot both decide
+   * they were first. A device that already carries the marker costs one indexed
+   * update that matches nothing, which is the cheapest honest answer available.
+   */
+  async claimActivationReport(deviceId: string): Promise<boolean> {
+    const result = await this.deviceModel
+      .updateOne(
+        { deviceId, activationReportedAt: { $exists: false } },
+        { $set: { activationReportedAt: new Date() } },
+      )
+      .exec();
+    return result.modifiedCount > 0;
   }
 }

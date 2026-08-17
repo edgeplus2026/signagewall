@@ -16,6 +16,12 @@ export interface UpsertCacheData {
   version?: string;
   /** Private connector state to persist (job id, etc.); never sent to players. */
   secrets?: Record<string, unknown>;
+  /**
+   * Whether this fetch produced DIFFERENT content from what was stored. Only then
+   * does `contentAt` advance — see the field's note for why the player's snapshot
+   * revision depends on that distinction.
+   */
+  contentChanged: boolean;
 }
 
 @Injectable()
@@ -65,6 +71,9 @@ export class AppDataCacheRepository {
           fetchedAt: data.fetchedAt,
           lastAttemptAt: data.fetchedAt,
           refreshSeconds: data.refreshSeconds,
+          // Only advanced on a real content change; an unchanged re-fetch leaves
+          // it (and therefore every player's snapshot revision) alone.
+          ...(data.contentChanged ? { contentAt: data.fetchedAt } : {}),
           ...(data.version ? { version: data.version } : {}),
           // A final result clears the in-flight-job state and pending flag.
           secrets: data.secrets ?? null,

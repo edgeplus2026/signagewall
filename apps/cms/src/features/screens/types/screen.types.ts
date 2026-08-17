@@ -1,6 +1,5 @@
 import {
   DEFAULT_DAILY_RELOAD,
-  DEFAULT_KIOSK_MODE,
   DEFAULT_ORIENTATION,
   DEFAULT_SCALE,
   type DailyReloadSetting,
@@ -8,8 +7,11 @@ import {
   type DeviceScale,
   type DeviceSettings,
   type DeviceUpdateStatus,
-  type KioskMode,
+  type DiagnosticsReport,
+  type PlayerDiagnostics,
   type PlayerRuntime,
+  type ShellCommand,
+  type ShellStatusReport,
 } from '@signagewall/player-contract'
 
 export type ScreenViewMode = 'grid' | 'list'
@@ -35,10 +37,13 @@ export interface ScreenDeviceProfile {
   shellVersion?: string
   runtime?: PlayerRuntime
   updateStatus?: DeviceUpdateStatus
+  /** Live health from the last heartbeat — cache state, storage, worker. */
+  diagnostics?: PlayerDiagnostics
   /**
-   * Android only: Device Owner provisioning, which is what decides whether a
-   * `hard` kiosk lock can actually hold. Absent elsewhere, and on shells too old
-   * to report it — so `false` means "confirmed unprovisioned", not "unknown".
+   * Android only: Device Owner provisioning. `false` means the box cannot hold a
+   * real kiosk lock — the shell degrades it to escapable screen-pinning. Absent
+   * elsewhere and on shells too old to report it, so `false` means "confirmed
+   * unprovisioned", never "unknown".
    */
   deviceOwner?: boolean
 }
@@ -48,17 +53,18 @@ export interface ScreenDeviceProfile {
 // `ScreenDevice*` names so the rest of the CMS keeps importing from here.
 export type ScreenDeviceOrientation = DeviceOrientation
 export type ScreenDeviceScale = DeviceScale
-export type ScreenDeviceKioskMode = KioskMode
-export type { DailyReloadSetting }
+export type { DailyReloadSetting, ShellCommand, ShellStatusReport }
 export type ScreenDeviceSettings = DeviceSettings
 
 /** Fallback used when a device has no persisted settings yet. */
 export const DEFAULT_DEVICE_SETTINGS: ScreenDeviceSettings = {
   orientation: DEFAULT_ORIENTATION,
   scale: DEFAULT_SCALE,
-  kioskMode: DEFAULT_KIOSK_MODE,
   dailyReload: { ...DEFAULT_DAILY_RELOAD },
 }
+
+/** The last on-demand report a device sent, plus when the backend received it. */
+export type StoredDiagnosticsReport = DiagnosticsReport & { receivedAt?: string }
 
 /** Pairing/online status of the physical display bound 1:1 to this screen. */
 export interface ScreenDevice {
@@ -71,6 +77,18 @@ export interface ScreenDevice {
   volume?: number
   /** Display + power settings. */
   settings?: ScreenDeviceSettings
+  /** The last on-demand diagnostics report, if one was ever requested. */
+  diagnostics?: StoredDiagnosticsReport
+  /**
+   * What the native shell last said on its OWN channel, and when.
+   *
+   * Kept apart from `profile` on purpose: that is what the player page reports,
+   * and the entire point of this one is that it can disagree — a shell reporting
+   * in while the page has said nothing for an hour is the fingerprint of a broken
+   * web deploy, and merging the two would erase exactly that.
+   */
+  shellStatus?: ShellStatusReport
+  shellStatusAt?: string
 }
 
 export interface PairDeviceRequest {

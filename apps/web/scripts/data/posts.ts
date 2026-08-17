@@ -71,7 +71,7 @@ const POSTS_1 = [
         'Tri odvojena broja koja prodavci rado pomešaju: ekran, plejer i pretplata. Stvarne cifre, i gde se novac najčešće baci.',
       title: 'Koliko zaista košta digital signage',
       excerpt:
-        'Cena ekrana je najmanji deo priče. Evo gde se novac stvarno troši — i gde se najčešće nepotrebno preplati.',
+        'Cena ekrana je najmanji deo priče. Evo gde se novac stvarno troši, i gde se najčešće nepotrebno preplati.',
     },
     en: {
       metaTitle: 'What digital signage actually costs in 2026',
@@ -80,7 +80,7 @@ const POSTS_1 = [
       slug: 'digital-signage-cost',
       title: 'What digital signage actually costs',
       excerpt:
-        'The screen is the smallest part of the bill. Here is where the money really goes — and where it most often gets overspent.',
+        'The screen is the smallest part of the bill. Here is where the money really goes, and where it most often gets overspent.',
     },
   },
   {
@@ -90,19 +90,19 @@ const POSTS_1 = [
     sr: {
       metaTitle: 'Android boks ili mini-PC za digital signage?',
       metaDescription:
-        'Oba rade prvog dana. Razlika se vidi posle šest meseci neprekidnog rada — a tada je zamena hardvera skuplja opcija.',
+        'Oba rade prvog dana. Razlika se vidi posle šest meseci neprekidnog rada, a tada je zamena hardvera skuplja opcija.',
       title: 'Android boks ili mini-PC: šta izabrati za plejer',
       excerpt:
-        'Oba rade. Razlika se vidi tek posle šest meseci neprekidnog rada — i tada je kasno da se menja.',
+        'Oba rade. Razlika se vidi tek posle šest meseci neprekidnog rada, i tada je kasno da se menja.',
     },
     en: {
       metaTitle: 'Android box or mini PC for digital signage?',
       metaDescription:
-        'Both work on day one. The difference shows after six months of continuous running — and by then swapping the hardware is the expensive option.',
+        'Both work on day one. The difference shows after six months of continuous running, and by then swapping the hardware is the expensive option.',
       slug: 'android-box-or-mini-pc',
       title: 'Android box or mini-PC: choosing a player',
       excerpt:
-        'Both work. The difference only shows after six months of continuous running — and by then it is too late to change.',
+        'Both work. The difference only shows after six months of continuous running, and by then it is too late to change.',
     },
   },
   {
@@ -134,7 +134,7 @@ const POSTS_1 = [
     sr: {
       metaTitle: 'Kako automatizovati sadržaj na digitalnom ekranu',
       metaDescription:
-        'Napravite ekran koji traži manje održavanja uz izvore koji se osvežavaju i radno vreme ekrana — bez obećanja o automatskom dayparting-u.',
+        'Napravite ekran koji traži manje održavanja uz izvore koji se osvežavaju i radno vreme ekrana, bez obećanja o automatskom dayparting-u.',
       title: 'Kako automatizovati ažuriranje sadržaja na ekranu',
       excerpt:
         'SignageWall trenutno zakazuje radno vreme celog ekrana, ne pojedinačne stavke. Ipak, pravi izbor aplikacija smanjuje ručne izmene.',
@@ -156,7 +156,7 @@ const POSTS_1 = [
     sr: {
       metaTitle: 'Vertikalni ili horizontalni ekran: kada koji',
       metaDescription:
-        'Orijentacija nije estetska odluka. Ona određuje koliko staje i sa koje daljine se čita — a menja se skupo, kad je ekran već na zidu.',
+        'Orijentacija nije estetska odluka. Ona određuje koliko staje i sa koje daljine se čita, a menja se skupo, kad je ekran već na zidu.',
       title: 'Vertikalni ili horizontalni ekran: kada koji',
       excerpt:
         'Orijentacija ekrana nije estetska odluka. Ona određuje koliko informacija stane i sa koje udaljenosti se čita.',
@@ -164,7 +164,7 @@ const POSTS_1 = [
     en: {
       metaTitle: 'Portrait or landscape: screen orientation',
       metaDescription:
-        'Orientation is not an aesthetic call. It decides how much fits and from how far away it can be read — and it is expensive to change after mounting.',
+        'Orientation is not an aesthetic call. It decides how much fits and from how far away it can be read, and it is expensive to change after mounting.',
       slug: 'portrait-or-landscape-screen',
       title: 'Portrait or landscape: choosing screen orientation',
       excerpt:
@@ -200,7 +200,7 @@ const POSTS_1 = [
     sr: {
       metaTitle: 'Koliko dugo treba da traje jedan slajd',
       metaDescription:
-        'Odgovor nije deset sekundi. Zavisi od toga koliko gledalac uopšte stoji tu — a to je broj koji možete da izmerite ove nedelje.',
+        'Odgovor nije deset sekundi. Zavisi od toga koliko gledalac uopšte stoji tu, a to je broj koji možete da izmerite ove nedelje.',
       title: 'Koliko dugo treba da traje jedan slajd',
       excerpt:
         'Odgovor nije „deset sekundi". Zavisi od toga koliko dugo gledalac uopšte stoji ispred ekrana.',
@@ -208,7 +208,7 @@ const POSTS_1 = [
     en: {
       metaTitle: 'How long should a signage slide stay on screen?',
       metaDescription:
-        'The answer is not ten seconds. It depends on how long the viewer stands there at all — which is a number you can measure this week.',
+        'The answer is not ten seconds. It depends on how long the viewer stands there at all, which is a number you can measure this week.',
       slug: 'how-long-should-a-slide-last',
       title: 'How long should a slide stay on screen',
       excerpt:

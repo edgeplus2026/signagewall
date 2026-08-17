@@ -16,7 +16,7 @@ export const gcalManifest: AppManifest = {
   name: 'Google Calendar',
   tagline: 'Show a Google Calendar on your screens',
   description:
-    'Display a connected Google Calendar as a day, week, month or schedule view — great for meeting rooms and lobbies.',
+    'Display a connected Google Calendar as a day, week, month or schedule view, great for meeting rooms and lobbies.',
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 4,
@@ -34,7 +34,7 @@ export const gcalManifest: AppManifest = {
       // answered before they hand over a Google account. It is true — the OAuth
       // scope is `calendar.readonly` (see gcal.connector.ts). Keep the two in
       // step: if the scope ever widens, this sentence has to go.
-      help: 'Sign in once. SignageWall only reads your calendars — it never adds, changes or deletes anything.',
+      help: 'Sign in once. SignageWall only reads your calendars. It never adds, changes or deletes anything.',
     },
     {
       key: 'calendar',
@@ -51,6 +51,8 @@ export const gcalManifest: AppManifest = {
       label: 'Calendar view',
       help: 'How events are laid out on the screen.',
       default: 'schedule',
+      // Shared with Outlook, which renders through this same embed.
+      previewGallery: 'calendar',
       options: [
         { label: 'Day', value: 'day' },
         { label: 'Week', value: 'week' },

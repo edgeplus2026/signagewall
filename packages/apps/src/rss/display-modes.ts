@@ -13,15 +13,15 @@ import type { FieldOption } from '@signagewall/apps-contract'
  */
 export const RSS_DISPLAY_MODES = [
   { value: 'story', label: 'One story at a time' },
-  { value: 'cover', label: 'Cover — the photo fills the screen' },
-  { value: 'editorial', label: 'Editorial — a magazine page' },
-  { value: 'rolling', label: 'Rolling list — stories queue up and move on' },
-  { value: 'mosaic', label: 'Mosaic — the whole front page at once' },
-  { value: 'primetime', label: 'Primetime — a headliner, and what’s up next' },
-  { value: 'broadcast', label: 'Broadcast — a news channel' },
-  { value: 'kinetic', label: 'Kinetic — typography that performs' },
-  { value: 'atelier', label: 'Atelier — the deluxe edition' },
-  { value: 'statement', label: 'Statement — the headline, and nothing else' },
+  { value: 'cover', label: 'Cover. The photo fills the screen' },
+  { value: 'editorial', label: 'Editorial. A magazine page' },
+  { value: 'rolling', label: 'Rolling list, stories queue up and move on' },
+  { value: 'mosaic', label: 'Mosaic. The whole front page at once' },
+  { value: 'primetime', label: 'Primetime: a headliner, and what’s up next' },
+  { value: 'broadcast', label: 'Broadcast. A news channel' },
+  { value: 'kinetic', label: 'Kinetic, typography that performs' },
+  { value: 'atelier', label: 'Atelier. The deluxe edition' },
+  { value: 'statement', label: 'Statement: the headline, and nothing else' },
 ] as const
 
 /** The `displayMode` config values, narrowed to the modes we actually ship. */

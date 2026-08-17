@@ -1,11 +1,11 @@
 {
   "meta": {
-    "title": "Preuzmite plejer za Android i desktop",
-    "description": "Preuzmite SignageWall plejer za Android ili desktop i uparite ekran za nekoliko sekundi."
+    "title": "Preuzimanje digital signage plejera — Android, desktop",
+    "description": "Preuzimanje digital signage plejera za Android ili desktop. Instalirajte SignageWall plejer i uparite ekran za nekoliko sekundi."
   },
   "hero": {
     "eyebrow": "Preuzimanje",
-    "title": "Preuzmite SignageWall plejer.",
+    "title": "Preuzmite digital signage plejer.",
     "subtitle": "Lagana aplikacija koja pretvara bilo koji TV ili računar u pametan ekran. Instalirajte, unesite kod za uparivanje i ekran je spreman."
   },
   "platforms": {
@@ -23,24 +23,24 @@
       "cta": "Preuzmite za desktop"
     },
     "ctaUnavailable": "Zatražite pristup",
-    "unavailableNote": "Instalacija još nije javno dostupna — javite nam se i poslaćemo vam je."
+    "unavailableNote": "Instalacija još nije javno dostupna. Javite nam se i poslaćemo vam je."
   },
   "steps": {
     "title": "Instalacija u tri koraka.",
     "items": [
       {
         "title": "Instalirajte",
-        "body": "Preuzmite i pokrenite SignageWall plejer na uređaju povezanom na ekran."
+        "body": "Preuzmite i pokrenite SignageWall plejer na uređaju povezanom na ekran — Android boks, mini računar, ili računar koji već stoji tu. Ništa drugo ne treba instalirati i nema servera u priči."
       },
       {
         "title": "Uparite",
-        "body": "Plejer prikazuje kod od šest znakova — unesite ga u kontrolnu tablu da povežete ekran sa nalogom."
+        "body": "Plejer na ekranu prikaže kratak registracioni kod. Unesete ga u deo za ekrane u kontrolnoj tabli i uređaj je povezan sa jednim logičkim ekranom u nalogu. Nijedan kabl se ne pomera i niko ne mora ponovo da dolazi na lice mesta."
       },
       {
         "title": "Objavite",
-        "body": "Pošaljite sadržaj sa panela — i ekran odmah oživi."
+        "body": "Pošaljite sadržaj iz kontrolne table i ekran ga preuzme za nekoliko sekundi. Od tada plejer čuva preuzeto i nastavlja da pušta i kad veza padne, a sinhronizuje se čim se mreža vrati."
       }
     ]
   },
-  "note": "Nemate nalog? Javite nam se i pomoći ćemo vam da postavite prvi ekran."
+  "note": "Nemate nalog? Javite nam se i pomoći ćemo vam da postavite prvi ekran. Proba traje 21 dan sa svim uključenim i ne traži karticu, pa prvi ekran može da radi pre nego što bilo šta odlučite."
 }

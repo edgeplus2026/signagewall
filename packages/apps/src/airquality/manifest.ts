@@ -15,7 +15,7 @@ export const airqualityManifest: AppManifest = {
   name: 'Air quality',
   tagline: 'Live air quality for any location',
   description:
-    'Show the current air-quality index and key pollutants for a place — updated automatically.',
+    'Show the current air-quality index and key pollutants for a place, updated automatically.',
   runtimeKind: 'embed',
   dataSource: 'server',
   version: 1,

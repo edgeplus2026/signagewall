@@ -10,6 +10,7 @@ import { CrmTab } from '@/features/crm/components/CrmTab'
 import { useCrmOverview } from '@/features/crm/hooks/useCrmLeads'
 import { AdminNotificationsTab } from '@/features/notifications/components/AdminNotificationsTab'
 import { AllUsersTab } from '@/features/super-admin/components/AllUsersTab'
+import { PlayerSettingsTab } from '@/features/super-admin/components/PlayerSettingsTab'
 import { UpgradeRequestsTab } from '@/features/super-admin/components/UpgradeRequestsTab'
 import { useOpenUpgradeRequestCount } from '@/features/super-admin/hooks/useAdminUsers'
 import { useEnsureSuperAdminSession } from '@/features/super-admin/hooks/useEnsureSuperAdminSession'
@@ -22,8 +23,10 @@ type SuperAdminTab =
   | 'analytics'
   | 'apps'
   | 'notifications'
+  | 'player'
 
 function getActiveTab(tab: string | null): SuperAdminTab {
+  if (tab === 'player') return 'player'
   if (tab === 'apps') return 'apps'
   if (tab === 'notifications') return 'notifications'
   if (tab === 'billing') return 'billing'
@@ -94,7 +97,12 @@ export default function SuperAdminPage() {
           <TabsTrigger value="analytics">{t('superAdmin.tabs.analytics')}</TabsTrigger>
           <TabsTrigger value="apps">{t('superAdmin.tabs.apps')}</TabsTrigger>
           <TabsTrigger value="notifications">{t('superAdmin.tabs.notifications')}</TabsTrigger>
+          <TabsTrigger value="player">{t('superAdmin.tabs.player')}</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="player" className="mt-0">
+          <PlayerSettingsTab />
+        </TabsContent>
 
         <TabsContent value="users" className="mt-0">
           <AllUsersTab />

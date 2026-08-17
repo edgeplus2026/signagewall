@@ -30,6 +30,7 @@ interface PlaylistCardProps {
   isSelected: boolean
   onSelect: (id: string, selected: boolean) => void
   onOpen: (playlist: PlaylistSummary, tab: PlaylistDetailTab) => void
+  onPreview: (playlist: PlaylistSummary) => void
   onDuplicate: (playlist: PlaylistSummary) => Promise<void>
   onAddToScreen?: (id: string) => void
   onDelete: (id: string) => void
@@ -40,6 +41,7 @@ export function PlaylistCard({
   isSelected,
   onSelect,
   onOpen,
+  onPreview,
   onDuplicate,
   onAddToScreen,
   onDelete,
@@ -77,7 +79,7 @@ export function PlaylistCard({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="bg-panel absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100"
+            className="bg-panel absolute top-2 right-2 z-10 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
             onClick={(event) => {
               event.stopPropagation()
             }}
@@ -89,7 +91,7 @@ export function PlaylistCard({
         <DropdownMenuContent align="end" className="w-auto min-w-44">
           <DropdownMenuItem
             onClick={() => {
-              onOpen(playlist, 'content')
+              onPreview(playlist)
             }}
           >
             <EyeIcon />

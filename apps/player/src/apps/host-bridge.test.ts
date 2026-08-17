@@ -331,4 +331,60 @@ describe('mountAppHost', () => {
       [{ type: 'app-active', active: false, muted: true }, 'https://player.example'],
     ])
   })
+
+  // A refreshed connector payload must reach a bundle that is already mounted.
+  // Rebuilding the iframe instead is what made the ticker band vanish and
+  // restart its scroll on every RSS refresh.
+  describe('setConfig', () => {
+    function configCalls(): unknown[] {
+      return createdIframe.contentWindow.postMessage.mock.calls
+        .filter(([msg]) => (msg as { type?: string }).type === 'app-config')
+        .map(([msg]) => msg)
+    }
+
+    it('re-posts app-config to the live bundle', async () => {
+      const handle = mountAppHost(host as unknown as HTMLElement, ITEM, OPTIONS)
+      emit({
+        source: createdIframe.contentWindow as unknown as MessageEventSource,
+        data: { type: 'app-ready' },
+      })
+      await handle.ready
+
+      handle.setConfig({ ...ITEM, data: { headline: 'fresh' } })
+
+      expect(configCalls()).toEqual([
+        { type: 'app-config', config: { format: '24h' }, data: null, meta: null },
+        {
+          type: 'app-config',
+          config: { format: '24h' },
+          data: { headline: 'fresh' },
+          meta: null,
+        },
+      ])
+      handle.dispose()
+    })
+
+    it('an update landing mid-handshake wins over the mounted config', async () => {
+      const handle = mountAppHost(host as unknown as HTMLElement, ITEM, OPTIONS)
+      // The payload refreshed before the bundle finished booting.
+      handle.setConfig({ ...ITEM, data: { headline: 'fresh' } })
+
+      emit({
+        source: createdIframe.contentWindow as unknown as MessageEventSource,
+        data: { type: 'app-ready' },
+      })
+      await handle.ready
+
+      // Exactly one config, carrying the newer payload — never the stale one.
+      expect(configCalls()).toEqual([
+        {
+          type: 'app-config',
+          config: { format: '24h' },
+          data: { headline: 'fresh' },
+          meta: null,
+        },
+      ])
+      handle.dispose()
+    })
+  })
 })

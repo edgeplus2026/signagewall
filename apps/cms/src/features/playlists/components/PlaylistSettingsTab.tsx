@@ -95,7 +95,7 @@ export function PlaylistSettingsTab({ playlist }: PlaylistSettingsTabProps) {
           <SettingsRow
             label={t("playlists.form.description")}
             field
-            className="items-start"
+            className="sm:items-start"
             error={errors.description?.message}
           >
             <Textarea

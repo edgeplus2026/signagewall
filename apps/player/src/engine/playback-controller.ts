@@ -32,6 +32,19 @@ export interface PlaybackSlot {
   setVolume(volume: number): void
   tryUnmute(): void
   /**
+   * Absorbs a refreshed version of the item already loaded here (a new connector
+   * payload) without reloading. Returns false when it does not apply — an image,
+   * a video, or a different item — which tells the loop nothing needed doing.
+   * Optional so a test fake can ignore it.
+   */
+  applyUpdate?(item: Renderable): boolean
+  /**
+   * Restarts the on-screen video in place, keeping its decode session. Returns
+   * false when that isn't possible, which tells the loop to do a real
+   * transition. Optional so a test fake can ignore it.
+   */
+  replay?(): boolean
+  /**
    * The real decoded duration (ms) of the loaded video, or null when unknown or
    * the slot isn't showing a video. Lets the loop key its dwell/watchdog on the
    * actual length instead of trusting (possibly stale) snapshot metadata.
@@ -42,13 +55,21 @@ export interface PlaybackSlot {
 const WATCHDOG_INTERVAL_MS = 5_000
 const WATCHDOG_GRACE_MS = 15_000
 const MIN_DWELL_MS = 1_000
-const SKIP_DELAY_MS = 250
 /**
  * Slide duration; must match the `.player-slot` transform transition in CSS.
  * The engine waits it out before recycling the outgoing slot, so a mismatch
  * either cuts the exit short or leaves the buffers held longer than needed.
  */
 const TRANSITION_MS = 600
+/**
+ * Pause before stepping over an item that failed to load.
+ *
+ * Deliberately shorter than the slide: a failed prepare never swapped, so the
+ * outgoing slot is not mid-transition and the skip's `release()` has no animation
+ * to cut short. The only thing this delay buys is not hammering a broken source
+ * in a tight loop, and a broken item should leave the screen quickly.
+ */
+const SKIP_DELAY_MS = 250
 /**
  * Extra grace before the back buffer is touched while a video plays — see
  * {@link PlaybackController.schedulePreload}. Long enough for a fresh decode
@@ -107,6 +128,27 @@ export class PlaybackController {
   private targetIndex = 0
   private transitioning = false
   private preload: { index: number; promise: Promise<void> } | null = null
+  /**
+   * The prepare currently in flight on the back slot, whether it came from a
+   * preload or was started just-in-time. Kept so a transition that returns to an
+   * item already loading REUSES that load instead of restarting it: `prepare()`
+   * begins with `release()`, which drops the `<video>` src and throws away every
+   * buffered byte. Measured on a real screen — the same 34MB clip issued three
+   * `loadstart`s while the operator stepped around it, each one starting the
+   * download from zero, which is why an already-slow clip became an endless one.
+   */
+  private inFlight: { index: number; promise: Promise<void> } | null = null
+  /**
+   * Set while a transition is parked on {@link awaitPrep}; calling it makes that
+   * wait give up so a newer request can proceed. See {@link requestTransition}.
+   */
+  private supersede: (() => void) | null = null
+  /**
+   * Loads whose failure has already been surfaced. A prepare can be abandoned by
+   * a newer request and then reused by it, so without this the same rejection
+   * would be reported from both places.
+   */
+  private readonly reported = new WeakSet<Promise<void>>()
 
   private advanceTimer: number | undefined
   private watchdogTimer: number | undefined
@@ -119,6 +161,19 @@ export class PlaybackController {
 
   /** Direction of travel (1 = forward, -1 = back); steers skip-on-failure. */
   private direction: 1 | -1 = 1
+
+  /**
+   * The index navigation steps FROM — the last item we ATTEMPTED, which is not
+   * the same thing as {@link cursor}, the last item that actually reached the
+   * screen.
+   *
+   * They diverge exactly when an item fails to load, and keying `next()` off the
+   * cursor there is what let one broken clip trap the loop: the cursor stayed on
+   * the last good item, so every press re-computed the same failing neighbour and
+   * re-targeted it, forever. Stepping from what we last tried means a bad item is
+   * walked over on the first press, the way an operator expects.
+   */
+  private navIndex = 0
 
   /** Mirror mode — never auto-advances; driven only by {@link showItem}. */
   private readonly follow: boolean
@@ -168,10 +223,10 @@ export class PlaybackController {
 
   /**
    * Sets playback volume (0–1) on both slots so a live change is immediate.
-   * Audio is governed entirely by volume (muted iff 0); there is no separate
-   * gesture-driven unmute, so a 24/7 signage screen never tries to un-mute an
-   * already-playing video — which the browser's autoplay policy would punish by
-   * pausing it.
+   * Audio is governed by volume (muted iff 0); a slot the autoplay policy forced
+   * to start muted remembers that it owes sound, and the gesture listeners in the
+   * constructor replay it through {@link PlaybackSlot.tryUnmute}. On a kiosk
+   * (autoplay-with-sound allowed) nothing ever falls back, so that path never runs.
    */
   setVolume(volume: number): void {
     const clamped = Math.min(1, Math.max(0, volume))
@@ -183,16 +238,108 @@ export class PlaybackController {
     this.slots[1].setVolume(clamped)
   }
 
-  /** Loads a snapshot. Ignored if the revision is unchanged (dedupe). */
+  /**
+   * The part of an item that decides whether the ROTATION changed, as opposed to
+   * the data an item happens to be carrying right now.
+   *
+   * Kind, url and dwell are what the loop schedules on; an app's `config` is what
+   * it renders. `data` is deliberately absent — see {@link sameSequence}.
+   */
+  private static fingerprint(item: Renderable): string {
+    const media = item.kind === 'app' ? JSON.stringify(item.config) : item.url
+    return `${item.id} ${item.kind} ${media} ${String(item.durationMs)}`
+  }
+
+  /**
+   * Whether `next` is the same rotation as what is loaded — same items, same
+   * order, differing only in the connector payload an app carries.
+   *
+   * This exists because the snapshot revision moves for reasons that have nothing
+   * to do with the rotation. The backend folds every app's `fetchedAt` into it, so
+   * a crypto ticker refreshing its prices, an RSS feed gaining a headline, or a
+   * calendar syncing produces a brand-new revision for an identical playlist —
+   * and treating that as new content restarted the loop at item one. On a
+   * twenty-item playlist with a five-minute app in it, the back half of the
+   * playlist was never reached at all.
+   */
+  /**
+   * Whether the connector payload on this item changed between two snapshots of
+   * the same rotation. Only apps carry one; anything else answers false.
+   */
+  private static dataMoved(
+    previous: Renderable | undefined,
+    next: Renderable,
+  ): boolean {
+    if (next.kind !== 'app') {
+      return false
+    }
+    if (previous?.kind !== 'app') {
+      return true
+    }
+    return (
+      JSON.stringify(previous.data ?? null) !==
+        JSON.stringify(next.data ?? null) ||
+      JSON.stringify(previous.dataMeta ?? null) !==
+        JSON.stringify(next.dataMeta ?? null)
+    )
+  }
+
+  private sameSequence(next: Renderable[]): boolean {
+    if (next.length !== this.items.length || next.length === 0) {
+      return false
+    }
+    return next.every(
+      (item, index) =>
+        PlaybackController.fingerprint(item) ===
+        PlaybackController.fingerprint(this.items[index]!),
+    )
+  }
+
+  /**
+   * Loads a snapshot. Ignored if the revision is unchanged (dedupe).
+   *
+   * A revision change whose rotation is identical (only app payloads moved) swaps
+   * the items in place and KEEPS the current position — the loop carries on from
+   * where it was, and the fresher payload is picked up the next time each app is
+   * prepared. Only a genuinely different rotation re-bases to the head.
+   */
   load(snapshot: PlayerSnapshot): void {
     if (snapshot.revision === this.revision && this.items.length > 0) {
+      return
+    }
+    if (this.items.length > 0 && this.sameSequence(snapshot.items)) {
+      this.revision = snapshot.revision
+      const previous = this.items[this.cursor]
+      this.items = snapshot.items
+      // The item on screen has to SEE the refresh, or a single-app screen — a
+      // menu board, a weather display, the most common signage setup there is —
+      // would keep the position and never update, which trades one bug for a
+      // worse one. An app absorbs it over the handshake; an image or video has
+      // nothing to absorb and answers false, which is fine: its bytes are
+      // identical (the url is part of the sequence fingerprint).
+      //
+      // Only when THIS item's payload actually moved, though. One snapshot
+      // carries every app on the screen, so a weather refresh re-pushes the
+      // calendar's config too — and a bundle that re-renders on config (most of
+      // them do) would restart its scroll for a change that was not its own.
+      const current = this.items[this.cursor]
+      if (current && PlaybackController.dataMoved(previous, current)) {
+        this.slots[this.activeIndex].applyUpdate?.(current)
+      }
+      // A warmed back buffer holds the PREVIOUS payload for its item. Dropping
+      // the bookkeeping (not the load) means the next swap re-prepares it with
+      // the new data instead of revealing a stale screenful.
+      this.preload = null
+      this.inFlight = null
       return
     }
     this.revision = snapshot.revision
     this.items = snapshot.items
     this.cursor = 0
+    this.navIndex = 0
     this.direction = 1
     this.preload = null
+    this.inFlight = null
     this.clearPreloadTimer()
 
     // Follow mode mirrors the device 1:1 and starts at the head; otherwise begin
@@ -301,6 +448,9 @@ export class PlaybackController {
   destroy(): void {
     this.destroyed = true
     this.epoch += 1
+    // Release a transition parked on a load, so teardown never waits out a
+    // 12-second media timeout before the slots are freed.
+    this.supersede?.()
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.handleVisibility)
       document.removeEventListener('pointerdown', this.handleUserGesture)
@@ -313,6 +463,7 @@ export class PlaybackController {
       this.watchdogTimer = undefined
     }
     this.preload = null
+    this.inFlight = null
     for (const slot of this.slots) {
       slot.release()
       slot.el.remove()
@@ -330,7 +481,7 @@ export class PlaybackController {
       return
     }
     this.direction = -1
-    const target = this.nextPlayable(this.cursor, -1)
+    const target = this.nextPlayable(this.navIndex, -1)
     if (target !== -1) {
       this.requestTransition(target)
     }
@@ -348,9 +499,78 @@ export class PlaybackController {
     this.clearPreloadTimer()
     this.epoch += 1
     this.targetIndex = index
+    // Recorded on REQUEST, not when the load starts: a burst of presses is
+    // synchronous, so keying the next step off anything the loop only learns
+    // later means every press in the burst computes from the same stale place
+    // and five taps move you one item.
+    this.navIndex = index
+    // Stop any transition that is parked on a slow media load. Bumping the epoch
+    // alone used to be the whole story here, which meant a request arriving during
+    // a load was recorded but not ACTED on until that load finished — up to
+    // LOAD_TIMEOUT_MS later. On a cold cache that is a screen which ignores its
+    // operator for nine seconds and then jumps somewhere unrelated, because only
+    // the last of the presses it swallowed survived as `targetIndex`.
+    this.supersede?.()
     if (!this.transitioning) {
       this.run()
     }
+  }
+
+  /**
+   * Awaits a slot's prepare, but stops waiting the moment {@link supersede} is
+   * called. Resolves true when the content is ready, false when a newer request
+   * took over — in which case the caller must not touch the slots, since
+   * {@link runTransition}'s `finally` is about to re-run toward the new target.
+   *
+   * The abandoned load is deliberately left running rather than released: if the
+   * new target is the same item (step away and straight back) {@link showAt}
+   * reuses it via {@link inFlight}, and otherwise the next `prepare()` releases
+   * that slot anyway.
+   */
+  private awaitPrep(prep: Promise<void>): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      this.supersede = () => {
+        resolve(false)
+      }
+      // A rejection arriving after we already resolved `false` is inert, but the
+      // handler must still be attached or it surfaces as an unhandled rejection.
+      prep.then(() => {
+        resolve(true)
+      }, reject)
+    }).finally(() => {
+      this.supersede = null
+    })
+  }
+
+  /**
+   * Surfaces a prepare failure exactly once, whichever path notices it.
+   *
+   * Deduped on the promise rather than the item, because the same load can be
+   * abandoned by a press and then picked back up by the request that abandoned
+   * it — reporting per call site would double-count that.
+   */
+  private report(prep: Promise<void>, error: unknown, item: Renderable): void {
+    if (this.destroyed || this.reported.has(prep)) {
+      return
+    }
+    this.reported.add(prep)
+    this.callbacks.onError?.(error, item)
+  }
+
+  /**
+   * Keeps watching a load we walked away from, purely so its failure is still
+   * reported.
+   *
+   * This is the hole that made the original bug so hard to see. A press aborts
+   * the WAIT, not the load, so a clip that goes on to fail does so with nobody
+   * listening — and the harder an operator jabbed at the controls, the more
+   * failures got swallowed, until a screen that was visibly broken produced a
+   * completely empty console.
+   */
+  private watchAbandoned(prep: Promise<void>, item: Renderable): void {
+    prep.catch((error: unknown) => {
+      this.report(prep, error, item)
+    })
   }
 
   private run(): void {
@@ -399,15 +619,37 @@ export class PlaybackController {
     }
   }
 
-  private advance(): void {
+  /**
+   * Steps forward to the next playable item.
+   *
+   * `naturalEnd` marks the one caller that a video reaching its own end — as
+   * opposed to the watchdog forcing a move, or a failure being skipped. It is the
+   * only case where repeating the SAME item may reuse the decode session rather
+   * than tearing it down and building it again; every other path needs the
+   * reload, because the reason it got here is that the current state is suspect.
+   */
+  private advance(naturalEnd = false): void {
     if (this.items.length === 0) {
       return
     }
     this.direction = 1
-    const target = this.nextPlayable(this.cursor, 1)
-    if (target !== -1) {
-      this.requestTransition(target)
+    const target = this.nextPlayable(this.navIndex, 1)
+    if (target === -1) {
+      return
     }
+    // A one-item (or lone-survivor) playlist loops onto itself. Replaying in
+    // place keeps the decoder open; see Slot.replay for why that matters.
+    if (
+      naturalEnd &&
+      target === this.cursor &&
+      !this.transitioning &&
+      this.slots[this.activeIndex].replay?.()
+    ) {
+      this.lastAdvanceAt = Date.now()
+      this.stallReported = false
+      return
+    }
+    this.requestTransition(target)
   }
 
   private wrap(index: number): number {
@@ -425,23 +667,37 @@ export class PlaybackController {
 
     const back = this.slots[this.activeIndex ^ 1]
 
-    // Await the matching preload if present, else prepare just-in-time. Either
-    // way we only proceed once the content is decoded/buffered (resolved).
+    // Await the matching preload if present, else the load already in flight for
+    // this very item (never restart one — see {@link inFlight}), else prepare
+    // just-in-time. Either way we only proceed once the content is ready.
     let prep: Promise<void>
     if (this.preload && this.preload.index === index) {
       prep = this.preload.promise
+    } else if (this.inFlight && this.inFlight.index === index) {
+      prep = this.inFlight.promise
     } else {
       prep = back.prepare(item, this.volume)
     }
     this.preload = null
+    this.inFlight = { index, promise: prep }
 
     try {
-      await prep
-    } catch (error) {
-      if (this.destroyed || epoch !== this.epoch) {
+      if (!(await this.awaitPrep(prep))) {
+        // A newer request arrived while we waited. Leave `inFlight` alone so it
+        // can be reused, and let runTransition's `finally` drive the new target —
+        // but keep listening, or this load's failure would go unreported.
+        this.watchAbandoned(prep, item)
         return
       }
-      this.callbacks.onError?.(error, item)
+    } catch (error) {
+      this.inFlight = null
+      if (this.destroyed) {
+        return
+      }
+      this.report(prep, error, item)
+      if (epoch !== this.epoch) {
+        return
+      }
       // Follow mode doesn't skip on its own — it waits for the device to move on.
       if (!this.follow) {
         this.scheduleSkip(index)
@@ -453,6 +709,7 @@ export class PlaybackController {
     if (this.destroyed || epoch !== this.epoch) {
       return
     }
+    this.inFlight = null
 
     const front = this.slots[this.activeIndex]
     back.activate(
@@ -460,7 +717,7 @@ export class PlaybackController {
         // In follow mode the device drives advancement; a video ending here must
         // not move us — we wait for the device's next now-playing report.
         if (!this.follow) {
-          this.advance()
+          this.advance(true)
         }
       },
       this.direction,
@@ -566,7 +823,7 @@ export class PlaybackController {
       // duplicate onError for the same rejection.
       if (this.preload?.index === next) {
         this.preload = null
-        this.callbacks.onError?.(error, item)
+        this.report(promise, error, item)
       }
     })
   }

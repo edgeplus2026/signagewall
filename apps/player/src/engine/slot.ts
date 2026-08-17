@@ -5,6 +5,24 @@ import type { Renderable } from '../types'
 const LOAD_TIMEOUT_MS = 12_000
 
 /**
+ * The event that counts as "this video is ready to go on screen".
+ *
+ * Deliberately `canplay` (HAVE_FUTURE_DATA) and not `canplaythrough`
+ * (HAVE_ENOUGH_DATA). `canplaythrough` is not a guarantee — it is the browser
+ * GUESSING that the whole clip will arrive faster than it plays — and paying for
+ * that guess means holding the previous item on screen until enough of the file
+ * has buffered. Measured on a real screen: a 34MB, 48s, 5.6Mbit/s clip served
+ * from a non-CDN bucket at ~1.5MB/s took NINE SECONDS to reach it.
+ *
+ * `canplay` means the browser can start playing now. If the download then falls
+ * behind, the picture stops moving and {@link Slot.startProgressWatchdog} — which
+ * exists precisely because a stalled decoder produces no error — declares the item
+ * dead and the loop moves on. A stall detected in ~8s beats a guaranteed 9s wait
+ * on every cold video, and the two failure modes are handled by the same code.
+ */
+const READY_EVENT = 'canplay'
+
+/**
  * Forces the element's pending style changes to be applied, so a transition
  * started right after begins from them rather than from the previous frame.
  * Reading a layout property is what does it; the value is deliberately unused.
@@ -119,6 +137,24 @@ export class Slot {
     this.el = document.createElement('div')
     this.el.className = 'player-slot'
 
+    // Deliberately NO `crossOrigin` here, though it looks like the obvious fix
+    // for the CORS mismatch these elements cause. They fetch `no-cors`, R2 answers
+    // without `Access-Control-Allow-Origin` and — because there was no `Origin`
+    // to answer — without `Vary` either, so the browser files that as the only
+    // variant for the URL and a later `cors` request is served it and rejected.
+    //
+    // Asking for CORS here does prevent that, and it was tried: it also means any
+    // hiccup in the CORS path stops the media from PLAYING rather than merely from
+    // caching. Live devices went from a poisoned cache entry to a black screen and
+    // "video load error", because an entry poisoned before the change was still
+    // there and now failed the element's own CORS check.
+    //
+    // The prefetch already solves this from the other side — it fetches with
+    // `cache: 'reload'`, so it never reads a poisoned entry and its response is
+    // what fills the service-worker cache. These elements then read from that
+    // cache, and a poisoned HTTP entry no one consults is harmless. A `no-cors`
+    // element load has no CORS check to fail, so the worst case stays "plays
+    // without an offline copy" instead of "does not play".
     this.img = document.createElement('img')
     this.img.className = 'player-media'
     this.img.decoding = 'async'
@@ -177,6 +213,68 @@ export class Slot {
       return
     }
     await this.prepareApp(item, seq)
+  }
+
+  /**
+   * Plays the loaded video again from the start, without touching its source.
+   *
+   * The loop's normal way to repeat a one-item playlist is a full transition back
+   * to the same index, and that begins with `prepare()` → `release()`: the `src`
+   * is dropped, the decode session is torn down, and the whole clip is decoded
+   * again. On a screen showing one 30-second video that is roughly 2 900 decoder
+   * create/destroy cycles a day — the exact load pattern that costs a two-instance
+   * MediaTek decoder its second slot and falls back to the software codec.
+   *
+   * Returns false when there is nothing to replay (an image, an app, or a video
+   * that is not on screen), which tells the loop to do a real transition.
+   */
+  replay(): boolean {
+    if (this.current?.kind !== 'video' || !this.el.classList.contains('is-active')) {
+      return false
+    }
+    try {
+      this.video.currentTime = 0
+    } catch {
+      // A source that refuses the seek cannot be replayed in place; the caller
+      // falls back to a full transition.
+      return false
+    }
+    this.stalledSamples = 0
+    this.lastProgressTime = 0
+    void this.video.play().catch(() => {
+      // Autoplay was granted for the first pass, so a rejection here is a real
+      // fault. Hand it to the same reporter a decode error uses so the loop
+      // moves on instead of holding a frozen frame.
+      this.reportFailure('replay refused')
+    })
+    return true
+  }
+
+  /**
+   * Takes a refreshed version of the item this slot already holds, without
+   * reloading anything.
+   *
+   * Only apps can be refreshed this way, and only in place: an image or a video
+   * with the same id is byte-identical (the url is part of the engine's identity
+   * fingerprint), so there is nothing to update. An app carries a connector
+   * payload that moves under it — prices, headlines, calendar entries — and the
+   * handshake is built to receive it again.
+   *
+   * Returns false when the update does not belong to what is loaded here, which
+   * is the caller's cue that a real prepare is needed.
+   */
+  applyUpdate(item: Renderable): boolean {
+    if (
+      item.kind !== 'app' ||
+      this.current?.kind !== 'app' ||
+      this.current.id !== item.id ||
+      this.current.slug !== item.slug
+    ) {
+      return false
+    }
+    this.current = item
+    this.appHostHandle?.setConfig(item)
+    return true
   }
 
   /**
@@ -269,13 +367,17 @@ export class Slot {
         }
       }
       this.video.addEventListener('error', this.onPlaybackError)
-      this.startProgressWatchdog()
       this.wantsAudioButMuted = false
       try {
         this.video.currentTime = 0
       } catch {
         // Some sources disallow seeking before play; safe to ignore.
       }
+      // AFTER the seek, so the watchdog's baseline is where playback actually
+      // starts. Sampling before it meant a slot re-activated from a non-zero
+      // position recorded that position as the baseline and then saw the rewind
+      // to 0 as "no forward progress" for its first samples.
+      this.startProgressWatchdog()
       // Set the audio state *before* play() — never unmute a playing element.
       this.video.volume = this.volume
       this.video.muted = this.volume === 0
@@ -439,6 +541,10 @@ export class Slot {
     // snaps instead of sliding the slot back across the screen.
     this.el.classList.remove('is-active')
     this.el.classList.remove('is-leaving')
+    // Also drop the travel direction: the resting style is direction-dependent,
+    // so a slot recycled while still stamped `back` parks on the wrong side and
+    // its next entrance starts from there.
+    delete this.el.dataset.direction
     this.endedHandler = null
     this.failedHandler = null
     this.video.onended = null
@@ -541,7 +647,7 @@ export class Slot {
       }
       const cleanup = (): void => {
         window.clearTimeout(timeout)
-        this.video.removeEventListener('canplaythrough', onReady)
+        this.video.removeEventListener(READY_EVENT, onReady)
         this.video.removeEventListener('error', onError)
       }
 
@@ -549,7 +655,7 @@ export class Slot {
       // muted/volume just before play().
       this.video.muted = true
       this.video.volume = this.volume
-      this.video.addEventListener('canplaythrough', onReady, { once: true })
+      this.video.addEventListener(READY_EVENT, onReady, { once: true })
       this.video.addEventListener('error', onError, { once: true })
       this.video.src = url
       this.video.load()
@@ -581,6 +687,15 @@ export class Slot {
       if (this.appHostHandle === handle) {
         handle.dispose()
         this.appHostHandle = null
+      }
+      // A newer prepare took this slot while we were loading — that is what
+      // rejected us (release() disposes the handle, which settles `ready`), and
+      // it is not a failure of the app. Resolve quietly, exactly as the image
+      // and video paths do on supersession. Rethrowing here surfaced
+      // "app disposed: <slug>" through onError, so every step past a loading app
+      // wrote a phantom fault into the diagnostics and into Sentry.
+      if (this.prepareSeq !== seq) {
+        return
       }
       throw error
     }

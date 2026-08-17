@@ -28,12 +28,24 @@ export interface CacheKeyInput {
  * bad instance never breaks scheduling/fan-out for the rest.
  */
 export function cacheKeyForInstance(instance: CacheKeyInput): string | null {
-  const connector = getConnector(instance.appSlug);
+  return cacheKeyFor(instance.appSlug, instance.config);
+}
+
+/**
+ * The same computation from the raw parts, for the write path — which has a slug
+ * and a config in hand but no document yet, and which denormalizes the result
+ * onto the instance so the read paths never have to recompute it.
+ */
+export function cacheKeyFor(
+  appSlug: string,
+  config: Record<string, unknown>,
+): string | null {
+  const connector = getConnector(appSlug);
   if (!connector?.cacheKey) {
     return null;
   }
   try {
-    return connector.cacheKey(instance.config);
+    return connector.cacheKey(config) || null;
   } catch {
     return null;
   }

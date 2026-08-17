@@ -16,11 +16,11 @@ import type { FieldOption } from '@signagewall/apps-contract'
  * analogue dial have no layout in common.
  */
 export const CLOCK_FACES = [
-  { value: 'digital', label: 'Digital — the time, in numbers' },
-  { value: 'analog', label: 'Analogue — a clock face with hands' },
-  { value: 'flip', label: 'Flip — a split-flap board' },
-  { value: 'word', label: 'Words — "ten past three", spelled out' },
-  { value: 'orbit', label: 'Orbit — rings that close as the hour turns' },
+  { value: 'digital', label: 'Digital: the time, in numbers' },
+  { value: 'analog', label: 'Analogue. A clock face with hands' },
+  { value: 'flip', label: 'Flip. A split-flap board' },
+  { value: 'word', label: 'Words: "ten past three", spelled out' },
+  { value: 'orbit', label: 'Orbit, rings that close as the hour turns' },
 ] as const
 
 /** The `face` config values, narrowed to the ones we actually ship. */

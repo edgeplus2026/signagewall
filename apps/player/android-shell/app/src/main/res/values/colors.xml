@@ -1,3 +1,14 @@
 <resources>
-    <color name="ic_launcher_background">#0F172A</color>
+    <!-- The brand palette, from apps/player/public/brand/. Kept here as named
+         colours rather than inline hexes so the launcher icon, the TV banner and
+         anything else added later cannot drift apart from each other. -->
+    <color name="brand_ink">#141413</color>
+    <color name="brand_cream">#F2F0EA</color>
+    <color name="brand_orange">#D85A30</color>
+
+    <!-- The icon sits on its LIGHT ground, exactly as signagewall-mark-512.png
+         renders it. It has to read on a white phone launcher and on the near-black
+         Android-TV settings list alike, and a dark-on-dark mark loses the second one
+         entirely — which is where a technician actually goes looking for this app. -->
+    <color name="ic_launcher_background">@color/brand_cream</color>
 </resources>

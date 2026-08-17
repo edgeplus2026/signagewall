@@ -72,8 +72,21 @@ const MEDIA_CACHE_NAMES = [
  * v1 have unreadable bodies, so the range slicing that every Safari/iOS media
  * request depends on answers them with `416 Range Not Satisfiable`: a black
  * frame and a "video load error", permanently, on any device that cached one.
+ *
+ * v3 — the image cache no longer accepts them either. An opaque entry there is
+ * readable enough for the <img> that wrote it, but the prefetch reads the same
+ * cache in `cors` mode, and that pairing is a network error by spec. Devices
+ * that cached one keep failing every prefetch pass for that image until the
+ * entry is gone, and nothing else would remove it.
+ *
+ * v4 — the video cache dropped Workbox's `rangeRequests` plugin (see
+ * `vite.config.ts`). Video IS still cached; what changed is how it is served
+ * back. Entries written by v3 are byte-perfect and were still unusable: sliced
+ * into a synthetic 206 they decoded to nothing, and a device holding one skipped
+ * every video it owned. They are inert once the plugin is gone, but they are also
+ * tens of megabytes of storage bought for nothing, so v4 clears them once.
  */
-const MEDIA_CACHE_GENERATION = '2'
+const MEDIA_CACHE_GENERATION = '4'
 const MEDIA_CACHE_GENERATION_KEY = 'signagewall.player.mediaCacheGeneration'
 
 /**

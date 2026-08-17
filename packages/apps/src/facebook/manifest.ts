@@ -25,7 +25,17 @@ export const facebookManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 1,
-  refreshSeconds: 120,
+  /**
+   * Ten minutes, not two.
+   *
+   * A page posts a handful of times a week; polling it every two minutes asked the
+   * provider thirty times more often than the content could possibly change, and
+   * every screen on that account shared the answer anyway (one cache key, one
+   * fetch). What the short cadence actually bought was rate-limit exposure — the
+   * social payload note warns that these tokens 403 within hours if leaned on — for
+   * a feed nobody would notice arriving eight minutes later on a wall.
+   */
+  refreshSeconds: 600,
   requiresNetwork: true,
   /**
    * Holds one of the device's few video decoders while on screen. A feed embed autoplays video.
@@ -42,7 +52,7 @@ export const facebookManifest: AppManifest = {
       label: 'Facebook account',
       required: true,
       provider: 'meta',
-      help: 'Sign in with the Facebook account that manages the Page. SignageWall only reads posts — it never posts on your behalf.',
+      help: 'Sign in with the Facebook account that manages the Page. SignageWall only reads posts. It never posts on your behalf.',
     },
     {
       key: 'page',
@@ -58,6 +68,7 @@ export const facebookManifest: AppManifest = {
       type: 'select',
       label: 'Layout',
       default: 'spotlight',
+      previewGallery: 'social',
       options: [
         { label: 'Spotlight (one post at a time)', value: 'spotlight' },
         { label: 'Grid', value: 'grid' },

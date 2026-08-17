@@ -38,6 +38,7 @@ interface PlaylistsTableProps {
   onSelect: (id: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
   onOpen: (playlist: PlaylistSummary, tab: PlaylistDetailTab) => void
+  onPreview: (playlist: PlaylistSummary) => void
   onDuplicate: (playlist: PlaylistSummary) => Promise<void>
   onAddToScreen: (ids: string[]) => void
   onDelete: (ids: string[]) => void
@@ -49,6 +50,7 @@ export function PlaylistsTable({
   onSelect,
   onSelectAll,
   onOpen,
+  onPreview,
   onDuplicate,
   onAddToScreen,
   onDelete,
@@ -166,7 +168,7 @@ export function PlaylistsTable({
                     <DropdownMenuContent align="end" className="w-auto min-w-44">
                       <DropdownMenuItem
                         onClick={() => {
-                          onOpen(playlist, 'content')
+                          onPreview(playlist)
                         }}
                       >
                         <EyeIcon />

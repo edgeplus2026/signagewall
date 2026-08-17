@@ -1,6 +1,9 @@
+import { COMPANY } from '@/lib/company'
+import { CURRENCY, PRICE_PER_SCREEN } from '@/lib/pricing'
 import type { Route } from '@/lib/seo'
 import { absoluteUrl, resolveCanonicalUrl } from '@/lib/seo'
 import { SITE_URL as siteUrl } from '@/lib/site-url'
+import { SOCIAL_SAME_AS } from '@/lib/social'
 
 export type JsonLdNode = Record<string, unknown>
 
@@ -33,6 +36,37 @@ export function JsonLd({ data }: { data: unknown }) {
 export function JsonLdGraph({ nodes }: { nodes: JsonLdNode[] }) {
   if (nodes.length === 0) return null
   return <JsonLd data={{ '@context': 'https://schema.org', '@graph': nodes }} />
+}
+
+/**
+ * The subscription every SignageWall entity is sold under.
+ *
+ * Google treats a `SoftwareApplication` as incomplete unless it carries one of
+ * `offers`, `aggregateRating` or `review`. A site audit reported 180 invalid
+ * items for precisely that reason: the entity is emitted on every page, while
+ * the price used to live only on the pricing page. Rather than drop the entity
+ * or invent a rating, each one now states the price it is actually sold at.
+ *
+ * The number comes from `lib/pricing` — the same constant the pricing page
+ * renders — so the markup and the page can never quote different figures.
+ */
+function subscriptionOffer(url?: string): JsonLdNode {
+  return {
+    '@type': 'Offer',
+    price: PRICE_PER_SCREEN,
+    priceCurrency: CURRENCY,
+    // Per screen, per month — without this the number is meaningless.
+    priceSpecification: {
+      '@type': 'UnitPriceSpecification',
+      price: PRICE_PER_SCREEN,
+      priceCurrency: CURRENCY,
+      unitText: 'screen',
+      billingDuration: 1,
+      billingIncrement: 1,
+    },
+    availability: 'https://schema.org/InStock',
+    ...(url ? { url } : {}),
+  }
 }
 
 export const ORGANIZATION_ID = `${siteUrl}/#organization`
@@ -77,7 +111,30 @@ export function OrganizationJsonLd() {
             '@type': 'ImageObject',
             url: `${siteUrl}/brand/signagewall-mark-512.png`,
           },
-          description: 'Software for digital screens.',
+          /* The site's own words for what it sells. "Software for digital
+             screens" described a category rather than this company, and read
+             as a placeholder next to the description every page already
+             carries in its meta tags. */
+          description:
+            'Digital signage software for menus, offers and announcements. SignageWall turns any TV into a screen you update in seconds — one screen or two hundred, and they keep playing when the internet drops.',
+          email: COMPANY.email,
+          /* City and country only, and deliberately not `COMPANY.address`:
+             that field is the registered seat for the legal documents and is
+             still a visible `[NEDOSTAJE]` marker, which must never reach
+             structured data. What matters here is that the location agrees
+             with the one the company states on LinkedIn and will verify on
+             Google Business Profile — three answers to "where are you" that
+             disagree weaken the entity that `sameAs` is trying to establish. */
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Belgrade',
+            addressCountry: 'RS',
+          },
+          /* The profiles this company owns. Without it a search engine has a
+             site and four unrelated accounts that happen to share a name; with
+             it they resolve to one entity, and a branded search returns the
+             site and its profiles instead of the industry's generic results. */
+          sameAs: SOCIAL_SAME_AS,
         },
         {
           '@type': 'WebSite',
@@ -87,6 +144,28 @@ export function OrganizationJsonLd() {
           publisher: { '@id': ORGANIZATION_ID },
           inLanguage: ['sr', 'en'],
         },
+      ]}
+    />
+  )
+}
+
+/**
+ * The product itself. Render only on pages the product is the subject of.
+ *
+ * This used to sit in the root layout beside Organization and WebSite, which
+ * put a `SoftwareApplication` on all hundred-odd pages — including a blog post
+ * about how long a slide should stay up, which is not about the application in
+ * any sense a search engine should be told. It also multiplied one modelling
+ * decision into a hundred audit rows.
+ *
+ * `/pricing` declares this same `@id` through `PricingJsonLd`, so it must not
+ * render this as well; two declarations of one entity on a page is a conflict,
+ * not a reinforcement.
+ */
+export function SoftwareProductJsonLd() {
+  return (
+    <JsonLdGraph
+      nodes={[
         {
           '@type': 'SoftwareApplication',
           '@id': SOFTWARE_PRODUCT_ID,
@@ -95,6 +174,7 @@ export function OrganizationJsonLd() {
           applicationCategory: 'BusinessApplication',
           applicationSubCategory: 'Digital signage',
           operatingSystem: 'Android, Windows, macOS, Linux',
+          offers: subscriptionOffer(),
           publisher: { '@id': ORGANIZATION_ID },
         },
       ]}
@@ -228,7 +308,10 @@ function itemListNode(list: ItemListMeta): JsonLdNode {
   const elements = resolvedItems.map(({ item, url: resolvedUrl }, index) => {
     const type = item.type ?? 'WebPage'
     const fragment = ENTITY_FRAGMENTS[type]
-    const image = absoluteSchemaUrl(item.image)
+    /* `description` and `image` are no longer read here: the row is a reference
+       now, and both belong to the entity it points at, which states them on its
+       own page. Callers still pass them because the same entries feed visible
+       card components, so they are not dead — just not this function's. */
     const entityId = item.id ?? (fragment ? `${resolvedUrl}#${fragment}` : resolvedUrl)
 
     return {
@@ -236,14 +319,16 @@ function itemListNode(list: ItemListMeta): JsonLdNode {
       position: index + 1,
       name: item.name,
       url: resolvedUrl,
-      item: {
-        '@type': type,
-        '@id': entityId,
-        url: resolvedUrl,
-        name: item.name,
-        ...(item.description ? { description: item.description } : {}),
-        ...(image ? { image } : {}),
-      },
+      /* A reference, not a second declaration.
+         This used to restate the entity — `@type` plus a handful of fields —
+         which made every row of /blog a `BlogPosting` without `headline`,
+         `datePublished` or `author`, and therefore an invalid one, twenty per
+         language. The complete entity already exists under this exact `@id` on
+         its own page; a node object carrying only `@id` points at it, and a
+         validator reads a pointer as a pointer rather than as a half-filled
+         copy. The row keeps its own `name` and `url` above, which is the shape
+         Google documents for a list that summarises detail pages. */
+      item: { '@id': entityId },
     }
   })
 
@@ -471,8 +556,12 @@ export interface SoftwareMeta {
 }
 
 /**
- * A catalogue app is a component of SignageWall, not a separately sold
- * product. Consequently this entity deliberately has no Offer.
+ * A catalogue app is a component of SignageWall rather than a separately sold
+ * product, so it carries the subscription's own offer rather than one of its
+ * own. It used to carry none at all, on the reasoning that a component is not
+ * for sale — which was true of the app and false of the markup: every one of
+ * these entities failed validation for the missing field, and a reader who
+ * lands on an app page can in fact buy it, at the price of the whole product.
  */
 export function SoftwareAppJsonLd({ app }: { app: SoftwareMeta }) {
   const url = contentUrl(app.locale, app.path, app.canonical)
@@ -506,6 +595,7 @@ export function SoftwareAppJsonLd({ app }: { app: SoftwareMeta }) {
           ...(app.features && app.features.length > 0 ? { featureList: app.features } : {}),
           ...(app.requirements ? { softwareRequirements: app.requirements } : {}),
           ...(image ? { image } : {}),
+          offers: subscriptionOffer(),
           isPartOf: { '@id': SOFTWARE_PRODUCT_ID },
           publisher: { '@id': ORGANIZATION_ID },
           url,
@@ -546,22 +636,11 @@ export function PricingJsonLd({ offer }: { offer: ProductOfferMeta }) {
         applicationCategory: 'BusinessApplication',
         operatingSystem: 'Android, Windows, macOS, Linux',
         publisher: { '@id': ORGANIZATION_ID },
-        offers: {
-          '@type': 'Offer',
-          price: offer.price,
-          priceCurrency: offer.currency,
-          // Per screen, per month — without this the number is meaningless.
-          priceSpecification: {
-            '@type': 'UnitPriceSpecification',
-            price: offer.price,
-            priceCurrency: offer.currency,
-            unitText: 'screen',
-            billingDuration: 1,
-            billingIncrement: 1,
-          },
-          availability: 'https://schema.org/InStock',
-          url,
-        },
+        /* The same offer every other entity carries, plus the URL of the page
+           stating it. `offer.price` and `offer.currency` come from the caller
+           for the page's own prose; the markup takes them from `lib/pricing`
+           directly, so a caller cannot publish a price the page does not show. */
+        offers: subscriptionOffer(url),
       }}
     />
   )

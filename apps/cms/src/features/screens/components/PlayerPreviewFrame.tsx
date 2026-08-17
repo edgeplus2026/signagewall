@@ -1,14 +1,11 @@
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ScaledViewport } from '@/components/common/ScaledViewport'
-import { useAuthStore } from '@/features/auth/store/authStore'
+import { usePlayerPreviewToken } from '@/features/screens/hooks/usePlayerPreviewToken'
 import { useStepDevice } from '@/features/screens/hooks/useScreens'
-import {
-  PLAYER_ORIGIN,
-  buildPlayerPreviewUrl,
-} from '@/features/screens/lib/playerPreviewUrl'
+import { buildPlayerPreviewUrl } from '@/features/screens/lib/playerPreviewUrl'
 import type {
   ScreenDeviceOrientation,
   ScreenDeviceScale,
@@ -52,34 +49,9 @@ export function PlayerPreviewFrame({
   scale,
 }: PlayerPreviewFrameProps) {
   const { t } = useTranslation()
-  const token = useAuthStore((state) => state.token)
   const step = useStepDevice()
   const iframeRef = useRef<HTMLIFrameElement>(null)
-
-  // Hand the operator token to the embedded player when it signals readiness.
-  // We only answer the player frame, only accept its own origin, and address the
-  // token reply to the player origin so it can never be read by another frame.
-  useEffect(() => {
-    if (!token) {
-      return
-    }
-    const onMessage = (event: MessageEvent) => {
-      const target = iframeRef.current?.contentWindow
-      if (!target || event.source !== target) {
-        return
-      }
-      if (event.origin !== PLAYER_ORIGIN) {
-        return
-      }
-      if ((event.data as { type?: unknown } | null)?.type === 'preview-ready') {
-        target.postMessage({ type: 'preview-token', token }, PLAYER_ORIGIN)
-      }
-    }
-    window.addEventListener('message', onMessage)
-    return () => {
-      window.removeEventListener('message', onMessage)
-    }
-  }, [token])
+  const token = usePlayerPreviewToken(iframeRef)
 
   if (!token) {
     return null

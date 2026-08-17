@@ -20,7 +20,7 @@ export const currencyManifest: AppManifest = {
   name: 'Exchange rates',
   tagline: 'Live currency exchange rates',
   description:
-    'Show exchange rates from a base currency to the ones you choose — updated automatically every day.',
+    'Show exchange rates from a base currency to the ones you choose, updated automatically every day.',
   runtimeKind: 'embed',
   dataSource: 'server',
   version: 1,

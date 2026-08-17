@@ -71,8 +71,24 @@
     @apply font-sans;
   }
 
-  /* Make native date/time picker UI (calendar/clock icon, dropdown) follow the theme. */
-  .dark [data-slot='input'] {
+  /*
+   * Tell the browser which theme it is painting for.
+   *
+   * Scrollbars, date/time pickers, `<select>` popups, autofill backgrounds and
+   * spell-check underlines are drawn by the BROWSER, not by our CSS, and it
+   * assumes a light page unless the document says otherwise. That is why a pale
+   * scrollbar appeared over the dark UI on hover: nothing had declared the page
+   * dark, so Chrome painted its light-mode scrollbar.
+   *
+   * Set on the same element `ThemeProvider` toggles (`<html>`), and inherited, so
+   * it covers every scroll container — including the ~47 that never opted into
+   * `visible-scrollbar` — with no per-component opt-in and no layout change.
+   */
+  .light {
+    color-scheme: light;
+  }
+
+  .dark {
     color-scheme: dark;
   }
 

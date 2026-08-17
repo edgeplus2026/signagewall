@@ -1,4 +1,4 @@
-import { RotateCwIcon } from 'lucide-react'
+import { DownloadIcon, RotateCwIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -13,17 +13,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { useIsSuperAdmin } from '@/features/auth/hooks/useIsSuperAdmin'
+import { ApplyDeviceUpdateDialog } from '@/features/screens/components/ApplyDeviceUpdateDialog'
 import { DeviceVolumeControl } from '@/features/screens/components/DeviceVolumeControl'
 import {
+  useApplyDeviceUpdate,
   useRestartDevice,
   useSetDeviceDailyReload,
-  useSetDeviceKioskMode,
   useSetDeviceOrientation,
   useSetDeviceScale,
   useSetDeviceVolume,
 } from '@/features/screens/hooks/useScreens'
 import type {
-  ScreenDeviceKioskMode,
   ScreenDeviceOrientation,
   ScreenDeviceScale,
   ScreenDeviceSettings,
@@ -48,23 +49,10 @@ const SCALE_OPTIONS: readonly ScreenDeviceScale[] = [
   'zoom',
 ]
 
-const KIOSK_MODE_OPTIONS: readonly ScreenDeviceKioskMode[] = [
-  'hard',
-  'soft',
-  'off',
-]
-
 interface DeviceSettingsFormProps {
   screenId: string
   savedVolume: number
   savedSettings: ScreenDeviceSettings
-  /**
-   * Android Device Owner provisioning, reported by the shell. Decides whether a
-   * `hard` lock can actually hold — `undefined` means the device never said, so
-   * nothing is claimed either way. Explicitly `| undefined` because the repo runs
-   * `exactOptionalPropertyTypes`, and the value is passed through as-is.
-   */
-  deviceOwner?: boolean | undefined
 }
 
 /**
@@ -72,12 +60,16 @@ interface DeviceSettingsFormProps {
  * scale, committed together) and a "Maintenance" section (restart + daily
  * reload). The two sections are split into independently-keyed components so
  * saving one never remounts (and resets the unsaved drafts of) the other.
+ *
+ * Kiosk lockdown is deliberately absent: it is set on the device itself, in the
+ * player's service menu. Locking a screen from here means locking a box nobody is
+ * standing next to — and if the lock misbehaves, the one person who could undo it
+ * is the one person this control was hidden from.
  */
 export function DeviceSettingsForm({
   screenId,
   savedVolume,
   savedSettings,
-  deviceOwner,
 }: DeviceSettingsFormProps) {
   return (
     <div className="flex flex-col gap-7">
@@ -88,12 +80,6 @@ export function DeviceSettingsForm({
         savedOrientation={savedSettings.orientation}
         savedScale={savedSettings.scale}
       />
-      <KioskSettings
-        key={`kiosk-${savedSettings.kioskMode}`}
-        screenId={screenId}
-        savedKioskMode={savedSettings.kioskMode}
-        deviceOwner={deviceOwner}
-      />
       <MaintenanceSettings
         key={`maintenance-${savedSettings.dailyReload.enabled ? 'on' : 'off'}-${savedSettings.dailyReload.time}`}
         screenId={screenId}
@@ -101,76 +87,6 @@ export function DeviceSettingsForm({
         savedReloadTime={savedSettings.dailyReload.time}
       />
     </div>
-  )
-}
-
-interface KioskSettingsProps {
-  screenId: string
-  savedKioskMode: ScreenDeviceKioskMode
-  deviceOwner?: boolean | undefined
-}
-
-/**
- * Kiosk lockdown for the bound device (enforced by the Android native shell;
- * a no-op on browser/desktop players). Its own section + save, so it never
- * remounts the Display or Maintenance drafts when committed.
- */
-function KioskSettings({
-  screenId,
-  savedKioskMode,
-  deviceOwner,
-}: KioskSettingsProps) {
-  const { t } = useTranslation()
-  const setKioskMode = useSetDeviceKioskMode()
-
-  const [kioskMode, setKioskModeDraft] = useState(savedKioskMode)
-  const dirty = kioskMode !== savedKioskMode
-
-  const onSave = async () => {
-    try {
-      await setKioskMode.mutateAsync({ id: screenId, kioskMode })
-      toast.success(t('screens.device.kiosk.success'))
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, t('screens.device.kiosk.error')))
-    }
-  }
-
-  return (
-    <SettingsSection title={t('screens.device.kiosk.title')}>
-      <SettingsRow
-        label={t('screens.device.kioskMode.title')}
-        description={t('screens.device.kioskMode.description')}
-      >
-        <SettingSelect
-          value={kioskMode}
-          options={KIOSK_MODE_OPTIONS}
-          i18nPrefix="screens.device.kioskMode.options"
-          disabled={setKioskMode.isPending}
-          onChange={setKioskModeDraft}
-        />
-      </SettingsRow>
-
-      {/* The shell silently downgrades `hard` to escapable screen-pinning when the
-          install is not Device Owner, so without this the operator would read
-          "fully locked" about a screen anyone can back out of. Only shown on a
-          confirmed `false` — an older shell reports nothing, and guessing there
-          would cry wolf across an entire fleet. */}
-      {kioskMode === 'hard' && deviceOwner === false ? (
-        <p className="text-warning border-warning/30 bg-warning/10 mx-4 mb-3 rounded-md border px-3 py-2 text-sm">
-          {t('screens.device.kioskMode.notDeviceOwner')}
-        </p>
-      ) : null}
-
-      <div className="flex justify-end px-4 py-3">
-        <Button
-          size="sm"
-          onClick={() => void onSave()}
-          disabled={!dirty || setKioskMode.isPending}
-        >
-          {t('screens.device.settings.save')}
-        </Button>
-      </div>
-    </SettingsSection>
   )
 }
 
@@ -325,8 +241,11 @@ function MaintenanceSettings({
   savedReloadTime,
 }: MaintenanceSettingsProps) {
   const { t } = useTranslation()
+  const isSuperAdmin = useIsSuperAdmin()
   const setDailyReload = useSetDeviceDailyReload()
   const restart = useRestartDevice()
+  const applyUpdate = useApplyDeviceUpdate()
+  const [updateOpen, setUpdateOpen] = useState(false)
 
   const [reloadEnabled, setReloadEnabled] = useState(savedReloadEnabled)
   const [reloadTime, setReloadTime] = useState(savedReloadTime)
@@ -357,6 +276,26 @@ function MaintenanceSettings({
     }
   }
 
+  const onApplyUpdate = async () => {
+    try {
+      await applyUpdate.mutateAsync(screenId)
+      setUpdateOpen(false)
+      toast.success(t('screens.device.applyUpdate.success'))
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error, t('screens.device.applyUpdate.error')),
+      )
+    }
+  }
+
+  // Restarting a display, forcing a shell update and setting the nightly reload
+  // are maintenance, not configuration: three ways to make a working screen go
+  // blank for a few seconds, offered to somebody with no way to tell whether they
+  // are needed. Display settings above stay — those are the customer's to set.
+  if (!isSuperAdmin) {
+    return null
+  }
+
   return (
     <SettingsSection title={t('screens.device.maintenance.title')}>
       <SettingsRow
@@ -373,6 +312,30 @@ function MaintenanceSettings({
           {t('screens.device.restart.button')}
         </Button>
       </SettingsRow>
+
+      <SettingsRow
+        label={t('screens.device.applyUpdate.title')}
+        description={t('screens.device.applyUpdate.rowDescription')}
+      >
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => {
+            setUpdateOpen(true)
+          }}
+          disabled={applyUpdate.isPending}
+        >
+          <DownloadIcon className="size-4" />
+          {t('screens.device.applyUpdate.button')}
+        </Button>
+      </SettingsRow>
+
+      <ApplyDeviceUpdateDialog
+        open={updateOpen}
+        onOpenChange={setUpdateOpen}
+        onConfirm={() => void onApplyUpdate()}
+        isPending={applyUpdate.isPending}
+      />
 
       <SettingsRow
         label={t('screens.device.dailyReload.title')}
