@@ -2231,6 +2231,11 @@
       "deleted": "Aplikacija obrisana",
       "deleteError": "Brisanje aplikacije nije uspelo.",
       "visibilityError": "Promena vidljivosti nije uspela.",
+      "visibilityFilter": {
+        "all": "Sve aplikacije",
+        "public": "Javne",
+        "invisible": "Nevidljive"
+      },
       "columns": {
         "name": "Aplikacija",
         "category": "Kategorija",

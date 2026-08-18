@@ -2246,6 +2246,11 @@
       "deleted": "App deleted",
       "deleteError": "Could not delete the app.",
       "visibilityError": "Could not update visibility.",
+      "visibilityFilter": {
+        "all": "All apps",
+        "public": "Public",
+        "invisible": "Invisible"
+      },
       "columns": {
         "name": "App",
         "category": "Category",

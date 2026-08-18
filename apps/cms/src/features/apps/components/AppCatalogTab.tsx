@@ -40,6 +40,9 @@ import type { AdminApp } from '@/features/apps/types/app.types'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 const ALL_CATEGORIES = 'all'
+const ALL_VISIBILITY = 'all'
+const PUBLIC_ONLY = 'public'
+const INVISIBLE_ONLY = 'invisible'
 
 export function AppCatalogTab() {
   const { t } = useTranslation()
@@ -51,11 +54,18 @@ export function AppCatalogTab() {
   const [editorOpen, setEditorOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<AdminApp | null>(null)
   const [categoryId, setCategoryId] = useState<string>(ALL_CATEGORIES)
+  const [visibilityFilter, setVisibilityFilter] = useState<string>(ALL_VISIBILITY)
 
   const visibleApps = useMemo(() => {
-    if (categoryId === ALL_CATEGORIES) return apps
-    return apps.filter((app) => appCategorySlugs(app.slug).includes(categoryId))
-  }, [apps, categoryId])
+    return apps.filter((app) => {
+      if (categoryId !== ALL_CATEGORIES && !appCategorySlugs(app.slug).includes(categoryId)) {
+        return false
+      }
+      if (visibilityFilter === PUBLIC_ONLY) return app.isPublic
+      if (visibilityFilter === INVISIBLE_ONLY) return !app.isPublic
+      return true
+    })
+  }, [apps, categoryId, visibilityFilter])
 
   const openCreate = () => {
     setEditorApp(null)
@@ -137,7 +147,7 @@ export function AppCatalogTab() {
       },
       {
         accessorKey: 'isPublic',
-        enableSorting: false,
+        sortingFn: (a, b) => Number(a.original.isPublic) - Number(b.original.isPublic),
         meta: { width: '14%' },
         header: () => t('apps.admin.columns.public'),
         cell: ({ row }) => (
@@ -243,6 +253,17 @@ export function AppCatalogTab() {
               emptyLabel={t('apps.categories.uncategorized')}
               aria-label={t('apps.categories.filter.all')}
               className="w-44"
+            />
+            <Combobox
+              value={visibilityFilter}
+              onChange={setVisibilityFilter}
+              options={[
+                { label: t('apps.admin.visibilityFilter.all'), value: ALL_VISIBILITY },
+                { label: t('apps.admin.visibilityFilter.public'), value: PUBLIC_ONLY },
+                { label: t('apps.admin.visibilityFilter.invisible'), value: INVISIBLE_ONLY },
+              ]}
+              aria-label={t('apps.admin.columns.public')}
+              className="w-36"
             />
             <Button type="button" size="sm" onClick={openCreate}>
               <PlusIcon data-icon="inline-start" />
