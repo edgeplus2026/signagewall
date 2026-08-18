@@ -11,6 +11,19 @@ import type { LegalDocType, LegalLocale } from './legal.constants';
  */
 const CONTACT_EMAIL = 'office@signagewall.com';
 
+/**
+ * Registered identity of the controller, as recorded in the business register.
+ *
+ * Mirrors `COMPANY` in the marketing app (`apps/web/src/lib/company.ts`). Two
+ * copies exist because the two apps do not share a package, not because the
+ * company differs — a reader who finds one name in the Terms they accepted and
+ * another on the website has no way to tell which one is the counterparty.
+ */
+const LEGAL_NAME = 'Milan Danilović pr Računarsko programiranje BYTESICHT Niš';
+const ADDRESS = 'Radnička 2, 18000 Niš (Palilula), Srbija';
+const REGISTRATION_NUMBER = '67813472';
+const TAX_NUMBER = '114734080';
+
 export interface LegalBody {
   title: string;
   /** Markdown body, rendered read-only by the CMS. */
@@ -19,8 +32,8 @@ export interface LegalBody {
 
 /**
  * Legal copy for SignageWall, served by `GET /legal/documents`. Comprehensive draft
- * covering the standard sections; **have it reviewed by legal counsel and fill
- * the bracketed company details before public launch.** When the wording changes
+ * covering the standard sections; the company details are filled in, but **have
+ * it reviewed by legal counsel before public launch.** When the wording changes
  * materially, bump the matching `version` in `legal.constants.ts` so users are
  * asked to re-consent. Rendered with a tiny Markdown subset (`#`/`##` headings,
  * paragraphs, `-` bullets, `_italics_`).
@@ -28,12 +41,12 @@ export interface LegalBody {
 
 const TOS_EN = `# Terms of Service
 
-_Last updated: 1 July 2026._
+_Last updated: 18 August 2026._
 
 These Terms of Service ("Terms") govern your access to and use of the SignageWall
 digital-signage platform, including the content-management dashboard, the player
 application and related APIs and services (together, the "Service"), operated by
-[Company legal name, address and registration number] ("SignageWall", "we", "us"). By
+${LEGAL_NAME}, ${ADDRESS}, matični broj ${REGISTRATION_NUMBER}, PIB ${TAX_NUMBER} ("SignageWall", "we", "us"). By
 creating an account or using the Service you agree to these Terms. If you do not
 agree, do not use the Service.
 
@@ -149,16 +162,15 @@ without our consent; we may assign them in connection with a merger, acquisition
 sale of assets.
 
 ## 19. Contact
-Questions about these Terms: ${CONTACT_EMAIL}. [Company legal name and registered
-address].`;
+Questions about these Terms: ${CONTACT_EMAIL}. ${LEGAL_NAME}, ${ADDRESS}.`;
 
 const PRIVACY_EN = `# Privacy Policy
 
-_Last updated: 1 July 2026._
+_Last updated: 18 August 2026._
 
 This Privacy Policy explains how the SignageWall digital-signage platform ("SignageWall", "we",
 "us") collects, uses and protects personal data, and the rights you have. The data
-controller is [Company legal name, registered address and contact]. We process data
+controller is ${LEGAL_NAME}, ${ADDRESS}. We process data
 in accordance with the Serbian Law on Personal Data Protection (ZZPL) and, where it
 applies to you, the EU General Data Protection Regulation (GDPR).
 
@@ -242,18 +254,17 @@ We may update this Policy from time to time. When we make material changes we wi
 update the version and ask you to review and accept the updated documents.
 
 ## 13. Contact
-Privacy questions or requests: ${CONTACT_EMAIL}. [Company legal name and
-registered address]. If we have appointed a data protection officer, their contact
+Privacy questions or requests: ${CONTACT_EMAIL}. ${LEGAL_NAME}, ${ADDRESS}. If we have appointed a data protection officer, their contact
 details will be provided here.`;
 
 const TOS_SR = `# Uslovi korišćenja
 
-_Poslednje ažuriranje: 1. jul 2026._
+_Poslednje ažuriranje: 18. avgust 2026._
 
 Ovi Uslovi korišćenja ("Uslovi") uređuju pristup i korišćenje SignageWall platforme za
 digitalnu signalizaciju, uključujući kontrolnu tablu za upravljanje sadržajem,
 plejer aplikaciju i povezane API-je i usluge (zajedno, "Usluga"), kojom upravlja
-[pun pravni naziv društva, adresa i matični broj] ("SignageWall", "mi"). Kreiranjem naloga
+${LEGAL_NAME}, ${ADDRESS}, matični broj ${REGISTRATION_NUMBER}, PIB ${TAX_NUMBER} ("SignageWall", "mi"). Kreiranjem naloga
 ili korišćenjem Usluge prihvatate ove Uslove. Ako se ne slažete, nemojte koristiti
 Uslugu.
 
@@ -366,15 +377,15 @@ naše saglasnosti; mi ih možemo preneti u vezi sa spajanjem, pripajanjem ili pr
 imovine.
 
 ## 19. Kontakt
-Pitanja o ovim Uslovima: ${CONTACT_EMAIL}. [Pun pravni naziv i sedište društva].`;
+Pitanja o ovim Uslovima: ${CONTACT_EMAIL}. ${LEGAL_NAME}, ${ADDRESS}.`;
 
 const PRIVACY_SR = `# Politika privatnosti
 
-_Poslednje ažuriranje: 1. jul 2026._
+_Poslednje ažuriranje: 18. avgust 2026._
 
 Ova Politika privatnosti objašnjava kako SignageWall platforma za digitalnu signalizaciju
 ("SignageWall", "mi") prikuplja, koristi i štiti lične podatke, kao i prava koja imate.
-Rukovalac podacima je [pun pravni naziv, sedište i kontakt društva]. Podatke
+Rukovalac podacima je ${LEGAL_NAME}, ${ADDRESS}. Podatke
 obrađujemo u skladu sa Zakonom o zaštiti podataka o ličnosti Republike Srbije
 (ZZPL) i, kada se na vas primenjuje, Opštom uredbom EU o zaštiti podataka (GDPR).
 
@@ -456,8 +467,7 @@ Ovu Politiku možemo povremeno ažurirati. Kod bitnih izmena ažuriraćemo verzi
 zatražiti da pregledate i prihvatite ažurirane dokumente.
 
 ## 13. Kontakt
-Pitanja ili zahtevi u vezi sa privatnošću: ${CONTACT_EMAIL}. [Pun pravni naziv
-i sedište društva]. Ako smo imenovali lice za zaštitu podataka, njegovi kontakt
+Pitanja ili zahtevi u vezi sa privatnošću: ${CONTACT_EMAIL}. ${LEGAL_NAME}, ${ADDRESS}. Ako smo imenovali lice za zaštitu podataka, njegovi kontakt
 podaci biće navedeni ovde.`;
 
 export const LEGAL_CONTENT: Record<

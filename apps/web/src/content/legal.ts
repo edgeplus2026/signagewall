@@ -21,12 +21,12 @@ export type LegalKey = 'privacy' | 'terms' | 'cookies'
 
 const TERMS_EN = `# Terms of Service
 
-_Last updated: 1 July 2026._
+_Last updated: 18 August 2026._
 
 These Terms of Service ("Terms") govern your access to and use of the SignageWall
 digital-signage platform, including the content-management dashboard, the player
 application and related APIs and services (together, the "Service"), operated by
-${COMPANY.legalName}, ${COMPANY.address}, matični broj ${COMPANY.registrationNumber} ("SignageWall", "we", "us"). By
+${COMPANY.legalName}, ${COMPANY.address}, matični broj ${COMPANY.registrationNumber}, PIB ${COMPANY.taxNumber} ("SignageWall", "we", "us"). By
 creating an account or using the Service you agree to these Terms. If you do not
 agree, do not use the Service.
 
@@ -146,12 +146,12 @@ Questions about these Terms: ${COMPANY.email}. ${COMPANY.legalName}, ${COMPANY.a
 
 const TERMS_SR = `# Uslovi korišćenja
 
-_Poslednje ažuriranje: 1. jul 2026._
+_Poslednje ažuriranje: 18. avgust 2026._
 
 Ovi Uslovi korišćenja ("Uslovi") uređuju pristup i korišćenje SignageWall platforme za
 digitalnu signalizaciju, uključujući kontrolnu tablu za upravljanje sadržajem,
 plejer aplikaciju i povezane API-je i usluge (zajedno, "Usluga"), kojom upravlja
-${COMPANY.legalName}, ${COMPANY.address}, matični broj ${COMPANY.registrationNumber} ("SignageWall", "mi"). Kreiranjem naloga
+${COMPANY.legalName}, ${COMPANY.address}, matični broj ${COMPANY.registrationNumber}, PIB ${COMPANY.taxNumber} ("SignageWall", "mi"). Kreiranjem naloga
 ili korišćenjem Usluge prihvatate ove Uslove. Ako se ne slažete, nemojte koristiti
 Uslugu.
 
@@ -268,7 +268,7 @@ Pitanja o ovim Uslovima: ${COMPANY.email}. ${COMPANY.legalName}, ${COMPANY.addre
 
 const PRIVACY_EN = `# Privacy Policy
 
-_Last updated: 1 July 2026._
+_Last updated: 18 August 2026._
 
 This Privacy Policy explains how the SignageWall digital-signage platform ("SignageWall", "we",
 "us") collects, uses and protects personal data, and the rights you have. The data
@@ -361,7 +361,7 @@ details will be provided here.`
 
 const PRIVACY_SR = `# Politika privatnosti
 
-_Poslednje ažuriranje: 1. jul 2026._
+_Poslednje ažuriranje: 18. avgust 2026._
 
 Ova Politika privatnosti objašnjava kako SignageWall platforma za digitalnu signalizaciju
 ("SignageWall", "mi") prikuplja, koristi i štiti lične podatke, kao i prava koja imate.
@@ -452,7 +452,7 @@ podaci biće navedeni ovde.`
 
 const COOKIES_EN = `# Cookie Policy
 
-_Last updated: 1 July 2026._
+_Last updated: 18 August 2026._
 
 This policy explains what SignageWall stores in your browser when you visit
 ${COMPANY.domain}, why, and how to change it. It covers this website only — the
@@ -492,7 +492,7 @@ Questions about this policy: ${COMPANY.email}.`
 
 const COOKIES_SR = `# Politika kolačića
 
-_Poslednje ažuriranje: 1. jul 2026._
+_Poslednje ažuriranje: 18. avgust 2026._
 
 Ova politika objašnjava šta SignageWall čuva u vašem pregledaču kada posetite
 ${COMPANY.domain}, zašto, i kako to da promenite. Odnosi se samo na ovaj sajt —

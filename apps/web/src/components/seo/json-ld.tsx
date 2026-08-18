@@ -106,6 +106,15 @@ export function OrganizationJsonLd() {
           '@type': 'Organization',
           '@id': ORGANIZATION_ID,
           name: 'SignageWall',
+          /* The registered name beside the brand, because they are not the
+             same string and a crawler cannot guess that they name one entity.
+             It is what ties this markup to the public register the legal
+             documents already quote — the same join a vendor verification
+             makes by hand. Personal name included: the company is a
+             preduzetnik, so the register's name contains the founder's, and a
+             legalName that quietly differs from the register is worse than
+             none at all. */
+          legalName: COMPANY.legalName,
           url: siteUrl,
           logo: {
             '@type': 'ImageObject',
@@ -119,15 +128,16 @@ export function OrganizationJsonLd() {
             'Digital signage software for menus, offers and announcements. SignageWall turns any TV into a screen you update in seconds — one screen or two hundred, and they keep playing when the internet drops.',
           email: COMPANY.email,
           /* City and country only, and deliberately not `COMPANY.address`:
-             that field is the registered seat for the legal documents and is
-             still a visible `[NEDOSTAJE]` marker, which must never reach
-             structured data. What matters here is that the location agrees
-             with the one the company states on LinkedIn and will verify on
-             Google Business Profile — three answers to "where are you" that
-             disagree weaken the entity that `sameAs` is trying to establish. */
+             that field is the registered seat phrased for a legal document
+             rather than for a parser. What matters here is that the location
+             agrees with the one the company states on LinkedIn and will verify
+             on Google Business Profile — three answers to "where are you" that
+             disagree weaken the entity that `sameAs` is trying to establish.
+             Niš is the registered seat; LinkedIn still says San Francisco and
+             is the one that has to move. */
           address: {
             '@type': 'PostalAddress',
-            addressLocality: 'Belgrade',
+            addressLocality: 'Niš',
             addressCountry: 'RS',
           },
           /* The profiles this company owns. Without it a search engine has a

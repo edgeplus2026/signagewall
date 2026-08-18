@@ -6,25 +6,31 @@
  * structured data — and a company that is named six different ways is a company
  * a reader stops trusting.
  *
- * The `TODO_` values are not yet known. They render as a visible marker rather
- * than an empty string on purpose: a legal document that silently omits the
- * controller's name looks finished and is not.
+ * Filled in from the business register on 2026-08-18. `apps/be` keeps its own
+ * copy of the same values for the Terms and Privacy Policy served inside the
+ * app (`legal.content.ts`) — the two state the same company and must not drift.
  */
-
-const MISSING = (what: string) => `[NEDOSTAJE: ${what}]`
 
 export const COMPANY = {
   /** Trading name. */
   name: 'SignageWall',
 
-  /** Full registered company name, as it appears in the business register. */
-  legalName: MISSING('pun pravni naziv društva'),
-  /** Registered seat — street, number, postcode, city, country. */
-  address: MISSING('sedište i adresa'),
+  /**
+   * Full registered name, exactly as the business register (APR) records it.
+   *
+   * Not `BYTESICHT` — that is only the skraćeno poslovno ime. The company is a
+   * preduzetnik, whose registered name is built from the founder's own name,
+   * `pr`, the activity and the seat, and that full form is what identifies the
+   * counterparty in a contract and what Microsoft matches against the register.
+   * `name` above stays the brand; do not "tidy" this one back to it.
+   */
+  legalName: 'Milan Danilović pr Računarsko programiranje BYTESICHT Niš',
+  /** Registered seat, incl. the municipality, as the register writes it. */
+  address: 'Radnička 2, 18000 Niš (Palilula), Srbija',
   /** Matični broj. */
-  registrationNumber: MISSING('matični broj'),
-  /** PIB. */
-  taxNumber: MISSING('PIB'),
+  registrationNumber: '67813472',
+  /** PIB. Quoted beside the matični broj in the Terms of both apps. */
+  taxNumber: '114734080',
 
   /**
    * Contact for legal and data-protection requests.
@@ -45,9 +51,9 @@ export const COMPANY = {
 } as const
 
 /** True once every legal detail has been filled in. */
-export const COMPANY_DETAILS_COMPLETE = ![
+export const COMPANY_DETAILS_COMPLETE = [
   COMPANY.legalName,
   COMPANY.address,
   COMPANY.registrationNumber,
   COMPANY.taxNumber,
-].some((v) => v.startsWith('[NEDOSTAJE'))
+].every((v) => v.length > 0)
