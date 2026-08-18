@@ -1,7 +1,7 @@
 import type { AppManifest } from '@signagewall/apps-contract'
 
 import { DEFAULT_CATEGORIES, categoryOptions } from './categories.js'
-import { QUOTE_COUNT, SECONDS_PER_QUOTE } from './limits.js'
+import { QUOTE_COUNT } from './limits.js'
 
 const WISDOM_ICON =
   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 5C6.46 5 4 7.46 4 10.5c0 2.7 1.94 4.95 4.5 5.41V17c0 1.1-.9 2-2 2v2c2.21 0 4-1.79 4-4v-6.5C10.5 8.57 9.43 7.5 8.1 7.5c-.2 0-.4.02-.6.07C8.1 6.63 8.74 6 9.5 6V5zm9 0C15.46 5 13 7.46 13 10.5c0 2.7 1.94 4.95 4.5 5.41V17c0 1.1-.9 2-2 2v2c2.21 0 4-1.79 4-4v-6.5c0-1.93-1.07-3-2.4-3-.2 0-.4.02-.6.07.6-.94 1.24-1.57 2-1.57V5z"/></svg>'
@@ -75,14 +75,6 @@ export const wisdomManifest: AppManifest = {
       help: 'How many quotes the screen cycles through before starting over.',
       default: QUOTE_COUNT.default,
       validation: { min: QUOTE_COUNT.min, max: QUOTE_COUNT.max },
-    },
-    {
-      key: 'secondsPerQuote',
-      type: 'number',
-      label: 'Seconds per quote',
-      help: 'How long each quote stays on the screen.',
-      default: SECONDS_PER_QUOTE.default,
-      validation: { min: SECONDS_PER_QUOTE.min, max: SECONDS_PER_QUOTE.max },
     },
   ],
 }

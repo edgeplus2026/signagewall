@@ -69,15 +69,6 @@ export const teamsManifest: AppManifest = {
       ],
     },
     {
-      key: 'slideSeconds',
-      type: 'number',
-      label: 'Seconds per message',
-      help: 'How long each message stays up in Spotlight.',
-      default: 8,
-      validation: { min: 2, max: 120 },
-      visibleWhen: { field: 'layout', equals: 'spotlight' },
-    },
-    {
       key: 'showCaption',
       type: 'switch',
       label: 'Show author names',

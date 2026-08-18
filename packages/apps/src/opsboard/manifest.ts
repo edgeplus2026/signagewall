@@ -130,14 +130,6 @@ export const opsboardManifest: AppManifest = {
       default: true,
     },
     {
-      key: 'pageSeconds',
-      type: 'number',
-      label: 'Seconds per page',
-      default: 12,
-      validation: { min: 3, max: 300 },
-      help: 'Used only when the board has more rows than one screen can show.',
-    },
-    {
       key: 'theme',
       type: 'select',
       label: 'Theme',

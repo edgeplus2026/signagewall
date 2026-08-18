@@ -168,11 +168,7 @@ export function nextPageIndex(index: number, pageCount: number): number {
   return (Math.max(0, index) + 1) % pageCount
 }
 
-export function slideDurationMs(value: unknown): number {
-  const seconds =
-    typeof value === 'number' && Number.isFinite(value) ? Math.floor(value) : 12
-  return Math.min(120, Math.max(3, seconds)) * 1000
-}
+
 
 export type ViewportShape = 'portrait' | 'square' | 'landscape'
 

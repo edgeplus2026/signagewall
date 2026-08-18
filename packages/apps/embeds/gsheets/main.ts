@@ -9,9 +9,6 @@ import './style.css'
 
 const root = document.getElementById('app')
 
-/** Fallback when the operator's `pageSeconds` is missing or out of range. */
-const DEFAULT_PAGE_SECONDS = 20
-
 function applyChrome(config: Record<string, unknown>): void {
   if (!root) return
   // The palette lives in CSS, keyed off this class — a rate board needs a dozen
@@ -289,19 +286,7 @@ function stopPaging(): void {
   }
 }
 
-/** Seconds per page as the operator set it, clamped to the manifest's range. */
-function pageMs(
-  config: Record<string, unknown>,
-  pages: number,
-  durationMs: number | undefined,
-): number {
-  const raw = config.pageSeconds
-  const seconds =
-    typeof raw === 'number' && Number.isFinite(raw) ? raw : DEFAULT_PAGE_SECONDS
-  const configured = Math.min(300, Math.max(3, seconds)) * 1000
-  // Only a ceiling: the board has just its slot to get through every page.
-  return stepMs(configured, pages, durationMs)
-}
+
 
 /**
  * How many rows fit in `body` at their natural height.
@@ -458,7 +443,7 @@ function render(
   paint()
 
   if (pages > 1 && active) {
-    const interval = pageMs(config, pages, lastDurationMs)
+    const interval = stepMs(pages, lastDurationMs)
     pageTimer = setInterval(() => {
       page = (page + 1) % pages
       paint()

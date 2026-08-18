@@ -265,7 +265,6 @@ Per-instance config:
 - **Daily Wisdom** — `requiresNetwork` deliberately omitted; **no network by design.** Reads a vendored local corpus once from disk; date+categories-seeded deterministic shuffle turns over daily; ships offline fallback quotes. No theme, no style fields (each quote has its own design).
   1. **Topics / categories** (multiselect, min 1; default `DEFAULT_CATEGORIES`).
   2. **How many quotes / quoteCount** (number) — display-only.
-  3. **Seconds per quote / secondsPerQuote** (number) — display-only.
 
 - **RSS feed** — `requiresNetwork: true`. The **only** connector that fetches an operator-typed address, so it routes through the SSRF-guarded `safeFetchText`: http(s)-only; DNS-resolved rejection of private/loopback/link-local/CGNAT/reserved IPs; manual per-hop redirect re-checking (max 5); 5MB body cap; 15s timeout; DOCTYPE stripped before parsing (billion-laughs guard). Cache key is a SHA1 of the normalized feed URL.
   1. **Feed address / url** (required): the RSS or Atom feed URL (usually homepage + `/feed` or `/rss`).
@@ -273,11 +272,10 @@ Per-instance config:
   3. **Theme**: Light or Dark (default Dark).
   4. **Show QR code** (switch, default on) — scannable code beside each story.
   5. **How many stories / itemCount** (number, Feed Settings section).
-  6. **Seconds per story / secondsPerStory** (number, Feed Settings section).
 
 - **News headlines** — `requiresNetwork: true`, refresh 300s. A curated front-end to RSS: same connector, same layouts, no key. The operator picks a publisher instead of typing a feed URL. Cache is shared with any RSS instance on the same feed.
   1. **News source / url** (required select): pick a publisher (BBC top/world/business/tech/sport, Sky News, NPR, Al Jazeera, Fox, CNBC, ESPN, TechCrunch, The Verge, Hacker News, The Guardian). For any other feed, use the RSS app.
-  2. **Layout / displayMode**, **Theme**, **Show QR code**, **How many stories / itemCount**, **Seconds per story / secondsPerStory** — identical to the RSS app.
+  2. **Layout / displayMode**, **Theme**, **Show QR code**, **How many stories / itemCount** — identical to the RSS app.
   > To add or retire a publisher, edit `packages/apps/src/news/sources.ts` (a test enforces unique https feed URLs); nothing else changes.
 
 ---
@@ -424,7 +422,7 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   - **Env:** `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, **plus R2** (`R2_*`) for the mirrored slides. Enable the Slides API **and** Drive API.
   1. Connect a Google account.
   2. Pick the **Presentation** in Google's own file picker (`picker: 'google-drive'`) — one deck, granted explicitly.
-  3. Display-only numbers: Seconds per slide (1–120, default 8), Slides to show (0 = all, max 100).
+  3. Display-only numbers: Slides to show (0 = all, max 100).
   > **Live sync.** The connector registers a Drive `files.watch` push channel on the deck, so an edit reaches the screens within seconds; the 900s poll is the fallback and also what renews the channel. Push needs `PUBLIC_API_URL` (or `WEBHOOK_PUBLIC_URL`) set to an address Google can reach — without one the app still works, just on the poll cadence.
   >
   > ⚠️ **Google push needs a real HTTPS host with a trusted certificate.** Google dropped the old "Domain verification" step in the API Console (that page no longer exists), so what remains is the certificate: no self-signed, no untrusted issuer, subject matching the hostname. An ephemeral `*.trycloudflare.com` / `*.ngrok.io` dev tunnel can still make `files.watch` return **403 `Unauthorized WebHook callback channel`**, logged as `drive watch failed` with Google's own wording in `detail`. Nothing breaks: the connector skips the subscription and the poll carries the data. **This applies to every Google push app** (Calendar, Sheets, menu board), not just Slides. Microsoft Graph push (PowerPoint, Outlook) has no such requirement, which is why a plain dev tunnel is enough there.
@@ -433,7 +431,7 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
 
 - **PowerPoint** (`powerpoint`) — hybrid public-embed / connected app, refresh 900s.
   1. **Embed code or URL (no account needed):** in PowerPoint for the web choose **File → Share → Embed this presentation** and paste the complete copied iframe code (or only its `src`) into SignageWall; the CMS extracts and validates the URL automatically. Newer PowerPoint embed codes that use `1drv.ms/p/c/<cid>/<item>` are accepted, and a public SharePoint presentation link is converted to `action=embedview`. The presentation must be viewable by anyone with the link; ordinary private share links cannot play anonymously. The player reloads the live Microsoft viewer every 15 minutes by default; this mode requires network access while playing.
-  2. **Microsoft account (private file):** connect an account, then pick a `.pptx` from OneDrive/SharePoint (`remoteSource: powerpoint-files`). Set seconds per slide, screen fit and letterbox colour. Graph converts the deck to PDF, poppler renders WebP slides into R2, and the cached slides keep playing offline.
+  2. **Microsoft account (private file):** connect an account, then pick a `.pptx` from OneDrive/SharePoint (`remoteSource: powerpoint-files`). Set screen fit and letterbox colour. Graph converts the deck to PDF, poppler renders WebP slides into R2, and the cached slides keep playing offline.
   - **Scopes for private mode:** `Files.Read.All`, `Sites.Read.All` (read-only).
   - **Env for private mode:** `ENCRYPTION_KEY`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, R2 (`R2_*`) and `pdftoppm`/`poppler-utils`. Embed mode needs none of these.
   - **Entra Web redirect URI (register exactly):** `${PUBLIC_API_URL}/api/v1/connections/oauth/microsoft/callback` — for the current Railway deployment: `https://signagewall.up.railway.app/api/v1/connections/oauth/microsoft/callback`. No trailing slash; path case must match.
@@ -452,7 +450,7 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   - **Approval — REQUIRED:** `ChannelMessage.Read.All` requires **Azure AD admin consent** (an admin must approve it once for the tenant). `Team.ReadBasic.All` / `Channel.ReadBasic.All` (the picker) do not. **Personal Microsoft accounts are not supported** — only work/school accounts.
   1. Connect a work/school Microsoft account via the **Microsoft account** OAuth field — read-only, never posts.
   2. Pick the **Channel** (`remoteSource: ms-teams-channels` — one flat "Team · Channel" list built from your joined teams and their channels).
-  3. Display-only (reuses the social-feed embed, same as Instagram/Facebook): Layout (Spotlight / Grid), Seconds per message (spotlight only, 2–120), "Show author names", Theme. Messages show the sender as a byline; system/deleted messages are dropped; image-only messages (hosted content needs a token) are skipped.
+  3. Display-only (reuses the social-feed embed, same as Instagram/Facebook): Layout (Spotlight / Grid), "Show author names", Theme. Messages show the sender as a byline; system/deleted messages are dropped; image-only messages (hosted content needs a token) are skipped.
 
 - **Instagram** (`instagram`, provider meta) — refresh 900s, `requiresNetwork: true` (streams images from Meta's CDN). Graph v22.0.
   - **Scopes:** `instagram_basic`, `pages_show_list`
@@ -460,7 +458,7 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   - **Approval — REQUIRED:** Meta App Review for `instagram_basic` (+ `pages_show_list`) plus **Meta Business Verification** are required for IG accounts you do **not** own. Owned/tester accounts work in dev mode. **The target IG account must be a professional (Business or Creator) account linked to a Facebook Page** — only those appear in the picker.
   1. Connect the Facebook account that manages the IG account via the **Facebook account** OAuth field — read-only, never posts.
   2. Pick the **Instagram account** (`remoteSource: meta-ig-accounts` — only pro accounts linked to a Page; `pages_show_list` enumerates the Pages).
-  3. Display-only: Layout (Spotlight / Grid), Seconds per post (spotlight only, 2–120), Show captions, Theme.
+  3. Display-only: Layout (Spotlight / Grid), Show captions, Theme.
 
 - **Facebook Page** (`facebook`, provider meta) — refresh 900s, `requiresNetwork: true` (streams images from Meta's CDN).
   - **Scopes:** `pages_show_list`, `pages_read_engagement`
@@ -468,7 +466,7 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   - **Approval — REQUIRED:** Meta App Review for `pages_read_engagement` (+ `pages_show_list`) plus **Meta Business Verification** are required for Pages you do **not** own. Pages you have a role on work in dev mode.
   1. Connect the Facebook account that manages the Page via the **Facebook account** OAuth field — read-only.
   2. Pick the **Page** (`remoteSource: meta-pages` — only Pages your account manages). `pages_show_list` enumerates the Pages; the connector then derives a Page access token (from the long-lived user token) to read the feed with `pages_read_engagement`.
-  3. Display-only: Layout (Spotlight / Grid), Seconds per post (spotlight only, 2–120), Show post text, Theme.
+  3. Display-only: Layout (Spotlight / Grid), Show post text, Theme.
 
 - **LinkedIn Page** (`linkedin`, provider linkedin) — refresh 1800s (the Development tier allows only 100 calls per member per 24h), **no** `requiresNetwork` (text-only payload, so it plays from the cached snapshot). Versioned REST API pinned to `202606`.
   - **Scopes:** `rw_organization_admin`, `r_organization_social` (+ reserved `r_basicprofile`)
@@ -476,7 +474,7 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   - **Approval — REQUIRED:** the **Community Management API** product (Development tier at minimum). There is no unreviewed dev mode, so until it is granted this app cannot be used at all — not even on a Page the operator administers. The connected member must be an **APPROVED ADMINISTRATOR** of the Page.
   1. Connect the LinkedIn account that administers the Page via the **LinkedIn account** OAuth field — read-only, never posts (despite the "manage your Pages" wording LinkedIn shows; see the provider note above).
   2. Pick the **Page** (`remoteSource: linkedin-orgs`). The picker reads the member's `ADMINISTRATOR`/`APPROVED` role assignments (`organizationAcls`) and titles them via `organizationsLookup`, falling back to per-Page GETs where that batch call is unavailable (Development tier) and to `Page <id>` labels where both are — the selection still works, since the id is what the connector fetches with.
-  3. Display-only: Layout (Spotlight / Grid), Seconds per post (spotlight only, 2–120), Theme.
+  3. Display-only: Layout (Spotlight / Grid), Theme.
   > **Text-only, deliberately.** LinkedIn returns post images as `urn:li:image:…` URNs, and resolving one to a URL requires a GET on the Images API — which LinkedIn permits only for tokens holding a **write** scope (`w_organization_social` / `rw_ads`). SignageWall never asks an operator for permission to publish to their Page, so posts render as text heroes (same as Teams messages), article posts fold in their title + description, and image-only posts are skipped. There is therefore no "Show post text" toggle: with no image posts it would toggle nothing.
 
 - **Canva** (`canva`, provider canva) — refresh 900s, `requiresNetwork: true` (renders exported asset from Canva CDN).
@@ -485,7 +483,7 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   - **Approval:** private to your own team until submitted for Canva review/approval.
   1. Connect a Canva account via the **Canva account** OAuth field — one sign-in; token auto-refreshes each fetch.
   2. Pick the **Design** (`remoteSource: canva-designs` — queries Canva live).
-  3. Display-only numbers: Seconds per page (min 1, default 8; multi-page designs only), Pages to show (0 = all).
+  3. Display-only numbers: Pages to show (0 = all).
   > The connector picks the best export format (mp4 > jpg > png) via an async export job state machine (`timeoutMs 20000`).
 
 ---

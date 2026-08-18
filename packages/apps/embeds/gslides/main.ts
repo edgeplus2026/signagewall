@@ -71,10 +71,6 @@ function setup(
       : all.length
   slides = all.slice(0, max)
   broken = new Set()
-  const seconds =
-    typeof config.slideSeconds === 'number' && config.slideSeconds > 0
-      ? config.slideSeconds
-      : 8
 
   stop()
 
@@ -108,13 +104,7 @@ function setup(
   index = 0
   show(0)
   if (slides.length > 1) {
-    // `slideSeconds` is a ceiling: a deck whose slides would not all get a turn
-    // inside this slot shares the slot between them instead of parking on the
-    // first one until the rotation moves on.
-    timer = setInterval(
-      advance,
-      stepMs(seconds * 1000, slides.length, durationMs),
-    )
+    timer = setInterval(advance, stepMs(slides.length, durationMs))
   }
 }
 

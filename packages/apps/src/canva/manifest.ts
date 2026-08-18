@@ -55,14 +55,6 @@ export const canvaManifest: AppManifest = {
       help: 'Start typing to find one of your Canva designs. Edit it in Canva later and the screen catches up on its own.',
     },
     {
-      key: 'slideDuration',
-      type: 'number',
-      label: 'Seconds per page',
-      default: 8,
-      validation: { min: 1 },
-      help: 'Multi-page designs only. Videos and presentations play at their own pace.',
-    },
-    {
       key: 'maxPages',
       type: 'number',
       label: 'Pages to show',

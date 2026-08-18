@@ -37,7 +37,6 @@ const config = {
   workspace: { id: WORKSPACE_ID, label: 'Factory' },
   report: { id: REPORT_ID, label: 'Shift report' },
   refreshMinutes: 15,
-  slideDuration: 12,
   fit: 'contain' as const,
   background: '#000000',
 };
@@ -142,7 +141,7 @@ describe('powerbiSecureConnector', () => {
     expect(first).toBe(
       `powerbi-secure:png-v1:${connection.id}:${WORKSPACE_ID}:${REPORT_ID}:all-pages`,
     );
-    expect(connector.cacheKey?.({ ...config, slideDuration: 99 })).toBe(first);
+    expect(connector.cacheKey?.({ ...config, fit: 'cover' })).toBe(first);
     expect(
       connector.cacheKey?.({
         ...config,

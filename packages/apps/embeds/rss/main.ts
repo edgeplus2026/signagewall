@@ -1,5 +1,5 @@
 import { DEFAULT_ACCENT } from '../../src/_shared/theme.js'
-import { ITEM_COUNT, SECONDS_PER_STORY } from '../../src/rss/limits.js'
+import { ITEM_COUNT } from '../../src/rss/limits.js'
 import type { RssItem, RssPayload } from '../../src/rss/payload.js'
 import { stepMs } from '../_shared/dwell.js'
 import { connectToHost } from '../_shared/host-bridge.js'
@@ -93,27 +93,14 @@ function resolveTheme(): RssTheme {
   return { ...(isDark ? PALETTE.dark : PALETTE.light), accent: ACCENT, isDark }
 }
 
-/** How long one story holds the screen, as the operator set it. */
-function storySeconds(): number {
-  return clampInt(
-    config.secondsPerStory,
-    SECONDS_PER_STORY.default,
-    SECONDS_PER_STORY.min,
-    SECONDS_PER_STORY.max,
-  )
-}
-
 /**
- * What that works out to once the slot has its say.
+ * How long one story holds the screen.
  *
- * `secondsPerStory` is a ceiling: a feed whose stories would not all get a turn
- * inside this slot shares the slot between them, and an interval longer than the
- * slot never fires at all — which left the app showing story one and nothing
- * else. Everything that needs a story's length reads THIS, the timer and the
- * progress bar alike, or the bar animates to a finish the rotation never reaches.
+ * Everything that needs a story's length reads THIS — the timer and the progress
+ * bar alike — or the bar animates to a finish the rotation never reaches.
  */
 function storyMs(): number {
-  return stepMs(storySeconds() * 1000, items.length, durationMs)
+  return stepMs(items.length, durationMs)
 }
 
 /** The newest stories the operator asked for. */

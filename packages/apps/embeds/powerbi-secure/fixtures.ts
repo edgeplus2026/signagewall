@@ -19,7 +19,6 @@ const config: SecurePowerBiConfig = {
   workspace: { id: 'fixture-workspace', label: 'Operations' },
   report: { id: 'fixture-report', label: 'Shift command centre' },
   refreshMinutes: 15,
-  slideDuration: 12,
   fit: 'contain',
   background: '#000000',
 }

@@ -1,5 +1,5 @@
 import type { WisdomDesign } from '../../src/wisdom/designs.js'
-import { QUOTE_COUNT, SECONDS_PER_QUOTE } from '../../src/wisdom/limits.js'
+import { QUOTE_COUNT } from '../../src/wisdom/limits.js'
 import type { WisdomPayload, WisdomQuote } from '../../src/wisdom/payload.js'
 import { stepMs } from '../_shared/dwell.js'
 import { freshnessFooterHtml } from '../_shared/freshness.js'
@@ -66,16 +66,6 @@ function clampInt(
     return fallback
   }
   return Math.min(max, Math.max(min, Math.floor(value)))
-}
-
-/** How long one quote holds the screen. */
-function quoteSeconds(): number {
-  return clampInt(
-    config.secondsPerQuote,
-    SECONDS_PER_QUOTE.default,
-    SECONDS_PER_QUOTE.min,
-    SECONDS_PER_QUOTE.max,
-  )
 }
 
 /**
@@ -152,12 +142,10 @@ function restartTimer(): void {
     return
   }
 
-  // `secondsPerQuote` is a ceiling: a set of quotes that would not all get a
-  // turn inside this slot shares the slot instead of stopping on the first.
   timer = setInterval(() => {
     index = (index + 1) % quotes.length
     render()
-  }, stepMs(quoteSeconds() * 1000, quotes.length, durationMs))
+  }, stepMs(quotes.length, durationMs))
 }
 
 connectToHost<Record<string, unknown>, WisdomPayload>(

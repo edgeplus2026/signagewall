@@ -5,7 +5,7 @@
  * instance's `quoteCount`, picks a design per quote, and rotates.
  *
  * The cache key is the chosen categories, and ONLY the categories. Everything else
- * an operator can set (`quoteCount`, `secondsPerQuote`) is display-only and is
+ * an operator can set (`quoteCount`) is display-only and is
  * applied by the bundle, so it must never reach this object — otherwise two
  * screens on the same topics but a different rotation speed would each pay for
  * their own selection.

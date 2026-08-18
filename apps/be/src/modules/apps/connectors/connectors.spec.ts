@@ -729,7 +729,6 @@ describe('rss connector (server)', () => {
         theme: 'light',
         showQr: false,
         itemCount: 3,
-        secondsPerStory: 20,
       } as never);
       expect(styled).toBe(plain);
     });
@@ -1384,11 +1383,11 @@ describe('gslides connector (connected)', () => {
     });
   });
 
-  it('cacheKey is per-connection + presentation (slideSeconds/maxSlides display-only)', () => {
+  it('cacheKey is per-connection + presentation (maxSlides display-only)', () => {
     const a = gslidesConnector.cacheKey!({
       connectionId: 'c1',
       presentation: { id: 'P1' },
-      slideSeconds: 8,
+      maxSlides: 9,
     });
     const b = gslidesConnector.cacheKey!({
       connectionId: 'c1',

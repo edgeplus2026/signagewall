@@ -12,4 +12,3 @@
 export const ITEM_COUNT = { min: 1, max: 20, default: 6 } as const
 
 /** How long a story stays on screen, in layouts that move between them. */
-export const SECONDS_PER_STORY = { min: 3, max: 60, default: 8 } as const

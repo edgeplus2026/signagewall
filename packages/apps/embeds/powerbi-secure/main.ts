@@ -1,5 +1,6 @@
 import type { SecurePowerBiConfig } from '../../src/powerbi-secure/config.js'
 import type { SecurePowerBiPayload } from '../../src/powerbi-secure/payload.js'
+import { stepMs } from '../_shared/dwell.js'
 import { type AppDataMeta, connectToHost } from '../_shared/host-bridge.js'
 import {
   type SecurePowerBiView,
@@ -7,7 +8,6 @@ import {
   nextPageIndex,
   reconcileLifecycle,
   retainLastKnownGood,
-  slideDurationMs,
   snapshotView,
   viewportShape,
 } from './runtime.js'
@@ -27,6 +27,8 @@ let lifecycle: SlideshowLifecycle = {
   contentKey: '',
 }
 let timer: ReturnType<typeof setInterval> | undefined
+/** The slot's dwell, or undefined on a host that imposes none (CMS preview). */
+let durationMs: number | undefined
 let image: HTMLImageElement | null = null
 let status: HTMLElement | null = null
 let pagination: HTMLElement | null = null
@@ -125,7 +127,7 @@ function restartTimer(): void {
   if (view.kind !== 'content' || !lifecycle.active || view.pages.length < 2) {
     return
   }
-  timer = setInterval(advance, slideDurationMs(config.slideDuration))
+  timer = setInterval(advance, stepMs(view.pages.length, durationMs))
 }
 
 function buildStage(
@@ -190,9 +192,10 @@ function render(): void {
 }
 
 connectToHost<Partial<SecurePowerBiConfig>, SecurePowerBiPayload>(
-  ({ config: incomingConfig, data, meta: incomingMeta }) => {
+  ({ config: incomingConfig, data, meta: incomingMeta, durationMs: dwell }) => {
     config = incomingConfig ?? {}
     meta = incomingMeta
+    durationMs = dwell
     const selected = retainLastKnownGood(data, retained, meta)
     if (selected) {
       retained = selected

@@ -305,7 +305,7 @@ theme + `styleFields`. **Payload:** `{monthDay, events:[{year, text}]}`, most-re
 offline**: the connector selects from a vendored ~4,900-quote corpus (`connectors/wisdom/quotes.json`,
 copied via `nest-cli.json` assets) per category set under one cache key, with a **date-seeded** pick so
 the batch is stable within a day and turns over daily (`refreshSeconds` 86400). `cacheKey`
-`wisdom:v2:<sorted categories>`; `quoteCount` / `secondsPerQuote` are display-only. The embed rotates
+`wisdom:v2:<sorted categories>`; `quoteCount` is display-only. The embed rotates
 quotes through a set of designs. See `src/wisdom/` + `embeds/wisdom/`.
 
 **33. Sun & Moon** (`sunmoon`, server) — ✅ shipped. **Open-Meteo** daily sun (no key), the same

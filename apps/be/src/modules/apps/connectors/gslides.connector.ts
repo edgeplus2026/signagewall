@@ -27,8 +27,7 @@ interface GslidesConfig {
   connectionId?: string;
   /** The chosen deck: { id, label } from the `remote-select` picker. */
   presentation?: { id?: string; label?: string } | string;
-  // `slideSeconds` / `maxSlides` are display-only (the bundle applies them).
-  slideSeconds?: number;
+  // `maxSlides` is display-only (the bundle applies it).
   maxSlides?: number;
 }
 

@@ -1,4 +1,5 @@
 import type { SocialPayload, SocialPost } from '../../src/social/payload.js'
+import { stepMs } from './dwell.js'
 import { type AppDataMeta, connectToHost } from './host-bridge.js'
 import { freshnessFooterHtml } from './freshness.js'
 
@@ -9,7 +10,7 @@ import { freshnessFooterHtml } from './freshness.js'
  * supplies its brand (accent, name, glyph). Two layouts:
  *
  *  - `spotlight` (default): one post at a time, big image with the caption over
- *    it, auto-rotating every `slideSeconds`. The signage-friendly default.
+ *    it, auto-rotating on a share of the slot. The signage-friendly default.
  *  - `grid`: a tiled wall of the most recent posts.
  *
  * A post with no image (a Facebook text status, a Teams channel message) renders
@@ -29,7 +30,6 @@ export interface SocialFeedBrand {
 
 interface SocialConfig {
   layout?: 'spotlight' | 'grid'
-  slideSeconds?: number
   showCaption?: boolean
   theme?: 'light' | 'dark'
 }
@@ -64,6 +64,8 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
   let index = 0
   let state: { config: SocialConfig; data: SocialPayload | null } | null = null
   let currentMeta: AppDataMeta | null = null
+  /** The slot's dwell, or undefined on a host that imposes none (CMS preview). */
+  let currentDurationMs: number | undefined
 
   function stopRotation(): void {
     if (rotate !== undefined) {
@@ -181,23 +183,25 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
       if (index >= data.posts.length) index = 0
       renderSpotlight(root, data, showCaption)
       if (data.posts.length > 1) {
-        const seconds = Math.min(Math.max(config.slideSeconds ?? 8, 2), 120)
         rotate = window.setInterval(() => {
           index = (index + 1) % data.posts.length
           renderSpotlight(root, data, showCaption)
           root.insertAdjacentHTML('beforeend', freshnessFooterHtml(currentMeta))
-        }, seconds * 1000)
+        }, stepMs(data.posts.length, currentDurationMs))
       }
     }
     root.insertAdjacentHTML('beforeend', freshnessFooterHtml(currentMeta))
   }
 
-  connectToHost<SocialConfig, SocialPayload>(({ config, data, meta }) => {
+  connectToHost<SocialConfig, SocialPayload>(
+    ({ config, data, meta, durationMs }) => {
     // A fresh payload re-starts the rotation from the newest post.
     const isNewData = data !== state?.data
     state = { config, data }
     currentMeta = meta
+    currentDurationMs = durationMs
     if (isNewData) index = 0
     render()
-  })
+    },
+  )
 }

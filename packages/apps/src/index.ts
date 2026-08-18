@@ -192,7 +192,6 @@ export type { WisdomDesign } from './wisdom/designs.js'
 export {
   MAX_QUOTE_LENGTH,
   QUOTE_COUNT,
-  SECONDS_PER_QUOTE,
   UPSTREAM_QUOTES,
 } from './wisdom/limits.js'
 export type { WisdomPayload, WisdomQuote } from './wisdom/payload.js'

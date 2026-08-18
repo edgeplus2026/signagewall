@@ -98,15 +98,6 @@ export const powerpointManifest: AppManifest = {
       placeholder: 'Search your PowerPoint files…',
       help: 'Pick the .pptx to show. Works with both personal OneDrive and work / SharePoint files.',
     },
-    {
-      key: 'slideDuration',
-      type: 'number',
-      label: 'Seconds per slide',
-      default: 15,
-      visibleWhen: { field: 'source', equals: POWERPOINT_SOURCE_MICROSOFT },
-      validation: { min: 3, max: 120 },
-      help: 'How long each slide stays on screen before the next one.',
-    },
     // No transition field: slides always crossfade (a hard cut reads as a
     // glitch on signage), and no auto-update switch: the deck on screen always
     // follows the file in OneDrive — that immediacy is the app's whole promise.

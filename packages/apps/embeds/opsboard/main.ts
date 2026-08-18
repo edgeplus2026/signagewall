@@ -391,18 +391,6 @@ function stopTimer(): void {
   timer = undefined
 }
 
-function pageMilliseconds(pageCount: number): number {
-  const seconds =
-    typeof config.pageSeconds === 'number' &&
-    Number.isFinite(config.pageSeconds)
-      ? config.pageSeconds
-      : 12
-  const configured = Math.min(300, Math.max(3, seconds)) * 1000
-  // A ceiling only: a board with more pages than fit in its slot shares the slot
-  // between them rather than parking on page one until the rotation moves on.
-  return stepMs(configured, pageCount, durationMs)
-}
-
 function restartTimer(): void {
   stopTimer()
   const plan = pagePlan(layoutOf(config.layout))
@@ -411,7 +399,7 @@ function restartTimer(): void {
   timer = setInterval(() => {
     page = (page + 1) % pageCount
     render()
-  }, pageMilliseconds(pageCount))
+  }, stepMs(pageCount, durationMs))
 }
 
 connectToHost<RuntimeConfig, OpsBoardPayload>(

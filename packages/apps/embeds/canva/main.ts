@@ -1,16 +1,15 @@
 import type { CanvaPayload } from '../../src/canva/payload.js'
+import { stepMs } from '../_shared/dwell.js'
 import { type AppDataMeta, connectToHost } from '../_shared/host-bridge.js'
 import '../_shared/base.css'
 
 /** Display settings the operator sets in the config form (applied client-side). */
 interface CanvaConfig {
-  slideDuration?: number
   maxPages?: number
   /** The currently-selected design ({ id, label } from the picker). */
   design?: { id?: string }
 }
 
-const DEFAULT_SLIDE_SECONDS = 8
 
 const root = document.getElementById('app')
 let slideTimer: ReturnType<typeof setInterval> | undefined
@@ -110,6 +109,7 @@ function render(
   config: CanvaConfig,
   data: CanvaPayload | null,
   meta: AppDataMeta | null,
+  durationMs: number | undefined,
 ): void {
   // Always drop any previous slideshow timer before (re)rendering.
   clearTimer()
@@ -135,13 +135,9 @@ function render(
       ? config.maxPages
       : undefined
   const pages = maxPages ? data.slides.slice(0, maxPages) : data.slides
-  const seconds =
-    typeof config.slideDuration === 'number' && config.slideDuration > 0
-      ? config.slideDuration
-      : DEFAULT_SLIDE_SECONDS
-  renderSlideshow(pages, data.name, seconds * 1000)
+  renderSlideshow(pages, data.name, stepMs(pages.length, durationMs))
 }
 
-connectToHost<CanvaConfig, CanvaPayload>(({ config, data, meta }) => {
-  render(config, data, meta)
+connectToHost<CanvaConfig, CanvaPayload>(({ config, data, meta, durationMs }) => {
+  render(config, data, meta, durationMs)
 })

@@ -156,7 +156,6 @@ interface WisdomConfig {
   // and the connector ignores them, so they are deliberately absent from the
   // cache key. Typed here so the full config shape is accurate.
   quoteCount?: number;
-  secondsPerQuote?: number;
 }
 
 export const wisdomConnector: AppConnector<WisdomConfig, WisdomPayload> = {

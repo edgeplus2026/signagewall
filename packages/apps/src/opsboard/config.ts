@@ -29,6 +29,5 @@ export interface OpsBoardConfig {
   rows?: OpsBoardManualRow[]
   layout: OpsBoardLayout
   showHeader: boolean
-  pageSeconds: number
   theme: OpsBoardTheme
 }

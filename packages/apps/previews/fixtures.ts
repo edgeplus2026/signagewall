@@ -231,7 +231,6 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
         theme: 'dark',
         showQr: false,
         itemCount: 8,
-        secondsPerStory: 10,
       },
       data: {
         title: 'The Daily Review',
@@ -292,7 +291,6 @@ export function buildFixtures(assetOrigin: string): Record<PreviewNamespace, Pre
       values: ['spotlight', 'grid'],
       config: {
         theme: 'dark',
-        slideSeconds: 10,
         showCaption: true,
       },
       data: {

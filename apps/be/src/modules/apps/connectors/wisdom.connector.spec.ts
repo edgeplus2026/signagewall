@@ -28,17 +28,15 @@ describe('wisdom cacheKey', () => {
     const a = wisdomConnector.cacheKey!({
       categories: ['motivation', 'sports'],
       quoteCount: 5,
-      secondsPerQuote: 20,
     });
     const b = wisdomConnector.cacheKey!({
       categories: ['motivation', 'sports'],
       quoteCount: 20,
-      secondsPerQuote: 90,
     });
 
     expect(a).toBe('wisdom:v2:motivation+sports');
     // Display-only settings must not split the cache: two gyms on the same topics
-    // but different rotation speeds share one selection.
+    // but different quote counts share one selection.
     expect(a).toBe(b);
   });
 

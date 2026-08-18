@@ -79,14 +79,6 @@ export const powerbiSecureManifest: AppManifest = {
       help: 'How often SignageWall requests a new server-side snapshot. The last successful export remains on screen while an export is pending or fails.',
     },
     {
-      key: 'slideDuration',
-      type: 'number',
-      label: 'Seconds per page',
-      default: POWERBI_SECURE_DEFAULTS.slideDuration,
-      validation: { min: 3, max: 120 },
-      help: 'Used when the report exports more than one page.',
-    },
-    {
       key: 'fit',
       type: 'select',
       label: 'Fit to screen',

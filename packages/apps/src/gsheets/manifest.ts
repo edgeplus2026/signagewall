@@ -74,22 +74,6 @@ export const gsheetsManifest: AppManifest = {
       default: true,
     },
     {
-      key: 'pageSeconds',
-      type: 'number',
-      label: 'Seconds per page',
-      default: 20,
-      validation: { min: 3, max: 300 },
-      // Only matters when the sheet is taller than the screen. A sheet that fits
-      // draws no page indicator and never advances, whatever this says.
-      //
-      // The other half of that, which is the one operators actually hit: paging
-      // is bounded by how long the app is ON the screen. Set this to 20 s on a
-      // slot that runs for 15 s and page two is never reached — the app leaves
-      // before the timer fires, and nothing anywhere says so. The embed cannot
-      // clamp it itself; the slot duration is not part of the config handshake.
-      help: 'How long each page of rows stays up when the sheet is too long to fit on screen at once. Keep it shorter than the time this app runs for on the screen, or the later pages are never reached.',
-    },
-    {
       key: 'theme',
       type: 'select',
       label: 'Theme',

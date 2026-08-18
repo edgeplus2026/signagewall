@@ -43,7 +43,6 @@ function basePowerBiInstance() {
       workspace: { id: new Types.ObjectId().toString(), label: 'Operations' },
       report: { id: new Types.ObjectId().toString(), label: 'Dispatch' },
       refreshMinutes: 15,
-      slideDuration: 12,
       fit: 'contain',
       background: '#000000',
     },
@@ -282,7 +281,7 @@ describe('AppInstancesService Power BI private cleanup', () => {
     await built.service.updateConfig(
       built.instance.organizationId.toString(),
       built.instance._id.toString(),
-      { ...built.instance.config, slideDuration: 30 },
+      { ...built.instance.config, fit: 'cover' },
     );
 
     expect(built.appDataCacheRepository.findByCacheKeys).not.toHaveBeenCalled();
@@ -308,7 +307,7 @@ describe('AppInstancesService Power BI private cleanup', () => {
     await built.service.updateConfig(
       plain.organizationId.toString(),
       plain._id.toString(),
-      { ...plain.config, slideDuration: 30 },
+      { ...plain.config, fit: 'cover' },
     );
 
     expect(built.storage.deleteAssetSet).not.toHaveBeenCalled();

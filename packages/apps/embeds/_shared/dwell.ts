@@ -1,46 +1,56 @@
 /**
- * Fitting a rotating app's steps into the time it is actually on screen.
+ * How long each step of a rotating app stays up.
  *
  * Shared by every embed that advances through something on a timer — pages of a
- * table, slides of a deck, stories in a feed, quotes. They all had the same bug,
- * and it is invisible from inside the app: the operator sets "20 seconds per
- * page", the slot runs for 15, and the interval never fires even once. The app
- * leaves the screen still showing the first step, the rest is never drawn, and
- * nothing reports a skipped page — on the wall it just looks like an app that
- * only ever shows the top of the list.
+ * table, slides of a deck, posts in a feed, stories, quotes.
+ *
+ * There used to be a "seconds per page/slide/post" setting on each of these apps,
+ * and it was the wrong question to put to an operator. It could not be answered
+ * correctly without knowing how long the item runs for on the screen, which is
+ * configured somewhere else entirely — on the playlist, by someone who may not be
+ * the same person. Set it higher than the slot and the interval never fired at
+ * all: the app left the screen still showing its first step and everything after
+ * it was silently never drawn.
+ *
+ * So it is not asked any more. The slot's dwell is divided by the number of
+ * steps, which is the answer the operator was trying to reach: a 30 second item
+ * with three pages turns them every ten seconds, on its own, always.
  */
 
 /**
- * Below this a step is gone before it can be read, so it is where sharing the
- * dwell stops. Matches the minimum the manifests already allow operators to set.
+ * Below this a step is gone before it can be read, so it is where dividing stops.
+ *
+ * It means an app with more steps than the slot can hold at a readable pace shows
+ * as many as fit rather than strobing through all of them — a feed of twenty-four
+ * posts in a thirty second slot would otherwise get 1.25 s each, which is not
+ * showing them so much as flashing them. The lever for seeing the rest is a
+ * LONGER SLOT, or fewer items where the app offers that choice.
  */
 export const MIN_STEP_MS = 3_000
 
 /**
- * How long one step may stay up, given how long the app has in total.
+ * What one step gets when the host imposes no dwell at all.
  *
- * The operator's interval is a CEILING, not a promise the slot can keep: when
- * the steps would not all get a turn within `durationMs` they share it instead,
- * down to {@link MIN_STEP_MS} — past which a faster carousel would only be
- * unreadable rather than complete.
- *
- * Callers restart from their first step on every appearance, by design, so this
- * is the ONLY thing that decides how much of the content is ever seen: whatever
- * does not fit inside one slot at this interval is not shown at all. An app with
- * more steps than `durationMs / MIN_STEP_MS` needs a longer slot, not a shorter
- * interval.
- *
- * `durationMs` is absent on a host that imposes no dwell (the CMS live preview),
- * and then the operator's value is returned untouched — there is nothing to fit.
+ * Only the CMS app-editor preview: it runs until the operator closes it, so there
+ * is nothing to divide. A screen preview runs the real player and gets a real
+ * dwell like anything else. Chosen to look like a working rotation rather than to
+ * match any particular screen, because it cannot match one.
  */
-export function stepMs(
-  configuredMs: number,
-  steps: number,
-  durationMs: number | undefined,
-): number {
-  if (steps <= 1 || !durationMs || !Number.isFinite(durationMs)) {
-    return configuredMs
+export const PREVIEW_STEP_MS = 8_000
+
+/**
+ * The interval for one step of a rotation, from the slot's dwell.
+ *
+ * `durationMs` absent means an unbounded host (see {@link PREVIEW_STEP_MS}).
+ */
+export function stepMs(steps: number, durationMs: number | undefined): number {
+  if (!durationMs || !Number.isFinite(durationMs)) {
+    return PREVIEW_STEP_MS
   }
-  const share = Math.floor(durationMs / steps)
-  return Math.max(MIN_STEP_MS, Math.min(configuredMs, share))
+  if (steps <= 1) {
+    // Nothing to divide between; the single step holds the slot either way, and
+    // a caller that still arms a timer must not get a zero interval out of us.
+    return Math.max(MIN_STEP_MS, durationMs)
+  }
+  return Math.max(MIN_STEP_MS, Math.floor(durationMs / steps))
 }

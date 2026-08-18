@@ -6,6 +6,7 @@ import {
   type PowerPointSource,
 } from '../../src/powerpoint/source.js'
 import type { AppDataMeta } from '../_shared/host-bridge.js'
+import { stepMs } from '../_shared/dwell.js'
 import { connectToHost } from '../_shared/host-bridge.js'
 
 // base.css first (shared reset + `.center`), then this app's chrome — the
@@ -18,14 +19,10 @@ interface PowerPointConfig extends Record<string, unknown> {
   source?: PowerPointSource
   embedUrl?: string
   embedRefreshMinutes?: number
-  slideDuration?: number
   fit?: 'contain' | 'cover'
   background?: string
 }
 
-const DEFAULT_SECONDS = 15
-const MIN_SECONDS = 3
-const MAX_SECONDS = 120
 const DEFAULT_EMBED_REFRESH_MINUTES = 15
 
 const root = document.getElementById('app')
@@ -50,15 +47,8 @@ let generation = 0
 let embedUrl: string | null = null
 let mountedEmbedUrl: string | null = null
 let embedReloadTimer: ReturnType<typeof setInterval> | undefined
-
-/** How long one locally-rendered slide holds the screen. */
-function seconds(): number {
-  const value = config.slideDuration
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return DEFAULT_SECONDS
-  }
-  return Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, Math.floor(value)))
-}
+/** The slot's dwell, or undefined on a host that imposes none (CMS preview). */
+let durationMs: number | undefined
 
 function clearSlideTimer(): void {
   if (slideTimer !== undefined) {
@@ -157,7 +147,7 @@ function restartSlideTimer(): void {
   if (source === POWERPOINT_SOURCE_EMBED || !active || slides.length < 2) {
     return
   }
-  slideTimer = setInterval(advance, seconds() * 1000)
+  slideTimer = setInterval(advance, stepMs(slides.length, durationMs))
 }
 
 function applySlides(data: PowerPointPayload | null): void {
@@ -259,9 +249,10 @@ function renderEmbed(): void {
 }
 
 connectToHost<PowerPointConfig, PowerPointPayload>(
-  ({ config: incoming, data, meta: incomingMeta }) => {
+  ({ config: incoming, data, meta: incomingMeta, durationMs: dwell }) => {
     config = incoming ?? {}
     meta = incomingMeta
+    durationMs = dwell
     const nextSource = resolvePowerPointSource(config)
     const sourceChanged = nextSource !== source
     source = nextSource

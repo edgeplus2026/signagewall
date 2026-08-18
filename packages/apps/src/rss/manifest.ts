@@ -1,7 +1,7 @@
 import type { AppManifest } from '@signagewall/apps-contract'
 
 import { DEFAULT_DISPLAY_MODE, displayModeOptions } from './display-modes.js'
-import { ITEM_COUNT, SECONDS_PER_STORY } from './limits.js'
+import { ITEM_COUNT } from './limits.js'
 
 const RSS_ICON =
   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 110 4.36 2.18 2.18 0 010-4.36zM4 4.44A15.56 15.56 0 0119.56 20h-2.83A12.73 12.73 0 004 7.27V4.44zm0 5.66a9.9 9.9 0 019.9 9.9h-2.83A7.07 7.07 0 004 12.93V10.1z"/></svg>'
@@ -82,18 +82,6 @@ export const rssManifest: AppManifest = {
       help: 'How many of the newest stories to use. Older ones are ignored.',
       default: ITEM_COUNT.default,
       validation: { min: ITEM_COUNT.min, max: ITEM_COUNT.max },
-    },
-    {
-      key: 'secondsPerStory',
-      type: 'number',
-      label: 'Seconds per story',
-      section: 'Feed Settings',
-      // Deliberately NOT gated with `visibleWhen`: that can only test one layout
-      // value, so it would silently hide this field the day a second moving
-      // layout ships. The help carries the condition instead.
-      help: 'How long each story stays up, in layouts that move from one story to the next.',
-      default: SECONDS_PER_STORY.default,
-      validation: { min: SECONDS_PER_STORY.min, max: SECONDS_PER_STORY.max },
     },
   ],
 }

@@ -5,10 +5,9 @@
  *
  * The embed must clamp rather than trust: a config saved before a bound moved is
  * still out there in a player's snapshot, and a screen is not the place to find
- * out that `secondsPerQuote` is 0.
+ * out that `quoteCount` is 0.
  */
 export const QUOTE_COUNT = { min: 1, max: 20, default: 5 } as const
-export const SECONDS_PER_QUOTE = { min: 5, max: 120, default: 20 } as const
 
 /**
  * How many quotes the connector keeps per fetch. Far more than any instance

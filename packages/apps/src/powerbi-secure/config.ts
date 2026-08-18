@@ -11,17 +11,15 @@ export interface SecurePowerBiConfig {
   report: { id: string; label: string }
   page?: { id: string; label: string }
   refreshMinutes: number
-  slideDuration: number
   fit: 'contain' | 'cover'
   background: string
 }
 
 export const POWERBI_SECURE_DEFAULTS = {
   refreshMinutes: 15,
-  slideDuration: 12,
   fit: 'contain',
   background: '#000000',
 } as const satisfies Pick<
   SecurePowerBiConfig,
-  'refreshMinutes' | 'slideDuration' | 'fit' | 'background'
+  'refreshMinutes' | 'fit' | 'background'
 >

@@ -68,13 +68,6 @@ export const gslidesManifest: AppManifest = {
       help: 'Pick a Google Slides deck from your Drive. Edit it later and the screen updates on its own.',
     },
     {
-      key: 'slideSeconds',
-      type: 'number',
-      label: 'Seconds per slide',
-      default: 8,
-      validation: { min: 1, max: 120 },
-    },
-    {
       key: 'maxSlides',
       type: 'number',
       label: 'Slides to show',

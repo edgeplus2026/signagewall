@@ -79,15 +79,6 @@ export const linkedinManifest: AppManifest = {
       ],
     },
     {
-      key: 'slideSeconds',
-      type: 'number',
-      label: 'Seconds per post',
-      help: 'How long each post stays up in Spotlight.',
-      default: 8,
-      validation: { min: 2, max: 120 },
-      visibleWhen: { field: 'layout', equals: 'spotlight' },
-    },
-    {
       key: 'theme',
       type: 'select',
       label: 'Theme',
