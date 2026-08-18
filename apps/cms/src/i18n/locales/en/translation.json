@@ -2607,8 +2607,8 @@
           "hint": "The upstream service was slow to respond. Usually temporary; the next refresh retries automatically."
         },
         "config_invalid": {
-          "title": "Settings no longer valid",
-          "hint": "Review this app's settings — something they point to has changed."
+          "title": "Check this app’s settings",
+          "hint": "Something it points to is missing or has changed — open the settings and pick it again."
         },
         "upstream_error": {
           "title": "The provider returned an error",

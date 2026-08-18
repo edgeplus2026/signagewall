@@ -3,6 +3,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { SocialPayload, SocialPost } from '@signagewall/apps';
 
 interface InstagramConfig {
@@ -93,7 +94,10 @@ export const instagramConnector: AppConnector<InstagramConfig, SocialPayload> =
       }
       const accountId = accountIdOf(config);
       if (!accountId) {
-        throw new Error('instagram: no account selected');
+        throw new ConnectorError(
+          'config_invalid',
+          'instagram: no account selected',
+        );
       }
 
       const fields =

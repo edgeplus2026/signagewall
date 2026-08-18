@@ -3,6 +3,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { SocialPayload, SocialPost } from '@signagewall/apps';
 
 import { linkedinHeaders } from '../../connections/providers/linkedin-api';
@@ -156,7 +157,7 @@ export const linkedinConnector: AppConnector<LinkedInConfig, SocialPayload> = {
     }
     const organizationUrn = organizationUrnOf(config);
     if (!organizationUrn) {
-      throw new Error('linkedin: no page selected');
+      throw new ConnectorError('config_invalid', 'linkedin: no page selected');
     }
 
     const query = new URLSearchParams({

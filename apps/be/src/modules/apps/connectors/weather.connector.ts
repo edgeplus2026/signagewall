@@ -4,6 +4,7 @@ import type {
   ConnectorResult,
   LocationValue,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type {
   WeatherDaily,
   WeatherHour,
@@ -195,7 +196,7 @@ export const weatherConnector: AppConnector<WeatherConfig, WeatherPayload> = {
   ): Promise<ConnectorResult<WeatherPayload>> {
     const loc = parseLocation(config.location);
     if (loc.lat === undefined && !loc.query) {
-      throw new Error('weather: missing location');
+      throw new ConnectorError('config_invalid', 'weather: missing location');
     }
 
     // Coordinates come straight from the picked place; a legacy string is geocoded.

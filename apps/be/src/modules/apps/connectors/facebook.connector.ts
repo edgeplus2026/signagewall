@@ -3,6 +3,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { SocialPayload, SocialPost } from '@signagewall/apps';
 
 import { getPageAccessToken } from '../../connections/providers/meta-api';
@@ -80,7 +81,7 @@ export const facebookConnector: AppConnector<FacebookConfig, SocialPayload> = {
     }
     const pageId = pageIdOf(config);
     if (!pageId) {
-      throw new Error('facebook: no page selected');
+      throw new ConnectorError('config_invalid', 'facebook: no page selected');
     }
 
     // A Page's feed is only readable with the Page access token, derived from

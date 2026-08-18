@@ -2592,8 +2592,8 @@
           "hint": "Spoljni servis je spor. Obično je privremeno; sledeće osvežavanje pokušava ponovo automatski."
         },
         "config_invalid": {
-          "title": "Podešavanja više ne važe",
-          "hint": "Proverite podešavanja aplikacije — nešto na šta pokazuju se promenilo."
+          "title": "Proverite podešavanja aplikacije",
+          "hint": "Nešto na šta upućuje nedostaje ili je promenjeno — otvorite podešavanja i izaberite ponovo."
         },
         "upstream_error": {
           "title": "Provajder je vratio grešku",

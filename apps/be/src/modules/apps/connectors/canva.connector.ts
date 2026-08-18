@@ -3,6 +3,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { CanvaPayload } from '@signagewall/apps';
 
 import {
@@ -108,7 +109,7 @@ export const canvaConnector: AppConnector<CanvaConfig, CanvaPayload> = {
     }
     const designId = (config.design?.id ?? '').trim();
     if (!designId) {
-      throw new Error('canva: missing design id');
+      throw new ConnectorError('config_invalid', 'canva: missing design id');
     }
     const accessToken = ctx.connection.accessToken;
     const name = config.design?.label ?? 'Canva design';

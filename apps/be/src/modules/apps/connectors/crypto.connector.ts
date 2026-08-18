@@ -3,6 +3,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import { COIN_LIST } from '@signagewall/apps';
 import type { CryptoCoin, CryptoPayload } from '@signagewall/apps';
 
@@ -47,7 +48,7 @@ export const cryptoConnector: AppConnector<CryptoConfig, CryptoPayload> = {
     const ids = normalizeIds(config.coins);
     const vs = vsOf(config);
     if (ids.length === 0) {
-      throw new Error('crypto: no coins selected');
+      throw new ConnectorError('config_invalid', 'crypto: no coins selected');
     }
 
     const url =

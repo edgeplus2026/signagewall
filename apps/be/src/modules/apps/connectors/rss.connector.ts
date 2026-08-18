@@ -5,6 +5,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { RssItem, RssPayload } from '@signagewall/apps';
 import { XMLParser } from 'fast-xml-parser';
 
@@ -487,7 +488,7 @@ export const rssConnector: AppConnector<RssConfig, RssPayload> = {
   ): Promise<ConnectorResult<RssPayload>> {
     const url = (config.url ?? '').trim();
     if (!url) {
-      throw new Error('rss: missing feed url');
+      throw new ConnectorError('config_invalid', 'rss: missing feed url');
     }
 
     const xml = await safeFetchText(

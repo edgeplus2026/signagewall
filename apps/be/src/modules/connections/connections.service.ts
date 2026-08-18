@@ -14,10 +14,7 @@ import { AppInstancesRepository } from '../apps/app-instances.repository';
 import { getConnector } from '../apps/connectors/connector-registry';
 import { ConnectionsRepository } from './connections.repository';
 import { searchCanvaDesigns } from './providers/canva-api';
-import {
-  fetchSheetTable,
-  listGoogleCalendars,
-} from './providers/google-api';
+import { fetchSheetTable, listGoogleCalendars } from './providers/google-api';
 import {
   fetchWorkbookTable,
   searchDrivePptx,

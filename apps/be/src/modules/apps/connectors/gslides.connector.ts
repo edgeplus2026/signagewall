@@ -5,6 +5,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { GslidesPayload } from '@signagewall/apps';
 
 import {
@@ -97,7 +98,10 @@ export const gslidesConnector: AppConnector<GslidesConfig, GslidesPayload> = {
     }
     const presentationId = presentationIdOf(config);
     if (!presentationId) {
-      throw new Error('gslides: missing presentation');
+      throw new ConnectorError(
+        'config_invalid',
+        'gslides: missing presentation',
+      );
     }
 
     const mirror = getAssetMirror();

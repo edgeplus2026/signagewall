@@ -5,6 +5,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { TickerPayload } from '@signagewall/apps';
 
 import { rssConnector } from './rss.connector';
@@ -43,7 +44,7 @@ export const tickerConnector: AppConnector<TickerConfig, TickerPayload> = {
     if (isRss(config)) {
       const url = (config.rssUrl ?? '').trim();
       if (!url) {
-        throw new Error('ticker: missing rss url');
+        throw new ConnectorError('config_invalid', 'ticker: missing rss url');
       }
       const result = await rssConnector.fetchData({ url }, ctx);
       const messages = (result.playerPayload?.items ?? [])

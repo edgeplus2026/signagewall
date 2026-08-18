@@ -4,6 +4,7 @@ import type {
   ConnectorResult,
   LocationValue,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { AirQualityPayload } from '@signagewall/apps';
 
 interface AirQualityConfig {
@@ -108,7 +109,10 @@ export const airqualityConnector: AppConnector<
   ): Promise<ConnectorResult<AirQualityPayload>> {
     const loc = parseLocation(config.location);
     if (loc.lat === undefined && !loc.query) {
-      throw new Error('air quality: missing location');
+      throw new ConnectorError(
+        'config_invalid',
+        'air quality: missing location',
+      );
     }
 
     const place =

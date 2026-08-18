@@ -3,6 +3,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { SocialPayload, SocialPost } from '@signagewall/apps';
 
 interface TeamsConfig {
@@ -141,7 +142,7 @@ export const teamsConnector: AppConnector<TeamsConfig, SocialPayload> = {
     }
     const { teamId, channelId } = parseChannel(config);
     if (!teamId || !channelId) {
-      throw new Error('teams: no channel selected');
+      throw new ConnectorError('config_invalid', 'teams: no channel selected');
     }
 
     const url =

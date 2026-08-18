@@ -6,7 +6,6 @@
  */
 
 const CALENDAR_API = 'https://www.googleapis.com/calendar/v3';
-const DRIVE_API = 'https://www.googleapis.com/drive/v3';
 
 /*
  * There is deliberately no "list the user's Drive files" helper here any more.

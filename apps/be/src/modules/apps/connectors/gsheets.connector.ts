@@ -3,6 +3,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import type { GsheetsPayload } from '@signagewall/apps';
 
 import { ensureDriveChannel } from './_shared/drive-watch';
@@ -84,7 +85,10 @@ export const gsheetsConnector: AppConnector<GsheetsConfig, GsheetsPayload> = {
     }
     const spreadsheetId = spreadsheetIdOf(config);
     if (!spreadsheetId) {
-      throw new Error('gsheets: missing spreadsheet');
+      throw new ConnectorError(
+        'config_invalid',
+        'gsheets: missing spreadsheet',
+      );
     }
     const range = rangeOf(config);
 

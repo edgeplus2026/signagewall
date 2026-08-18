@@ -5,6 +5,7 @@ import type {
   ConnectorContext,
   ConnectorResult,
 } from '@signagewall/apps-contract';
+import { ConnectorError } from '@signagewall/apps-contract';
 import {
   POWERPOINT_SOURCE_MICROSOFT,
   resolvePowerPointSource,
@@ -98,7 +99,10 @@ export const powerpointConnector: AppConnector<
     }
     const packed = (config.presentation?.id ?? '').trim();
     if (!packed) {
-      throw new Error('powerpoint: no presentation selected');
+      throw new ConnectorError(
+        'config_invalid',
+        'powerpoint: no presentation selected',
+      );
     }
     const unpacked = unpackDriveItem(packed);
     if (!unpacked) {
