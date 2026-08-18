@@ -25,10 +25,6 @@
   height: 100%;
 }
 .sf-account {
-  /* Takes the slack so the items after it sit at the right edge — previously
-     `.sf-plat` did that with `margin-left: auto`, which cannot hold once there
-     is a second item on that side. `min-width: 0` is what actually lets a long
-     account name ellipsis instead of shoving them off. */
   flex: 1;
   min-width: 0;
   font-size: calc(min(2.6vw, 4.4vh));
