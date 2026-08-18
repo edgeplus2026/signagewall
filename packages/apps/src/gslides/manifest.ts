@@ -26,7 +26,7 @@ export const gslidesManifest: AppManifest = {
     'Connect your Google account and play a private Google Slides deck as a slideshow. It updates on screen the moment the deck changes.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 2,
+  version: 3,
   // Polling fallback; the Drive webhook makes updates near-instant when a public
   // callback URL is configured.
   refreshSeconds: 900,
@@ -47,6 +47,9 @@ export const gslidesManifest: AppManifest = {
       label: 'Presentation',
       required: true,
       remoteSource: 'google-presentations',
+      // As with Google Sheets: picked in Google's picker, so `drive.file` is
+      // enough and the restricted metadata scope is not requested at all.
+      picker: 'google-drive',
       placeholder: 'Search your presentations…',
       help: 'Pick a Google Slides deck from your Drive. Edit it later and the screen updates on its own.',
     },

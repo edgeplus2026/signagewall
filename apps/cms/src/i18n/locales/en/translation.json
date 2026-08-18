@@ -2101,6 +2101,11 @@
       "search": "Search…",
       "empty": "No results"
     },
+    "googlePicker": {
+      "choose": "Choose from Google Drive",
+      "change": "Change",
+      "failed": "Could not open Google's file picker."
+    },
     "tabs": {
       "store": "App Store",
       "myApps": "My Apps"

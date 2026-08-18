@@ -17,8 +17,6 @@ import { searchCanvaDesigns } from './providers/canva-api';
 import {
   fetchSheetTable,
   listGoogleCalendars,
-  listGooglePresentations,
-  listGoogleSpreadsheets,
 } from './providers/google-api';
 import {
   fetchWorkbookTable,
@@ -457,12 +455,6 @@ export class ConnectionsService {
       case 'excel-files':
         this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
         return searchDriveXlsx(connection.accessToken, query);
-      case 'google-sheets':
-        this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
-        return listGoogleSpreadsheets(connection.accessToken, query);
-      case 'google-presentations':
-        this.assertProvider(connection.provider, ConnectionProvider.GOOGLE);
-        return listGooglePresentations(connection.accessToken, query);
       case 'ms-calendars':
         this.assertProvider(connection.provider, ConnectionProvider.MICROSOFT);
         return listMicrosoftCalendars(connection.accessToken, query);

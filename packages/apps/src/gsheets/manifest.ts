@@ -22,7 +22,7 @@ export const gsheetsManifest: AppManifest = {
     'Show a range from one of your Google Sheets as a live table or a single KPI. It refreshes on its own.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 4,
+  version: 5,
   refreshSeconds: 300,
   icon: GSHEETS_ICON,
   color: '#0F9D58',
@@ -33,7 +33,7 @@ export const gsheetsManifest: AppManifest = {
       label: 'Google account',
       required: true,
       provider: 'google',
-      help: 'Sign in once. SignageWall then lists your spreadsheets to choose from.',
+      help: 'Sign in once, then pick a spreadsheet in Google’s file picker.',
     },
     {
       key: 'spreadsheet',
@@ -41,6 +41,9 @@ export const gsheetsManifest: AppManifest = {
       label: 'Spreadsheet',
       required: true,
       remoteSource: 'google-sheets',
+      // See `_shared/tabular-source.ts`: the picker keeps this app off the
+      // restricted Drive scope, and off an annual CASA assessment with it.
+      picker: 'google-drive',
       placeholder: 'Search your spreadsheets…',
       help: 'Pick a spreadsheet from your Google Drive.',
     },

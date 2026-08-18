@@ -43,7 +43,7 @@ export const menuManifest: AppManifest = {
     'A designed board of items and prices: for cafés, canteens and shops. Keep the items here, import a CSV, or sync them live from Google Sheets or Excel.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 3,
+  version: 4,
   refreshSeconds: 900,
   icon: MENU_ICON,
   color: '#16A34A',

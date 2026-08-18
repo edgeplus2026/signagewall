@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import { ButtonGroupControl } from '@/features/apps/config-form/ButtonGroupControl'
 import { DialogRepeaterControl } from '@/features/apps/config-form/DialogRepeaterControl'
+import { GooglePickerControl } from '@/features/apps/config-form/GooglePickerControl'
 import { LocationControl } from '@/features/apps/config-form/LocationControl'
 import { OAuthControl } from '@/features/apps/config-form/OAuthControl'
 import { RemoteSelectControl } from '@/features/apps/config-form/RemoteSelectControl'
@@ -33,7 +34,12 @@ import { TabularPreviewControl } from '@/features/apps/config-form/tabular/Tabul
  * `searchable` turning a `select` into a combobox, except this one needs its own
  * component rather than a branch inside `SelectControl`.
  */
-export type ControlKey = FieldType | 'template-gallery' | 'button-group' | 'dialog-repeater'
+export type ControlKey =
+  | FieldType
+  | 'template-gallery'
+  | 'button-group'
+  | 'dialog-repeater'
+  | 'google-picker'
 
 /** Maps each control key to the control that renders it. */
 export const FIELD_CONTROLS: Record<ControlKey, (props: FieldControlProps) => ReactNode> = {
@@ -77,6 +83,9 @@ export const FIELD_CONTROLS: Record<ControlKey, (props: FieldControlProps) => Re
   'button-group': ButtonGroupControl,
   // A `repeater` too wide for the sidebar: summary + "Edit" opening a modal.
   'dialog-repeater': DialogRepeaterControl,
+  // A `remote-select` whose file is chosen in Google's own picker, so the app
+  // never needs the restricted Drive scope that listing one would cost.
+  'google-picker': GooglePickerControl,
 }
 
 /**
@@ -93,6 +102,9 @@ export function controlKeyFor(field: Field): ControlKey {
   }
   if (field.type === 'repeater' && field.editor === 'dialog') {
     return 'dialog-repeater'
+  }
+  if (field.type === 'remote-select' && field.picker === 'google-drive') {
+    return 'google-picker'
   }
   return field.type
 }

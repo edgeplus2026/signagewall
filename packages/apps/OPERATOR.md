@@ -344,6 +344,7 @@ where `<provider>` is one of `google | microsoft | meta | linkedin | canva`, `/v
   1. Create an OAuth 2.0 Client ID (**Web application**).
   2. Register the redirect URI above — this is the **connection** callback (`/connections/oauth/google/callback`), **distinct** from the login flow's `GOOGLE_CALLBACK_URL` (`/auth/google/callback`). Register both if you also use Google login.
   3. Put the client id in `GOOGLE_CLIENT_ID`, secret in `GOOGLE_CLIENT_SECRET` (config namespace `google`).
+  3b. **Use the SAME client id for the CMS**: set `VITE_GOOGLE_DRIVE_CLIENT_ID` to it and add the CMS origin (e.g. `https://app.signagewall.com`) under **Authorized JavaScript origins**. `drive.file` grants access per (user, OAuth client, file), so a file picked in the browser under a different client is invisible to the backend that has to read it later.
   4. **No PKCE** (confidential client). The code sets `access_type=offline` + `prompt=consent` + `include_granted_scopes=true` so Google returns a refresh token. Auth URL `https://accounts.google.com/o/oauth2/v2/auth`; token URL `https://oauth2.googleapis.com/token`.
 - **Approvals:** Configure the OAuth consent screen; enable the corresponding Google APIs. Calendar/Sheets/Slides are **sensitive** scopes — to let users **outside your test-user list** connect (past the 100-user cap and without the "unverified app" warning), the app must **pass Google OAuth verification / app review**. Owner/test accounts work without it.
 
@@ -411,22 +412,22 @@ Each app is: **connect an account** (one sign-in via the OAuth field → `connec
   3. Display-only options: Calendar view (day/week/month/schedule), "Only show upcoming events" (schedule only), Auto scroll, Language (en/sr), Theme (light/dark).
 
 - **Google Sheets** (`gsheets`, provider google) — refresh 900s, `requiresNetwork: false`.
-  - **Scopes:** `https://www.googleapis.com/auth/drive.metadata.readonly`, `https://www.googleapis.com/auth/spreadsheets.readonly`
+  - **Scopes:** `https://www.googleapis.com/auth/spreadsheets.readonly`, `https://www.googleapis.com/auth/drive.file`
   - **Env:** `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. Enable the Sheets API **and** Drive API on the same Google project as Calendar.
   1. Connect a Google account.
-  2. Pick the **Spreadsheet** (`remoteSource: google-sheets` — lists your Drive).
+  2. Pick the **Spreadsheet** in Google's own file picker (`picker: 'google-drive'`). It opens in the browser and grants access to that one file — SignageWall never lists your Drive.
   3. Enter the **Range** in A1 notation (**required** text field, e.g. `A1:D20` or `Sheet1!A1:D20`) — this is part of the cache key.
   4. Display-only: Layout (Table / Single value KPI), "First row is a header", Theme, plus shared style fields.
 
 - **Google Slides** (`gslides`, provider google) — refresh 900s, `requiresNetwork: false`.
-  - **Scopes:** `https://www.googleapis.com/auth/presentations.readonly`, `https://www.googleapis.com/auth/drive.metadata.readonly`
+  - **Scopes:** `https://www.googleapis.com/auth/presentations.readonly`, `https://www.googleapis.com/auth/drive.file`
   - **Env:** `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, **plus R2** (`R2_*`) for the mirrored slides. Enable the Slides API **and** Drive API.
   1. Connect a Google account.
-  2. Pick the **Presentation** (`remoteSource: google-presentations` — from your Drive).
+  2. Pick the **Presentation** in Google's own file picker (`picker: 'google-drive'`) — one deck, granted explicitly.
   3. Display-only numbers: Seconds per slide (1–120, default 8), Slides to show (0 = all, max 100).
   > **Live sync.** The connector registers a Drive `files.watch` push channel on the deck, so an edit reaches the screens within seconds; the 900s poll is the fallback and also what renews the channel. Push needs `PUBLIC_API_URL` (or `WEBHOOK_PUBLIC_URL`) set to an address Google can reach — without one the app still works, just on the poll cadence.
   >
-  > ⚠️ **Google push needs a domain you own.** Beyond being reachable over HTTPS, the callback domain must be **verified in Google Search Console** and listed under **Domain verification** in the Cloud project. An unverified host — notably an ephemeral `*.trycloudflare.com` / `*.ngrok.io` dev tunnel — makes `files.watch` return **403 `Unauthorized WebHook callback channel`**, logged as `drive watch failed`. Nothing breaks: the connector skips the subscription and the poll carries the data. **This applies to every Google push app** (Calendar, Sheets, menu board), not just Slides. Microsoft Graph push (PowerPoint, Outlook) has no such requirement, which is why a plain dev tunnel is enough there.
+  > ⚠️ **Google push needs a real HTTPS host with a trusted certificate.** Google dropped the old "Domain verification" step in the API Console (that page no longer exists), so what remains is the certificate: no self-signed, no untrusted issuer, subject matching the hostname. An ephemeral `*.trycloudflare.com` / `*.ngrok.io` dev tunnel can still make `files.watch` return **403 `Unauthorized WebHook callback channel`**, logged as `drive watch failed` with Google's own wording in `detail`. Nothing breaks: the connector skips the subscription and the poll carries the data. **This applies to every Google push app** (Calendar, Sheets, menu board), not just Slides. Microsoft Graph push (PowerPoint, Outlook) has no such requirement, which is why a plain dev tunnel is enough there.
   >
   > Slides are exported once per deck revision and **mirrored to R2**, so screens play them from cache and keep working offline. An unchanged deck costs one cheap Drive metadata call per poll — not one export per slide. Decks longer than 100 slides are cut at 100 (logged server-side).
 

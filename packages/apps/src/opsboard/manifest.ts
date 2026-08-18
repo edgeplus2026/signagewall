@@ -41,7 +41,7 @@ export const opsboardManifest: AppManifest = {
     'Turn a manual table, Google Sheet or Excel workbook into a clear operational screen that stays useful when a source is temporarily unavailable.',
   runtimeKind: 'embed',
   dataSource: 'connected',
-  version: 1,
+  version: 2,
   refreshSeconds: 300,
   icon: OPSBOARD_ICON,
   color: '#22C55E',

@@ -74,7 +74,7 @@ export const gslidesConnector: AppConnector<GslidesConfig, GslidesPayload> = {
     tokenUrl: 'https://oauth2.googleapis.com/token',
     scopes: [
       'https://www.googleapis.com/auth/presentations.readonly',
-      'https://www.googleapis.com/auth/drive.metadata.readonly',
+      'https://www.googleapis.com/auth/drive.file',
     ],
   },
 

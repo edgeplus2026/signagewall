@@ -96,8 +96,10 @@ export async function ensureDriveChannel(
       // The status alone is not actionable — a 403 here is almost always one of
       // two very different things, and Google only says which in the body:
       //   "Unauthorized WebHook callback channel: <address>"
-      //       → the callback DOMAIN is not verified for this Cloud project.
-      //         Expected on any tunnel/host you don't own (see OPERATOR.md §5).
+      //       → Google will not push to this host. The API Console's old
+      //         "Domain verification" step is gone, so what is left is the
+      //         certificate: it must be real, trusted and match the hostname.
+      //         Expected on a dev tunnel (see OPERATOR.md §5).
       //   an insufficient-scope message
       //       → `files.watch` wants more than the connector asked for.
       // Read the body best-effort; polling carries the data either way.

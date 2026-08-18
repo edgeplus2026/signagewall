@@ -83,7 +83,7 @@ export function tabularSourceFields(options: TabularSourceOptions): Field[] {
       ...section,
       visibleWhen: syncVisible,
       providerFrom: { field: 'source', map: { gsheets: 'google', excel: 'microsoft' } },
-      help: 'Sign in once. SignageWall then lists your files to choose from.',
+      help: 'Sign in once, then choose the file to sync.',
     },
     {
       key: 'spreadsheet',
@@ -92,6 +92,11 @@ export function tabularSourceFields(options: TabularSourceOptions): Field[] {
       ...section,
       visibleWhen: { field: 'source', equals: 'gsheets' },
       remoteSource: 'google-sheets',
+      // Google's own picker rather than a dropdown we fill in: listing a Drive
+      // needs the restricted `drive.metadata.readonly`, the picker needs only
+      // `drive.file`. The Excel field below keeps its dropdown — Microsoft
+      // Graph has no equivalent cost.
+      picker: 'google-drive',
       placeholder: 'Search your spreadsheets…',
       help: 'Pick a spreadsheet from your Google Drive.',
     },

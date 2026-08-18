@@ -2085,6 +2085,11 @@
       "search": "Pretraga…",
       "empty": "Nema rezultata"
     },
+    "googlePicker": {
+      "choose": "Izaberite sa Google Drive-a",
+      "change": "Promeni",
+      "failed": "Nije moguće otvoriti Google-ov izbor fajlova."
+    },
     "tabs": {
       "store": "Prodavnica",
       "myApps": "Moje aplikacije"

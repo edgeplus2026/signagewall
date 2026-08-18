@@ -253,6 +253,22 @@ export interface Field {
    */
   editor?: 'dialog'
   /**
+   * For `remote-select`: choose the file in the provider's own file picker
+   * instead of a dropdown the backend fills in.
+   *
+   * The reason is a scope, not a preference. Listing a user's Drive needs
+   * `drive.metadata.readonly`, which Google classifies as RESTRICTED — it
+   * drags the whole project into an annual paid CASA security assessment, to
+   * ask for nothing more than file names. The Google Picker runs on
+   * `drive.file`, which is non-sensitive and grants access to exactly the
+   * files the user chose, so the same selection costs nothing to verify.
+   *
+   * Purely a CMS form convenience: the stored value is the same
+   * `{ id, label }` either way, `remoteSource` still names the resource kind,
+   * and the backend neither knows nor cares which control produced it.
+   */
+  picker?: 'google-drive'
+  /**
    * Set on a field to render ITS section expanded on first paint. Named sections
    * are collapsed by default, which is right for optional trimming but wrong for
    * a section holding the app's actual content — an operator should not have to

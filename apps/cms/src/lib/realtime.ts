@@ -38,9 +38,15 @@ const CmsSocketEvents = {
 } as const
 
 /**
- * Origin of the realtime server. The REST base URL points at `/api/v1`; the
- * websocket namespace lives at the host root, so we strip the path. Falls back
- * to `VITE_WS_URL`, then the dev backend.
+ * Origin of the realtime server.
+ *
+ * `VITE_WS_URL` wins when set; otherwise the origin is derived from
+ * `VITE_API_URL` by dropping its path (the REST base ends in `/api/v1`, the
+ * websocket namespace lives at the host root), and the dev backend is the last
+ * resort. Prefer leaving `VITE_WS_URL` unset: it is a second copy of the same
+ * host that has to be moved by hand whenever the API moves, and a stale one
+ * points the socket at the old deployment while every REST call goes to the
+ * new one — which looks like a broken socket, not a stale variable.
  */
 function resolveSocketOrigin(): string {
   const explicit = import.meta.env.VITE_WS_URL as string | undefined
