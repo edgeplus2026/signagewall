@@ -15,7 +15,6 @@ import { GRAPH_SCOPES } from "@/features/media/cloud/lib/microsoftGraph"
 import { PROVIDER_ICONS } from "@/features/media/cloud/lib/providerIconMap"
 import { openDropboxPicker } from "@/features/media/cloud/pickers/dropbox"
 import { openGoogleDrivePicker } from "@/features/media/cloud/pickers/googleDrive"
-import { openGooglePhotosPicker } from "@/features/media/cloud/pickers/googlePhotos"
 import type {
   CloudPickResult,
   CloudProvider,
@@ -41,11 +40,6 @@ const PROVIDERS: ProviderConfig[] = [
   { key: "onedrive", i18nKey: "onedrive", microsoft: true },
   { key: "dropbox", i18nKey: "dropbox", open: openDropboxPicker },
   { key: "google_drive", i18nKey: "googleDrive", open: openGoogleDrivePicker },
-  {
-    key: "google_photos",
-    i18nKey: "googlePhotos",
-    open: openGooglePhotosPicker,
-  },
 ]
 
 export function CloudProviderCards() {

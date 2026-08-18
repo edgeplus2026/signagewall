@@ -1548,6 +1548,132 @@
         ]
       }
     },
+    "/api/v1/auth/google/exchange": {
+      "post": {
+        "description": "Redeems the single-use code from the Google callback redirect for JWT tokens.",
+        "operationId": "GoogleAuthexchangeGoogleCode",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeGoogleCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AuthResponseSchema"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Exchange a Google login code",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/members": {
       "get": {
         "operationId": "Memberslist",
@@ -9338,6 +9464,412 @@
         ]
       }
     },
+    "/api/v1/admin/apps/{id}/grants": {
+      "get": {
+        "operationId": "AppsAdminlistGrants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-apps"
+        ]
+      },
+      "post": {
+        "operationId": "AppsAdmingrant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantAppDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-apps"
+        ]
+      }
+    },
+    "/api/v1/admin/apps/{id}/grants/{organizationId}": {
+      "delete": {
+        "operationId": "AppsAdminrevoke",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-apps"
+        ]
+      }
+    },
     "/api/v1/app-instances": {
       "get": {
         "operationId": "AppInstanceslist",
@@ -10309,730 +10841,6 @@
         ],
         "tags": [
           "app-instances"
-        ]
-      }
-    },
-    "/api/v1/connections/{id}": {
-      "get": {
-        "operationId": "ConnectionsgetOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-organization-id",
-            "in": "header",
-            "description": "Active organization id for tenant-scoped routes",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Accept-Language",
-            "description": "API message language (`en` or `sr`)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ],
-              "default": "en"
-            }
-          },
-          {
-            "in": "header",
-            "name": "x-lang",
-            "description": "Alternative language header (same as Accept-Language)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success",
-                    "data"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/Object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation or business error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit exceeded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Token-free summary of a connection (config form's connected state).",
-        "tags": [
-          "connections"
-        ]
-      }
-    },
-    "/api/v1/connections/{id}/browse/{source}": {
-      "get": {
-        "operationId": "Connectionsbrowse",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "source",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "query",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-organization-id",
-            "in": "header",
-            "description": "Active organization id for tenant-scoped routes",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Accept-Language",
-            "description": "API message language (`en` or `sr`)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ],
-              "default": "en"
-            }
-          },
-          {
-            "in": "header",
-            "name": "x-lang",
-            "description": "Alternative language header (same as Accept-Language)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success",
-                    "data"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Object"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation or business error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit exceeded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Search a connection's resources for a remote-select config field (e.g. Canva designs, Google calendars).",
-        "tags": [
-          "connections"
-        ]
-      }
-    },
-    "/api/v1/connections/{id}/tabular/headers": {
-      "get": {
-        "operationId": "ConnectionstabularHeaders",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "kind",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fileId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "worksheet",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-organization-id",
-            "in": "header",
-            "description": "Active organization id for tenant-scoped routes",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Accept-Language",
-            "description": "API message language (`en` or `sr`)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ],
-              "default": "en"
-            }
-          },
-          {
-            "in": "header",
-            "name": "x-lang",
-            "description": "Alternative language header (same as Accept-Language)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success",
-                    "data"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/Object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation or business error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit exceeded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Read a synced spreadsheet's header row for the column-mapping config control.",
-        "tags": [
-          "connections"
-        ]
-      }
-    },
-    "/api/v1/connections/oauth/{provider}/start": {
-      "get": {
-        "operationId": "Connectionsstart",
-        "parameters": [
-          {
-            "name": "provider",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "appSlug",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-organization-id",
-            "in": "header",
-            "description": "Active organization id for tenant-scoped routes",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Accept-Language",
-            "description": "API message language (`en` or `sr`)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ],
-              "default": "en"
-            }
-          },
-          {
-            "in": "header",
-            "name": "x-lang",
-            "description": "Alternative language header (same as Accept-Language)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success",
-                    "data"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/Object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation or business error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit exceeded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Build the provider authorization URL for an instance connection OAuth flow.",
-        "tags": [
-          "connections"
-        ]
-      }
-    },
-    "/api/v1/connections/oauth/{provider}/callback": {
-      "get": {
-        "operationId": "Connectionscallback",
-        "parameters": [
-          {
-            "name": "provider",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "code",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "state",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Accept-Language",
-            "description": "API message language (`en` or `sr`)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ],
-              "default": "en"
-            }
-          },
-          {
-            "in": "header",
-            "name": "x-lang",
-            "description": "Alternative language header (same as Accept-Language)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "Validation or business error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit exceeded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Provider OAuth callback — binds the connection to its instance and returns to it.",
-        "tags": [
-          "connections"
         ]
       }
     },
@@ -12839,6 +12647,746 @@
         ],
         "tags": [
           "screens"
+        ]
+      }
+    },
+    "/api/v1/connections/{id}": {
+      "get": {
+        "operationId": "ConnectionsgetOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Token-free summary of a connection (config form's connected state).",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/v1/connections/{id}/browse/{source}": {
+      "get": {
+        "operationId": "Connectionsbrowse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reportId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search a connection's resources for a remote-select config field (e.g. Canva designs, Google calendars).",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/v1/connections/{id}/tabular/headers": {
+      "get": {
+        "operationId": "ConnectionstabularHeaders",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fileId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "worksheet",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a synced spreadsheet's header row for the column-mapping config control.",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/v1/connections/oauth/{provider}/start": {
+      "get": {
+        "operationId": "Connectionsstart",
+        "parameters": [
+          {
+            "name": "provider",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appSlug",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Build the provider authorization URL for an instance connection OAuth flow.",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/v1/connections/oauth/{provider}/callback": {
+      "get": {
+        "operationId": "Connectionscallback",
+        "parameters": [
+          {
+            "name": "provider",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Provider OAuth callback — binds the connection to its instance and returns to it.",
+        "tags": [
+          "connections"
         ]
       }
     },
@@ -17192,58 +17740,6 @@
         ]
       }
     },
-    "/api/v1/player/heartbeat": {
-      "post": {
-        "operationId": "Playerheartbeat",
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Accept-Language",
-            "description": "API message language (`en` or `sr`)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ],
-              "default": "en"
-            }
-          },
-          {
-            "in": "header",
-            "name": "x-lang",
-            "description": "Alternative language header (same as Accept-Language)",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "en",
-                "sr"
-              ]
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PlayerHeartbeatDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "204": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "player"
-        ]
-      }
-    },
     "/api/v1/screens/{screenId}/pair": {
       "post": {
         "operationId": "DevicePairingpair",
@@ -17723,6 +18219,142 @@
                       "type": "null",
                       "nullable": true,
                       "example": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "screens"
+        ]
+      }
+    },
+    "/api/v1/screens/{screenId}/device/recovery-link": {
+      "post": {
+        "operationId": "DevicePairingcreateRecoveryLink",
+        "parameters": [
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "screenId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
                     }
                   }
                 }
@@ -19219,6 +19851,1240 @@
         ],
         "tags": [
           "screens"
+        ]
+      }
+    },
+    "/api/v1/playback/schedule": {
+      "get": {
+        "operationId": "PlaybackgetSchedule",
+        "parameters": [
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The standing instruction to email this report, if there is one.",
+        "tags": [
+          "playback"
+        ]
+      },
+      "put": {
+        "operationId": "PlaybacksetSchedule",
+        "parameters": [
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportScheduleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "playback"
+        ]
+      }
+    },
+    "/api/v1/playback/coverage": {
+      "get": {
+        "operationId": "Playbackcoverage",
+        "parameters": [
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "day",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-17",
+              "type": "string"
+            }
+          },
+          {
+            "name": "contentId",
+            "required": false,
+            "in": "query",
+            "description": "Draw only this item — \"where and when did my spot actually run\".",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The coverage matrix for one day: a row per screen, a cell per hour.",
+        "tags": [
+          "playback"
+        ]
+      }
+    },
+    "/api/v1/playback/dayparting": {
+      "get": {
+        "operationId": "Playbackdayparting",
+        "parameters": [
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-17",
+              "type": "string"
+            }
+          },
+          {
+            "name": "screenIds",
+            "required": false,
+            "in": "query",
+            "description": "Optional screen filter, comma-separated. A client with two locations asks\n\"what ran at THIS one\", which is the whole reason the table carries screens.",
+            "schema": {
+              "example": "66f0…,66f1…",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "contentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Plays and airtime by hour of day.\n\nThe question a client starts asking the moment they pay by time slot: \"how\nmany times did my spot run between noon and two\". The data has been\ncollected since the first release precisely so this could be answered\nafterwards — a screen cannot be asked later what it did last Tuesday.",
+        "tags": [
+          "playback"
+        ]
+      }
+    },
+    "/api/v1/playback/plan": {
+      "get": {
+        "operationId": "Playbackplan",
+        "parameters": [
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "day",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-17",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Planned against played, per item — where the two disagree, and by how much.",
+        "tags": [
+          "playback"
+        ]
+      }
+    },
+    "/api/v1/playback/items": {
+      "get": {
+        "operationId": "Playbackitems",
+        "parameters": [
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-17",
+              "type": "string"
+            }
+          },
+          {
+            "name": "screenIds",
+            "required": false,
+            "in": "query",
+            "description": "Optional screen filter, comma-separated. A client with two locations asks\n\"what ran at THIS one\", which is the whole reason the table carries screens.",
+            "schema": {
+              "example": "66f0…,66f1…",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Totals per content item over a range — the table, and the deliverable.",
+        "tags": [
+          "playback"
+        ]
+      }
+    },
+    "/api/v1/playback/items.csv": {
+      "get": {
+        "operationId": "PlaybackitemsCsv",
+        "parameters": [
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-17",
+              "type": "string"
+            }
+          },
+          {
+            "name": "screenIds",
+            "required": false,
+            "in": "query",
+            "description": "Optional screen filter, comma-separated. A client with two locations asks\n\"what ran at THIS one\", which is the whole reason the table carries screens.",
+            "schema": {
+              "example": "66f0…,66f1…",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The same table as a file.\n\nThis is also the archive: daily detail is deleted after ninety days, so an\noperator who exports at the end of a campaign keeps a copy that outlives the\nretention window. Written straight to the response so it arrives as a file\nrather than as JSON wrapped by the global response envelope.",
+        "tags": [
+          "playback"
+        ]
+      }
+    },
+    "/api/v1/playback/report.pdf": {
+      "get": {
+        "operationId": "PlaybackreportPdf",
+        "parameters": [
+          {
+            "name": "x-organization-id",
+            "in": "header",
+            "description": "Active organization id for tenant-scoped routes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08-17",
+              "type": "string"
+            }
+          },
+          {
+            "name": "screenIds",
+            "required": false,
+            "in": "query",
+            "description": "Optional screen filter, comma-separated. A client with two locations asks\n\"what ran at THIS one\", which is the whole reason the table carries screens.",
+            "schema": {
+              "example": "66f0…,66f1…",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelopeSchema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The report as a document, with a verification block.\n\nThe CSV is what an operator works with; this is what they send. It carries a\ndigest of the numbers and a signature over it, so a figure edited after the\nfact — in the document or in the data — stops matching.",
+        "tags": [
+          "playback"
+        ]
+      }
+    },
+    "/api/v1/playback/verify": {
+      "get": {
+        "operationId": "PlaybackVerifyverify",
+        "parameters": [
+          {
+            "name": "digest",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "signature",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "API message language (`en` or `sr`)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ],
+              "default": "en"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-lang",
+            "description": "Alternative language header (same as Accept-Language)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "sr"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "playback"
         ]
       }
     },
@@ -21401,6 +23267,20 @@
           "refreshToken"
         ]
       },
+      "ExchangeGoogleCodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "32 random bytes, hex-encoded by the Google callback redirect.",
+            "minLength": 64,
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
       "MemberResponseSchema": {
         "type": "object",
         "properties": {
@@ -21417,7 +23297,8 @@
             "type": "string",
             "enum": [
               "admin",
-              "member"
+              "member",
+              "viewer"
             ]
           },
           "status": {
@@ -21490,7 +23371,8 @@
             "type": "string",
             "enum": [
               "admin",
-              "member"
+              "member",
+              "viewer"
             ]
           },
           "accountExists": {
@@ -21546,7 +23428,8 @@
             "type": "string",
             "enum": [
               "admin",
-              "member"
+              "member",
+              "viewer"
             ]
           }
         },
@@ -21880,7 +23763,6 @@
           "provider": {
             "enum": [
               "google_drive",
-              "google_photos",
               "onedrive",
               "dropbox"
             ],
@@ -21933,7 +23815,7 @@
           "authToken": {
             "type": "string",
             "maxLength": 8192,
-            "description": "Bearer token sent as Authorization on the URL GET (e.g. Google Photos). Used immediately server-side; never persisted."
+            "description": "Bearer token sent as Authorization on the URL GET, for links that require one. Used immediately server-side; never persisted."
           },
           "fileId": {
             "type": "string",
@@ -22205,6 +24087,10 @@
       "PreviewAppDataDto": {
         "type": "object",
         "properties": {
+          "appInstanceId": {
+            "type": "string",
+            "description": "Owned app instance whose connection/private assets may be previewed."
+          },
           "config": {
             "type": "object",
             "additionalProperties": true,
@@ -22261,6 +24147,18 @@
         },
         "required": [
           "isPublic"
+        ]
+      },
+      "GrantAppDto": {
+        "type": "object",
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "description": "Organization to entitle to this app."
+          }
+        },
+        "required": [
+          "organizationId"
         ]
       },
       "CreateAppInstanceDto": {
@@ -23586,34 +25484,6 @@
           }
         }
       },
-      "PlayerHeartbeatDto": {
-        "type": "object",
-        "properties": {
-          "playingItemId": {
-            "type": "string",
-            "maxLength": 64,
-            "description": "Id of the renderable currently on screen"
-          },
-          "revision": {
-            "type": "string",
-            "maxLength": 64,
-            "description": "Content revision the device is currently on"
-          },
-          "lastError": {
-            "type": "string",
-            "maxLength": 512,
-            "description": "Most recent client-side error, if any"
-          },
-          "screenWidth": {
-            "type": "number",
-            "minimum": 0
-          },
-          "screenHeight": {
-            "type": "number",
-            "minimum": 0
-          }
-        }
-      },
       "PairDeviceDto": {
         "type": "object",
         "properties": {
@@ -23716,6 +25586,40 @@
         },
         "required": [
           "direction"
+        ]
+      },
+      "ReportScheduleDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "frequency": {
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly"
+            ],
+            "type": "string"
+          },
+          "recipients": {
+            "description": "Capped, because this is an unauthenticated fan-out: every address here gets\na document about somebody's business, and a list of two hundred is a\nmailing list, not a report.",
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "timezone": {
+            "type": "string",
+            "example": "Europe/Belgrade"
+          }
+        },
+        "required": [
+          "enabled",
+          "frequency",
+          "recipients"
         ]
       },
       "NotificationResponseSchema": {

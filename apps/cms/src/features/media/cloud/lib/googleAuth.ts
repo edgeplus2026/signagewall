@@ -25,9 +25,9 @@ export function getCachedGoogleToken(scope: string): string | null {
 interface GoogleTokenOptions {
   /**
    * GIS `prompt`. Default `""` reuses the signed-in account silently.
-   * `"consent"` forces the grant dialog so a sensitive scope (Google Photos)
-   * is actually shown and granted — without it the user can end up with a token
-   * that lacks the scope, and the picker bounces with "connect again".
+   * `"consent"` forces the grant dialog so a scope the user has not granted yet
+   * is actually shown — without it they can end up holding a token that lacks
+   * it, and the picker bounces with "connect again".
    */
   prompt?: "" | "consent" | "select_account"
   /** Skip the cache so a fresh consent/selection always takes effect. */

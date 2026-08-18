@@ -1366,10 +1366,6 @@
         "title": "Google Drive",
         "hint": "Import images & videos stored in your Google Drive."
       },
-      "googlePhotos": {
-        "title": "Google Photos",
-        "hint": "Choose photos & videos from your Google Photos library."
-      },
       "notConfigured": "This provider isn't configured yet. Add its API credentials to enable it.",
       "pickError": "Could not open the picker. Please try again.",
       "browseTitle": "Select files",

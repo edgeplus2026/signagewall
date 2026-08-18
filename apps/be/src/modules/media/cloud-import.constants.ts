@@ -27,7 +27,6 @@ export const CLOUD_IMPORT_MAX_REDIRECTS = 3;
  */
 export const HOST_ALLOWLIST: Record<CloudImportProvider, readonly string[]> = {
   [CloudImportProvider.DROPBOX]: ['.dropboxusercontent.com'],
-  [CloudImportProvider.GOOGLE_PHOTOS]: ['.googleusercontent.com'],
   // Drive builds its own www.googleapis.com URL; listed for completeness.
   [CloudImportProvider.GOOGLE_DRIVE]: ['www.googleapis.com'],
   [CloudImportProvider.ONEDRIVE]: [
@@ -47,7 +46,6 @@ export const HOST_ALLOWLIST: Record<CloudImportProvider, readonly string[]> = {
 export const PROVIDER_TO_SOURCE: Record<CloudImportProvider, MediaItemSource> =
   {
     [CloudImportProvider.GOOGLE_DRIVE]: MediaItemSource.GOOGLE_DRIVE,
-    [CloudImportProvider.GOOGLE_PHOTOS]: MediaItemSource.GOOGLE_PHOTOS,
     [CloudImportProvider.ONEDRIVE]: MediaItemSource.ONEDRIVE,
     [CloudImportProvider.DROPBOX]: MediaItemSource.DROPBOX,
   };

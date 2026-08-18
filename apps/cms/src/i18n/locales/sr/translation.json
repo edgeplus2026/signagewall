@@ -1346,10 +1346,6 @@
         "title": "Google Drive",
         "hint": "Uvezite slike i video zapise iz svog Google Drive-a."
       },
-      "googlePhotos": {
-        "title": "Google Photos",
-        "hint": "Izaberite slike i video zapise iz Google Photos biblioteke."
-      },
       "notConfigured": "Ovaj servis još nije podešen. Dodajte njegove API kredencijale da biste ga omogućili.",
       "pickError": "Otvaranje birača nije uspelo. Pokušajte ponovo.",
       "browseTitle": "Izaberite datoteke",

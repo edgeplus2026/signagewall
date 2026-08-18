@@ -1,7 +1,6 @@
 import {
   DropboxIcon,
   GoogleDriveIcon,
-  GooglePhotosIcon,
   type IconProps,
   OneDriveIcon,
 } from "@/features/media/cloud/components/providerIcons"
@@ -12,7 +11,6 @@ export const PROVIDER_ICONS: Record<
   (props: IconProps) => React.ReactElement
 > = {
   google_drive: GoogleDriveIcon,
-  google_photos: GooglePhotosIcon,
   onedrive: OneDriveIcon,
   dropbox: DropboxIcon,
 }

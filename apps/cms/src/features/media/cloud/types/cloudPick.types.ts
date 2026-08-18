@@ -1,9 +1,5 @@
 /** Cloud providers a user can import media from. */
-export type CloudProvider =
-  | "google_drive"
-  | "google_photos"
-  | "onedrive"
-  | "dropbox"
+export type CloudProvider = "google_drive" | "onedrive" | "dropbox"
 
 /**
  * Tells the backend how to fetch the raw bytes for one picked item. Carries
@@ -11,8 +7,8 @@ export type CloudProvider =
  * on the client.
  */
 export type CloudDownload =
-  // Dropbox direct link, or Google Photos `${baseUrl}=d|=dv` (with a Bearer
-  // token). Backend GETs the URL.
+  // A direct/temporary provider link (Dropbox). Backend GETs the URL; the
+  // optional bearer token exists for links that need one.
   | { kind: "url"; url: string; authToken?: string }
   // Google Drive — backend builds the googleapis URL and GETs it with the token.
   | { kind: "google_drive"; fileId: string; accessToken: string }
@@ -31,7 +27,7 @@ export interface CloudPickResult {
   externalId: string
   name: string
   mimeType: string
-  /** 0 when the provider does not report a size (e.g. Google Photos). */
+  /** 0 when the provider does not report a size. */
   sizeBytes: number
   width?: number
   height?: number

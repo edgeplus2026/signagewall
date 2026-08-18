@@ -24,14 +24,13 @@ import { ALLOWED_MEDIA_MIME_TYPES } from '../media.constants';
  * and which host allowlist applies during download. */
 export enum CloudImportProvider {
   GOOGLE_DRIVE = 'google_drive',
-  GOOGLE_PHOTOS = 'google_photos',
   ONEDRIVE = 'onedrive',
   DROPBOX = 'dropbox',
 }
 
 /** How the backend obtains the bytes for one picked item. */
 export enum CloudImportStrategy {
-  /** HTTP GET a direct/temporary URL (Dropbox link, Google Photos baseUrl). */
+  /** HTTP GET a direct/temporary provider URL (e.g. a Dropbox link). */
   URL = 'url',
   /** Google Drive: GET files/{fileId}?alt=media with a Bearer access token. */
   GOOGLE_DRIVE = 'google-drive',
@@ -107,8 +106,8 @@ export class CloudImportItemDto {
 
   @ApiPropertyOptional({
     description:
-      'Bearer token sent as Authorization on the URL GET (e.g. Google ' +
-      'Photos). Used immediately server-side; never persisted.',
+      'Bearer token sent as Authorization on the URL GET, for links that ' +
+      'require one. Used immediately server-side; never persisted.',
   })
   @ValidateIf((o: CloudImportItemDto) => o.strategy === CloudImportStrategy.URL)
   @IsOptional()

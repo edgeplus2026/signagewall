@@ -119,6 +119,18 @@ export class R2StorageService implements OnModuleInit {
     return this.client !== null && Boolean(this.bucket);
   }
 
+  /**
+   * Whether stored objects can be ADDRESSED, not just written.
+   *
+   * Separate from {@link isConfigured} because the two can disagree: valid write
+   * credentials with no `R2_PUBLIC_URL` upload happily and then hand back
+   * `undefined` for every URL. Callers whose whole output is a public URL must
+   * ask this one.
+   */
+  hasPublicUrl(): boolean {
+    return Boolean(this.publicUrl);
+  }
+
   getPublicUrl(key: string): string | undefined {
     if (!this.publicUrl) {
       return undefined;

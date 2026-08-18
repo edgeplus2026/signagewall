@@ -25,7 +25,13 @@ export const CURRENT_LEGAL: Record<LegalDocType, LegalVersionMeta> = {
      on file was given against a document that could not identify its own
      counterparty. That is what re-consent is for. */
   tos: { version: '2026-08-18', effectiveDate: '2026-08-18' },
-  privacy: { version: '2026-08-18', effectiveDate: '2026-08-18' },
+  /* `b` because a second Privacy change landed the same day: the controller is
+     now identified by matični broj and PIB, not just name and seat. The date
+     alone could not express it — an unchanged version string means nobody is
+     asked again, and the acceptance on file would point at the earlier wording.
+     `version` is compared as an opaque string, so a suffix is legitimate;
+     `effectiveDate` stays a real date because it is published as one. */
+  privacy: { version: '2026-08-18b', effectiveDate: '2026-08-18' },
 };
 
 export function isLegalDocType(value: unknown): value is LegalDocType {

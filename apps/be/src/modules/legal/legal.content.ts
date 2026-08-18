@@ -170,7 +170,7 @@ _Last updated: 18 August 2026._
 
 This Privacy Policy explains how the SignageWall digital-signage platform ("SignageWall", "we",
 "us") collects, uses and protects personal data, and the rights you have. The data
-controller is ${LEGAL_NAME}, ${ADDRESS}. We process data
+controller is ${LEGAL_NAME}, ${ADDRESS}, matični broj ${REGISTRATION_NUMBER}, PIB ${TAX_NUMBER}. We process data
 in accordance with the Serbian Law on Personal Data Protection (ZZPL) and, where it
 applies to you, the EU General Data Protection Regulation (GDPR).
 
@@ -385,7 +385,7 @@ _Poslednje ažuriranje: 18. avgust 2026._
 
 Ova Politika privatnosti objašnjava kako SignageWall platforma za digitalnu signalizaciju
 ("SignageWall", "mi") prikuplja, koristi i štiti lične podatke, kao i prava koja imate.
-Rukovalac podacima je ${LEGAL_NAME}, ${ADDRESS}. Podatke
+Rukovalac podacima je ${LEGAL_NAME}, ${ADDRESS}, matični broj ${REGISTRATION_NUMBER}, PIB ${TAX_NUMBER}. Podatke
 obrađujemo u skladu sa Zakonom o zaštiti podataka o ličnosti Republike Srbije
 (ZZPL) i, kada se na vas primenjuje, Opštom uredbom EU o zaštiti podataka (GDPR).
 

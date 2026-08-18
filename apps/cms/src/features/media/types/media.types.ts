@@ -2,9 +2,11 @@ import type { CloudProvider } from "@/features/media/cloud/types/cloudPick.types
 
 export type MediaType = "folder" | "image" | "video"
 
+/** Mirrors the backend's `MediaItemSource`; see the note there on retired values. */
 export type MediaSource =
   | "local"
   | "google_drive"
+  // Retired importer — still present on items imported before it was removed.
   | "google_photos"
   | "onedrive"
   | "sharepoint"

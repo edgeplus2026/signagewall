@@ -7,9 +7,17 @@ export enum MediaItemType {
   VIDEO = 'video',
 }
 
+/**
+ * Where an item came from. This is PROVENANCE on rows already written, so a
+ * value stays even after the importer that produced it is gone: `google_photos`
+ * is no longer offered (the picker was dropped rather than pay for its
+ * sensitive Google scope), but items imported through it must keep reading back
+ * as what they are.
+ */
 export enum MediaItemSource {
   LOCAL = 'local',
   GOOGLE_DRIVE = 'google_drive',
+  /** Retired importer; kept so historical rows stay valid. */
   GOOGLE_PHOTOS = 'google_photos',
   ONEDRIVE = 'onedrive',
   SHAREPOINT = 'sharepoint',

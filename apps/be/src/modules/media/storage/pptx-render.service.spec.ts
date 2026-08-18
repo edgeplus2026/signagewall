@@ -40,10 +40,12 @@ const uploadObject = jest.fn(() => Promise.resolve());
 const getPublicUrl = jest.fn((key: string) => `https://cdn.example/${key}`);
 const deleteObjects = jest.fn(() => Promise.resolve());
 const isConfigured = jest.fn(() => true);
+const hasPublicUrl = jest.fn(() => true);
 
 function makeR2(): R2StorageService {
   return {
     isConfigured,
+    hasPublicUrl,
     uploadObject,
     getPublicUrl,
     deleteObjects,
@@ -62,6 +64,7 @@ function mockPdfFetch(): void {
 beforeEach(() => {
   jest.clearAllMocks();
   isConfigured.mockReturnValue(true);
+  hasPublicUrl.mockReturnValue(true);
 });
 
 afterEach(() => {
@@ -114,5 +117,30 @@ describe('PptxRenderService', () => {
     const service = new PptxRenderService(makeR2());
     expect(() => service.onModuleInit()).not.toThrow();
     expect(service.isConfigured()).toBe(true);
+  });
+
+  /*
+   * Write credentials without `R2_PUBLIC_URL`: the old gate asked only whether
+   * the client existed, so a deck was downloaded, rasterized, encoded and
+   * uploaded before anything noticed that not one slide could be addressed.
+   * Fail at the door instead, on the message that names the cause.
+   */
+  it('refuses to render when R2 has no public URL, before doing any work', async () => {
+    hasPublicUrl.mockReturnValue(false);
+    mockPdfFetch();
+    const service = new PptxRenderService(makeR2());
+
+    await expect(
+      service.render({
+        accessToken: 'tok',
+        driveId: 'd',
+        itemId: 'i',
+        keyPrefix: 'p',
+      }),
+    ).rejects.toThrow(/not configured/);
+
+    expect(service.isConfigured()).toBe(false);
+    expect(uploadObject).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

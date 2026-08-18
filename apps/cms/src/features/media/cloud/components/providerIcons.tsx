@@ -15,17 +15,6 @@ export function GoogleDriveIcon({ className }: IconProps) {
   )
 }
 
-export function GooglePhotosIcon({ className }: IconProps) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={className}>
-      <path d="M7 7A5 5 0 0 1 17 7Z" fill="#EA4335" />
-      <path d="M17 17A5 5 0 0 1 7 17Z" fill="#34A853" />
-      <path d="M7 17A5 5 0 0 1 7 7Z" fill="#4285F4" />
-      <path d="M17 7A5 5 0 0 1 17 17Z" fill="#FBBC04" />
-    </svg>
-  )
-}
-
 export function OneDriveIcon({ className }: IconProps) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={className}>

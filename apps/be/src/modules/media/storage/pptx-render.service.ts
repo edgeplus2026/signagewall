@@ -52,8 +52,15 @@ export class PptxRenderService implements OnModuleInit, PptxRenderer {
     setPptxRenderer(this);
   }
 
+  /**
+   * Write credentials alone are not enough. This service exists to hand players
+   * a permanent public URL, so without `R2_PUBLIC_URL` it can store the bytes
+   * and never address them. Checking only the client is how a deck got exported
+   * slide by slide, mirrored to R2, and only THEN failed — on a generic
+   * "provider returned an error", after spending the upstream quota.
+   */
   isConfigured(): boolean {
-    return this.r2.isConfigured();
+    return this.r2.isConfigured() && this.r2.hasPublicUrl();
   }
 
   publicUrl(key: string): string | undefined {
@@ -72,7 +79,7 @@ export class PptxRenderService implements OnModuleInit, PptxRenderer {
     keyPrefix: string;
     signal?: AbortSignal;
   }): Promise<PptxRenderResult> {
-    if (!this.r2.isConfigured()) {
+    if (!this.isConfigured()) {
       throw new Error('pptx render: R2 storage is not configured');
     }
 
