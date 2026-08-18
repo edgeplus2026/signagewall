@@ -176,7 +176,14 @@ class PlayerApp : Application() {
                 // step, and if it will not come up, `restart` is the rung above.
                 val updater = updater
                 if (command == "applyUpdate" && updater is OtaUpdater) {
-                    updater.refreshAndMaybeApply()
+                    // `operatorPresent = true`, because that is what this command
+                    // IS: a person in the CMS pressing "install now". It used to
+                    // call the unattended path, which is right for the scheduler
+                    // and wrong here — that path gives up without a word on any
+                    // box that cannot install silently, so the operator pressed
+                    // the button, nothing happened, no dialog appeared and no
+                    // trace was left anywhere to say why.
+                    updater.runUpdate(operatorPresent = true)
                 } else {
                     startPlayerActivity()
                 }
