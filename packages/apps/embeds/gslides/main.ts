@@ -1,5 +1,5 @@
 import type { GslidesPayload } from '../../src/gslides/payload.js'
-import { resumeIndex, stepMs } from '../_shared/dwell.js'
+import { stepMs } from '../_shared/dwell.js'
 import { connectToHost } from '../_shared/host-bridge.js'
 import '../_shared/base.css'
 import './style.css'
@@ -8,16 +8,7 @@ const root = document.getElementById('app')
 
 let slides: string[] = []
 let index = 0
-/**
- * Which slide to open on next time, kept across `setup` calls.
- *
- * A deck is re-set-up every time it comes back on screen, and starting from zero
- * each time means a deck longer than one slot's worth of slides shows its
- * opening slides forever and never the rest — a twelve-slide deck in a fifteen
- * second slot was, in practice, a two-slide deck. Resuming instead walks the
- * whole deck across a few rotations.
- */
-let slideCursor = 0
+
 let timer: ReturnType<typeof setInterval> | undefined
 let img: HTMLImageElement | null = null
 /**
@@ -48,7 +39,6 @@ function show(i: number): void {
   const url = slides[i]
   if (img && url) {
     index = i
-    slideCursor = i
     img.src = url
   }
 }
@@ -112,9 +102,11 @@ function setup(
   wrap.append(img)
   root.replaceChildren(wrap)
 
-  // Carry on from where the last appearance was cut off, not from the top.
-  index = resumeIndex(slideCursor, slides.length)
-  show(index)
+  // ALWAYS the first slide when the deck comes back on screen. Deliberate: a
+  // slot plays from its start every time, so the deck does too. Sharing the slot
+  // between the slides (see `stepMs`) is what gets the later ones seen.
+  index = 0
+  show(0)
   if (slides.length > 1) {
     // `slideSeconds` is a ceiling: a deck whose slides would not all get a turn
     // inside this slot shares the slot between them instead of parking on the

@@ -22,9 +22,13 @@ export const MIN_STEP_MS = 3_000
  * The operator's interval is a CEILING, not a promise the slot can keep: when
  * the steps would not all get a turn within `durationMs` they share it instead,
  * down to {@link MIN_STEP_MS} — past which a faster carousel would only be
- * unreadable rather than complete. When even that floor cannot fit them all, the
- * app shows as many as it can and the caller is expected to RESUME on its next
- * appearance rather than restart, so the tail is reached across a few rotations.
+ * unreadable rather than complete.
+ *
+ * Callers restart from their first step on every appearance, by design, so this
+ * is the ONLY thing that decides how much of the content is ever seen: whatever
+ * does not fit inside one slot at this interval is not shown at all. An app with
+ * more steps than `durationMs / MIN_STEP_MS` needs a longer slot, not a shorter
+ * interval.
  *
  * `durationMs` is absent on a host that imposes no dwell (the CMS live preview),
  * and then the operator's value is returned untouched — there is nothing to fit.
@@ -39,16 +43,4 @@ export function stepMs(
   }
   const share = Math.floor(durationMs / steps)
   return Math.max(MIN_STEP_MS, Math.min(configuredMs, share))
-}
-
-/**
- * Where to resume a rotation whose step count may have changed since last time.
- *
- * Guards the resume path: a deck that lost slides, or a table whose rows now fit
- * in fewer pages, must not come back pointing past its own end.
- */
-export function resumeIndex(cursor: number, steps: number): number {
-  if (steps <= 0) return 0
-  const index = cursor % steps
-  return index < 0 ? 0 : index
 }

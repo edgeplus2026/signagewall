@@ -1,7 +1,7 @@
 import type { WisdomDesign } from '../../src/wisdom/designs.js'
 import { QUOTE_COUNT, SECONDS_PER_QUOTE } from '../../src/wisdom/limits.js'
 import type { WisdomPayload, WisdomQuote } from '../../src/wisdom/payload.js'
-import { resumeIndex, stepMs } from '../_shared/dwell.js'
+import { stepMs } from '../_shared/dwell.js'
 import { freshnessFooterHtml } from '../_shared/freshness.js'
 import type { AppDataMeta } from '../_shared/host-bridge.js'
 import { connectToHost } from '../_shared/host-bridge.js'
@@ -175,14 +175,17 @@ connectToHost<Record<string, unknown>, WisdomPayload>(
   },
   {
     onActive: (isActive) => {
+      // `app-active` re-fires on volume changes too, so only a real
+      // hidden → on-screen transition restarts from the first quote.
+      const becameActive = isActive && !active
       active = isActive
 
-      // Deliberately NOT reset to the first quote. Coming back on screen used to
-      // restart the rotation, so a screen whose slot is shorter than the set
-      // showed the same opening quotes on every appearance and never the rest —
-      // for an app whose whole purpose is to rotate. Clamped because the quote
-      // set changes when the payload does.
-      index = resumeIndex(index, quotes.length)
+      // ALWAYS the first quote on a real return to screen. Deliberate: an item
+      // plays from its start. Sharing the slot between the quotes (see
+      // `stepMs`) is what gets the later ones on the wall.
+      if (becameActive) {
+        index = 0
+      }
       // Repaint either way: the root's `is-active` class drives the entrance
       // animation, so going on- or off-screen has to reach the DOM.
       render()

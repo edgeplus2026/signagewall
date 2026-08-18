@@ -420,17 +420,18 @@ connectToHost<RuntimeConfig, OpsBoardPayload>(
     data = message.data
     meta = message.meta
     durationMs = message.durationMs
-    // No reset to page one: a refresh lands every cadence, and restarting the
-    // board on each one meant a long board never showed anything but its top.
-    // `render` clamps the cursor, so carrying it is safe when pages disappear.
+    page = 0
     render()
     restartTimer()
   },
   {
     onActive: (isActive) => {
+      const becameActive = isActive && !active
       active = isActive
-      // Nor here — coming back on screen resumes where the last appearance was
-      // cut off, which is the only way the lower pages are ever reached.
+      // ALWAYS back to page one when the board comes on screen. Deliberate: an
+      // item plays from its start, so the board shows the same thing every
+      // rotation. `pageMilliseconds` is what gets the later pages seen at all.
+      if (becameActive) page = 0
       render()
       restartTimer()
     },

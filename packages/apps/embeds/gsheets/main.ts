@@ -2,7 +2,7 @@ import type { GsheetsPayload } from '../../src/gsheets/payload.js'
 import { freshnessFooterHtml } from '../_shared/freshness.js'
 import { type AppDataMeta, connectToHost } from '../_shared/host-bridge.js'
 import { applyTextStyle } from '../_shared/text-style.js'
-import { resumeIndex, stepMs } from '../_shared/dwell.js'
+import { stepMs } from '../_shared/dwell.js'
 
 import '../_shared/base.css'
 import './style.css'
@@ -280,18 +280,7 @@ let pageTimer: ReturnType<typeof setInterval> | undefined
 /** Re-run the last render — used by the resize path, which must re-measure. */
 let repaint: (() => void) | undefined
 let active = false
-/**
- * Which page is showing, kept OUTSIDE `render` so it survives one.
- *
- * A board is re-rendered every time it comes back on screen, and a page counter
- * local to that render restarts at one each time — so a sheet too long to get
- * through in a single slot showed its opening rows forever and never the rest,
- * however many times it came round. Holding the cursor here means each visit
- * carries on from where the last was cut off, and the whole sheet is seen across
- * a few rotations. It is re-clamped on every render because a resize changes how
- * many rows fit, and with it how many pages exist.
- */
-let pageCursor = 0
+
 
 function stopPaging(): void {
   if (pageTimer !== undefined) {
@@ -449,7 +438,11 @@ function render(
   }
 
   const pages = perPage > 0 ? Math.ceil(total / perPage) : 1
-  let page = resumeIndex(pageCursor, pages)
+  // ALWAYS page one, every time this board comes back on screen. Deliberate, and
+  // not an oversight to be "fixed" into resuming: an item restarts when it starts
+  // playing, so what is on the wall for a given slot is the same every rotation.
+  // Fitting the pages into the dwell (see `pageMs`) is what makes that whole.
+  let page = 0
 
   const paint = (): void => {
     const start = page * perPage
@@ -468,7 +461,6 @@ function render(
     const interval = pageMs(config, pages, lastDurationMs)
     pageTimer = setInterval(() => {
       page = (page + 1) % pages
-      pageCursor = page
       paint()
     }, interval)
   }

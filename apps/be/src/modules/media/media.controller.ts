@@ -58,7 +58,18 @@ let cachedUploadTempDir: string | undefined;
 function uploadTempDir(): string {
   if (!cachedUploadTempDir) {
     const dir = join(tmpdir(), MEDIA_UPLOAD_TEMP_DIR_NAME);
-    mkdirSync(dir, { recursive: true });
+
+    // This runs while the module is being imported — a decorator argument, not
+    // request code — so anything thrown here aborts the entire application
+    // boot, and an API that will not start is a far worse outcome than an
+    // upload that fails. Multer creates `dest` itself when it is missing, so
+    // this is only a head start, and it is allowed to fail.
+    try {
+      mkdirSync(dir, { recursive: true });
+    } catch {
+      // Deliberately silent: no logger exists this early in the module graph.
+    }
+
     cachedUploadTempDir = dir;
   }
 
