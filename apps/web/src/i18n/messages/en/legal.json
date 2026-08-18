@@ -16,5 +16,11 @@
       "title": "Cookie Policy",
       "description": "Which cookies SignageWall sets, what each one is for, how long it lasts, and how to change your consent at any point."
     }
+  },
+  "data-deletion": {
+    "meta": {
+      "title": "Data deletion",
+      "description": "How to delete your SignageWall data: disconnect a linked Facebook, Instagram, LinkedIn, Google or Microsoft account, or remove your account entirely."
+    }
   }
 }

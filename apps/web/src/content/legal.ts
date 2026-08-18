@@ -17,7 +17,7 @@ import { COMPANY } from '@/lib/company'
  * nothing else.
  */
 
-export type LegalKey = 'privacy' | 'terms' | 'cookies'
+export type LegalKey = 'privacy' | 'terms' | 'cookies' | 'data-deletion'
 
 const TERMS_EN = `# Terms of Service
 
@@ -532,10 +532,121 @@ poseti.
 ## 5. Kontakt
 Pitanja o ovoj politici: ${COMPANY.email}.`
 
+/**
+ * Data deletion instructions.
+ *
+ * Its own page, and its own URL, because Meta requires one for any app using
+ * Facebook Login and reviewers look for a page that says plainly how to delete
+ * data obtained through it. That instruction already existed inside Terms §12
+ * and Privacy §8, but "somewhere in a 1,800-word document" is not an answer
+ * anyone — reviewer or customer — can act on.
+ *
+ * It documents both routes deliberately: disconnecting inside SignageWall, and
+ * removing the app on Facebook, which reaches the same teardown through the
+ * deauthorize callback. Keep it in step with what
+ * `MetaCallbacksService` actually does; a page promising erasure the code does
+ * not perform is worse than no page.
+ */
+const DATA_DELETION_EN = `# Data deletion
+
+_Last updated: 18 August 2026._
+
+This page explains how to delete data SignageWall holds about you, including
+anything obtained from a connected Facebook, Instagram, LinkedIn, Google or
+Microsoft account.
+
+## 1. Disconnecting a connected account
+Each app instance on your screens connects to exactly one account. Open the app
+instance in the SignageWall dashboard and choose _Disconnect_.
+
+This immediately deletes the access token we stored for that account and the
+connection record itself. The app stops fetching from your account at once.
+
+## 2. Removing SignageWall from Facebook
+You can also do it from Facebook's side: go to Settings and privacy, then
+Settings, then Apps and Websites, and remove SignageWall.
+
+Facebook notifies us when you do, and we delete the stored access tokens and
+disconnect every screen app that was using that account — in every organization
+that connected it. You do not need to contact us as well.
+
+## 3. What we hold from a connected account
+For a connected account we store an encrypted access token, the account's
+display name so you can see which account is connected, the permissions you
+granted, and the account identifier the provider gives us. We also cache the
+recent posts or events the app displays so your screens keep working between
+refreshes.
+
+We never receive or store your password, and we never post on your behalf.
+
+## 4. Deleting your account or organization
+To remove everything, not just one connection: delete your Account or an
+Organization from Settings in the dashboard. Deletion starts a 30-day grace
+period during which access is disabled and after which we permanently delete or
+anonymize the associated data, as described in the Privacy Policy. Deleting an
+Organization removes its screens, devices, playlists, app instances, connected
+accounts and media.
+
+## 5. Requesting deletion by email
+If you cannot reach the dashboard, write to ${COMPANY.email} from the address on
+your account and ask for deletion. We will confirm and respond within the periods
+the law requires.
+
+## 6. Contact
+Questions about this page: ${COMPANY.email}.`
+
+const DATA_DELETION_SR = `# Brisanje podataka
+
+_Poslednje ažuriranje: 18. avgust 2026._
+
+Ova stranica objašnjava kako da obrišete podatke koje SignageWall čuva o vama,
+uključujući sve preuzeto sa povezanog Facebook, Instagram, LinkedIn, Google ili
+Microsoft naloga.
+
+## 1. Prekid veze sa povezanim nalogom
+Svaka instanca aplikacije na vašim ekranima povezana je sa tačno jednim nalogom.
+Otvorite instancu aplikacije u SignageWall kontrolnoj tabli i izaberite _Prekini
+vezu_.
+
+Time se odmah briše pristupni token koji smo čuvali za taj nalog, kao i sam zapis
+o vezi. Aplikacija istog trenutka prestaje da preuzima sa vašeg naloga.
+
+## 2. Uklanjanje SignageWall-a sa Facebook-a
+Isto možete uraditi i sa Facebook strane: idite na Podešavanja i privatnost, pa
+Podešavanja, pa Aplikacije i sajtovi, i uklonite SignageWall.
+
+Facebook nas o tome obaveštava, a mi brišemo sačuvane pristupne tokene i
+prekidamo vezu za svaku aplikaciju na ekranu koja je koristila taj nalog — u
+svakoj organizaciji koja ga je povezala. Ne morate nas dodatno kontaktirati.
+
+## 3. Šta čuvamo sa povezanog naloga
+Za povezan nalog čuvamo šifrovan pristupni token, prikazno ime naloga da biste
+videli koji je nalog povezan, dozvole koje ste odobrili i identifikator naloga
+koji nam servis daje. Takođe keširamo skorašnje objave ili događaje koje
+aplikacija prikazuje, da bi vaši ekrani radili između osvežavanja.
+
+Nikada ne primamo niti čuvamo vašu lozinku i nikada ne objavljujemo u vaše ime.
+
+## 4. Brisanje naloga ili organizacije
+Da uklonite sve, a ne samo jednu vezu: obrišite Nalog ili Organizaciju u
+Podešavanjima kontrolne table. Brisanje pokreće period od 30 dana tokom kojeg je
+pristup onemogućen, nakon čega trajno brišemo ili anonimizujemo povezane podatke,
+kako je opisano u Politici privatnosti. Brisanje Organizacije uklanja njene
+ekrane, uređaje, plejliste, instance aplikacija, povezane naloge i medije.
+
+## 5. Zahtev za brisanje putem e-pošte
+Ako ne možete da pristupite kontrolnoj tabli, pišite nam na ${COMPANY.email} sa
+adrese vezane za vaš nalog i zatražite brisanje. Potvrdićemo prijem i odgovoriti
+u rokovima koje propisuje zakon.
+
+## 6. Kontakt
+Pitanja o ovoj stranici: ${COMPANY.email}.`
+
 export const LEGAL_DOCUMENTS: Record<LegalKey, Record<'sr' | 'en', string>> = {
   terms: { sr: TERMS_SR, en: TERMS_EN },
   privacy: { sr: PRIVACY_SR, en: PRIVACY_EN },
   cookies: { sr: COOKIES_SR, en: COOKIES_EN },
+  'data-deletion': { sr: DATA_DELETION_SR, en: DATA_DELETION_EN },
 }
 
 export function legalDocument(doc: LegalKey, locale: string): string {

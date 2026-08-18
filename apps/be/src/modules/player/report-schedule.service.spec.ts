@@ -1,4 +1,4 @@
-import { localParts, periodFor } from './report-schedule.service';
+import { clock, localParts, periodFor } from './report-schedule.service';
 import { ReportFrequency } from './schemas/report-schedule.schema';
 
 describe('scheduled report periods', () => {
@@ -75,5 +75,21 @@ describe('local send time', () => {
       day: '2026-08-17',
       hour: 5,
     });
+  });
+});
+
+describe('exception clock times', () => {
+  it('ends an all-day outage at 24:00, not at 00:00', () => {
+    // `toHour` is exclusive and reaches 24 for a run that lasts to the end of
+    // the day. Wrapping it with `% 24` printed every all-day outage as
+    // "00:00-00:00" - a zero-length interval, in the line that was supposed to
+    // say the screen was dark from open to close.
+    expect(clock(0)).toBe('00:00');
+    expect(clock(24)).toBe('24:00');
+  });
+
+  it('still pads the ordinary hours', () => {
+    expect(clock(9)).toBe('09:00');
+    expect(clock(14)).toBe('14:00');
   });
 });

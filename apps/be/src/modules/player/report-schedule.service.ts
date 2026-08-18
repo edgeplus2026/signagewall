@@ -284,8 +284,16 @@ export function localParts(
   }
 }
 
-function clock(hour: number): string {
-  return `${String(hour % 24).padStart(2, '0')}:00`;
+/**
+ * An hour-of-day boundary as a clock time.
+ *
+ * `toHour` is exclusive and reaches 24 for a run that lasts to the end of the
+ * day, which has to print as `24:00`. Wrapping it with `% 24` turned every
+ * all-day outage into `00:00-00:00` - a zero-length interval, on the one line
+ * that was supposed to say the screen was dark all day.
+ */
+export function clock(hour: number): string {
+  return `${String(hour).padStart(2, '0')}:00`;
 }
 
 /**

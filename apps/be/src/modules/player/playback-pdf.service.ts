@@ -5,7 +5,14 @@ import { join } from 'node:path';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import fontkit from '@pdf-lib/fontkit';
-import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from 'pdf-lib';
+import {
+  PDFDocument,
+  PDFFont,
+  PDFPage,
+  PDFString,
+  StandardFonts,
+  rgb,
+} from 'pdf-lib';
 
 import type {
   CoverageReport,
@@ -28,11 +35,29 @@ import type {
  * actually turns on.
  */
 
+/**
+ * Everything the document asserts — and therefore everything the digest covers.
+ *
+ * One type for `render` and `digest` so the two cannot drift apart: a figure
+ * added to the page without being added here is a figure the signature silently
+ * stops protecting, which is the exact failure this block is meant to prevent.
+ */
+export interface DocumentFigures {
+  organizationName: string;
+  items: PlaybackItemsReport;
+  coverage?: CoverageReport;
+}
+
+/** Exception lines the coverage block prints before it starts summarising. */
+const MAX_EXCEPTIONS = 12;
+/** Table rows the document prints; beyond this the CSV is the right tool. */
+const MAX_ROWS = 300;
+
 const MARGIN = 48;
 const PAGE = { width: 595.28, height: 841.89 }; // A4 portrait, points.
 const LINE = 14;
 /** Height of the verification box drawn at the foot of the last page. */
-const VERIFY_BOX = 74;
+const VERIFY_BOX = 88;
 /**
  * Space kept clear at the bottom of every page.
  *
@@ -52,12 +77,10 @@ export class PlaybackPdfService {
   /**
    * Builds the PDF for a range, with the coverage headline if one was supplied.
    */
-  async render(input: {
-    organizationName: string;
-    items: PlaybackItemsReport;
-    coverage?: CoverageReport;
-  }): Promise<{ bytes: Uint8Array; digest: string; signature: string }> {
-    const digest = digestOf(input.items);
+  async render(
+    input: DocumentFigures,
+  ): Promise<{ bytes: Uint8Array; digest: string; signature: string }> {
+    const digest = digestOf(input);
     const signature = this.sign(digest);
 
     const pdf = await PDFDocument.create();
@@ -124,16 +147,31 @@ export class PlaybackPdfService {
     });
 
     if (input.coverage) {
-      write('COVERAGE', { font: bold, size: 9 });
+      // The day is named in the heading because coverage is only ever computed
+      // for ONE day, while the document above it is titled with the whole range.
+      // On a week's report an unlabelled "0%" reads as the week's figure when it
+      // is the last day's — and it is the figure a client argues about.
+      write(`COVERAGE · ${input.coverage.day}`, { font: bold, size: 9 });
       write(
         input.coverage.coverage === null
-          ? 'No expected on-air time in this period.'
+          ? 'No expected on-air time on this day.'
           : `${String(input.coverage.coverage)}% of expected on-air time had content, across ${String(input.coverage.totals.screens)} screens.`,
         { gap: LINE + 4 },
       );
-      for (const exception of input.coverage.exceptions.slice(0, 12)) {
+      for (const exception of input.coverage.exceptions.slice(
+        0,
+        MAX_EXCEPTIONS,
+      )) {
         write(
           `· ${exception.screenName}: ${exception.kind === 'off' ? 'unreachable' : `stuck on ${exception.itemName ?? '—'}`} ${clock(exception.fromHour)}–${clock(exception.toHour)}`,
+          { size: 9 },
+        );
+      }
+      // Said rather than silently dropped: a list that stops at twelve without
+      // admitting it reads as "these were all of them".
+      if (input.coverage.exceptions.length > MAX_EXCEPTIONS) {
+        write(
+          `· and ${String(input.coverage.exceptions.length - MAX_EXCEPTIONS)} more, not shown`,
           { size: 9 },
         );
       }
@@ -166,7 +204,13 @@ export class PlaybackPdfService {
     });
     y -= LINE;
 
-    for (const item of input.items.items.slice(0, 300)) {
+    // A header row over nothing at all looks like an export that broke halfway.
+    // Saying it plainly is the difference between "no plays" and "no report".
+    if (input.items.items.length === 0) {
+      write('No plays recorded in this period.', { size: 9, gap: LINE + 4 });
+    }
+
+    for (const item of input.items.items.slice(0, MAX_ROWS)) {
       if (y < FOOTER_RESERVE) {
         page = pdf.addPage([PAGE.width, PAGE.height]);
         y = PAGE.height - MARGIN;
@@ -190,6 +234,13 @@ export class PlaybackPdfService {
       y -= LINE - 2;
     }
 
+    if (input.items.items.length > MAX_ROWS) {
+      write(
+        `and ${String(input.items.items.length - MAX_ROWS)} more items, not shown`,
+        { size: 9, gap: LINE + 4 },
+      );
+    }
+
     this.drawVerification(page, { digest, signature, mono, bold });
 
     return { bytes: await pdf.save(), digest, signature };
@@ -202,9 +253,9 @@ export class PlaybackPdfService {
     return expected.length === signature.length && expected === signature;
   }
 
-  /** The digest of a report's numbers, for verifying without the PDF. */
-  digest(items: PlaybackItemsReport): string {
-    return digestOf(items);
+  /** The digest of a document's figures, for verifying without the PDF. */
+  digest(input: DocumentFigures): string {
+    return digestOf(input);
   }
 
   sign(digest: string): string {
@@ -243,10 +294,11 @@ export class PlaybackPdfService {
    * guess an API prefix. Falls back to the path — still correct, just less
    * convenient — rather than printing a URL that goes nowhere.
    */
-  private verifyUrl(): string {
+  private verifyUrl(query?: { digest: string; signature: string }): string {
     return verifyUrl(
       this.config.get<string>('publicApiUrl'),
       this.config.get<string>('apiPrefix'),
+      query,
     );
   }
 
@@ -286,17 +338,95 @@ export class PlaybackPdfService {
       });
       y -= 12;
     }
+    const size = 7;
+    const muted = rgb(0.35, 0.38, 0.43);
+    const prefix = 'Check at ';
+    const shown = this.verifyUrl();
+    const target = this.verifyUrl({
+      digest: parts.digest,
+      signature: parts.signature,
+    });
+
+    // The address is drawn short and linked long. Printing the full query string
+    // would run to ~200 characters, which at this size either overruns the box
+    // or has to be set too small to retype - and retyping is the fallback, not
+    // the path we want the reader on.
+    page.drawText(prefix, {
+      x: MARGIN + 12,
+      y,
+      size,
+      font: parts.mono,
+      color: muted,
+    });
+    const urlX = MARGIN + 12 + parts.mono.widthOfTextAtSize(prefix, size);
+    const urlWidth = parts.mono.widthOfTextAtSize(shown, size);
+    page.drawText(shown, {
+      x: urlX,
+      y,
+      size,
+      font: parts.mono,
+      // Coloured like a link because it is one; the annotation below is
+      // invisible, and nothing else on the page invites a click.
+      color: rgb(0.11, 0.36, 0.72),
+    });
+    page.drawLine({
+      start: { x: urlX, y: y - 2 },
+      end: { x: urlX + urlWidth, y: y - 2 },
+      thickness: 0.4,
+      color: rgb(0.11, 0.36, 0.72),
+    });
+    linkTo(page, target, {
+      x: urlX,
+      y: y - 3,
+      width: urlWidth,
+      height: size + 4,
+    });
+
+    y -= 12;
     page.drawText(
-      `Check at ${this.verifyUrl()} - a figure altered after issue stops matching.`,
-      {
-        x: MARGIN + 12,
-        y,
-        size: 7,
-        font: parts.mono,
-        color: rgb(0.35, 0.38, 0.43),
-      },
+      'Click it, or call that address with ?digest= and &signature= set to the two above.',
+      { x: MARGIN + 12, y, size, font: parts.mono, color: muted },
     );
+    y -= 11;
+    page.drawText('A figure altered after issue stops matching.', {
+      x: MARGIN + 12,
+      y,
+      size,
+      font: parts.mono,
+      color: muted,
+    });
   }
+}
+
+/**
+ * Makes a drawn stretch of text clickable.
+ *
+ * pdf-lib has no text-level link API, so the annotation is registered by hand
+ * over the rectangle the text was drawn into.
+ */
+function linkTo(
+  page: PDFPage,
+  url: string,
+  rect: { x: number; y: number; width: number; height: number },
+): void {
+  // A relative address resolves against nothing inside a PDF reader. When the
+  // installation does not know its own public URL the printed path still tells a
+  // reader what to call, but there is nothing to click.
+  if (!/^https?:\/\//i.test(url)) {
+    return;
+  }
+  const ref = page.doc.context.register(
+    page.doc.context.obj({
+      Type: 'Annot',
+      Subtype: 'Link',
+      Rect: [rect.x, rect.y, rect.x + rect.width, rect.y + rect.height],
+      // No annotation border: the text is already underlined, and readers draw
+      // their own hover highlight over it.
+      Border: [0, 0, 0],
+      A: { Type: 'Action', S: 'URI', URI: PDFString.of(url) },
+    }),
+  );
+  page.node.addAnnot(ref);
 }
 
 /** Subset Noto Sans, read once and kept for the life of the process. */
@@ -331,7 +461,11 @@ function loadFonts(): { regular: Buffer; bold: Buffer } | null {
  * Exported because it is the one string on the page a reader is asked to act on,
  * and it is worth being able to check without parsing a compressed PDF stream.
  */
-export function verifyUrl(base?: string, apiPrefix?: string): string {
+export function verifyUrl(
+  base?: string,
+  apiPrefix?: string,
+  query?: { digest: string; signature: string },
+): string {
   const prefix = (apiPrefix ?? 'api').replace(/^\/+|\/+$/g, '');
   // The API is versioned in the URI as well as prefixed — see `enableVersioning`
   // with `defaultVersion: '1'` in main.ts. Leaving the version out prints an
@@ -339,22 +473,44 @@ export function verifyUrl(base?: string, apiPrefix?: string): string {
   // on. There is no config for the version, so it is written out here rather
   // than guessed from one.
   const path = `/${prefix}/v1/playback/verify`;
-  return base ? `${base.replace(/\/+$/, '')}${path}` : path;
+  // The endpoint answers on the two values, not on the bare path: opened without
+  // them it replies `valid: false`, which to the advertiser holding the document
+  // looks exactly like the document failing its own check. So where we have the
+  // values, they go into the address.
+  const search = query
+    ? `?digest=${encodeURIComponent(query.digest)}&signature=${encodeURIComponent(query.signature)}`
+    : '';
+  return base
+    ? `${base.replace(/\/+$/, '')}${path}${search}`
+    : `${path}${search}`;
 }
 
 /**
  * A stable digest of what the report says.
  *
- * Built from the numbers only, in a fixed order, so it does not change when the
+ * Built from the figures only, in a fixed order, so it does not change when the
  * layout does — a document re-issued from the same data verifies against the
  * copy the client already has.
+ *
+ * EVERY claim printed on the page has to be in here, not just the table. An
+ * earlier version digested `items` alone, which left the whole coverage
+ * headline unprotected: the percentage, the screen count and the exception list
+ * could all be edited and the signature would still check out, while the foot
+ * of the document promised that an altered figure stops matching. The
+ * organization name is in for the same reason — a proof-of-play document whose
+ * subject can be swapped proves nothing about whose airtime it was.
  */
-function digestOf(report: PlaybackItemsReport): string {
+function digestOf(input: DocumentFigures): string {
   const canonical = JSON.stringify({
-    from: report.from,
-    to: report.to,
-    totals: report.totals,
-    items: [...report.items]
+    // Versioned because the set of covered figures widened once and may again.
+    // A verifier re-deriving the digest from the API has to know which rule to
+    // apply, and an unlabelled change is indistinguishable from a mismatch.
+    v: 2,
+    organizationName: input.organizationName,
+    from: input.items.from,
+    to: input.items.to,
+    totals: input.items.totals,
+    items: [...input.items.items]
       .sort((a, b) => a.contentId.localeCompare(b.contentId))
       .map((item) => [
         item.contentId,
@@ -362,8 +518,39 @@ function digestOf(report: PlaybackItemsReport): string {
         item.airtimeMs,
         item.screens,
       ]),
+    coverage: input.coverage ? coverageFigures(input.coverage) : null,
   });
   return createHash('sha256').update(canonical).digest('hex');
+}
+
+/** The coverage claims the document makes, in an order that does not drift. */
+function coverageFigures(coverage: CoverageReport): unknown {
+  return {
+    day: coverage.day,
+    percent: coverage.coverage,
+    screens: coverage.totals.screens,
+    // Sorted by identity rather than kept in display order: the list is
+    // presented worst-first, and two exceptions of equal duration may come back
+    // either way round from a sort that is not stable across engines. A digest
+    // that depends on that would fail at random.
+    exceptions: [...coverage.exceptions]
+      .sort(
+        (a, b) =>
+          a.screenId.localeCompare(b.screenId) ||
+          a.fromHour - b.fromHour ||
+          a.kind.localeCompare(b.kind),
+      )
+      .map((exception) => [
+        exception.screenId,
+        // The name as well as the id: the name is what the page prints, so a
+        // screen renamed in the document has to stop matching.
+        exception.screenName,
+        exception.kind,
+        exception.fromHour,
+        exception.toHour,
+        exception.itemName ?? null,
+      ]),
+  };
 }
 
 /**
@@ -412,8 +599,16 @@ function truncate(text: string, max: number): string {
   return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
 }
 
+/**
+ * An hour-of-day boundary as a clock time.
+ *
+ * `toHour` is exclusive and reaches 24 for a run that lasts to the end of the
+ * day, which has to print as `24:00`. Wrapping it with `% 24` turned every
+ * all-day outage into `00:00-00:00` - a zero-length interval, on the one line
+ * that was supposed to say the screen was dark all day.
+ */
 function clock(hour: number): string {
-  return `${String(hour % 24).padStart(2, '0')}:00`;
+  return `${String(hour).padStart(2, '0')}:00`;
 }
 
 function hms(ms: number): string {

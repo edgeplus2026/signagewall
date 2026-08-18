@@ -61,6 +61,7 @@ const STATIC_ROUTES: Route[] = [
   '/privacy',
   '/terms',
   '/cookies',
+  '/data-deletion',
 ]
 
 /* Matches the pages it lists. Crawlers refetch this far less often than the

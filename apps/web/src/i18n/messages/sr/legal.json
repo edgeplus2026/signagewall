@@ -16,5 +16,11 @@
       "title": "Politika kolačića",
       "description": "Koje kolačiće SignageWall postavlja, čemu svaki služi, koliko traje i kako da promenite pristanak u bilo kom trenutku."
     }
+  },
+  "data-deletion": {
+    "meta": {
+      "title": "Brisanje podataka",
+      "description": "Kako da obrišete svoje SignageWall podatke: prekinite vezu sa Facebook, Instagram, LinkedIn, Google ili Microsoft nalogom, ili obrišite nalog u celosti."
+    }
   }
 }

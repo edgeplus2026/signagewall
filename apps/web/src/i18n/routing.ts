@@ -40,6 +40,7 @@ const pathnames = {
   '/privacy': { sr: '/politika-privatnosti', en: '/privacy' },
   '/terms': { sr: '/uslovi-koriscenja', en: '/terms' },
   '/cookies': { sr: '/kolacici', en: '/cookies' },
+  '/data-deletion': { sr: '/brisanje-podataka', en: '/data-deletion' },
 } as const
 
 export const routing = defineRouting({

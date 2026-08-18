@@ -25,6 +25,7 @@ type FooterHref =
   | '/privacy'
   | '/terms'
   | '/cookies'
+  | '/data-deletion'
   | { pathname: '/solutions/[industry]'; params: { industry: string } }
 
 /** Three fit the column beside "all solutions"; the rest live on /solutions. */
@@ -81,6 +82,7 @@ export async function Footer() {
         { href: '/privacy', label: t('legal.privacy') },
         { href: '/terms', label: t('legal.terms') },
         { href: '/cookies', label: t('legal.cookies') },
+        { href: '/data-deletion', label: t('legal.dataDeletion') },
       ],
     },
   ]
