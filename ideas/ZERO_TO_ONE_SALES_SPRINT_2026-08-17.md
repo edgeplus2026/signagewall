@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](README.md).
+
 # SignageWall Ops — Zero-to-One prodajni sprint
 
 **Period prvog sprinta:** 17–23. avgust 2026.  

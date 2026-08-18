@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../README.md).
+
 # Wave 1 integration — 2026-08-05
 
 Status: code-integrated; real-provider smoke tests still required.

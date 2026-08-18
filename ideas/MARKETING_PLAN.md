@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](README.md).
+
 # SignageWall marketing i prodajni plan
 
 > **Strategic update — 5 August 2026:** The primary Zero-to-One direction is **SignageWall Ops** for factories, warehouses and logistics. Its founding offer is a 750 EUR paid pilot, followed by site pricing and onboarding from 900 EUR only when real consulting/integration work is included. The menu/QSR work below is retained as a separate secondary experiment, now standardized as **Menu Starter** for bakeries, cafés and other small firms: no setup fee, one location/one to three screens, standard templates and a sustainable subscription. Custom design, unstructured migration, field work and hardware are outside the standard subscription. See [`OPS_PRODUCT_IMPLEMENTATION_PLAN.md`](./OPS_PRODUCT_IMPLEMENTATION_PLAN.md) for product scope and release gates.

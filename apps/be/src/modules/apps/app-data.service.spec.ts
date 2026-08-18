@@ -402,6 +402,51 @@ describe('AppDataService.refreshDue', () => {
     expect(fetchData).toHaveBeenCalledTimes(1);
   });
 
+  /**
+   * The regression that cost a 300 s app a full extra minute on every cycle.
+   *
+   * `lastAttemptAt` is stamped when the fetch COMPLETES, so it always lands a
+   * little after the tick that started it. One cadence later the age is a shade
+   * under the cadence, a strict `>=` judged the key not due, and — because the
+   * scheduler only looks every 60 s — it waited another whole tick. In production
+   * that made a 300 s cadence refresh every 360 s, invisibly.
+   */
+  it('refreshes a key that misses its cadence by a fraction of a tick', async () => {
+    const { service, fetchData } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      cache: {
+        // 899.5 s old against a 900 s cadence: short by half a second, which is
+        // the tick-alignment artefact and not a reason to wait another minute.
+        'weather:belgrade': {
+          payload: { value: 1 },
+          fetchedAt: new Date(NOW.getTime() - (900_000 - 500)),
+        },
+      },
+    });
+
+    const fetched = await service.refreshDue(NOW);
+    expect(fetched).toBe(1);
+    expect(fetchData).toHaveBeenCalledTimes(1);
+  });
+
+  // The slack must not become a licence to refetch early: a key well inside its
+  // cadence is still not due, or the tolerance would just be a shorter cadence.
+  it('still skips a key comfortably inside its cadence', async () => {
+    const { service, fetchData } = buildService({
+      instances: [instance('weather', { location: 'belgrade' })],
+      cache: {
+        'weather:belgrade': {
+          payload: { value: 1 },
+          fetchedAt: new Date(NOW.getTime() - (900_000 - 30_000)),
+        },
+      },
+    });
+
+    const fetched = await service.refreshDue(NOW);
+    expect(fetched).toBe(0);
+    expect(fetchData).not.toHaveBeenCalled();
+  });
+
   it('retries an errored key on the short floor before its normal cadence', async () => {
     const { service, fetchData } = buildService({
       instances: [instance('weather', { location: 'belgrade' })],

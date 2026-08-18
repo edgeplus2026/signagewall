@@ -10,6 +10,7 @@ import type {
 } from '../../src/opsboard/payload.js'
 import { opsBoardPreset } from '../../src/opsboard/presets.js'
 import { freshnessFooterHtml } from '../_shared/freshness.js'
+import { stepMs } from '../_shared/dwell.js'
 import { type AppDataMeta, connectToHost } from '../_shared/host-bridge.js'
 
 import '../_shared/base.css'
@@ -42,6 +43,8 @@ let data: OpsBoardPayload | null = null
 let meta: AppDataMeta | null = null
 let page = 0
 let active = false
+/** The slot's dwell, or undefined on a host that imposes none (CMS preview). */
+let durationMs: number | undefined
 let timer: ReturnType<typeof setInterval> | undefined
 let lastSizeKey = ''
 
@@ -388,13 +391,16 @@ function stopTimer(): void {
   timer = undefined
 }
 
-function pageMilliseconds(): number {
+function pageMilliseconds(pageCount: number): number {
   const seconds =
     typeof config.pageSeconds === 'number' &&
     Number.isFinite(config.pageSeconds)
       ? config.pageSeconds
       : 12
-  return Math.min(300, Math.max(3, seconds)) * 1000
+  const configured = Math.min(300, Math.max(3, seconds)) * 1000
+  // A ceiling only: a board with more pages than fit in its slot shares the slot
+  // between them rather than parking on page one until the rotation moves on.
+  return stepMs(configured, pageCount, durationMs)
 }
 
 function restartTimer(): void {
@@ -405,7 +411,7 @@ function restartTimer(): void {
   timer = setInterval(() => {
     page = (page + 1) % pageCount
     render()
-  }, pageMilliseconds())
+  }, pageMilliseconds(pageCount))
 }
 
 connectToHost<RuntimeConfig, OpsBoardPayload>(
@@ -413,15 +419,18 @@ connectToHost<RuntimeConfig, OpsBoardPayload>(
     config = message.config
     data = message.data
     meta = message.meta
-    page = 0
+    durationMs = message.durationMs
+    // No reset to page one: a refresh lands every cadence, and restarting the
+    // board on each one meant a long board never showed anything but its top.
+    // `render` clamps the cursor, so carrying it is safe when pages disappear.
     render()
     restartTimer()
   },
   {
     onActive: (isActive) => {
-      const becameActive = isActive && !active
       active = isActive
-      if (becameActive) page = 0
+      // Nor here — coming back on screen resumes where the last appearance was
+      // cut off, which is the only way the lower pages are ever reached.
       render()
       restartTimer()
     },

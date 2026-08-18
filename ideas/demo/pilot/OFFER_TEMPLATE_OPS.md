@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../../README.md).
+
 # {{Kupac}} — operativni ekran za jednu zonu
 
 **Predlog pilota:** {{Live Shift Board / Dock & Dispatch Board}}  

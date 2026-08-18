@@ -23,7 +23,20 @@ export const gsheetsManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 5,
-  refreshSeconds: 300,
+  /**
+   * One minute, and it is the FAST path — not the fallback it reads like.
+   *
+   * The connector self-subscribes to Drive `files.watch`, but Google throttles
+   * change notifications for a Sheet to roughly one per file per three minutes
+   * (measured in production: three consecutive pings at 180.7 s and 186.6 s
+   * spacing). Push therefore has a ~3 min floor no amount of code on our side
+   * can lower, and at the old 300 s cadence the poll was slower still, so an
+   * edit took minutes to reach the wall either way.
+   *
+   * A sheet is one cheap `values.get`, and Google's per-user read quota is 60/min
+   * — a minute cadence uses one of them per sheet.
+   */
+  refreshSeconds: 60,
   icon: GSHEETS_ICON,
   color: '#0F9D58',
   configSchema: [
@@ -68,7 +81,13 @@ export const gsheetsManifest: AppManifest = {
       validation: { min: 3, max: 300 },
       // Only matters when the sheet is taller than the screen. A sheet that fits
       // draws no page indicator and never advances, whatever this says.
-      help: 'How long each page of rows stays up when the sheet is too long to fit on screen at once.',
+      //
+      // The other half of that, which is the one operators actually hit: paging
+      // is bounded by how long the app is ON the screen. Set this to 20 s on a
+      // slot that runs for 15 s and page two is never reached — the app leaves
+      // before the timer fires, and nothing anywhere says so. The embed cannot
+      // clamp it itself; the slot duration is not part of the config handshake.
+      help: 'How long each page of rows stays up when the sheet is too long to fit on screen at once. Keep it shorter than the time this app runs for on the screen, or the later pages are never reached.',
     },
     {
       key: 'theme',

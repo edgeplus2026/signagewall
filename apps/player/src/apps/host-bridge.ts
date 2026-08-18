@@ -163,6 +163,11 @@ export function mountAppHost(
         config: current.config,
         data: current.data ?? null,
         meta: current.dataMeta ?? null,
+        // The slot's dwell, so an app that pages through its content on a timer
+        // can fit those pages into the time it actually has. Without it a page
+        // interval longer than the slot never fires and the later pages are
+        // never drawn — see `AppConfigMessage.durationMs`.
+        durationMs: current.durationMs,
       },
       targetOrigin,
     )

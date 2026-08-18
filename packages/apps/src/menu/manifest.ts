@@ -44,7 +44,13 @@ export const menuManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 4,
-  refreshSeconds: 900,
+  /**
+   * One minute. The Sheets-synced menu is pushed live by Drive `files.watch`,
+   * but Google throttles those notifications to about one per file per three
+   * minutes, so the poll is what actually decides how fast a price change
+   * reaches the board. One `values.get` per menu per minute buys that.
+   */
+  refreshSeconds: 60,
   icon: MENU_ICON,
   color: '#16A34A',
   configSchema: [

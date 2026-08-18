@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../README.md).
+
 # PBI-03 — secure Power BI export connector wiring
 
 Status: connector and shared registry/storage wiring complete. Direct teardown paths are covered, but race-safe cleanup/orphan GC, signed-URL renewal delivery and a real Microsoft tenant/capacity test remain release blockers.

@@ -43,6 +43,19 @@ export interface AppConfigMessage<
   data: Payload | null
   /** Data freshness for `server` apps; `null` for static apps. */
   meta: AppDataMeta | null
+  /**
+   * How long this app is on screen before the rotation moves on, in ms.
+   *
+   * Absent where there is no dwell to speak of — the CMS live preview, which
+   * runs until the operator closes it — so treat absent as "unbounded".
+   *
+   * An app that advances through pages, stories or slides on a timer must
+   * divide THIS rather than run its configured interval blind. The interval is
+   * a ceiling the operator asked for, not a promise the slot can keep: a 20 s
+   * page in a 15 s slot never turns over at all, so everything past page one is
+   * silently never shown, and nothing on screen says a page was skipped.
+   */
+  durationMs?: number
 }
 
 interface RawConfigMessage {
@@ -50,6 +63,7 @@ interface RawConfigMessage {
   config: unknown
   data: unknown
   meta: unknown
+  durationMs?: unknown
 }
 
 interface RawActiveMessage {
@@ -119,10 +133,19 @@ export function connectToHost<
       return
     }
     if (isConfigMessage(event.data)) {
+      const durationMs = event.data.durationMs
       onConfig({
         config: event.data.config as Config,
         data: (event.data.data ?? null) as Payload | null,
         meta: (event.data.meta ?? null) as AppDataMeta | null,
+        // Left absent unless the host sent a real, positive dwell — a host that
+        // predates the field, or one with no dwell at all, must read as
+        // "unbounded" rather than as a zero-length slot.
+        ...(typeof durationMs === 'number' &&
+        Number.isFinite(durationMs) &&
+        durationMs > 0
+          ? { durationMs }
+          : {}),
       })
     } else if (isActiveMessage(event.data)) {
       // Default to muted when the flag is absent — never blast audio on a stale

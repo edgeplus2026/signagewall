@@ -14,7 +14,14 @@ apps/
 packages/
   apps-contract/   Shared contract: manifest + field-schema types + zod helpers
   apps/            One folder per signage app (manifest + schema + connector + player)
+
+ideas/             Drafts and hypotheses. NOT binding — see ideas/README.md
 ```
+
+Treat `ideas/` as thinking, never as a specification. Prices, dates and scope
+written there are proposals; the code, [TODO.md](TODO.md) and the live site are
+what actually hold. `apps/web/src/lib/pricing.ts` is the only source for what
+SignageWall costs.
 
 ## Tooling
 

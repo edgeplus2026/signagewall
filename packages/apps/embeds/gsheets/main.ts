@@ -2,6 +2,7 @@ import type { GsheetsPayload } from '../../src/gsheets/payload.js'
 import { freshnessFooterHtml } from '../_shared/freshness.js'
 import { type AppDataMeta, connectToHost } from '../_shared/host-bridge.js'
 import { applyTextStyle } from '../_shared/text-style.js'
+import { resumeIndex, stepMs } from '../_shared/dwell.js'
 
 import '../_shared/base.css'
 import './style.css'
@@ -279,6 +280,18 @@ let pageTimer: ReturnType<typeof setInterval> | undefined
 /** Re-run the last render — used by the resize path, which must re-measure. */
 let repaint: (() => void) | undefined
 let active = false
+/**
+ * Which page is showing, kept OUTSIDE `render` so it survives one.
+ *
+ * A board is re-rendered every time it comes back on screen, and a page counter
+ * local to that render restarts at one each time — so a sheet too long to get
+ * through in a single slot showed its opening rows forever and never the rest,
+ * however many times it came round. Holding the cursor here means each visit
+ * carries on from where the last was cut off, and the whole sheet is seen across
+ * a few rotations. It is re-clamped on every render because a resize changes how
+ * many rows fit, and with it how many pages exist.
+ */
+let pageCursor = 0
 
 function stopPaging(): void {
   if (pageTimer !== undefined) {
@@ -287,12 +300,18 @@ function stopPaging(): void {
   }
 }
 
-/** Seconds per page, as the operator set it; clamped to the manifest's range. */
-function pageMs(config: Record<string, unknown>): number {
+/** Seconds per page as the operator set it, clamped to the manifest's range. */
+function pageMs(
+  config: Record<string, unknown>,
+  pages: number,
+  durationMs: number | undefined,
+): number {
   const raw = config.pageSeconds
   const seconds =
     typeof raw === 'number' && Number.isFinite(raw) ? raw : DEFAULT_PAGE_SECONDS
-  return Math.min(300, Math.max(3, seconds)) * 1000
+  const configured = Math.min(300, Math.max(3, seconds)) * 1000
+  // Only a ceiling: the board has just its slot to get through every page.
+  return stepMs(configured, pages, durationMs)
 }
 
 /**
@@ -430,7 +449,7 @@ function render(
   }
 
   const pages = perPage > 0 ? Math.ceil(total / perPage) : 1
-  let page = 0
+  let page = resumeIndex(pageCursor, pages)
 
   const paint = (): void => {
     const start = page * perPage
@@ -446,9 +465,10 @@ function render(
   paint()
 
   if (pages > 1 && active) {
-    const interval = pageMs(config)
+    const interval = pageMs(config, pages, lastDurationMs)
     pageTimer = setInterval(() => {
       page = (page + 1) % pages
+      pageCursor = page
       paint()
     }, interval)
   }
@@ -457,6 +477,8 @@ function render(
 let lastConfig: Record<string, unknown> = {}
 let lastData: GsheetsPayload | null = null
 let lastMeta: AppDataMeta | null = null
+/** The slot's dwell, or undefined on a host that imposes none (CMS preview). */
+let lastDurationMs: number | undefined
 
 repaint = () => render(lastConfig, lastData, lastMeta)
 
@@ -470,10 +492,11 @@ window.addEventListener('resize', () => {
 })
 
 connectToHost<Record<string, unknown>, GsheetsPayload>(
-  ({ config, data, meta }) => {
+  ({ config, data, meta, durationMs }) => {
     lastConfig = config
     lastData = data
     lastMeta = meta
+    lastDurationMs = durationMs
     render(config, data, meta)
   },
   {

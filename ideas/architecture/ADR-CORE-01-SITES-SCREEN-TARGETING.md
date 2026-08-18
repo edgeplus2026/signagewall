@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../README.md).
+
 # ADR CORE-01: sites, screen metadata, saved targeting, and safe variables
 
 - **Status:** Proposed for INT-01 approval

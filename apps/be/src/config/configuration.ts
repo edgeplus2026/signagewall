@@ -135,7 +135,7 @@ export default () => ({
   },
   media: {
     maxFileSizeBytes: parseInt(
-      process.env.MEDIA_MAX_FILE_SIZE_BYTES ?? String(10 * 1024 * 1024),
+      process.env.MEDIA_MAX_FILE_SIZE_BYTES ?? String(200 * 1024 * 1024),
       10,
     ),
     maxFilesPerUpload: parseInt(

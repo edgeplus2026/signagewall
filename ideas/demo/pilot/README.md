@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../../README.md).
+
 # DEMO-01 · Sellable pilot paket
 
 Ovaj direktorijum pretvara trenutne funkcije u ponovljiv, pošten demo koji osnivač može da vodi bez otvaranja app kataloga pred kupcem. Primarni cilj nije prikaz broja aplikacija, već jedan tok rada kupca i jedna merljiva promena.

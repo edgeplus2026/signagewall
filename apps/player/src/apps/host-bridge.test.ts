@@ -158,7 +158,13 @@ describe('mountAppHost', () => {
 
     await expect(handle.ready).resolves.toBeUndefined()
     expect(createdIframe.contentWindow.postMessage).toHaveBeenCalledWith(
-      { type: 'app-config', config: { format: '24h' }, data: null, meta: null },
+      {
+        type: 'app-config',
+        config: { format: '24h' },
+        data: null,
+        meta: null,
+        durationMs: 10_000,
+      },
       'https://player.example',
     )
   })
@@ -303,7 +309,13 @@ describe('mountAppHost', () => {
     // Config lands first, then the buffered active/mute directive.
     expect(createdIframe.contentWindow.postMessage).toHaveBeenNthCalledWith(
       1,
-      { type: 'app-config', config: { format: '24h' }, data: null, meta: null },
+      {
+        type: 'app-config',
+        config: { format: '24h' },
+        data: null,
+        meta: null,
+        durationMs: 10_000,
+      },
       'https://player.example',
     )
     expect(createdIframe.contentWindow.postMessage).toHaveBeenNthCalledWith(
@@ -353,12 +365,19 @@ describe('mountAppHost', () => {
       handle.setConfig({ ...ITEM, data: { headline: 'fresh' } })
 
       expect(configCalls()).toEqual([
-        { type: 'app-config', config: { format: '24h' }, data: null, meta: null },
+        {
+        type: 'app-config',
+        config: { format: '24h' },
+        data: null,
+        meta: null,
+        durationMs: 10_000,
+      },
         {
           type: 'app-config',
           config: { format: '24h' },
           data: { headline: 'fresh' },
           meta: null,
+          durationMs: 10_000,
         },
       ])
       handle.dispose()
@@ -382,6 +401,7 @@ describe('mountAppHost', () => {
           config: { format: '24h' },
           data: { headline: 'fresh' },
           meta: null,
+          durationMs: 10_000,
         },
       ])
       handle.dispose()

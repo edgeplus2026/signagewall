@@ -29,7 +29,21 @@ export const gslidesManifest: AppManifest = {
   version: 3,
   // Polling fallback; the Drive webhook makes updates near-instant when a public
   // callback URL is configured.
-  refreshSeconds: 900,
+  /**
+   * One minute, and it is the FAST path rather than the fallback it looks like.
+   *
+   * The connector subscribes to Drive `files.watch`, but Google throttles change
+   * notifications for a file to roughly one per three minutes (measured in
+   * production on the Sheets connector: consecutive pings 180.7 s and 186.6 s
+   * apart). Push has a floor we cannot lower, and at the old 900 s cadence the
+   * poll was slower still — so an edited deck took many minutes to reach a wall.
+   *
+   * Affordable because the fetch SHORT-CIRCUITS: it reads the Drive revision
+   * first and reuses the mirrored slides unchanged, so a minute cadence costs one
+   * cheap metadata call per deck. The expensive path — a thumbnail export per
+   * slide, then mirroring — still only runs when the deck actually changed.
+   */
+  refreshSeconds: 60,
   icon: GSLIDES_ICON,
   color: '#FBBC04',
   configSchema: [

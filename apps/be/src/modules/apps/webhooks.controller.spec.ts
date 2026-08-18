@@ -96,4 +96,31 @@ describe('WebhooksController (google calendar push)', () => {
     flushCoalesceWindow();
     expect(refreshCacheKey).toHaveBeenCalledTimes(1);
   });
+
+  /**
+   * The other half of coalescing, and the one that bites silently.
+   *
+   * Restarting the window on every ping is what collapses a burst — but with no
+   * ceiling it is a debounce that can starve: while pings keep arriving closer
+   * together than the window, the refresh is deferred again and again and the
+   * screen never updates until the provider goes quiet. Capping the hold at
+   * `MAX_COALESCE_MS` from the first ping bounds the wait without giving up the
+   * collapsing.
+   */
+  it('serves a burst that never pauses, instead of deferring it forever', async () => {
+    const { controller, refreshCacheKey } = setup({
+      cacheKey: 'gsheets:conn-1:sheet-1',
+    });
+
+    // Pings every 500 ms for eleven seconds: never a gap long enough to let the
+    // 2 s window expire on its own.
+    for (let elapsed = 0; elapsed < 11_000; elapsed += 500) {
+      await controller.drive('chan-1', 'update');
+      jest.advanceTimersByTime(500);
+    }
+
+    // Fired on the 10 s ceiling rather than waiting for a pause that never came.
+    expect(refreshCacheKey).toHaveBeenCalledTimes(1);
+    expect(refreshCacheKey).toHaveBeenCalledWith('gsheets:conn-1:sheet-1');
+  });
 });

@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../../README.md).
+
 # Pilot metrike i ručni capture plan
 
 Cilj sedmodnevnog pilota nije da „dokaže digital signage”, već da proveri jednu hipotezu kupca: može li zajednički ekran, napajan iz postojećeg workflow-a, da ukloni konkretan ručni korak ili informacioni zastoj.

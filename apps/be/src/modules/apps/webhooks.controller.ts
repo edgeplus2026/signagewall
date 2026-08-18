@@ -18,6 +18,19 @@ import { AppDataService } from './app-data.service';
 const COALESCE_MS = 2_000;
 
 /**
+ * Ceiling on that hold, measured from the FIRST ping of a burst.
+ *
+ * {@link schedule} restarts the window on every ping, which is what makes it
+ * coalesce — but a restart with no ceiling is a debounce that can starve: while
+ * pings keep landing closer together than {@link COALESCE_MS}, the refresh is
+ * pushed back forever and the screen never updates until the edits stop. Google
+ * currently rate-limits Sheets notifications to roughly one per file per three
+ * minutes, so nothing observed today comes close — but the provider's cadence is
+ * not ours to rely on, and the failure mode is silent and unbounded.
+ */
+const MAX_COALESCE_MS = 10_000;
+
+/**
  * Provider change notifications.
  *
  * PUBLIC AND UNAUTHENTICATED, because the caller is Google and it has no token of
@@ -39,8 +52,14 @@ const COALESCE_MS = 2_000;
 @ApiExcludeController()
 @Controller('webhooks/google')
 export class WebhooksController {
-  /** cacheKey → the pending coalesced refresh. */
-  private readonly pending = new Map<string, NodeJS.Timeout>();
+  /**
+   * cacheKey → the pending coalesced refresh, with the instant the burst that
+   * scheduled it began (so the hold can be capped, see {@link MAX_COALESCE_MS}).
+   */
+  private readonly pending = new Map<
+    string,
+    { timer: NodeJS.Timeout; burstStartedAt: number }
+  >();
 
   constructor(
     private readonly appDataService: AppDataService,
@@ -93,21 +112,28 @@ export class WebhooksController {
 
   /**
    * Refresh this key once, shortly. A second ping for the same calendar inside the
-   * window replaces the first rather than queueing behind it.
+   * window replaces the first rather than queueing behind it — but never past
+   * {@link MAX_COALESCE_MS} from the ping that opened the burst, so an unbroken
+   * stream of pings still gets served instead of deferring the refresh forever.
    */
   private schedule(cacheKey: string): void {
     const existing = this.pending.get(cacheKey);
+    const burstStartedAt = existing?.burstStartedAt ?? Date.now();
     if (existing) {
-      clearTimeout(existing);
+      clearTimeout(existing.timer);
     }
+    const delay = Math.max(
+      0,
+      Math.min(COALESCE_MS, burstStartedAt + MAX_COALESCE_MS - Date.now()),
+    );
     const timer = setTimeout(() => {
       this.pending.delete(cacheKey);
       // Fire and forget: the caller (Google) has already been answered, and a failure
       // here costs at most one push — the poll picks the change up regardless.
       void this.appDataService.refreshCacheKey(cacheKey).catch(() => undefined);
-    }, COALESCE_MS);
+    }, delay);
     // Don't hold the process open on a pending refresh during shutdown.
     timer.unref?.();
-    this.pending.set(cacheKey, timer);
+    this.pending.set(cacheKey, { timer, burstStartedAt });
   }
 }

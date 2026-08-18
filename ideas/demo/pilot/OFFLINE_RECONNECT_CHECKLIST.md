@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../../README.md).
+
 # Offline i reconnect checklist
 
 Ovaj test odvaja dve različite greške: prekid mreže na player-u i neuspeh backend-a da pročita Sheet/Excel. One nisu ista stvar i trenutno ne daju isti vizuelni signal.

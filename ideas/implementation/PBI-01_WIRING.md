@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../README.md).
+
 # PBI-01 integration note
 
 Status: provider and shared INT-02 wiring complete; real-tenant smoke test remains blocked by missing tenant/capacity credentials.

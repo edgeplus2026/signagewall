@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../../README.md).
+
 # OpsBoard mapiranje za pilot podatke
 
 Sva tri CSV-a su sintetička: ne sadrže OAuth tokene, identifikatore konekcija, stvarne registracije vozila, lična imena ni podatke kupca. Namenjeni su za import u Google Sheets ili Microsoft Excel, odnosno za jednokratni CSV import u ručni OpsBoard.

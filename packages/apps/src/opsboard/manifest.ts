@@ -42,7 +42,12 @@ export const opsboardManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 2,
-  refreshSeconds: 300,
+  /**
+   * One minute — same reasoning as the menu board it shares its Sheets sync
+   * with: Drive push is throttled to roughly one notification per three minutes,
+   * so the poll cadence is the real bound on how fast an ops board moves.
+   */
+  refreshSeconds: 60,
   icon: OPSBOARD_ICON,
   color: '#22C55E',
   configSchema: [

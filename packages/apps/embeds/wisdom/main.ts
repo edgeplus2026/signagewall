@@ -1,6 +1,7 @@
 import type { WisdomDesign } from '../../src/wisdom/designs.js'
 import { QUOTE_COUNT, SECONDS_PER_QUOTE } from '../../src/wisdom/limits.js'
 import type { WisdomPayload, WisdomQuote } from '../../src/wisdom/payload.js'
+import { resumeIndex, stepMs } from '../_shared/dwell.js'
 import { freshnessFooterHtml } from '../_shared/freshness.js'
 import type { AppDataMeta } from '../_shared/host-bridge.js'
 import { connectToHost } from '../_shared/host-bridge.js'
@@ -52,6 +53,8 @@ let timer: ReturnType<typeof setInterval> | undefined
 
 /** Whether we are the on-screen item (the player preloads us hidden first). */
 let active = false
+/** The slot's dwell, or undefined on a host that imposes none (CMS preview). */
+let durationMs: number | undefined
 
 function clampInt(
   value: unknown,
@@ -149,10 +152,12 @@ function restartTimer(): void {
     return
   }
 
+  // `secondsPerQuote` is a ceiling: a set of quotes that would not all get a
+  // turn inside this slot shares the slot instead of stopping on the first.
   timer = setInterval(() => {
     index = (index + 1) % quotes.length
     render()
-  }, quoteSeconds() * 1000)
+  }, stepMs(quoteSeconds() * 1000, quotes.length, durationMs))
 }
 
 connectToHost<Record<string, unknown>, WisdomPayload>(
@@ -160,6 +165,7 @@ connectToHost<Record<string, unknown>, WisdomPayload>(
     config = message.config
     data = message.data
     meta = message.meta
+    durationMs = message.durationMs
     quotes = visibleQuotes()
     // Reshuffled only when the quotes themselves change — never per render.
     order = designOrder(quotes)
@@ -169,14 +175,14 @@ connectToHost<Record<string, unknown>, WisdomPayload>(
   },
   {
     onActive: (isActive) => {
-      // `app-active` re-fires on volume changes too, so only a real
-      // hidden → on-screen transition restarts from the first quote.
-      const becameActive = isActive && !active
       active = isActive
 
-      if (becameActive) {
-        index = 0
-      }
+      // Deliberately NOT reset to the first quote. Coming back on screen used to
+      // restart the rotation, so a screen whose slot is shorter than the set
+      // showed the same opening quotes on every appearance and never the rest —
+      // for an app whose whole purpose is to rotate. Clamped because the quote
+      // set changes when the payload does.
+      index = resumeIndex(index, quotes.length)
       // Repaint either way: the root's `is-active` class drives the entrance
       // animation, so going on- or off-screen has to reach the DOM.
       render()

@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../../README.md).
+
 # Outlook Room & Visitor Board · postojeći workflow
 
 Outlook aplikacija je read-only prikaz jednog Microsoft 365 kalendara. Isti tehnički tok podržava dve uske ponude: raspored sobe i recepcijski raspored poseta. „Visitor board” ovde znači pažljivo formatirani calendar event, ne visitor-management sistem.

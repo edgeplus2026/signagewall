@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../README.md).
+
 # Waves 0–3 — integrated status, release decision and next agent tickets
 
 **Date:** 5 August 2026  

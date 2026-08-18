@@ -44,7 +44,7 @@ verification) live in [POST_MERGE.md](POST_MERGE.md).
 ## P3 — SEO technical (this week; gates all organic traffic)
 
 - [x] **SEO-1: Apex→www 308 redirect** — indexing hard-requires `https://www.signagewall.com`; apex currently serves `Disallow: /` + `noindex` and no redirect exists. Add to `next.config.ts` + verify prod `NEXT_PUBLIC_SITE_URL`.
-- [ ] **SEO-2: Enable strict content gates** — ops steps, see [POST_MERGE.md](POST_MERGE.md) §3 (unreviewed CMS content is indexable today).
+- [x] **SEO-2: Strict content gates enforced** — the gate defaults closed in `apps/web/src/lib/payload.ts` rather than waiting on an env var production never had; `SEO_STRICT_CONTENT_GATES=false` is the only way to relax it. The backfill was a no-op (every seeded locale version already had an editor-owned intent), so nothing was written to the database. `pnpm --filter @signagewall/web seo:gates` is the new pre/post check: 0 of 114 published locale versions lose a URL, confirmed against a cold-cache sitemap diff. Takes effect on the next `apps/web` deploy; visible output is unchanged.
 - [x] **SEO-3: /solutions meta description advertises retired verticals** (healthcare, gyms) — fix `en` + `sr` message files; extend content audit to cover i18n metas.
 - [x] **SEO-4: `lastmod` for static sitemap routes (per-deploy build time); `revalidate` on `/apps/[slug]`.**
 - [ ] **SEO-5: Per-route OG images** for /pricing, /features, /solutions/*.

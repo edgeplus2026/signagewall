@@ -72,7 +72,7 @@ export const envValidationSchema = Joi.object({
     .min(1)
     .max(7 * 24 * 60 * 60)
     .default(900),
-  MEDIA_MAX_FILE_SIZE_BYTES: Joi.number().default(10 * 1024 * 1024),
+  MEDIA_MAX_FILE_SIZE_BYTES: Joi.number().default(200 * 1024 * 1024),
   MEDIA_MAX_FILES_PER_UPLOAD: Joi.number().default(10),
   PEXELS_API_KEY: Joi.string().optional().allow(''),
   PEXELS_API_BASE_URL: Joi.string().uri().default('https://api.pexels.com'),

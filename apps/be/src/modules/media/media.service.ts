@@ -2,7 +2,7 @@ import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { I18nService } from 'nestjs-i18n';
-import { mkdtemp, rm } from 'fs/promises';
+import { mkdtemp, open, readFile, rm, unlink } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { Readable } from 'stream';
@@ -17,8 +17,10 @@ import {
   ALLOWED_VIDEO_MIME_TYPES,
   COMPRESSED_IMAGE_EXTENSION,
   COMPRESSED_IMAGE_MIME_TYPE,
+  MEDIA_POSTER_MAX_BYTES,
   MEDIA_PROCESSING_MAX_ATTEMPTS,
   MEDIA_PROCESSING_STALE_MS,
+  MEDIA_SIGNATURE_HEAD_BYTES,
   TRANSCODED_VIDEO_EXTENSION,
   TRANSCODED_VIDEO_MIME_TYPE,
 } from './media.constants';
@@ -44,6 +46,58 @@ import { MediaVideoService } from './storage/media-video.service';
 import { R2StorageService } from './storage/r2-storage.service';
 import { PlaylistsRepository } from '../playlists/playlists.repository';
 import { ScreensService } from '../screens/screens.service';
+
+/**
+ * Bytes on their way into storage, wherever they currently live.
+ *
+ * A device upload is staged on disk by multer and streamed to R2 from there, so
+ * a 200 MB clip never occupies the heap. A provider import already holds its
+ * bytes in memory. Both end up in the same pipeline, and only the three
+ * operations below actually care which is which.
+ */
+export type MediaBytes =
+  | { kind: 'buffer'; buffer: Buffer }
+  | { kind: 'file'; path: string; size: number };
+
+function mediaBytesSize(bytes: MediaBytes): number {
+  return bytes.kind === 'buffer' ? bytes.buffer.length : bytes.size;
+}
+
+/** First bytes only — enough to match a magic number, never the whole file. */
+async function readMediaBytesHead(
+  bytes: MediaBytes,
+  length: number,
+): Promise<Buffer> {
+  if (bytes.kind === 'buffer') {
+    return bytes.buffer.subarray(0, length);
+  }
+
+  const handle = await open(bytes.path, 'r');
+  try {
+    const head = Buffer.alloc(length);
+    const { bytesRead } = await handle.read(head, 0, length, 0);
+    return head.subarray(0, bytesRead);
+  } finally {
+    await handle.close();
+  }
+}
+
+/**
+ * The whole thing in memory. Only ever called for images, which are bounded by
+ * what Sharp has to decode anyway — never for video, which is the entire reason
+ * the file variant exists.
+ */
+async function readMediaBytes(bytes: MediaBytes): Promise<Buffer> {
+  return bytes.kind === 'buffer' ? bytes.buffer : readFile(bytes.path);
+}
+
+/** What gets written to R2, after images have been re-encoded. */
+interface PreparedOriginal {
+  name: string;
+  mimeType: string;
+  size: number;
+  body: MediaBytes;
+}
 
 @Injectable()
 export class MediaService {
@@ -238,6 +292,15 @@ export class MediaService {
     return toMediaItemResponse(folder, getPublicBaseUrl(this.configService));
   }
 
+  /**
+   * A device upload, staged on disk by multer.
+   *
+   * The staged files are this method's responsibility for exactly as long as it
+   * runs: the `finally` removes them whether the upload succeeded, was rejected
+   * as invalid, or blew up inside R2. Anything that escapes that — a request
+   * the client abandoned mid-body, a size limit multer rejected before this
+   * handler was ever reached — is caught later by `sweepStaleUploads`.
+   */
   async uploadFile(
     organizationId: string,
     userId: string,
@@ -246,22 +309,38 @@ export class MediaService {
     poster?: Express.Multer.File,
     durationSeconds?: number,
   ): Promise<MediaItemResponseDto> {
-    this.assertValidUploadFile(file);
+    try {
+      await this.assertValidUploadFile(file);
 
-    const mediaType = this.resolveMediaType(file.mimetype);
-    // For videos, the client-captured poster frame (if any) becomes the
-    // thumbnail source; images thumbnail their own bytes inside persistAsset.
-    const posterSource = this.resolvePosterSource(mediaType, poster);
+      const mediaType = this.resolveMediaType(file.mimetype);
+      // For videos, the client-captured poster frame (if any) becomes the
+      // thumbnail source; images thumbnail their own bytes inside persistAsset.
+      const posterSource = await this.resolvePosterSource(mediaType, poster);
 
-    return this.createMediaFromBuffer(organizationId, userId, {
-      buffer: file.buffer,
-      mimeType: file.mimetype,
-      name: file.originalname,
-      source: MediaItemSource.LOCAL,
-      parentId,
-      ...(durationSeconds !== undefined ? { durationSeconds } : {}),
-      ...(posterSource ? { thumbnailSource: posterSource } : {}),
-    });
+      return await this.createMediaFromSource(organizationId, userId, {
+        bytes: { kind: 'file', path: file.path, size: file.size },
+        mimeType: file.mimetype,
+        name: file.originalname,
+        source: MediaItemSource.LOCAL,
+        parentId,
+        ...(durationSeconds !== undefined ? { durationSeconds } : {}),
+        ...(posterSource ? { thumbnailSource: posterSource } : {}),
+      });
+    } finally {
+      await this.discardStagedUploads(file, poster);
+    }
+  }
+
+  /** Removes multer's staged temp files; a failure here is never the caller's. */
+  private async discardStagedUploads(
+    ...files: (Express.Multer.File | undefined)[]
+  ): Promise<void> {
+    await Promise.all(
+      files.map(async (staged) => {
+        if (!staged?.path) return;
+        await unlink(staged.path).catch(() => undefined);
+      }),
+    );
   }
 
   /**
@@ -291,6 +370,37 @@ export class MediaService {
       awaitProcessing?: boolean;
     },
   ): Promise<MediaItemResponseDto> {
+    const { buffer, ...rest } = input;
+
+    return this.createMediaFromSource(organizationId, userId, {
+      ...rest,
+      bytes: { kind: 'buffer', buffer },
+    });
+  }
+
+  /**
+   * The shared pipeline, indifferent to where the bytes are.
+   *
+   * Device uploads arrive as a disk-staged file and are streamed to R2 without
+   * ever being read whole; provider imports arrive as a buffer they already
+   * hold. Everything after this — validation, image re-encoding, the record,
+   * thumbnailing, transcoding — is identical for both.
+   */
+  async createMediaFromSource(
+    organizationId: string,
+    userId: string,
+    input: {
+      bytes: MediaBytes;
+      mimeType: string;
+      name: string;
+      source: MediaItemSource;
+      parentId?: string | null;
+      durationSeconds?: number;
+      maxSizeBytes?: number;
+      thumbnailSource?: { buffer: Buffer; mimeType: string };
+      awaitProcessing?: boolean;
+    },
+  ): Promise<MediaItemResponseDto> {
     if (!this.r2StorageService.isConfigured()) {
       throw BusinessException.badRequest(
         this.i18n.t('media.storageNotConfigured'),
@@ -300,7 +410,9 @@ export class MediaService {
     const parentId = input.parentId ?? null;
     const maxSizeBytes = input.maxSizeBytes ?? this.maxFileSizeBytes;
 
-    if (input.buffer.length > maxSizeBytes) {
+    const originalSize = mediaBytesSize(input.bytes);
+
+    if (originalSize > maxSizeBytes) {
       throw BusinessException.badRequest(this.i18n.t('media.fileTooLarge'));
     }
 
@@ -316,7 +428,7 @@ export class MediaService {
     // in under a falsified content type (applies equally to provider downloads).
     if (
       !isBufferConsistentWithMime(
-        input.buffer,
+        await readMediaBytesHead(input.bytes, MEDIA_SIGNATURE_HEAD_BYTES),
         input.mimeType as AllowedMediaMimeType,
       )
     ) {
@@ -339,9 +451,10 @@ export class MediaService {
     // within the R2 free tier; videos pass through untouched (Sharp can't
     // decode video). Both upload paths (device upload and stock import) share
     // this method, so this covers them uniformly.
-    const original = await this.compressOriginalIfImage(
+    const original = await this.prepareOriginal(
       mediaType,
-      input.buffer,
+      input.bytes,
+      originalSize,
       input.mimeType,
       input.name,
     );
@@ -358,7 +471,7 @@ export class MediaService {
       type: mediaType,
       name: original.name,
       mimeType: original.mimeType,
-      size: original.buffer.length,
+      size: original.size,
       storageKey,
       uploadedBy: userId,
       status: MediaItemStatus.PROCESSING,
@@ -369,11 +482,7 @@ export class MediaService {
     });
 
     try {
-      await this.r2StorageService.uploadObject(
-        storageKey,
-        original.buffer,
-        original.mimeType,
-      );
+      await this.uploadOriginal(storageKey, original);
     } catch (error) {
       await this.mediaRepository.updateById(
         organizationId,
@@ -392,8 +501,8 @@ export class MediaService {
     // stored in R2, so if this process dies the reconciliation sweep re-drives
     // it — no buffer needs to survive in memory.
     const thumbnailSource =
-      mediaType === MediaItemType.IMAGE
-        ? { buffer: original.buffer, mimeType: original.mimeType }
+      mediaType === MediaItemType.IMAGE && original.body.kind === 'buffer'
+        ? { buffer: original.body.buffer, mimeType: original.mimeType }
         : input.thumbnailSource;
 
     if (input.awaitProcessing) {
@@ -900,6 +1009,62 @@ export class MediaService {
     }
 
     throw BusinessException.badRequest(this.i18n.t('media.invalidFileType'));
+  }
+
+  /**
+   * Decides what actually gets stored.
+   *
+   * Images are read into memory and re-encoded — Sharp needs the bytes, and an
+   * image is bounded by what it can decode anyway. Video is left exactly where
+   * it is: if it came in on disk it stays on disk, all the way to R2. That
+   * asymmetry is the whole memory saving, so resist "simplifying" it by reading
+   * both.
+   */
+  private async prepareOriginal(
+    mediaType: MediaItemType,
+    bytes: MediaBytes,
+    size: number,
+    mimeType: string,
+    name: string,
+  ): Promise<PreparedOriginal> {
+    if (mediaType !== MediaItemType.IMAGE) {
+      return { name, mimeType, size, body: bytes };
+    }
+
+    const compressed = await this.compressOriginalIfImage(
+      mediaType,
+      await readMediaBytes(bytes),
+      mimeType,
+      name,
+    );
+
+    return {
+      name: compressed.name,
+      mimeType: compressed.mimeType,
+      size: compressed.buffer.length,
+      body: { kind: 'buffer', buffer: compressed.buffer },
+    };
+  }
+
+  /** Streams a disk-staged original to R2; buffered ones are PUT directly. */
+  private async uploadOriginal(
+    storageKey: string,
+    original: PreparedOriginal,
+  ): Promise<void> {
+    if (original.body.kind === 'file') {
+      await this.r2StorageService.uploadFile(
+        storageKey,
+        original.body.path,
+        original.mimeType,
+      );
+      return;
+    }
+
+    await this.r2StorageService.uploadObject(
+      storageKey,
+      original.body.buffer,
+      original.mimeType,
+    );
   }
 
   /**

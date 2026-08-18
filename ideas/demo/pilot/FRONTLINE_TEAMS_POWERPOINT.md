@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../../README.md).
+
 # Frontline Communications · postojeći Teams + PowerPoint workflow
 
 Ovo je paketiranje dve postojeće aplikacije u jednu buyer priču. Nema novog kombinovanog konektora: Teams i PowerPoint ostaju odvojeni content item-i koje stavljamo u istu playlistu.

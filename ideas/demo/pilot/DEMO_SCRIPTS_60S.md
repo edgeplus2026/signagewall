@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../../README.md).
+
 # Demo skripte od 60 sekundi
 
 Svaka skripta počinje sa već otvorenim izvorom na laptopu i već dodeljenim content item-om na player-u. Ne otvarati katalog i ne prebacivati razgovor na listu funkcija. Rečenice u navodnicima su dozvoljene tvrdnje; tekst u zagradama je radnja demonstratora.

@@ -25,6 +25,7 @@
     "content:retire-solutions:apply": "payload run scripts/retire-solutions.ts apply",
     "seo:backfill": "payload run scripts/backfill-seo-publishing.ts",
     "seo:backfill:apply": "payload run scripts/backfill-seo-publishing.ts apply",
+    "seo:gates": "payload run scripts/seo-gate-report.ts",
     "seo:content": "payload run scripts/seo-content-audit.ts",
     "seo:content:fix": "payload run scripts/seo-content-fix.ts",
     "seo:content:fix:apply": "payload run scripts/seo-content-fix.ts apply"

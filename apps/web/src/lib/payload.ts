@@ -35,10 +35,25 @@ interface EditorialDefaults {
   localeReady: boolean
 }
 
-/** Rollout switch: new documents always default closed in the schema, while
- * legacy Posts/Solutions can remain indexed until the explicit backfill has
- * been reviewed and applied. */
-export const STRICT_CONTENT_GATES = process.env.SEO_STRICT_CONTENT_GATES === 'true'
+/**
+ * Fail-closed publishing gate: a locale version is public only once an editor
+ * has explicitly marked it ready and indexable.
+ *
+ * This used to be opt-in (`=== 'true'`), for the length of a rollout in which
+ * legacy Posts/Solutions predated the gate fields and would have vanished the
+ * moment it was enforced. That rollout is done — every published locale version
+ * of every Post, Solution and App Page now carries an explicit decision, which
+ * `pnpm seo:gates` reports and re-checks. Opt-in was the wrong shape to leave
+ * behind: the *absence* of a variable decided that unreviewed content could be
+ * indexed, which is exactly how production served it — the variable was never
+ * set there — and how any new environment would serve it again. (Preview and
+ * staging deploys were never the exposure; they are blocked sitewide by the
+ * origin check in `site-url.ts`.)
+ *
+ * `SEO_STRICT_CONTENT_GATES=false` still relaxes it, for a bulk import whose
+ * records legitimately have no decision yet. Nothing else needs to set it.
+ */
+export const STRICT_CONTENT_GATES = process.env.SEO_STRICT_CONTENT_GATES !== 'false'
 
 export function legacyContentDefaults(): EditorialDefaults {
   return {

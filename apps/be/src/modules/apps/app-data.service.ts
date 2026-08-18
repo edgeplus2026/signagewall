@@ -78,6 +78,20 @@ const FETCH_TIMEOUT_MS = 15_000;
  */
 const ERROR_RETRY_SECONDS = 120;
 /**
+ * Slack on the cadence comparison, so a key doesn't miss its tick by a hair.
+ *
+ * `lastAttemptAt` is stamped when the fetch COMPLETES, while the tick that
+ * started it fired earlier — so one cadence later the age is a fraction of a
+ * second SHORT, the key is judged not due, and it waits a whole extra 60 s tick.
+ * Measured in production: a 300 s app refreshed every 360 s, every time, and the
+ * error never surfaced because both numbers look plausible in a log.
+ *
+ * Must stay well under the tick interval; the applied slack is additionally
+ * capped at half the cadence so a sub-minute cadence can't be pulled forward
+ * into a hot loop.
+ */
+const CADENCE_SLACK_MS = 5_000;
+/**
  * How long a cache entry may go untouched before it's considered an orphan.
  * The slowest app refreshes daily (`wisdom`, 86 400 s), so seven days is a wide
  * margin over "would have been attempted by now" — nothing in use can reach it.
@@ -366,7 +380,9 @@ export class AppDataService {
       ? Math.min(candidate.refreshSeconds, ERROR_RETRY_SECONDS)
       : candidate.refreshSeconds;
     const ageMs = now.getTime() - lastAttemptAt.getTime();
-    return ageMs >= cadenceSeconds * 1000;
+    const cadenceMs = cadenceSeconds * 1000;
+    const slackMs = Math.min(CADENCE_SLACK_MS, cadenceMs / 2);
+    return ageMs >= cadenceMs - slackMs;
   }
 
   /**

@@ -1,4 +1,8 @@
-export const MEDIA_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+/* Mirrors MEDIA_MAX_FILE_SIZE_BYTES in apps/be/src/modules/media/media.constants.ts.
+   The two are checked independently — the browser rejects an oversized file
+   before spending the customer's upload bandwidth, the server rejects it because
+   a client check is not a control. Raise BOTH or the lower one silently wins. */
+export const MEDIA_MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024
 export const MEDIA_MAX_FILES_PER_UPLOAD = 10
 export const MEDIA_MAX_CONCURRENT_UPLOADS = 4
 export const MEDIA_UPLOAD_POLL_INTERVAL_MS = 2000

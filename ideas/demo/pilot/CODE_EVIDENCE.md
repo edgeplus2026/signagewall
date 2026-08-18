@@ -1,3 +1,6 @@
+> **Nacrt, ne odluka.** Ništa ovde nije obavezujuće — vidi [ideas/README.md](../../README.md).
+> **A draft, not a decision.** Nothing here is binding — see [ideas/README.md](../../README.md).
+
 # Current-code evidence za demo tvrdnje
 
 Ovaj dokument je pregled stanja koda na dan pripreme DEMO-01. On nije zamena za realni OAuth, webhook, uređaj ili offline smoke test; služi da demonstrator ne obeća nešto što source ne podržava.

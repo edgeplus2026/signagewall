@@ -70,12 +70,22 @@ merges. Code-side work stays in [TODO.md](TODO.md).
 - [ ] Verify the new apex→www redirect: `curl -I https://signagewall.com/pricing`
       must return 308 → `https://www.signagewall.com/pricing`. If the apex
       doesn't reach the Next app at all, add the domain alias in Vercel first.
-- [ ] **SEO-2 (strict content gates):**
-      1. `pnpm --filter @signagewall/web seo:backfill` (dry run, review),
-      2. take a DB backup,
-      3. `pnpm --filter @signagewall/web seo:backfill:apply`,
-      4. set `SEO_STRICT_CONTENT_GATES=true` in production,
-      5. re-run `pnpm --filter @signagewall/web content:audit` and resolve warnings.
+- [x] **SEO-2 (strict content gates) — resolved in code; no ops step remains.**
+      The gate now defaults *closed* (`apps/web/src/lib/payload.ts`) and is
+      relaxed only by an explicit `SEO_STRICT_CONTENT_GATES=false`. Nothing has
+      to be set in Vercel, and no future environment can publish unreviewed
+      content simply by omitting a variable — which is precisely how production
+      served it, since the variable was never set there.
+      The backfill turned out to be a no-op: all 52 seeded locale versions
+      already carry an editor-owned intent, so `seo:backfill` skipped every one
+      of them. No database write was needed, and therefore no backup.
+      Verified two independent ways before the default changed:
+      `pnpm --filter @signagewall/web seo:gates` reports 0 of 114 published
+      locale versions losing a public URL, and a local sitemap rendered under
+      the strict gate is URL-for-URL identical to the live one (146 each).
+      Re-run `seo:gates` after any bulk content import. One trap: two dev runs
+      sharing a warm `.next` cache make that sitemap comparison lie — clear the
+      cache between them, or it reports drops that are not real.
 - [ ] After the redirect is live, check Google Search Console: submit the
       sitemap under the www property, confirm no coverage drop.
 

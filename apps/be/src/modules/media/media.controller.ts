@@ -16,6 +16,10 @@ import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
+import { mkdirSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { diskStorage } from 'multer';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequiredOrganizationId } from '../../common/decorators/current-organization.decorator';
@@ -28,7 +32,10 @@ import {
   ApiSuccessNullResponse,
   ApiSuccessResponse,
 } from '../../common/swagger';
-import { MEDIA_MAX_FILE_SIZE_BYTES } from './media.constants';
+import {
+  MEDIA_MAX_FILE_SIZE_BYTES,
+  MEDIA_UPLOAD_TEMP_DIR_NAME,
+} from './media.constants';
 import { CloudImportService } from './cloud-import.service';
 import { CloudImportResponseDto } from './dto/cloud-import-result.dto';
 import { CreateFolderDto } from './dto/create-folder.dto';
@@ -40,6 +47,24 @@ import { UpdateMediaDto } from './dto/update-media.dto';
 import { UploadMediaBodyDto } from './dto/upload-media.dto';
 import { MediaItemResponseDto } from './mappers/media.mapper';
 import { MediaService } from './media.service';
+
+/**
+ * Directory multer stages uploads into, created once on first use.
+ *
+ * Its own directory rather than bare `tmpdir()` so the stale-upload sweep can
+ * tell our files from everything else the process writes there.
+ */
+let cachedUploadTempDir: string | undefined;
+
+function uploadTempDir(): string {
+  if (!cachedUploadTempDir) {
+    const dir = join(tmpdir(), MEDIA_UPLOAD_TEMP_DIR_NAME);
+    mkdirSync(dir, { recursive: true });
+    cachedUploadTempDir = dir;
+  }
+
+  return cachedUploadTempDir;
+}
 
 @ApiTags('media')
 @ApiOrgScoped()
@@ -170,6 +195,12 @@ export class MediaController {
         { name: 'poster', maxCount: 1 },
       ],
       {
+        // Staged on disk, never in the heap. Multer's default memory storage
+        // held the whole file in a Buffer, which is why the ceiling had to stay
+        // at 10 MB: a handful of concurrent video uploads was enough to put the
+        // container near the OOM killer that has already claimed ffmpeg once.
+        // The service streams this file straight to R2 and deletes it.
+        storage: diskStorage({ destination: uploadTempDir() }),
         limits: {
           // Kept in sync with `media.maxFileSizeBytes` (same env var) so Multer
           // and the service-level check agree on the ceiling.

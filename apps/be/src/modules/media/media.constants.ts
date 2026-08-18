@@ -1,7 +1,54 @@
 export const MEDIA_COLLECTION = 'mediaitems';
 
-export const MEDIA_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+/**
+ * Ceiling for one uploaded file.
+ *
+ * This was 10 MB for as long as an upload was buffered whole in the heap: the
+ * container has already been OOM-killed once over video, and every concurrent
+ * upload multiplied the exposure. Uploads are now staged on disk instead
+ * (multer writes a temp file, R2 streams it back off disk), so the number is
+ * bounded by what a signage clip legitimately needs rather than by heap.
+ *
+ * 200 MB covers roughly two minutes of 1080p at 15 Mbps — the shape of an
+ * agency export. What actually lands in R2 is far smaller, because the video is
+ * re-encoded to H.264 CRF 28 afterwards; the cap governs the *source* a
+ * customer hands us, not the stored object.
+ *
+ * Raising it further means auditing two things first: the temp disk this
+ * container has (`MEDIA_MAX_CONCURRENT_UPLOADS` files of this size can exist at
+ * once) and how long a player on a shop's connection takes to fetch the result.
+ */
+export const MEDIA_MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024;
 export const MEDIA_MAX_FILES_PER_UPLOAD = 10;
+
+/**
+ * Bytes read off the front of an upload to check its magic number.
+ *
+ * The longest signature this checks sits at offset 8 (QuickTime brand), so 64
+ * is generous. It exists as a constant to make the point that validating a
+ * file's type never requires reading the file.
+ */
+export const MEDIA_SIGNATURE_HEAD_BYTES = 64;
+
+/**
+ * Ceiling for the optional poster frame a client captures for a video.
+ *
+ * Deliberately NOT the upload ceiling. A poster is one decoded video frame and
+ * is read into memory to be thumbnailed, so letting it inherit the 200 MB cap
+ * would reintroduce, through a side field, exactly the heap exposure that
+ * staging uploads on disk removes.
+ */
+export const MEDIA_POSTER_MAX_BYTES = 8 * 1024 * 1024;
+
+/** Where multer stages an in-flight upload before it is streamed to R2. */
+export const MEDIA_UPLOAD_TEMP_DIR_NAME = 'signagewall-uploads';
+
+/**
+ * A staged upload older than this was orphaned — the request died between
+ * multer writing the file and the handler deleting it (a cancelled upload, a
+ * rejected size limit, a crash). Swept, or a 200 MB cap fills the disk.
+ */
+export const MEDIA_UPLOAD_TEMP_STALE_MS = 60 * 60 * 1000;
 
 export const ALLOWED_IMAGE_MIME_TYPES = [
   'image/jpeg',
