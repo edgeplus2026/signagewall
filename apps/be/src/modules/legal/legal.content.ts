@@ -1,5 +1,16 @@
 import type { LegalDocType, LegalLocale } from './legal.constants';
 
+/**
+ * Contact published in both documents for legal and data-protection requests.
+ *
+ * A single constant rather than the address typed into four template literals:
+ * the Terms and the Privacy Policy must never disagree about where a request
+ * goes, and a GDPR deadline runs from the moment a request is sent — not from
+ * the moment somebody notices it went to the wrong place. Mirrors
+ * `COMPANY.email` in the marketing app; change both together.
+ */
+const CONTACT_EMAIL = 'office@signagewall.com';
+
 export interface LegalBody {
   title: string;
   /** Markdown body, rendered read-only by the CMS. */
@@ -138,7 +149,7 @@ without our consent; we may assign them in connection with a merger, acquisition
 sale of assets.
 
 ## 19. Contact
-Questions about these Terms: [legal@yourdomain]. [Company legal name and registered
+Questions about these Terms: ${CONTACT_EMAIL}. [Company legal name and registered
 address].`;
 
 const PRIVACY_EN = `# Privacy Policy
@@ -210,7 +221,7 @@ Subject to applicable law, you have the right to:
 ## 8. How to exercise your rights
 You can export a copy of your personal data at any time from Settings ("Your data")
 and delete your Account from Settings. For other requests, contact us at
-[privacy@yourdomain]. We will respond within the timeframes required by law.
+${CONTACT_EMAIL}. We will respond within the timeframes required by law.
 
 ## 9. Cookies and local storage
 We use strictly necessary cookies and browser local storage to keep you signed in
@@ -231,7 +242,7 @@ We may update this Policy from time to time. When we make material changes we wi
 update the version and ask you to review and accept the updated documents.
 
 ## 13. Contact
-Privacy questions or requests: [privacy@yourdomain]. [Company legal name and
+Privacy questions or requests: ${CONTACT_EMAIL}. [Company legal name and
 registered address]. If we have appointed a data protection officer, their contact
 details will be provided here.`;
 
@@ -355,7 +366,7 @@ naše saglasnosti; mi ih možemo preneti u vezi sa spajanjem, pripajanjem ili pr
 imovine.
 
 ## 19. Kontakt
-Pitanja o ovim Uslovima: [legal@vasdomen]. [Pun pravni naziv i sedište društva].`;
+Pitanja o ovim Uslovima: ${CONTACT_EMAIL}. [Pun pravni naziv i sedište društva].`;
 
 const PRIVACY_SR = `# Politika privatnosti
 
@@ -424,7 +435,7 @@ U skladu sa važećim propisima, imate pravo da:
 ## 8. Kako da ostvarite svoja prava
 Kopiju svojih ličnih podataka možete izvesti u svakom trenutku iz Podešavanja
 ("Vaši podaci"), a Nalog obrisati iz Podešavanja. Za ostale zahteve kontaktirajte
-nas na [privatnost@vasdomen]. Odgovorićemo u rokovima koje propisuje zakon.
+nas na ${CONTACT_EMAIL}. Odgovorićemo u rokovima koje propisuje zakon.
 
 ## 9. Kolačići i lokalno skladište
 Koristimo isključivo neophodne kolačiće i lokalno skladište pregledača da biste
@@ -445,7 +456,7 @@ Ovu Politiku možemo povremeno ažurirati. Kod bitnih izmena ažuriraćemo verzi
 zatražiti da pregledate i prihvatite ažurirane dokumente.
 
 ## 13. Kontakt
-Pitanja ili zahtevi u vezi sa privatnošću: [privatnost@vasdomen]. [Pun pravni naziv
+Pitanja ili zahtevi u vezi sa privatnošću: ${CONTACT_EMAIL}. [Pun pravni naziv
 i sedište društva]. Ako smo imenovali lice za zaštitu podataka, njegovi kontakt
 podaci biće navedeni ovde.`;
 
