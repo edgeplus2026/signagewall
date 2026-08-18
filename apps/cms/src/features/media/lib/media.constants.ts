@@ -6,7 +6,19 @@ export const MEDIA_MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024
 export const MEDIA_MAX_FILES_PER_UPLOAD = 10
 export const MEDIA_MAX_CONCURRENT_UPLOADS = 4
 export const MEDIA_UPLOAD_POLL_INTERVAL_MS = 2000
-export const MEDIA_UPLOAD_MAX_POLL_ATTEMPTS = 60
+
+/**
+ * How long the UI waits for server-side processing after the bytes have landed.
+ *
+ * 60 attempts (two minutes) was sized for a 10 MB file. A 200 MB video is
+ * downloaded from R2, re-encoded by ffmpeg and uploaded back, and on a busy
+ * container that can outlast two minutes — at which point the customer was told
+ * `processing_failed` about a file that then quietly turned up READY. Giving up
+ * early on work that is still running is the worse error, so the window is ten
+ * minutes; polling stops the moment the item is ready, so a small image still
+ * completes in seconds.
+ */
+export const MEDIA_UPLOAD_MAX_POLL_ATTEMPTS = 300
 
 export const ALLOWED_IMAGE_MIME_TYPES = [
   'image/jpeg',

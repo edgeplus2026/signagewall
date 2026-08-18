@@ -13,6 +13,9 @@ import { requestIdMiddleware } from './common/middleware/request-id.middleware';
 import { RedisIoAdapter } from './common/redis/redis-io.adapter';
 import { setupSwagger } from './common/swagger';
 
+/** Whole-request budget, sized by the largest upload the API accepts. */
+const UPLOAD_REQUEST_TIMEOUT_MS = 20 * 60 * 1000;
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
@@ -100,6 +103,16 @@ async function bootstrap() {
   }
 
   await app.listen(port);
+
+  // Node 18 defaults `requestTimeout` to 5 minutes, which is a limit on the
+  // WHOLE request — body included. A 200 MB video (the media upload ceiling)
+  // therefore needed ~5.6 Mbit/s of sustained upload just to beat the clock,
+  // and anything slower was killed mid-body and surfaced to the customer as a
+  // failed upload. 20 minutes puts the floor at roughly 1.4 Mbit/s instead.
+  //
+  // `headersTimeout` is deliberately left alone: the headers phase is where
+  // slow-request abuse actually lives, and it still has to finish in 60s.
+  app.getHttpServer().requestTimeout = UPLOAD_REQUEST_TIMEOUT_MS;
 }
 
 void bootstrap();

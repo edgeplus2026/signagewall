@@ -4,7 +4,33 @@ import { mediaApi } from '@/features/media/api/mediaApi'
 import type { MediaItem } from '@/features/media/types/media.types'
 import { api } from '@/lib/axios'
 
-const UPLOAD_TIMEOUT_MS = 120_000
+/**
+ * How long the browser waits on one upload.
+ *
+ * A flat two minutes was fine while nothing over 10 MB could be sent. At the
+ * 200 MB ceiling it became a bandwidth test the customer always loses: 200 MB
+ * in 120s demands ~13 Mbit/s of upload, and a shop on business ADSL got a
+ * failed upload for a file that was transferring perfectly.
+ *
+ * So the budget is derived from the file instead, assuming a deliberately
+ * pessimistic 150 KB/s (~1.2 Mbit/s) floor plus a fixed allowance for the
+ * server's own work. It is a ceiling, not a wait — the request resolves when it
+ * resolves, and the upload can always be cancelled from the UI. Kept under the
+ * API's 20-minute `requestTimeout` so the browser gives up first and can say
+ * something useful, rather than the connection dying underneath it.
+ */
+const UPLOAD_BASE_TIMEOUT_MS = 60_000
+const UPLOAD_ASSUMED_BYTES_PER_SECOND = 150 * 1024
+const UPLOAD_MAX_TIMEOUT_MS = 18 * 60_000
+
+export function uploadTimeoutFor(sizeBytes: number): number {
+  const transferMs = (sizeBytes / UPLOAD_ASSUMED_BYTES_PER_SECOND) * 1000
+
+  return Math.min(
+    UPLOAD_BASE_TIMEOUT_MS + Math.ceil(transferMs),
+    UPLOAD_MAX_TIMEOUT_MS,
+  )
+}
 
 interface UploadMediaFileOptions {
   file: File
@@ -42,7 +68,7 @@ export async function uploadMediaFile({
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-    timeout: UPLOAD_TIMEOUT_MS,
+    timeout: uploadTimeoutFor(file.size),
     ...(signal ? { signal } : {}),
     onUploadProgress: (event) => {
       if (!event.total) {
