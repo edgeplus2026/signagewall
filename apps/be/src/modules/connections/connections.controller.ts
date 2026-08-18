@@ -152,9 +152,21 @@ export class ConnectionsController {
     @Param('provider') provider: ConnectionProvider,
     @Query('code') code: string,
     @Query('state') state: string,
+    // Providers report a refused/cancelled consent by sending `error` INSTEAD of
+    // `code`. Without reading it we would try to exchange an undefined code and
+    // log a meaningless failure for the most ordinary outcome there is.
+    @Query('error') error: string | undefined,
+    @Query('error_description') errorDescription: string | undefined,
     @Res() res: Response,
   ): Promise<void> {
-    const frontendUrl = this.configService.getOrThrow<string>('frontendUrl');
+    if (error) {
+      this.logger.warn(
+        `OAuth consent refused for provider "${provider}": ${error}` +
+          (errorDescription ? ` (${errorDescription})` : ''),
+      );
+      await this.redirectWithError(res, state, 'denied');
+      return;
+    }
 
     try {
       const { organizationId, instanceId, connection } =
@@ -167,20 +179,62 @@ export class ConnectionsController {
       );
       const target = new URL(
         `/apps/${instance.appId}/instances/${instanceId}`,
-        frontendUrl,
+        this.frontendUrl(),
       );
       target.searchParams.set('connected', '1');
       target.searchParams.set('account', connection.accountLabel);
       res.redirect(target.toString());
-    } catch (error) {
+    } catch (caught) {
       // Log server-side (with the provider) so a failed connect is diagnosable;
-      // never leak details to the browser redirect — the CMS shows a generic error.
+      // never leak details to the browser redirect — the CMS shows a generic
+      // error keyed on the coarse reason below.
       this.logger.warn(
-        `OAuth callback failed for provider "${provider}": ${String(error)}`,
+        `OAuth callback failed for provider "${provider}": ${String(caught)}`,
       );
-      const target = new URL('/apps', frontendUrl);
-      target.searchParams.set('connect_error', '1');
-      res.redirect(target.toString());
+      await this.redirectWithError(res, state, 'failed');
     }
+  }
+
+  /**
+   * Return the operator to the instance they started the connect from, with a
+   * coarse failure reason for the toast.
+   *
+   * The instance page is the ONLY page that reads these params, so falling back
+   * to the app catalog means the failure is shown nowhere at all — which is why
+   * the state is re-read here purely to recover the route. It is still signature-
+   * checked ({@link ConnectionsService.peekState}); it just reports failure
+   * instead of throwing, because the state may BE what failed. A state we cannot
+   * verify, or an instance we cannot load, is itself a good reason not to send
+   * anyone to an instance page, so that path lands on the catalog and at least
+   * says something there.
+   */
+  private async redirectWithError(
+    res: Response,
+    state: string,
+    reason: 'denied' | 'failed',
+  ): Promise<void> {
+    const frontendUrl = this.frontendUrl();
+    let path = '/apps';
+
+    const payload = this.connectionsService.peekState(state ?? '');
+    if (payload) {
+      try {
+        const instance = await this.appInstancesService.getById(
+          payload.organizationId,
+          payload.instanceId,
+        );
+        path = `/apps/${instance.appId}/instances/${payload.instanceId}`;
+      } catch {
+        // Instance gone or not readable — the catalog fallback covers it.
+      }
+    }
+
+    const target = new URL(path, frontendUrl);
+    target.searchParams.set('connect_error', reason);
+    res.redirect(target.toString());
+  }
+
+  private frontendUrl(): string {
+    return this.configService.getOrThrow<string>('frontendUrl');
   }
 }

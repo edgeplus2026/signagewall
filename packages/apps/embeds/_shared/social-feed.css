@@ -1,5 +1,6 @@
-/* Shared styles for the social-feed apps (Instagram, Facebook). The bundle sets
-   --sf-accent / --sf-card via the theme; everything here is layout. */
+/* Shared styles for the social-feed apps (Instagram, Facebook, LinkedIn, Teams).
+   The bundle sets --sf-card via the theme and paints the header's accent inline;
+   everything here is layout. */
 
 .sf-head {
   position: absolute;
@@ -31,7 +32,7 @@
 }
 .sf-plat {
   margin-left: auto;
-  font-size: 2.2vh;
+  font-size: 2.8vh;
   font-weight: 600;
   opacity: 0.85;
   letter-spacing: 0.04em;
@@ -75,18 +76,46 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12vh 8vw 6vh;
 }
 .sf-media-text .sf-text {
   text-align: center;
   max-width: 100%;
 }
 .sf-media-text p {
-  font-size: calc(min(3.4vw, 5.6vh));
   font-weight: 600;
   line-height: 1.3;
   text-align: center;
   color: inherit;
+}
+
+/* Text-as-hero sizing is PER CONTEXT, not shared.
+   A text post is the whole screen in spotlight and one ninth of it in the grid,
+   so one font size cannot serve both: at the hero size a grid cell overflows its
+   own `overflow: hidden` box, and because the text is vertically centred it gets
+   cut at BOTH ends — every cell then shows the same unreadable middle fragment.
+   That is silent, so it has to be prevented here rather than noticed later.
+   LinkedIn is text-only by design and had no other layout to fall back on. */
+.sf-spot .sf-media-text {
+  padding: 12vh 8vw 6vh;
+}
+.sf-spot .sf-media-text p {
+  font-size: calc(min(3.4vw, 5.6vh));
+}
+.sf-cell .sf-media-text {
+  padding: 1.8vh 1.2vw;
+}
+.sf-cell .sf-media-text p {
+  font-size: calc(min(1.5vw, 2.5vh));
+  /* Clamp as well as scale: one very long post must not push the others out of
+     shape, and a clamped ellipsis reads as "there is more" where a cut does not. */
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sf-cell .sf-by {
+  font-size: calc(min(1.1vw, 1.9vh));
+  margin-bottom: 0.6vh;
 }
 
 /* Author byline (Teams channel messages). */
@@ -146,7 +175,7 @@
   padding: 4vh 1vw 1vh;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.78), transparent);
   color: #fff;
-  font-size: 1.9vh;
+  font-size: 2.4vh;
   font-weight: 500;
   line-height: 1.25;
   display: -webkit-box;

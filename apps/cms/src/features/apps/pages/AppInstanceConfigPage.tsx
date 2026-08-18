@@ -65,7 +65,9 @@ export default function AppInstanceConfigPage() {
   const { data: instance, isLoading: instanceLoading } = useAppInstance(instanceId)
 
   // Toast the OAuth connect outcome the backend redirected back with, then strip
-  // the query params so a refresh doesn't re-toast.
+  // the query params so a refresh doesn't re-toast. `connect_error` carries a
+  // coarse reason so a consent the operator cancelled themselves doesn't read as
+  // a broken app; anything else (including the older bare '1') is a failure.
   useEffect(() => {
     const connected = searchParams.get('connected')
     const connectError = searchParams.get('connect_error')
@@ -76,6 +78,8 @@ export default function AppInstanceConfigPage() {
           account: searchParams.get('account') ?? '',
         }),
       )
+    } else if (connectError === 'denied') {
+      toast.error(t('apps.connections.connectDeniedToast'))
     } else {
       toast.error(t('apps.connections.connectErrorToast'))
     }

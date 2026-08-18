@@ -71,14 +71,15 @@ export const metaOAuthProvider: OAuthProvider = {
       shortToken,
     );
 
-    const [name, scopes] = await Promise.all([
-      fetchName(tokens.accessToken),
+    const [profile, scopes] = await Promise.all([
+      fetchProfile(tokens.accessToken),
       fetchGrantedScopes(tokens.accessToken),
     ]);
     return {
       ...tokens,
       scopes,
-      accountLabel: name ?? 'Facebook account',
+      accountLabel: profile?.name ?? 'Facebook account',
+      ...(profile?.id ? { accountId: profile.id } : {}),
     };
   },
 
@@ -133,16 +134,29 @@ async function extendToken(
   };
 }
 
-/** The account's display name, for the "Connected as …" label. */
-async function fetchName(accessToken: string): Promise<string | undefined> {
-  const response = await fetch(`${GRAPH}/me?fields=name`, {
+/**
+ * The connected account's id and display name. The name is the "Connected as …"
+ * label; the id is the app-scoped user id (ASID) Meta sends back in a
+ * `signed_request` when the user deauthorizes the app or asks for their data to
+ * be deleted, which is the only handle those callbacks give us to find the
+ * connections belonging to them.
+ */
+async function fetchProfile(
+  accessToken: string,
+): Promise<{ id?: string; name?: string } | undefined> {
+  const response = await fetch(`${GRAPH}/me?fields=id,name`, {
     headers: { authorization: `Bearer ${accessToken}` },
   });
   if (!response.ok) {
     return undefined;
   }
   const profile = (await response.json()) as Record<string, unknown>;
-  return readString(profile, 'name');
+  return {
+    ...(readString(profile, 'id') ? { id: readString(profile, 'id') } : {}),
+    ...(readString(profile, 'name')
+      ? { name: readString(profile, 'name') }
+      : {}),
+  };
 }
 
 /** The permissions actually granted (Meta's token endpoint omits `scope`). */

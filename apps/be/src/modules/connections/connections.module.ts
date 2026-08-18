@@ -22,6 +22,8 @@ import { GraphSubscriptionScheduler } from './webhooks/graph-subscription.schedu
 import { GraphSubscriptionsRepository } from './webhooks/graph-subscriptions.repository';
 import { GraphWebhookController } from './webhooks/graph-webhook.controller';
 import { GraphWebhookService } from './webhooks/graph-webhook.service';
+import { MetaCallbacksController } from './webhooks/meta-callbacks.controller';
+import { MetaCallbacksService } from './webhooks/meta-callbacks.service';
 
 @Module({
   imports: [
@@ -36,12 +38,17 @@ import { GraphWebhookService } from './webhooks/graph-webhook.service';
     // connections), and the webhook here calls back into AppDataService.
     forwardRef(() => AppsModule),
   ],
-  controllers: [ConnectionsController, GraphWebhookController],
+  controllers: [
+    ConnectionsController,
+    GraphWebhookController,
+    MetaCallbacksController,
+  ],
   providers: [
     ConnectionsService,
     ConnectionsRepository,
     GraphSubscriptionsRepository,
     GraphWebhookService,
+    MetaCallbacksService,
     GraphSubscriptionScheduler,
     ConnectionRefreshScheduler,
     OrgMembershipGuard,

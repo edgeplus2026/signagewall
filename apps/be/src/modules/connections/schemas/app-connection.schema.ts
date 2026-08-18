@@ -49,6 +49,18 @@ export class AppConnection {
   @Prop({ required: true })
   accountLabel!: string;
 
+  /**
+   * The provider's own id for the connected account, when it gives us one.
+   *
+   * Only Meta needs it today: its deauthorize and data-deletion callbacks arrive
+   * unauthenticated, identifying the person by app-scoped user id alone, so
+   * without this stored there is no way to tell which connections that request
+   * is about. Indexed with the provider because that is exactly how those
+   * callbacks look it up.
+   */
+  @Prop()
+  providerAccountId?: string;
+
   /** OAuth scopes granted to this connection. */
   @Prop({ type: [String], default: [] })
   scopes!: string[];
@@ -78,3 +90,11 @@ export const AppConnectionSchema = SchemaFactory.createForClass(AppConnection);
 
 // One connection per instance (per-instance ownership); reconnecting replaces it.
 AppConnectionSchema.index({ instanceId: 1 }, { unique: true });
+
+// Provider-initiated teardown (Meta deauthorize / data deletion) looks a
+// connection up by the provider's own account id. Sparse: most connections
+// carry no provider account id at all.
+AppConnectionSchema.index(
+  { provider: 1, providerAccountId: 1 },
+  { sparse: true },
+);

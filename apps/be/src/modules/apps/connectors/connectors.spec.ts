@@ -529,6 +529,135 @@ describe('canva connector (connected)', () => {
     );
   });
 
+  /**
+   * A Canva export URL, signed the way Canva signs them, valid for `hours`.
+   * `X-Amz-Date` is ISO 8601 BASIC — the format the connector has to parse by
+   * hand because `Date` will not take it.
+   */
+  function signedUrl(
+    hours: number,
+    signedAt = new Date('2024-03-01T12:00:00Z'),
+  ) {
+    const stamp =
+      signedAt.toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+    return (
+      'https://export-download.canva.com/x/design-1/-1/0-1.mp4' +
+      `?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=${stamp}` +
+      `&X-Amz-Expires=${Math.round(hours * 3600)}&X-Amz-Signature=deadbeef`
+    );
+  }
+
+  /** A previous successful export, as the connector persists it in `secrets`. */
+  function priorExport(overrides: Record<string, unknown> = {}) {
+    return {
+      export: {
+        designId: 'design-1',
+        format: 'mp4',
+        updatedAt: 1700000000,
+        kind: 'video',
+        urls: [signedUrl(5)],
+        expiresAt: Date.now() + 5 * 3600_000,
+        fetchedAt: '2024-03-01T12:00:00.000Z',
+        ...overrides,
+      },
+    };
+  }
+
+  /**
+   * The reuse branch, and it is worth a test because what it prevents is
+   * invisible: every poll used to create an export job for a design nobody had
+   * touched — a video re-render, on a timer, spending the scarcest quota in the
+   * API (20/min) on output that change-detection then threw away.
+   */
+  it('reuses an unchanged design instead of exporting it again', async () => {
+    const fetchMock = mockFetchSequence([
+      // getCanvaDesign — the ONLY call this path may make.
+      { body: { design: { title: 'Promo', updated_at: 1700000000 } } },
+    ]);
+
+    const result = await canvaConnector.fetchData(
+      { connectionId: 'conn-1', design: { id: 'design-1', label: 'Promo' } },
+      { ...connectedCtx, secrets: priorExport() },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result.playerPayload!.slides).toEqual([signedUrl(5)]);
+    expect(result.version).toBe('1700000000:mp4');
+    // The instant of the ORIGINAL export, not of this poll: no work happened.
+    expect(result.playerPayload!.fetchedAt).toBe('2024-03-01T12:00:00.000Z');
+  });
+
+  it('re-exports once the design itself has changed', async () => {
+    const fetchMock = mockFetchSequence([
+      // A different `updated_at` — the artwork moved.
+      { body: { design: { title: 'Promo', updated_at: 1700009999 } } },
+      { body: { formats: { mp4: {} } } },
+      { body: { job: { id: 'job-2', status: 'in_progress' } } },
+      {
+        body: {
+          job: { status: 'success', urls: ['https://export.canva/new.mp4'] },
+        },
+      },
+    ]);
+
+    const result = await canvaConnector.fetchData(
+      { connectionId: 'conn-1', design: { id: 'design-1', label: 'Promo' } },
+      { ...connectedCtx, secrets: priorExport() },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(result.version).toBe('1700009999:mp4');
+  });
+
+  /**
+   * The half that revision-matching alone would miss: a signed URL dies on its
+   * own schedule while the design sits perfectly still, so an untouched design
+   * still has to be re-exported before its links stop resolving.
+   */
+  it('re-exports an unchanged design whose signed URLs are about to expire', async () => {
+    const fetchMock = mockFetchSequence([
+      { body: { design: { title: 'Promo', updated_at: 1700000000 } } },
+      { body: { formats: { mp4: {} } } },
+      { body: { job: { id: 'job-3', status: 'in_progress' } } },
+      {
+        body: {
+          job: { status: 'success', urls: ['https://export.canva/fresh.mp4'] },
+        },
+      },
+    ]);
+
+    await canvaConnector.fetchData(
+      { connectionId: 'conn-1', design: { id: 'design-1', label: 'Promo' } },
+      {
+        ...connectedCtx,
+        // Inside the renewal margin, though the design has not moved.
+        secrets: priorExport({ expiresAt: Date.now() + 10 * 60_000 }),
+      },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('records the real signed expiry so the next poll can judge it', async () => {
+    mockFetchSequence([
+      { body: { design: { title: 'Promo', updated_at: 1700000000 } } },
+      { body: { formats: { mp4: {} } } },
+      { body: { job: { id: 'job-4', status: 'in_progress' } } },
+      { body: { job: { status: 'success', urls: [signedUrl(4.7)] } } },
+    ]);
+
+    const result = await canvaConnector.fetchData(
+      { connectionId: 'conn-1', design: { id: 'design-1', label: 'Promo' } },
+      connectedCtx,
+    );
+
+    const state = (result.secrets as { export: { expiresAt: number } }).export;
+    // 12:00:00Z + 4.7 h, read out of the signature rather than assumed.
+    expect(new Date(state.expiresAt).toISOString()).toBe(
+      '2024-03-01T16:42:00.000Z',
+    );
+  });
+
   it('prefers mp4 when available and returns a looping video', async () => {
     const fetchMock = mockFetchSequence([
       // getCanvaDesign

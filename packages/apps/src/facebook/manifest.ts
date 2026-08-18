@@ -37,12 +37,6 @@ export const facebookManifest: AppManifest = {
    */
   refreshSeconds: 600,
   requiresNetwork: true,
-  /**
-   * Holds one of the device's few video decoders while on screen. A feed embed autoplays video.
-   * Signage hardware has very few — the measured Android TV advertises two —
-   * and the engine uses this to avoid warming a second video behind it.
-   */
-  usesVideoDecoder: true,
   icon: FACEBOOK_ICON,
   color: '#1877F2',
   configSchema: [

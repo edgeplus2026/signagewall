@@ -72,8 +72,14 @@ export interface ConnectionOwnerIdentity {
   appInstanceId: string;
 }
 
+/** The org + instance a connection belongs to, for provider-initiated teardown. */
+export interface ConnectionOwner {
+  organizationId: string;
+  instanceId: string;
+}
+
 /** Signed OAuth `state` payload (CSRF + context binding). */
-interface StatePayload {
+export interface StatePayload {
   organizationId: string;
   userId: string;
   provider: ConnectionProvider;
@@ -147,6 +153,28 @@ export class ConnectionsService {
   async list(organizationId: string): Promise<ConnectionSummary[]> {
     const docs = await this.repository.findByOrganization(organizationId);
     return docs.map((doc) => this.toSummary(doc));
+  }
+
+  /**
+   * Who owns every connection made with one account at a provider (all orgs).
+   *
+   * For provider-initiated teardown: Meta's deauthorize and data-deletion
+   * callbacks name an app-scoped user id and nothing else, and the caller needs
+   * the owning instances so it can disconnect them properly (strip the config's
+   * connectionId, purge private assets) rather than orphaning them.
+   */
+  async findOwnersByProviderAccount(
+    provider: ConnectionProvider,
+    providerAccountId: string,
+  ): Promise<ConnectionOwner[]> {
+    const docs = await this.repository.findByProviderAccount(
+      provider,
+      providerAccountId,
+    );
+    return docs.map((doc) => ({
+      organizationId: doc.organizationId.toString(),
+      instanceId: doc.instanceId.toString(),
+    }));
   }
 
   /** Delete the connection owned by an instance (on disconnect / instance delete). */
@@ -348,6 +376,7 @@ export class ConnectionsService {
       instanceId: payload.instanceId,
       provider,
       accountLabel: result.accountLabel,
+      ...(result.accountId ? { providerAccountId: result.accountId } : {}),
       scopes: result.scopes,
       accessTokenEnc: this.encryption.encrypt(result.accessToken),
       ...(result.refreshToken
@@ -364,6 +393,23 @@ export class ConnectionsService {
       instanceId: payload.instanceId,
       connection: this.toSummary(doc),
     };
+  }
+
+  /**
+   * Read a signed OAuth `state` without acting on it, for ERROR REPORTING only.
+   *
+   * When a callback fails we still want to return the operator to the instance
+   * they started from instead of dumping them on the app catalog with no idea
+   * what happened. That needs the state's context, but the failure may BE the
+   * state, so this reports null rather than throwing and the caller falls back.
+   * Never use it to authorize anything — {@link verifyState} is the gate.
+   */
+  peekState(state: string): StatePayload | null {
+    try {
+      return this.verifyState(state);
+    } catch {
+      return null;
+    }
   }
 
   private async assertOwnedAppInstance(

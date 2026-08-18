@@ -48,6 +48,36 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;')
 }
 
+/**
+ * A post image URL, safe to drop into an `src` attribute.
+ *
+ * Deliberately NOT `encodeURI`: the connector hands us a URL that is already
+ * well-formed, and `encodeURI` re-escapes the `%` in one — Meta's signed
+ * `scontent…` links carry percent-encoded signature parameters, so `%2F` became
+ * `%252F`, the CDN refused the request and the tile went blank with nothing on
+ * screen to say why. All this needs is HTML-attribute escaping, plus a scheme
+ * check so a payload can never smuggle anything but an image reference in.
+ */
+function safeImageUrl(url: string): string | null {
+  if (!/^(https?:|data:image\/)/i.test(url.trim())) {
+    return null
+  }
+  return escapeHtml(url)
+}
+
+/**
+ * The post's usable image, or null when it has none we can render.
+ *
+ * Asked in one place because three call sites depend on the SAME answer:
+ * `mediaHtml` falls back to rendering the text as the hero when there is no
+ * image, and both caption overlays are drawn only for image posts precisely so
+ * they don't duplicate that hero. Testing `post.imageUrl` in one place and the
+ * rejected-URL fallback in another printed the text twice.
+ */
+function imageOf(post: SocialPost): string | null {
+  return post.imageUrl ? safeImageUrl(post.imageUrl) : null
+}
+
 /** Clamp a caption to a sensible on-screen length (word boundary). */
 function clampText(text: string, max: number): string {
   if (text.length <= max) return text
@@ -92,14 +122,15 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
   }
 
   function mediaHtml(post: SocialPost, large: boolean, showByline: boolean): string {
-    if (post.imageUrl) {
+    const imageUrl = imageOf(post)
+    if (imageUrl) {
       const badge =
         post.mediaType === 'video'
           ? '<span class="sf-play" aria-hidden="true">▶</span>'
           : ''
       return (
         `<div class="sf-media">` +
-        `<img src="${encodeURI(post.imageUrl)}" alt="" loading="eager" />` +
+        `<img src="${imageUrl}" alt="" loading="eager" />` +
         badge +
         `</div>`
       )
@@ -123,7 +154,7 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
     // The caption overlay is only for image posts (a text post is already the
     // hero, drawn by mediaHtml).
     const caption =
-      showCaption && post.text && post.imageUrl
+      showCaption && post.text && imageOf(post)
         ? `<div class="sf-caption">${bylineHtml(post, true)}<p>${escapeHtml(clampText(post.text, 220))}</p></div>`
         : ''
     root.innerHTML =
@@ -142,7 +173,7 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
         // Overlay caption only for image posts; text posts show their text via
         // mediaHtml, so a cap would double it.
         const cap =
-          showCaption && post.text && post.imageUrl
+          showCaption && post.text && imageOf(post)
             ? `<div class="sf-cell-cap">${bylineHtml(post, true)}${escapeHtml(clampText(post.text, 90))}</div>`
             : ''
         return `<div class="sf-cell">${mediaHtml(post, false, showCaption)}${cap}</div>`

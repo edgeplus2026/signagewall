@@ -2064,6 +2064,8 @@
       "connectProvider": "Poveži {{provider}}",
       "connectedToast": "Povezan {{account}}",
       "connectErrorToast": "Nismo uspeli da povežemo nalog. Pokušajte ponovo.",
+      "startErrorToast": "Nismo uspeli da pokrenemo povezivanje. Pokušajte ponovo.",
+      "connectDeniedToast": "Povezivanje je otkazano — nalog nije povezan.",
       "reconnect": "Ponovo poveži",
       "disconnect": "Prekini vezu",
       "connect": "Poveži nalog",

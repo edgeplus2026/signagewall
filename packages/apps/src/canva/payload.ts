@@ -2,8 +2,7 @@
  * Normalized Canva payload — shared contract between the backend `canva`
  * connector and the embed bundle. The connector picks the best export format
  * the design supports (mp4 for presentations/animations, else jpg/png) and
- * resolves short-lived export URLs (valid 24h; the player never sees the access
- * token). The bundle renders a looping video or a per-page image slideshow.
+ * resolves short-lived export URLs (the player never sees the access token). The bundle renders a looping video or a per-page image slideshow.
  */
 export interface CanvaPayload {
   /**
@@ -21,7 +20,14 @@ export interface CanvaPayload {
    * - `slideshow` → one image URL per page, shown in order and looped.
    */
   kind: 'video' | 'slideshow'
-  /** Export URLs (valid ~24h): one mp4, or one image per page (in page order). */
+  /**
+   * Export URLs: one mp4, or one image per page (in page order).
+   *
+   * PRESIGNED AND TEMPORARY, and not for a fixed term — live exports have come
+   * back signed for anywhere between 4.7 h and 10.7 h, so nothing may assume a
+   * flat 24 h (this comment used to). The connector reads the real deadline out
+   * of the signature and re-exports before it lands.
+   */
   slides: string[]
   fetchedAt: string
 }

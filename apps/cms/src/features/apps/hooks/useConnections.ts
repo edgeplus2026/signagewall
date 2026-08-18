@@ -1,10 +1,13 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
 import { appsApi } from '@/features/apps/api/appsApi'
 import { connectionsApi } from '@/features/apps/api/connectionsApi'
 import { appInstanceDetailQueryKey, appsQueryKey } from '@/features/apps/lib/appsQueryKeys'
 import type { ConnectionProvider } from '@/features/apps/types/connection.types'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 function useActiveOrganizationId() {
   return useOrganizationStore((state) => state.activeOrganizationId)
@@ -59,8 +62,17 @@ export function useConnection(connectionId: string | undefined) {
  * Start the OAuth flow for an instance: fetch the provider URL, then navigate
  * the browser. The backend binds the resulting connection to `instanceId` and
  * redirects back to the instance config page.
+ *
+ * The failure toast lives HERE rather than in each caller because this request
+ * fails for reasons the operator can act on and cannot otherwise see: the server
+ * refuses with a real message when the provider's client id/secret or the
+ * connection encryption key are missing (`… OAuth is not configured on this
+ * server.`). Without it the Connect button silently did nothing at all, which
+ * reads as a dead button rather than an unconfigured server — so the server's
+ * own message is shown verbatim, not replaced by a generic one.
  */
 export function useStartConnection() {
+  const { t } = useTranslation()
   return useMutation({
     mutationFn: ({
       provider,
@@ -73,6 +85,9 @@ export function useStartConnection() {
     }) => connectionsApi.start(provider, appSlug, instanceId),
     onSuccess: (url) => {
       window.location.href = url
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('apps.connections.startErrorToast')))
     },
   })
 }

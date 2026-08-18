@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next'
 
 import { usePlaylists } from '../hooks/usePlaylists'
 
-import { AiGeneratorButton } from '@/features/ai-generator/components/AiGeneratorButton'
-import { useAiGeneratorStore } from '@/features/ai-generator/store/aiGeneratorStore'
+// AI Generator (Beta) is hidden for now — restore this import to bring the button back.
+// import { AiGeneratorButton } from '@/features/ai-generator/components/AiGeneratorButton'
+// import { useAiGeneratorStore } from '@/features/ai-generator/store/aiGeneratorStore'
 import { PlaylistFormSheet } from '@/features/playlists/components/PlaylistFormSheet'
 import { PlaylistsBrowser } from '@/features/playlists/components/PlaylistsBrowser'
 import { cn } from '@/lib/utils'
@@ -12,7 +13,7 @@ import { cn } from '@/lib/utils'
 export default function PlaylistsPage() {
   const { t } = useTranslation()
   const [createOpen, setCreateOpen] = useState(false)
-  const openAiGenerator = useAiGeneratorStore((state) => state.openList)
+  // const openAiGenerator = useAiGeneratorStore((state) => state.openList)
 
   const { data: playlists = [], isLoading, isError, refetch } = usePlaylists()
 
@@ -36,6 +37,7 @@ export default function PlaylistsPage() {
           <p className="text-secondary text-sm">{t('playlists.description')}</p>
         </div>
 
+        {/* AI Generator (Beta) — hidden for now.
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
           <AiGeneratorButton
             className="w-full sm:w-auto"
@@ -44,6 +46,7 @@ export default function PlaylistsPage() {
             }}
           />
         </div>
+        */}
       </div>
 
       <PlaylistsBrowser

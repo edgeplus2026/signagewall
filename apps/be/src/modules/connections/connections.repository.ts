@@ -13,6 +13,8 @@ export interface CreateConnectionData {
   instanceId: string;
   provider: ConnectionProvider;
   accountLabel: string;
+  /** The provider's own account id, when the adapter surfaced one. */
+  providerAccountId?: string;
   scopes: string[];
   accessTokenEnc: string;
   refreshTokenEnc?: string;
@@ -95,6 +97,9 @@ export class ConnectionsRepository {
         $set: {
           provider: data.provider,
           accountLabel: data.accountLabel,
+          ...(data.providerAccountId
+            ? { providerAccountId: data.providerAccountId }
+            : {}),
           scopes: data.scopes,
           accessTokenEnc: data.accessTokenEnc,
           ...(data.refreshTokenEnc
@@ -112,11 +117,15 @@ export class ConnectionsRepository {
         // A reconnect replaces the account credential set. Do not retain a
         // refresh token or expiry belonging to the previously connected
         // account when the new OAuth response omits either field.
-        ...(!data.refreshTokenEnc || !data.expiresAt
+        ...(!data.refreshTokenEnc || !data.expiresAt || !data.providerAccountId
           ? {
               $unset: {
                 ...(!data.refreshTokenEnc ? { refreshTokenEnc: 1 } : {}),
                 ...(!data.expiresAt ? { expiresAt: 1 } : {}),
+                // Reconnecting to a DIFFERENT account must not leave the
+                // previous account's id behind: a later deauthorize callback
+                // would then tear down a connection that is no longer theirs.
+                ...(!data.providerAccountId ? { providerAccountId: 1 } : {}),
               },
             }
           : {}),
@@ -148,6 +157,20 @@ export class ConnectionsRepository {
       organizationId: new Types.ObjectId(organizationId),
     });
     return result.deletedCount > 0;
+  }
+
+  /**
+   * Every connection belonging to one account at a provider, across all orgs.
+   * Global on purpose: a provider-initiated teardown (Meta deauthorize / data
+   * deletion) speaks for the person, not for one tenant, and the same Facebook
+   * account may have been connected by several organizations.
+   */
+  async findByProviderAccount(
+    provider: ConnectionProvider,
+    providerAccountId: string,
+  ): Promise<AppConnectionDocument[]> {
+    if (!providerAccountId) return [];
+    return this.model.find({ provider, providerAccountId }).exec();
   }
 
   /** Delete the connection owned by an instance (on disconnect/instance delete). */

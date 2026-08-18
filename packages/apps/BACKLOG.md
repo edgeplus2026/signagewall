@@ -392,7 +392,7 @@ Using it against accounts you don't own needs Meta App Review (`instagram_basic`
 **26. Facebook Page** (`facebook`, connected) ✅ (code) — Meta provider. Reads a Page's recent posts via
 Graph `/{page-id}/posts` (scopes `pages_show_list`, `pages_read_engagement`). A Page feed needs a **Page
 access token**, so the connector resolves it from the long-lived user token each run. Picker
-`remote-select` `meta-pages`. `cacheKey` `facebook:<connId>:<pageId>`, `refreshSeconds` 900. Same shared
+`remote-select` `meta-pages`. `cacheKey` `facebook:<connId>:<pageId>`, `refreshSeconds` 600. Same shared
 embed as Instagram (text-only posts render as a text hero). Needs Meta App Review + Business verification.
 
 **27. LinkedIn company page** (`linkedin`, connected) ✅ (code) — **new provider** (`linkedin`), the fourth

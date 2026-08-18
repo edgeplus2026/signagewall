@@ -21,7 +21,19 @@ export const canvaManifest: AppManifest = {
   runtimeKind: 'embed',
   dataSource: 'connected',
   version: 2,
-  refreshSeconds: 900,
+  /**
+   * One minute. Canva has no webhook that fires when a design is EDITED — its
+   * eleven notification types are all collaboration events (comments, approvals,
+   * sharing) — so polling is the only way a redesign ever reaches a wall, and at
+   * fifteen minutes it took fifteen minutes.
+   *
+   * Affordable only because the connector now short-circuits on an unchanged
+   * design revision: a poll costs one `getCanvaDesign` (100/min per user), and
+   * the export job — the scarce call at 20/min, and a video render for the mp4
+   * designs this app prefers — runs only when the design actually moved or its
+   * signed URLs are near expiry.
+   */
+  refreshSeconds: 60,
   // Renders the exported design straight from Canva's CDN — needs internet to
   // fetch the asset, so hide it offline rather than show a broken frame.
   requiresNetwork: true,

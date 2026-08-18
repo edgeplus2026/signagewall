@@ -10,8 +10,6 @@ interface InstagramConfig {
   connectionId?: string;
   /** The chosen IG account: { id, label } from the `remote-select` picker. */
   account?: { id?: string } | string;
-  /** How many recent posts to fetch (display-only cap applied client-side too). */
-  postCount?: number;
 }
 
 const GRAPH_VERSION = 'v22.0';
@@ -62,8 +60,8 @@ function toPost(media: IgMedia): SocialPost {
  * Instagram connector (`connected` app, Meta provider). Reads the recent media
  * of a professional (Business/Creator) IG account linked to a Facebook Page. The
  * cache key is PER-CONNECTION + account (a feed is private to the account), so
- * data is never shared across connections. Display-only settings (post count,
- * layout, theme) are applied by the embed and never affect the key.
+ * data is never shared across connections. Display-only settings (layout,
+ * theme, captions) are applied by the embed and never affect the key.
  *
  * Returns NO `version`: media_url is a rotating CDN link, so the payload
  * legitimately changes across fetches and must fan out to keep images live (see
