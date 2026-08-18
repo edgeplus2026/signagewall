@@ -78,9 +78,27 @@ jobs:
       # The check the incident at the top of this file was missing. Cheap: no
       # database, no listener — it only resolves and evaluates the module graph,
       # which is precisely where a production boot dies.
+      #
+      # The env block is what makes it run at all. `ConfigModule.forRoot` applies
+      # the Joi schema while the module is being DEFINED, so merely requiring
+      # app.module throws `Config validation error: "MONGODB_URI" is required`
+      # before a single import is exercised. It passes on a developer's machine
+      # only because @nestjs/config picks up apps/be/.env from the working
+      # directory, and that file is gitignored — so the check failed on every run
+      # from the day it was added until this one.
+      #
+      # Placeholders, deliberately: nothing here connects. Requiring the graph
+      # evaluates module definitions, and Mongoose does not dial the URI until
+      # the app is initialised, which this never does. The three named below are
+      # exactly the schema's required fields (the JWT secrets carry a 32-char
+      # minimum); everything else defaults.
       - name: Load the compiled module graph
         working-directory: apps/be
         run: node -e "require('./dist/app.module')"
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017/ci-module-graph
+          JWT_ACCESS_SECRET: ci-module-graph-access-secret-placeholder
+          JWT_REFRESH_SECRET: ci-module-graph-refresh-secret-placeholder
 
       - name: Unit tests
         run: pnpm --filter @signagewall/be test
