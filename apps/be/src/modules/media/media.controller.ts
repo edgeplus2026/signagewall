@@ -19,7 +19,6 @@ import type { Response } from 'express';
 import { mkdirSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { diskStorage } from 'multer';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequiredOrganizationId } from '../../common/decorators/current-organization.decorator';
@@ -200,7 +199,14 @@ export class MediaController {
         // at 10 MB: a handful of concurrent video uploads was enough to put the
         // container near the OOM killer that has already claimed ffmpeg once.
         // The service streams this file straight to R2 and deletes it.
-        storage: diskStorage({ destination: uploadTempDir() }),
+        //
+        // `dest` rather than `diskStorage({ destination })`: they do the same
+        // thing, but `dest` is plain configuration while `diskStorage` means
+        // importing `multer` — which this package does not depend on. It only
+        // declares `@types/multer`, so that import type-checks and then dies at
+        // runtime with MODULE_NOT_FOUND, which is exactly how it reached
+        // production and took the API down.
+        dest: uploadTempDir(),
         limits: {
           // Kept in sync with `media.maxFileSizeBytes` (same env var) so Multer
           // and the service-level check agree on the ceiling.
