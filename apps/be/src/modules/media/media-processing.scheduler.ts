@@ -41,4 +41,21 @@ export class MediaProcessingScheduler {
       this.running = false;
     }
   }
+
+  /**
+   * Removes staged upload files this container abandoned.
+   *
+   * Deliberately NOT behind `SchedulerLockService`, unlike the sweep above: that
+   * one reconciles shared database rows and must run once per deployment, this
+   * one deletes files from the local disk and must run on every instance. Put a
+   * leader check here and every non-leader container quietly fills up.
+   */
+  @Interval('media-sweep-staged-uploads', 15 * 60_000)
+  async sweepStagedUploads(): Promise<void> {
+    try {
+      await this.mediaService.sweepStaleUploads();
+    } catch (error) {
+      this.logger.error('Staged upload sweep failed', error);
+    }
+  }
 }

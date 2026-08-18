@@ -2,7 +2,15 @@ import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { I18nService } from 'nestjs-i18n';
-import { mkdtemp, open, readFile, rm, unlink } from 'fs/promises';
+import {
+  mkdtemp,
+  open,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  unlink,
+} from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { Readable } from 'stream';
@@ -21,6 +29,8 @@ import {
   MEDIA_PROCESSING_MAX_ATTEMPTS,
   MEDIA_PROCESSING_STALE_MS,
   MEDIA_SIGNATURE_HEAD_BYTES,
+  MEDIA_UPLOAD_TEMP_DIR_NAME,
+  MEDIA_UPLOAD_TEMP_STALE_MS,
   TRANSCODED_VIDEO_EXTENSION,
   TRANSCODED_VIDEO_MIME_TYPE,
 } from './media.constants';
@@ -329,6 +339,46 @@ export class MediaService {
     } finally {
       await this.discardStagedUploads(file, poster);
     }
+  }
+
+  /**
+   * Deletes staged uploads that no request owns any more.
+   *
+   * `uploadFile` cleans up after itself, so this only ever sees the cases it
+   * cannot reach: a client that walked away mid-body, a file multer rejected on
+   * its size limit before the handler ran, a process killed between the two.
+   * Rare — but each one can now be 200 MB, and a full disk takes the API down
+   * for everyone, not just for uploads.
+   *
+   * Runs on EVERY instance rather than behind the scheduler lock, because the
+   * files are on the local container's disk. A leader-only sweep would tidy one
+   * machine and let the rest fill up.
+   */
+  async sweepStaleUploads(): Promise<number> {
+    const dir = join(tmpdir(), MEDIA_UPLOAD_TEMP_DIR_NAME);
+    const entries = await readdir(dir).catch(() => [] as string[]);
+    const now = Date.now();
+    let removed = 0;
+
+    for (const entry of entries) {
+      const path = join(dir, entry);
+      const info = await stat(path).catch(() => undefined);
+
+      if (!info?.isFile() || now - info.mtimeMs < MEDIA_UPLOAD_TEMP_STALE_MS) {
+        continue;
+      }
+
+      await unlink(path).catch(() => undefined);
+      removed += 1;
+    }
+
+    if (removed > 0) {
+      // Warn, not debug: a steady trickle here means uploads are dying
+      // somewhere between the browser and this handler.
+      this.logger.warn(`Swept ${removed.toString()} stale staged upload(s)`);
+    }
+
+    return removed;
   }
 
   /** Removes multer's staged temp files; a failure here is never the caller's. */
@@ -906,8 +956,10 @@ export class MediaService {
     );
   }
 
-  private assertValidUploadFile(file: Express.Multer.File): void {
-    if (!file) {
+  private async assertValidUploadFile(
+    file: Express.Multer.File,
+  ): Promise<void> {
+    if (!file?.path) {
       throw BusinessException.badRequest(this.i18n.t('media.fileRequired'));
     }
 
@@ -925,9 +977,13 @@ export class MediaService {
 
     // The declared MIME type is client-controlled — verify the actual bytes
     // match it so a file can't be smuggled in under a falsified content type.
+    // Only the first bytes are read; the rest never enters this process.
     if (
       !isBufferConsistentWithMime(
-        file.buffer,
+        await readMediaBytesHead(
+          { kind: 'file', path: file.path, size: file.size },
+          MEDIA_SIGNATURE_HEAD_BYTES,
+        ),
         file.mimetype as AllowedMediaMimeType,
       )
     ) {
@@ -964,11 +1020,11 @@ export class MediaService {
     return Math.round(durationSeconds);
   }
 
-  private resolvePosterSource(
+  private async resolvePosterSource(
     mediaType: MediaItemType,
     poster?: Express.Multer.File,
-  ): { buffer: Buffer; mimeType: string } | undefined {
-    if (mediaType !== MediaItemType.VIDEO || !poster?.buffer?.length) {
+  ): Promise<{ buffer: Buffer; mimeType: string } | undefined> {
+    if (mediaType !== MediaItemType.VIDEO || !poster?.path || !poster.size) {
       return undefined;
     }
 
@@ -976,11 +1032,19 @@ export class MediaService {
       poster.mimetype as (typeof ALLOWED_IMAGE_MIME_TYPES)[number],
     );
 
+    // Bounded by the poster ceiling, not the upload ceiling: this one IS read
+    // into memory to be thumbnailed, so it must not inherit the video cap.
+    if (!isAllowedImage || poster.size > MEDIA_POSTER_MAX_BYTES) {
+      this.logger.warn('Ignoring invalid video poster frame on upload');
+      return undefined;
+    }
+
+    const buffer = await readFile(poster.path).catch(() => undefined);
+
     if (
-      !isAllowedImage ||
-      poster.size > this.maxFileSizeBytes ||
+      !buffer?.length ||
       !isBufferConsistentWithMime(
-        poster.buffer,
+        buffer,
         poster.mimetype as AllowedMediaMimeType,
       )
     ) {
@@ -988,7 +1052,7 @@ export class MediaService {
       return undefined;
     }
 
-    return { buffer: poster.buffer, mimeType: poster.mimetype };
+    return { buffer, mimeType: poster.mimetype };
   }
 
   private resolveMediaType(mimeType: string): MediaItemType {
