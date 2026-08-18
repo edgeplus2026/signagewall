@@ -18,7 +18,6 @@ import { ConnectionProvider } from '../schemas/app-connection.schema';
 interface SignedRequestPayload {
   algorithm?: string;
   user_id?: string;
-  issued_at?: number;
 }
 
 /** What the data-deletion callback must answer Meta with. */
