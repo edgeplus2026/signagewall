@@ -155,6 +155,31 @@ class OtaUpdater(
      * to answer it anyway.
      */
     fun runUpdate(operatorPresent: Boolean): JsonElement {
+        // Read the channel NOW. This answered from `cached`, which only the
+        // supervisor's hourly sweep ever refreshes — so an operator who had just
+        // published a release pressed "install now" and was told the screen was
+        // up to date, with no way to clear it but to wait out the hour. "Install
+        // now" has to mean "go and look now".
+        //
+        // Blocking is deliberate and safe here: this runs on the bridge thread,
+        // never the main one, and the fetch carries both timeouts. A channel that
+        // cannot be reached falls through to whatever was already cached, so the
+        // existing "unreachable" answer below still works.
+        try {
+            cached = fetchManifest()
+            stateStore.write(
+                stateStore.read().copy(lastFetchAt = now(), lastFetchError = null),
+            )
+        } catch (t: Throwable) {
+            Log.w(TAG, "manifest refresh for an explicit update failed", t)
+            stateStore.write(
+                stateStore.read().copy(
+                    lastFetchError = "${t.javaClass.simpleName}: ${t.message}"
+                        .take(MAX_ERROR_CHARS),
+                ),
+            )
+        }
+
         val state = stateStore.read()
         val m = cached
         if (m == null || !isInstallable(m, state, operatorPresent)) {
