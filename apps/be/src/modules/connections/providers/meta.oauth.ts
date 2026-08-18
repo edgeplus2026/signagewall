@@ -21,9 +21,20 @@ const TOKEN_URL = `${GRAPH}/oauth/access_token`;
  * back through `fb_exchange_token`) BEFORE it expires — an expired token can't be
  * re-extended, only re-consented. So we deliberately UNDER-report the expiry: the
  * connection service's refresh path (which fires as the stored expiry nears) then
- * re-extends roughly monthly, always well inside the 60-day hard limit, and each
- * re-extension resets the 60 days. We stash the long-lived token as the "refresh
- * token" so that same machinery has something to re-exchange.
+ * re-extends roughly monthly, well inside the 60-day hard limit. We stash the
+ * long-lived token as the "refresh token" so that same machinery has something to
+ * re-exchange.
+ *
+ * UNVERIFIED, and deliberately not relied upon: whether a re-extension actually
+ * restarts the 60 days, or merely returns the same token with its original
+ * expiry. Confirming it needs a genuinely aged token, which no test can fake, so
+ * this code is written to be correct either way. {@link extendToken} takes
+ * `Math.min` of the reported TTL and our 30-day ceiling rather than assuming a
+ * fresh 60 days, so a window that is in fact shrinking is tracked honestly: the
+ * stored expiry keeps stepping down, the proactive pass keeps firing, and if the
+ * token does lapse the connector's next fetch classifies the 401 as
+ * `auth_expired`, which the CMS turns into "reconnect this account". Wrong
+ * assumption, visible outcome — not a screen that quietly stops updating.
  */
 const REPORTED_TTL_SECONDS = 30 * 24 * 60 * 60;
 

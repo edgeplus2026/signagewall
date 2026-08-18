@@ -25,13 +25,27 @@
   height: 100%;
 }
 .sf-account {
+  /* Takes the slack so the items after it sit at the right edge — previously
+     `.sf-plat` did that with `margin-left: auto`, which cannot hold once there
+     is a second item on that side. `min-width: 0` is what actually lets a long
+     account name ellipsis instead of shoving them off. */
+  flex: 1;
+  min-width: 0;
   font-size: calc(min(2.6vw, 4.4vh));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.sf-count {
+  font-size: 2.8vh;
+  font-weight: 600;
+  opacity: 0.75;
+  white-space: nowrap;
+  /* Fixed-width digits: without them the whole header twitches sideways every
+     time the position ticks over on a rotating spotlight. */
+  font-variant-numeric: tabular-nums;
+}
 .sf-plat {
-  margin-left: auto;
   font-size: 2.8vh;
   font-weight: 600;
   opacity: 0.85;
@@ -154,7 +168,9 @@
   inset: 0;
   padding: 9vh 2vw 2vh;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Column count comes from the renderer, which picks a shape that tiles
+     completely for the number of posts it actually has. */
+  grid-template-columns: repeat(var(--sf-cols, 3), 1fr);
   grid-auto-rows: 1fr;
   gap: 1.4vh;
 }

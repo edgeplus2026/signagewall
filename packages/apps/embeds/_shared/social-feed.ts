@@ -78,6 +78,37 @@ function imageOf(post: SocialPost): string | null {
   return post.imageUrl ? safeImageUrl(post.imageUrl) : null
 }
 
+/**
+ * How many posts the grid shows, and in how many columns, for `available` posts.
+ *
+ * Only counts that TILE COMPLETELY are offered. A hard `slice(0, 9)` into three
+ * fixed columns left a ragged last row whenever the count was not a multiple of
+ * three — four posts drew 3 + 1 and a blank half-row beside it, which reads as a
+ * broken layout rather than as a feed with four posts in it.
+ *
+ * So the grid drops to the largest tidy rectangle it can fill. The cost is that
+ * five posts show four and eight show six: the grid was never a complete archive
+ * (it stopped at nine however many there were), and one post held back beats a
+ * hole on the wall. Spotlight is the layout that shows everything.
+ */
+const GRID_SHAPES: ReadonlyArray<{ cells: number; columns: number }> = [
+  { cells: 9, columns: 3 },
+  { cells: 6, columns: 3 },
+  { cells: 4, columns: 2 },
+  { cells: 3, columns: 3 },
+  { cells: 2, columns: 2 },
+  { cells: 1, columns: 1 },
+]
+
+function gridShape(available: number): { cells: number; columns: number } {
+  return (
+    GRID_SHAPES.find((shape) => shape.cells <= available) ?? {
+      cells: 0,
+      columns: 1,
+    }
+  )
+}
+
 /** Clamp a caption to a sensible on-screen length (word boundary). */
 function clampText(text: string, max: number): string {
   if (text.length <= max) return text
@@ -104,11 +135,23 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
     }
   }
 
-  function header(accountLabel: string): string {
+  /**
+   * The header bar, with an optional count.
+   *
+   * The count exists because both layouts quietly show less than they hold, and
+   * a wall gives the viewer no way to tell. Spotlight rotates the whole feed but
+   * the slot ends long before it wraps — at the three-second floor a thirty
+   * second slot reaches ten of twenty-four posts, and since the app restarts
+   * from the first post next time round, the tail is never seen at all. Grid
+   * shows the largest rectangle that tiles. Neither is wrong, but silence about
+   * it made a feed look complete when it was not.
+   */
+  function header(accountLabel: string, count?: string): string {
     return (
       `<header class="sf-head" style="background:${brand.accent}">` +
       `<span class="sf-glyph">${brand.glyph}</span>` +
       `<span class="sf-account">${escapeHtml(accountLabel)}</span>` +
+      (count ? `<span class="sf-count">${escapeHtml(count)}</span>` : '') +
       `<span class="sf-plat">${escapeHtml(brand.platform)}</span>` +
       `</header>`
     )
@@ -157,8 +200,14 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
       showCaption && post.text && imageOf(post)
         ? `<div class="sf-caption">${bylineHtml(post, true)}<p>${escapeHtml(clampText(post.text, 220))}</p></div>`
         : ''
+    // Position, not "showing N of M": spotlight does cycle the whole feed, so
+    // where you are in it is the honest reading. One post has no position.
+    const count =
+      data.posts.length > 1
+        ? `${String((index % data.posts.length) + 1)} / ${String(data.posts.length)}`
+        : undefined
     root.innerHTML =
-      header(data.accountLabel) +
+      header(data.accountLabel, count) +
       `<div class="sf-spot">${mediaHtml(post, true, showCaption)}${caption}</div>`
   }
 
@@ -167,8 +216,9 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
     data: SocialPayload,
     showCaption: boolean,
   ): void {
+    const shape = gridShape(data.posts.length)
     const cells = data.posts
-      .slice(0, 9)
+      .slice(0, shape.cells)
       .map((post) => {
         // Overlay caption only for image posts; text posts show their text via
         // mediaHtml, so a cap would double it.
@@ -179,8 +229,15 @@ export function mountSocialFeed(brand: SocialFeedBrand): void {
         return `<div class="sf-cell">${mediaHtml(post, false, showCaption)}${cap}</div>`
       })
       .join('')
+    // Grid shows a fixed set, so the count discloses how much was held back —
+    // and says nothing at all when the whole feed is on screen.
+    const count =
+      shape.cells < data.posts.length
+        ? `${String(shape.cells)} / ${String(data.posts.length)}`
+        : undefined
     root.innerHTML =
-      header(data.accountLabel) + `<div class="sf-grid">${cells}</div>`
+      header(data.accountLabel, count) +
+      `<div class="sf-grid" style="--sf-cols:${String(shape.columns)}">${cells}</div>`
   }
 
   function applyTheme(root: HTMLElement, config: SocialConfig): void {
