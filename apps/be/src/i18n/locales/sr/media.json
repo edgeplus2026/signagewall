@@ -3,7 +3,7 @@
   "folderNotFound": "Folder nije pronađen.",
   "folderNameExists": "Folder sa ovim imenom već postoji na ovoj lokaciji.",
   "fileRequired": "Datoteka je obavezna.",
-  "fileTooLarge": "Datoteka premašuje maksimalnu dozvoljenu veličinu od 10 MB.",
+  "fileTooLarge": "Datoteka premašuje maksimalnu dozvoljenu veličinu od {{size}}.",
   "invalidFileType": "Ovaj tip datoteke nije podržan. Dozvoljeni tipovi su JPEG, PNG, WebP, GIF, MP4, WebM i MOV.",
   "invalidFileContent": "Sadržaj datoteke ne odgovara prijavljenom tipu.",
   "durationNotAllowed": "Podrazumevano trajanje se ne može postaviti na folder.",

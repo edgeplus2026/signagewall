@@ -2,6 +2,7 @@ import type { TFunction } from "i18next"
 
 import {
   ALLOWED_MEDIA_MIME_TYPES,
+  formatMaxFileSize,
   MEDIA_MAX_FILE_SIZE_BYTES,
   MEDIA_MAX_FILES_PER_UPLOAD,
 } from "@/features/media/lib/media.constants"
@@ -52,6 +53,7 @@ export function validateStagedItems(
     if (item.sizeBytes > MEDIA_MAX_FILE_SIZE_BYTES) {
       errorById[item.id] = t("media.upload.validation.tooLarge", {
         name: item.name,
+        size: formatMaxFileSize(),
       })
     }
   }

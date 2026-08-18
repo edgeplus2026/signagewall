@@ -43,7 +43,11 @@ describe('MediaService — disk-staged uploads', () => {
     uploadFile: jest.Mock;
     uploadObject: jest.Mock;
   };
-  let repository: { create: jest.Mock; findById: jest.Mock; updateById: jest.Mock };
+  let repository: {
+    create: jest.Mock;
+    findById: jest.Mock;
+    updateById: jest.Mock;
+  };
   let stagingDir: string;
 
   const createdItem = {

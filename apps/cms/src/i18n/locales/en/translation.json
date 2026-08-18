@@ -1299,7 +1299,7 @@
       "validation": {
         "maxFiles": "You can upload up to {{count}} files at a time.",
         "invalidType": "{{name}} is not a supported file type.",
-        "tooLarge": "{{name}} exceeds the 10 MB file size limit."
+        "tooLarge": "{{name}} exceeds the {{size}} file size limit."
       },
       "manager": {
         "title": "Uploads",

@@ -3,7 +3,7 @@
   "folderNotFound": "Folder not found.",
   "folderNameExists": "A folder with this name already exists in this location.",
   "fileRequired": "A file is required.",
-  "fileTooLarge": "File exceeds the maximum allowed size of 10 MB.",
+  "fileTooLarge": "File exceeds the maximum allowed size of {{size}}.",
   "invalidFileType": "This file type is not supported. Allowed types are JPEG, PNG, WebP, GIF, MP4, WebM, and MOV.",
   "invalidFileContent": "The file content does not match its declared type.",
   "durationNotAllowed": "A default duration cannot be set on a folder.",

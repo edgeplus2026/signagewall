@@ -69,6 +69,11 @@ export type MediaBytes =
   | { kind: 'buffer'; buffer: Buffer }
   | { kind: 'file'; path: string; size: number };
 
+/** "200 MB" — for the message that tells a customer what they exceeded. */
+function formatByteCeiling(bytes: number): string {
+  return `${Math.round(bytes / (1024 * 1024)).toString()} MB`;
+}
+
 function mediaBytesSize(bytes: MediaBytes): number {
   return bytes.kind === 'buffer' ? bytes.buffer.length : bytes.size;
 }
@@ -463,7 +468,13 @@ export class MediaService {
     const originalSize = mediaBytesSize(input.bytes);
 
     if (originalSize > maxSizeBytes) {
-      throw BusinessException.badRequest(this.i18n.t('media.fileTooLarge'));
+      // The importer's ceiling, not the upload one — they differ, and quoting
+      // the wrong number sends the customer looking for a setting that is fine.
+      throw BusinessException.badRequest(
+        this.i18n.t('media.fileTooLarge', {
+          args: { size: formatByteCeiling(maxSizeBytes) },
+        }),
+      );
     }
 
     if (
@@ -964,7 +975,11 @@ export class MediaService {
     }
 
     if (file.size > this.maxFileSizeBytes) {
-      throw BusinessException.badRequest(this.i18n.t('media.fileTooLarge'));
+      throw BusinessException.badRequest(
+        this.i18n.t('media.fileTooLarge', {
+          args: { size: formatByteCeiling(this.maxFileSizeBytes) },
+        }),
+      );
     }
 
     if (

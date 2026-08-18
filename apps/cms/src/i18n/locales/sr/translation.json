@@ -1279,7 +1279,7 @@
       "validation": {
         "maxFiles": "Možete otpremiti najviše {{count}} datoteka odjednom.",
         "invalidType": "{{name}} nije podržan tip datoteke.",
-        "tooLarge": "{{name}} premašuje limit veličine od 10 MB."
+        "tooLarge": "{{name}} premašuje limit veličine od {{size}}."
       },
       "manager": {
         "title": "Otpremanja",
