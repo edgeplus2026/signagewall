@@ -192,6 +192,69 @@ describe('CacheWarmer', () => {
     expect(fetched).toEqual(['a', 'b'])
   })
 
+  it('lets an in-flight download finish when the playlist only grew', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const started: string[] = []
+    const stored: string[] = []
+    const { deps } = makeDeps({
+      // Honest stub: a URL is cached once it has been warmed, which is what
+      // makes the follow-up pass skip it instead of fetching it again.
+      isCached: vi.fn(async (url: string) => stored.includes(url)),
+      fetch: vi.fn(async (url: string) => {
+        started.push(url)
+        await gate
+        stored.push(url)
+      }),
+    })
+    const warmer = new CacheWarmer(deps)
+
+    warmer.onContent(['big-video'])
+    // The pass awaits ready(), isCached() and overBudget() before it fetches.
+    for (let tick = 0; tick < 12; tick += 1) {
+      await Promise.resolve()
+    }
+    expect(started).toEqual(['big-video'])
+
+    // The operator drops a poster in while the video is still coming down.
+    // Aborting here is what made a screen re-download the same clip from zero.
+    warmer.onContent(['big-video', 'poster'])
+    release()
+    await warmer.settle()
+    await warmer.settle()
+
+    // Started once, not twice — and the addition was picked up afterwards.
+    expect(started.filter((url) => url === 'big-video')).toHaveLength(1)
+    expect(stored).toContain('poster')
+  })
+
+  it('still restarts when something was taken away', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const { deps } = makeDeps({
+      isCached: vi.fn(async () => false),
+      fetch: vi.fn(async () => {
+        await gate
+      }),
+    })
+    const warmer = new CacheWarmer(deps)
+
+    warmer.onContent(['a', 'b'])
+    for (let tick = 0; tick < 12; tick += 1) {
+      await Promise.resolve()
+    }
+    // 'a' is gone: whatever is in flight may be exactly what nobody wants now.
+    warmer.onContent(['b', 'c'])
+    release()
+    await warmer.settle()
+
+    expect(warmer.summary().totalMedia).toBe(2)
+  })
+
   it('stop() aborts the current pass', async () => {
     const { deps, fetched } = makeDeps({
       isCached: vi.fn(async () => false),

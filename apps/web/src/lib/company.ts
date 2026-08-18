@@ -29,15 +29,16 @@ export const COMPANY = {
   /**
    * Contact for legal and data-protection requests.
    *
-   * Deliberately the address the site already publishes rather than invented
-   * `legal@` / `privacy@` aliases: a GDPR request has to reach a mailbox
-   * somebody actually reads. That is currently the Gmail account behind the
-   * brand — a published `office@signagewall.com` that nobody has created yet
-   * would bounce every request these documents promise to answer. Move it to
-   * the domain here, and in the `contact.json` message file of each locale,
-   * once that mailbox exists.
+   * On the domain now that it resolves. A controller that publishes a free
+   * Gmail reads as an individual rather than a company, and every vendor check
+   * that matters here — Microsoft publisher verification, G2, LinkedIn — wants
+   * a contact whose domain matches the site. The original constraint still
+   * holds: a GDPR request has to reach a mailbox somebody actually reads. It
+   * does, because this is a Cloudflare Email Routing alias rather than a
+   * mailbox — nothing is stored at the domain, it forwards to the Gmail behind
+   * the brand. Keep in step with the `contact.json` message file of each locale.
    */
-  email: 'signagewall@gmail.com',
+  email: 'office@signagewall.com',
 
   /** Canonical public origin, without protocol — for prose, not for links. */
   domain: 'www.signagewall.com',

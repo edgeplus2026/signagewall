@@ -318,6 +318,8 @@ export class CacheWarmer {
   /** Media URLs in the current set, and how many of them the cache holds. */
   private total = 0
   private warmed = 0
+  /** The URL set the running pass is walking, for {@link grewOnly}. */
+  private current: string[] = []
   private readonly deps: PrefetchDeps
 
   constructor(deps: Partial<PrefetchDeps> = {}) {
@@ -341,6 +343,16 @@ export class CacheWarmer {
     }
   }
 
+  /**
+   * A set that only GREW, queued behind the pass already running.
+   *
+   * Restarting on every content change aborts whatever is mid-download, so an
+   * operator adding two items in a row killed the first item's transfer and
+   * started it again from zero. Nothing was wrong with that download — the item
+   * is still wanted, and they are still the same bytes.
+   */
+  private queued: string[] | null = null
+
   /** New content: (re)warm only if the media set changed. */
   onContent(urls: string[]): void {
     // Compare on the STABLE cache identity, not the raw URL. A private app
@@ -354,7 +366,23 @@ export class CacheWarmer {
     }
     this.lastKey = key
     this.complete = false // a new set is unwarmed
+
+    // Nothing was taken away, so everything the running pass is still fetching is
+    // still wanted. Let it finish and pick the additions up afterwards, rather
+    // than throwing a half-downloaded video away to start the same work again.
+    if (this.running && this.grewOnly(urls)) {
+      this.queued = urls
+      this.total = urls.length
+      return
+    }
+
     this.restart(urls)
+  }
+
+  /** Whether `next` keeps everything the running pass is working through. */
+  private grewOnly(next: string[]): boolean {
+    const wanted = new Set(next)
+    return this.current.every((url) => wanted.has(url))
   }
 
   /**
@@ -371,6 +399,7 @@ export class CacheWarmer {
   }
 
   stop(): void {
+    this.queued = null
     this.abort?.abort()
     this.abort = null
     this.running = false
@@ -407,6 +436,7 @@ export class CacheWarmer {
     this.abort = ctrl
     this.running = true
     this.complete = false
+    this.current = urls
     this.pass = (async () => {
       // Cleared on any abort/budget-stop/fetch failure, so `complete` is only set
       // when the whole set is genuinely warmed and a reconnect can safely skip it.
@@ -466,6 +496,14 @@ export class CacheWarmer {
         if (this.abort === ctrl) {
           this.running = false
           this.complete = allWarmed
+          // Additions that arrived while this pass was working. Everything it
+          // already cached is skipped on the way through, so this costs a walk
+          // over known URLs and a fetch of only the new ones.
+          const next = this.queued
+          this.queued = null
+          if (next) {
+            this.restart(next)
+          }
         }
       }
     })()
