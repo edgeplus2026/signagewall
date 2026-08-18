@@ -23,6 +23,32 @@ import {
 import { connectorSlugs, getConnector } from './connectors/connector-registry';
 import { AppDataCacheDocument } from './schemas/app-data-cache.schema';
 
+/** Cap on serialized connector log metadata, so one bad field can't flood a line. */
+const LOG_META_MAX_CHARS = 1_000;
+
+/**
+ * Render connector log metadata into the message itself.
+ *
+ * It has to be one line. Nest's logger reads its second argument as a `context`
+ * STRING, so handing it an object prints a bare `Object(3) {` and spills the
+ * fields across follow-up lines — which a log collector stores as separate,
+ * unrelated entries. That is how `drive watch failed` lost the `detail` field
+ * carrying Google's own explanation, in production, where it was the only copy.
+ */
+function serializeLogMeta(meta: Record<string, unknown>): string {
+  let text: string;
+  try {
+    text = JSON.stringify(meta);
+  } catch {
+    // Circular or otherwise unserializable. The field NAMES still identify which
+    // call this was, which beats both a dropped line and "[object Object]".
+    text = `{unserializable: ${Object.keys(meta).join(',')}}`;
+  }
+  return text.length > LOG_META_MAX_CHARS
+    ? `${text.slice(0, LOG_META_MAX_CHARS)}…`
+    : text;
+}
+
 /** One distinct cache key the scheduler may refresh, with a sample config. */
 interface DueCandidate {
   cacheKey: string;
@@ -672,12 +698,22 @@ export class AppDataService {
     return connection;
   }
 
-  /** Structured logger handed to connectors (bridges to the Nest logger). */
+  /**
+   * Structured logger handed to connectors (bridges to the Nest logger).
+   *
+   * Metadata is folded INTO the message — see {@link serializeLogMeta} for why
+   * passing it as Nest's second argument silently loses it.
+   */
   private get connectorLogger(): ConnectorLogger {
+    const line = (message: string, meta?: Record<string, unknown>): string =>
+      meta && Object.keys(meta).length > 0
+        ? `${message} ${serializeLogMeta(meta)}`
+        : message;
+
     return {
-      debug: (message, meta) => this.logger.debug(message, meta),
-      warn: (message, meta) => this.logger.warn(message, meta),
-      error: (message, meta) => this.logger.error(message, meta),
+      debug: (message, meta) => this.logger.debug(line(message, meta)),
+      warn: (message, meta) => this.logger.warn(line(message, meta)),
+      error: (message, meta) => this.logger.error(line(message, meta)),
     };
   }
 

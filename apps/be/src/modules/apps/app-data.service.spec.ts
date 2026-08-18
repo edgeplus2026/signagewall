@@ -659,4 +659,46 @@ describe('AppDataService async export jobs (pending)', () => {
 
     expect(emit).not.toHaveBeenCalled();
   });
+
+  /*
+   * Regression: the connector logger used to pass its metadata as the Nest
+   * logger's SECOND argument, which Nest reads as a `context` string. An object
+   * there printed a bare "Object(3) {" and spilled the fields onto follow-up
+   * lines that a log collector files as separate entries — which is how the
+   * `detail` of a failed Drive watch, carrying Google's own explanation, became
+   * unreadable in production. One warning has to be one line.
+   */
+  it('folds connector log metadata into the message, with no second argument', () => {
+    const { service } = buildService({ instances: [] });
+    const warn = jest
+      .spyOn(service['logger'], 'warn')
+      .mockImplementation(() => undefined);
+
+    service['connectorLogger'].warn('drive watch failed', {
+      fileId: 'deck-1',
+      status: 403,
+      detail: 'Unauthorized WebHook callback channel: https://api.example/hook',
+    });
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    const call = warn.mock.calls[0] as unknown[];
+    expect(call).toHaveLength(1);
+    const line = String(call[0]);
+    expect(line).toContain('drive watch failed');
+    expect(line).toContain('Unauthorized WebHook callback channel');
+    expect(line).toContain('"status":403');
+  });
+
+  it('omits the metadata suffix entirely when there is none', () => {
+    const { service } = buildService({ instances: [] });
+    const warn = jest
+      .spyOn(service['logger'], 'warn')
+      .mockImplementation(() => undefined);
+
+    service['connectorLogger'].warn('drive watch failed', {});
+
+    expect(String((warn.mock.calls[0] as unknown[])[0])).toBe(
+      'drive watch failed',
+    );
+  });
 });
