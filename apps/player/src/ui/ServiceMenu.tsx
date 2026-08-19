@@ -188,8 +188,15 @@ export function ServiceMenu() {
     // What the setting DOES, not what it is called. Deliberately not the mode
     // name: the shell quietly degrades `hard` to `soft` on a box that isn't
     // Device Owner, so printing "hard" here would be a promise it cannot keep.
+    // On a box that is not Device Owner the shell degrades the lock to OS screen
+    // pinning, which a determined viewer can leave — so promising that the remote
+    // cannot is a claim this device cannot keep, and it contradicted both the Info
+    // panel below and the CMS, which say so plainly. Only a confirmed `false`
+    // weakens the wording: an older shell reports nothing and must not be accused.
     hint: locked
-      ? 'On — the remote cannot leave the player'
+      ? info?.deviceOwner === false
+        ? 'On — but this box can still be exited; it is not Device Owner'
+        : 'On — the remote cannot leave the player'
       : 'Off — anyone can exit to the TV menu',
     toggle: true,
     on: locked,

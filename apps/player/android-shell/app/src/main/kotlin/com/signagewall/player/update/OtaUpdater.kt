@@ -218,7 +218,10 @@ class OtaUpdater(
         }
         io.execute {
             try {
-                downloadAndInstall(m)
+                // A person is waiting at the screen, so a confirmation dialog is
+                // something they can answer — which is the whole difference between
+                // this path and the scheduler's.
+                downloadAndInstall(m, operatorPresent = operatorPresent)
             } finally {
                 running.set(false)
             }
@@ -286,7 +289,7 @@ class OtaUpdater(
         return true
     }
 
-    private fun downloadAndInstall(m: UpdateManifest) {
+    private fun downloadAndInstall(m: UpdateManifest, operatorPresent: Boolean = false) {
         // Downloads land in the cache directory, not in filesDir: filesDir also holds
         // device.json and the updater's own state, and filling it with a 700MB partial
         // download would take the device's identity with it. The OS may also reclaim
@@ -333,7 +336,7 @@ class OtaUpdater(
                 "requesting install of ${m.versionName}" +
                     (if (installer.canInstallSilently()) "" else " (needs a person)"),
             )
-            installer.install(apk, m.versionCode)
+            installer.install(apk, m.versionCode, operatorPresent)
         } catch (t: Throwable) {
             Log.w(TAG, "update to ${m.versionName} failed", t)
             ShellLog.of(context)?.record(

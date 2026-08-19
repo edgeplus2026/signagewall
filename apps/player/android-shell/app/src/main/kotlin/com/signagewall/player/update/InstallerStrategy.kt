@@ -66,13 +66,32 @@ class InstallerStrategy(private val context: Context) {
     fun canInstallSilently(): Boolean {
         if (isDeviceOwner()) return true
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false
-        return try {
-            val info = context.packageManager.getInstallSourceInfo(context.packageName)
-            info.installingPackageName == context.packageName
-        } catch (_: Throwable) {
+        // Holding the permission is the condition Android actually documents for a
+        // self-update; being our own installer of record makes it far more likely to
+        // be granted, but it is NOT required. Measured on Android 14: a device with
+        // `installerPackageName=null` installed its own update with no dialog at all,
+        // while this method — which used to demand the installer of record — had
+        // already reported it as a screen needing a technician. Every such screen was
+        // an unnecessary site visit.
+        //
+        // Being optimistic here is only safe because being wrong is now harmless:
+        // [InstallReceiver] refuses to show a confirmation for an install nobody
+        // asked for, records `needs-operator` and abandons the session, so the worst
+        // case is the honest answer arriving one attempt later instead of being
+        // guessed up front.
+        return hasUpdateWithoutUserActionPermission()
+    }
+
+    private fun hasUpdateWithoutUserActionPermission(): Boolean =
+        try {
+            context.packageManager.checkPermission(
+                "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION",
+                context.packageName,
+            ) == PackageManager.PERMISSION_GRANTED
+        } catch (t: Throwable) {
+            Log.w(TAG, "could not read the update permission", t)
             false
         }
-    }
 
     fun isDeviceOwner(): Boolean {
         val dpm =
@@ -117,7 +136,7 @@ class InstallerStrategy(private val context: Context) {
         }
     }
 
-    fun install(apk: File, versionCode: Int = 0) {
+    fun install(apk: File, versionCode: Int = 0, operatorPresent: Boolean = false) {
         require(isSignedByUs(apk)) { "APK is not signed by this app's certificate" }
         val installer = context.packageManager.packageInstaller
         // Sessions are a finite, per-app resource and a failed one is never cleaned
@@ -141,7 +160,7 @@ class InstallerStrategy(private val context: Context) {
 
         val sessionId = installer.createSession(params)
         try {
-            writeAndCommit(installer, sessionId, apk, versionCode)
+            writeAndCommit(installer, sessionId, apk, versionCode, operatorPresent)
         } catch (t: Throwable) {
             runCatching { installer.abandonSession(sessionId) }
             throw t
@@ -153,6 +172,7 @@ class InstallerStrategy(private val context: Context) {
         sessionId: Int,
         apk: File,
         versionCode: Int,
+        operatorPresent: Boolean,
     ) {
         installer.openSession(sessionId).use { session ->
             apk.inputStream().use { input ->
@@ -169,7 +189,9 @@ class InstallerStrategy(private val context: Context) {
                 // that cannot be attributed to a version cannot be counted against
                 // one — which is what let a doomed APK retry forever.
                 Intent(context, InstallReceiver::class.java)
-                    .putExtra(InstallReceiver.EXTRA_VERSION_CODE, versionCode),
+                    .putExtra(InstallReceiver.EXTRA_VERSION_CODE, versionCode)
+                    // Whether anybody is there to answer, in case Android asks.
+                    .putExtra(InstallReceiver.EXTRA_OPERATOR_PRESENT, operatorPresent),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
             )
             session.commit(pending.intentSender)

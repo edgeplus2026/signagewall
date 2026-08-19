@@ -29,6 +29,39 @@ class InstallReceiver : BroadcastReceiver() {
         val store = UpdaterStateStore(File(context.filesDir, "updates/state.json"))
         when (val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, -1)) {
             PackageInstaller.STATUS_PENDING_USER_ACTION -> {
+                // Whether a person asked for THIS install. Absent means the
+                // scheduler did, and the scheduler has nobody to answer a dialog.
+                val operatorPresent = intent.getBooleanExtra(EXTRA_OPERATOR_PRESENT, false)
+                if (!operatorPresent) {
+                    // Android decided it wants a human. We do not argue, but we also
+                    // do not throw a confirmation over a shop wall at four in the
+                    // morning where it would sit unanswered on top of the content
+                    // until somebody visits. Record it, drop the session, and let the
+                    // screen report `needs-operator` so the CMS can ask for a visit
+                    // deliberately instead of the screen demanding one.
+                    Log.i(TAG, "install needs a person; not prompting an unattended screen")
+                    ShellLog.of(context)?.record(
+                        "update",
+                        "update needs a person to confirm; left for an operator",
+                    )
+                    // The second argument is deliberately non-null with no version
+                    // code: that is the branch which clears `pendingVersion` without
+                    // counting a failure. Leaving the pending version set would have
+                    // `reconcile` overwrite this with `error` on the next boot — the
+                    // build is not bad, it is just waiting for a person — and
+                    // counting a failure would push a perfectly good version towards
+                    // being abandoned.
+                    record(store, "needs-operator", "waiting for an operator")
+                    val sessionId =
+                        intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, -1)
+                    if (sessionId >= 0) {
+                        runCatching {
+                            context.packageManager.packageInstaller
+                                .abandonSession(sessionId)
+                        }
+                    }
+                    return
+                }
                 // Off Device Owner Android insists a human confirms. Hold the
                 // keep-alive off first: it would otherwise drag the player back over
                 // the dialog within seconds and the update could never complete.
@@ -111,6 +144,13 @@ class InstallReceiver : BroadcastReceiver() {
         /** Which version this broadcast is about — PackageInstaller does not say,
          *  and without it a failure cannot be attributed to a version. */
         const val EXTRA_VERSION_CODE = "com.signagewall.player.EXTRA_VERSION_CODE"
+
+        /**
+         * Whether a person asked for this install and can answer a dialog. The
+         * PendingIntent carries it because by the time Android says it wants a
+         * confirmation, the call that started the install is long gone.
+         */
+        const val EXTRA_OPERATOR_PRESENT = "com.signagewall.player.EXTRA_OPERATOR_PRESENT"
 
         private const val TAG = "InstallReceiver"
 
