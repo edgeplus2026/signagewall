@@ -102,6 +102,10 @@ class KioskController(private val activity: Activity) {
             ComponentName(activity, KioskActivity::class.java),
         )
         if (!isInLockTask()) activity.startLockTask()
+        // Checked on the Device Owner path too: this is where the lock is supposed to
+        // be un-escapable, so a silent refusal here is the most important one to hear
+        // about — it is the difference between a provisioned box and a promise.
+        verifyLockTaskEngaged()
     }
 
     private fun applySoft() {
@@ -116,6 +120,30 @@ class KioskController(private val activity: Activity) {
         // Without a DO allowlist this is OS screen-pinning: the user can exit via
         // Back+Recents. Keep-screen-on + immersive are handled by the Activity.
         if (!isInLockTask()) activity.startLockTask()
+        verifyLockTaskEngaged()
+    }
+
+    /**
+     * Says so when the lock did not actually take.
+     *
+     * `startLockTask()` does not throw when the system simply declines it — screen
+     * pinning can be switched off device-wide, and some TV builds ignore it outright.
+     * Measured on an Android 14 TV: the request returned cleanly, the service menu
+     * went on claiming the screen was locked, and `mLockTaskModeState` stayed NONE,
+     * so HOME walked straight out to the launcher. Nothing anywhere said otherwise.
+     * The player still comes back — the supervisor reclaims it within about ten
+     * seconds — but "locked" and "returns shortly" are different promises, and an
+     * operator deciding whether a site needs a Device Owner box has to be able to
+     * tell them apart.
+     */
+    private fun verifyLockTaskEngaged() {
+        if (isInLockTask()) return
+        Log.w(TAG, "lock task did not engage; the screen can still be left")
+        ShellLog.of(activity)?.record(
+            "kiosk",
+            "lock requested but screen pinning did not engage — the player can be left, " +
+                "and is put back by the supervisor instead",
+        )
     }
 
     private fun applyOff() {
