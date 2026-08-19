@@ -51,7 +51,20 @@ class InstallReceiver : BroadcastReceiver() {
                     // build is not bad, it is just waiting for a person — and
                     // counting a failure would push a perfectly good version towards
                     // being abandoned.
-                    record(store, "needs-operator", "waiting for an operator")
+                    // Counted against the version so the per-version backoff
+                    // throttles the retry. Without a count the scheduler would
+                    // re-download and re-abandon the same APK every hour forever on
+                    // a screen that plainly needs a visit. The operator path bypasses
+                    // that backoff (`isInstallable(operatorPresent = true)`), so a
+                    // technician who does turn up is never told there is nothing to
+                    // install. This also clears `pendingVersion`, which otherwise had
+                    // `reconcile` overwrite this with `error` on the next boot.
+                    record(
+                        store,
+                        "needs-operator",
+                        "waiting for an operator",
+                        intent.getIntExtra(EXTRA_VERSION_CODE, 0),
+                    )
                     val sessionId =
                         intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, -1)
                     if (sessionId >= 0) {

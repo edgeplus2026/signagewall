@@ -200,4 +200,34 @@ class PageRecoveryTest {
 
         assertEquals(climbed, recovery.currentRung())
     }
+
+    /**
+     * The stuck-content rule must not judge the hours a panel spent switched off.
+     *
+     * `sinceAdvance()` keeps counting through standby, so on any playlist whose
+     * items dwell longer than the verify window the first check after a wake saw a
+     * gap of hours, called the content frozen, and reloaded a page that was about to
+     * be perfectly fine.
+     */
+    @Test
+    fun `a night of standby is not read as frozen content`() {
+        beat("item-1", multiItem = true)
+        poll(1)
+        assertEquals(0, recovery.currentRung())
+
+        // Eight hours dark: nothing polls, nothing advances.
+        now += 8 * 60 * 60_000L
+        recovery.resumeAfterStandby()
+
+        // The page is alive and beating, it just has not changed item yet — a
+        // five-minute image is ordinary. Beat on every poll so the only thing left
+        // that could escalate is the stale advance mark.
+        repeat(10) {
+            beat("item-1", multiItem = true)
+            now += 15_000L
+            recovery.check()
+        }
+        assertEquals(0, recovery.currentRung())
+        assertEquals(emptyList<String>(), actions.calls)
+    }
 }

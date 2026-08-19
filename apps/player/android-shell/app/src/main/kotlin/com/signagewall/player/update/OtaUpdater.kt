@@ -89,7 +89,19 @@ class OtaUpdater(
         io.execute {
             val state = stateStore.read()
             val m = cached ?: return@execute
-            if (!isInstallable(m, state) || !installer.canInstallSilently()) {
+            // No `canInstallSilently()` gate. That was a guess about what Android
+            // would allow, and it guessed wrong in the direction that costs a site
+            // visit: a screen with no installer of record was reported as needing a
+            // technician while being perfectly able to update itself. `isInstallable`
+            // still applies the poison, downgrade and per-version backoff guards, so
+            // this attempts at most a few times before leaving the version alone.
+            //
+            // If the OS does want a human, [InstallReceiver] records `needs-operator`
+            // and abandons the session WITHOUT showing the dialog, so an unattended
+            // wall never ends up with an unanswerable prompt over its content — the
+            // outcome the old guess was protecting, now obtained by asking instead of
+            // predicting.
+            if (!isInstallable(m, state)) {
                 return@execute
             }
             if (!running.compareAndSet(false, true)) {

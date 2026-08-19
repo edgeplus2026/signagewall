@@ -63,35 +63,34 @@ class InstallerStrategy(private val context: Context) {
      * unanswered over the content until someone visits, is worse than being a version
      * behind.
      */
+    /**
+     * Whether an install is EXPECTED to go through without anybody pressing
+     * anything. A prediction, not a verdict — and the difference now matters.
+     *
+     * Device Owner is certain. Everything else is a guess: Android grants the
+     * silent self-update to an app holding UPDATE_PACKAGES_WITHOUT_USER_ACTION, and
+     * being our own installer of record is what makes that likely — but it is not
+     * the condition, and checking the permission itself proves nothing, because it
+     * is a normal permission declared in our own manifest and therefore always
+     * granted. Measured on Android 14: a device with `installerPackageName=null`
+     * installed its own update with no dialog, so this returns false on screens
+     * that can in fact manage perfectly well.
+     *
+     * Which is why nothing decides whether to ATTEMPT an install from this any
+     * more. The scheduler tries and lets the OS answer; [InstallReceiver] records
+     * what came back. This is only a hint — good enough to tell an operator what to
+     * expect, never good enough to refuse on.
+     */
     fun canInstallSilently(): Boolean {
         if (isDeviceOwner()) return true
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false
-        // Holding the permission is the condition Android actually documents for a
-        // self-update; being our own installer of record makes it far more likely to
-        // be granted, but it is NOT required. Measured on Android 14: a device with
-        // `installerPackageName=null` installed its own update with no dialog at all,
-        // while this method — which used to demand the installer of record — had
-        // already reported it as a screen needing a technician. Every such screen was
-        // an unnecessary site visit.
-        //
-        // Being optimistic here is only safe because being wrong is now harmless:
-        // [InstallReceiver] refuses to show a confirmation for an install nobody
-        // asked for, records `needs-operator` and abandons the session, so the worst
-        // case is the honest answer arriving one attempt later instead of being
-        // guessed up front.
-        return hasUpdateWithoutUserActionPermission()
-    }
-
-    private fun hasUpdateWithoutUserActionPermission(): Boolean =
-        try {
-            context.packageManager.checkPermission(
-                "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION",
-                context.packageName,
-            ) == PackageManager.PERMISSION_GRANTED
-        } catch (t: Throwable) {
-            Log.w(TAG, "could not read the update permission", t)
+        return try {
+            val info = context.packageManager.getInstallSourceInfo(context.packageName)
+            info.installingPackageName == context.packageName
+        } catch (_: Throwable) {
             false
         }
+    }
 
     fun isDeviceOwner(): Boolean {
         val dpm =

@@ -48,6 +48,9 @@ class PageRecovery(
     /** Rung whose first completed load has already been logged; -1 = none yet. */
     private var lastLoadLoggedRung = -1
 
+    /** When the panel last came back on; 0 = it has never been off. */
+    private var standbyEndedAt = 0L
+
     /** Whether the once-per-boot process restart has been spent. */
     interface RestartBudget {
         fun available(): Boolean
@@ -94,9 +97,18 @@ class PageRecovery(
         val beatMark = PlayerLiveness.lastBeatMark()
         // The page has spoken since we last acted — that, and only that, is health.
         val provedItself = beatMark > lastActionAt && PlayerLiveness.sinceBeat() < BEAT_TIMEOUT_MS
+        // The stuck rule needs STUCK_TIMEOUT_MS of *observed* playback to mean
+        // anything, and a dark panel observes nothing. After a night off the advance
+        // mark is hours old through no fault of the page, so without this grace the
+        // first judgement 90s after every wake read that gap as frozen content and
+        // reloaded a screen that was about to be fine — on any playlist whose items
+        // dwell longer than the verify window, which is most of them.
+        val standbyGrace =
+            standbyEndedAt > 0L && now - standbyEndedAt < STUCK_TIMEOUT_MS
         val stuck =
             PlayerLiveness.contentShouldAdvance() &&
-                PlayerLiveness.sinceAdvance() >= STUCK_TIMEOUT_MS
+                PlayerLiveness.sinceAdvance() >= STUCK_TIMEOUT_MS &&
+                !standbyGrace
 
         if (provedItself && !stuck) {
             if (rung != 0) {
@@ -185,6 +197,7 @@ class PageRecovery(
      */
     fun resumeAfterStandby() {
         lastActionAt = clock()
+        standbyEndedAt = clock()
     }
 
     /**

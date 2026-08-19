@@ -38,55 +38,36 @@ export function mergeDeviceSnapshot(
   snapshot: ScreenDevice | null | undefined,
   presence: ScreenDevice | null | undefined,
 ): ScreenDevice | undefined {
-  const base = presence ?? snapshot
-  if (!base) return undefined
-  const merged = {
-    ...snapshot,
-    ...presence,
-    paired: base.paired,
-    online: base.online,
-  }
-  const profile = mergeOptional(snapshot?.profile, presence?.profile)
-  if (!profile) return merged
+  if (!presence) return snapshot ?? undefined
+  if (!snapshot) return presence
+
+  // The snapshot is the base, NOT the overlay. Presence is a partial live view —
+  // its entries are rebuilt from socket pushes carrying only online/lastSeen and
+  // three profile fields, and the map is re-seeded solely when the socket
+  // (re)connects. Spreading it over the snapshot therefore froze everything it
+  // does not carry (shellStatus, the diagnostics report, the per-heartbeat health
+  // numbers) at whatever the page held on first load, and no refetch could move
+  // them — which is how "ask the shell for its log" could refetch happily and
+  // still render nothing.
+  //
+  // So each field is taken from whichever source actually knows it.
   return {
-    ...merged,
+    ...snapshot,
+    paired: presence.paired,
+    online: presence.online,
+    ...(presence.deviceId ? { deviceId: presence.deviceId } : {}),
+    ...(presence.lastSeenAt ? { lastSeenAt: presence.lastSeenAt } : {}),
     profile: {
-      ...profile,
-      // Taken WHOLE from whichever source has it, never field-merged like the rest.
-      // `lastResult` and `availableVersion` describe one moment, and merging them let
-      // a version from an older state survive under a newer outcome — the "Up to
-      // date -> 0.1.7" seen on a screen actually running 0.1.8. Presence wins when
-      // it is there, being the fresher of the two.
-      ...withOptional(
-        'updateStatus',
-        presence?.profile?.updateStatus ?? snapshot?.profile?.updateStatus,
-      ),
-      // Diagnostics DO merge field-wise: they are independent readings that arrive
-      // on different channels, not one indivisible statement.
-      ...withOptional(
-        'diagnostics',
-        mergeOptional(snapshot?.profile?.diagnostics, presence?.profile?.diagnostics),
-      ),
+      ...snapshot.profile,
+      ...(presence.profile?.appVersion ? { appVersion: presence.profile.appVersion } : {}),
+      ...(presence.profile?.shellVersion ? { shellVersion: presence.profile.shellVersion } : {}),
+      // Taken WHOLE when present, never field-merged: `lastResult` and
+      // `availableVersion` describe one moment, and merging them let a version from
+      // an older state survive under a newer outcome — the "Up to date -> 0.1.7"
+      // seen on a screen actually running 0.1.8.
+      ...(presence.profile?.updateStatus ? { updateStatus: presence.profile.updateStatus } : {}),
     },
   }
-}
-
-/**
- * Merges two optional objects, and stays `undefined` when both are.
- *
- * Materialising an empty object instead would quietly turn every `!device.profile`
- * test in the app into a permanent false — "reported nothing" and "reported an empty
- * report" are not the same claim about a screen.
- */
-function mergeOptional<T extends object>(a: T | undefined, b: T | undefined): T | undefined {
-  if (!a) return b
-  if (!b) return a
-  return { ...a, ...b }
-}
-
-/** Spreads a key only when there is something to put in it. */
-function withOptional<K extends string, T>(key: K, value: T | undefined): Partial<Record<K, T>> {
-  return value === undefined ? {} : ({ [key]: value } as Record<K, T>)
 }
 
 /**
