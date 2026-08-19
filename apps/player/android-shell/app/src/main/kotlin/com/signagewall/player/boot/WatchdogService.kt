@@ -114,7 +114,7 @@ class WatchdogService : Service() {
         // counter the CMS shows as this screen's health. Claiming a recovery for a
         // display nobody could see would quietly inflate the one number an operator
         // uses to judge whether a screen is limping.
-        val displayOn = DisplayState.isOn(this)
+        val displayOn = DisplayState.isServing(this)
         // Crucially this is asked BEFORE standing down. `FLAG_KEEP_SCREEN_ON` only
         // holds while the player's own window is visible, so a player that has fallen
         // off screen is exactly what lets the box go to sleep — and standing down on

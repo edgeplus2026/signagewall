@@ -128,7 +128,7 @@ class KioskActivity : AppCompatActivity() {
      */
     private val recoveryTick = object : Runnable {
         override fun run() {
-            val displayOn = DisplayState.isOn(this@KioskActivity)
+            val displayOn = DisplayState.isServing(this@KioskActivity)
             if (displayOn != displayWasOn) {
                 displayWasOn = displayOn
                 if (displayOn) {

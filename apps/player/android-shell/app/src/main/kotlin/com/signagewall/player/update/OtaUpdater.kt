@@ -63,19 +63,6 @@ class OtaUpdater(
     private var cached: UpdateManifest? = null
 
     /**
-     * Reads the manifest if the cached copy is older than [MANIFEST_TTL_MILLIS].
-     * Called from the supervisor's schedule, not from the page — the page is the
-     * thing most likely to be broken on a device that needs updating.
-     */
-    fun refreshIfStale() {
-        val state = stateStore.read()
-        if (cached != null && now() - state.lastFetchAt < MANIFEST_TTL_MILLIS) {
-            return
-        }
-        refresh()
-    }
-
-    /**
      * Reads the channel and, if there is something installable that can go in
      * WITHOUT a human, installs it.
      *
@@ -87,7 +74,18 @@ class OtaUpdater(
      * system dialog onto an unattended wall.
      */
     fun refreshAndMaybeApply() {
-        refreshIfStale()
+        // Unconditionally, NOT "if the cached copy is stale". This method IS the
+        // scheduled cadence, and gating it on a TTL of exactly the same length as
+        // that cadence made the two beat against each other: `lastFetchAt` is written
+        // when a fetch COMPLETES, so an hour later the supervisor found the cache
+        // one-hour-minus-a-moment old, declined to refetch, and applied a manifest it
+        // had already decided was current. Every other tick did real work and the
+        // fleet's effective update cadence was two hours, not one — measured with a
+        // release published three minutes before a check that ignored it.
+        //
+        // Ordering is safe because `io` is single-threaded: the fetch queued here
+        // runs to completion before the apply block below it.
+        refresh()
         io.execute {
             val state = stateStore.read()
             val m = cached ?: return@execute
@@ -434,9 +432,6 @@ class OtaUpdater(
         const val READ_TIMEOUT = 15_000
         const val DOWNLOAD_TIMEOUT = 60_000
         const val MAX_ERROR_CHARS = 200
-
-        /** How long a cached manifest is trusted before it is read again. */
-        const val MANIFEST_TTL_MILLIS = 60 * 60 * 1000L
 
         /** No successful read for this long is reported as a fault, not as silence. */
         const val CHANNEL_STALE_MILLIS = 48 * 60 * 60 * 1000L

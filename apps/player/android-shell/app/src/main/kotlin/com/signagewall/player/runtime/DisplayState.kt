@@ -3,6 +3,7 @@ package com.signagewall.player.runtime
 import android.content.Context
 import android.os.PowerManager
 import android.util.Log
+import com.signagewall.player.kiosk.KioskPresence
 
 /**
  * Whether the panel is actually showing anything.
@@ -34,14 +35,27 @@ object DisplayState {
     private const val TAG = "DisplayState"
 
     /**
-     * True when the device is awake. Anything unreadable counts as ON.
+     * Whether this screen is showing something to somebody.
      *
-     * The direction of that default is the whole safety argument: a screen wrongly
-     * judged OFF is a screen whose recovery never runs, and nobody finds out until a
-     * wall has been dark for a day. A screen wrongly judged ON merely does what it
-     * did before this file existed.
+     * Two independent reasons to say yes, and only one of them is the power state.
+     * `isInteractive` is plain AOSP and honest on the hardware it was measured on,
+     * but the shell has to run on whatever a customer already owns — a cheap TV, a
+     * stick, a box driven entirely over HDMI — and a device that mis-reports itself
+     * as non-interactive while happily playing content would otherwise have its page
+     * recovery and its update checks switched off permanently, which is far worse
+     * than the churn this whole mechanism exists to stop.
+     *
+     * So a resumed player counts as serving on its own. Android pauses the top
+     * activity when the panel really does sleep, so this cannot mask a genuine
+     * standby; all it does is make the odd device fall back to exactly the behaviour
+     * it had before any of this existed. Every unreadable state resolves the same
+     * way, for the same reason: a screen wrongly judged dark is a screen whose
+     * recovery never runs, and nobody finds out until a wall has been dead all day.
      */
-    fun isOn(context: Context): Boolean =
+    fun isServing(context: Context): Boolean =
+        isInteractive(context) || KioskPresence.isResumed()
+
+    private fun isInteractive(context: Context): Boolean =
         try {
             val power = context.getSystemService(Context.POWER_SERVICE) as PowerManager
             power.isInteractive
