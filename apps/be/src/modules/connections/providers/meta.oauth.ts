@@ -46,6 +46,12 @@ export const metaOAuthProvider: OAuthProvider = {
       // `public_profile` is granted implicitly and gives us the account name.
       scope: params.scopes.join(','),
     });
+    if (params.configurationId) {
+      query.set('config_id', params.configurationId);
+      // Business Login otherwise defaults to returning a token directly;
+      // SignageWall exchanges a short-lived authorization code server-side.
+      query.set('override_default_response_type', 'true');
+    }
     return `${AUTH_URL}?${query.toString()}`;
   },
 

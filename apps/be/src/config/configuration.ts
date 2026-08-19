@@ -42,6 +42,11 @@ export default () => ({
   meta: {
     clientId: process.env.META_CLIENT_ID,
     clientSecret: process.env.META_CLIENT_SECRET,
+    // Shared fallback for local/migration testing; per-connector ids preserve
+    // least privilege when Facebook and Instagram configurations both exist.
+    configurationId: process.env.META_CONFIG_ID,
+    facebookConfigurationId: process.env.META_FACEBOOK_CONFIG_ID,
+    instagramConfigurationId: process.env.META_INSTAGRAM_CONFIG_ID,
   },
   linkedin: {
     clientId: process.env.LINKEDIN_CLIENT_ID,

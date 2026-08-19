@@ -20,6 +20,11 @@ export interface OAuthStartParams {
   state: string;
   scopes: string[];
   /**
+   * Provider-side login configuration identifier. Meta's Facebook Login for
+   * Business uses this to bind OAuth to a reviewed permission configuration.
+   */
+  configurationId?: string;
+  /**
    * PKCE code challenge (S256 of the code verifier). Set only for providers that
    * require PKCE (e.g. Canva); other providers ignore it.
    */
