@@ -52,11 +52,17 @@ export function mergeDeviceSnapshot(
     ...merged,
     profile: {
       ...profile,
-      // Nested objects need the same treatment for the same reason, one level down.
+      // Taken WHOLE from whichever source has it, never field-merged like the rest.
+      // `lastResult` and `availableVersion` describe one moment, and merging them let
+      // a version from an older state survive under a newer outcome — the "Up to
+      // date -> 0.1.7" seen on a screen actually running 0.1.8. Presence wins when
+      // it is there, being the fresher of the two.
       ...withOptional(
         'updateStatus',
-        mergeOptional(snapshot?.profile?.updateStatus, presence?.profile?.updateStatus),
+        presence?.profile?.updateStatus ?? snapshot?.profile?.updateStatus,
       ),
+      // Diagnostics DO merge field-wise: they are independent readings that arrive
+      // on different channels, not one indivisible statement.
       ...withOptional(
         'diagnostics',
         mergeOptional(snapshot?.profile?.diagnostics, presence?.profile?.diagnostics),

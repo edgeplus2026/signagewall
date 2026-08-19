@@ -361,8 +361,13 @@ function MaintenanceSettings({
                 defaultValue: updateStatus.lastResult,
               })}
               {/* Without the target version "Update available" tells the operator
-                  nothing actionable — which build is on offer? */}
-              {updateStatus.availableVersion ? ` → ${updateStatus.availableVersion}` : null}
+                  nothing actionable — which build is on offer? But an up-to-date
+                  screen has nothing on offer by definition, so the arrow is
+                  suppressed there rather than left pointing at whatever version was
+                  last seen. */}
+              {updateStatus.availableVersion && !reportedUpToDate
+                ? ` → ${updateStatus.availableVersion}`
+                : null}
             </span>
           </SettingsRow>
         ) : null}

@@ -2,10 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
 import { screensApi } from '@/features/screens/api/screensApi'
-import {
-  PresenceContext,
-  type PresenceMap,
-} from '@/features/screens/providers/presenceContext'
+import { PresenceContext, type PresenceMap } from '@/features/screens/providers/presenceContext'
 import {
   getRealtimeSocket,
   onDevicePresence,
@@ -20,14 +17,13 @@ import {
  * without each one polling. Re-seeds on (re)connect to recover missed events.
  */
 export function PresenceProvider({ children }: { children: ReactNode }) {
-  const organizationId = useOrganizationStore(
-    (state) => state.activeOrganizationId,
-  )
+  const organizationId = useOrganizationStore((state) => state.activeOrganizationId)
   // Presence is tagged with the org it belongs to, so switching orgs hides the
   // stale map immediately (in render) without a synchronous effect reset.
-  const [state, setState] = useState<{ orgId: string | null; map: PresenceMap }>(
-    { orgId: null, map: {} },
-  )
+  const [state, setState] = useState<{ orgId: string | null; map: PresenceMap }>({
+    orgId: null,
+    map: {},
+  })
   // Avoid clobbering a fresh socket update with a slower in-flight seed.
   const latestSeedToken = useRef(0)
 
@@ -86,24 +82,30 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
               online: event.online,
               deviceId: event.deviceId,
               lastSeenAt: event.lastSeenAt,
-              ...(previous?.profile ||
-              event.appVersion ||
-              event.shellVersion ||
-              event.updateResult
+              ...(previous?.profile || event.appVersion || event.shellVersion || event.updateResult
                 ? {
                     profile: {
                       ...previous?.profile,
-                      ...(event.appVersion
-                        ? { appVersion: event.appVersion }
-                        : {}),
-                      ...(event.shellVersion
-                        ? { shellVersion: event.shellVersion }
-                        : {}),
+                      ...(event.appVersion ? { appVersion: event.appVersion } : {}),
+                      ...(event.shellVersion ? { shellVersion: event.shellVersion } : {}),
+                      // Built from the event, NOT spread over what was already
+                      // held. `lastResult` and `availableVersion` describe the same
+                      // moment, so carrying the old version across a new outcome
+                      // invented a state the device never reported — "Up to date →
+                      // 0.1.7" on a screen running 0.1.8. `currentVersion` is kept
+                      // because it is about the device, not about the outcome.
                       ...(event.updateResult
                         ? {
                             updateStatus: {
-                              ...previous?.profile?.updateStatus,
+                              ...(previous?.profile?.updateStatus?.currentVersion
+                                ? {
+                                    currentVersion: previous.profile.updateStatus.currentVersion,
+                                  }
+                                : {}),
                               lastResult: event.updateResult,
+                              ...(event.availableVersion
+                                ? { availableVersion: event.availableVersion }
+                                : {}),
                             },
                           }
                         : {}),
@@ -128,9 +130,5 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
     [state, organizationId],
   )
 
-  return (
-    <PresenceContext.Provider value={value}>
-      {children}
-    </PresenceContext.Provider>
-  )
+  return <PresenceContext.Provider value={value}>{children}</PresenceContext.Provider>
 }

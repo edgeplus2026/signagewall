@@ -127,7 +127,15 @@ export class CmsGateway {
         // the live channel: emitPresence populates it and the CMS badge reads it,
         // but dropping it here meant the amber attention dot only ever appeared on
         // a full page re-seed, never during a rollout.
-        ...(event.updateResult ? { updateResult: event.updateResult } : {}),
+        ...(event.updateResult
+          ? {
+              updateResult: event.updateResult,
+              // Always relayed with the outcome, INCLUDING when it is undefined:
+              // the CMS has to be able to tell "no version on offer" from "no news
+              // about the version", and only an explicit absence says the first.
+              availableVersion: event.availableVersion,
+            }
+          : {}),
       });
   }
 

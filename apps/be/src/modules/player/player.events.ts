@@ -116,6 +116,14 @@ export interface DevicePresenceChangedEvent {
    * at a time — a device that rolled back still looks perfectly "online".
    */
   updateResult?: DeviceUpdateStatus['lastResult'];
+  /**
+   * The version that outcome is ABOUT, carried alongside it because the two are a
+   * single fact. Sent separately, the CMS kept whichever version it already held
+   * and glued it onto every later outcome — a screen on 0.1.8 read "Up to date →
+   * 0.1.7". Absent when there is nothing on offer, and the absence must be
+   * honoured rather than merged over.
+   */
+  availableVersion?: string;
   /** Defaults to true; false when the device was just unpaired. */
   paired?: boolean;
 }

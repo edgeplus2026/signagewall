@@ -121,8 +121,16 @@ class WatchdogService : Service() {
         // "display off" alone would disable the ladder in the one failure it exists
         // to fix, leaving a dark screen dark until somebody walks over. Rung 1's
         // full-screen intent can wake the panel; it must still be allowed to.
-        val needsLadder =
-            KioskPresence.shouldLaunch() || KioskPresence.shouldReclaimForeground()
+        // `shouldLaunch` ONLY, never `shouldReclaimForeground`. Reclaiming asks
+        // whether something is in front of the player, and it requires `!resumed` —
+        // which a dark panel always satisfies, because Android pauses the top
+        // activity when the screen goes off. Including it meant that on any device
+        // with the kiosk lock ON the standdown could never engage: the exact device
+        // this was written for, while the test box, whose lock is off, looked fine.
+        // Launching a player that does not exist is still worth doing in the dark —
+        // that keeps the shell channel alive — and rung 1's full-screen intent can
+        // wake the panel to do it.
+        val needsLadder = KioskPresence.shouldLaunch()
 
         if (!displayOn && !needsLadder) {
             if (displayWasOn) {

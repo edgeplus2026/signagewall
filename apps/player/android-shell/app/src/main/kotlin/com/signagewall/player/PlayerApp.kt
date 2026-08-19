@@ -10,6 +10,7 @@ import android.os.SystemClock
 import android.util.Log
 import com.signagewall.player.boot.HeartbeatReceiver
 import com.signagewall.player.kiosk.KioskPresence
+import com.signagewall.player.runtime.DisplayState
 import com.signagewall.player.runtime.PlayerLiveness
 import com.signagewall.player.runtime.RuntimeStateStore
 import com.signagewall.player.runtime.ShellChannel
@@ -113,7 +114,17 @@ class PlayerApp : Application() {
             // What the page cannot report about itself. PlayerLiveness is beaten by
             // the page's own event loop, so a stale beat means the page is gone or
             // frozen — the exact condition this channel exists to surface.
-            isPageAlive = { PlayerLiveness.sinceBeat() < PAGE_ALIVE_WINDOW_MILLIS },
+            // A dark panel is not a broken page. The page beats every 5s from its
+            // own event loop, but Chromium throttles timers hard in a WebView whose
+            // Activity is paused — which is exactly what a switched-off screen is.
+            // The beat then stops, the 60s window lapses, and the shell reported
+            // "the player page is not running" on a perfectly healthy screen every
+            // single night. It cannot know the page's health while nothing is being
+            // displayed, so it no longer claims to.
+            isPageAlive = {
+                !DisplayState.isServing(this) ||
+                    PlayerLiveness.sinceBeat() < PAGE_ALIVE_WINDOW_MILLIS
+            },
             onCommand = { command -> runShellCommand(command) },
             log = shellLog,
         )

@@ -20,6 +20,12 @@ export interface DevicePresenceEvent {
    * dot — without this, nothing in the list says otherwise.
    */
   updateResult?: DeviceUpdateStatus['lastResult']
+  /**
+   * The version that outcome is about. Travels with it because the two are one
+   * fact: kept separately, a version from two releases ago glued itself onto every
+   * later outcome and a screen on 0.1.8 read "Up to date → 0.1.7".
+   */
+  availableVersion?: string
 }
 
 /** Payload the server sends when an AI content generation changes state. */
@@ -94,9 +100,7 @@ export function watchOrganization(organizationId: string): void {
   })
 }
 
-export function onDevicePresence(
-  handler: (event: DevicePresenceEvent) => void,
-): () => void {
+export function onDevicePresence(handler: (event: DevicePresenceEvent) => void): () => void {
   const instance = getRealtimeSocket()
   instance.on(CmsSocketEvents.DevicePresence, handler)
   return () => {
@@ -122,9 +126,7 @@ export function onNotificationsChanged(handler: () => void): () => void {
  * The handler receives which generation changed (and its status) so a caller can
  * refetch just that job. Delivered only to sockets watching the generation's org.
  */
-export function onAiContentChanged(
-  handler: (event: AiContentChangedEvent) => void,
-): () => void {
+export function onAiContentChanged(handler: (event: AiContentChangedEvent) => void): () => void {
   const instance = getRealtimeSocket()
   instance.on(CmsSocketEvents.AiContentChanged, handler)
   return () => {

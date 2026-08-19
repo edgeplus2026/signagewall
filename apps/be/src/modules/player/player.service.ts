@@ -927,8 +927,18 @@ export class PlayerService {
         : {}),
       // Carried so an operator can spot a stuck/rolled-back device from the
       // screens list, not only by opening each device tab one at a time.
+      //
+      // The target version travels WITH the outcome, because they are one fact.
+      // Sending the outcome alone left the CMS merging a fresh `lastResult` over
+      // whatever `availableVersion` it happened to be holding, so a version from
+      // two releases ago glued itself onto every state that followed: a screen
+      // running 0.1.8 reported "Up to date → 0.1.7", which reads as a fault and is
+      // not one.
       ...(device.profile?.updateStatus?.lastResult
-        ? { updateResult: device.profile.updateStatus.lastResult }
+        ? {
+            updateResult: device.profile.updateStatus.lastResult,
+            availableVersion: device.profile.updateStatus.availableVersion,
+          }
         : {}),
     } satisfies DevicePresenceChangedEvent;
 

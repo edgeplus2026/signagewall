@@ -7,8 +7,12 @@ import android.view.KeyEvent
 /**
  * The native escape hatch. It lives ABOVE the WebView (fed from
  * `Activity.dispatchKeyEvent`) so it works even when the remote page is broken or
- * offline — the exact failure a web-only unlock could not survive. Triggering only
- * OPENS the PIN gate (in the Activity); it does not unlock by itself.
+ * offline — the exact failure a web-only unlock could not survive. Triggering it
+ * unlocks the kiosk outright (`KioskActivity.onEscapeHatch` sets the mode to `off`)
+ * so an operator can leave the app; it is not a gate onto anything else. The rich
+ * service menu is the WEB one, opened with ArrowUp on the player page — which is
+ * exactly why this exists separately: that menu is unreachable when the page is the
+ * broken part.
  *
  * Two ways in, because the fleet has two kinds of input:
  *
