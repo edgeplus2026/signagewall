@@ -846,7 +846,8 @@
         "content": "Sadržaj",
         "device": "Uređaj",
         "settings": "Podešavanja",
-        "availability": "Radno vreme"
+        "availability": "Radno vreme",
+        "admin": "Administracija"
       },
       "actions": {
         "clearAllContent": "Obriši sav sadržaj",
@@ -897,17 +898,17 @@
       "neverSeen": "Nikada",
       "unknown": "Nepoznato",
       "shellVersion": "Verzija ljuske",
-      "shellVersionDescription": "Verzija native ljuske (Tauri) instalirane na uređaju.",
+      "shellVersionDescription": "Verzija native ljuske instalirane na uređaju.",
       "kioskCapability": "Kiosk zaključavanje",
       "kioskCapabilityDescription": "Da li se ovaj uređaj može zaključati tako da gledalac ne može da izađe iz plejera. Podešava se na uređaju, u servisnom meniju plejera.",
       "kioskCapabilityLimited": "Na ovom uređaju se može izaći — nije registrovan kao Device Owner",
       "updateStatus": "Status ažuriranja",
       "updateStatusDescription": "Stanje automatskog ažuriranja ljuske uređaja.",
       "updateResult": {
-        "idle": "Neaktivno",
         "checking": "Proverava se…",
         "up-to-date": "Ažurno",
         "available": "Dostupna nadogradnja",
+        "needs-operator": "Potreban tehničar",
         "installing": "Instalacija…",
         "error": "Greška pri ažuriranju",
         "unhealthy": "Ažuriranje neispravno"
@@ -923,6 +924,25 @@
       },
       "details": {
         "title": "Detalji uređaja"
+      },
+      "admin": {
+        "description": "Sve o fizičkom uređaju što treba samo SignageWall timu: dijagnostika, održavanje i sopstvena linija ljuske do ovog ekrana.",
+        "connection": {
+          "title": "Veza"
+        },
+        "versions": {
+          "title": "Verzije",
+          "viaShell": "prijavila ljuska",
+          "viaPage": "prijavila stranica",
+          "viaReport": "iz poslednjeg izveštaja",
+          "disagree": "drugi kanal javlja {{version}}"
+        },
+        "updates": {
+          "title": "Ažuriranja"
+        },
+        "health": {
+          "title": "Zdravlje uređaja"
+        }
       },
       "volume": {
         "title": "Jačina zvuka",
@@ -957,7 +977,8 @@
         "enabledLabel": "Omogući dnevni restart",
         "timeLabel": "Vreme restarta",
         "success": "Dnevni restart je ažuriran.",
-        "error": "Ažuriranje dnevnog restarta nije uspelo. Pokušajte ponovo."
+        "error": "Ažuriranje dnevnog restarta nije uspelo. Pokušajte ponovo.",
+        "save": "Sačuvaj vreme osvežavanja"
       },
       "restart": {
         "title": "Restartuj plejer",
@@ -973,11 +994,13 @@
         "title": "Instaliraj ažuriranje odmah",
         "rowDescription": "Odmah instalira ažuriranje plejera koje čeka, umesto da se sačeka termin samog ekrana. Ekran se restartuje.",
         "button": "Instaliraj odmah",
-        "description": "Ekran će instalirati ažuriranje plejera koje čeka i restartovati se. Nakratko će biti crn. Ako ništa ne čeka, ništa se neće desiti.",
+        "description": "Ekran će instalirati ažuriranje plejera koje čeka i restartovati se. Nakratko će biti crn. Ako ništa ne čeka, ništa se neće desiti. Na uređaju koji ne može da instalira bez nadzora, Android postavlja dijalog za potvrdu na ekran i ostavlja ga dok neko ispred ekrana ne odgovori.",
         "cancel": "Otkaži",
         "submit": "Instaliraj odmah",
         "success": "Ažuriranje zatraženo.",
-        "error": "Nije moguće zatražiti ažuriranje. Pokušajte ponovo."
+        "offline": "Ekran je offline, pa ovo nije ni stiglo do njega. Ažuriranje će preuzeti u svom terminu.",
+        "error": "Nije moguće zatražiti ažuriranje. Pokušajte ponovo.",
+        "upToDateDescription": "Ekran je poslednji put javio da je ažuran. Uređaj sam ponovo čita kanal kad ga pitaš, pa slobodno pokreni instalaciju da isprobaš verziju koju si upravo objavio."
       },
       "cache": {
         "title": "Offline kopija",
@@ -985,8 +1008,6 @@
         "value": "{{cached}} od {{total}} stavki keširano"
       },
       "worker": {
-        "title": "Offline keš",
-        "description": "Komponenta koja čuva sadržaj na uređaju.",
         "uncontrolled": "Nije aktivan — ovaj ekran ne čuva ništa i ostaće prazan ako izgubi mrežu"
       },
       "storage": {
@@ -1001,7 +1022,11 @@
         "requested": "Zatraženo. Izveštaj će se pojaviti ovde čim ekran odgovori.",
         "error": "Ekran nije dostupan. Pokušajte ponovo.",
         "capturedAt": "Uređaj je izvestio u {{at}}",
-        "noLog": "Nema zabeleženih događaja — ili plejer nema šta da prijavi, ili mu je ljuska starija od ove funkcije."
+        "noLog": "Nema zabeleženih događaja — ili plejer nema šta da prijavi, ili mu je ljuska starija od ove funkcije.",
+        "shellLogTitle": "Zatraži log od ljuske",
+        "shellLogDescription": "Ljuska donosi svoj log događaja na sledećoj prijavi, pa ovo traje do pet minuta. To je jedini put do loga na ekranu čija je stranica prestala da se javlja.",
+        "shellLogButton": "Zatraži log",
+        "shellLogRequested": "Zatraženo. Ljuska će ga doneti na sledećoj prijavi."
       },
       "recoveries": {
         "title": "Oporavci",
@@ -1019,15 +1044,35 @@
         "pageAlive": "Javila se {{at}} — plejer radi",
         "pageDead": "Javila se {{at}} — ljuska radi, ali stranica plejera ne",
         "neverReported": "Nikad se nije javila. Ljuska nauči kako da nas dohvati prvi put kad se stranica učita.",
-        "restartTitle": "Restart preko ljuske",
-        "restartDescription": "Radi i kad stranica ne odgovara, jer ne ide kroz nju. Ljuska ga preuzme pri sledećem javljanju, za oko pet minuta.",
-        "restartButton": "Zakaži restart",
-        "confirmTitle": "Restartovati ovaj ekran preko ljuske?",
-        "confirmDescription": "Uređaj će restartovati celu aplikaciju pri sledećem javljanju — za oko pet minuta, ne odmah. Nakratko će biti crn.",
         "cancel": "Otkaži",
-        "submit": "Zakaži restart",
         "queued": "Zakazano. Ekran će ga preuzeti pri sledećem javljanju.",
-        "error": "Zakazivanje nije uspelo. Pokušajte ponovo."
+        "error": "Zakazivanje nije uspelo. Pokušajte ponovo.",
+        "commands": {
+          "reload": {
+            "title": "Osveži stranicu preko ljuske",
+            "description": "Osvežava stranicu plejera bez restarta aplikacije — najblaža od tri opcije. Ljuska je preuzme pri sledećem javljanju, za oko pet minuta.",
+            "button": "Zakaži osvežavanje",
+            "confirmTitle": "Osvežiti stranicu ovog ekrana preko ljuske?",
+            "confirmDescription": "Stranica plejera se osvežava pri sledećem javljanju uređaja — za oko pet minuta, ne odmah. Sadržaj se nakratko prekida.",
+            "submit": "Zakaži osvežavanje"
+          },
+          "restart": {
+            "title": "Restart preko ljuske",
+            "description": "Radi i kad stranica ne odgovara, jer ne ide kroz nju. Ljuska ga preuzme pri sledećem javljanju, za oko pet minuta.",
+            "button": "Zakaži restart",
+            "confirmTitle": "Restartovati ovaj ekran preko ljuske?",
+            "confirmDescription": "Uređaj će restartovati celu aplikaciju pri sledećem javljanju — za oko pet minuta, ne odmah. Nakratko će biti crn.",
+            "submit": "Zakaži restart"
+          },
+          "applyUpdate": {
+            "title": "Instaliraj ažuriranje preko ljuske",
+            "description": "Jedini put do instalacije koji radi i kad je stranica mrtva, i jedini koji pretpostavlja da je neko ispred ekrana.",
+            "button": "Zakaži instalaciju",
+            "confirmTitle": "Instalirati ažuriranje preko ljuske?",
+            "confirmDescription": "Ovaj put pretpostavlja da je čovek ispred ekrana: na uređaju koji ne može tiho da instalira, Android će postaviti dijalog za potvrdu na ekran i ostaviti ga dok neko ne odgovori.",
+            "submit": "Zakaži instalaciju"
+          }
+        }
       }
     },
     "update": {

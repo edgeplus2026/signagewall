@@ -113,7 +113,8 @@ export interface DiagnosticsReport extends PlayerDiagnostics {
 
 /**
  * What a device reports about itself. The first five fields are the original
- * web-only profile; the rest are added by the native (Tauri) shell and are
+ * web-only profile; the rest are added by the native shell (Tauri on desktop,
+ * the standalone Gradle shell on Android) and are
  * absent in a plain browser. `appVersion` is the WEB bundle version;
  * `shellVersion` is the distinct native-shell version — never conflate them.
  */
@@ -124,7 +125,7 @@ export interface ReportedProfile {
   appVersion?: string
   screenWidth?: number
   screenHeight?: number
-  /** Native shell version (Tauri). Absent in a browser. */
+  /** Native shell version — Tauri on desktop, the Android shell on a box. Absent in a browser. */
   shellVersion?: string
   /** Runtime host the player detected. */
   runtime?: PlayerRuntime

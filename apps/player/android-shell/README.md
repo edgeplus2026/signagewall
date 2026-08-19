@@ -22,12 +22,13 @@ git push origin player-v0.2.0    # -> player-android-release: CI, build, sign, p
 `player-desktop-v*` (`../scripts/release/bump.sh`). Keep them apart — they ship
 different artifacts under different signing keys.
 
-> ⚠️ **Compiles and unit-tests green; still unverified ON A DEVICE.** The Kotlin
-> builds (`:app:assembleDebug`, `:app:testDebugUnitTest`) and its decision logic is
-> covered off-device. What no test here can answer is how a given OEM behaves:
-> LockTask, HOME override, background-activity launches and the silent installer
-> all vary by box. Smoke-test on the qualified hardware before relying on it — see
-> the checklist below.
+> ⚠️ **Verified on one box, not on a fleet.** The Kotlin builds
+> (`:app:assembleDebug`, `:app:testDebugUnitTest`) cover the decision logic
+> off-device, and the checklist below was walked end to end on a Tesla Android TV
+> (Android 14, MediaTek, no Device Owner): kiosk, autostart, page recovery, shell
+> check-in and a full silent OTA. What no test and no single box can answer is how a
+> *different* OEM behaves — LockTask, HOME override, background-activity launches and
+> the silent installer all vary. Re-walk the checklist on each qualified device.
 
 ## What's implemented
 
@@ -133,11 +134,107 @@ Signing keystore comes from CI env (`ANDROID_KEYSTORE_FILE`/`_PASSWORD`,
 `ANDROID_KEY_ALIAS`/`_PASSWORD`); a local release build without them stays unsigned.
 CI publishes the APK + `signagewall-player/android/latest.json` to R2 (Phase D).
 
+## Provisioning a device (skip this and the screen can never update itself)
+
+Install the first APK so the app becomes its **own installer of record**:
+
+```bash
+adb install -r -i com.signagewall.player signagewall-player-<version>.apk
+```
+
+The `-i` is not optional. Android 12+ lets an app update *itself* without a prompt
+(`USER_ACTION_NOT_REQUIRED`) only when it holds `UPDATE_PACKAGES_WITHOUT_USER_ACTION`
+— auto-granted — **and** it is the installer of record. A plain `adb install` leaves
+`installerPackageName=null`, and such a device can never install an update unattended:
+every scheduled OTA stops at `needs-operator` and waits for somebody to walk to the
+screen.
+
+Verify:
+
+```bash
+adb shell dumpsys package com.signagewall.player | grep installerPackageName
+# installerPackageName=com.signagewall.player
+```
+
+Measured on Android 14: `-i` works. `pm set-installer` throws and cannot repair a
+device afterwards — but completing one prompted install *through the app* also earns
+the installer of record, so a box flashed without `-i` is recoverable with a site
+visit rather than a re-flash.
+
+Device Owner is the stronger option (silent installs plus a kiosk lock that actually
+holds), but it must be provisioned at factory-reset time and many TV boxes cannot do
+it at all: without the `android.software.device_admin` feature a device can never be
+Device Owner, and `hard` kiosk degrades to escapable screen pinning.
+
 ## Unit tests
 
 ```bash
 ./gradlew :app:testDebugUnitTest        # DeviceIdStore (UUID + round-trip), BridgeDispatcher (8-command shapes)
 ```
+
+## On-device checklist
+
+Walk this on each qualified box. The Tesla Android TV numbers are the baseline — a
+stronger box should do at least as well.
+
+**Before you start**
+
+- `adb shell dumpsys package com.signagewall.player | grep -E 'versionName|installerPackageName'`
+- `adb exec-out screencap -p > x.png` is **corrupted on some vendors** — this TV writes
+  `Init wrapper sys mutex successful. Pid:NNNN` onto stdout and mangles the PNG. Use
+  `adb shell screencap -p /sdcard/x.png` followed by `adb pull` instead.
+
+**Kiosk**
+
+- `pm list features | grep device_admin` — no output means Device Owner is impossible
+  here, so `hard` kiosk will always degrade to escapable pinning. Correct behaviour,
+  not a bug; the CMS reports it in the same words.
+- With the lock off, five BACK presses exit to the launcher. Expected — the Activity
+  only swallows BACK while locked.
+
+**Autostart and recovery**
+
+- Kick the player off screen and confirm `LaunchLadder` puts it back (baseline:
+  detected in ~9s, restored at rung 0).
+- Confirm the page-recovery ladder climbs 1 → 2 → 3 (process restart) → 4 (offline
+  page) and logs `page healthy again` once the network returns.
+- Replace the package and confirm `InstallReceiver: update installed` is followed by
+  the player returning on its own (baseline ~18s).
+
+**Shell check-in**
+
+- Confirm a report every 5 minutes and that the CMS shows it. A screen whose page has
+  never loaded has no credentials and correctly reports nothing at all.
+
+**OTA**
+
+- With `-i` in place, publish a release and confirm a fully unattended install:
+  `cache/updates/signagewall-player-<code>.apk` parsed, `PackageInstallerSession …
+  applied`, `InstallReceiver: update installed`, player back on screen, **no dialog**.
+  Baseline: ~20s end to end.
+- Without it, confirm the scheduled path reports `needs-operator` instead of throwing a
+  dialog at an empty room.
+
+**Power**
+
+- Switch the panel off with the remote, then re-read `dumpsys netpolicy` for the app's
+  uid. On this TV the app's network is blocked outright
+  (`blocked_state … effective=LOW_POWER_STANDBY`) while `dumpsys power` reports
+  `mWakefulness=Asleep` — so the shell can neither check in, nor read the update
+  channel, nor receive a command until the panel is back on. Anything that looks like a
+  DNS fault with the screen off is probably this: check `mLastSleepReason` before
+  debugging the app. `adb shell` itself is a different uid and keeps working, which is
+  exactly what makes this misleading.
+- With the panel off, the log must go **quiet**: one `display off: standing down`
+  line from each of `PageRecovery` and `WatchdogService`, then nothing. No recovery
+  escalations, no `LaunchLadder` attempts. (Before this was added, an overnight
+  switch-off produced a recovery escalation every few minutes and reached
+  `attempt 10, rung 3` against a display nobody could see.)
+- Switch it back on: expect the matching `display on: resuming` lines, then a pause
+  before any escalation — the first tick after wake must not punish the page for a
+  silence the OS imposed — and the recovery rung must be **unchanged** from before
+  standby. Confirm video resumes and that the CMS "Recoveries" count did not move
+  while the screen was off.
 
 ## Notes / gotchas
 

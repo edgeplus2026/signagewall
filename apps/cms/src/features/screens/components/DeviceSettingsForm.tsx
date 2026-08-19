@@ -25,15 +25,14 @@ import {
   useSetDeviceVolume,
 } from '@/features/screens/hooks/useScreens'
 import type {
+  DeviceUpdateStatus,
   ScreenDeviceOrientation,
   ScreenDeviceScale,
   ScreenDeviceSettings,
 } from '@/features/screens/types/screen.types'
-import {
-  SettingsRow,
-  SettingsSection,
-} from '@/features/settings/components/SettingsSection'
+import { SettingsRow, SettingsSection } from '@/features/settings/components/SettingsSection'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { cn } from '@/lib/utils'
 
 const ORIENTATION_OPTIONS: readonly ScreenDeviceOrientation[] = [
   'landscape',
@@ -42,12 +41,7 @@ const ORIENTATION_OPTIONS: readonly ScreenDeviceOrientation[] = [
   'portrait-flipped',
 ]
 
-const SCALE_OPTIONS: readonly ScreenDeviceScale[] = [
-  'none',
-  'fit',
-  'stretch',
-  'zoom',
-]
+const SCALE_OPTIONS: readonly ScreenDeviceScale[] = ['none', 'fit', 'stretch', 'zoom']
 
 interface DeviceSettingsFormProps {
   screenId: string
@@ -55,16 +49,34 @@ interface DeviceSettingsFormProps {
   savedSettings: ScreenDeviceSettings
 }
 
+interface MaintenanceSectionsProps {
+  screenId: string
+  savedSettings: ScreenDeviceSettings
+  /**
+   * Whether the player PAGE is connected. Maintenance actions ride the live socket,
+   * so on an offline screen they are dropped on the floor rather than queued — the
+   * operator has to be told that, not handed a success toast.
+   */
+  pageOnline: boolean
+  /** The device's own view of its update state, so the action can sit beside it. */
+  updateStatus?: DeviceUpdateStatus | undefined
+}
+
 /**
- * The device settings tab body: a "Display" section (volume + orientation +
- * scale, committed together) and a "Maintenance" section (restart + daily
- * reload). The two sections are split into independently-keyed components so
- * saving one never remounts (and resets the unsaved drafts of) the other.
+ * The customer-facing device settings: volume, orientation and scale, committed
+ * together. These are physical facts about an installation that the owner knows
+ * better than we do, which is why they are the one part of the device surface that
+ * was never gated.
  *
- * Kiosk lockdown is deliberately absent: it is set on the device itself, in the
- * player's service menu. Locking a screen from here means locking a box nobody is
- * standing next to — and if the lock misbehaves, the one person who could undo it
- * is the one person this control was hidden from.
+ * Maintenance (restart / install update / nightly reload) lives in
+ * {@link DeviceMaintenanceSections} on the admin tab instead — three ways to make a
+ * working screen go blank, offered to somebody with no way to tell whether they are
+ * needed.
+ *
+ * Kiosk lockdown is deliberately absent from both: it is set on the device itself,
+ * in the player's service menu. Locking a screen from here means locking a box
+ * nobody is standing next to — and if the lock misbehaves, the one person who could
+ * undo it is the one person this control was hidden from.
  */
 export function DeviceSettingsForm({
   screenId,
@@ -72,21 +84,39 @@ export function DeviceSettingsForm({
   savedSettings,
 }: DeviceSettingsFormProps) {
   return (
-    <div className="flex flex-col gap-7">
-      <DisplaySettings
-        key={`display-${String(savedVolume)}-${savedSettings.orientation}-${savedSettings.scale}`}
-        screenId={screenId}
-        savedVolume={savedVolume}
-        savedOrientation={savedSettings.orientation}
-        savedScale={savedSettings.scale}
-      />
-      <MaintenanceSettings
-        key={`maintenance-${savedSettings.dailyReload.enabled ? 'on' : 'off'}-${savedSettings.dailyReload.time}`}
-        screenId={screenId}
-        savedReloadEnabled={savedSettings.dailyReload.enabled}
-        savedReloadTime={savedSettings.dailyReload.time}
-      />
-    </div>
+    <DisplaySettings
+      key={`display-${String(savedVolume)}-${savedSettings.orientation}-${savedSettings.scale}`}
+      screenId={screenId}
+      savedVolume={savedVolume}
+      savedOrientation={savedSettings.orientation}
+      savedScale={savedSettings.scale}
+    />
+  )
+}
+
+/**
+ * The admin tab's "Updates" and "Maintenance" sections.
+ *
+ * Update STATE and the update ACTION now sit in one section. They used to be four
+ * sections apart and on opposite sides of a permission gate, so a customer read
+ * "Update available → 1.4.2" with no way to act while an admin pressed a button
+ * that gave no hint whether anything was pending.
+ */
+export function DeviceMaintenanceSections({
+  screenId,
+  savedSettings,
+  pageOnline,
+  updateStatus,
+}: MaintenanceSectionsProps) {
+  return (
+    <MaintenanceSettings
+      key={`maintenance-${savedSettings.dailyReload.enabled ? 'on' : 'off'}-${savedSettings.dailyReload.time}`}
+      screenId={screenId}
+      savedReloadEnabled={savedSettings.dailyReload.enabled}
+      savedReloadTime={savedSettings.dailyReload.time}
+      pageOnline={pageOnline}
+      updateStatus={updateStatus}
+    />
   )
 }
 
@@ -97,6 +127,13 @@ interface SettingSelectProps<T extends string> {
   disabled?: boolean
   onChange: (value: T) => void
 }
+
+/**
+ * OTA outcomes an operator has to act on. `needs-operator` belongs here above all:
+ * it is the only one that literally means "send somebody to this screen", and it
+ * used to render in the same calm grey as ordinary news.
+ */
+const UPDATE_NEEDS_ATTENTION = new Set(['error', 'unhealthy', 'needs-operator'])
 
 /** A labeled enum dropdown whose option labels come from an i18n prefix. */
 function SettingSelect<T extends string>({
@@ -151,12 +188,8 @@ function DisplaySettings({
   const [orientation, setOrientationDraft] = useState(savedOrientation)
   const [scale, setScaleDraft] = useState(savedScale)
 
-  const saving =
-    setVolume.isPending || setOrientation.isPending || setScale.isPending
-  const dirty =
-    volume !== savedVolume ||
-    orientation !== savedOrientation ||
-    scale !== savedScale
+  const saving = setVolume.isPending || setOrientation.isPending || setScale.isPending
+  const dirty = volume !== savedVolume || orientation !== savedOrientation || scale !== savedScale
 
   const onSave = async () => {
     try {
@@ -183,11 +216,7 @@ function DisplaySettings({
         label={t('screens.device.volume.title')}
         description={t('screens.device.volume.description')}
       >
-        <DeviceVolumeControl
-          value={volume}
-          onChange={setVolumeDraft}
-          disabled={saving}
-        />
+        <DeviceVolumeControl value={volume} onChange={setVolumeDraft} disabled={saving} />
       </SettingsRow>
 
       <SettingsRow
@@ -217,11 +246,7 @@ function DisplaySettings({
       </SettingsRow>
 
       <div className="flex justify-end px-4 py-3">
-        <Button
-          size="sm"
-          onClick={() => void onSave()}
-          disabled={!dirty || saving}
-        >
+        <Button size="sm" onClick={() => void onSave()} disabled={!dirty || saving}>
           {t('screens.device.settings.save')}
         </Button>
       </div>
@@ -233,12 +258,16 @@ interface MaintenanceSettingsProps {
   screenId: string
   savedReloadEnabled: boolean
   savedReloadTime: string
+  pageOnline: boolean
+  updateStatus?: DeviceUpdateStatus | undefined
 }
 
 function MaintenanceSettings({
   screenId,
   savedReloadEnabled,
   savedReloadTime,
+  pageOnline,
+  updateStatus,
 }: MaintenanceSettingsProps) {
   const { t } = useTranslation()
   const isSuperAdmin = useIsSuperAdmin()
@@ -250,8 +279,7 @@ function MaintenanceSettings({
   const [reloadEnabled, setReloadEnabled] = useState(savedReloadEnabled)
   const [reloadTime, setReloadTime] = useState(savedReloadTime)
 
-  const reloadDirty =
-    reloadEnabled !== savedReloadEnabled || reloadTime !== savedReloadTime
+  const reloadDirty = reloadEnabled !== savedReloadEnabled || reloadTime !== savedReloadTime
 
   const onSaveReload = async () => {
     try {
@@ -261,15 +289,17 @@ function MaintenanceSettings({
       })
       toast.success(t('screens.device.dailyReload.success'))
     } catch (error) {
-      toast.error(
-        getApiErrorMessage(error, t('screens.device.dailyReload.error')),
-      )
+      toast.error(getApiErrorMessage(error, t('screens.device.dailyReload.error')))
     }
   }
 
   const onRestart = async () => {
     try {
       await restart.mutateAsync(screenId)
+      // No offline branch here, unlike the update below: this row only renders while
+      // the page is online, because an offline screen is handed the shell channel's
+      // queued restart instead. A second message for a state the button cannot be
+      // pressed in would just be untested code.
       toast.success(t('screens.device.restart.success'))
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('screens.device.restart.error')))
@@ -280,11 +310,17 @@ function MaintenanceSettings({
     try {
       await applyUpdate.mutateAsync(screenId)
       setUpdateOpen(false)
-      toast.success(t('screens.device.applyUpdate.success'))
+      // A 200 proves the screen is ours, NOT that the command reached it: the
+      // backend resolves ownership and then emits onto the socket, where an
+      // unconnected device's room is simply empty and the command is dropped. Say
+      // which of the two actually happened.
+      if (pageOnline) {
+        toast.success(t('screens.device.applyUpdate.success'))
+      } else {
+        toast.warning(t('screens.device.applyUpdate.offline'))
+      }
     } catch (error) {
-      toast.error(
-        getApiErrorMessage(error, t('screens.device.applyUpdate.error')),
-      )
+      toast.error(getApiErrorMessage(error, t('screens.device.applyUpdate.error')))
     }
   }
 
@@ -296,80 +332,130 @@ function MaintenanceSettings({
     return null
   }
 
+  // Shown, never enforced. `updateStatus` is only as fresh as the last heartbeat
+  // the page sent, so it is stale in exactly the situation this button exists for:
+  // you published a release seconds ago and want to pilot it on your own screen.
+  // The device re-reads the channel when asked — "install now has to mean go and
+  // look now", as OtaUpdater puts it — so disabling on a stale `up-to-date` would
+  // block the documented main use and, worse, claim the screen is on the newest
+  // build when it demonstrably is not.
+  const reportedUpToDate = updateStatus?.lastResult === 'up-to-date'
+
   return (
-    <SettingsSection title={t('screens.device.maintenance.title')}>
-      <SettingsRow
-        label={t('screens.device.restart.title')}
-        description={t('screens.device.restart.description')}
-      >
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => void onRestart()}
-          disabled={restart.isPending}
+    <>
+      <SettingsSection title={t('screens.device.admin.updates.title')}>
+        {updateStatus?.lastResult ? (
+          <SettingsRow
+            label={t('screens.device.updateStatus')}
+            description={t('screens.device.updateStatusDescription')}
+          >
+            <span
+              className={cn(
+                'text-sm',
+                UPDATE_NEEDS_ATTENTION.has(updateStatus.lastResult)
+                  ? 'text-warning'
+                  : 'text-secondary',
+              )}
+            >
+              {t(`screens.device.updateResult.${updateStatus.lastResult}`, {
+                defaultValue: updateStatus.lastResult,
+              })}
+              {/* Without the target version "Update available" tells the operator
+                  nothing actionable — which build is on offer? */}
+              {updateStatus.availableVersion ? ` → ${updateStatus.availableVersion}` : null}
+            </span>
+          </SettingsRow>
+        ) : null}
+
+        <SettingsRow
+          label={t('screens.device.applyUpdate.title')}
+          description={
+            reportedUpToDate
+              ? t('screens.device.applyUpdate.upToDateDescription')
+              : t('screens.device.applyUpdate.rowDescription')
+          }
         >
-          <RotateCwIcon className="size-4" />
-          {t('screens.device.restart.button')}
-        </Button>
-      </SettingsRow>
-
-      <SettingsRow
-        label={t('screens.device.applyUpdate.title')}
-        description={t('screens.device.applyUpdate.rowDescription')}
-      >
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => {
-            setUpdateOpen(true)
-          }}
-          disabled={applyUpdate.isPending}
-        >
-          <DownloadIcon className="size-4" />
-          {t('screens.device.applyUpdate.button')}
-        </Button>
-      </SettingsRow>
-
-      <ApplyDeviceUpdateDialog
-        open={updateOpen}
-        onOpenChange={setUpdateOpen}
-        onConfirm={() => void onApplyUpdate()}
-        isPending={applyUpdate.isPending}
-      />
-
-      <SettingsRow
-        label={t('screens.device.dailyReload.title')}
-        description={t('screens.device.dailyReload.description')}
-      >
-        <div className="flex items-center gap-3">
-          <Input
-            type="time"
-            value={reloadTime}
-            disabled={!reloadEnabled || setDailyReload.isPending}
-            className="w-28"
-            aria-label={t('screens.device.dailyReload.timeLabel')}
-            onChange={(event) => {
-              setReloadTime(event.target.value)
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setUpdateOpen(true)
             }}
-          />
-          <Switch
-            checked={reloadEnabled}
-            disabled={setDailyReload.isPending}
-            aria-label={t('screens.device.dailyReload.enabledLabel')}
-            onCheckedChange={setReloadEnabled}
-          />
-        </div>
-      </SettingsRow>
+            disabled={applyUpdate.isPending}
+          >
+            <DownloadIcon className="size-4" />
+            {t('screens.device.applyUpdate.button')}
+          </Button>
+        </SettingsRow>
 
-      <div className="flex justify-end px-4 py-3">
-        <Button
-          size="sm"
-          onClick={() => void onSaveReload()}
-          disabled={!reloadDirty || setDailyReload.isPending}
+        <ApplyDeviceUpdateDialog
+          open={updateOpen}
+          onOpenChange={setUpdateOpen}
+          onConfirm={() => void onApplyUpdate()}
+          isPending={applyUpdate.isPending}
+        />
+      </SettingsSection>
+
+      <SettingsSection title={t('screens.device.maintenance.title')}>
+        {/* Only while the page is up. This restart rides the socket, so on an
+            offline screen it cannot arrive — and that is exactly when the shell
+            channel offers its own queued restart. Offering both was the confusing
+            half of a de-duplication that was only ever implemented on one side. */}
+        {pageOnline ? (
+          <SettingsRow
+            label={t('screens.device.restart.title')}
+            description={t('screens.device.restart.description')}
+          >
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void onRestart()}
+              disabled={restart.isPending}
+            >
+              <RotateCwIcon className="size-4" />
+              {t('screens.device.restart.button')}
+            </Button>
+          </SettingsRow>
+        ) : null}
+
+        <SettingsRow
+          label={t('screens.device.dailyReload.title')}
+          description={t('screens.device.dailyReload.description')}
         >
-          {t('screens.device.settings.save')}
-        </Button>
-      </div>
-    </SettingsSection>
+          <div className="flex items-center gap-3">
+            <Input
+              type="time"
+              value={reloadTime}
+              disabled={!reloadEnabled || setDailyReload.isPending}
+              className="w-28"
+              aria-label={t('screens.device.dailyReload.timeLabel')}
+              onChange={(event) => {
+                setReloadTime(event.target.value)
+              }}
+            />
+            <Switch
+              checked={reloadEnabled}
+              disabled={setDailyReload.isPending}
+              aria-label={t('screens.device.dailyReload.enabledLabel')}
+              onCheckedChange={setReloadEnabled}
+            />
+          </div>
+        </SettingsRow>
+
+        <div className="flex justify-end px-4 py-3">
+          <Button
+            size="sm"
+            onClick={() => void onSaveReload()}
+            disabled={!reloadDirty || setDailyReload.isPending}
+          >
+            {/* Its own key: this saves the reload time and nothing else, while the
+                Display section's Save commits volume/orientation/scale. One shared
+                string across two disjoint saves is how "I pressed Restart, do I now
+                press Save?" happens. */}
+            {t('screens.device.dailyReload.save')}
+          </Button>
+        </div>
+      </SettingsSection>
+    </>
   )
 }

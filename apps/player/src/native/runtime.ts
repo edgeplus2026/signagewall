@@ -41,6 +41,12 @@ const STICKY_APPLY: ReadonlySet<UpdateResult> = new Set([
   'installing',
   'unhealthy',
   'error',
+  // The one state that means "send a person to this screen". It is not sticky by
+  // nature — nothing on the device supersedes it — so without this entry the boot
+  // detection (always populated, always `available` when an update is waiting)
+  // masked it on the very next heartbeat and the fleet saw an ordinary, calm
+  // "Update available" for a screen that could not install by itself.
+  'needs-operator',
 ])
 
 /** Loads the native shell version into the cache (once, at boot). */

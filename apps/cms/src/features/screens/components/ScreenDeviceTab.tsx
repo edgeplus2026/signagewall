@@ -3,36 +3,25 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { DeviceDiagnosticsPanel } from '@/features/screens/components/DeviceDiagnosticsPanel'
 import { DeviceSettingsForm } from '@/features/screens/components/DeviceSettingsForm'
 import { PairingCodeFrame } from '@/features/screens/components/PairingCodeFrame'
 import { PlayerPreviewFrame } from '@/features/screens/components/PlayerPreviewFrame'
 import { ScreenPresenceBadge } from '@/features/screens/components/ScreenPresenceBadge'
-import { ShellChannelPanel } from '@/features/screens/components/ShellChannelPanel'
 import { UnpairDeviceDialog } from '@/features/screens/components/UnpairDeviceDialog'
 import {
   usePairScreenDevice,
   useScreenDevice,
   useUnpairScreenDevice,
 } from '@/features/screens/hooks/useScreens'
+import { mergeDeviceSnapshot } from '@/features/screens/lib/deviceFacts'
 import { useScreenPresence } from '@/features/screens/providers/presenceContext'
-import {
-  DEFAULT_DEVICE_SETTINGS,
-  type ScreenDevice,
-} from '@/features/screens/types/screen.types'
-import {
-  SettingsRow,
-  SettingsSection,
-} from '@/features/settings/components/SettingsSection'
+import { DEFAULT_DEVICE_SETTINGS } from '@/features/screens/types/screen.types'
+import { SettingsRow, SettingsSection } from '@/features/settings/components/SettingsSection'
 import { getApiErrorMessage } from '@/lib/api-error'
-import { cn } from '@/lib/utils'
 
 interface ScreenDeviceTabProps {
   screenId: string
 }
-
-/** OTA outcomes an operator has to act on — see the update row below. */
-const UPDATE_NEEDS_ATTENTION = new Set(['error', 'unhealthy'])
 
 /**
  * Pairs / inspects / unpairs the physical display bound 1:1 to this screen.
@@ -49,15 +38,8 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
   const [code, setCode] = useState('')
   const [unpairOpen, setUnpairOpen] = useState(false)
 
-  // Merge the two sources rather than letting one shadow the other: the socket
-  // presence carries live online/last-seen, while the REST snapshot is the
-  // authority for fields presence doesn't push (e.g. volume). Base on whichever
-  // exists, then overlay live presence so its status wins without dropping the
-  // snapshot's volume.
-  const base = livePresence ?? deviceSnapshot
-  const device: ScreenDevice | undefined = base
-    ? { ...deviceSnapshot, ...livePresence, paired: base.paired, online: base.online }
-    : undefined
+  // Shared with the admin tab, and field-wise on purpose — see mergeDeviceSnapshot.
+  const device = mergeDeviceSnapshot(deviceSnapshot, livePresence)
 
   const savedVolume = device?.volume ?? 100
   const savedSettings = device?.settings ?? DEFAULT_DEVICE_SETTINGS
@@ -91,36 +73,30 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
 
   return (
     <div className="flex flex-col gap-2.5">
-      <p className="text-secondary text-[13px] leading-snug">
-        {t('screens.device.description')}
-      </p>
+      <p className="text-secondary text-[13px] leading-snug">{t('screens.device.description')}</p>
 
       {paired ? (
         <div className="flex flex-col gap-7">
           {device?.online ? (
-            <PlayerPreviewFrame
-              screenId={screenId}
-              orientation={savedSettings.orientation}
-              scale={savedSettings.scale}
-            />
+            <div className="flex flex-col gap-2.5">
+              {/* The one block on this tab that had no heading, so it floated above
+                  the sections instead of reading as the first of them. The string
+                  had existed unused since the preview was added. */}
+              <h2 className="text-secondary text-[13px] font-medium">
+                {t('screens.device.preview.title')}
+              </h2>
+              <PlayerPreviewFrame
+                screenId={screenId}
+                orientation={savedSettings.orientation}
+                scale={savedSettings.scale}
+              />
+            </div>
           ) : null}
 
           <DeviceSettingsForm
             screenId={screenId}
             savedVolume={savedVolume}
             savedSettings={savedSettings}
-          />
-
-          <ShellChannelPanel
-            screenId={screenId}
-            status={device?.shellStatus}
-            statusAt={device?.shellStatusAt}
-            pageOnline={device?.online ?? false}
-          />
-
-          <DeviceDiagnosticsPanel
-            screenId={screenId}
-            report={device?.diagnostics}
           />
 
           <SettingsSection title={t('screens.device.details.title')}>
@@ -141,169 +117,6 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
                   : t('screens.device.neverSeen')}
               </span>
             </SettingsRow>
-
-            <SettingsRow
-              label={t('screens.device.version')}
-              description={t('screens.device.versionDescription')}
-            >
-              <span className="text-secondary text-sm">
-                {device?.profile?.appVersion ?? t('screens.device.unknown')}
-              </span>
-            </SettingsRow>
-
-            {device?.profile?.shellVersion ? (
-              <SettingsRow
-                label={t('screens.device.shellVersion')}
-                description={t('screens.device.shellVersionDescription')}
-              >
-                <span className="text-secondary text-sm">
-                  {device.profile.shellVersion}
-                </span>
-              </SettingsRow>
-            ) : null}
-
-            {/* Cache state, from the last heartbeat. This is the row that answers
-                "would this screen survive losing its network?" — and until it
-                existed the only way to know was to measure free disk over adb
-                while adding content and watching what moved. */}
-            {device?.profile?.diagnostics?.totalMedia !== undefined ? (
-              <SettingsRow
-                label={t('screens.device.cache.title')}
-                description={t('screens.device.cache.description')}
-              >
-                <span
-                  className={
-                    device.profile.diagnostics.cacheComplete
-                      ? 'text-secondary text-sm'
-                      : 'text-warning text-sm'
-                  }
-                >
-                  {t('screens.device.cache.value', {
-                    cached: device.profile.diagnostics.cachedMedia ?? 0,
-                    total: device.profile.diagnostics.totalMedia,
-                  })}
-                </span>
-              </SettingsRow>
-            ) : null}
-
-            {/* Only when the screen has actually struggled. A zero is the normal
-                state and needs no row — but a count that keeps climbing is the
-                only trace an overnight recovery loop leaves behind, since the
-                ladder resets itself once the player is back. */}
-            {(device?.profile?.diagnostics?.recoveries ?? 0) > 0 ? (
-              <SettingsRow
-                label={t('screens.device.recoveries.title')}
-                description={t('screens.device.recoveries.description')}
-              >
-                <span className="text-warning text-sm">
-                  {t('screens.device.recoveries.value', {
-                    count: device?.profile?.diagnostics?.recoveries ?? 0,
-                  })}
-                </span>
-              </SettingsRow>
-            ) : null}
-
-            {device?.profile?.diagnostics?.lastCrash ? (
-              <SettingsRow
-                label={t('screens.device.lastCrash.title')}
-                description={t('screens.device.lastCrash.description')}
-              >
-                <span className="text-warning max-w-80 text-right text-sm">
-                  {device.profile.diagnostics.lastCrash}
-                  {device.profile.diagnostics.lastCrashAt ? (
-                    <span className="text-muted-foreground block text-xs">
-                      {new Date(
-                        device.profile.diagnostics.lastCrashAt,
-                      ).toLocaleString()}
-                    </span>
-                  ) : null}
-                </span>
-              </SettingsRow>
-            ) : null}
-
-            {/* Only when it is FALSE. A controlled worker is the normal state and
-                needs no row; an uncontrolled one caches nothing at all while the
-                screen looks perfectly healthy, which is the whole point of
-                surfacing it. */}
-            {device?.profile?.diagnostics?.serviceWorkerControlled === false ? (
-              <SettingsRow
-                label={t('screens.device.worker.title')}
-                description={t('screens.device.worker.description')}
-              >
-                <span className="text-warning text-sm">
-                  {t('screens.device.worker.uncontrolled')}
-                </span>
-              </SettingsRow>
-            ) : null}
-
-            {device?.profile?.diagnostics?.freeDiskBytes !== undefined ? (
-              <SettingsRow
-                label={t('screens.device.storage.title')}
-                description={t('screens.device.storage.description')}
-              >
-                <span className="text-secondary text-sm">
-                  {formatFreeSpace(device.profile.diagnostics.freeDiskBytes)}
-                </span>
-              </SettingsRow>
-            ) : null}
-
-            {/* Only on a confirmed `false`. A shell too old to report it says
-                nothing, and guessing there would put a warning on screens that
-                may well be fine — across a whole fleet that is how an operator
-                learns to ignore the column. */}
-            {device?.profile?.deviceOwner === false ? (
-              <SettingsRow
-                label={t('screens.device.kioskCapability')}
-                description={t('screens.device.kioskCapabilityDescription')}
-              >
-                <span className="text-warning text-sm">
-                  {t('screens.device.kioskCapabilityLimited')}
-                </span>
-              </SettingsRow>
-            ) : null}
-
-            {device?.profile?.updateStatus?.lastResult ? (
-              <SettingsRow
-                label={t('screens.device.updateStatus')}
-                description={t('screens.device.updateStatusDescription')}
-              >
-                <span
-                  className={cn(
-                    'text-sm',
-                    // An outcome that needs a person is coloured like every
-                    // other row here that does. It used to ride along as a
-                    // second dot on the online badge, which put a fault about
-                    // updates on the one control that answers "is it running".
-                    UPDATE_NEEDS_ATTENTION.has(
-                      device.profile.updateStatus.lastResult,
-                    )
-                      ? 'text-warning'
-                      : 'text-secondary',
-                  )}
-                >
-                  {t(
-                    `screens.device.updateResult.${device.profile.updateStatus.lastResult}`,
-                    { defaultValue: device.profile.updateStatus.lastResult },
-                  )}
-                  {/* Without the target version "Update available" tells the
-                      operator nothing actionable — which build is on offer? */}
-                  {device.profile.updateStatus.availableVersion
-                    ? ` → ${device.profile.updateStatus.availableVersion}`
-                    : null}
-                </span>
-              </SettingsRow>
-            ) : null}
-
-            {device?.deviceId ? (
-              <SettingsRow
-                label={t('screens.device.deviceIdLabel')}
-                description={t('screens.device.deviceIdDescription')}
-              >
-                <span className="text-secondary font-mono text-xs">
-                  {device.deviceId}
-                </span>
-              </SettingsRow>
-            ) : null}
           </SettingsSection>
 
           <SettingsSection title={t('screens.device.dangerZone.title')}>
@@ -342,17 +155,4 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
       />
     </div>
   )
-}
-
-/**
- * "1.8 GB free" — gigabytes above a gigabyte, megabytes below it. A signage box
- * down to its last few hundred megabytes is exactly when the difference between
- * 0.4 and 0.04 GB decides whether someone drives out, and a rounded "0.4 GB"
- * hides it.
- */
-function formatFreeSpace(bytes: number): string {
-  const gb = bytes / 1024 ** 3
-  return gb >= 1
-    ? `${gb.toFixed(1)} GB`
-    : `${String(Math.round(bytes / 1024 ** 2))} MB`
 }

@@ -170,12 +170,9 @@ class PlayerApp : Application() {
         shellLog.record("channel", "running $command")
         when (command) {
             "restart" -> restartFromShell()
-            "reload", "applyUpdate" -> {
-                // Both need the Activity: one reloads its WebView, the other
-                // installs and relaunches. Getting it on screen is the same first
-                // step, and if it will not come up, `restart` is the rung above.
+            "applyUpdate" -> {
                 val updater = updater
-                if (command == "applyUpdate" && updater is OtaUpdater) {
+                if (updater is OtaUpdater) {
                     // `operatorPresent = true`, because that is what this command
                     // IS: a person in the CMS pressing "install now". It used to
                     // call the unattended path, which is right for the scheduler
@@ -185,18 +182,35 @@ class PlayerApp : Application() {
                     // trace was left anywhere to say why.
                     updater.runUpdate(operatorPresent = true)
                 } else {
-                    startPlayerActivity()
+                    // A build with no UPDATE_MANIFEST_URL gets the NoopUpdater, and
+                    // there is nothing to install. Say so and stop — this used to
+                    // share a branch with `reload` and therefore RELOADED THE PAGE
+                    // when asked to install, which is the wrong action reported as
+                    // the right one. Newly reachable now that the CMS can send this
+                    // command at all.
+                    Log.w(TAG, "applyUpdate ignored: no update channel is configured")
+                    shellLog.record("channel", "applyUpdate ignored: no update channel")
                 }
+            }
+            "reload" -> {
+                // ACTION_RELOAD, not a bare launch. `singleTask` means a running
+                // Activity is merely brought forward and the Intent discarded, so a
+                // bare launch reloaded nothing at all — the command looked delivered
+                // and did nothing. The action gives `onNewIntent` something to act
+                // on; on a screen where the Activity is NOT up, starting it is
+                // itself the reload.
+                startPlayerActivity(KioskActivity.ACTION_RELOAD)
             }
             else -> Log.w(TAG, "unknown shell command: $command")
         }
     }
 
-    private fun startPlayerActivity() {
+    private fun startPlayerActivity(action: String? = null) {
         try {
             startActivity(
                 Intent(this, KioskActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .setAction(action),
             )
         } catch (t: Throwable) {
             Log.w(TAG, "could not start the player", t)

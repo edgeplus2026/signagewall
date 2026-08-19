@@ -40,8 +40,16 @@ export type PlayerCommand =
    * fleet is an hour of broken screens. It only ever moves FORWARD to whatever
    * the update channel currently offers — there is no command that undoes a
    * release, so the fix is always a higher version.
+   *
+   * `operator` says a human deliberately asked for THIS screen and can answer the
+   * system's install confirmation. It matters only where the device cannot install
+   * silently (off Device Owner, and not yet its own installer of record): without it
+   * the shell refuses rather than throw a dialog at an empty room, and the screen
+   * reports `needs-operator` instead. A fleet-wide rollout must NOT set it — dozens
+   * of unanswerable dialogs is the outcome it exists to prevent. Ignored by the
+   * desktop shell, which has no such restriction.
    */
-  | { type: 'applyUpdate' }
+  | { type: 'applyUpdate'; operator?: boolean }
   /**
    * Report back everything this screen knows about itself — cache state, storage,
    * and the shell's recent event log — as one `diagnostics` message on the socket.

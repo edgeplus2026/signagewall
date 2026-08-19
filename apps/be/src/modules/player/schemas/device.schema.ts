@@ -173,7 +173,7 @@ export class DeviceProfile {
   @Prop()
   screenHeight?: number;
 
-  /** Native shell (Tauri) version — distinct from the web `appVersion`. */
+  /** Native shell version (desktop or Android) — distinct from the web `appVersion`. */
   @Prop({ trim: true })
   shellVersion?: string;
 

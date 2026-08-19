@@ -19,6 +19,7 @@ import com.signagewall.player.update.OtaUpdater
 import com.signagewall.player.R
 import com.signagewall.player.kiosk.KioskController
 import com.signagewall.player.kiosk.KioskPresence
+import com.signagewall.player.runtime.DisplayState
 import com.signagewall.player.runtime.ShellChannel
 
 /**
@@ -58,6 +59,9 @@ class WatchdogService : Service() {
 
     /** When the shell last checked in on its own channel. */
     private var lastChannelPollAt = 0L
+
+    /** Last display state supervision acted on, so a transition is logged once. */
+    private var displayWasOn = true
 
     private val tick = object : Runnable {
         override fun run() {
@@ -99,12 +103,53 @@ class WatchdogService : Service() {
      * might be an operator standing at the screen.
      */
     private fun supervise() {
+        // A panel that is switched off is not a screen in trouble. Android cuts the
+        // app off the network entirely while the device sleeps, so every rung of the
+        // ladder is doomed and every update check is a wasted hour — this is what was
+        // observed reaching "attempt 10, rung 3" overnight, and what burned an hourly
+        // update slot on a fetch that could never have succeeded.
+        //
+        // Returning here, rather than calling `settled()`, is deliberate: `settled()`
+        // means "the player is where it belongs", logs a recovery and increments the
+        // counter the CMS shows as this screen's health. Claiming a recovery for a
+        // display nobody could see would quietly inflate the one number an operator
+        // uses to judge whether a screen is limping.
+        val displayOn = DisplayState.isOn(this)
+        // Crucially this is asked BEFORE standing down. `FLAG_KEEP_SCREEN_ON` only
+        // holds while the player's own window is visible, so a player that has fallen
+        // off screen is exactly what lets the box go to sleep — and standing down on
+        // "display off" alone would disable the ladder in the one failure it exists
+        // to fix, leaving a dark screen dark until somebody walks over. Rung 1's
+        // full-screen intent can wake the panel; it must still be allowed to.
+        val needsLadder =
+            KioskPresence.shouldLaunch() || KioskPresence.shouldReclaimForeground()
+
+        if (!displayOn && !needsLadder) {
+            if (displayWasOn) {
+                displayWasOn = false
+                Log.i(TAG, "display off: standing down supervision")
+            }
+            // Return rather than call `settled()`: that means "the player is where it
+            // belongs", logs a recovery and increments the counter the CMS shows as
+            // this screen's health. Claiming a recovery for a display nobody could
+            // see would inflate the one number an operator judges a screen by.
+            return
+        }
+        if (!displayWasOn) {
+            displayWasOn = true
+            Log.i(TAG, "display on: resuming supervision")
+        }
+
         when {
             KioskPresence.shouldLaunch() -> ladder.attempt("no activity")
             KioskPresence.shouldReclaimForeground() -> ladder.attempt("backgrounded")
             else -> ladder.settled()
         }
-        maybeCheckForUpdate()
+        // Skipped while dark: Low Power Standby has the app off the network, so the
+        // fetch cannot succeed and would burn the hour until the next attempt.
+        if (displayOn) {
+            maybeCheckForUpdate()
+        }
     }
 
     /**

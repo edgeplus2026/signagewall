@@ -28,6 +28,22 @@ interface UpdateCheck {
   available: boolean
   currentVersion: string
   availableVersion?: string | null
+  /**
+   * Android only: an update is waiting but this device cannot install it without a
+   * human confirming (off Device Owner and not its own installer of record). The
+   * desktop shell never sends it, so it reads `undefined` and nothing changes.
+   */
+  needsOperator?: boolean
+  /**
+   * Android only: `'unreachable'` when the shell has not managed to read the update
+   * channel for days. Distinct from "nothing newer" — and it used to be dropped
+   * here, so a fleet-wide channel outage reported every screen as up to date.
+   */
+  channel?: string | null
+  /** When the channel was last read successfully (epoch ms, 0 = never). */
+  lastFetchAt?: number | null
+  /** Why the last read failed — present only once one has actually been attempted. */
+  lastFetchError?: string | null
 }
 
 /** Outcome of the native `run_update` command. */
@@ -94,12 +110,43 @@ export async function checkForUpdate(): Promise<void> {
   const status: DeviceUpdateStatus = {
     currentVersion: result.currentVersion,
     lastCheckAt,
-    lastResult: result.available ? 'available' : 'up-to-date',
+    lastResult: detectionResultFor(result),
     ...(result.availableVersion
       ? { availableVersion: result.availableVersion }
       : {}),
   }
   setDetectionStatus(status)
+}
+
+/**
+ * What a detection check means for the fleet dashboard.
+ *
+ * Two things the shell says out loud used to be flattened into `up-to-date` here,
+ * which is the answer an operator is least able to act on:
+ *
+ *  - `channel: 'unreachable'` — the update channel has not been readable for days.
+ *    A wrong bucket URL or blocked egress made the whole fleet look healthy, which
+ *    is exactly what the shell instrumented this marker to prevent.
+ *  - `needsOperator` — an update IS waiting, but this device cannot take it
+ *    unattended. Reporting that as plain `available` hides the site visit it needs.
+ */
+function detectionResultFor(
+  result: UpdateCheck,
+): NonNullable<DeviceUpdateStatus['lastResult']> {
+  // "Stale" covers two very different things and only one is a fault. The shell
+  // calls the channel stale when it has not read it for 48 h — which is equally true
+  // of a screen that booted ten seconds ago and has not tried yet (`lastFetchAt` 0).
+  // Since this check runs once per page load, reporting that as an error latched it
+  // for the device's whole uptime: every freshly provisioned screen, and every screen
+  // back from a long weekend, would show "Update error" while fetching perfectly well
+  // seconds later. Report it only with evidence — a channel that once worked and has
+  // gone quiet, or a fetch that actually failed.
+  const everFetched = (result.lastFetchAt ?? 0) > 0
+  if (result.channel === 'unreachable' && (everFetched || result.lastFetchError)) {
+    return 'error'
+  }
+  if (!result.available) return 'up-to-date'
+  return result.needsOperator ? 'needs-operator' : 'available'
 }
 
 /** True while an apply is already running — see {@link runUpdate}. */
@@ -115,7 +162,7 @@ let updateInFlight = false
  * failed apply used to vanish silently, leaving the CMS showing a stale
  * "available" forever with no sign the device had tried and failed.
  */
-async function runUpdate(): Promise<RunResult | undefined> {
+async function runUpdate(operator = false): Promise<RunResult | undefined> {
   if (!hasNativeBridge()) {
     return undefined
   }
@@ -137,7 +184,13 @@ async function runUpdate(): Promise<RunResult | undefined> {
   })
 
   try {
-    const result = await nativeInvoke<RunResult>('run_update')
+    // Unattended callers pass NO args at all rather than `{ operator: 'false' }` —
+    // the shell's `flag("operator")` defaults to false either way, and an absent
+    // argument keeps the wire shape identical to every non-operator call.
+    const result = await nativeInvoke<RunResult>(
+      'run_update',
+      operator ? { operator: 'true' } : undefined,
+    )
 
     // A successful install never returns here — the process restarts into the new
     // version — so anything we DO see is a non-install outcome. It is NOT necessarily
@@ -149,6 +202,11 @@ async function runUpdate(): Promise<RunResult | undefined> {
         currentVersion,
         lastCheckAt: new Date().toISOString(),
         lastResult: applyResultFor(result),
+        // Carry the target version. Now that `needs-operator` is sticky it WINS over
+        // detection — and detection was the only slot holding `availableVersion`, so
+        // without this the CMS would drop the "→ 0.1.8" suffix at exactly the moment
+        // an operator needs to know which build is waiting for them.
+        ...(result?.version ? { availableVersion: result.version } : {}),
       })
     }
     return result
@@ -210,9 +268,14 @@ export async function applyUpdateOrReload(): Promise<void> {
  * Applies a pending shell update if one is available — WITHOUT the reload
  * fallback of {@link applyUpdateOrReload}. Used off the nightly window (while
  * the screen is in standby), where there is nothing to reload if no update exists.
+ *
+ * [operator] is set ONLY by the CMS "Install now" command, where a person asked for
+ * this screen by hand. The unattended callers below (standby, the six-hour backstop)
+ * must leave it false, or a device that cannot install silently would raise a system
+ * dialog with nobody there to answer it.
  */
-export async function applyUpdateIfAvailable(): Promise<void> {
-  await runUpdate()
+export async function applyUpdateIfAvailable(operator = false): Promise<void> {
+  await runUpdate(operator)
 }
 
 /**

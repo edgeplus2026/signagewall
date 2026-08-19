@@ -61,6 +61,16 @@ class KioskController(private val activity: Activity) {
             KioskPresence.setMode(mode)
         } catch (t: Throwable) {
             Log.w(TAG, "failed to apply kiosk mode $mode", t)
+            // Durable, not just logcat. A screen that silently failed to lock looks
+            // identical to one that locked fine, and on this hardware logcat is gone
+            // by the time anyone asks — which is why ShellLog exists and why it names
+            // kiosk changes as one of the things it holds. The benign "degraded to
+            // SOFT" path below was already recorded; the outright failure, the one
+            // worth a call-out, was the one that vanished.
+            ShellLog.of(activity)?.record(
+                "kiosk",
+                "failed to apply $mode: ${t.javaClass.simpleName}: ${t.message}",
+            )
         }
     }
 

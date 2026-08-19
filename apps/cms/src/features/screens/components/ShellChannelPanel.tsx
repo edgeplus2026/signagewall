@@ -14,12 +14,16 @@ import {
 } from '@/components/ui/dialog'
 import { useIsSuperAdmin } from '@/features/auth/hooks/useIsSuperAdmin'
 import { useQueueShellCommand } from '@/features/screens/hooks/useScreens'
-import type { ShellStatusReport } from '@/features/screens/types/screen.types'
-import {
-  SettingsRow,
-  SettingsSection,
-} from '@/features/settings/components/SettingsSection'
+import type { ShellCommand, ShellStatusReport } from '@/features/screens/types/screen.types'
+import { SettingsRow, SettingsSection } from '@/features/settings/components/SettingsSection'
 import { getApiErrorMessage } from '@/lib/api-error'
+
+/**
+ * Gentlest first. Deliberately not `SHELL_COMMANDS` from the contract: that array
+ * is ordered restart-reload-applyUpdate, which reads as an escalation ladder
+ * running backwards when rendered as a column of buttons.
+ */
+const SHELL_ACTIONS: readonly ShellCommand[] = ['reload', 'restart', 'applyUpdate']
 
 interface ShellChannelPanelProps {
   screenId: string
@@ -47,15 +51,16 @@ export function ShellChannelPanel({
   const { t } = useTranslation()
   const isSuperAdmin = useIsSuperAdmin()
   const queue = useQueueShellCommand()
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pending, setPending] = useState<ShellCommand | null>(null)
 
   // The state this panel exists for: the shell is checking in, the page is not.
   const pageDead = Boolean(status) && status?.pageAlive === false
 
-  const onRestart = async () => {
+  const onConfirm = async () => {
+    if (!pending) return
     try {
-      await queue.mutateAsync({ id: screenId, command: 'restart' })
-      setConfirmOpen(false)
+      await queue.mutateAsync({ id: screenId, command: pending })
+      setPending(null)
       toast.success(t('screens.device.shell.queued'))
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('screens.device.shell.error')))
@@ -77,61 +82,65 @@ export function ShellChannelPanel({
       >
         <span className={pageDead ? 'text-warning text-sm' : 'text-secondary text-sm'}>
           {status
-            ? t(
-                pageDead
-                  ? 'screens.device.shell.pageDead'
-                  : 'screens.device.shell.pageAlive',
-                {
-                  at: statusAt
-                    ? new Date(statusAt).toLocaleString()
-                    : t('screens.device.unknown'),
-                },
-              )
+            ? t(pageDead ? 'screens.device.shell.pageDead' : 'screens.device.shell.pageAlive', {
+                at: statusAt ? new Date(statusAt).toLocaleString() : t('screens.device.unknown'),
+              })
             : t('screens.device.shell.neverReported')}
         </span>
       </SettingsRow>
 
-      {/* Only when it can do something the ordinary Restart cannot. With the page
-          alive, that button is instant and this one waits minutes — offering both
-          would only invite picking the slow one. */}
-      {pageDead || !pageOnline ? (
-        <SettingsRow
-          label={t('screens.device.shell.restartTitle')}
-          description={t('screens.device.shell.restartDescription')}
-        >
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setConfirmOpen(true)
-            }}
-            disabled={queue.isPending}
-          >
-            <PowerIcon className="size-4" />
-            {t('screens.device.shell.restartButton')}
-          </Button>
-        </SettingsRow>
-      ) : null}
+      {/* Only when these can do something the socket cannot. With the page alive
+          the ordinary buttons are instant and these wait minutes — offering both
+          would only invite picking the slow one. All three commands are already
+          implemented end to end; until now the panel could send exactly one. */}
+      {pageDead || !pageOnline
+        ? SHELL_ACTIONS.map((command) => (
+            <SettingsRow
+              key={command}
+              label={t(`screens.device.shell.commands.${command}.title`)}
+              description={t(`screens.device.shell.commands.${command}.description`)}
+            >
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setPending(command)
+                }}
+                disabled={queue.isPending}
+              >
+                <PowerIcon className="size-4" />
+                {t(`screens.device.shell.commands.${command}.button`)}
+              </Button>
+            </SettingsRow>
+          ))
+        : null}
 
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <Dialog
+        open={pending !== null}
+        onOpenChange={(open) => {
+          if (!open) setPending(null)
+        }}
+      >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>{t('screens.device.shell.confirmTitle')}</DialogTitle>
+            <DialogTitle>
+              {pending ? t(`screens.device.shell.commands.${pending}.confirmTitle`) : ''}
+            </DialogTitle>
             <DialogDescription>
-              {t('screens.device.shell.confirmDescription')}
+              {pending ? t(`screens.device.shell.commands.${pending}.confirmDescription`) : ''}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
-                setConfirmOpen(false)
+                setPending(null)
               }}
             >
               {t('screens.device.shell.cancel')}
             </Button>
-            <Button disabled={queue.isPending} onClick={() => void onRestart()}>
-              {t('screens.device.shell.submit')}
+            <Button disabled={queue.isPending} onClick={() => void onConfirm()}>
+              {pending ? t(`screens.device.shell.commands.${pending}.submit`) : ''}
             </Button>
           </DialogFooter>
         </DialogContent>

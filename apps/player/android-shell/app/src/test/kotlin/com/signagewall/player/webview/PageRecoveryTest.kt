@@ -158,4 +158,46 @@ class PageRecoveryTest {
         }
         assertEquals(emptyList<String>(), actions.calls)
     }
+
+    // ---- standing down while the panel is off --------------------------------
+
+    /**
+     * Coming back from standby must buy the page the same grace a fresh load gets.
+     *
+     * While the panel is off, Android blocks the app's network outright, so the page
+     * cannot beat however healthy it is. The Activity stops polling for that whole
+     * period — but the LAST action stamp is then minutes old, and without this the
+     * very first tick after wake escalates immediately, punishing the page for a
+     * silence the OS imposed.
+     */
+    @Test
+    fun `resuming after standby defers the next escalation`() {
+        poll(3) // 45s of silence: not yet enough to escalate
+        assertEquals(0, recovery.currentRung())
+
+        // The panel was off for ten minutes; nothing polled during it.
+        now += 10 * 60_000L
+        recovery.resumeAfterStandby()
+
+        // The first tick after wake must NOT escalate.
+        poll(1)
+        assertEquals(0, recovery.currentRung())
+        assertEquals(emptyList<String>(), actions.calls)
+    }
+
+    /**
+     * Standby is not evidence the page recovered — only that it was never given a
+     * fair chance to prove otherwise — so a screen that was already limping resumes
+     * on the rung it was on, rather than being quietly forgiven.
+     */
+    @Test
+    fun `resuming after standby does not clear the rung`() {
+        poll(40)
+        val climbed = recovery.currentRung()
+        assert(climbed > 0)
+
+        recovery.resumeAfterStandby()
+
+        assertEquals(climbed, recovery.currentRung())
+    }
 }

@@ -3,8 +3,10 @@ import { Navigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useIsSuperAdmin } from '@/features/auth/hooks/useIsSuperAdmin'
 import { ContentEditorSkeleton } from '@/features/content/components/ContentEditorSkeleton'
 import { OpenWebPlayerButton } from '@/features/screens/components/OpenWebPlayerButton'
+import { ScreenAdminTab } from '@/features/screens/components/ScreenAdminTab'
 import { ScreenAvailabilityBadge } from '@/features/screens/components/ScreenAvailabilityBadge'
 import { ScreenAvailabilityTab } from '@/features/screens/components/ScreenAvailabilityTab'
 import { ScreenBreadcrumb } from '@/features/screens/components/ScreenBreadcrumb'
@@ -22,10 +24,16 @@ import { useScreenPresence } from '@/features/screens/providers/presenceContext'
 import type { ScreenManageTab } from '@/features/screens/types/screen.types'
 import { cn } from '@/lib/utils'
 
-function getActiveTab(tab: string | null): ScreenManageTab {
+/**
+ * Resolves the `?tab=` param, with the admin gate folded in rather than applied
+ * later: a customer who follows a shared `?tab=admin` link must land somewhere real
+ * instead of on a pane that renders nothing.
+ */
+function getActiveTab(tab: string | null, isSuperAdmin: boolean): ScreenManageTab {
   if (tab === 'settings') return 'settings'
   if (tab === 'availability') return 'availability'
   if (tab === 'device') return 'device'
+  if (tab === 'admin' && isSuperAdmin) return 'admin'
   return 'content'
 }
 
@@ -33,7 +41,8 @@ export default function ScreenPage() {
   const { t } = useTranslation()
   const { screenId } = useParams<{ screenId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = getActiveTab(searchParams.get('tab'))
+  const isSuperAdmin = useIsSuperAdmin()
+  const activeTab = getActiveTab(searchParams.get('tab'), isSuperAdmin)
   const { data: screen, isLoading } = useScreen(screenId ?? null)
   const { data: availability, isLoading: isAvailabilityLoading } = useScreenAvailability(
     screenId ?? null,
@@ -100,7 +109,8 @@ export default function ScreenPage() {
             if (
               nextTab === 'settings' ||
               nextTab === 'availability' ||
-              nextTab === 'device'
+              nextTab === 'device' ||
+              (nextTab === 'admin' && isSuperAdmin)
             ) {
               setSearchParams({ tab: nextTab })
             } else {
@@ -113,7 +123,12 @@ export default function ScreenPage() {
             <TabsList variant="line" className="w-fit shrink-0">
               <TabsTrigger value="content">{t('screens.manage.tabs.content')}</TabsTrigger>
               <TabsTrigger value="device">{t('screens.manage.tabs.device')}</TabsTrigger>
-              <TabsTrigger value="availability">{t('screens.manage.tabs.availability')}</TabsTrigger>
+              {isSuperAdmin ? (
+                <TabsTrigger value="admin">{t('screens.manage.tabs.admin')}</TabsTrigger>
+              ) : null}
+              <TabsTrigger value="availability">
+                {t('screens.manage.tabs.availability')}
+              </TabsTrigger>
               <TabsTrigger value="settings">{t('screens.manage.tabs.settings')}</TabsTrigger>
             </TabsList>
 
@@ -143,6 +158,10 @@ export default function ScreenPage() {
 
             <TabsContent value="device" className="mt-0">
               <ScreenDeviceTab key={screen.id} screenId={screen.id} />
+            </TabsContent>
+
+            <TabsContent value="admin" className="mt-0">
+              <ScreenAdminTab key={screen.id} screenId={screen.id} />
             </TabsContent>
 
             <TabsContent value="availability" className="mt-0">

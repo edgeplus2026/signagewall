@@ -114,8 +114,7 @@ export function usePairScreenDevice() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, code }: { id: string; code: string }) =>
-      screensApi.pairDevice(id, { code }),
+    mutationFn: ({ id, code }: { id: string; code: string }) => screensApi.pairDevice(id, { code }),
     onSuccess: (data, variables) => {
       const organizationId = useOrganizationStore.getState().activeOrganizationId
       queryClient.setQueryData<ScreenDevice | null>(
@@ -199,13 +198,8 @@ export function useSetDeviceOrientation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
-      id,
-      orientation,
-    }: {
-      id: string
-      orientation: ScreenDeviceOrientation
-    }) => screensApi.setDeviceOrientation(id, orientation),
+    mutationFn: ({ id, orientation }: { id: string; orientation: ScreenDeviceOrientation }) =>
+      screensApi.setDeviceOrientation(id, orientation),
     onSuccess: (_data, variables) => {
       patchDevice(queryClient, variables.id, {
         settings: { orientation: variables.orientation },
@@ -232,13 +226,8 @@ export function useSetDeviceDailyReload() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
-      id,
-      payload,
-    }: {
-      id: string
-      payload: SetDeviceDailyReloadRequest
-    }) => screensApi.setDeviceDailyReload(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: SetDeviceDailyReloadRequest }) =>
+      screensApi.setDeviceDailyReload(id, payload),
     onSuccess: (_data, variables) => {
       patchDevice(queryClient, variables.id, {
         settings: { dailyReload: variables.payload },
@@ -264,6 +253,58 @@ export function useQueueShellCommand() {
       screensApi.queueShellCommand(id, command),
   })
 }
+
+/**
+ * Asks the SHELL to bring its event log along on its next check-in.
+ *
+ * Deliberately not the same thing as {@link useRequestDeviceDiagnostics}: that one
+ * rides the socket and therefore needs the player page to be alive, which is the
+ * one condition under which somebody actually wants a log. This sets a flag the
+ * shell picks up on its own five-minute poll, so it still works on a screen whose
+ * page has stopped answering.
+ */
+export function useRequestShellLog() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => screensApi.requestShellLog(id),
+    onSuccess: (_data, id) => {
+      // Nothing arrives on success — this only sets a flag the shell reads on its
+      // NEXT check-in, minutes away. And nothing would refetch on its own either:
+      // the client has `refetchOnWindowFocus` off and a five-minute `staleTime`, so
+      // without this the log the panel renders would not appear until a hard reload
+      // and the button would look broken to anyone who pressed it and waited.
+      //
+      // Paced to the thing being waited on rather than to a spinner: half-minute
+      // checks across a little over one check-in interval, scoped to the one screen
+      // that was asked, stopping as soon as a newer report lands.
+      const organizationId = useOrganizationStore.getState().activeOrganizationId
+      const key = screenDeviceQueryKey(organizationId, id)
+      const reportedAt = (): string | undefined =>
+        queryClient.getQueryData<ScreenDevice | null>(key)?.shellStatusAt
+
+      const before = reportedAt()
+      let attempts = 0
+
+      const poll = (): void => {
+        window.setTimeout(() => {
+          attempts += 1
+          void queryClient.invalidateQueries({ queryKey: key }).then(() => {
+            if (reportedAt() === before && attempts < SHELL_LOG_POLL_TRIES) {
+              poll()
+            }
+          })
+        }, SHELL_LOG_POLL_MS)
+      }
+
+      poll()
+    },
+  })
+}
+
+/** Paced to the shell's own five-minute check-in, with a little room past it. */
+const SHELL_LOG_POLL_MS = 30_000
+const SHELL_LOG_POLL_TRIES = 12
 
 /**
  * Asks the screen to report its state. The device answers asynchronously over the
@@ -296,13 +337,11 @@ export function useRequestDeviceDiagnostics() {
       const poll = (): void => {
         window.setTimeout(() => {
           attempts += 1
-          void queryClient
-            .invalidateQueries({ queryKey: key })
-            .then(() => {
-              if (reportedAt() === before && attempts < DIAGNOSTICS_POLL_TRIES) {
-                poll()
-              }
-            })
+          void queryClient.invalidateQueries({ queryKey: key }).then(() => {
+            if (reportedAt() === before && attempts < DIAGNOSTICS_POLL_TRIES) {
+              poll()
+            }
+          })
         }, DIAGNOSTICS_POLL_MS)
       }
 

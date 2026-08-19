@@ -82,10 +82,19 @@ describe('applyCommand — real device', () => {
 
   it('applies a pending shell update on an applyUpdate command', () => {
     applyCommand({ type: 'applyUpdate' })
-    expect(applyUpdateIfAvailable).toHaveBeenCalledOnce()
+    // Unattended by default: no operator flag unless the backend says a person
+    // asked for this one screen.
+    expect(applyUpdateIfAvailable).toHaveBeenCalledWith(false)
     // Distinct from restart: this must NOT reload a device with nothing pending,
     // which would blank a working screen for no reason.
     expect(restartPlayer).not.toHaveBeenCalled()
+  })
+
+  it('forwards the operator flag when the CMS says a person asked for it', () => {
+    // Without it the device refuses with `needs-operator` and does nothing at all —
+    // no dialog, no log line — which is what made "Install now" look inert.
+    applyCommand({ type: 'applyUpdate', operator: true })
+    expect(applyUpdateIfAvailable).toHaveBeenCalledWith(true)
   })
 
   it('drives next/prev through the playback bus', () => {

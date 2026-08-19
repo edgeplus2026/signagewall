@@ -45,6 +45,9 @@ class PageRecovery(
     private val clock: () -> Long = { SystemClock.elapsedRealtime() },
 ) {
 
+    /** Rung whose first completed load has already been logged; -1 = none yet. */
+    private var lastLoadLoggedRung = -1
+
     /** Whether the once-per-boot process restart has been spent. */
     interface RestartBudget {
         fun available(): Boolean
@@ -127,6 +130,8 @@ class PageRecovery(
         val topped = rung >= MAX_RUNG
         rung = minOf(rung + 1, MAX_RUNG)
         lastActionAt = clock()
+        // A new rung gets to announce its first completed load again.
+        lastLoadLoggedRung = -1
         if (!topped) {
             Log.w(TAG, "page recovery rung $rung: $reason")
         }
@@ -170,12 +175,35 @@ class PageRecovery(
     }
 
     /**
+     * The panel came back on after being switched off.
+     *
+     * Grants the same grace a fresh load gets, and deliberately does NOT touch the
+     * rung: standby is not evidence the page recovered, only that it was never given
+     * a fair chance to prove otherwise. Without the grace the very first tick after
+     * wake escalates a page whose only crime was that the OS had blocked its network
+     * for the whole time the screen was dark.
+     */
+    fun resumeAfterStandby() {
+        lastActionAt = clock()
+    }
+
+    /**
      * A load completed. Not proof the page WORKS — an HTTP 200 serving a broken
      * bundle finishes loading too — so it deliberately does not clear the rung. Only
      * a heartbeat does that.
      */
     fun onPageLoaded() {
-        if (rung != 0) {
+        // Deduped like LaunchLadder's `lastLoggedRung`, because one recovery episode
+        // reaches here more than once: `onPageFinished` also fires for the error
+        // document Chromium commits under the ORIGINAL url, and an escalation posts
+        // a delayed reload that nothing cancels, so an aborted navigation and its
+        // replacement both report finished. The duplicates are in the log only —
+        // resist "fixing" the source by filtering error pages out of
+        // `onPageFinished`, because that callback also clears `pageLoading`, and a
+        // `pageLoading` stuck true is read by `check()` as a reason NOT to escalate,
+        // which would disable this ladder entirely.
+        if (rung != 0 && rung != lastLoadLoggedRung) {
+            lastLoadLoggedRung = rung
             Log.i(TAG, "page loaded while recovering at rung $rung; waiting for a beat")
         }
     }

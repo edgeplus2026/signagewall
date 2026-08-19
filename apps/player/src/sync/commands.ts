@@ -122,7 +122,7 @@ export function applyCommand(
     // shell to update, and running it there would only report "no update".
     case 'applyUpdate':
       if (!options.preview) {
-        void applyUpdateIfAvailable()
+        void applyUpdateIfAvailable(command.operator === true)
       }
       break
     case 'restart':

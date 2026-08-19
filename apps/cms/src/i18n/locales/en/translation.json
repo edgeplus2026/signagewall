@@ -868,7 +868,8 @@
         "content": "Content",
         "device": "Device",
         "settings": "Settings",
-        "availability": "Working hours"
+        "availability": "Working hours",
+        "admin": "Admin"
       },
       "actions": {
         "clearAllContent": "Clear all content",
@@ -919,17 +920,17 @@
       "neverSeen": "Never",
       "unknown": "Unknown",
       "shellVersion": "Shell version",
-      "shellVersionDescription": "The native shell (Tauri) version installed on the device.",
+      "shellVersionDescription": "The native shell version installed on the device.",
       "kioskCapability": "Kiosk lock",
       "kioskCapabilityDescription": "Whether this device can be locked down so a viewer cannot leave the player. Set on the device, in the player's service menu.",
       "kioskCapabilityLimited": "Escapable on this device — not provisioned as Device Owner",
       "updateStatus": "Update status",
       "updateStatusDescription": "State of the device's automatic shell updates.",
       "updateResult": {
-        "idle": "Idle",
         "checking": "Checking…",
         "up-to-date": "Up to date",
         "available": "Update available",
+        "needs-operator": "Needs a technician",
         "installing": "Installing…",
         "error": "Update error",
         "unhealthy": "Update unhealthy"
@@ -945,6 +946,25 @@
       },
       "details": {
         "title": "Device details"
+      },
+      "admin": {
+        "description": "Everything about the physical device that only the SignageWall team needs: diagnostics, maintenance, and the shell's own line to this screen.",
+        "connection": {
+          "title": "Connection"
+        },
+        "versions": {
+          "title": "Versions",
+          "viaShell": "reported by the shell",
+          "viaPage": "reported by the page",
+          "viaReport": "from the last report",
+          "disagree": "the other channel says {{version}}"
+        },
+        "updates": {
+          "title": "Updates"
+        },
+        "health": {
+          "title": "Health"
+        }
       },
       "volume": {
         "title": "Volume",
@@ -979,7 +999,8 @@
         "enabledLabel": "Enable daily reload",
         "timeLabel": "Reload time",
         "success": "Daily reload updated.",
-        "error": "Could not update the daily reload. Please try again."
+        "error": "Could not update the daily reload. Please try again.",
+        "save": "Save reload time"
       },
       "restart": {
         "title": "Restart player",
@@ -995,11 +1016,13 @@
         "title": "Install update now",
         "rowDescription": "Installs a pending player update immediately instead of waiting for the screen's own window. The display restarts.",
         "button": "Install now",
-        "description": "The screen will install any pending player update and restart. It goes dark for a few seconds. If nothing is pending, nothing happens.",
+        "description": "The screen installs any pending player update and restarts. It goes dark for a few seconds. If nothing is pending, nothing happens. On a device that cannot install unattended, Android puts a confirmation dialog on the display and leaves it there until somebody at the screen answers it.",
         "cancel": "Cancel",
         "submit": "Install now",
         "success": "Update requested.",
-        "error": "Could not request the update. Please try again."
+        "offline": "The screen is offline, so it never received this. It will pick the update up on its own schedule.",
+        "error": "Could not request the update. Please try again.",
+        "upToDateDescription": "This screen last reported it is up to date. The device re-reads the channel when asked, so install anyway to pilot a release you have just published."
       },
       "cache": {
         "title": "Offline copy",
@@ -1007,8 +1030,6 @@
         "value": "{{cached}} of {{total}} items cached"
       },
       "worker": {
-        "title": "Offline cache",
-        "description": "The component that stores content on the device.",
         "uncontrolled": "Not active — this screen is storing nothing and will go blank if it loses its network"
       },
       "storage": {
@@ -1023,7 +1044,11 @@
         "requested": "Requested. The report appears here once the screen answers.",
         "error": "Could not reach the screen. Please try again.",
         "capturedAt": "Reported by the device at {{at}}",
-        "noLog": "No events recorded — this player has nothing to report yet, or its shell is too old to keep a log."
+        "noLog": "No events recorded — this player has nothing to report yet, or its shell is too old to keep a log.",
+        "shellLogTitle": "Ask the shell for its log",
+        "shellLogDescription": "The shell brings its event log along on its next check-in, so this takes up to five minutes. It is the only route to a log on a screen whose page has stopped answering.",
+        "shellLogButton": "Request log",
+        "shellLogRequested": "Requested. The shell will bring it on its next check-in."
       },
       "recoveries": {
         "title": "Recoveries",
@@ -1041,15 +1066,35 @@
         "pageAlive": "Reported {{at}} — player running",
         "pageDead": "Reported {{at}} — the shell is up but the player page is not",
         "neverReported": "Never reported. The shell learns how to reach us the first time a page loads.",
-        "restartTitle": "Restart via shell",
-        "restartDescription": "Works when the page is unresponsive, because it does not go through the page. The shell collects it on its next check-in, within about five minutes.",
-        "restartButton": "Queue restart",
-        "confirmTitle": "Restart this screen through its shell?",
-        "confirmDescription": "The device restarts the whole player app on its next check-in — within about five minutes, not instantly. It goes dark for a few seconds.",
         "cancel": "Cancel",
-        "submit": "Queue restart",
         "queued": "Queued. The screen will pick it up on its next check-in.",
-        "error": "Could not queue the command. Please try again."
+        "error": "Could not queue the command. Please try again.",
+        "commands": {
+          "reload": {
+            "title": "Reload the page via shell",
+            "description": "Reloads the player page without restarting the app — the gentlest of the three. The shell collects it on its next check-in, within about five minutes.",
+            "button": "Queue reload",
+            "confirmTitle": "Reload this screen's page through its shell?",
+            "confirmDescription": "The player page reloads on the device's next check-in — within about five minutes, not instantly. Content is interrupted for a moment.",
+            "submit": "Queue reload"
+          },
+          "restart": {
+            "title": "Restart via shell",
+            "description": "Works when the page is unresponsive, because it does not go through the page. The shell collects it on its next check-in, within about five minutes.",
+            "button": "Queue restart",
+            "confirmTitle": "Restart this screen through its shell?",
+            "confirmDescription": "The device restarts the whole player app on its next check-in — within about five minutes, not instantly. It goes dark for a few seconds.",
+            "submit": "Queue restart"
+          },
+          "applyUpdate": {
+            "title": "Install update via shell",
+            "description": "The one install path that still works when the page is dead, and the only one that assumes somebody is at the screen.",
+            "button": "Queue install",
+            "confirmTitle": "Install a pending update through the shell?",
+            "confirmDescription": "This path assumes a person is standing at the screen: on a device that cannot install silently, Android puts a confirmation dialog on the display and leaves it there until somebody answers it.",
+            "submit": "Queue install"
+          }
+        }
       }
     },
     "update": {

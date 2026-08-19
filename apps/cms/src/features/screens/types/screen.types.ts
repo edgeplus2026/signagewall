@@ -24,7 +24,18 @@ export type ScreenStatusFilter = 'all' | 'online' | 'offline'
 
 export type ScreenItemType = 'media' | 'playlist' | 'app'
 
-export type ScreenManageTab = 'content' | 'device' | 'settings' | 'availability'
+export type ScreenManageTab =
+  | 'content'
+  | 'device'
+  /**
+   * Super-admin only: diagnostics, maintenance and the shell channel. Split out of
+   * `device` because that tab had grown twelve telemetry rows that meant nothing to
+   * the person who owns the screen — and, being ungated, contradicted each other in
+   * front of them.
+   */
+  | 'admin'
+  | 'settings'
+  | 'availability'
 
 export interface ScreenDeviceProfile {
   platform?: string
@@ -33,7 +44,7 @@ export interface ScreenDeviceProfile {
   appVersion?: string
   screenWidth?: number
   screenHeight?: number
-  /** Native shell (Tauri) version — absent when the device runs in a browser. */
+  /** Native shell version (desktop or Android) — absent when the device runs in a browser. */
   shellVersion?: string
   runtime?: PlayerRuntime
   updateStatus?: DeviceUpdateStatus
@@ -53,7 +64,7 @@ export interface ScreenDeviceProfile {
 // `ScreenDevice*` names so the rest of the CMS keeps importing from here.
 export type ScreenDeviceOrientation = DeviceOrientation
 export type ScreenDeviceScale = DeviceScale
-export type { DailyReloadSetting, ShellCommand, ShellStatusReport }
+export type { DailyReloadSetting, DeviceUpdateStatus, ShellCommand, ShellStatusReport }
 export type ScreenDeviceSettings = DeviceSettings
 
 /** Fallback used when a device has no persisted settings yet. */

@@ -20,11 +20,14 @@ import java.io.File
  *  2. Android 12+ self-update — `USER_ACTION_NOT_REQUIRED` asks the system to skip
  *     the prompt. It needs UPDATE_PACKAGES_WITHOUT_USER_ACTION (a normal
  *     permission, auto-granted — verified on-device) AND that we are the app's own
- *     installer of record. A box sideloaded over adb has `installer=null`, and that
- *     cannot be fixed from outside: both `adb install -i` and `pm set-installer`
- *     were measured to leave it null (the latter throws). So the FIRST update on
- *     any sideloaded device still prompts; performing it is what makes us the
- *     installer, and updates after that can be silent.
+ *     installer of record. A box sideloaded with a plain `adb install` has
+ *     `installer=null` and can never update itself silently — but that IS fixable
+ *     from outside, and provisioning is where to fix it: `adb install -i
+ *     com.signagewall.player` sets the installer of record. Measured on Android 14;
+ *     `pm set-installer` throws and does not work. Flash every device that way and
+ *     no screen ever prompts. Skip it and the FIRST update needs a person standing
+ *     there; performing that one is what makes us the installer for every update
+ *     after.
  *  3. Otherwise the system shows the prompt, routed through [InstallReceiver] via
  *     `REQUEST_INSTALL_PACKAGES`.
  *
@@ -48,11 +51,12 @@ class InstallerStrategy(private val context: Context) {
      * Whether an install would go through without a human pressing anything.
      *
      * Two ways to earn that: being Device Owner, or being the app's own installer of
-     * record while holding UPDATE_PACKAGES_WITHOUT_USER_ACTION. A box that was
-     * sideloaded over adb has no installer of record at all — measured, and neither
-     * `adb install -i` nor `pm set-installer` can grant it from outside — so the
-     * FIRST update on such a device will always prompt. Performing that one install
-     * is what makes us the installer, and every later one can be silent.
+     * record while holding UPDATE_PACKAGES_WITHOUT_USER_ACTION. A box sideloaded with
+     * a plain `adb install` has no installer of record, so this returns false and the
+     * first update needs a person — but `adb install -i com.signagewall.player` at
+     * provisioning time grants it up front, and a device provisioned that way took its
+     * next release start-to-finish with no dialog (measured on Android 14; note
+     * `pm set-installer` throws and cannot do this). See the class doc.
      *
      * The updater asks this before a SCHEDULED update, because throwing a system
      * dialog onto an unattended shop wall at four in the morning, where it will sit

@@ -38,6 +38,7 @@ import com.signagewall.player.identity.DeviceIdStore
 import com.signagewall.player.kiosk.EscapeHatch
 import com.signagewall.player.kiosk.KioskController
 import com.signagewall.player.kiosk.KioskPresence
+import com.signagewall.player.runtime.DisplayState
 import com.signagewall.player.runtime.PlayerLiveness
 import com.signagewall.player.webview.PageRecovery
 import com.signagewall.player.update.NoopUpdater
@@ -113,10 +114,43 @@ class KioskActivity : AppCompatActivity() {
         )
     }
 
-    /** Drives the page-recovery ladder. Cheap: it only reads two timestamps. */
+    /** Last display state this tick acted on, so a transition is logged once. */
+    private var displayWasOn = true
+
+    /**
+     * Drives the page-recovery ladder. Cheap: it only reads two timestamps.
+     *
+     * Skipped entirely while the panel is off. Nothing the ladder does can succeed
+     * then — the OS has cut the app off the network — and its rungs are expensive:
+     * reload, recreate the WebView, spend the once-per-boot process restart. A
+     * screen switched off overnight used to burn all of that, repeatedly, to fix a
+     * page that was never broken.
+     */
     private val recoveryTick = object : Runnable {
         override fun run() {
-            pageRecovery.check()
+            val displayOn = DisplayState.isOn(this@KioskActivity)
+            if (displayOn != displayWasOn) {
+                displayWasOn = displayOn
+                if (displayOn) {
+                    Log.i(TAG, "display on: resuming page recovery")
+                    pageRecovery.resumeAfterStandby()
+                } else {
+                    Log.i(TAG, "display off: standing down page recovery")
+                }
+                // Deliberately NOT `webView.onPause()`, tempting as it is with the
+                // decoder still running on a dark panel. It suspends decoding while
+                // leaving JavaScript running, and `Slot`'s progress watchdog excuses
+                // only `video.paused || video.ended` — neither of which a native-side
+                // suspension sets. `currentTime` would freeze with the element still
+                // reporting itself as playing, so after four 2s samples every item
+                // would be reported as "no progress" and skipped, all night: Sentry
+                // noise and proof-of-play records for plays that never happened.
+                // `pauseTimers()` is worse still — process-global, it would freeze
+                // the six-hour update backstop and the nightly reload with it.
+            }
+            if (displayOn) {
+                pageRecovery.check()
+            }
             recoveryHandler.postDelayed(this, RECOVERY_POLL_MILLIS)
         }
     }
@@ -689,6 +723,22 @@ class KioskActivity : AppCompatActivity() {
         webView?.loadUrl(BuildConfig.SIGNAGEWALL_PLAYER_URL)
     }
 
+    /**
+     * A second Intent for an Activity that is already up. `singleTask` delivers it
+     * here rather than creating anything, and until this existed the shell channel's
+     * `reload` command was inert: it started the Activity, Android saw it was already
+     * running, brought it forward and dropped the Intent on the floor — the operator
+     * queued a reload, waited out the poll interval and nothing reloaded.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (intent.action == ACTION_RELOAD) {
+            Log.i(TAG, "reload requested")
+            loadPlayer()
+        }
+    }
+
     private fun restartApp() {
         val intent = packageManager.getLaunchIntentForPackage(packageName)
         intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -739,7 +789,13 @@ class KioskActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private companion object {
+    companion object {
+        /**
+         * Asks a running player to reload its page. Public because the shell channel
+         * lives in the Application, not in this Activity.
+         */
+        const val ACTION_RELOAD = "com.signagewall.player.action.RELOAD"
+
         private const val TAG = "KioskActivity"
 
         /** How long the keep-alive stands down while an operator is in a system

@@ -12,11 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useIsSuperAdmin } from '@/features/auth/hooks/useIsSuperAdmin'
 import { screensApi } from '@/features/screens/api/screensApi'
-import {
-  buildPlayerRecoveryUrl,
-  PLAYER_URL,
-} from '@/features/screens/lib/playerPreviewUrl'
+import { buildPlayerRecoveryUrl, PLAYER_URL } from '@/features/screens/lib/playerPreviewUrl'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 interface OpenWebPlayerButtonProps {
@@ -52,6 +50,7 @@ export function OpenWebPlayerButton({
   deviceOnline = false,
 }: OpenWebPlayerButtonProps) {
   const { t } = useTranslation()
+  const isSuperAdmin = useIsSuperAdmin()
   const [isMinting, setIsMinting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -81,9 +80,7 @@ export function OpenWebPlayerButton({
       }
     } catch (error) {
       tab?.close()
-      toast.error(
-        getApiErrorMessage(error, t('screens.device.preview.openWebPlayerError')),
-      )
+      toast.error(getApiErrorMessage(error, t('screens.device.preview.openWebPlayerError')))
     } finally {
       setIsMinting(false)
     }
@@ -95,6 +92,14 @@ export function OpenWebPlayerButton({
       return
     }
     void openWebPlayer()
+  }
+
+  // A recovery instrument, not a customer control: opening the player here mints a
+  // single-use grant and SIGNS THE LIVE DISPLAY OUT, so one confirm click takes a
+  // working shop screen down. Gated inside the component rather than at the call
+  // site, matching the rest of this feature, so a new call site cannot forget it.
+  if (!isSuperAdmin) {
+    return null
   }
 
   return (
@@ -113,12 +118,8 @@ export function OpenWebPlayerButton({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>
-              {t('screens.device.preview.takeoverTitle')}
-            </DialogTitle>
-            <DialogDescription>
-              {t('screens.device.preview.takeoverDescription')}
-            </DialogDescription>
+            <DialogTitle>{t('screens.device.preview.takeoverTitle')}</DialogTitle>
+            <DialogDescription>{t('screens.device.preview.takeoverDescription')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button

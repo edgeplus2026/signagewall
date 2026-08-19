@@ -128,14 +128,33 @@ class OtaUpdater(
         }
     }
 
+    /**
+     * What is on offer, from the point of view of a PERSON who could install it.
+     *
+     * `operatorPresent = true` on purpose, and it is not the same question
+     * [refreshAndMaybeApply] asks. This one only ever REPORTS; it installs nothing.
+     * Asking it unattended meant that after three failed installs — or merely inside
+     * the 6h/24h backoff — the answer flipped to "nothing available", so the service
+     * menu stopped drawing the "Install update" row and the technician standing at
+     * the screen had no button left to press. The bypass at [isInstallable] was added
+     * for exactly that person and reached `runUpdate` but never reached here, which
+     * is what made a repeatedly-failing screen unrecoverable while reporting itself
+     * up to date. The poison and downgrade guards still apply: a bad build is still
+     * never offered.
+     */
     override fun cachedCheck(): JsonElement {
         val state = stateStore.read()
         val m = cached
-        val available = m != null && isInstallable(m, state)
+        val available = m != null && isInstallable(m, state, operatorPresent = true)
         return buildJsonObject {
             put("available", available)
             put("currentVersion", currentVersionName)
             if (available && m != null) put("availableVersion", m.versionName)
+            // Only meaningful alongside an actual offer. `stateReport` reports the
+            // same capability unconditionally, which would flag every sideloaded but
+            // perfectly up-to-date screen as needing a visit — so the gate on
+            // `available` is the whole point of reporting it from here instead.
+            if (available && !installer.canInstallSilently()) put("needsOperator", true)
             // Loud on purpose. A screen that has not seen the channel for days is a
             // problem to act on, not a screen that is up to date.
             if (isChannelStale(state)) {

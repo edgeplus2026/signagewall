@@ -108,7 +108,7 @@ export interface DevicePresenceChangedEvent {
   online: boolean;
   lastSeenAt: string;
   appVersion?: string;
-  /** Native shell version, when the device runs inside the Tauri shell. */
+  /** Native shell version, when the device runs inside a native shell (desktop or Android). */
   shellVersion?: string;
   /**
    * Latest OTA outcome (`available` / `installing` / `error` / `unhealthy` / …)

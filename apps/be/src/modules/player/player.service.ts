@@ -627,7 +627,10 @@ export class PlayerService {
     this.eventEmitter.emit(PlayerEvents.DeviceCommand, {
       deviceId: device.deviceId,
       screenId,
-      command: { type: 'applyUpdate' },
+      // A person pressed "Install now" on this one screen, so the device may put up
+      // the system's confirmation if it cannot install silently. The fleet-wide
+      // sibling below deliberately omits this.
+      command: { type: 'applyUpdate', operator: true },
     } satisfies DeviceCommandEvent);
   }
 
@@ -659,6 +662,10 @@ export class PlayerService {
    */
   applyUpdateOnAllDevices(): void {
     this.eventEmitter.emit(PlayerEvents.FleetCommand, {
+      // No `operator` here, deliberately: nobody is standing in front of a fleet.
+      // Screens that cannot install silently report `needs-operator` and show up in
+      // the CMS as needing a visit, which is the honest outcome — the alternative is
+      // a confirmation dialog sitting unanswered over content on every such screen.
       command: { type: 'applyUpdate' },
     } satisfies FleetCommandEvent);
   }

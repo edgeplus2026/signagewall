@@ -27,6 +27,10 @@ type CheckResult =
       available: boolean
       currentVersion: string
       availableVersion?: string | null
+      needsOperator?: boolean
+      channel?: string
+      lastFetchAt?: number
+      lastFetchError?: string
     }
   | 'reject'
 
@@ -379,5 +383,110 @@ describe('startMaintenanceUpdates', () => {
     vi.resetModules()
     const { startMaintenanceUpdates } = await import('./updater')
     expect(() => startMaintenanceUpdates()()).not.toThrow()
+  })
+})
+
+describe('needs-operator (a screen that cannot install by itself)', () => {
+  it("reports 'needs-operator' rather than a calm 'available'", async () => {
+    // The shell says an update IS waiting but Android will demand a human confirms
+    // it. Reporting that as ordinary `available` hid the site visit the screen needs.
+    stubTauri({
+      available: true,
+      currentVersion: '0.1.6',
+      availableVersion: '0.1.7',
+      needsOperator: true,
+    })
+    const { checkForUpdate, getUpdateStatus } = await load()
+    await checkForUpdate()
+    const status = getUpdateStatus()
+    expect(status?.lastResult).toBe('needs-operator')
+    expect(status?.availableVersion).toBe('0.1.7')
+  })
+
+  it("reports a channel that has gone quiet as an error, never as 'up-to-date'", async () => {
+    // A fleet-wide channel outage (wrong bucket, blocked egress) always yields
+    // available:false, which used to flatten to `up-to-date` — so every screen in
+    // the fleet looked healthy while none of them could see a release again.
+    stubTauri({
+      available: false,
+      currentVersion: '0.1.6',
+      channel: 'unreachable',
+      lastFetchAt: 1_700_000_000_000,
+    })
+    const { checkForUpdate, getUpdateStatus } = await load()
+    await checkForUpdate()
+    expect(getUpdateStatus()?.lastResult).toBe('error')
+  })
+
+  it('reports a failed fetch as an error even if the channel never once worked', async () => {
+    stubTauri({
+      available: false,
+      currentVersion: '0.1.6',
+      channel: 'unreachable',
+      lastFetchError: 'UnknownHostException: releases.example.com',
+    })
+    const { checkForUpdate, getUpdateStatus } = await load()
+    await checkForUpdate()
+    expect(getUpdateStatus()?.lastResult).toBe('error')
+  })
+
+  it('does NOT call a screen that simply has not fetched yet unreachable', async () => {
+    // The shell calls the channel stale at `lastFetchAt == 0` too, which is the
+    // state of every screen that booted seconds ago. Since detection runs once per
+    // page load, treating that as an error latched "Update error" for the device's
+    // whole uptime — on a brand-new screen that was about to fetch just fine.
+    stubTauri({
+      available: false,
+      currentVersion: '0.1.6',
+      channel: 'unreachable',
+      lastFetchAt: 0,
+    })
+    const { checkForUpdate, getUpdateStatus } = await load()
+    await checkForUpdate()
+    expect(getUpdateStatus()?.lastResult).toBe('up-to-date')
+  })
+
+  it('survives a later routine check that would otherwise mask it', async () => {
+    // The regression this exists for: `needs-operator` lives in the apply slot,
+    // detection is always populated at boot, and without stickiness the very next
+    // heartbeat reported the stale `available` instead.
+    const invoke = vi.fn(async (cmd: string) => {
+      if (cmd === 'run_update') return { kind: 'needs-operator', version: '0.1.7' }
+      if (cmd === 'check_update') {
+        return { available: true, currentVersion: '0.1.6', availableVersion: '0.1.7' }
+      }
+      return undefined
+    })
+    vi.stubGlobal('window', {
+      __TAURI_INTERNALS__: {},
+      __TAURI__: { core: { invoke } },
+    })
+    const { applyUpdateIfAvailable, checkForUpdate, getUpdateStatus } = await load()
+    await applyUpdateIfAvailable(true)
+    await checkForUpdate()
+    const status = getUpdateStatus()
+    expect(status?.lastResult).toBe('needs-operator')
+    // And it must still say WHICH build is waiting: once the apply outcome wins,
+    // it is the only slot left carrying the version.
+    expect(status?.availableVersion).toBe('0.1.7')
+  })
+})
+
+describe('operator-initiated apply', () => {
+  it('passes the operator flag when a person asked for this screen by hand', async () => {
+    const { invoke } = stubRunUpdate({ kind: 'updating', version: '0.1.7' })
+    const { applyUpdateIfAvailable } = await load()
+    await applyUpdateIfAvailable(true)
+    expect(invoke).toHaveBeenCalledWith('run_update', { operator: 'true' })
+  })
+
+  it('sends no args at all when nobody is there', async () => {
+    // The guard for every unattended trigger (standby, the 6h backstop, the nightly
+    // window): an operator flag here would raise a system dialog over a shop wall
+    // with nobody to answer it.
+    const { invoke } = stubRunUpdate({ kind: 'up-to-date' })
+    const { applyUpdateIfAvailable } = await load()
+    await applyUpdateIfAvailable()
+    expect(invoke).toHaveBeenCalledWith('run_update', undefined)
   })
 })
