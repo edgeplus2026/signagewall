@@ -25,6 +25,9 @@ export const envValidationSchema = Joi.object({
   // Meta (Facebook Login) — the Instagram / Facebook Page connected apps.
   META_CLIENT_ID: Joi.string().optional().allow(''),
   META_CLIENT_SECRET: Joi.string().optional().allow(''),
+  META_CONFIG_ID: Joi.string().optional().allow(''),
+  META_FACEBOOK_CONFIG_ID: Joi.string().optional().allow(''),
+  META_INSTAGRAM_CONFIG_ID: Joi.string().optional().allow(''),
   // LinkedIn (Community Management API) — the LinkedIn Page connected app.
   LINKEDIN_CLIENT_ID: Joi.string().optional().allow(''),
   LINKEDIN_CLIENT_SECRET: Joi.string().optional().allow(''),

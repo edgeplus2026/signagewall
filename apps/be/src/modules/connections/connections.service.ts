@@ -319,6 +319,9 @@ export class ConnectionsService {
       redirectUri: this.redirectUri(params.provider),
       state,
       scopes,
+      ...(params.provider === ConnectionProvider.META
+        ? { configurationId: this.metaConfigurationId(params.appSlug) }
+        : {}),
       ...(codeChallenge ? { codeChallenge } : {}),
     });
   }
@@ -751,6 +754,29 @@ export class ConnectionsService {
       );
     }
     return { clientId, clientSecret };
+  }
+
+  /**
+   * Select the least-privilege Business Login configuration for this connector.
+   * The shared id is a deliberate fallback for local testing and migrations.
+   */
+  private metaConfigurationId(appSlug: string): string | undefined {
+    const connectorKey =
+      appSlug === 'facebook'
+        ? 'meta.facebookConfigurationId'
+        : appSlug === 'instagram'
+          ? 'meta.instagramConfigurationId'
+          : undefined;
+    const connectorId = connectorKey
+      ? this.configService.get<string>(connectorKey)?.trim()
+      : undefined;
+    const sharedId = this.configService
+      .get<string>('meta.configurationId')
+      ?.trim();
+
+    // Optional env vars commonly exist as blank strings in copied .env files.
+    // A blank per-connector override must not shadow the shared configuration.
+    return connectorId || sharedId || undefined;
   }
 
   private redirectUri(provider: ConnectionProvider): string {
