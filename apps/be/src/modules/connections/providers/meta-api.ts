@@ -20,27 +20,133 @@ interface AccountsPage {
   name?: string;
   access_token?: string;
   instagram_business_account?: { id?: string; username?: string };
+  connected_instagram_account?: { id?: string; username?: string };
 }
 
-/** Fetch the pages the user manages (`/me/accounts`) with the given fields. */
+interface MetaBusiness {
+  id: string;
+}
+
+interface GraphCollection<T> {
+  data?: T[];
+  paging?: { next?: string };
+}
+
+class MetaGraphError extends Error {
+  constructor(readonly status: number) {
+    super(`meta graph upstream ${status}`);
+  }
+}
+
+/** Follow a Graph collection while keeping the bearer token out of URLs. */
+async function fetchCollection<T>(
+  accessToken: string,
+  initialUrl: string,
+  signal?: AbortSignal,
+): Promise<T[]> {
+  const items: T[] = [];
+  let nextUrl: string | undefined = initialUrl;
+
+  while (nextUrl) {
+    const response = await fetch(nextUrl, {
+      headers: { authorization: `Bearer ${accessToken}` },
+      ...(signal ? { signal } : {}),
+    });
+    if (!response.ok) {
+      throw new MetaGraphError(response.status);
+    }
+    const body = (await response.json()) as GraphCollection<T>;
+    items.push(...(body.data ?? []));
+
+    if (!body.paging?.next) {
+      nextUrl = undefined;
+      continue;
+    }
+
+    const continuation = new URL(body.paging.next);
+    if (
+      continuation.origin !== 'https://graph.facebook.com' ||
+      !continuation.pathname.startsWith(`/${GRAPH_VERSION}/`)
+    ) {
+      throw new Error('meta graph returned an invalid continuation URL');
+    }
+    continuation.searchParams.delete('access_token');
+    nextUrl = continuation.toString();
+  }
+
+  return items;
+}
+
+/** Fetch Pages directly assigned to the user (`/me/accounts`). */
 async function fetchManagedPages(
   accessToken: string,
   fields: string,
   signal?: AbortSignal,
 ): Promise<AccountsPage[]> {
   const params = new URLSearchParams({ fields, limit: '100' });
-  const response = await fetch(
+  return fetchCollection<AccountsPage>(
+    accessToken,
     `${GRAPH_API}/me/accounts?${params.toString()}`,
-    {
-      headers: { authorization: `Bearer ${accessToken}` },
-      ...(signal ? { signal } : {}),
-    },
+    signal,
   );
-  if (!response.ok) {
-    throw new Error(`meta graph upstream ${response.status}`);
+}
+
+/**
+ * Fetch Pages owned by or shared with the user's business portfolios. Meta does
+ * not consistently include these in `/me/accounts`, even when the user has full
+ * Page access, so Facebook Login for Business also needs `business_management`.
+ */
+async function fetchBusinessPages(
+  accessToken: string,
+  fields: string,
+  signal?: AbortSignal,
+): Promise<AccountsPage[]> {
+  const businesses = await fetchCollection<MetaBusiness>(
+    accessToken,
+    `${GRAPH_API}/me/businesses?${new URLSearchParams({ fields: 'id', limit: '100' }).toString()}`,
+    signal,
+  );
+  const pageParams = new URLSearchParams({ fields, limit: '100' }).toString();
+  const pages = await Promise.all(
+    businesses.flatMap((business) =>
+      ['owned_pages', 'client_pages'].map((edge) =>
+        fetchCollection<AccountsPage>(
+          accessToken,
+          `${GRAPH_API}/${encodeURIComponent(business.id)}/${edge}?${pageParams}`,
+          signal,
+        ),
+      ),
+    ),
+  );
+  return pages.flat();
+}
+
+/** Merge personal and business-owned Pages without duplicating Page ids. */
+async function fetchVisiblePages(
+  accessToken: string,
+  fields: string,
+  signal?: AbortSignal,
+): Promise<AccountsPage[]> {
+  const managedPages = await fetchManagedPages(accessToken, fields, signal);
+  let businessPages: AccountsPage[] = [];
+  try {
+    businessPages = await fetchBusinessPages(accessToken, fields, signal);
+  } catch (error) {
+    // A pre-existing token may not yet include `business_management`, and Meta
+    // returns 400/403 for `/me/businesses` in that case. Keep directly managed
+    // Pages usable while the user reauthorizes instead of blanking the picker.
+    if (
+      !(error instanceof MetaGraphError) ||
+      (error.status !== 400 && error.status !== 403)
+    ) {
+      throw error;
+    }
   }
-  const body = (await response.json()) as { data?: AccountsPage[] };
-  return body.data ?? [];
+  return [
+    ...new Map(
+      [...managedPages, ...businessPages].map((p) => [p.id, p]),
+    ).values(),
+  ];
 }
 
 /** Filter by title (client-side) and sort alphabetically for a stable picker. */
@@ -61,7 +167,7 @@ export async function listFacebookPages(
   query: string,
   signal?: AbortSignal,
 ): Promise<MetaResourceSummary[]> {
-  const pages = await fetchManagedPages(accessToken, 'id,name', signal);
+  const pages = await fetchVisiblePages(accessToken, 'id,name', signal);
   return finalize(
     pages.map((page) => ({ id: page.id, title: page.name ?? page.id })),
     query,
@@ -79,22 +185,23 @@ export async function listInstagramAccounts(
   query: string,
   signal?: AbortSignal,
 ): Promise<MetaResourceSummary[]> {
-  const pages = await fetchManagedPages(
+  const pages = await fetchVisiblePages(
     accessToken,
-    'name,instagram_business_account{id,username}',
+    'id,name,instagram_business_account{id,username},connected_instagram_account{id,username}',
     signal,
   );
-  const accounts: MetaResourceSummary[] = [];
+  const accounts = new Map<string, MetaResourceSummary>();
   for (const page of pages) {
-    const ig = page.instagram_business_account;
+    const ig =
+      page.instagram_business_account ?? page.connected_instagram_account;
     if (ig?.id) {
-      accounts.push({
+      accounts.set(ig.id, {
         id: ig.id,
         title: ig.username ? `@${ig.username}` : (page.name ?? ig.id),
       });
     }
   }
-  return finalize(accounts, query);
+  return finalize([...accounts.values()], query);
 }
 
 /**

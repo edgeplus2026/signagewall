@@ -63,8 +63,9 @@ export const facebookConnector: AppConnector<FacebookConfig, SocialPayload> = {
     provider: 'meta',
     authorizationUrl: `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth`,
     tokenUrl: `${GRAPH_API}/oauth/access_token`,
-    // Enumerate the user's Pages and read a Page's engagement (its feed).
-    scopes: ['pages_show_list', 'pages_read_engagement'],
+    // Enumerate directly managed and business-portfolio Pages, then read the
+    // selected Page's engagement (its feed).
+    scopes: ['pages_show_list', 'pages_read_engagement', 'business_management'],
   },
 
   cacheKey(config) {

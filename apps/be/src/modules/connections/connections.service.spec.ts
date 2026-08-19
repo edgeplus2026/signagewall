@@ -16,6 +16,7 @@ const encryption = {
 function buildService(options: {
   doc?: Record<string, unknown> | null;
   instance?: Record<string, unknown> | null;
+  config?: Record<string, string | undefined>;
   refreshResult?: {
     accessToken: string;
     refreshToken?: string;
@@ -32,11 +33,13 @@ function buildService(options: {
   };
   const configService = {
     get: (key: string) =>
-      key === 'google.clientId'
-        ? 'cid'
-        : key === 'google.clientSecret'
-          ? 'secret'
-          : undefined,
+      Object.prototype.hasOwnProperty.call(options.config ?? {}, key)
+        ? options.config?.[key]
+        : key === 'google.clientId'
+          ? 'cid'
+          : key === 'google.clientSecret'
+            ? 'secret'
+            : undefined,
     getOrThrow: () => 'jwt-secret',
   };
   const jwtService = { sign: jest.fn(), verify: jest.fn() };
@@ -78,6 +81,38 @@ function buildService(options: {
     appInstancesRepository,
   };
 }
+
+describe('ConnectionsService Meta configuration selection', () => {
+  it('falls back to the shared configuration when connector overrides are blank', () => {
+    const { service } = buildService({
+      config: {
+        'meta.configurationId': 'shared-config',
+        'meta.facebookConfigurationId': '',
+        'meta.instagramConfigurationId': '   ',
+      },
+    });
+    const select = service as unknown as {
+      metaConfigurationId: (appSlug: string) => string | undefined;
+    };
+
+    expect(select.metaConfigurationId('facebook')).toBe('shared-config');
+    expect(select.metaConfigurationId('instagram')).toBe('shared-config');
+  });
+
+  it('prefers a non-blank connector configuration', () => {
+    const { service } = buildService({
+      config: {
+        'meta.configurationId': 'shared-config',
+        'meta.facebookConfigurationId': ' facebook-config ',
+      },
+    });
+    const select = service as unknown as {
+      metaConfigurationId: (appSlug: string) => string | undefined;
+    };
+
+    expect(select.metaConfigurationId('facebook')).toBe('facebook-config');
+  });
+});
 
 describe('ConnectionsService OAuth instance ownership', () => {
   const organizationId = new Types.ObjectId().toString();
