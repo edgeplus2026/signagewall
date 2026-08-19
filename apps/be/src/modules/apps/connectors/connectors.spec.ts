@@ -1681,6 +1681,16 @@ describe('instagram connector (connected, meta)', () => {
     } satisfies ResolvedConnection,
   };
 
+  it('requests Page and business-portfolio discovery permissions', () => {
+    const oauth = oauthDescriptorFor(instagramConnector, 'meta');
+    expect(oauth?.scopes).toEqual([
+      'instagram_basic',
+      'pages_show_list',
+      'pages_read_engagement',
+      'business_management',
+    ]);
+  });
+
   it('cacheKey is per-connection + account', () => {
     expect(
       instagramConnector.cacheKey!({
@@ -1755,6 +1765,15 @@ describe('facebook connector (connected, meta)', () => {
       scopes: [],
     } satisfies ResolvedConnection,
   };
+
+  it('requests Page and business-portfolio discovery permissions', () => {
+    const oauth = oauthDescriptorFor(facebookConnector, 'meta');
+    expect(oauth?.scopes).toEqual([
+      'pages_show_list',
+      'pages_read_engagement',
+      'business_management',
+    ]);
+  });
 
   it('cacheKey is per-connection + page', () => {
     expect(

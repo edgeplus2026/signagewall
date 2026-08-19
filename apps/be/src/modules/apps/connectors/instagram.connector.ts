@@ -73,9 +73,15 @@ export const instagramConnector: AppConnector<InstagramConfig, SocialPayload> =
       provider: 'meta',
       authorizationUrl: `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth`,
       tokenUrl: `${GRAPH_API}/oauth/access_token`,
-      // Read a linked IG business account's media. `pages_show_list` lets us
-      // enumerate the Pages the IG accounts hang off in the picker.
-      scopes: ['instagram_basic', 'pages_show_list'],
+      // Read a linked IG business account's media. `pages_show_list` enumerates
+      // directly managed Pages; `business_management` covers Pages owned by a
+      // business portfolio (which Meta may omit from `/me/accounts`).
+      scopes: [
+        'instagram_basic',
+        'pages_show_list',
+        'pages_read_engagement',
+        'business_management',
+      ],
     },
 
     cacheKey(config) {
