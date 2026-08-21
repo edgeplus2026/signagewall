@@ -258,6 +258,10 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
       }
 
+      if (!result.displacedPreviousHolder) {
+        await this.enforceSingleSession(client, deviceId);
+      }
+
       data.screenId = result.screenId;
       data.organizationId = result.organizationId;
       await client.join(screenRoom(result.screenId));
@@ -426,6 +430,61 @@ export class PlayerGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }`,
       );
       return null;
+    }
+  }
+
+  /**
+   * One identity, one live session.
+   *
+   * The ordinary case is a device that reconnects before the server has reaped
+   * its previous socket; that stale socket should go, and it will never retry
+   * because whatever held it is gone. The case this exists for is a second box
+   * running a COPY of a paired identity: both would sit in the screen room,
+   * both would play the screen's content, and both would report playback under
+   * the same `playbackOrigin`/`playbackSeq`, where the de-duplication that makes
+   * proof-of-play exact would read one's batches as the other's re-sends.
+   *
+   * Only a session that has just proved possession of the token gets to displace
+   * anything. A bare `deviceId` is not a credential — admitting it here would let
+   * anyone who learns one knock the real screen off its socket at will.
+   *
+   * Best-effort by design: a failure to enumerate the room must not stop a
+   * legitimate device from connecting.
+   */
+  private async enforceSingleSession(
+    client: Socket,
+    deviceId: string,
+  ): Promise<void> {
+    try {
+      const others = (
+        await this.server.in(deviceRoom(deviceId)).fetchSockets()
+      ).filter((socket) => socket.id !== client.id);
+
+      if (others.length === 0) {
+        return;
+      }
+
+      // Tell them before cutting them off. Not `Revoked` — their token is
+      // perfectly valid, and a revoke would wipe the display's identity and
+      // content for what may be nothing worse than a stale socket.
+      this.server
+        .to(deviceRoom(deviceId))
+        .except(client.id)
+        .emit(PlayerSocketEvents.Displaced);
+      this.server
+        .in(deviceRoom(deviceId))
+        .except(client.id)
+        .disconnectSockets(true);
+
+      this.logger.warn(
+        `Device ${deviceId} admitted while ${others.length} session(s) were already live; displaced them. ` +
+          'Repeated entries for one device mean two players share an identity.',
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to enforce a single session for device ${deviceId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
     }
   }
 

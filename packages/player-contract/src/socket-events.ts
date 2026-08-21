@@ -17,6 +17,19 @@ export const PlayerSocketEvents = {
   Sleep: 'sleep',
   Command: 'command',
   Revoked: 'paired:revoked',
+  /**
+   * Server → device: another connection just proved possession of THIS device's
+   * token, so this session is being closed — one identity, one live session.
+   *
+   * Distinct from `Revoked` on purpose. A revoke means the token is dead and the
+   * device must reset to an unpaired slate; a displacement means the token is
+   * fine and somebody else is holding it. A displaced player keeps its identity
+   * and retries slowly, because the two cases it covers want opposite things:
+   * a stale socket after a reconnect is already gone and will never retry, while
+   * two boxes running a COPY of one identity would otherwise displace each other
+   * several times a second forever.
+   */
+  Displaced: 'paired:displaced',
   Heartbeat: 'heartbeat',
   /**
    * Device → server: the item the device just put on screen. The gateway relays

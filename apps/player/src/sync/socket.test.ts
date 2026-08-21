@@ -317,6 +317,40 @@ describe('server-initiated disconnect reconnect backoff', () => {
     expect(socket.connect).toHaveBeenCalledTimes(2)
   })
 
+  it('waits minutes, not milliseconds, after being displaced', () => {
+    // Two boxes sharing one identity would otherwise trade the connection
+    // several times a second: each displacement is preceded by a successful
+    // connect, which resets the ordinary backoff.
+    connectPlayer()
+
+    socket.fire('paired:displaced')
+    socket.fire('disconnect', 'io server disconnect')
+
+    expect(connection.value).toBe('reconnecting')
+    vi.advanceTimersByTime(250)
+    expect(socket.connect).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(30_000)
+    expect(socket.connect).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(5 * 60_000)
+    expect(socket.connect).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the slow retry for one displacement only', () => {
+    // A displaced session that comes back and is then dropped for an ordinary
+    // reason must not sit out five minutes for it.
+    connectPlayer()
+
+    socket.fire('paired:displaced')
+    socket.fire('disconnect', 'io server disconnect')
+    vi.advanceTimersByTime(5 * 60_000)
+    expect(socket.connect).toHaveBeenCalledTimes(1)
+
+    socket.fire('connect')
+    socket.fire('disconnect', 'io server disconnect')
+    vi.advanceTimersByTime(250)
+    expect(socket.connect).toHaveBeenCalledTimes(2)
+  })
+
   it('leaves network-level drops to socket.io itself', () => {
     connectPlayer()
 

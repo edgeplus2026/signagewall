@@ -56,6 +56,20 @@ let serverReconnectTimer: number | undefined
 let serverDisconnects = 0
 
 /**
+ * How long a displaced player waits before trying to take its identity back.
+ *
+ * Deliberately far longer than the ordinary retry. Displacement means another
+ * connection is holding this device's token: if that was a stale socket, this
+ * retry quietly wins it back; if it is a second box running a copy of this
+ * identity, the two would otherwise trade the connection several times a second
+ * forever, since the ordinary backoff resets on every successful connect.
+ */
+const DISPLACED_RETRY_MS = 5 * 60_000
+
+/** Set when the last disconnect was the server handing our identity to someone else. */
+let displaced = false
+
+/**
  * Opens the realtime channel. The auth payload is a function so the freshest
  * token + content revision are sent on every (re)connect — letting the server
  * skip re-pushing an unchanged snapshot (revision-delta).
@@ -130,10 +144,12 @@ export function connectPlayer(): void {
     // deploy, incident) isn't hammered by the whole fleet in a tight loop.
     if (reason === 'io server disconnect') {
       connection.value = 'reconnecting'
-      const delay =
-        serverDisconnects === 0
+      const delay = displaced
+        ? DISPLACED_RETRY_MS
+        : serverDisconnects === 0
           ? 250
           : Math.min(1000 * 2 ** (serverDisconnects - 1), 30_000)
+      displaced = false
       serverDisconnects += 1
       clearTimeout(serverReconnectTimer)
       serverReconnectTimer = window.setTimeout(() => socket?.connect(), delay)
@@ -190,6 +206,13 @@ export function connectPlayer(): void {
     void deactivateDevice()
   })
 
+  // Another connection proved possession of this device's token. The token is
+  // still ours and the content stays on screen — only the socket is given up,
+  // and the retry after it is slow (see DISPLACED_RETRY_MS).
+  socket.on('paired:displaced', () => {
+    displaced = true
+  })
+
   socket.on('paired:revoked', () => {
     // Fully reset to an unpaired slate: drop the token, stop playback, and wipe
     // every persisted trace of the old screen (cached snapshot + media bytes)
@@ -237,6 +260,7 @@ export function disconnectPlayer(): void {
   clearTimeout(serverReconnectTimer)
   serverReconnectTimer = undefined
   serverDisconnects = 0
+  displaced = false
   socket?.disconnect()
   socket = null
 }
