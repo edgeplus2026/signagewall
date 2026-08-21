@@ -2,9 +2,9 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import type { RedisOptions } from 'ioredis';
 
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
+import { buildQueueRedisOptions } from '../../common/redis/redis-connection';
 import { AppsModule } from '../apps/apps.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { PlaylistsModule } from '../playlists/playlists.module';
@@ -25,39 +25,6 @@ import {
   AiGenerationSchema,
 } from './schemas/ai-generation.schema';
 
-/** Resolve BullMQ's Redis connection from config (REDIS_URL wins over host/port). */
-function buildRedisConnection(config: ConfigService): RedisOptions {
-  const url = config.get<string>('redis.url')?.trim();
-  if (url) {
-    const parsed = new URL(url);
-    return {
-      host: parsed.hostname,
-      port: parsed.port ? parseInt(parsed.port, 10) : 6379,
-      /* Managed hosts reached over a provider's private network resolve to AAAA
-         records only (Railway's `*.railway.internal` is IPv6-only). ioredis
-         defaults its DNS lookup to IPv4, which fails there with ENOTFOUND;
-         `family: 0` accepts whichever record the host publishes and leaves
-         plain IPv4 hosts, including localhost in development, unchanged. */
-      family: 0,
-      ...(parsed.username
-        ? { username: decodeURIComponent(parsed.username) }
-        : {}),
-      ...(parsed.password
-        ? { password: decodeURIComponent(parsed.password) }
-        : {}),
-      ...(parsed.protocol === 'rediss:' ? { tls: {} } : {}),
-    };
-  }
-
-  const password = config.get<string>('redis.password')?.trim();
-  return {
-    host: config.get<string>('redis.host') ?? 'localhost',
-    port: config.get<number>('redis.port') ?? 6379,
-    ...(password ? { password } : {}),
-    ...(config.get<boolean>('redis.tls') ? { tls: {} } : {}),
-  };
-}
-
 @Module({
   imports: [
     ConfigModule,
@@ -68,7 +35,7 @@ function buildRedisConnection(config: ConfigService): RedisOptions {
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        connection: buildRedisConnection(config),
+        connection: buildQueueRedisOptions(config),
       }),
     }),
     BullModule.registerQueue({

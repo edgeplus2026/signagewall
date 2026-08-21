@@ -85,9 +85,11 @@ export const envValidationSchema = Joi.object({
   // Minutes a paired screen must be offline before org members are emailed;
   // 0 disables the alert.
   SCREEN_OFFLINE_ALERT_MINUTES: Joi.number().integer().min(0).default(10),
-  // Redis (BullMQ). REDIS_URL takes precedence over host/port when provided.
+  // Redis (BullMQ queue, Socket.IO adapter, scheduler lease). REDIS_URL takes
+  // precedence over host/port when provided; with neither set the API runs
+  // single-instance and says so at boot.
   REDIS_URL: Joi.string().optional().allow(''),
-  REDIS_HOST: Joi.string().default('localhost'),
+  REDIS_HOST: Joi.string().optional().allow(''),
   REDIS_PORT: Joi.number().default(6379),
   REDIS_PASSWORD: Joi.string().optional().allow(''),
   REDIS_TLS: Joi.boolean().truthy('true').falsy('false').default(false),

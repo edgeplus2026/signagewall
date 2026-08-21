@@ -90,9 +90,8 @@ async function bootstrap() {
   // which is the correct single-instance/laptop setup.
   const logger = new Logger('Bootstrap');
   const redisAdapter = new RedisIoAdapter(app, configService);
-  if (await redisAdapter.connect()) {
+  if (redisAdapter.connect()) {
     app.useWebSocketAdapter(redisAdapter);
-    app.enableShutdownHooks();
     logger.log('Socket.IO running on the Redis adapter (multi-instance ready)');
   } else {
     logger.warn(
@@ -101,6 +100,11 @@ async function bootstrap() {
         'presence and revokes will only reach the instance that handled them.',
     );
   }
+
+  // SIGTERM must run the onModuleDestroy hooks: the scheduler releases its
+  // leases there, so a rolling deploy hands the periodic jobs over in seconds
+  // instead of leaving nobody running them for a lease period.
+  app.enableShutdownHooks();
 
   await app.listen(port);
 
@@ -115,4 +119,12 @@ async function bootstrap() {
   app.getHttpServer().requestTimeout = UPLOAD_REQUEST_TIMEOUT_MS;
 }
 
-void bootstrap();
+void bootstrap().catch((error: unknown) => {
+  // Without this the process dies on an unhandled rejection, which prints a
+  // bare stack and no indication of which part of the boot failed.
+  new Logger('Bootstrap').error(
+    `Failed to start: ${error instanceof Error ? error.message : String(error)}`,
+    error instanceof Error ? error.stack : undefined,
+  );
+  process.exit(1);
+});

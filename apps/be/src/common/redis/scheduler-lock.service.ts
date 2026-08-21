@@ -8,7 +8,11 @@ import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { randomUUID } from 'node:crypto';
 
-import { buildRedisOptions } from './redis-connection';
+import {
+  buildRedisOptions,
+  closeQuietly,
+  logConnectionState,
+} from './redis-connection';
 
 /**
  * Decides whether THIS instance is the one that runs a periodic job.
@@ -53,17 +57,18 @@ export class SchedulerLockService implements OnModuleInit, OnModuleDestroy {
       ...options,
       maxRetriesPerRequest: null,
       lazyConnect: true,
+      // Fail commands immediately while the connection is down instead of
+      // parking them in the offline queue. Queued is the wrong answer here:
+      // `isLeader` would never settle, so the scheduler tick awaiting it would
+      // stall for the whole outage — the opposite of the fail-open behaviour
+      // this class promises. The Socket.IO adapter wants the opposite and keeps
+      // the queue, because its SUBSCRIBE has to survive until Redis is back.
+      enableOfflineQueue: false,
     });
-    this.client.on('error', (error: Error) => {
-      this.logger.error(`Scheduler lock connection error: ${error.message}`);
-    });
-    void this.client.connect().catch((error: unknown) => {
-      this.logger.error(
-        `Could not connect the scheduler lock: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
-    });
+    logConnectionState(this.client, this.logger, 'Scheduler lease');
+    // ioredis retries on its own; the rejection of the first attempt is already
+    // reported by the error listener above.
+    void this.client.connect().catch(() => undefined);
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -72,10 +77,12 @@ export class SchedulerLockService implements OnModuleInit, OnModuleDestroy {
     }
     // Release rather than wait out the TTL, so a rolling deploy hands the work
     // over in seconds instead of leaving nobody refreshing for a lease period.
+    // Only worth attempting while the connection is actually up — otherwise the
+    // TTL is the handover, and shutdown should not wait on a dead Redis.
     await Promise.all([...this.held.keys()].map((key) => this.release(key)));
     this.held.clear();
     if (this.client) {
-      await this.client.quit().catch(() => this.client?.disconnect());
+      await closeQuietly(this.client);
       this.client = null;
     }
   }
@@ -165,7 +172,7 @@ export class SchedulerLockService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async release(key: string): Promise<void> {
-    if (!this.client) {
+    if (this.client?.status !== 'ready') {
       return;
     }
     try {

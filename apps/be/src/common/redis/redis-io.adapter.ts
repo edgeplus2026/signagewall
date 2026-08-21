@@ -5,7 +5,11 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import Redis from 'ioredis';
 import type { ServerOptions, Server } from 'socket.io';
 
-import { buildRedisOptions } from './redis-connection';
+import {
+  buildRedisOptions,
+  closeQuietly,
+  logConnectionState,
+} from './redis-connection';
 
 /**
  * Socket.IO adapter backed by Redis pub/sub, so the realtime channel survives
@@ -22,6 +26,12 @@ import { buildRedisOptions } from './redis-connection';
  * Optional by design. With no Redis configured this falls straight back to the
  * in-memory adapter, which is exactly right for a laptop or a single-instance
  * deployment — the same code path, one process, no infrastructure to run.
+ *
+ * Wiring it up never waits for the connection to come up. ioredis reconnects on
+ * its own and restores its subscriptions when it does (`autoResubscribe`), and
+ * the adapter's SUBSCRIBE sits in the offline queue until then, so a Redis that
+ * is down at boot costs a few seconds of fan-out rather than the whole API:
+ * awaiting it here used to reject and take the process down before it listened.
  */
 export class RedisIoAdapter extends IoAdapter {
   private readonly logger = new Logger(RedisIoAdapter.name);
@@ -36,11 +46,13 @@ export class RedisIoAdapter extends IoAdapter {
   }
 
   /**
-   * Opens the pub/sub pair. Returns false when there is nothing to connect to,
-   * so the caller can log the (legitimate) single-instance case rather than
+   * Wires up the pub/sub pair. Returns false when there is nothing to connect
+   * to, so the caller can log the (legitimate) single-instance case rather than
    * treating it as a failure.
+   *
+   * Synchronous on purpose — see the note on the class about not awaiting.
    */
-  async connect(): Promise<boolean> {
+  connect(): boolean {
     const options = buildRedisOptions(this.config);
     if (!options) {
       return false;
@@ -58,13 +70,15 @@ export class RedisIoAdapter extends IoAdapter {
     const subClient = pubClient.duplicate();
     this.clients = [pubClient, subClient];
 
+    logConnectionState(pubClient, this.logger, 'Realtime fan-out (publisher)');
+    logConnectionState(subClient, this.logger, 'Realtime fan-out (subscriber)');
+
     for (const client of this.clients) {
-      client.on('error', (error: Error) => {
-        this.logger.error(`Redis adapter connection error: ${error.message}`);
-      });
+      // The first attempt can fail and ioredis schedules the retries itself, so
+      // the rejection is dropped here; `logConnectionState` does the reporting.
+      void client.connect().catch(() => undefined);
     }
 
-    await Promise.all([pubClient.connect(), subClient.connect()]);
     this.adapterConstructor = createAdapter(pubClient, subClient);
     return true;
   }
@@ -79,11 +93,7 @@ export class RedisIoAdapter extends IoAdapter {
 
   /** Closes the pub/sub pair on shutdown so a restart leaves no dangling clients. */
   async dispose(): Promise<void> {
-    await Promise.all(
-      this.clients.map((client) =>
-        client.quit().catch(() => client.disconnect()),
-      ),
-    );
+    await Promise.all(this.clients.map((client) => closeQuietly(client)));
     this.clients = [];
   }
 }

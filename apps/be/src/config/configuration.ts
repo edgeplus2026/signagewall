@@ -189,11 +189,15 @@ export default () => ({
       10,
     ),
   },
-  // Redis — backs the BullMQ queue used by the AI content generator. A full
-  // `REDIS_URL` (e.g. rediss://…) takes precedence over host/port when set.
+  // Redis — backs the BullMQ queue, the Socket.IO adapter that lets several API
+  // instances share one realtime channel, and the lease that stops every
+  // instance from running the same periodic job. A full `REDIS_URL` (e.g.
+  // rediss://…) takes precedence over host/port when set. Deliberately without
+  // a host default: an unset Redis has to be distinguishable from one pointed
+  // at localhost, or the single-instance fallback can never be reached.
   redis: {
     url: process.env.REDIS_URL,
-    host: process.env.REDIS_HOST ?? 'localhost',
+    host: process.env.REDIS_HOST,
     port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
     password: process.env.REDIS_PASSWORD,
     tls: process.env.REDIS_TLS === 'true',
