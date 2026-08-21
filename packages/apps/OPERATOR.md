@@ -29,7 +29,7 @@ This guide tells an operator EXACTLY what to do to make each of the 37 signage a
 | `RESEND_API_KEY` | No | Resend API key for transactional mail when mail is enabled. | Sign up at https://resend.com (free tier ~3000 emails/month) and create an API key. Required when `MAIL_ENABLED=true`. |
 | `MAIL_FROM` | No | From header for outbound mail. | Optional; default `SignageWall <onboarding@resend.dev>`. Use a verified sender/domain in production. |
 | `MAIL_SUPPORT_TO` | No | Inbox that receives feedback and problem reports. | Optional; set to your support inbox (valid email per Joi). |
-| `MAIL_REGISTRATIONS_NOTIFY_TO` | No | Inbox notified on every new-user registration. | Optional; default `edgeplus2026@gmail.com`. Override with your ops inbox. |
+| `MAIL_REGISTRATIONS_NOTIFY_TO` | No | Inbox notified on every new-user registration. | Optional; default `office@signagewall.com`. Override with your ops inbox. |
 | `REDIS_URL` | No* | Full Redis URL backing the BullMQ queue for the AI content generator. Takes precedence over discrete `REDIS_HOST/PORT`. | *Required only if you run the AI content generator (`OPENROUTER_API_KEY` set).* Prefer a full URL e.g. `rediss://:password@host:6379` and set `REDIS_TLS=true`. Locally `docker compose up -d redis`. |
 | `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` / `REDIS_TLS` | No | Discrete Redis settings used when `REDIS_URL` is unset. | Optional; defaults `localhost` / `6379` / (none) / `false`. Set `REDIS_TLS=true` for managed Redis over TLS. |
 | `THROTTLE_TTL_SECONDS` / `THROTTLE_LIMIT` / `THROTTLE_AUTH_TTL_SECONDS` / `THROTTLE_AUTH_LIMIT` | No | Global and auth-route rate limits per client IP. | Optional; defaults `60s`/`120` and `60s`/`10` (stricter on login/register/reset/refresh/invite). |
@@ -529,7 +529,7 @@ MAIL_ENABLED=                   # true in prod (default false)
 RESEND_API_KEY=                 # Resend key; required when MAIL_ENABLED=true
 MAIL_FROM=                      # default "SignageWall <onboarding@resend.dev>"
 MAIL_SUPPORT_TO=                # feedback/problem-report inbox
-MAIL_REGISTRATIONS_NOTIFY_TO=   # new-registration inbox (default edgeplus2026@gmail.com)
+MAIL_REGISTRATIONS_NOTIFY_TO=   # new-registration inbox (default office@signagewall.com)
 
 # Redis (only if running the AI content generator)
 REDIS_URL=                      # full URL, e.g. rediss://:pass@host:6379 (takes precedence)

@@ -215,9 +215,9 @@ describe('PlaybackPdfService', () => {
   it('covers whose report it is', () => {
     const service = buildService();
 
-    expect(service.digest(figures({ organizationName: 'Edge+' }))).not.toBe(
-      service.digest(figures({ organizationName: 'Someone Else' })),
-    );
+    expect(
+      service.digest(figures({ organizationName: 'SignageWall' })),
+    ).not.toBe(service.digest(figures({ organizationName: 'Someone Else' })));
   });
 
   it('does not depend on the order exceptions come back in', () => {
@@ -269,7 +269,7 @@ describe('PlaybackPdfService', () => {
     // A bare table header over nothing reads as a failed export rather than as
     // a day on which nothing ran.
     const { bytes } = await buildService().render({
-      organizationName: 'Edge+',
+      organizationName: 'SignageWall',
       items: report({
         items: [],
         totals: { plays: 0, airtimeMs: 0 },
