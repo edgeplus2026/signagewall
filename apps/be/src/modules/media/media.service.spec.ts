@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { mkdir, mkdtemp, readdir, stat, utimes, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -7,6 +8,8 @@ import { BusinessException } from '../../common/exceptions/business.exception';
 import { TransactionService } from '../../common/services/transaction.service';
 import {
   MEDIA_POSTER_MAX_BYTES,
+  MEDIA_PROCESSING_LEASE_RENEW_MS,
+  MEDIA_PROCESSING_STALE_MS,
   MEDIA_UPLOAD_TEMP_DIR_NAME,
   MEDIA_UPLOAD_TEMP_STALE_MS,
 } from './media.constants';
@@ -235,5 +238,119 @@ describe('MediaService.sweepStaleUploads', () => {
     const remaining = await readdir(sweepDir);
     expect(remaining).not.toContain(`stale-${String(process.pid)}`);
     expect(remaining).toContain(`fresh-${String(process.pid)}`);
+  });
+});
+
+/**
+ * The processing lease.
+ *
+ * `findStuckProcessing` reads `updatedAt` as "when someone last worked on this",
+ * and nothing wrote to the document between accepting an upload and finishing
+ * it. A pass slower than the stale window therefore looked abandoned while it
+ * was still running, and the 30-second sweep started a second one on top of it —
+ * measured, a 4K re-encode takes 71s against a 60s window, and
+ * `processingAttempts` counts only failures, so nothing stopped it repeating.
+ */
+describe('MediaService — processing lease', () => {
+  let service: MediaService;
+  let touchProcessing: jest.Mock;
+  let generateImageThumbnails: jest.Mock;
+
+  const processingItem = {
+    _id: { toString: () => 'media-1' },
+    organizationId: { toString: () => 'org-1' },
+    uploadedBy: { toString: () => 'user-1' },
+    mimeType: 'image/png',
+    status: MediaItemStatus.PROCESSING,
+    processingAttempts: 0,
+  };
+
+  /** Runs the real (private) pass; the spec fixture above mocks it out. */
+  const runPass = (): Promise<void> =>
+    (
+      service as unknown as {
+        processMediaItem: (item: unknown, source: unknown) => Promise<void>;
+      }
+    ).processMediaItem(processingItem, {
+      buffer: Buffer.from('bytes'),
+      mimeType: 'image/png',
+    });
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+
+    touchProcessing = jest.fn().mockResolvedValue(undefined);
+    generateImageThumbnails = jest.fn();
+
+    service = new MediaService(
+      {
+        touchProcessing,
+        updateById: jest.fn().mockResolvedValue(undefined),
+      } as never,
+      { deleteObjects: jest.fn().mockResolvedValue(undefined) } as never,
+      { generateImageThumbnails } as never,
+      {} as never,
+      {} as TransactionService,
+      { getOrThrow: jest.fn(), get: jest.fn() } as never,
+      { t: jest.fn() } as never,
+      {} as never,
+      {} as never,
+      new EventEmitter2(),
+    );
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  it('renews the lease while a pass is still running', async () => {
+    let fail!: (error: Error) => void;
+    generateImageThumbnails.mockReturnValue(
+      new Promise((_resolve, reject) => {
+        fail = reject;
+      }),
+    );
+
+    const pass = runPass();
+
+    expect(touchProcessing).not.toHaveBeenCalled();
+
+    await jest.advanceTimersByTimeAsync(MEDIA_PROCESSING_LEASE_RENEW_MS);
+    expect(touchProcessing).toHaveBeenCalledTimes(1);
+    expect(touchProcessing).toHaveBeenCalledWith('media-1');
+
+    await jest.advanceTimersByTimeAsync(MEDIA_PROCESSING_LEASE_RENEW_MS);
+    expect(touchProcessing).toHaveBeenCalledTimes(2);
+
+    fail(new Error('thumbnailing failed'));
+    await pass;
+  });
+
+  it('renews often enough that the sweep never sees the item as stale', () => {
+    // Two renewals may be lost before anybody else can take the work over.
+    expect(MEDIA_PROCESSING_LEASE_RENEW_MS * 2).toBeLessThan(
+      MEDIA_PROCESSING_STALE_MS,
+    );
+  });
+
+  it('stops renewing once the pass is over', async () => {
+    let fail!: (error: Error) => void;
+    generateImageThumbnails.mockReturnValue(
+      new Promise((_resolve, reject) => {
+        fail = reject;
+      }),
+    );
+
+    const pass = runPass();
+    await jest.advanceTimersByTimeAsync(MEDIA_PROCESSING_LEASE_RENEW_MS);
+    fail(new Error('thumbnailing failed'));
+    await pass;
+
+    const renewalsAtFinish = touchProcessing.mock.calls.length;
+    await jest.advanceTimersByTimeAsync(MEDIA_PROCESSING_LEASE_RENEW_MS * 5);
+
+    expect(touchProcessing).toHaveBeenCalledTimes(renewalsAtFinish);
   });
 });

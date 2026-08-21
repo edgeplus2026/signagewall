@@ -217,6 +217,28 @@ export class MediaRepository {
       .exec();
   }
 
+  /**
+   * Renews a running pass's lease by advancing `updatedAt`.
+   *
+   * `findStuckProcessing` reads `updatedAt` as "when someone last worked on
+   * this", but nothing wrote to the document between accepting an upload and
+   * finishing it — so a pass slower than the stale window looked abandoned
+   * while it was still running, and the sweep started a second one on top of
+   * it. Scoped to PROCESSING so a pass that has already finished (or failed)
+   * cannot resurrect the row's clock.
+   */
+  async touchProcessing(mediaId: string): Promise<void> {
+    await this.mediaModel
+      .updateOne(
+        {
+          _id: new Types.ObjectId(mediaId),
+          status: MediaItemStatus.PROCESSING,
+        },
+        { $set: { updatedAt: new Date() } },
+      )
+      .exec();
+  }
+
   async create(
     data: CreateMediaItemData,
     session?: ClientSession,

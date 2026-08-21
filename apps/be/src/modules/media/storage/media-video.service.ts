@@ -14,8 +14,10 @@ import {
   VIDEO_TRANSCODE_MAX_HEIGHT,
   VIDEO_TRANSCODE_MAX_WIDTH,
   VIDEO_TRANSCODE_PRESET,
+  VIDEO_TRANSCODE_MAX_CONCURRENT,
   VIDEO_TRANSCODE_THREADS,
 } from '../media.constants';
+import { ConcurrencyGate } from './transcode-gate';
 
 if (ffmpegPath) {
   ffmpeg.setFfmpegPath(ffmpegPath);
@@ -47,6 +49,16 @@ export interface ProbedVideo {
 @Injectable()
 export class MediaVideoService implements OnModuleInit {
   private readonly logger = new Logger(MediaVideoService.name);
+
+  /**
+   * Bounds concurrent re-encodes. See VIDEO_TRANSCODE_MAX_CONCURRENT for the
+   * measured budget this comes from; the short version is that each one peaks
+   * at 415 MB on a 4K source and, until this existed, the only thing counting
+   * them was a constant in the CMS.
+   */
+  private readonly transcodeGate = new ConcurrencyGate(
+    VIDEO_TRANSCODE_MAX_CONCURRENT,
+  );
 
   /**
    * Fails loudly at boot when the encoder binaries are missing or not runnable.
@@ -242,7 +254,16 @@ export class MediaVideoService implements OnModuleInit {
     });
   }
 
-  private reencode(inputPath: string, outputPath: string): Promise<void> {
+  private async reencode(inputPath: string, outputPath: string): Promise<void> {
+    if (this.transcodeGate.queued > 0) {
+      this.logger.log(
+        `Re-encode queued behind ${String(this.transcodeGate.inFlight)} in flight`,
+      );
+    }
+    await this.transcodeGate.run(() => this.runEncoder(inputPath, outputPath));
+  }
+
+  private runEncoder(inputPath: string, outputPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
       ffmpeg(inputPath)
         .videoCodec('libx264')

@@ -15,8 +15,9 @@ export const MEDIA_COLLECTION = 'mediaitems';
  * customer hands us, not the stored object.
  *
  * Raising it further means auditing two things first: the temp disk this
- * container has (`MEDIA_MAX_CONCURRENT_UPLOADS` files of this size can exist at
- * once) and how long a player on a shop's connection takes to fetch the result.
+ * container has (a client honouring the CMS's `MEDIA_MAX_CONCURRENT_UPLOADS`
+ * keeps four files of this size at once, and nothing makes it honour that) and
+ * how long a player on a shop's connection takes to fetch the result.
  */
 export const MEDIA_MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024;
 export const MEDIA_MAX_FILES_PER_UPLOAD = 10;
@@ -109,6 +110,17 @@ export const VIDEO_TRANSCODE_CRF = 28;
  *   preset=faster,   threads=2            357 MB   21.3s
  *   preset=veryfast, threads=2            295 MB   12.2s
  *
+ * Every one of those used a 1080p SOURCE. The scale filter caps the ENCODER at
+ * 1080p, but the decoder still holds the source's frames, so a bigger upload
+ * costs more than the table suggests. Re-measured with the settings below, same
+ * command the service issues, 48s clips:
+ *
+ *   1080p in    252 MB   43.0s
+ *   4K in       415 MB   70.7s
+ *
+ * 415 MB is the number to budget with. 4K is not hypothetical: the 200 MB upload
+ * ceiling is roughly 80 seconds of it at a realistic bitrate.
+ *
  * The old settings got the container's ffmpeg OOM-killed on Railway — SIGKILL,
  * mid-encode, on an ordinary stock import. Every thread keeps its own frame
  * buffers, so an uncapped encoder scales its footprint with the host's core
@@ -121,6 +133,24 @@ export const VIDEO_TRANSCODE_CRF = 28;
  */
 export const VIDEO_TRANSCODE_PRESET = 'veryfast';
 export const VIDEO_TRANSCODE_THREADS = 2;
+
+/**
+ * How many re-encodes this process runs at once.
+ *
+ * At 415 MB apiece against the container's 8 GB, roughly nineteen concurrent
+ * re-encodes is where it dies. Nothing on the server was counting: the upload
+ * endpoint takes one file and fires processing without waiting, so the only
+ * thing bounding this was `MEDIA_MAX_CONCURRENT_UPLOADS` in the CMS — a limit
+ * per browser tab, which five people uploading 4K at once walk straight past.
+ *
+ * 4 preserves what a single well-behaved client already did, and makes it a
+ * property of the server rather than of whoever is calling it. Cloud import is
+ * separately bounded at `CLOUD_IMPORT_CONCURRENCY`, and shares this gate.
+ *
+ * Only re-encoding is gated. A remux is `-c copy`: no decode, no frame buffers,
+ * nothing to budget.
+ */
+export const VIDEO_TRANSCODE_MAX_CONCURRENT = 4;
 
 /**
  * The envelope a signage player can actually decode in HARDWARE.
@@ -154,11 +184,25 @@ export const VIDEO_PLACEHOLDER_HEIGHT = 720;
 export const MEDIA_PROCESSING_MAX_ATTEMPTS = 3;
 
 /**
- * An item left in PROCESSING longer than this is considered stuck (e.g. the
- * process died mid-processing) and is re-driven by the reconciliation sweep.
- * Kept short so transient failures recover within the client's poll window.
+ * An item whose processing LEASE has not been renewed for this long is
+ * considered abandoned (e.g. the process died mid-processing) and is re-driven
+ * by the reconciliation sweep. Kept short so a genuine failure recovers within
+ * the client's poll window.
+ *
+ * Read together with the renewal below. This used to be measured from the
+ * document's last write, and nothing wrote between accepting an upload and
+ * finishing it — so any step slower than this looked abandoned while it was
+ * still running. A 4K re-encode is 71 seconds against this 60, so every 4K
+ * upload had a second pass started on top of the first, and `processingAttempts`
+ * only counts failures, so nothing stopped it repeating.
  */
 export const MEDIA_PROCESSING_STALE_MS = 60 * 1000;
+
+/**
+ * How often a pass that is still running renews its lease. A third of the stale
+ * window, so two renewals can be lost before anybody else takes the work over.
+ */
+export const MEDIA_PROCESSING_LEASE_RENEW_MS = MEDIA_PROCESSING_STALE_MS / 3;
 
 /**
  * PowerPoint slideshow rendering (see PptxRenderService). Microsoft Graph

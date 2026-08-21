@@ -27,6 +27,7 @@ import {
   COMPRESSED_IMAGE_MIME_TYPE,
   MEDIA_POSTER_MAX_BYTES,
   MEDIA_PROCESSING_MAX_ATTEMPTS,
+  MEDIA_PROCESSING_LEASE_RENEW_MS,
   MEDIA_PROCESSING_STALE_MS,
   MEDIA_SIGNATURE_HEAD_BYTES,
   MEDIA_UPLOAD_TEMP_DIR_NAME,
@@ -825,6 +826,15 @@ export class MediaService {
     const userId = item.uploadedBy?.toString() ?? 'system';
     const uploadedKeys: string[] = [];
 
+    // Hold the lease for as long as this pass runs. Without it the sweep reads
+    // an untouched `updatedAt` as "abandoned" and starts a second pass over the
+    // same item — measured, a 4K re-encode takes 71s against a 60s window, so
+    // every one of them was processed at least twice, concurrently.
+    const lease = setInterval(() => {
+      void this.mediaRepository.touchProcessing(mediaId).catch(() => undefined);
+    }, MEDIA_PROCESSING_LEASE_RENEW_MS);
+    lease.unref();
+
     try {
       const isImage = ALLOWED_IMAGE_MIME_TYPES.includes(
         item.mimeType as (typeof ALLOWED_IMAGE_MIME_TYPES)[number],
@@ -950,6 +960,8 @@ export class MediaService {
             }
           : {}),
       });
+    } finally {
+      clearInterval(lease);
     }
   }
 
