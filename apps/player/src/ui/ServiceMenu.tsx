@@ -250,9 +250,17 @@ export function ServiceMenu() {
   actions.push({
     key: 'close',
     label: 'Close SignageWall',
-    hint: canClose
-      ? 'Exits to the TV menu. Nothing plays until it is reopened.'
-      : 'Only available on the Android player app',
+    // "Nothing plays until it is reopened" is only true with the lock OFF. The
+    // supervisor deliberately undoes an operator close on a LOCKED screen after a
+    // few seconds (WatchdogService.onTaskRemoved, "operator close, locked"), which
+    // is the right call — a locked kiosk that a remote can close for good is not
+    // locked — but the row promised the opposite and simply looked broken. Measured:
+    // the player went away and the ladder had it back within about twenty seconds.
+    hint: !canClose
+      ? 'Only available on the Android player app'
+      : locked
+        ? 'Leaves for a few seconds, then the screen brings itself back — the kiosk lock is on. Turn the lock off first to keep it closed.'
+        : 'Exits to the TV menu. Nothing plays until it is reopened.',
     disabled: !canClose,
     // Off a native shell this is a no-op; the row is disabled there, so reaching
     // here at all means a shell that promised `closeApp` and refused.

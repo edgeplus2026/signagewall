@@ -82,38 +82,49 @@ jobs:
           # is the one that should report that, with a message worth reading.
           du -sh dump/* 2>/dev/null | sed 's/^/  /' || echo "  (nothing)" 
 
-      - name: Verify the dump is not empty
+      - name: Verify the dump has content
         env:
-          # Floors, not exact counts, so an ordinary new collection does not fail
-          # the backup. Current counts are 29 and 15; raise these if the schema
-          # grows a lot, lower them only when collections are genuinely removed.
-          MIN_APP_COLLECTIONS: '10'
-          MIN_WEB_COLLECTIONS: '5'
+          # Collections that must contain at least one document. Counting
+          # collections is NOT enough, and that is not hypothetical: on
+          # 2026-08-22 signagewall_web was emptied, Payload recreated all
+          # fifteen collections on the next boot, and a collection-counting
+          # check would have called that dump healthy and shipped an archive of
+          # nothing. mongodump writes a 0-byte .bson for an empty collection,
+          # so size is the honest signal.
+          REQUIRED: >-
+            dump/signagewall/organizations.bson
+            dump/signagewall/users.bson
+            dump/signagewall/screens.bson
+            dump/signagewall_web/posts.bson
+            dump/signagewall_web/solutions.bson
         run: |
           set -euo pipefail
-          # A plain `find` over a missing directory exits non-zero, which under
-          # `set -e` would abort with a shell error instead of the diagnosis below
-          # — in exactly the case this step exists to diagnose.
-          count_bson() {
-            [ -d "$1" ] || { echo 0; return; }
-            find "$1" -name '*.bson' | wc -l | tr -d ' '
-          }
-          app=$(count_bson dump/signagewall)
-          web=$(count_bson dump/signagewall_web)
-          echo "signagewall: $app collections | signagewall_web: $web collections"
+          echo "Collections dumped:"
+          for db in signagewall signagewall_web; do
+            # A plain `find` over a missing directory exits non-zero, which under
+            # `set -e` would abort with a shell error instead of the diagnosis
+            # below — in exactly the case this step exists to diagnose.
+            if [ -d "dump/$db" ]; then
+              n=$(find "dump/$db" -name '*.bson' | wc -l | tr -d ' ')
+            else
+              n=0
+            fi
+            echo "  $db: $n"
+          done
 
-          # The failure this guards against is silent: a wrong URI, a user whose
-          # read grant was revoked, or a renamed database all produce a dump that
-          # succeeds and contains nothing. Uploaded unchecked, it would sit there
-          # looking like a backup until the day someone needed it.
-          if [ "$app" -lt "$MIN_APP_COLLECTIONS" ]; then
-            echo "::error::signagewall dumped $app collections, expected at least $MIN_APP_COLLECTIONS"
-            exit 1
-          fi
-          if [ "$web" -lt "$MIN_WEB_COLLECTIONS" ]; then
-            echo "::error::signagewall_web dumped $web collections, expected at least $MIN_WEB_COLLECTIONS"
-            exit 1
-          fi
+          failed=0
+          for f in $REQUIRED; do
+            if [ ! -f "$f" ]; then
+              echo "::error::$f is missing — that collection was not dumped at all"
+              failed=1
+            elif [ ! -s "$f" ]; then
+              echo "::error::$f is empty — the collection exists but holds no documents"
+              failed=1
+            else
+              echo "  ok: $f ($(stat -c%s "$f") bytes)"
+            fi
+          done
+          [ "$failed" -eq 0 ] || exit 1
 
       - name: Archive
         id: archive
