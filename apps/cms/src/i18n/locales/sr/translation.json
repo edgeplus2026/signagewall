@@ -2270,13 +2270,8 @@
       }
     },
     "admin": {
-      "description": "Upravljajte aplikacijama dostupnim organizacijama.",
-      "newApp": "Nova aplikacija",
+      "description": "Ovde su izlistane sve aplikacije koje postoje u proizvodu. Uključite aplikaciju da bi bila dostupna organizacijama.",
       "public": "Javno",
-      "edit": "Izmeni",
-      "delete": "Obriši",
-      "deleted": "Aplikacija obrisana",
-      "deleteError": "Brisanje aplikacije nije uspelo.",
       "visibilityError": "Promena vidljivosti nije uspela.",
       "visibilityFilter": {
         "all": "Sve aplikacije",
@@ -2290,36 +2285,7 @@
         "public": "Javno"
       },
       "empty": {
-        "title": "Još nema aplikacija",
-        "description": "Kreirajte prvu aplikaciju u katalogu."
-      },
-      "deleteDialog": {
-        "title": "Obrisati aplikaciju?",
-        "description": "Ovo trajno briše „{{name}}\" iz kataloga. Ova radnja se ne može poništiti."
-      },
-      "editor": {
-        "createTitle": "Nova aplikacija",
-        "editTitle": "Izmena aplikacije",
-        "description": "Opis",
-        "icon": "Ikona",
-        "name": "Naziv",
-        "tagline": "Slogan",
-        "about": "O aplikaciji",
-        "isPublic": "Javno — dostupno organizacijama",
-        "save": "Sačuvaj izmene",
-        "create": "Kreiraj aplikaciju",
-        "created": "Aplikacija kreirana",
-        "updated": "Aplikacija ažurirana",
-        "error": "Čuvanje aplikacije nije uspelo.",
-        "app": "Aplikacija",
-        "appPlaceholder": "Izaberi aplikaciju za dodavanje…",
-        "appSearchPlaceholder": "Pretraži aplikacije…",
-        "noAvailable": "Sve dostupne aplikacije su već u katalogu.",
-        "iconNote": "Ikona i boja brenda se definišu u kodu.",
-        "copyNote": "Naslov, opis i „O aplikaciji“ se definišu u kodu i prevode automatski.",
-        "categories": "Kategorije",
-        "categoriesNote": "Kategorije se dodeljuju u kodu.",
-        "noCategories": "Još nema kategorija — kreiraj ih u tabu Kategorije."
+        "title": "Još nema aplikacija"
       }
     },
     "categories": {

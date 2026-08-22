@@ -31,22 +31,6 @@ async function getOrNull<T>(url: string): Promise<T | null> {
   }
 }
 
-export interface CreateAppPayload {
-  slug: string
-  name: string
-  isPublic?: boolean | undefined
-}
-
-export type UpdateAppPayload = Partial<Omit<CreateAppPayload, 'slug'>>
-
-export interface AvailableManifest {
-  slug: string
-  name: string
-  tagline: string
-  description: string
-  alreadyInCatalog: boolean
-}
-
 export const appsApi = {
   // ----- Organization catalog -----
 
@@ -131,15 +115,12 @@ export const appsApi = {
     return data
   },
 
-  // ----- Super-admin catalog management -----
+  // ----- Super-admin catalog governance -----
+  // The catalog mirrors the code manifests, so apps are never added, renamed or
+  // deleted from the CMS — visibility is the only setting.
 
   listAll: async (): Promise<AdminApp[]> => {
     const { data } = await api.get<AdminApp[]>(ADMIN_BASE)
-    return data
-  },
-
-  listManifests: async (): Promise<AvailableManifest[]> => {
-    const { data } = await api.get<AvailableManifest[]>(`${ADMIN_BASE}/manifests`)
     return data
   },
 
@@ -147,24 +128,10 @@ export const appsApi = {
     return getOrNull<AdminApp>(`${ADMIN_BASE}/${id}`)
   },
 
-  createApp: async (payload: CreateAppPayload): Promise<AdminApp> => {
-    const { data } = await api.post<AdminApp>(ADMIN_BASE, payload)
-    return data
-  },
-
-  updateApp: async (id: string, payload: UpdateAppPayload): Promise<AdminApp> => {
-    const { data } = await api.patch<AdminApp>(`${ADMIN_BASE}/${id}`, payload)
-    return data
-  },
-
   setVisibility: async (id: string, isPublic: boolean): Promise<AdminApp> => {
     const { data } = await api.patch<AdminApp>(`${ADMIN_BASE}/${id}/visibility`, {
       isPublic,
     })
     return data
-  },
-
-  deleteApp: async (id: string): Promise<void> => {
-    await api.delete(`${ADMIN_BASE}/${id}`)
   },
 }

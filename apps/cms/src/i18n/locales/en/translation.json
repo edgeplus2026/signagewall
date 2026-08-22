@@ -2285,13 +2285,8 @@
       }
     },
     "admin": {
-      "description": "Manage the apps available to organizations.",
-      "newApp": "New app",
+      "description": "Every app that exists in the product is listed here. Turn an app on to offer it to organizations.",
       "public": "Public",
-      "edit": "Edit",
-      "delete": "Delete",
-      "deleted": "App deleted",
-      "deleteError": "Could not delete the app.",
       "visibilityError": "Could not update visibility.",
       "visibilityFilter": {
         "all": "All apps",
@@ -2305,36 +2300,7 @@
         "public": "Public"
       },
       "empty": {
-        "title": "No apps yet",
-        "description": "Create your first catalog app."
-      },
-      "deleteDialog": {
-        "title": "Delete app?",
-        "description": "This permanently deletes \"{{name}}\" from the catalog. This cannot be undone."
-      },
-      "editor": {
-        "createTitle": "New app",
-        "editTitle": "Edit app",
-        "description": "Description",
-        "icon": "Icon",
-        "name": "Name",
-        "tagline": "Tagline",
-        "about": "About",
-        "isPublic": "Public — offered to organizations",
-        "save": "Save changes",
-        "create": "Create app",
-        "created": "App created",
-        "updated": "App updated",
-        "error": "Could not save the app.",
-        "app": "Application",
-        "appPlaceholder": "Select an app to add…",
-        "appSearchPlaceholder": "Search apps…",
-        "noAvailable": "All available apps are already in the catalog.",
-        "iconNote": "The icon and brand colour are defined in code.",
-        "copyNote": "Tagline, description and About are defined in code and translated automatically.",
-        "categories": "Categories",
-        "categoriesNote": "Categories are assigned in code.",
-        "noCategories": "No categories yet — create some in the Categories tab."
+        "title": "No apps yet"
       }
     },
     "categories": {

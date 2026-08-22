@@ -124,9 +124,9 @@ multiselect, checkbox, switch, image, color, oauth, location, richtext, datetime
     mirrored to `apps/cms/public/apps`).
 11. **If backend endpoints changed** (new browse route, etc.): `pnpm --filter be openapi:export` then
     `pnpm --filter cms generate:api-types`.
-12. **Publish (super-admin):** `POST /admin/apps { slug }` (technical fields auto-copied from the
-    manifest), set `categoryIds`, then `PATCH /admin/apps/:id/visibility { isPublic: true }`.
-    `syncManifestDefinitions()` keeps the definition in lockstep on every boot.
+12. **Publish (super-admin):** the catalog entry is created for you — `syncManifestDefinitions()`
+    adds every new manifest on boot (unpublished) and keeps its definition in lockstep afterwards.
+    All that is left is `PATCH /admin/apps/:id/visibility { isPublic: true }`.
 13. **Tests:** add a case to `connectors/connectors.spec.ts` (cacheKey invariants + payload shape) for
     data apps.
 

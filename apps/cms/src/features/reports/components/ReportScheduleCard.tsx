@@ -112,7 +112,7 @@ function ScheduleForm({ schedule }: { schedule: ReportSchedule }) {
           </span>
           <Input
             value={recipients}
-            placeholder="ana@primer.rs, marko@primer.rs"
+            placeholder="john@example.com, jane@example.com"
             onChange={(event) => {
               setRecipients(event.target.value)
             }}

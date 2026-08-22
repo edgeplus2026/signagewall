@@ -6,8 +6,6 @@ import { OrganizationsRepository } from '../organizations/organizations.reposito
 import { AppInstancesService } from './app-instances.service';
 import { AppsRepository, type CreateAppData } from './apps.repository';
 import { OrgAppsRepository } from './org-apps.repository';
-import { CreateAppDto } from './dto/create-app.dto';
-import { UpdateAppDto } from './dto/update-app.dto';
 import {
   AppAdminResponseDto,
   AppCatalogResponseDto,
@@ -16,15 +14,6 @@ import {
   toAppCatalogResponse,
 } from './mappers/app.mapper';
 import { AppDocument } from './schemas/app.schema';
-
-export interface AvailableManifestDto {
-  slug: string;
-  name: string;
-  tagline: string;
-  description: string;
-  /** True when this code app already has a catalog entry. */
-  alreadyInCatalog: boolean;
-}
 
 @Injectable()
 export class AppsService implements OnModuleInit {
@@ -42,47 +31,62 @@ export class AppsService implements OnModuleInit {
   }
 
   /**
-   * On boot, keep each catalog entry's *technical* definition (config schema,
-   * version, runtime, data source) plus its icon + brand colour in lockstep
-   * with its code manifest, so editing a manifest — adding fields/sections,
-   * bumping the version, restyling the icon — reaches the CMS and validation
-   * without a manual re-add. Icon and colour are code-owned (defined in the
-   * manifest); the remaining governance (name, copy, visibility, categories)
-   * stays operator-owned and is never overwritten. New manifests are NOT
-   * auto-added: super-admin still curates what enters the catalog.
+   * On boot, mirror the code manifests into the catalog: every app that exists
+   * in code gets a catalog entry, and every existing entry's definition (config
+   * schema, version, runtime, data source, overlay) plus its name, icon and
+   * brand colour is kept in lockstep with its manifest — so adding an app,
+   * adding fields/sections, bumping the version or restyling the icon reaches
+   * the CMS and validation with a deploy, never a manual step.
+   *
+   * The catalog is therefore entirely code-owned. The one operator-owned field
+   * is `isPublic`: new apps land unpublished and a super-admin decides when
+   * organizations may see them. Copy (tagline/description/about) and categories
+   * are code + i18n, keyed by slug, and are never stored here.
    */
   private async syncManifestDefinitions(): Promise<void> {
     const bySlug = new Map(
       (await this.appsRepository.findAll()).map((app) => [app.slug, app]),
     );
     for (const manifest of APP_MANIFESTS) {
-      const existing = bySlug.get(manifest.slug);
-      if (!existing) {
-        continue;
-      }
-      const manifestIcon = manifest.icon ?? '';
-      const manifestColor = manifest.color ?? '';
-      const unchanged =
-        existing.version === manifest.version &&
-        existing.runtimeKind === manifest.runtimeKind &&
-        existing.dataSource === manifest.dataSource &&
-        existing.overlay === (manifest.overlay ?? false) &&
-        existing.iconSvg === manifestIcon &&
-        existing.color === manifestColor &&
-        JSON.stringify(existing.configSchema ?? []) ===
-          JSON.stringify(manifest.configSchema);
-      if (unchanged) {
-        continue;
-      }
-      await this.appsRepository.updateById(existing._id.toString(), {
+      const definition = {
+        name: manifest.name,
         configSchema: manifest.configSchema,
         version: manifest.version,
         runtimeKind: manifest.runtimeKind,
         dataSource: manifest.dataSource,
         overlay: manifest.overlay ?? false,
-        iconSvg: manifestIcon,
-        color: manifestColor,
-      });
+        iconSvg: manifest.icon ?? '',
+        color: manifest.color ?? '',
+      };
+
+      const existing = bySlug.get(manifest.slug);
+      if (!existing) {
+        // A brand-new code app: added unpublished so it is invisible to
+        // organizations until a super-admin flips the public toggle.
+        const data: CreateAppData = {
+          slug: manifest.slug,
+          ...definition,
+          isPublic: false,
+        };
+        await this.appsRepository.create(data);
+        this.logger.log(`Added app "${manifest.slug}" to the catalog`);
+        continue;
+      }
+
+      const unchanged =
+        existing.name === definition.name &&
+        existing.version === definition.version &&
+        existing.runtimeKind === definition.runtimeKind &&
+        existing.dataSource === definition.dataSource &&
+        existing.overlay === definition.overlay &&
+        existing.iconSvg === definition.iconSvg &&
+        existing.color === definition.color &&
+        JSON.stringify(existing.configSchema ?? []) ===
+          JSON.stringify(definition.configSchema);
+      if (unchanged) {
+        continue;
+      }
+      await this.appsRepository.updateById(existing._id.toString(), definition);
       this.logger.log(`Synced manifest definition for app "${manifest.slug}"`);
     }
   }
@@ -247,7 +251,7 @@ export class AppsService implements OnModuleInit {
     return this.listGrants(appId);
   }
 
-  // ----- Super-admin catalog management -----
+  // ----- Super-admin catalog governance (read + the public toggle) -----
 
   async listAll(): Promise<AppAdminResponseDto[]> {
     const [apps, installCounts] = await Promise.all([
@@ -259,61 +263,8 @@ export class AppsService implements OnModuleInit {
     );
   }
 
-  /** Code apps available to add to the catalog, flagged if already added. */
-  async listAvailableManifests(): Promise<AvailableManifestDto[]> {
-    const existing = new Set(await this.appsRepository.findAllSlugs());
-    return APP_MANIFESTS.map((manifest) => ({
-      slug: manifest.slug,
-      name: manifest.name,
-      tagline: manifest.tagline,
-      description: manifest.description,
-      alreadyInCatalog: existing.has(manifest.slug),
-    }));
-  }
-
   async getApp(id: string): Promise<AppAdminResponseDto> {
     return toAppAdminResponse(await this.requireApp(id));
-  }
-
-  /**
-   * Creates a catalog entry from a code manifest. The technical definition and
-   * icon/colour are taken from the manifest (by slug); copy (tagline/description/
-   * about) and categories are code + i18n, never stored — so the request carries
-   * only the name and the public toggle.
-   */
-  async create(dto: CreateAppDto): Promise<AppAdminResponseDto> {
-    const manifest = APP_MANIFESTS.find((entry) => entry.slug === dto.slug);
-    if (!manifest) {
-      throw BusinessException.badRequest('Unknown app');
-    }
-    const existing = await this.appsRepository.findBySlug(dto.slug);
-    if (existing) {
-      throw BusinessException.conflict('This app is already in the catalog');
-    }
-
-    const data: CreateAppData = {
-      slug: manifest.slug,
-      name: dto.name,
-      runtimeKind: manifest.runtimeKind,
-      dataSource: manifest.dataSource,
-      configSchema: manifest.configSchema,
-      version: manifest.version,
-      // Icon + colour are code-owned: taken from the manifest, not the request.
-      iconSvg: manifest.icon ?? '',
-      color: manifest.color ?? '',
-      isPublic: dto.isPublic ?? false,
-    };
-    const created = await this.appsRepository.create(data);
-    return toAppAdminResponse(created);
-  }
-
-  async update(id: string, dto: UpdateAppDto): Promise<AppAdminResponseDto> {
-    await this.requireApp(id);
-    const updated = await this.appsRepository.updateById(id, dto);
-    if (!updated) {
-      throw BusinessException.notFound('App not found');
-    }
-    return toAppAdminResponse(updated);
   }
 
   async setPublic(id: string, isPublic: boolean): Promise<AppAdminResponseDto> {
@@ -323,13 +274,6 @@ export class AppsService implements OnModuleInit {
       throw BusinessException.notFound('App not found');
     }
     return toAppAdminResponse(updated);
-  }
-
-  async remove(id: string): Promise<void> {
-    const deleted = await this.appsRepository.deleteById(id);
-    if (!deleted) {
-      throw BusinessException.notFound('App not found');
-    }
   }
 
   private async requireApp(id: string): Promise<AppDocument> {

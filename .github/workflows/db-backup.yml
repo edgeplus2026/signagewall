@@ -1,0 +1,162 @@
+# Nightly MongoDB backup to R2.
+#
+#   Secrets:   BACKUP_MONGODB_URI, BACKUP_WEB_MONGODB_URI,
+#              BACKUP_R2_ACCESS_KEY_ID, BACKUP_R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID
+#   Variables: BACKUP_R2_BUCKET
+#
+# The Atlas cluster is on the free tier, which has no backups of any kind: a
+# dropped collection or a bad migration has no restore point. This is that
+# restore point.
+#
+# It only ever WRITES. Retention is an object-lifecycle rule on the bucket
+# (30 days), deliberately not a delete step here — code that prunes backups is
+# the one piece of code whose bug destroys the thing it was written to protect.
+name: db-backup
+
+on:
+  schedule:
+    # 02:00 UTC, the quietest hour for the fleet. Cron here is always UTC.
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+# A backup that overlaps itself gains nothing and doubles the load on a shared-
+# tier cluster.
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check the configuration is complete
+        env:
+          MONGODB_URI: ${{ secrets.BACKUP_MONGODB_URI }}
+          WEB_MONGODB_URI: ${{ secrets.BACKUP_WEB_MONGODB_URI }}
+          ACCESS_KEY: ${{ secrets.BACKUP_R2_ACCESS_KEY_ID }}
+          SECRET_KEY: ${{ secrets.BACKUP_R2_SECRET_ACCESS_KEY }}
+          ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          BUCKET: ${{ vars.BACKUP_R2_BUCKET }}
+        run: |
+          set -euo pipefail
+          missing=()
+          [ -n "${MONGODB_URI:-}" ]     || missing+=("BACKUP_MONGODB_URI (secret)")
+          [ -n "${WEB_MONGODB_URI:-}" ] || missing+=("BACKUP_WEB_MONGODB_URI (secret)")
+          [ -n "${ACCESS_KEY:-}" ]      || missing+=("BACKUP_R2_ACCESS_KEY_ID (secret)")
+          [ -n "${SECRET_KEY:-}" ]      || missing+=("BACKUP_R2_SECRET_ACCESS_KEY (secret)")
+          [ -n "${ACCOUNT_ID:-}" ]      || missing+=("R2_ACCOUNT_ID (secret)")
+          [ -n "${BUCKET:-}" ]          || missing+=("BACKUP_R2_BUCKET (variable)")
+          if [ ${#missing[@]} -gt 0 ]; then
+            printf '::error::Not configured, nothing was backed up. Missing: %s\n' "${missing[*]}"
+            exit 1
+          fi
+          echo "All six settings are present."
+
+      - name: Install mongodb-database-tools
+        run: |
+          set -euo pipefail
+          # From MongoDB's own apt repo rather than a pinned .deb URL, so the
+          # version resolves itself instead of rotting into a 404 one quiet night.
+          curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc \
+            | sudo gpg --dearmor -o /usr/share/keyrings/mongodb.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/mongodb.gpg] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/8.0 multiverse" \
+            | sudo tee /etc/apt/sources.list.d/mongodb.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mongodb-database-tools
+          mongodump --version | head -1
+
+      - name: Dump both databases
+        env:
+          MONGODB_URI: ${{ secrets.BACKUP_MONGODB_URI }}
+          WEB_MONGODB_URI: ${{ secrets.BACKUP_WEB_MONGODB_URI }}
+        run: |
+          set -euo pipefail
+          mkdir -p dump
+          # No `set -x` anywhere in this job: the URIs carry credentials.
+          mongodump --uri="$MONGODB_URI" --out=dump --quiet
+          mongodump --uri="$WEB_MONGODB_URI" --out=dump --quiet
+          echo "Dumped:"
+          # Guarded: an empty `dump` leaves the glob unmatched, and the next step
+          # is the one that should report that, with a message worth reading.
+          du -sh dump/* 2>/dev/null | sed 's/^/  /' || echo "  (nothing)" 
+
+      - name: Verify the dump is not empty
+        env:
+          # Floors, not exact counts, so an ordinary new collection does not fail
+          # the backup. Current counts are 29 and 15; raise these if the schema
+          # grows a lot, lower them only when collections are genuinely removed.
+          MIN_APP_COLLECTIONS: '10'
+          MIN_WEB_COLLECTIONS: '5'
+        run: |
+          set -euo pipefail
+          # A plain `find` over a missing directory exits non-zero, which under
+          # `set -e` would abort with a shell error instead of the diagnosis below
+          # — in exactly the case this step exists to diagnose.
+          count_bson() {
+            [ -d "$1" ] || { echo 0; return; }
+            find "$1" -name '*.bson' | wc -l | tr -d ' '
+          }
+          app=$(count_bson dump/signagewall)
+          web=$(count_bson dump/signagewall_web)
+          echo "signagewall: $app collections | signagewall_web: $web collections"
+
+          # The failure this guards against is silent: a wrong URI, a user whose
+          # read grant was revoked, or a renamed database all produce a dump that
+          # succeeds and contains nothing. Uploaded unchecked, it would sit there
+          # looking like a backup until the day someone needed it.
+          if [ "$app" -lt "$MIN_APP_COLLECTIONS" ]; then
+            echo "::error::signagewall dumped $app collections, expected at least $MIN_APP_COLLECTIONS"
+            exit 1
+          fi
+          if [ "$web" -lt "$MIN_WEB_COLLECTIONS" ]; then
+            echo "::error::signagewall_web dumped $web collections, expected at least $MIN_WEB_COLLECTIONS"
+            exit 1
+          fi
+
+      - name: Archive
+        id: archive
+        run: |
+          set -euo pipefail
+          stamp=$(date -u +%Y-%m-%dT%H-%M-%SZ)
+          name="signagewall-${stamp}.tar.gz"
+          tar -czf "$name" dump
+          size=$(stat -c%s "$name")
+          if [ "$size" -lt 1024 ]; then
+            echo "::error::Archive is only ${size} bytes — refusing to upload it as a backup"
+            exit 1
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "key=$(date -u +%Y/%m)/$name" >> "$GITHUB_OUTPUT"
+          echo "size=$(du -h "$name" | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          BUCKET: ${{ vars.BACKUP_R2_BUCKET }}
+          NAME: ${{ steps.archive.outputs.name }}
+          KEY: ${{ steps.archive.outputs.key }}
+        run: |
+          set -euo pipefail
+          aws s3 cp "$NAME" "s3://${BUCKET}/${KEY}" \
+            --endpoint-url "https://${ACCOUNT_ID}.r2.cloudflarestorage.com"
+
+      - name: Summary
+        env:
+          KEY: ${{ steps.archive.outputs.key }}
+          SIZE: ${{ steps.archive.outputs.size }}
+          BUCKET: ${{ vars.BACKUP_R2_BUCKET }}
+        run: |
+          {
+            echo "### Backup complete"
+            echo ""
+            echo "- Object: \`${BUCKET}/${KEY}\`"
+            echo "- Size: ${SIZE}"
+            echo ""
+            echo "Restore: \`aws s3 cp\` it back, \`tar -xzf\`, then"
+            echo "\`mongorestore --uri=\"<uri>\" --drop dump/\`"
+          } >> "$GITHUB_STEP_SUMMARY"

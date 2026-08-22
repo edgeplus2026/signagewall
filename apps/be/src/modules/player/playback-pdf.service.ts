@@ -13,6 +13,7 @@ import {
   StandardFonts,
   rgb,
 } from 'pdf-lib';
+import { create as createQrMatrix } from 'qrcode';
 
 import type {
   CoverageReport,
@@ -54,10 +55,20 @@ const MAX_EXCEPTIONS = 12;
 const MAX_ROWS = 300;
 
 const MARGIN = 48;
+/** Width the brand mark is drawn at; its height follows the file's ratio. */
+const LOGO_WIDTH = 132;
+/** Side of the verification QR, in points. */
+const QR_SIZE = 76;
 const PAGE = { width: 595.28, height: 841.89 }; // A4 portrait, points.
 const LINE = 14;
-/** Height of the verification box drawn at the foot of the last page. */
-const VERIFY_BOX = 88;
+/**
+ * Height of the verification box drawn at the foot of the last page.
+ *
+ * Sized by the QR rather than by the text: the code is the largest thing in the
+ * box, and it has to keep its quiet zone clear of the border or readers stop
+ * seeing it.
+ */
+const VERIFY_BOX = QR_SIZE + 28;
 /**
  * Space kept clear at the bottom of every page.
  *
@@ -139,7 +150,26 @@ export class PlaybackPdfService {
       y -= options.gap ?? LINE;
     };
 
-    write(input.organizationName, { font: bold, size: 16, gap: LINE + 6 });
+    // The brand mark leads the page rather than the customer's name. The
+    // document is issued BY SignageWall about somebody's airtime, and it is
+    // usually read by a third party — an advertiser, an auditor — deciding
+    // whether to trust the figures, so who stands behind them belongs at the
+    // top. The organization stays directly under it as the report's subject.
+    const logo = loadLogo();
+    if (logo) {
+      const image = await pdf.embedPng(logo);
+      const height = (image.height / image.width) * LOGO_WIDTH;
+      y -= height;
+      page.drawImage(image, { x: MARGIN, y, width: LOGO_WIDTH, height });
+      y -= LINE + 8;
+    } else {
+      // Same reasoning as the fonts: a build that forgets to copy the asset
+      // still has to produce a document, and the name set is the whole point.
+      this.logger.warn('The brand logo is missing; printing the name instead');
+      write('SignageWall', { font: bold, size: 16, gap: LINE + 8 });
+    }
+
+    write(input.organizationName, { font: bold, size: 14, gap: LINE });
     write(`Proof of play · ${input.items.from} – ${input.items.to}`, {
       font: regular,
       size: 11,
@@ -316,6 +346,14 @@ export class PlaybackPdfService {
       borderWidth: 1,
     });
 
+    // Drawn first so a code that cannot be built (an address with no host, an
+    // encoder that refuses the length) simply leaves the text as it was.
+    drawQr(page, this.verifyUrl(parts), {
+      x: PAGE.width - MARGIN - 14 - QR_SIZE,
+      y: MARGIN + (boxHeight - QR_SIZE) / 2,
+      size: QR_SIZE,
+    });
+
     let y = MARGIN + boxHeight - 18;
     page.drawText('VERIFICATION', {
       x: MARGIN + 12,
@@ -342,10 +380,7 @@ export class PlaybackPdfService {
     const muted = rgb(0.35, 0.38, 0.43);
     const prefix = 'Check at ';
     const shown = this.verifyUrl();
-    const target = this.verifyUrl({
-      digest: parts.digest,
-      signature: parts.signature,
-    });
+    const target = this.verifyUrl(parts);
 
     // The address is drawn short and linked long. Printing the full query string
     // would run to ~200 characters, which at this size either overruns the box
@@ -383,8 +418,11 @@ export class PlaybackPdfService {
     });
 
     y -= 12;
+    // Kept short enough to clear the QR: the box is one line of type wide once
+    // the code takes the right-hand end of it, and text run under the code is
+    // text nobody can read.
     page.drawText(
-      'Click it, or call that address with ?digest= and &signature= set to the two above.',
+      'Click it or scan the code, or call it with the two values above.',
       { x: MARGIN + 12, y, size, font: parts.mono, color: muted },
     );
     y -= 11;
@@ -427,6 +465,112 @@ function linkTo(
     }),
   );
   page.node.addAnnot(ref);
+}
+
+/**
+ * Draws the verification address as a QR code.
+ *
+ * The two hex figures stay printed above it — they are what a verifier actually
+ * checks, and a code is not readable by a person. The QR is for the common case:
+ * somebody holding a paper copy of the document, who would otherwise have to
+ * retype 128 characters of hex to ask whether it is genuine.
+ */
+function drawQr(
+  page: PDFPage,
+  url: string,
+  box: { x: number; y: number; size: number },
+): void {
+  const black = rgb(0.08, 0.09, 0.12);
+  for (const run of qrRuns(url, box) ?? []) {
+    page.drawRectangle({ ...run, color: black });
+  }
+}
+
+/**
+ * The QR for an address, as the filled rectangles that draw it.
+ *
+ * Vector runs rather than an embedded bitmap: the code stays sharp at print
+ * resolution and at any zoom, and costs a few kilobytes. Runs rather than one
+ * rectangle per module because a version-10 code is 3,249 cells, and drawing
+ * each one separately makes the path the largest thing in the document.
+ *
+ * Returns null when there is nothing worth drawing, and the caller prints the
+ * document without it — the code is the convenience, the hex above it is the
+ * proof.
+ *
+ * Exported so the geometry can be checked without decoding a PDF stream.
+ */
+export function qrRuns(
+  url: string,
+  box: { x: number; y: number; size: number },
+): { x: number; y: number; width: number; height: number }[] | null {
+  // Nothing to scan to: with no public URL configured the printed address is a
+  // path, and a QR carrying `/api/v1/...` sends the reader nowhere.
+  if (!/^https?:\/\//i.test(url)) {
+    return null;
+  }
+  let matrix: { size: number; data: Uint8Array };
+  try {
+    // Medium correction: the code has to survive a photocopy and a phone camera
+    // held at an angle, which is the whole situation it exists for.
+    matrix = createQrMatrix(url, { errorCorrectionLevel: 'M' }).modules;
+  } catch {
+    // An address too long for any version, or an encoder that changed its mind
+    // about this input. The document is still complete without the code.
+    return null;
+  }
+  const scale = box.size / matrix.size;
+  const runs: { x: number; y: number; width: number; height: number }[] = [];
+  for (let row = 0; row < matrix.size; row += 1) {
+    let start = -1;
+    for (let column = 0; column <= matrix.size; column += 1) {
+      const dark =
+        column < matrix.size && matrix.data[row * matrix.size + column] === 1;
+      if (dark) {
+        if (start < 0) {
+          start = column;
+        }
+        continue;
+      }
+      if (start >= 0) {
+        runs.push({
+          x: box.x + start * scale,
+          // Matrix rows run top-down; PDF y counts up from the bottom of the
+          // page. Getting this backwards mirrors the code, and a mirrored QR
+          // is one no reader will decode.
+          y: box.y + box.size - (row + 1) * scale,
+          width: (column - start) * scale,
+          height: scale,
+        });
+        start = -1;
+      }
+    }
+  }
+  return runs;
+}
+
+/** The brand mark, read once and kept for the life of the process. */
+let logoCache: Buffer | null | undefined;
+
+/**
+ * Loads the logo drawn at the head of the document, or reports it is not there.
+ *
+ * Beside the fonts, and found the same way — a build asset copied next to the
+ * compiled service, addressed from `__dirname` rather than the working
+ * directory.
+ */
+function loadLogo(): Buffer | null {
+  if (logoCache !== undefined) {
+    return logoCache;
+  }
+  try {
+    logoCache = readFileSync(
+      join(__dirname, 'brand', 'signagewall-logo-horizontal.png'),
+    );
+  } catch {
+    logoCache = null;
+  }
+  return logoCache;
 }
 
 /** Subset Noto Sans, read once and kept for the life of the process. */

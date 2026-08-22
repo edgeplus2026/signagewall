@@ -966,22 +966,6 @@ export interface paths {
         };
         get: operations["AppsAdminlist"];
         put?: never;
-        post: operations["AppsAdmincreate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/apps/manifests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AppsAdminmanifests"];
-        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -999,10 +983,10 @@ export interface paths {
         get: operations["AppsAdmingetById"];
         put?: never;
         post?: never;
-        delete: operations["AppsAdminremove"];
+        delete?: never;
         options?: never;
         head?: never;
-        patch: operations["AppsAdminupdate"];
+        patch?: never;
         trace?: never;
     };
     "/api/v1/admin/apps/{id}/visibility": {
@@ -2718,16 +2702,6 @@ export interface components {
             config: {
                 [key: string]: unknown;
             };
-        };
-        CreateAppDto: {
-            /** @description Slug of an available code manifest. */
-            slug: string;
-            name: string;
-            isPublic?: Record<string, never>;
-        };
-        UpdateAppDto: {
-            name?: string;
-            isPublic?: Record<string, never>;
         };
         SetAppVisibilityDto: {
             /** @description Whether the app is offered to organizations. */
@@ -8355,156 +8329,6 @@ export interface operations {
             };
         };
     };
-    AppsAdmincreate: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateAppDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdminmanifests: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"][];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
     AppsAdmingetById: {
         parameters: {
             query?: never;
@@ -8520,161 +8344,6 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        data: components["schemas"]["Object"];
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdminremove: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        /** @example null */
-                        data: null | null;
-                    };
-                };
-            };
-            /** @description Validation or business error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-            /** @description Rate limit exceeded */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelopeSchema"];
-                };
-            };
-        };
-    };
-    AppsAdminupdate: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description API message language (`en` or `sr`) */
-                "Accept-Language"?: "en" | "sr";
-                /** @description Alternative language header (same as Accept-Language) */
-                "x-lang"?: "en" | "sr";
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateAppDto"];
-            };
-        };
         responses: {
             200: {
                 headers: {
@@ -10945,6 +10614,8 @@ export interface operations {
             query: {
                 code: string;
                 state: string;
+                error_description?: unknown;
+                error?: unknown;
             };
             header?: {
                 /** @description API message language (`en` or `sr`) */

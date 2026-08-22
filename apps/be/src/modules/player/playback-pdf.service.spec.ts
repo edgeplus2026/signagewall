@@ -1,7 +1,10 @@
 import type { ConfigService } from '@nestjs/config';
 
+import { PDFDocument, PDFName, PDFRawStream } from 'pdf-lib';
+
 import {
   PlaybackPdfService,
+  qrRuns,
   verifyUrl,
   type DocumentFigures,
 } from './playback-pdf.service';
@@ -262,6 +265,51 @@ describe('PlaybackPdfService', () => {
       }),
     ).toBe(
       `https://api.signagewall.com/api/v1/playback/verify?digest=${'a'.repeat(64)}&signature=${'b'.repeat(64)}`,
+    );
+  });
+
+  it('leads with the brand mark, not with the customer', async () => {
+    // The document is issued BY SignageWall about somebody's airtime, and is
+    // usually read by a third party deciding whether to trust the figures.
+    const { bytes } = await buildService().render(figures());
+    const loaded = await PDFDocument.load(bytes);
+    const images = loaded.context
+      .enumerateIndirectObjects()
+      .filter(
+        ([, object]) =>
+          object instanceof PDFRawStream &&
+          object.dict.get(PDFName.of('Subtype')) === PDFName.of('Image'),
+      );
+
+    expect(images.length).toBeGreaterThan(0);
+  });
+
+  it('encodes the pre-filled check as a QR inside its square', () => {
+    const box = { x: 400, y: 60, size: 76 };
+    const runs = qrRuns(
+      verifyUrl('https://api.signagewall.com', 'api', {
+        digest: 'a'.repeat(64),
+        signature: 'b'.repeat(64),
+      }),
+      box,
+    );
+
+    expect(runs?.length).toBeGreaterThan(0);
+    // Drawn outside its square, the code runs over the text beside it or out
+    // through the border of the verification box, and stops being scannable.
+    for (const run of runs ?? []) {
+      expect(run.x).toBeGreaterThanOrEqual(box.x);
+      expect(run.y).toBeGreaterThanOrEqual(box.y);
+      expect(run.x + run.width).toBeLessThanOrEqual(box.x + box.size + 0.001);
+      expect(run.y + run.height).toBeLessThanOrEqual(box.y + box.size + 0.001);
+    }
+  });
+
+  it('draws no code when the address is not one a phone can open', () => {
+    // Where the installation does not know its own public URL the printed
+    // address is a path. A QR carrying `/api/v1/...` scans to nothing.
+    expect(qrRuns(verifyUrl(undefined, 'api'), { x: 0, y: 0, size: 76 })).toBe(
+      null,
     );
   });
 

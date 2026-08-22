@@ -72,18 +72,4 @@ export class AppsRepository {
       )
       .exec();
   }
-
-  async deleteById(id: string): Promise<boolean> {
-    if (!Types.ObjectId.isValid(id)) return false;
-    const result = await this.appModel
-      .deleteOne({ _id: new Types.ObjectId(id) })
-      .exec();
-    return result.deletedCount > 0;
-  }
-
-  /** All catalog slugs (to tell which code apps are already added). */
-  async findAllSlugs(): Promise<string[]> {
-    const docs = await this.appModel.find().select({ slug: 1 }).exec();
-    return docs.map((doc) => doc.slug);
-  }
 }

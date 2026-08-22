@@ -25,6 +25,10 @@
       {
         "include": "modules/player/fonts/*",
         "watchAssets": true
+      },
+      {
+        "include": "modules/player/brand/*",
+        "watchAssets": true
       }
     ]
   }

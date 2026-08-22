@@ -123,15 +123,11 @@ merges. Code-side work stays in [TODO.md](TODO.md).
 
 ## 6. OpsBoard demo enablement (new capability in this PR)
 
-- [ ] **Create the catalog entries first.** `syncManifestDefinitions` does not
-      auto-add new manifests (`if (!existing) continue;` — super-admin curates
-      what enters the catalog), so `GET /admin/apps` returns nothing for the
-      two new apps until you create them. As super-admin:
-      `POST /api/v1/admin/apps` with
-      `{ "slug": "opsboard", "name": "OpsBoard", "isPublic": false }`, and the
-      same for `"powerbi-secure"`. Slug is validated against `APP_MANIFESTS`;
-      icon/colour/schema come from code, only name and visibility from the
-      request. Keep both non-public.
+- [ ] **Confirm the catalog entries exist.** `syncManifestDefinitions` adds
+      every manifest that has no catalog entry on boot, unpublished
+      (`isPublic:false`), so `opsboard` and `powerbi-secure` appear in
+      `GET /admin/apps` after the first deploy with no manual step. Just verify
+      both are there and leave both non-public.
 - [ ] Grant OpsBoard to the internal/demo organization:
       `POST /api/v1/admin/apps/<opsBoardAppId>/grants` with
       `{ "organizationId": "<demoOrgId>" }` as a super-admin (app ids via
