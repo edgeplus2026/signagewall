@@ -79,6 +79,19 @@ data class RuntimeState(
      * to see it climbing.
      */
     @SerialName("recoveries") val recoveries: Int = 0,
+    /**
+     * Whether Chrome DevTools inspection of the player page stays on.
+     *
+     * It used to die with the process, on the argument that a screen left
+     * inspectable is one anyone who reaches it can read and rewrite, and that the
+     * person who would remember to close it is the technician who has already
+     * driven away. True — but in practice it meant the one tool for diagnosing a
+     * misbehaving screen switched itself off at exactly the moment the screen
+     * misbehaved, since a crash, an update and a recovery restart all take the
+     * process with them. It is off by default, reachable only from the service
+     * menu, and now stays where it was put.
+     */
+    @SerialName("webDebugging") val webDebugging: Boolean = false,
     /** Short breadcrumb from the last uncaught exception, for the CMS. */
     @SerialName("lastCrash") val lastCrash: String? = null,
     @SerialName("lastCrashAt") val lastCrashAt: Long = 0L,

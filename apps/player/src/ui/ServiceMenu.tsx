@@ -235,7 +235,7 @@ export function ServiceMenu() {
       key: 'inspect',
       label: 'Web inspector',
       hint: webDebug
-        ? 'On — this screen can be inspected from a computer. Closes itself on restart.'
+        ? 'On — this screen can be inspected from a computer. Stays on until switched off here.'
         : 'Lets a computer see inside the player, for diagnosing a fault',
       toggle: true,
       on: webDebug,
@@ -249,7 +249,7 @@ export function ServiceMenu() {
 
   actions.push({
     key: 'close',
-    label: 'Close SignageWall',
+    label: 'Close Application',
     // "Nothing plays until it is reopened" is only true with the lock OFF. The
     // supervisor deliberately undoes an operator close on a LOCKED screen after a
     // few seconds (WatchdogService.onTaskRemoved, "operator close, locked"), which
@@ -457,7 +457,18 @@ export function ServiceMenu() {
           <span class="service-panel__name">
             {screen?.name ?? (isPaired ? 'Unnamed screen' : 'Unpaired display')}
           </span>
-          <span class="service-panel__status">
+          {/* Beside the name rather than under it, and a colour rather than a word:
+              from across a room the only question is whether the dot is green. Only
+              a live socket earns green — connecting, reconnecting and unpaired are
+              all states where the screen is not currently reachable, and softening
+              them would make the one glance that matters unreliable. */}
+          <span
+            class={`service-panel__status${
+              isPaired && connection.value === 'online'
+                ? ' service-panel__status--ok'
+                : ' service-panel__status--down'
+            }`}
+          >
             {isPaired ? connection.value : 'not paired'}
           </span>
         </header>

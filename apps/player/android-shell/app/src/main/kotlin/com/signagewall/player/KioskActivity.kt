@@ -77,8 +77,8 @@ class KioskActivity : AppCompatActivity() {
 
     /**
      * Whether Chrome DevTools may inspect the page. Written from the JS bridge
-     * thread and read when assembling `device_info`, hence @Volatile. Starts false
-     * on every process start — see [setWebDebugging] for why it is never persisted.
+     * thread and read when assembling `device_info`, hence @Volatile. Restored from
+     * the persisted runtime state on start — see [setWebDebugging].
      */
     @Volatile
     private var webDebugging: Boolean = false
@@ -188,6 +188,7 @@ class KioskActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        restoreWebDebugging()
         // A new session: whatever the last one asked for, this one is guarded.
         KioskPresence.setClosedByOperator(false)
         // Tells the supervisor a player exists, which is the half of its decision
@@ -411,13 +412,17 @@ class KioskActivity : AppCompatActivity() {
     }
 
     /**
-     * Opens or closes Chrome DevTools inspection of the player page.
+     * Opens or closes Chrome DevTools inspection of the player page, and remembers
+     * the answer.
      *
-     * Deliberately NOT persisted. A screen left inspectable is a screen anyone who
-     * reaches it can read and rewrite, and the one person who would remember to
-     * close it is the technician who has already driven away. So it dies with the
-     * process — every restart, update and power cut closes it — and the operator
-     * who needs it is present to switch it on again.
+     * It used to die with the process on purpose: a screen left inspectable is one
+     * anyone who reaches it can read and rewrite, and the person who would remember
+     * to close it is the technician who has already driven away. The argument is
+     * sound, but it made the tool useless for the fault it exists to diagnose — a
+     * crash, an update and a recovery restart all take the process with them, so
+     * inspection switched itself off at precisely the moment the screen misbehaved.
+     * It is off by default and reachable only from the service menu, so it now stays
+     * where it was put until somebody turns it off there.
      *
      * The WebView API is static and has no getter, so the flag is mirrored here to
      * answer `device_info`.
@@ -425,7 +430,23 @@ class KioskActivity : AppCompatActivity() {
     private fun setWebDebugging(enabled: Boolean) {
         WebView.setWebContentsDebuggingEnabled(enabled)
         webDebugging = enabled
+        (application as? PlayerApp)?.runtimeStore?.update { it.copy(webDebugging = enabled) }
         Log.i(TAG, "web contents debugging ${if (enabled) "enabled" else "disabled"}")
+    }
+
+    /**
+     * Puts inspection back the way the operator left it.
+     *
+     * Called before the first WebView exists, because `setWebContentsDebuggingEnabled`
+     * is a process-wide static that later WebViews inherit rather than re-read.
+     */
+    private fun restoreWebDebugging() {
+        val enabled =
+            (application as? PlayerApp)?.runtimeStore?.read()?.webDebugging == true
+        if (!enabled) return
+        WebView.setWebContentsDebuggingEnabled(true)
+        webDebugging = true
+        Log.i(TAG, "web contents debugging restored from the last session")
     }
 
     /**
