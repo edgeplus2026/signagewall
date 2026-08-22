@@ -1969,14 +1969,54 @@
       "download": "Preuzmi APK",
       "loading": "Učitavanje…",
       "unavailable": "Nedostupno",
-      "steps": [
-        "Prebacite APK na USB fleš i ubodite ga u TV — ili otvorite isti link u browseru samog televizora.",
-        "Na TV-u otvorite fajl: iz preuzimanja u browseru, ili file managerom ako ste koristili fleš.",
-        "Android će prvi put odbiti i ponuditi ekran sa podešavanjima. Dozvolite aplikaciji kojom ste otvorili fajl — browseru ili file manageru — da instalira nepoznate aplikacije, pa se vratite i otvorite fajl ponovo.",
-        "Potvrdite instalaciju, pa otvorite SignageWall iz liste aplikacija na televizoru.",
-        "Na ekranu se pojavi šestocifreni kod za uparivanje. Ukucajte ga u tabu Uređaj ovog ekrana."
-      ],
-      "afterwards": "To je jedini put da neko mora da priđe televizoru. Od tada ekran sam instalira svoja ažuriranja, tiho, bez izlaska na teren i bez ičega da se potvrđuje."
+      "install": {
+        "title": "Prebaci ga na uređaj",
+        "steps": [
+          {
+            "title": "Prenesi fajl",
+            "detail": "Stavi APK na USB fleš i ubodi ga u Android uređaj — televizor, box ili stick. Ako uređaj ima browser, otvaranje istog linka na njemu radi jednako dobro."
+          },
+          {
+            "title": "Otvori fajl na uređaju",
+            "detail": "File managerom, ili iz preuzimanja u browseru ako si išao tim putem. Neki uređaji nemaju ni jedno ni drugo; na njima koristi fleš i bilo koji file manager iz prodavnice."
+          },
+          {
+            "title": "Dozvoli nepoznate aplikacije",
+            "detail": "Android blokira prvu instalaciju i ponudi ekran sa podešavanjima. Dozvoli aplikaciji kojom si otvorio fajl — file manageru ili browseru — pa se vrati i otvori fajl ponovo."
+          },
+          {
+            "title": "Potvrdi instalaciju",
+            "detail": "Zatim otvori SignageWall iz liste aplikacija na uređaju."
+          },
+          {
+            "title": "Upari ekran",
+            "detail": "Na ekranu se pojavi šestocifreni kod. Ukucaj ga u tabu Uređaj ovog ekrana."
+          }
+        ]
+      },
+      "setup": {
+        "title": "Podesi ekran",
+        "intro": "Četiri stvari na samom uređaju. Service meni plejera otvara se strelicom gore na daljinskom. Gde se nalaze Android podešavanja razlikuje se po proizvođaču — obično pod System ili Device preferences.",
+        "steps": [
+          {
+            "title": "Spreči uređaj da zaspi",
+            "detail": "U Android podešavanjima samog uređaja postavi gašenje ekrana i screen saver na nikad. Plejer sam drži ekran budnim dok je u prvom planu, ali ako ga išta ostavi u pozadini preuzima tajmer uređaja — a uspavan ekran gubi mrežu, pa ne može ni da javi da je pocrneo."
+          },
+          {
+            "title": "Dozvoli plejeru da se sam vrati",
+            "detail": "Ako service meni upozori da ekran ne može sam da se oporavi, otvori taj red i dodeli dozvolu koju traži. Bez nje se plejer ne može vratiti u prvi plan posle pada, i crn ekran ostaje crn."
+          },
+          {
+            "title": "Uključi kiosk mod",
+            "detail": "U service meniju. Na uređaju koji nije Device Owner iz njega se i dalje može izaći — ali plejer se sam vraća za desetak sekundi."
+          },
+          {
+            "title": "Uključi web inspector",
+            "detail": "Ostavi ga uključenog. Tako se ekran dijagnostikuje na daljinu umesto izlaskom na teren, i ostaje uključen dok se odavde ne isključi."
+          }
+        ]
+      },
+      "afterwards": "To je jedini put da neko mora da priđe uređaju. Od tada ekran sam instalira svoja ažuriranja, tiho, bez izlaska na teren i bez ičega da se potvrđuje."
     },
     "web": {
       "title": "Web plejer",

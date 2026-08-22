@@ -1985,14 +1985,54 @@
       "download": "Download APK",
       "loading": "Loading…",
       "unavailable": "Unavailable",
-      "steps": [
-        "Copy the APK onto a USB stick and plug it into the TV — or open the same link in the television's own browser.",
-        "On the TV, open the file: from the browser's downloads, or with a file manager if you used the stick.",
-        "Android will refuse the first time and offer a settings screen. Allow the app you opened the file with — the browser or the file manager — to install unknown apps, then go back and open the file again.",
-        "Confirm the install, then open SignageWall from the television's app list.",
-        "The screen shows a six-digit pairing code. Type it into this screen's Device tab."
-      ],
-      "afterwards": "That is the only time anyone has to touch the television. From then on the screen installs its own updates silently, with no visit and nothing to confirm."
+      "install": {
+        "title": "Get it onto the device",
+        "steps": [
+          {
+            "title": "Copy the file across",
+            "detail": "Put the APK on a USB stick and plug it into the Android device — television, box or stick. If the device has a browser, opening the same link on it works just as well."
+          },
+          {
+            "title": "Open the file there",
+            "detail": "With a file manager, or from the browser's downloads if you went that way. Some devices ship neither; on those, use the USB stick and any file manager from the store."
+          },
+          {
+            "title": "Allow unknown apps",
+            "detail": "Android blocks the first install and offers a settings screen. Allow whichever app opened the file — the file manager or the browser — then go back and open the file again."
+          },
+          {
+            "title": "Confirm the install",
+            "detail": "Then open SignageWall from the device's app list."
+          },
+          {
+            "title": "Pair the screen",
+            "detail": "The screen shows a six-digit code. Type it into this screen's Device tab."
+          }
+        ]
+      },
+      "setup": {
+        "title": "Set the screen up",
+        "intro": "Four things on the device itself. The player's service menu opens with the up arrow on the remote. Where the Android settings live differs by manufacturer — usually under System or Device preferences.",
+        "steps": [
+          {
+            "title": "Stop the device going to sleep",
+            "detail": "Set the screen timeout and the screensaver to never, in the device's own Android settings. The player holds the screen awake while it is in front, but if anything ever leaves it in the background the device's timer takes over — and a sleeping screen loses its network, so it cannot even report that it has gone dark."
+          },
+          {
+            "title": "Let the player put itself back",
+            "detail": "If the service menu warns that the screen cannot restore itself, open that row and grant the permission it asks for. Without it the player cannot return to the front after a crash, and a blank screen stays blank."
+          },
+          {
+            "title": "Turn on kiosk mode",
+            "detail": "In the service menu. On a device that is not provisioned as Device Owner it can still be exited — but the player puts itself back within about ten seconds."
+          },
+          {
+            "title": "Turn on the web inspector",
+            "detail": "Leave it on. It is how a screen gets diagnosed remotely instead of by driving out to it, and it stays on until it is switched off here."
+          }
+        ]
+      },
+      "afterwards": "That is the only time anyone has to touch the device. From then on the screen installs its own updates silently, with no visit and nothing to confirm."
     },
     "web": {
       "title": "Web player",
