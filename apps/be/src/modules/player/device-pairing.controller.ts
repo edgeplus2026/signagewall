@@ -32,6 +32,7 @@ import { SetDeviceOrientationDto } from './dto/set-device-orientation.dto';
 import { SetDeviceScaleDto } from './dto/set-device-scale.dto';
 import { SetDeviceVolumeDto } from './dto/set-device-volume.dto';
 import { StepDeviceDto } from './dto/step-device.dto';
+import { PlayerMaintenanceGuard } from './guards/player-maintenance.guard';
 import { PlayerService } from './player.service';
 
 /**
@@ -139,6 +140,7 @@ export class DevicePairingController {
 
   @Patch(':screenId/device/daily-reload')
   @RequireOrgRole()
+  @UseGuards(PlayerMaintenanceGuard)
   @ApiSuccessResponse(Object)
   setDailyReload(
     @RequiredOrganizationId() organizationId: string,
@@ -154,6 +156,7 @@ export class DevicePairingController {
 
   @Post(':screenId/device/restart')
   @RequireOrgRole()
+  @UseGuards(PlayerMaintenanceGuard)
   @HttpCode(HttpStatus.OK)
   @ApiSuccessNullResponse()
   async restart(
@@ -166,6 +169,7 @@ export class DevicePairingController {
 
   @Post(':screenId/device/diagnostics')
   @RequireOrgRole()
+  @UseGuards(PlayerMaintenanceGuard)
   @HttpCode(HttpStatus.OK)
   @ApiSuccessNullResponse()
   async requestDiagnostics(
@@ -178,6 +182,7 @@ export class DevicePairingController {
 
   @Post(':screenId/device/apply-update')
   @RequireOrgRole()
+  @UseGuards(PlayerMaintenanceGuard)
   @HttpCode(HttpStatus.OK)
   @ApiSuccessNullResponse()
   async applyUpdate(
@@ -198,6 +203,7 @@ export class DevicePairingController {
    */
   @Post(':screenId/device/shell/:command')
   @RequireOrgRole()
+  @UseGuards(PlayerMaintenanceGuard)
   @HttpCode(HttpStatus.OK)
   @ApiSuccessNullResponse()
   async queueShellCommand(
@@ -219,6 +225,7 @@ export class DevicePairingController {
   /** Asks the shell to bring its event log along on its next check-in. */
   @Post(':screenId/device/shell-log')
   @RequireOrgRole()
+  @UseGuards(PlayerMaintenanceGuard)
   @HttpCode(HttpStatus.OK)
   @ApiSuccessNullResponse()
   async requestShellLog(

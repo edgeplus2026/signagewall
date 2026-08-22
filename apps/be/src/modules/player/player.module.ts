@@ -17,6 +17,7 @@ import { DeviceOfflineAlertScheduler } from './device-offline-alert.scheduler';
 import { DeviceOfflineAlertService } from './device-offline-alert.service';
 import { DevicePairingController } from './device-pairing.controller';
 import { DevicesRepository } from './devices.repository';
+import { PlayerMaintenanceGuard } from './guards/player-maintenance.guard';
 import { PlayerTokenGuard } from './guards/player-token.guard';
 import { PlaybackPdfService } from './playback-pdf.service';
 import { PlaybackReportService } from './playback-report.service';
@@ -71,6 +72,7 @@ import {
     PlaybackVerifyController,
   ],
   providers: [
+    PlayerMaintenanceGuard,
     PlayerService,
     PlayerContentService,
     PrivateAssetsHydrationService,

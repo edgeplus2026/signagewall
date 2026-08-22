@@ -32,6 +32,9 @@ const AUTHORIZING_GUARDS = new Set([
   'SuperAdminGuard',
   'PlayerTokenGuard',
   'GoogleAuthGuard',
+  // Narrows a device route from "any member of this organisation" to "an active
+  // super-admin, including one working inside an impersonated session".
+  'PlayerMaintenanceGuard',
 ]);
 
 /**
