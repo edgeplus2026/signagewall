@@ -25,6 +25,8 @@ import { PlaybackVerifyController } from './playback-verify.controller';
 import { PlaybackController } from './playback.controller';
 import { PlaybackRepository } from './playback.repository';
 import { PlaybackService } from './playback.service';
+import { PlayerReleaseController } from './player-release.controller';
+import { PlayerReleaseService } from './player-release.service';
 import { PlayerContentService } from './player-content.service';
 import { PlayerController } from './player.controller';
 import { PlayerGateway } from './player.gateway';
@@ -66,12 +68,14 @@ import {
     UsersModule,
   ],
   controllers: [
+    PlayerReleaseController,
     PlayerController,
     DevicePairingController,
     PlaybackController,
     PlaybackVerifyController,
   ],
   providers: [
+    PlayerReleaseService,
     PlayerMaintenanceGuard,
     PlayerService,
     PlayerContentService,

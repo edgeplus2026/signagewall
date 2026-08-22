@@ -45,6 +45,10 @@ const AUTHORIZING_GUARDS = new Set([
  */
 const REVIEWED_JWT_ONLY_OR_PUBLIC = new Set([
   'AuthController', // public auth flows + own-session routes
+  // Answers which player build is current. No tenant to scope to, and the file it
+  // names is already public to every device in the fleet; the JWT is only there to
+  // keep the fleet's version off the open internet.
+  'PlayerReleaseController',
   'HealthController', // public liveness probe
   'LegalController', // public documents + own acceptance state
   'WebhooksController', // Google push channels, verified via channel id/token

@@ -170,7 +170,8 @@
     },
     "welcome": "Welcome to SignageWall.",
     "dashboardPlaceholder": "Your dashboard content goes here.",
-    "reports": "Reports"
+    "reports": "Reports",
+    "downloads": "Download"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1971,6 +1972,33 @@
         "success": "Update pushed to all connected screens.",
         "error": "Could not push the update. Please try again."
       }
+    }
+  },
+  "downloads": {
+    "title": "Download",
+    "description": "Everything needed to put SignageWall on a screen.",
+    "android": {
+      "title": "Android TV player",
+      "fileTitle": "Player app (APK)",
+      "fileDescription": "Version {{version}} · {{size}}. Always the current build — after the first install a screen updates itself from here.",
+      "fileUnknown": "The release channel could not be reached just now. Try again in a moment.",
+      "download": "Download APK",
+      "loading": "Loading…",
+      "unavailable": "Unavailable",
+      "steps": [
+        "Copy the APK onto a USB stick and plug it into the TV — or open the same link in the television's own browser.",
+        "On the TV, open the file: from the browser's downloads, or with a file manager if you used the stick.",
+        "Android will refuse the first time and offer a settings screen. Allow the app you opened the file with — the browser or the file manager — to install unknown apps, then go back and open the file again.",
+        "Confirm the install, then open SignageWall from the television's app list.",
+        "The screen shows a six-digit pairing code. Type it into this screen's Device tab."
+      ],
+      "afterwards": "That is the only time anyone has to touch the television. From then on the screen installs its own updates silently, with no visit and nothing to confirm."
+    },
+    "web": {
+      "title": "Web player",
+      "rowTitle": "Open the player in a browser",
+      "rowDescription": "Runs on any computer or display with a browser, and pairs exactly the same way. Useful for a quick test, or for a screen driven by a PC rather than a TV box.",
+      "open": "Open"
     }
   },
   "faq": {

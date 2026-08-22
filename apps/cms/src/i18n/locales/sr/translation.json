@@ -147,7 +147,8 @@
     },
     "welcome": "Dobrodošli u SignageWall.",
     "dashboardPlaceholder": "Sadržaj kontrolne table ide ovde.",
-    "reports": "Izveštaji"
+    "reports": "Izveštaji",
+    "downloads": "Preuzimanje"
   },
   "dashboard": {
     "title": "Kontrolna tabla",
@@ -1955,6 +1956,33 @@
         "success": "Ažuriranje poslato svim povezanim ekranima.",
         "error": "Slanje ažuriranja nije uspelo. Pokušajte ponovo."
       }
+    }
+  },
+  "downloads": {
+    "title": "Preuzimanje",
+    "description": "Sve što je potrebno da SignageWall dođe na ekran.",
+    "android": {
+      "title": "Plejer za Android TV",
+      "fileTitle": "Aplikacija plejera (APK)",
+      "fileDescription": "Verzija {{version}} · {{size}}. Uvek aktuelna — posle prve instalacije ekran se odavde ažurira sam.",
+      "fileUnknown": "Kanal sa izdanjima trenutno nije dostupan. Pokušajte za koji trenutak.",
+      "download": "Preuzmi APK",
+      "loading": "Učitavanje…",
+      "unavailable": "Nedostupno",
+      "steps": [
+        "Prebacite APK na USB fleš i ubodite ga u TV — ili otvorite isti link u browseru samog televizora.",
+        "Na TV-u otvorite fajl: iz preuzimanja u browseru, ili file managerom ako ste koristili fleš.",
+        "Android će prvi put odbiti i ponuditi ekran sa podešavanjima. Dozvolite aplikaciji kojom ste otvorili fajl — browseru ili file manageru — da instalira nepoznate aplikacije, pa se vratite i otvorite fajl ponovo.",
+        "Potvrdite instalaciju, pa otvorite SignageWall iz liste aplikacija na televizoru.",
+        "Na ekranu se pojavi šestocifreni kod za uparivanje. Ukucajte ga u tabu Uređaj ovog ekrana."
+      ],
+      "afterwards": "To je jedini put da neko mora da priđe televizoru. Od tada ekran sam instalira svoja ažuriranja, tiho, bez izlaska na teren i bez ičega da se potvrđuje."
+    },
+    "web": {
+      "title": "Web plejer",
+      "rowTitle": "Otvori plejer u browseru",
+      "rowDescription": "Radi na svakom računaru ili ekranu sa browserom i uparuje se na isti način. Zgodno za brzu proveru, ili za ekran koji vodi računar umesto TV boxa.",
+      "open": "Otvori"
     }
   },
   "faq": {

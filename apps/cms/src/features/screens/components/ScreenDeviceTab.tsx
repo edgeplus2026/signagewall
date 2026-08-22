@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { PlayerInstallInstructions } from '@/features/downloads/components/PlayerInstallInstructions'
 import { DeviceSettingsForm } from '@/features/screens/components/DeviceSettingsForm'
 import { PairingCodeFrame } from '@/features/screens/components/PairingCodeFrame'
 import { PlayerPreviewFrame } from '@/features/screens/components/PlayerPreviewFrame'
@@ -138,13 +139,21 @@ export function ScreenDeviceTab({ screenId }: ScreenDeviceTabProps) {
           </SettingsSection>
         </div>
       ) : (
-        <PairingCodeFrame
-          code={code}
-          onChange={setCode}
-          onComplete={(value) => void onPair(value)}
-          onSubmit={() => void onPair()}
-          isPending={pair.isPending}
-        />
+        <div className="flex flex-col gap-7">
+          <PairingCodeFrame
+            code={code}
+            onChange={setCode}
+            onComplete={(value) => void onPair(value)}
+            onSubmit={() => void onPair()}
+            isPending={pair.isPending}
+          />
+          {/* A code box on its own assumes the screen already runs the player. On a
+              screen that has never been paired the opposite is usually true —
+              somebody is standing in front of a television with nothing installed
+              on it — so the way to get there belongs directly underneath, not on
+              another page they have not found yet. */}
+          <PlayerInstallInstructions />
+        </div>
       )}
 
       <UnpairDeviceDialog

@@ -15,6 +15,7 @@ import AppInstanceConfigPage from '@/features/apps/pages/AppInstanceConfigPage'
 import AppsPage from '@/features/apps/pages/AppsPage'
 import { ProtectedLayout } from '@/features/auth/components/ProtectedLayout'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
+import DownloadPage from '@/features/downloads/pages/DownloadPage'
 import FaqPage from '@/features/faq/pages/FaqPage'
 import MediaPage from '@/features/media/pages/MediaPage'
 import CreateOrganizationPage from '@/features/organizations/pages/CreateOrganizationPage'
@@ -173,6 +174,11 @@ export const router = createBrowserRouter([
                 path: '/settings',
                 element: <SettingsPage />,
                 handle: { breadcrumb: { labelKey: 'layout.settings' } },
+              },
+              {
+                path: '/downloads',
+                element: <DownloadPage />,
+                handle: { breadcrumb: { labelKey: 'layout.downloads' } },
               },
               {
                 path: '/faq',

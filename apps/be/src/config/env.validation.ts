@@ -9,6 +9,9 @@ export const envValidationSchema = Joi.object({
   FRONTEND_URL: Joi.string().uri().default('http://localhost:5173'),
   PLAYER_URL: Joi.string().uri().default('http://localhost:5174'),
   MARKETING_URL: Joi.string().uri().default('http://localhost:3002'),
+  PLAYER_RELEASES_URL: Joi.string()
+    .uri()
+    .default('https://releases.signagewall.com'),
   MONGODB_URI: Joi.string().required(),
   JWT_ACCESS_SECRET: Joi.string().min(32).required(),
   JWT_REFRESH_SECRET: Joi.string().min(32).required(),

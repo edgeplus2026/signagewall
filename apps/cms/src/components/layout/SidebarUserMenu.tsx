@@ -1,11 +1,4 @@
-import {
-  ChevronsUpDown,
-  CircleHelp,
-  LogOut,
-  Settings,
-  Shield,
-  Users,
-} from 'lucide-react'
+import { ChevronsUpDown, CircleHelp, Download, LogOut, Settings, Shield, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -28,11 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar'
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import { authApi } from '@/features/auth/api/authApi'
 import { useAuthStore } from '@/features/auth/store/authStore'
 import { useOrganizationStore } from '@/features/organizations/store/organizationStore'
@@ -79,7 +68,7 @@ export function SidebarUserMenu() {
                 className="data-[state=open]:bg-highlight data-[state=open]:text-primary"
               >
                 <Avatar className="size-8 rounded-lg after:rounded-lg">
-                  <AvatarFallback className="rounded-lg !text-secondary group-hover/menu-button:!text-secondary group-data-[state=open]/menu-button:!text-secondary">
+                  <AvatarFallback className="!text-secondary group-hover/menu-button:!text-secondary group-data-[state=open]/menu-button:!text-secondary rounded-lg">
                     {getInitials(displayName)}
                   </AvatarFallback>
                 </Avatar>
@@ -99,7 +88,7 @@ export function SidebarUserMenu() {
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="size-8 rounded-lg after:rounded-lg">
-                    <AvatarFallback className="rounded-lg !text-secondary">
+                    <AvatarFallback className="!text-secondary rounded-lg">
                       {getInitials(displayName)}
                     </AvatarFallback>
                   </Avatar>
@@ -130,6 +119,12 @@ export function SidebarUserMenu() {
                 <Link to="/users">
                   <Users />
                   {t('layout.users')}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className={menuItemClassName}>
+                <Link to="/downloads">
+                  <Download />
+                  {t('layout.downloads')}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className={menuItemClassName}>

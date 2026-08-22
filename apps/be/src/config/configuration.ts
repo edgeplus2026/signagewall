@@ -13,6 +13,14 @@ export default () => ({
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
   playerUrl: process.env.PLAYER_URL ?? 'http://localhost:5174',
   marketingUrl: process.env.MARKETING_URL ?? 'http://localhost:3002',
+  /**
+   * Where the player's release channel lives. Read server-side so the CMS can show
+   * the current APK: the bucket is public but sends no CORS headers, so a browser
+   * cannot ask it directly.
+   */
+  playerReleasesUrl: (
+    process.env.PLAYER_RELEASES_URL ?? 'https://releases.signagewall.com'
+  ).replace(/\/$/, ''),
   mongodb: {
     uri: process.env.MONGODB_URI ?? 'mongodb://localhost:27017/signagewall',
   },
