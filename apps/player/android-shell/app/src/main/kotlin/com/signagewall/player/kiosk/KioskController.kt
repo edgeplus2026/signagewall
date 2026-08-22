@@ -42,6 +42,9 @@ class KioskController(private val activity: Activity) {
     var current: Mode = Mode.OFF
         private set
 
+    /** Last engagement outcome reported, so an unchanged fact is not re-recorded. */
+    private var lastLockEngaged: Boolean? = null
+
     /** Entry point from the bridge. Parses the string mode and applies on the UI thread. */
     fun setMode(modeStr: String) {
         val mode = parse(modeStr)
@@ -137,7 +140,15 @@ class KioskController(private val activity: Activity) {
      * tell them apart.
      */
     private fun verifyLockTaskEngaged() {
-        if (isInLockTask()) return
+        val engaged = isInLockTask()
+        // Only on a CHANGE. `apply` runs again on every Activity create and every
+        // settings push, so recording the outcome each time filled the event log with
+        // the same unchanged sentence — eight copies in half an hour on the test box —
+        // and that log is small and exists to explain what a screen DID, not to
+        // restate what it is. Crowding out the real events is the opposite of help.
+        if (engaged == lastLockEngaged) return
+        lastLockEngaged = engaged
+        if (engaged) return
         Log.w(TAG, "lock task did not engage; the screen can still be left")
         ShellLog.of(activity)?.record(
             "kiosk",
